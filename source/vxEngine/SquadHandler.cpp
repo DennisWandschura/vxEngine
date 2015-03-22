@@ -12,6 +12,7 @@
 #include "AStar.h"
 #include "NavGraph.h"
 #include "Locator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 
 namespace ai
 {
@@ -132,7 +133,7 @@ namespace ai
 	//	printf("%u\n", destNode);
 
 		auto result = pathfindAStar(*s_pNavGraph, startNode, destNode, heuristicDistance, pAllocatorScratch, &actor.data->path, Locator::getPhysicsAspect());
-		VX_ASSERT(result != 0, "no path");
+		VX_ASSERT(result != 0);
 
 		// set data and state
 		//pActor->data->path.swap(nodes);

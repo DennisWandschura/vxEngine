@@ -13,7 +13,7 @@ TextureRef::TextureRef(U32 textureId, U32 slice, vx::uint2 textureSize, U8 isArr
 	{
 		U32 oldSlize = m_slice;
 		m_slice |= (1 << 31);
-		assert(oldSlize == getSlice());
+		VX_ASSERT(oldSlize == getSlice());
 	}
 }
 

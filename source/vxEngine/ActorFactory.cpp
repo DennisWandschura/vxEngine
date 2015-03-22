@@ -10,7 +10,7 @@
 #include "State.h"
 #include "Transition.h"
 #include "ConditionHasDestination.h"
-#include "PoolAllocator.h"
+#include <vxLib/Allocator/PoolAllocator.h>
 
 void ActorFactory::create(const NavGraph* navGraph, Component::Actor *p, Component::Input *pInput, Component::Physics *pPhysics, F32 halfHeight, vx::PoolAllocator* pAllocator)
 {
@@ -20,7 +20,7 @@ void ActorFactory::create(const NavGraph* navGraph, Component::Actor *p, Compone
 
 	p->flags = flags;
 	p->data = std::make_unique<ActorData>();
-	p->data->path = std::move(vx::ManagedArray<vx::float3>(capacity, pAllocator));
+	p->data->path = std::move(vx::array<vx::float3>(capacity, pAllocator));
 /*	p->data->destination.x = 7.0f;
 	p->data->destination.y = 1.5f;
 	p->data->destination.z = -5.5f;*/

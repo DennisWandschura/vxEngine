@@ -23,7 +23,7 @@ namespace vx
 #include "AABB.h"
 #include <vector>
 #include "Ray.h"
-#include "StackAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 
 class TriangleMesh
 {

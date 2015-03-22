@@ -27,15 +27,9 @@
 #include "NavConnection.h"
 #include "developer.h"
 #include "EventsIngame.h"
-#include "kernelSortRays.h"
-
-#define PUSH_GPU_MARKER(TEXT) pProfiler->pushGpuMarker(TEXT)
-#define POP_GPU_MARKER() pProfiler->popGpuMarker()
-//#define PUSH_GPU_MARKER(TEXT) {}
-//#define POP_GPU_MARKER() {}
-#define PROFILER_RENDER() pProfiler->render(m_stateManager)
-#define GRAPH_START_GPU() pGraph->startGpu()
-#define GRAPH_END_GPU() pGraph->endGpu()
+#include "ImageBindingManager.h"
+#include "BufferBindingManager.h"
+#include <vxLib/gl\StateManager.h>
 
 RenderAspect *g_renderAspect{ nullptr };
 
@@ -45,13 +39,10 @@ namespace
 	{
 		assert(false);
 	}
-
 }
 
 RenderAspect::RenderAspect(Logfile &logfile, FileAspect &fileAspect)
-	:m_stateManager(),
-	//m_stageShadow(),
-	m_shaderManager(logfile),
+	:m_shaderManager(logfile),
 	m_renderContext(),
 	m_camera(),
 	m_fileAspect(fileAspect),
@@ -76,13 +67,9 @@ bool RenderAspect::initializeBuffers()
 		desc.bufferType = vx::gl::BufferType::Atomic_Counter_Buffer;
 		desc.size = sizeof(U32) * 4;
 		desc.pData = nullptr;
-#ifdef _VX_GL_45
 		desc.immutable = 1;
 		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Read;
-#else
-		desc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
-#endif
-		m_rayAtomicCounter.create(desc);
+		m_atomicCounter.create(desc);
 	}
 
 	m_emptyVao.create();
@@ -90,34 +77,22 @@ bool RenderAspect::initializeBuffers()
 	vx::gl::BufferDescription vboDesc;
 	vboDesc.bufferType = vx::gl::BufferType::Array_Buffer;
 	vboDesc.size = sizeof(VertexPNTUV) * s_maxVerticesTotal;
-#ifdef _VX_GL_45
 	vboDesc.flags = vx::gl::BufferStorageFlags::Write;
 	vboDesc.immutable = 1;
-#else
-	vboDesc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
-#endif
 	m_pColdData->m_meshVbo.create(vboDesc);
 
 	vx::gl::BufferDescription idVboDesc;
 	idVboDesc.bufferType = vx::gl::BufferType::Array_Buffer;
 	idVboDesc.size = sizeof(U32) * s_meshMaxInstances;
-#ifdef _VX_GL_45
 	idVboDesc.flags = vx::gl::BufferStorageFlags::Write;
 	idVboDesc.immutable = 1;
-#else
-	idVboDesc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
-#endif
 	m_pColdData->m_meshIdVbo.create(idVboDesc);
 
 	vx::gl::BufferDescription iboDesc;
 	iboDesc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
 	iboDesc.size = sizeof(U32) * s_maxIndicesTotal;
-#ifdef _VX_GL_45
 	iboDesc.flags = vx::gl::BufferStorageFlags::Write;
 	iboDesc.immutable = 1;
-#else
-	iboDesc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
-#endif
 	m_pColdData->m_meshIbo.create(iboDesc);
 
 	/*
@@ -164,12 +139,8 @@ bool RenderAspect::initializeBuffers()
 		vx::gl::BufferDescription vboDesc;
 		vboDesc.bufferType = vx::gl::BufferType::Array_Buffer;
 		vboDesc.size = sizeof(vx::float3) * s_maxNavMeshVertices;
-#ifdef _VX_GL_45
 		vboDesc.flags = vx::gl::BufferStorageFlags::Write;
 		vboDesc.immutable = 1;
-#else
-		vboDesc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
-#endif
 		m_pColdData->m_navmeshVbo.create(vboDesc);
 	}
 
@@ -177,12 +148,8 @@ bool RenderAspect::initializeBuffers()
 		vx::gl::BufferDescription iboDesc;
 		iboDesc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
 		iboDesc.size = sizeof(U16) * s_maxNavMeshIndices;
-#ifdef _VX_GL_45
 		iboDesc.flags = vx::gl::BufferStorageFlags::Write;
 		iboDesc.immutable = 1;
-#else
-		iboDesc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
-#endif
 		m_pColdData->m_navmeshIbo.create(iboDesc);
 	}
 
@@ -197,12 +164,8 @@ bool RenderAspect::initializeBuffers()
 		vx::gl::BufferDescription vboDesc;
 		vboDesc.bufferType = vx::gl::BufferType::Array_Buffer;
 		vboDesc.size = sizeof(vx::float3) * s_maxNavMeshVertices;
-#ifdef _VX_GL_45
 		vboDesc.flags = vx::gl::BufferStorageFlags::Write;
 		vboDesc.immutable = 1;
-#else
-		vboDesc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
-#endif
 		m_pColdData->m_navNodesVbo.create(vboDesc);
 	}
 
@@ -216,11 +179,7 @@ bool RenderAspect::initializeBuffers()
 		vx::gl::BufferDescription iboDesc;
 		iboDesc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
 		iboDesc.size = sizeof(U16) * s_maxNavMeshIndices;
-#ifdef _VX_GL_45
 		iboDesc.immutable = 1;
-#else
-		iboDesc.usage = vx::gl::BufferDataUsage::Static_Draw;
-#endif
 		iboDesc.pData = indices;
 		m_pColdData->m_navNodesIbo.create(iboDesc);
 	}
@@ -229,13 +188,34 @@ bool RenderAspect::initializeBuffers()
 		vx::gl::BufferDescription iboDesc;
 		iboDesc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
 		iboDesc.size = sizeof(U16) * s_maxNavMeshIndices * 2;
-#ifdef _VX_GL_45
 		iboDesc.flags = vx::gl::BufferStorageFlags::Write;
 		iboDesc.immutable = 1;
-#else
-		iboDesc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
-#endif
 		m_pColdData->m_navConnectionsIbo.create(iboDesc);
+	}
+
+	{
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+		desc.size = sizeof(U32);
+		desc.immutable = 1;
+		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Read;
+		m_rayOffsetBlock.create(desc);
+	}
+
+	{
+		DrawArraysIndirectCommand cmd;
+		cmd.baseInstance = 0;
+		cmd.count = 0;
+		cmd.first = 0;
+		cmd.instanceCount = 1;
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+		desc.size = sizeof(DrawArraysIndirectCommand);
+		desc.immutable = 1;
+		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Read;
+		desc.pData = &cmd;
+		m_voxelTrianglePairCmdBuffer.create(desc);
 	}
 
 	m_navNodesVao.create();
@@ -294,7 +274,7 @@ bool RenderAspect::initializeBuffers()
 		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
 		desc.size = maxRaySizeBytes;
 		desc.immutable = 1;
-		desc.flags = vx::gl::BufferStorageFlags::Read;
+		desc.flags = vx::gl::BufferStorageFlags::Read | vx::gl::BufferStorageFlags::Write;
 		m_rayList.create(desc);
 	}
 
@@ -303,9 +283,38 @@ bool RenderAspect::initializeBuffers()
 		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
 		desc.size = sizeof(RayLink) * 960 * 540 * 4;
 		desc.immutable = 1;
-		desc.flags = vx::gl::BufferStorageFlags::Read;
+		desc.flags = vx::gl::BufferStorageFlags::Read | vx::gl::BufferStorageFlags::Write;
 
 		m_rayLinks.create(desc);
+	}
+
+	{
+		vx::gl::BufferDescription vboDesc;
+		vboDesc.bufferType = vx::gl::BufferType::Array_Buffer;
+		vboDesc.size = sizeof(VoxelTrianglePair) * 50000;
+		vboDesc.flags = vx::gl::BufferStorageFlags::Write;
+		vboDesc.immutable = 1;
+		m_voxelTrianglePairVbo.create(vboDesc);
+
+		m_voxelTrianglePairVao.create();
+
+		m_voxelTrianglePairVao.enableArrayAttrib(0);
+		m_voxelTrianglePairVao.arrayAttribBinding(0, 0);
+		m_voxelTrianglePairVao.arrayAttribFormatF(0, 3, 0, 0);
+
+		m_voxelTrianglePairVao.enableArrayAttrib(1);
+		m_voxelTrianglePairVao.arrayAttribBinding(1, 0);
+		m_voxelTrianglePairVao.arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
+
+		m_voxelTrianglePairVao.enableArrayAttrib(2);
+		m_voxelTrianglePairVao.arrayAttribBinding(2, 0);
+		m_voxelTrianglePairVao.arrayAttribFormatF(2, 3, 0, sizeof(vx::float3) * 2);
+
+		m_voxelTrianglePairVao.enableArrayAttrib(3);
+		m_voxelTrianglePairVao.arrayAttribBinding(3, 0);
+		m_voxelTrianglePairVao.arrayAttribFormatF(3, 3, 0, sizeof(vx::float3) * 3);
+
+		m_voxelTrianglePairVao.bindVertexBuffer(m_voxelTrianglePairVbo, 0, 0, sizeof(VoxelTrianglePair));
 	}
 
 	return true;
@@ -408,7 +417,6 @@ void RenderAspect::updateLightBuffer(const Light *pLights, U32 numLights)
 
 	auto pLightData = m_lightDataBlock.map<LightDataBlock>(vx::gl::Map::Write_Only);
 	*pLightData = lightDataBlock;
-	m_lightDataBlock.unmap();
 
 	//cudaUpdateLights((const cu::SphereLightData*)lightDataBlock.u_lightData, numLights);
 }
@@ -536,7 +544,8 @@ void RenderAspect::createTextures()
 		m_voxelTexture.create(desc);
 
 		desc.format = vx::gl::TextureFormat::R32UI;
-		m_voxelRayCountTexture.create(desc);
+		m_voxelRayLinkOffsetTexture.create(desc);
+		m_voxelRayLinkCountTexture.create(desc);
 	}
 
 	{
@@ -569,10 +578,12 @@ void RenderAspect::createTextures()
 		vx::gl::TextureDescription desc;
 		desc.format = vx::gl::TextureFormat::R8;
 		desc.type = vx::gl::Texture_2D;
-		desc.size = vx::ushort3(1280, 720, 1);
+		desc.size = vx::ushort3(960, 540, 1);
 		desc.miplevels = 1;
 		desc.sparse = 0;
 		m_rayTraceShadowTextureSmall.create(desc);
+
+		m_rayTraceShadowTextureSmall.setWrapMode2D(vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE);
 	}
 }
 
@@ -595,7 +606,7 @@ void RenderAspect::createFrameBuffers()
 
 bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc &desc)
 {
-	vx::gl::ContextDescription contextDesc = vx::gl::ContextDescription::create(*desc.window, &m_stateManager, desc.resolution,desc.fovRad, desc.z_near, desc.z_far, 4, 5, desc.vsync, desc.debug);
+	vx::gl::ContextDescription contextDesc = vx::gl::ContextDescription::create(*desc.window, desc.resolution, desc.fovRad, desc.z_near, desc.z_far, 4, 5, desc.vsync, desc.debug);
 	if (!m_renderContext.initialize(contextDesc))
 		return false;
 
@@ -618,9 +629,9 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 		vx::gl::Debug::enableCallback(true);
 	}
 
-	m_stateManager.enable(vx::gl::Capabilities::Framebuffer_sRGB);
-	m_stateManager.enable(vx::gl::Capabilities::Texture_Cube_Map_Seamless);
-	m_stateManager.setClearColor(0, 0, 0, 1);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Framebuffer_sRGB);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Texture_Cube_Map_Seamless);
+	vx::gl::StateManager::setClearColor(0, 0, 0, 1);
 	//m_stateManager.setViewport(0, 0, windowResolution.x, windowResolution.y);
 
 
@@ -637,8 +648,6 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 
 	initializeUniformBuffers();
 	initializeBuffers();
-
-	initializeCUDA(m_rayLinks.getId(), m_rayList.getId());
 
 	{
 		TextureFile fontTexture;
@@ -686,21 +695,15 @@ void RenderAspect::writeTransform(const vx::Transform &transform, U32 elementId)
 	//glNamedBufferSubData(m_transformBlock.getId(), sizeof(vx::TransformGpu) * elementId, sizeof(vx::TransformGpu), &t);
 
 	auto pTransforms = m_transformBlock.map<vx::TransformGpu>(vx::gl::Map::Write_Only);
-	vx::memcpy(pTransforms + elementId, t);
-	//memcpy(pTransforms + elementId, &t, sizeof(vx::TransformGpu));
-	/*pTransforms[elementId].translation = transform.m_translation;
-	pTransforms[elementId].packedQRotationXY = packedRotation.x;
-	pTransforms[elementId].scaling = vx::float3(transform.m_scaling);
-	pTransforms[elementId].packedQRotationZW = packedRotation.y;*/
-	m_transformBlock.unmap();
+	vx::memcpy(pTransforms.get() + elementId, t);
+	pTransforms.unmap();
 }
 
 void RenderAspect::writeMeshInstanceIdBuffer(U32 elementId, U32 materialIndex)
 {
 	auto drawId = elementId | (materialIndex << 16);
-	auto pMeshId = (U32*)m_pColdData->m_meshIdVbo.map(vx::gl::Map::Write_Only);
+	auto pMeshId = m_pColdData->m_meshIdVbo.map<U32>(vx::gl::Map::Write_Only);
 	pMeshId[elementId] = drawId;
-	m_pColdData->m_meshIdVbo.unmap();
 }
 
 void RenderAspect::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 index, U32 elementId)
@@ -811,7 +814,7 @@ void RenderAspect::writeMaterialToBuffer(const Material *pMaterial, U32 offset)
 	//printf("surface\n");
 	pMaterialGPU->indexSurface = getTextureGpuEntry(surfaceRef);
 	pMaterialGPU->hasNormalMap = hasNormalmap;
-	m_materialBlock.unmap();
+	pMaterialGPU.unmap();
 }
 
 void RenderAspect::createMaterial(Material* pMaterial)
@@ -972,13 +975,10 @@ void RenderAspect::writeMeshToVertexBuffer(const vx::StringID64 &meshSid, const 
 	writeMeshToBuffer(meshSid, pMesh, pVertices, pIndices, &tmpOffset, &tmpOffset, vertexOffsetGpu, indexOffsetGpu);
 
 	auto pGpuVertices = m_pColdData->m_meshVbo.mapRange<VertexPNTUV>(offsetBytes, vertexSizeBytes, vx::gl::MapRange::Write);
-	VX_ASSERT(pGpuVertices);
-	memcpy(pGpuVertices, pVertices, vertexSizeBytes);
-	m_pColdData->m_meshVbo.unmap();
+	memcpy(pGpuVertices.get(), pVertices, vertexSizeBytes);
 
-	auto pGpuIndices = (U32*)m_pColdData->m_meshIbo.mapRange(offsetIndicesBytes, indexSizeBytes, vx::gl::MapRange::Write);
-	memcpy(pGpuIndices, pIndices, indexSizeBytes);
-	m_pColdData->m_meshIbo.unmap();
+	auto pGpuIndices = m_pColdData->m_meshIbo.mapRange<U32>(offsetIndicesBytes, indexSizeBytes, vx::gl::MapRange::Write);
+	memcpy(pGpuIndices.get(), pIndices, indexSizeBytes);
 
 	//*vertexOffset += vertexCount;
 	//*indexOffset += indexCount;
@@ -1066,12 +1066,10 @@ void RenderAspect::writeMeshesToVertexBuffer(const vx::StringID64* meshSid, cons
 	// upload to gpu
 
 	auto pGpuVertices = m_pColdData->m_meshVbo.mapRange<VertexPNTUV>(offsetBytes, vertexSizeBytes, vx::gl::MapRange::Write);
-	memcpy(pGpuVertices, pVertices, vertexSizeBytes);
-	m_pColdData->m_meshVbo.unmap();
+	memcpy(pGpuVertices.get(), pVertices, vertexSizeBytes);
 
-	auto pGpuIndices = (U32*)m_pColdData->m_meshIbo.mapRange(offsetIndicesBytes, indexSizeBytes, vx::gl::MapRange::Write);
-	memcpy(pGpuIndices, pIndices, indexSizeBytes);
-	m_pColdData->m_meshIbo.unmap();
+	auto pGpuIndices = m_pColdData->m_meshIbo.mapRange<U32>(offsetIndicesBytes, indexSizeBytes, vx::gl::MapRange::Write);
+	memcpy(pGpuIndices.get(), pIndices, indexSizeBytes);
 }
 
 void RenderAspect::updateMeshBuffer(const vx::sorted_vector<vx::StringID64, const vx::Mesh*> &meshes)
@@ -1084,8 +1082,6 @@ void RenderAspect::updateMeshBuffer(const vx::sorted_vector<vx::StringID64, cons
 
 void RenderAspect::shutdown(const HWND hwnd)
 {
-	shutdownCUDA();
-
 	m_pColdData.reset(nullptr);
 	m_renderContext.shutdown(hwnd);
 }
@@ -1100,27 +1096,14 @@ void RenderAspect::update()
 	block.inversePVMatrix = vx::MatrixInverse(block.pvMatrix);
 	block.cameraPosition = m_camera.getPosition();
 
-	//m_openCL.update(block.inversePVMatrix, block.cameraPosition, m_conetraceBuffer.texture);
-
-	//auto offset = m_currentBuffer * sizeof(Camerablock);
-
-	//glClientWaitSync(m_fence[m_currentBuffer], 0, 0);
-
-	//glDeleteSync(m_fence[m_currentBuffer]);
-
 	auto p = m_cameraBuffer.mapRange<Camerablock>(0, sizeof(Camerablock), vx::gl::MapRange::Write);
-	vx::memcpy(p, block);
-	m_cameraBuffer.unmap();
+	vx::memcpy(p.get(), block);
 }
 
 void RenderAspect::updateTransform(U16 index, const vx::TransformGpu &transform)
 {
-	//vx::TransformGpu tmp = transform;
-	//glNamedBufferSubData(m_transformBlock.getId(), sizeof(vx::TransformGpu) * index, sizeof(vx::TransformGpu), &tmp);
-
-	auto p = m_transformBlock.mapRange<vx::TransformGpu>(sizeof(vx::TransformGpu) * index, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
-	*p = transform;
-	m_transformBlock.unmap();
+	auto mappedTransformPtr = m_transformBlock.mapRange<vx::TransformGpu>(sizeof(vx::TransformGpu) * index, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
+	*mappedTransformPtr = transform;
 }
 
 void RenderAspect::updateTransforms(const vx::TransformGpu* transforms, U32 offsetCount, U32 count)
@@ -1131,8 +1114,7 @@ void RenderAspect::updateTransforms(const vx::TransformGpu* transforms, U32 offs
 	//glNamedBufferSubData(m_transformBlock.getId(), offsetInBytes, sizeInBytes, transforms);
 
 	auto p = m_transformBlock.mapRange<vx::TransformGpu>(offsetInBytes, sizeInBytes, vx::gl::MapRange::Write);
-	::memcpy(p, transforms, sizeInBytes);
-	m_transformBlock.unmap();
+	::memcpy(p.get(), transforms, sizeInBytes);
 }
 
 namespace
@@ -1174,224 +1156,358 @@ namespace
 
 void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 {
-	PUSH_GPU_MARKER("render()");
-	GRAPH_START_GPU();
+	pProfiler->pushGpuMarker("render()");
+	pGraph->startGpu();
 
-	glClearTexImage(m_rayTraceShadowTexture.getId(), 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-	glClearTexImage(m_rayTraceShadowTextureSmall.getId(), 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-	glClearTexSubImage(m_voxelTexture.getId(), 0, 0, 0, 0, 128, 128, 128, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+	clearTextures();
 
-	glClearTexImage(m_voxelRayCountTexture.getId(), 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+	{
+		auto pCounter = m_atomicCounter.map<U32>(vx::gl::Map::Write_Only);
+		auto ptr = pCounter.get();
+		ptr[0] = 0; // u_rayCount
+		ptr[1] = 0; // u_rayLinkCount
+		ptr[2] = 0; // pair counter
+		ptr[3] = 0;
+		pCounter.unmap();
+	}
 
-	//glClearTexSubImage(m_voxelRayCountTexture.getId(), 0, 0, 0, 0, 128, 128, 128, GL_RED, GL_UNSIGNED_INT, nullptr);
+	auto ptrRayOffsets = m_rayOffsetBlock.map<U32>(vx::gl::Map::Write_Only);
+	*ptrRayOffsets = 0;
+	ptrRayOffsets.unmap();
 
-	auto pCounter = m_rayAtomicCounter.map<U32>(vx::gl::Map::Write_Only);
-	pCounter[0] = 0;
-	pCounter[1] = 0;
-	pCounter[2] = 0;
-	pCounter[3] = 0;
-	m_rayAtomicCounter.unmap();
+	auto ptrVoxelTrianglePair = m_voxelTrianglePairCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	ptrVoxelTrianglePair->count = 0;
+	ptrVoxelTrianglePair.unmap();
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_cameraBuffer.getId());
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_lightDataBlock.getId());
-	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_cameraBufferStatic.getId());
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_gbufferBlock.getId());
-	glBindBufferBase(GL_UNIFORM_BUFFER, 4, m_voxelBlock.getId());
+	BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
+	BufferBindingManager::bindBaseUniform(1, m_lightDataBlock.getId());
+	BufferBindingManager::bindBaseUniform(2, m_cameraBufferStatic.getId());
+	BufferBindingManager::bindBaseUniform(3, m_gbufferBlock.getId());
+	BufferBindingManager::bindBaseUniform(4, m_voxelBlock.getId());
 
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transformBlock.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_materialBlock.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_textureBlock.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_rayList.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_rayLinks.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, m_bvhBlock.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, m_meshVertexBlock.getId());
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, m_rayLinkChunks.getId());
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, m_rayLinksSorted.getId());
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, m_rayLinkChunkSize.getId());
+	BufferBindingManager::bindBaseShaderStorage(0, m_transformBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(1, m_materialBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(2, m_textureBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(3, m_rayList.getId());
+	BufferBindingManager::bindBaseShaderStorage(4, m_rayLinks.getId());
+	BufferBindingManager::bindBaseShaderStorage(5, m_bvhBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(6, m_meshVertexBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(7, m_rayOffsetBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(8, m_voxelTrianglePairCmdBuffer.getId());
+	BufferBindingManager::bindBaseShaderStorage(9, m_voxelTrianglePairVbo.getId());
 
-	//glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 9, m_rayAtomicCounter.getId(), sizeof(U32) * 3, sizeof(U32));
+	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, m_atomicCounter.getId());
 
-	glBindBufferRange(GL_ATOMIC_COUNTER_BUFFER, 0, m_rayAtomicCounter.getId(), 0, sizeof(U32) * 3);
-	//glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, m_rayAtomicCounter.getId());
+	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 
-	m_stateManager.setClearColor(0, 0, 0, 0);
-
+	pProfiler->pushGpuMarker("zero rays()");
+	zeroRayBuffer();
+	pProfiler->popGpuMarker();
 
 	// voxelize
-	PUSH_GPU_MARKER("voxelize()");
-	{
-		m_stateManager.setViewport(0, 0, 128, 128);
-		m_stateManager.disable(vx::gl::Capabilities::Depth_Test);
-
-		auto pPipeline = m_shaderManager.getPipeline("voxelize.pipe");
-
-		m_stateManager.bindFrameBuffer(0);
-		m_stateManager.bindPipeline(pPipeline->getId());
-		m_stateManager.bindVertexArray(m_meshVao.getId());
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		glDepthMask(GL_FALSE);
-
-		glBindImageTexture(0, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R8);
-
-		m_commandBlock.bind();
-		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glDepthMask(GL_TRUE);
-
-		m_stateManager.enable(vx::gl::Capabilities::Depth_Test);
-	}
-	POP_GPU_MARKER();
+	pProfiler->pushGpuMarker("voxelize()");
+	binaryVoxelize();
+	pProfiler->popGpuMarker();
 
 	if (dev::g_toggleRender == 0)
 	{
-		PUSH_GPU_MARKER("create gbuffer()");
-		m_stateManager.setClearColor(0, 0, 0, 0);
+		pProfiler->pushGpuMarker("create gbuffer()");
+		createGBuffer();
+		pProfiler->popGpuMarker();
+
+		createGBufferSmall();
+
+		vx::gl::StateManager::setClearColor(0.1f, 0.1f, 0.1f, 1);
+
+		vx::gl::StateManager::bindFrameBuffer(0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// only do ray tracing if we actually have stuff
+		if (m_meshInstancesCountTotal != 0)
 		{
-			m_stateManager.setViewport(0, 0, 1920, 1080);
-			m_stateManager.enable(vx::gl::Capabilities::Depth_Test);
+			vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
 
-			m_stateManager.bindFrameBuffer(m_gbufferFB.getId());
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			pProfiler->pushGpuMarker("ray trace voxel()");
+			createRays();
+			pProfiler->popGpuMarker();
 
-			auto pPipeline = m_shaderManager.getPipeline("create_gbuffer.pipe");
-			m_stateManager.bindPipeline(pPipeline->getId());
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-			m_stateManager.bindVertexArray(m_meshVao.getId());
+			// create offsets for raylinks
+			pProfiler->pushGpuMarker("create link offsets");
+			createRayLinkOffsets();
+			pProfiler->popGpuMarker();
 
-			m_commandBlock.bind();
-			glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-			m_stateManager.disable(vx::gl::Capabilities::Depth_Test);
-		}
-		POP_GPU_MARKER();
+			pProfiler->pushGpuMarker("create ray links()");
+			createRayLinks();
+			pProfiler->popGpuMarker();
 
-		m_stateManager.setClearColor(0, 0, 0, 0);
-		{
-			m_stateManager.setViewport(0, 0, 1920, 1080);
-			m_stateManager.enable(vx::gl::Capabilities::Depth_Test);
+			pProfiler->pushGpuMarker("test voxel triangles()");
+			testVoxelTriangles();
+			pProfiler->popGpuMarker();
 
-			m_stateManager.bindFrameBuffer(m_gbufferFBSmall.getId());
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
-			auto pPipeline = m_shaderManager.getPipeline("create_gbuffer_small.pipe");
-			m_stateManager.bindPipeline(pPipeline->getId());
+			pProfiler->pushGpuMarker("test ray triangles()");
+			testRayTriangles();
+			pProfiler->popGpuMarker();
 
-			m_stateManager.bindVertexArray(m_meshVao.getId());
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-			m_commandBlock.bind();
-			glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+			renderFinalImage();
 
-			m_stateManager.disable(vx::gl::Capabilities::Depth_Test);
-		}
+			/*{
+				U32 pairCount = 0;
+				auto pCounter = m_rayAtomicCounter.map< U32 >(vx::gl::Map::Read_Only);
 
-		{
-			m_stateManager.setClearColor(0.1f, 0.1f, 0.1f, 1);
+				pairCount = pCounter[1];
+				pCounter.unmap();
 
-			m_stateManager.bindFrameBuffer(0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				U32 offsetCount = 0;
+				auto offset = m_rayOffsetBlock.map<U32>(vx::gl::Map::Read_Only);
+				offsetCount = *offset;
+				offset.unmap();
 
-			// only do ray tracing if we actually have stuff
-			if (m_meshInstancesCountTotal != 0)
-			{
-				m_stateManager.bindVertexArray(m_emptyVao.getId());
-
-				/*PUSH_GPU_MARKER("ray tracing()");
-				{
-				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
-
-				auto pPipeline = m_shaderManager.getPipeline("ray_trace_shadow_cs.pipe");
-				m_stateManager.bindPipeline(pPipeline->getId());
-
-				glBindImageTexture(0, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_R8);
-				glBindImageTexture(2, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_R8);
-
-				const int groups_x = 960 / 8 / 2;
-				const int groups_y = 540 / 8;
-				glDispatchCompute(groups_x, groups_y, 1);
-
-				//glBindImageTexture(0, 0, 0, 0, 0, GL_WRITE_ONLY, GL_R8);
-				//glBindImageTexture(1, 0, 0, 0, 0, GL_WRITE_ONLY, GL_R16F);
-
-				glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-				}
-				POP_GPU_MARKER();*/
-
-				PUSH_GPU_MARKER("ray trace voxel()");
-				{
-					auto pPipeline = m_shaderManager.getPipeline("ray_trace_voxel.pipe");
-					m_stateManager.bindPipeline(pPipeline->getId());
-
-					glBindImageTexture(0, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_R8);
-					glBindImageTexture(1, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
-					glBindImageTexture(2, m_voxelRayCountTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32UI);
-
-					glDrawArraysInstanced(GL_TRIANGLES, 0, 960, 540);
-				}
-				POP_GPU_MARKER();
-
-				glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-				// compress ray links
-				/*{
-					PUSH_GPU_MARKER("compress ray links()");
-					const U32 dim = 960 * 540 * 4 / 128;
-
-					auto pPipeline = m_shaderManager.getPipeline("compress_ray_links.pipe");
-					m_stateManager.bindPipeline(pPipeline->getId());
-					glDrawArrays(GL_TRIANGLES, 0, dim);
-
-					POP_GPU_MARKER();
-				}
-
-				// uncompress sorted link chunks
-				{
-					PUSH_GPU_MARKER("uncompress ray links()");
-					const U32 dim = 960 * 540 * 4 / 128;
-
-					auto pPipeline = m_shaderManager.getPipeline("uncompress_ray_links.pipe");
-					m_stateManager.bindPipeline(pPipeline->getId());
-					glDrawArrays(GL_TRIANGLES, 0, dim);
-
-					POP_GPU_MARKER();
+				printf("%u %u\n", pairCount, offsetCount);
 				}*/
-
-				m_stateManager.setViewport(0, 0, 1920, 1080);
-
-				// draw final image
-				glBindImageTexture(0, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_READ_ONLY, GL_R8);
-				glBindImageTexture(2, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_READ_ONLY, GL_R8);
-
-				auto pPipeline = m_shaderManager.getPipeline("ray_trace_draw.pipe");
-				m_stateManager.bindPipeline(pPipeline->getId());
-				glDrawArrays(GL_POINTS, 0, 1);
-
-				/*auto counter = m_rayAtomicCounter.map<U32>(vx::gl::Map::Read_Only);
-				printf("ray count: %u, ray link count: %u ray chunk count: %u\n", counter[0], counter[1], counter[2]);
-				m_rayAtomicCounter.unmap();*/
-			}
 		}
 	}
 	else
 	{
-		m_stateManager.bindFrameBuffer(0);
-
-		m_stateManager.enable(vx::gl::Capabilities::Depth_Test);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		auto pPipeline = m_shaderManager.getPipeline("forward_render.pipe");
-		m_stateManager.bindPipeline(pPipeline->getId());
-		m_stateManager.bindVertexArray(m_meshVao.getId());
-
-		m_commandBlock.bind();
-		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-		m_stateManager.disable(vx::gl::Capabilities::Depth_Test);
+		renderForward();
 	}
 
+	// nav nodes
+	if (dev::g_showNavGraph != 0)
+	{
+		renderNavGraph();
+	}
+
+	pProfiler->popGpuMarker();
+	pGraph->endGpu();
+
+#if _VX_PROFILER
+	renderProfiler(pProfiler, pGraph);
+#endif
+
+	m_renderContext.swapBuffers();
+}
+
+void RenderAspect::clearTextures()
+{
+	m_rayTraceShadowTexture.clearImage(0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+	m_rayTraceShadowTextureSmall.clearImage(0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+
+	m_voxelTexture.clearImage(0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+	m_voxelRayLinkCountTexture.clearImage(0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+	m_voxelRayLinkOffsetTexture.clearImage(0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+}
+
+void RenderAspect::zeroRayBuffer()
+{
+	auto pPipeline = m_shaderManager.getPipeline("zero_rays.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
+
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 960, 540);
+}
+
+void RenderAspect::binaryVoxelize()
+{
+	vx::gl::StateManager::setViewport(0, 0, 128, 128);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+
+	auto pPipeline = m_shaderManager.getPipeline("voxelize.pipe");
+
+	vx::gl::StateManager::bindFrameBuffer(0);
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+
+	ImageBindingManager::bind(0, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R8);
+
+	m_commandBlock.bind();
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+}
+
+void RenderAspect::createGBuffer()
+{
+	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+
+	vx::gl::StateManager::bindFrameBuffer(m_gbufferFB.getId());
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	auto pPipeline = m_shaderManager.getPipeline("create_gbuffer.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
+
+	m_commandBlock.bind();
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+}
+
+void RenderAspect::createGBufferSmall()
+{
+	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+	vx::gl::StateManager::setViewport(0, 0, 1920 / 2, 1080 / 2);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+
+	vx::gl::StateManager::bindFrameBuffer(m_gbufferFBSmall.getId());
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	auto pPipeline = m_shaderManager.getPipeline("create_gbuffer_small.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
+
+	m_commandBlock.bind();
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+}
+
+void RenderAspect::createRays()
+{
+	auto pPipeline = m_shaderManager.getPipeline("ray_trace_voxel.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	ImageBindingManager::bind(0, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_R8);
+	ImageBindingManager::bind(1, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32UI);
+
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 960, 540);
+}
+
+void RenderAspect::createRayLinkOffsets()
+{
+	auto pPipeline = m_shaderManager.getPipeline("create_ray_link_offsets.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32UI);
+	ImageBindingManager::bind(3, m_voxelRayLinkOffsetTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32UI);
+
+	glDispatchCompute(s_voxelDimension / 2, s_voxelDimension / 2, s_voxelDimension / 2);
+}
+
+void RenderAspect::createRayLinks()
+{
+	m_voxelRayLinkCountTexture.clearImage(0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+
+	glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
+
+	auto pPipeline = m_shaderManager.getPipeline("create_ray_links.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	ImageBindingManager::bind(0, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_R8);
+	ImageBindingManager::bind(1, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32UI);
+	ImageBindingManager::bind(3, m_voxelRayLinkOffsetTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32UI);
+
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 960, 540);
+}
+
+void RenderAspect::testVoxelTriangles()
+{
+	vx::gl::StateManager::setViewport(0, 0, 128, 128);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+
+	vx::gl::StateManager::bindFrameBuffer(0);
+	vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+
+	auto pPipeline = m_shaderManager.getPipeline("voxel_test_triangles.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	m_commandBlock.bind();
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+}
+
+void RenderAspect::testRayTriangles()
+{
+	ImageBindingManager::bind(1, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_R8);
+	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_READ_WRITE, GL_R32I);
+	ImageBindingManager::bind(3, m_voxelRayLinkOffsetTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32UI);
+
+	vx::gl::StateManager::setViewport(0, 0, 960, 540);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+
+	auto pPipeline = m_shaderManager.getPipeline("test_pair_rayLinks.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_voxelTrianglePairVao.getId());
+
+	m_voxelTrianglePairCmdBuffer.bind();
+	glDrawArraysIndirect(GL_POINTS, 0);
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+}
+
+void RenderAspect::renderFinalImage()
+{
+	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
+	// draw final image
+	ImageBindingManager::bind(0, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(1, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_READ_ONLY, GL_R8);
+
+	auto pPipeline = m_shaderManager.getPipeline("ray_trace_draw.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	glDrawArrays(GL_POINTS, 0, 1);
+}
+
+void RenderAspect::renderForward()
+{
+	vx::gl::StateManager::bindFrameBuffer(0);
+
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	auto pPipeline = m_shaderManager.getPipeline("forward_render.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
+
+	m_commandBlock.bind();
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+}
+
+void RenderAspect::renderProfiler(Profiler2* pProfiler, ProfilerGraph* pGraph)
+{
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	pProfiler->render();
+	pGraph->render();
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+}
+
+void RenderAspect::renderNavGraph()
+{
 	// nav mesh
 	/*m_stateManager.enable(vx::gl::Capabilities::Blend);
 	m_stateManager.disable(vx::gl::Capabilities::Depth_Test);
@@ -1407,66 +1523,26 @@ void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 	m_stateManager.disable(vx::gl::Capabilities::Blend);
 	m_stateManager.enable(vx::gl::Capabilities::Depth_Test);*/
 
-	// nav nodes
-	if (dev::g_showNavGraph != 0)
-	{
-		//m_stateManager.enable(vx::gl::Capabilities::Blend);
-		//m_stateManager.disable(vx::gl::Capabilities::Depth_Test);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 
-		glPointSize(3.f);
+	glPointSize(3.f);
 
-		auto pPipeline = m_shaderManager.getPipeline("navmesh.pipe");
+	auto pPipeline = m_shaderManager.getPipeline("navmesh.pipe");
 
-		vx::float3 color(1, 0, 0);
-		glProgramUniform3fv(pPipeline->getFragmentShader(), 0, 1, color);
+	vx::float3 color(1, 0, 0);
+	glProgramUniform3fv(pPipeline->getFragmentShader(), 0, 1, color);
 
-		m_stateManager.bindPipeline(pPipeline->getId());
-		m_stateManager.bindVertexArray(m_navNodesVao.getId());
-		glDrawElements(GL_POINTS, m_navNodesCount, GL_UNSIGNED_SHORT, 0);
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_navNodesVao.getId());
+	glDrawElements(GL_POINTS, m_navNodesCount, GL_UNSIGNED_SHORT, 0);
 
-		// connections
-		m_stateManager.bindVertexArray(m_navConnectionsVao.getId());
-		glDrawElements(GL_LINES, m_navConnectionCount, GL_UNSIGNED_SHORT, 0);
+	// connections
+	vx::gl::StateManager::bindVertexArray(m_navConnectionsVao.getId());
+	glDrawElements(GL_LINES, m_navConnectionCount, GL_UNSIGNED_SHORT, 0);
 
-		//m_stateManager.disable(vx::gl::Capabilities::Blend);
-		//m_stateManager.enable(vx::gl::Capabilities::Depth_Test);
-	}
-
-	POP_GPU_MARKER();
-	GRAPH_END_GPU();
-
-#if _VX_PROFILER
-	m_stateManager.enable(vx::gl::Capabilities::Blend);
-	m_stateManager.disable(vx::gl::Capabilities::Depth_Test);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	PROFILER_RENDER();
-
-	pGraph->render(&m_stateManager);
-
-	m_stateManager.disable(vx::gl::Capabilities::Blend);
-	m_stateManager.enable(vx::gl::Capabilities::Depth_Test);
-#endif
-
-	/*m_stateManager.setClearColor(0.1f, 0.1f, 0.1f, 1);
-	m_stateManager.setViewport(0, 0, 1920, 1080);
-	{
-	m_stateManager.bindFrameBuffer(0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	auto pPipeline = m_shaderManager.getPipeline("voxel_debug.pipe");
-	m_stateManager.bindPipeline(pPipeline->getId());
-	m_stateManager.bindVertexArray(m_emptyVao.getId());
-	glDrawArrays(GL_POINTS, 0, s_voxelDimensionReflect * s_voxelDimensionReflect * s_voxelDimensionReflect);
-
-	PROFILER_RENDER();
-	}*/
-
-	//glMemoryBarrier(GL_QUERY_BUFFER_BARRIER_BIT);
-
-	//glFinish();
-
-	m_renderContext.swapBuffers();
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 }
 
 U16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene)
@@ -1604,9 +1680,9 @@ void RenderAspect::takeScreenshot()
 	glReadPixels(0, 0, m_pColdData->m_windowResolution.x, m_pColdData->m_windowResolution.y, GL_RGBA, GL_FLOAT, 0);
 
 	auto pScreenshotData = (vx::float4*)_aligned_malloc(pixelBufferSizeBytes, 16);
-	auto p = m_pColdData->m_screenshotBuffer.map(vx::gl::Map::Read_Only);
-	memcpy(pScreenshotData, p, pixelBufferSizeBytes);
-	m_pColdData->m_screenshotBuffer.unmap();
+	auto p = m_pColdData->m_screenshotBuffer.map<U8>(vx::gl::Map::Read_Only);
+	memcpy(pScreenshotData, p.get(), pixelBufferSizeBytes);
+	p.unmap();
 
 	struct Test
 	{
@@ -1703,8 +1779,8 @@ void RenderAspect::handleIngameEvent(const Event &evt)
 		}
 
 		auto p = m_pColdData->m_navNodesVbo.map<vx::float3>(vx::gl::Map::Write_Only);
-		vx::memcpy(p, ptrNodes.get(), nodeCount);
-		m_pColdData->m_navNodesVbo.unmap();
+		vx::memcpy(p.get(), ptrNodes.get(), nodeCount);
+		p.unmap();
 
 		m_navNodesCount = nodeCount;
 
@@ -1727,8 +1803,8 @@ void RenderAspect::handleIngameEvent(const Event &evt)
 		VX_ASSERT(j == connectionIndexCount);
 
 		auto pGpuConnections = m_pColdData->m_navConnectionsIbo.map<U16>(vx::gl::Map::Write_Only);
-		vx::memcpy(pGpuConnections, ptrConnections.get(), connectionIndexCount);
-		m_pColdData->m_navConnectionsIbo.unmap();
+		vx::memcpy(pGpuConnections.get(), ptrConnections.get(), connectionIndexCount);
+		pGpuConnections.unmap();
 
 		m_navConnectionCount = connectionIndexCount;
 	}
@@ -1743,12 +1819,12 @@ void RenderAspect::updateNavMeshBuffer(const NavMesh &navMesh)
 	auto indexCount = navMesh.getIndexCount();
 
 	auto p = m_pColdData->m_navmeshVbo.map<vx::float3>(vx::gl::Map::Write_Only);
-	vx::memcpy(p, pVertices, vertexCount);
-	m_pColdData->m_navmeshVbo.unmap();
+	vx::memcpy(p.get(), pVertices, vertexCount);
+	p.unmap();
 
 	auto pi = m_pColdData->m_navmeshIbo.map<U16>(vx::gl::Map::Write_Only);
-	vx::memcpy(pi, pIndices, indexCount);
-	m_pColdData->m_navmeshIbo.unmap();
+	vx::memcpy(pi.get(), pIndices, indexCount);
+	pi.unmap();
 
 	m_navmeshIndexCount = indexCount;
 }

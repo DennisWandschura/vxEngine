@@ -110,7 +110,7 @@ int main()
 	auto result = mortonEncode_magicbits(127, 20, 100);
 	auto result1 = bitzip(127, 20, 100);
 	auto coords = bitunzip3(result1);
-	/*const F32 cellSize = 0.396728516f;
+	const F32 cellSize = 0.396728516f;
 	const F32 invGridCellSize = 2.52061534f;
 	const U32 halfDim = 128 / 2;
 
@@ -136,9 +136,16 @@ int main()
 	const float xx = (voxelPosF_x - halfDim) * cellSize;
 
 	const float voxelPosF_xxx = (voxelPos_x + 1) - uncompressed_offset;
-	const float xxx = (voxelPosF_xxx - halfDim) * cellSize;*/
+	const float xxx = (voxelPosF_xxx - halfDim) * cellSize;
 
+	const int width = 960;
+	const int tmpx = 5;
+	const int tmpy = 11;
 
+	const int index = tmpx + tmpy * width;
+
+	const int tmp = index / width;
+	const int tmp1 = index % width;
 
 	SmallObjAllocator alloc(1 KBYTE);
 	SmallObject::setAllocator(&alloc);

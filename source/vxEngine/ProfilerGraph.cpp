@@ -252,10 +252,10 @@ void ProfilerGraph::update()
 	//m_vbo.unmap();
 }
 
-void ProfilerGraph::render(vx::gl::StateManager *stateManager)
+void ProfilerGraph::render()
 {
-	stateManager->bindPipeline(m_pPipeline->getId());
-	stateManager->bindVertexArray(m_vao.getId());
+	vx::gl::StateManager::bindPipeline(m_pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_vao);
 
 	glLineWidth(2.0f);
 	//glPointSize(2.0f);

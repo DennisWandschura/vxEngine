@@ -19,7 +19,7 @@ class EventManager;
 #include "NavGraph.h"
 #include "InfluenceMap.h"
 #include "ActionManager.h"
-#include "StackAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 #include <random>
 #include "SquadManager.h"
 

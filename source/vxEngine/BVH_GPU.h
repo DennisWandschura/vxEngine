@@ -11,7 +11,7 @@ namespace vx
 class MeshInstance;
 class FileAspect;
 
-#include "StackAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 
 // used for updating bvh stuff on gpu
 class BVH_GPU

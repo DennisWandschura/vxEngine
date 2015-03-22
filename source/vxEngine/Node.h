@@ -26,7 +26,7 @@ public:
 	{
 		if (*rtti::TypeCreator<T>::getTypeData() != *m_pTypeData)
 		{
-			VX_ASSERT(false, "Wrong type cast");
+			VX_ASSERT(false);
 			return nullptr;
 		}
 

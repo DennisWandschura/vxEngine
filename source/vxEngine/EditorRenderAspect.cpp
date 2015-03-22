@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include <vxLib/gl/gl.h>
 #include "UniformBlocks.h"
+#include <vxLib/gl/StateManager.h>
 
 enum class EditorRenderAspect::EditorUpdate : U32{ Update_None, Update_Mesh, Update_Material, Editor_Added_Instance, Editor_Update_Instance, Editor_Set_Scene };
 
@@ -21,7 +22,7 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 		return false;
 	}
 
-	vx::gl::OpenGLDescription glDesc = vx::gl::OpenGLDescription::create(panel, &m_stateManager, windowResolution, vx::degToRad(fovDeg), zNear, zFar, 4, 5, vsync, debug);
+	vx::gl::OpenGLDescription glDesc = vx::gl::OpenGLDescription::create(panel, windowResolution, vx::degToRad(fovDeg), zNear, zFar, 4, 5, vsync, debug);
 	if (!m_renderContext.initializeOpenGl(glDesc))
 	{
 		puts("Error initializing Context");
@@ -58,47 +59,47 @@ void EditorRenderAspect::render()
 
 	glClearTexImage(m_rayTraceShadowTexture.getId(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-	m_stateManager.setClearColor(0, 0, 0, 0);
+	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	{
 		//m_stageForwardRender.draw(m_stateManager);
 
-		m_stateManager.enable(vx::gl::Capabilities::Depth_Test);
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 
-		m_stateManager.bindFrameBuffer(m_gbufferFB.getId());
+		vx::gl::StateManager::bindFrameBuffer(m_gbufferFB.getId());
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		auto pPipeline = m_shaderManager.getPipeline("forward_render.pipe");
-		m_stateManager.bindPipeline(pPipeline->getId());
+		vx::gl::StateManager::bindPipeline(pPipeline->getId());
 
-		m_stateManager.bindVertexArray(m_meshVao.getId());
+		vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
 
 		m_commandBlock.bind();
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
 
 		//m_stageForwardRender = RenderStage(, m_meshVao, m_commandBlock, 0, m_pColdData->m_windowResolution, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, std::move(forwardFramebuffer));
 
-		m_stateManager.disable(vx::gl::Capabilities::Depth_Test);
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 	}
 
 	{
-		m_stateManager.setClearColor(0.1f, 0.1f, 0.1f, 1);
+		vx::gl::StateManager::setClearColor(0.1f, 0.1f, 0.1f, 1);
 
-		m_stateManager.bindFrameBuffer(0);
+		vx::gl::StateManager::bindFrameBuffer(0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// only do ray tracing if we actually have stuff
 		if (m_meshInstancesCountTotal != 0)
 		{
-			m_stateManager.bindVertexArray(m_emptyVao.getId());
+			vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
 
 			auto pPipeline = m_shaderManager.getPipeline("ray_trace_draw_editor.pipe");
-			m_stateManager.bindPipeline(pPipeline->getId());
+			vx::gl::StateManager::bindPipeline(pPipeline->getId());
 			glDrawArrays(GL_POINTS, 0, 1);
 
 		}
 
-		m_editorData.drawMouse(m_shaderManager, &m_stateManager);
-		m_editorData.drawWaypoints(m_shaderManager, &m_stateManager);
+		m_editorData.drawMouse(m_shaderManager);
+		m_editorData.drawWaypoints(m_shaderManager);
 	}
 
 	m_renderContext.swapBuffers();

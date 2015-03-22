@@ -1,5 +1,5 @@
 #include "EntityAspect.h"
-#include "StackAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 #include <PhysX/characterkinematic/PxController.h>
 #include "PhysicsAspect.h"
 #include "Entity.h"

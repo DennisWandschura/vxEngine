@@ -3,7 +3,7 @@
 #include <vxLib/types.h>
 #include "thread.h"
 #include <atomic>
-#include "StackAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 #include "SystemAspect.h"
 #include "RenderAspect.h"
 #include "PhysicsAspect.h"

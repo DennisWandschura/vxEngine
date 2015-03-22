@@ -25,8 +25,8 @@ class InfluenceMap;
 #include <vector>
 #include "ComponentsForward.h"
 #include <vxLib/math/Vector.h>
-#include "StackAllocator.h"
-#include "PoolAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
+#include <vxLib/Allocator/PoolAllocator.h>
 
 enum class PlayerType : U32;
 enum class FileType : U8;

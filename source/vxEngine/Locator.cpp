@@ -11,7 +11,7 @@ void Locator::provide(EventManager* p)
 
 EventManager* Locator::getEventManager()
 {
-	VX_ASSERT(s_pEventManager, "");
+	VX_ASSERT(s_pEventManager);
 	return s_pEventManager;
 }
 
@@ -22,7 +22,7 @@ void Locator::provide(PhysicsAspect* p)
 
 PhysicsAspect* Locator::getPhysicsAspect()
 {
-	VX_ASSERT(s_pPhysicsAspect, "");
+	VX_ASSERT(s_pPhysicsAspect);
 	return s_pPhysicsAspect;
 }
 

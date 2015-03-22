@@ -7,12 +7,12 @@ class NavGraph;
 #include "StateMachine.h"
 #include <vxLib/math/Vector.h>
 #include <memory>
-#include "Array.h"
+#include <vxLib/Container/array.h>
 
 struct ActorData
 {
 	// capacity is count of nav nodes
-	vx::ManagedArray<vx::float3> path;
+	vx::array<vx::float3> path;
 	vx::float3 destination;
 };
 

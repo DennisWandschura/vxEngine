@@ -10,14 +10,6 @@ class Material;
 struct MeshEntry;
 struct Waypoint;
 
-namespace vx
-{
-	namespace gl
-	{
-		class StateManager;
-	}
-}
-
 class ShaderManager;
 
 namespace Editor
@@ -45,8 +37,8 @@ namespace Editor
 	public:
 		void initialize();
 
-		void drawMouse(const ShaderManager &shaderManager, vx::gl::StateManager* pStateManager) const;
-		void drawWaypoints(const ShaderManager &shaderManager, vx::gl::StateManager* pStateManager) const;
+		void drawMouse(const ShaderManager &shaderManager) const;
+		void drawWaypoints(const ShaderManager &shaderManager) const;
 
 		void addMesh(const vx::StringID64 &sid);
 		U32 addMaterial(const vx::StringID64 &sid, const Material* p);

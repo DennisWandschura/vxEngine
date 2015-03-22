@@ -5,7 +5,7 @@
 #include "MeshInstance.h"
 #include "Material.h"
 #include <fstream>
-#include "sorted_array.h"
+#include <vxLib/Container/sorted_array.h>
 #include "Actor.h"
 #include "Spawn.h"
 #include <vxLib/Graphics/Mesh.h>
@@ -455,7 +455,7 @@ U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &mesh
 		indexCount += it->getIndexCount();
 	}
 
-	VX_ASSERT(pScene, "nullptr");
+	VX_ASSERT(pScene);
 	*pScene = Scene(std::move(pMeshInstances), m_meshInstanceCount, std::move(m_pLights), m_lightCount, std::move(sceneMaterials),
 		std::move(sceneMeshes), vertexCount, indexCount, std::move(spawns), m_spawnCount, std::move(actors), std::move(m_navMesh), AABB());
 	pScene->sortMeshInstances();
@@ -495,7 +495,7 @@ U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &mesh
 		indexCount += it->getIndexCount();
 	}
 
-	VX_ASSERT(pScene, "nullptr");
+	VX_ASSERT(pScene);
 	*pScene = EditorScene(std::move(meshInstances), std::move(m_pLights), m_lightCount, std::move(sceneMaterials),
 		std::move(sceneMeshes), vertexCount, indexCount, std::move(spawns), m_spawnCount, std::move(actors), std::move(m_navMesh));
 	pScene->sortMeshInstances();

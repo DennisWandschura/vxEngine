@@ -56,13 +56,13 @@ void PoolBase::destroyEntry(U8* ptr, U16 index)
 void PoolBase::validateEmptyEntry(const U8 *ptr)
 {
 	auto p = reinterpret_cast<const Freelist*>(ptr);
-	VX_ASSERT(p->magic == Freelist::s_magic, "Entry not valid !");
+	VX_ASSERT(p->magic == Freelist::s_magic);
 }
 
 void PoolBase::validateUsedEntry(const U8 *ptr)
 {
 	auto p = reinterpret_cast<const Freelist*>(ptr);
-	VX_ASSERT(p->magic != Freelist::s_magic, "Entry not used !");
+	VX_ASSERT(p->magic != Freelist::s_magic);
 }
 
 bool PoolBase::isUsed(const U8* ptr) const

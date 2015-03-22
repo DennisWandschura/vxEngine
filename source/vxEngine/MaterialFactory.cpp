@@ -2,7 +2,7 @@
 #include "Material.h"
 #include "FileEntry.h"
 #include "TextureFile.h"
-#include "sorted_array.h"
+#include <vxLib/Container/sorted_array.h>
 #include "enums.h"
 
 bool MaterialFactory::checkTextureFile(const char(&filename)[32], const vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry> &missingFiles, vx::StringID64 &outSid)

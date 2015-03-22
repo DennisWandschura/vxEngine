@@ -4,8 +4,9 @@
 #include "NavConnection.h"
 #include "Heap.h"
 #include "PhysicsAspect.h"
-#include "StackAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/ScopeGuard.h>
+#include <vxLib/Container/array.h>
 
 F32 heuristicDistance(const NavNode &fromNode, const NavNode &goalNode)
 {
@@ -23,7 +24,7 @@ F32 heuristicDistance2(const NavNode &fromNode, const NavNode &goalNode)
 	return (x * x + y * y);
 }
 
-U8 pathfindAStar(const NavGraph &graph, U16 start, U16 goal, HeuristicFp heuristicFp, vx::StackAllocator* pAllocatorScratch, vx::ManagedArray<vx::float3>* out, const PhysicsAspect* pPhysicsAspect)
+U8 pathfindAStar(const NavGraph &graph, U16 start, U16 goal, HeuristicFp heuristicFp, vx::StackAllocator* pAllocatorScratch, vx::array<vx::float3>* out, const PhysicsAspect* pPhysicsAspect)
 {
 	out->clear();
 

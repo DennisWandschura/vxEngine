@@ -386,12 +386,12 @@ void Profiler2::update(F32 dt)
 	}
 }
 
-void Profiler2::render(vx::gl::StateManager &stateManager)
+void Profiler2::render()
 {
 	auto fsProgram = m_pPipeline->getFragmentShader();
 	glProgramUniform1ui(fsProgram, 0, m_textureIndex);
-	stateManager.bindPipeline(m_pPipeline->getId());
-	stateManager.bindVertexArray(m_vao.getId());
+	vx::gl::StateManager::bindPipeline(m_pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_vao);
 	glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, 0);
 }
 

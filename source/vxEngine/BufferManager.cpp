@@ -10,7 +10,7 @@ namespace gl
 		
 		auto sid = vx::make_sid(name);
 
-		VX_ASSERT(m_buffers.find(sid) == m_buffers.end(), "");
+		VX_ASSERT(m_buffers.find(sid) == m_buffers.end());
 
 		m_buffers.insert(sid, std::move(buffer));
 

@@ -16,7 +16,7 @@ namespace vx
 #include <vxLib/math/Vector.h>
 #include <vxLib/gl/Buffer.h>
 #include <vxLib/gl/VertexArray.h>
-#include "sorted_array.h"
+#include <vxLib/Container/sorted_array.h>
 #include <vxLib/StringID.h>
 #include <vector>
 #if VX_IPCM
@@ -140,7 +140,7 @@ public:
 
 	void update(F32 dt);
 
-	void render(vx::gl::StateManager &stateManager);
+	void render();
 
 	void frame();
 

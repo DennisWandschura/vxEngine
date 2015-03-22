@@ -27,7 +27,6 @@ class NavMesh;
 
 #include "EventListener.h"
 #include <vxLib\gl\RenderContext.h>
-#include <vxLib\gl\StateManager.h>
 #include <vxLib\Graphics\Camera.h>
 #include "RenderStage.h"
 #include "Font.h"
@@ -35,7 +34,7 @@ class NavMesh;
 #include <atomic>
 #include <mutex>
 #include "LoadFileCallback.h"
-#include "StackAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 #include "Squirrel.h"
 #include "BVH.h"
 
@@ -107,6 +106,12 @@ protected:
 		U32  baseInstance;
 	} DrawArraysIndirectCommand;
 
+	struct VX_ALIGN(16) VoxelTrianglePair
+	{
+		vx::int3 voxelPos;
+		vx::float3 triangle[3];
+	};
+
 	struct ColdData
 	{
 		vx::gl::Texture m_gbufferDepthTexture;
@@ -149,18 +154,21 @@ protected:
 	//
 	vx::gl::Buffer m_meshVertexBlock;
 	vx::gl::Buffer m_bvhBlock;
+	vx::gl::Buffer m_rayOffsetBlock;
+	vx::gl::Buffer m_voxelTrianglePairCmdBuffer;
+	vx::gl::Buffer m_voxelTrianglePairVbo;
 	//
 	vx::gl::Buffer m_textureBlock;
 	// contains compressed rays
 	vx::gl::Buffer m_rayList;
 	vx::gl::Buffer m_rayLinks;
-	vx::gl::Buffer m_rayLinkChunks;
-	vx::gl::Buffer m_rayAtomicCounter;
+	vx::gl::Buffer m_atomicCounter;
 	vx::gl::Texture m_rayTraceShadowTexture;
 	vx::gl::Texture m_rayTraceShadowTextureSmall;
 	vx::gl::Texture m_voxelTexture;
 	// each cell contains amount of rays that need to be checked against
-	vx::gl::Texture m_voxelRayCountTexture;
+	vx::gl::Texture m_voxelRayLinkOffsetTexture;
+	vx::gl::Texture m_voxelRayLinkCountTexture;
 	
 	vx::gl::Framebuffer m_gbufferFB;
 	vx::gl::Framebuffer m_gbufferFBSmall;
@@ -171,7 +179,7 @@ protected:
 	U32 m_meshInstancesCountTotal{ 0 };
 	U32 m_numPointLights{ 0 };
 	vx::gl::VertexArray m_emptyVao;
-	vx::gl::StateManager m_stateManager;
+	vx::gl::VertexArray m_voxelTrianglePairVao;
 	vx::gl::VertexArray m_meshVao;
 	vx::gl::VertexArray m_navmeshVao;
 	U32 m_navmeshIndexCount{ 0 };
@@ -236,6 +244,21 @@ protected:
 	//////////////
 
 	void updateNavMeshBuffer(const NavMesh &navMesh);
+
+	void clearTextures();
+	void zeroRayBuffer();
+	void binaryVoxelize();
+	void createGBuffer();
+	void createGBufferSmall();
+	void createRays();
+	void createRayLinkOffsets();
+	void createRayLinks();
+	void testVoxelTriangles();
+	void testRayTriangles();
+	void renderFinalImage();
+	void renderForward();
+	void renderProfiler(Profiler2* pProfiler, ProfilerGraph* pGraph);
+	void renderNavGraph();
 
 public:
 	RenderAspect(Logfile &logfile, FileAspect &fileAspect);

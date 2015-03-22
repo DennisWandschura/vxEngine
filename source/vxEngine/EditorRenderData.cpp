@@ -55,36 +55,36 @@ namespace Editor
 		m_waypointsVao.bindVertexBuffer(m_editorWaypointsVbo, 0, 0, sizeof(Waypoint));
 	}
 
-	void RenderData::drawMouse(const ShaderManager &shaderManager, vx::gl::StateManager* pStateManager) const
+	void RenderData::drawMouse(const ShaderManager &shaderManager) const
 	{
-		pStateManager->enable(vx::gl::Capabilities::Blend);
-		pStateManager->disable(vx::gl::Capabilities::Depth_Test);
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 
-		pStateManager->bindVertexArray(m_mouseHitVao.getId());
+		vx::gl::StateManager::bindVertexArray(m_mouseHitVao);
 		glPointSize(5.0f);
 
 		auto pPipeline = shaderManager.getPipeline("draw_point.pipe");
-		pStateManager->bindPipeline(pPipeline->getId());
+		vx::gl::StateManager::bindPipeline(pPipeline->getId());
 		glDrawArrays(GL_POINTS, 0, 1);
 
-		pStateManager->disable(vx::gl::Capabilities::Blend);
-		pStateManager->enable(vx::gl::Capabilities::Depth_Test);
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 	}
 
-	void RenderData::drawWaypoints(const ShaderManager &shaderManager, vx::gl::StateManager* pStateManager) const
+	void RenderData::drawWaypoints(const ShaderManager &shaderManager) const
 	{
-		pStateManager->enable(vx::gl::Capabilities::Blend);
-		pStateManager->disable(vx::gl::Capabilities::Depth_Test);
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 
-		pStateManager->bindVertexArray(m_waypointsVao.getId());
+		vx::gl::StateManager::bindVertexArray(m_waypointsVao);
 		glPointSize(5.0f);
 
 		auto pPipeline = shaderManager.getPipeline("draw_point.pipe");
-		pStateManager->bindPipeline(pPipeline->getId());
+		vx::gl::StateManager::bindPipeline(pPipeline->getId());
 		glDrawElements(GL_POINTS, m_waypointCount, GL_UNSIGNED_BYTE, 0);
 
-		pStateManager->disable(vx::gl::Capabilities::Blend);
-		pStateManager->enable(vx::gl::Capabilities::Depth_Test);
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 	}
 
 	void RenderData::addMesh(const vx::StringID64 &sid)
@@ -109,7 +109,6 @@ namespace Editor
 	{
 		auto ptr = m_mouseHitVertex.map<vx::float3>(vx::gl::Map::Write_Only);
 		*ptr = p;
-		m_mouseHitVertex.unmap();
 	}
 
 	void RenderData::updateWaypoint(U32 offset, U32 count, const Waypoint* src)
@@ -118,8 +117,7 @@ namespace Editor
 		auto sizeBytes = count * sizeof(Waypoint);
 
 		auto ptr = m_editorWaypointsVbo.mapRange<Waypoint>(offsetBytes, sizeBytes, vx::gl::MapRange::Write);
-		::memcpy(ptr, src + offset, sizeBytes);
-		m_editorWaypointsVbo.unmap();
+		::memcpy(ptr.get(), src + offset, sizeBytes);
 
 		++m_waypointCount;
 	}

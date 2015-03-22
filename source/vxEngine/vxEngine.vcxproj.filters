@@ -252,9 +252,6 @@
     <ClInclude Include="TextureFile.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Array.h">
-      <Filter>Header Files\Container</Filter>
-    </ClInclude>
     <ClInclude Include="sorted_array.h">
       <Filter>Header Files\Container</Filter>
     </ClInclude>
@@ -546,6 +543,12 @@
     <ClInclude Include="kernelSortRays.h">
       <Filter>CUDA</Filter>
     </ClInclude>
+    <ClInclude Include="ImageBindingManager.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferBindingManager.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -599,17 +602,11 @@
     <ClCompile Include="RenderStage.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="PoolAllocator.cpp">
-      <Filter>Source Files\Allocator</Filter>
-    </ClCompile>
     <ClCompile Include="FileEntry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="File.cpp">
       <Filter>Source Files\util</Filter>
-    </ClCompile>
-    <ClCompile Include="StackAllocator.cpp">
-      <Filter>Source Files\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="SceneFactory.cpp">
       <Filter>Source Files</Filter>
@@ -805,6 +802,12 @@
     </ClCompile>
     <ClCompile Include="BVH_GPU.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBindingManager.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferBindingManager.cpp">
+      <Filter>Source Files\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1080,6 +1083,45 @@
     </None>
     <None Include="..\..\game\data\shaders\programs\uncompress_ray_links.vs.glsl">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\create_ray_link_offsets.cs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\create_ray_links.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\zero_rays.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\zero_rays.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\voxel_test_triangles.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxel_test_triangles.gs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxel_test_triangles.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\test_pair_rayLinks.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\test_pair_rayLinks.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\test_pair_rayLinks.gs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\test_pair_rayLinks.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\create_ray_link_offsets.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\create_ray_link_offsets.pipe">
+      <Filter>Shader Pipelines</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

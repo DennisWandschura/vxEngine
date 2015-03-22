@@ -6,7 +6,7 @@ class EventListener;
 #include <vxLib/types.h>
 #include <vector>
 #include "SquirrelVM.h"
-#include "sorted_array.h"
+#include <vxLib/Container/sorted_array.h>
 #include <mutex>
 
 class EventManager

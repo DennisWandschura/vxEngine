@@ -4,7 +4,7 @@
 #include "NavNode.h"
 #include <vector>
 #include "utility.h"
-#include "StackAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 #include <algorithm>
 #include "AABB.h"
 #include <vxLib/ScopeGuard.h>

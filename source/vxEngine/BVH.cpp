@@ -1187,8 +1187,8 @@ void BVH::updateGpuBuffers(const U32 nodeCount, U32 primCount, vx::gl::Buffer* v
 
 	{
 		auto p = vertexBlock->map<TriangleA>(vx::gl::Map::Write_Only);
-		vx::memcpy(p, triangles, trianglesSize);
-		vertexBlock->unmap();
+		vx::memcpy(p.get(), triangles, trianglesSize);
+		//vertexBlock->unmap();
 	}
 
 	//auto nodes = std::make_unique<BVHNodeGpu[]>(nodeCount);
@@ -1224,7 +1224,6 @@ void BVH::updateGpuBuffers(const U32 nodeCount, U32 primCount, vx::gl::Buffer* v
 
 	{
 		auto p = bvhBlock->map<BVHNodeGpu>(vx::gl::Map::Write_Only);
-		vx::memcpy(p, nodes, nodeCount);
-		bvhBlock->unmap();
+		vx::memcpy(p.get(), nodes, nodeCount);
 	}
 }

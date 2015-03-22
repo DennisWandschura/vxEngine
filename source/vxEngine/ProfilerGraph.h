@@ -50,5 +50,5 @@ public:
 	void frame(F32 frameTime);
 	// updates buffers
 	void update();
-	void render(vx::gl::StateManager *stateManager);
+	void render();
 };

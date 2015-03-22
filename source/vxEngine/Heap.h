@@ -3,7 +3,7 @@
 #include <vector>
 #include <functional>
 #include <algorithm>
-#include "Array.h"
+#include <vxLib/Container/array.h>
 
 namespace vx
 {
@@ -70,9 +70,8 @@ namespace vx
 		typedef value_type& reference;
 		typedef const reference const_reference;
 
-		typedef vx::Array<value_type> MyContainer;
+		typedef vx::array<value_type> MyContainer;
 		typedef typename MyContainer::size_type size_type;
-		typedef typename MyContainer::MyAllocator MyAllocator;
 
 		struct Compare
 		{
@@ -88,7 +87,8 @@ namespace vx
 		HeapArray() = default;
 		HeapArray(const HeapArray&) = delete;
 
-		HeapArray(size_type capacity, MyAllocator* pAllocator)
+		template<typename Alloc>
+		HeapArray(size_type capacity, Alloc* pAllocator)
 			:m_container(capacity, pAllocator)
 		{
 		}

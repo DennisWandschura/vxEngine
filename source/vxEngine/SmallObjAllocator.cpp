@@ -142,13 +142,13 @@ U8* ChunkAllocator::allocate()
 // make sure p is not nullptr, and call contains() before calling deallocate
 void ChunkAllocator::deallocate(U8* p)
 {
-	VX_ASSERT(p != nullptr, "");
+	VX_ASSERT(p != nullptr);
 
 	// we called contains() before calling deallocate, so this should be quick
 	//bool found = (contains(p) != 0);
 
 	//assert(found);
-	VX_ASSERT(m_pChunks[m_deallocChunk].contains(p, m_blockSize, m_blockCount), "");
+	VX_ASSERT(m_pChunks[m_deallocChunk].contains(p, m_blockSize, m_blockCount));
 
 	m_pChunks[m_deallocChunk].deallocate(p, m_blockSize);
 }
@@ -268,7 +268,7 @@ void SmallObjAllocator::deallocate(U8* p, U32 size)
 			++iter;
 		}
 
-		VX_ASSERT(found, "");
+		VX_ASSERT(found);
 		m_lastDealloc = iter - m_allocators.begin();
 	}
 

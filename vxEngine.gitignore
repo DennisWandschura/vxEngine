@@ -692,101 +692,105 @@
         <td id="L5" class="blob-num js-line-number" data-line-number="5"></td>
         <td id="LC5" class="blob-code js-file-line">*.obj</td>
       </tr>
+	  <tr>
+        <td id="L5" class="blob-num js-line-number" data-line-number="6"></td>
+        <td id="LC5" class="blob-code js-file-line">*.pdb</td>
+      </tr>
       <tr>
-        <td id="L6" class="blob-num js-line-number" data-line-number="6"></td>
+        <td id="L6" class="blob-num js-line-number" data-line-number="7"></td>
         <td id="LC6" class="blob-code js-file-line">
 </td>
       </tr>
       <tr>
-        <td id="L7" class="blob-num js-line-number" data-line-number="7"></td>
+        <td id="L7" class="blob-num js-line-number" data-line-number="8"></td>
         <td id="LC7" class="blob-code js-file-line"># Precompiled Headers</td>
       </tr>
       <tr>
-        <td id="L8" class="blob-num js-line-number" data-line-number="8"></td>
+        <td id="L8" class="blob-num js-line-number" data-line-number="9"></td>
         <td id="LC8" class="blob-code js-file-line">*.gch</td>
       </tr>
       <tr>
-        <td id="L9" class="blob-num js-line-number" data-line-number="9"></td>
+        <td id="L9" class="blob-num js-line-number" data-line-number="10"></td>
         <td id="LC9" class="blob-code js-file-line">*.pch</td>
       </tr>
       <tr>
-        <td id="L10" class="blob-num js-line-number" data-line-number="10"></td>
+        <td id="L10" class="blob-num js-line-number" data-line-number="11"></td>
         <td id="LC10" class="blob-code js-file-line">
 </td>
       </tr>
       <tr>
-        <td id="L11" class="blob-num js-line-number" data-line-number="11"></td>
+        <td id="L11" class="blob-num js-line-number" data-line-number="12"></td>
         <td id="LC11" class="blob-code js-file-line"># Compiled Dynamic libraries</td>
       </tr>
       <tr>
-        <td id="L12" class="blob-num js-line-number" data-line-number="12"></td>
+        <td id="L12" class="blob-num js-line-number" data-line-number="13"></td>
         <td id="LC12" class="blob-code js-file-line">*.so</td>
       </tr>
       <tr>
-        <td id="L13" class="blob-num js-line-number" data-line-number="13"></td>
+        <td id="L13" class="blob-num js-line-number" data-line-number="14"></td>
         <td id="LC13" class="blob-code js-file-line">*.dylib</td>
       </tr>
       <tr>
-        <td id="L14" class="blob-num js-line-number" data-line-number="14"></td>
+        <td id="L14" class="blob-num js-line-number" data-line-number="15"></td>
         <td id="LC14" class="blob-code js-file-line">*.dll</td>
       </tr>
       <tr>
-        <td id="L15" class="blob-num js-line-number" data-line-number="15"></td>
+        <td id="L15" class="blob-num js-line-number" data-line-number="16"></td>
         <td id="LC15" class="blob-code js-file-line">
 </td>
       </tr>
       <tr>
-        <td id="L16" class="blob-num js-line-number" data-line-number="16"></td>
+        <td id="L16" class="blob-num js-line-number" data-line-number="17"></td>
         <td id="LC16" class="blob-code js-file-line"># Fortran module files</td>
       </tr>
       <tr>
-        <td id="L17" class="blob-num js-line-number" data-line-number="17"></td>
+        <td id="L17" class="blob-num js-line-number" data-line-number="18"></td>
         <td id="LC17" class="blob-code js-file-line">*.mod</td>
       </tr>
       <tr>
-        <td id="L18" class="blob-num js-line-number" data-line-number="18"></td>
+        <td id="L18" class="blob-num js-line-number" data-line-number="19"></td>
         <td id="LC18" class="blob-code js-file-line">
 </td>
       </tr>
       <tr>
-        <td id="L19" class="blob-num js-line-number" data-line-number="19"></td>
+        <td id="L19" class="blob-num js-line-number" data-line-number="20"></td>
         <td id="LC19" class="blob-code js-file-line"># Compiled Static libraries</td>
       </tr>
       <tr>
-        <td id="L20" class="blob-num js-line-number" data-line-number="20"></td>
+        <td id="L20" class="blob-num js-line-number" data-line-number="21"></td>
         <td id="LC20" class="blob-code js-file-line">*.lai</td>
       </tr>
       <tr>
-        <td id="L21" class="blob-num js-line-number" data-line-number="21"></td>
+        <td id="L21" class="blob-num js-line-number" data-line-number="22"></td>
         <td id="LC21" class="blob-code js-file-line">*.la</td>
       </tr>
       <tr>
-        <td id="L22" class="blob-num js-line-number" data-line-number="22"></td>
+        <td id="L22" class="blob-num js-line-number" data-line-number="23"></td>
         <td id="LC22" class="blob-code js-file-line">*.a</td>
       </tr>
       <tr>
-        <td id="L23" class="blob-num js-line-number" data-line-number="23"></td>
+        <td id="L23" class="blob-num js-line-number" data-line-number="24"></td>
         <td id="LC23" class="blob-code js-file-line">*.lib</td>
       </tr>
       <tr>
-        <td id="L24" class="blob-num js-line-number" data-line-number="24"></td>
+        <td id="L24" class="blob-num js-line-number" data-line-number="25"></td>
         <td id="LC24" class="blob-code js-file-line">
 </td>
       </tr>
       <tr>
-        <td id="L25" class="blob-num js-line-number" data-line-number="25"></td>
+        <td id="L25" class="blob-num js-line-number" data-line-number="26"></td>
         <td id="LC25" class="blob-code js-file-line"># Executables</td>
       </tr>
       <tr>
-        <td id="L26" class="blob-num js-line-number" data-line-number="26"></td>
+        <td id="L26" class="blob-num js-line-number" data-line-number="27"></td>
         <td id="LC26" class="blob-code js-file-line">*.exe</td>
       </tr>
       <tr>
-        <td id="L27" class="blob-num js-line-number" data-line-number="27"></td>
+        <td id="L27" class="blob-num js-line-number" data-line-number="28"></td>
         <td id="LC27" class="blob-code js-file-line">*.out</td>
       </tr>
       <tr>
-        <td id="L28" class="blob-num js-line-number" data-line-number="28"></td>
+        <td id="L28" class="blob-num js-line-number" data-line-number="29"></td>
         <td id="LC28" class="blob-code js-file-line">*.app</td>
       </tr>
 </table>

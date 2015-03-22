@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sorted_array.h"
+#include <vxLib/Container/sorted_array.h>
 #include <vxLib/StringID.h>
 #include <vxLib/gl/Buffer.h>
 

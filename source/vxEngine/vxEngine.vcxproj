@@ -166,6 +166,7 @@
     <ClInclude Include="Actor.h" />
     <ClInclude Include="ActorAspect.h" />
     <ClInclude Include="ActorFactory.h" />
+    <ClInclude Include="BufferBindingManager.h" />
     <ClInclude Include="BVH_GPU.h" />
     <ClInclude Include="EditorEngine.h" />
     <ClInclude Include="EditorRenderAspect.h" />
@@ -175,7 +176,6 @@
     <ClInclude Include="EditorWaypointManager.h" />
     <ClInclude Include="EventsAI.h" />
     <ClInclude Include="Align.h" />
-    <ClInclude Include="Array.h" />
     <ClInclude Include="Arrive.h" />
     <ClInclude Include="AStar.h" />
     <ClInclude Include="BufferManager.h" />
@@ -184,6 +184,7 @@
     <ClInclude Include="developer.h" />
     <ClInclude Include="EventListener.h" />
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="ImageBindingManager.h" />
     <ClInclude Include="InfluenceMap.h" />
     <ClInclude Include="EventsIngame.h" />
     <ClInclude Include="kernelSortRays.h" />
@@ -310,6 +311,7 @@
     <ClCompile Include="Align.cpp" />
     <ClCompile Include="Arrive.cpp" />
     <ClCompile Include="AStar.cpp" />
+    <ClCompile Include="BufferBindingManager.cpp" />
     <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="BVH.cpp" />
     <ClCompile Include="BVH_GPU.cpp" />
@@ -328,6 +330,7 @@
     <ClCompile Include="EditorWaypointManager.cpp" />
     <ClCompile Include="EntityFactory.cpp" />
     <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="ImageBindingManager.cpp" />
     <ClCompile Include="InfluenceMap.cpp" />
     <ClCompile Include="Locator.cpp" />
     <ClCompile Include="NavGraph.cpp" />
@@ -346,6 +349,7 @@
     <ClCompile Include="Transition.cpp" />
     <ClCompile Include="Wander.cpp" />
     <None Include="..\..\game\data\scripts\events.nut" />
+    <None Include="..\..\game\data\shaders\create_ray_link_offsets.pipe" />
     <None Include="..\..\game\data\shaders\navmesh.pipe" />
     <None Include="..\..\game\data\shaders\programs\bounding_box_update.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\bounding_box_update.gs.glsl" />
@@ -355,6 +359,9 @@
     <None Include="..\..\game\data\shaders\programs\create_gbuffer.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\create_gbuffer_small.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\create_raylist.fs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\create_ray_links.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\create_ray_link_offsets.cs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\create_ray_link_offsets.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\depth_cull.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\depth_lod_construction.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\draw.fs.glsl" />
@@ -383,7 +390,6 @@
     <ClCompile Include="PhysicsAspect.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="Pool.cpp" />
-    <ClCompile Include="PoolAllocator.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="Profiler2.cpp" />
     <ClCompile Include="ProfilerGraph.cpp" />
@@ -396,7 +402,6 @@
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="Squirrel.cpp" />
     <ClCompile Include="SquirrelVM.cpp" />
-    <ClCompile Include="StackAllocator.cpp" />
     <ClCompile Include="SystemAspect.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="TextureFile.cpp" />
@@ -419,14 +424,23 @@
     <None Include="..\..\game\data\shaders\programs\ray_trace_shadow.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\ray_trace_voxel.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\screenquad.gs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\test_pair_rayLinks.fs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\test_pair_rayLinks.gs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\test_pair_rayLinks.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\uncompress_ray_links.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\upsample.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\voxel_test_triangles.gs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\voxel_test_triangles.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\zero_rays.vs.glsl" />
     <None Include="..\..\game\data\shaders\ray_trace_ao.pipe" />
     <None Include="..\..\game\data\shaders\ray_trace_draw.pipe" />
     <None Include="..\..\game\data\shaders\ray_trace_draw_editor.pipe" />
     <None Include="..\..\game\data\shaders\ray_trace_pass.pipe" />
     <None Include="..\..\game\data\shaders\ray_trace_shadow.pipe" />
     <None Include="..\..\game\data\shaders\ray_trace_shadow_cs.pipe" />
+    <None Include="..\..\game\data\shaders\test_pair_rayLinks.pipe" />
+    <None Include="..\..\game\data\shaders\voxel_test_triangles.pipe" />
+    <None Include="..\..\game\data\shaders\zero_rays.pipe" />
     <None Include="render.nut" />
   </ItemGroup>
   <ItemGroup>

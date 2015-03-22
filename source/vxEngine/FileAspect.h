@@ -9,12 +9,12 @@ class EditorScene;
 class Scene;
 
 #include "FileEntry.h"
-#include "StackAllocator.h"
+#include <vxLib/Allocator/StackAllocator.h>
 #include "LoadFileCallback.h"
 #include <vector>
 #include "Logfile.h"
 #include "Clock.h"
-#include "sorted_array.h"
+#include <vxLib/Container/sorted_array.h>
 #include <mutex>
 #include <vxLib/StringID.h>
 #include "TextureFile.h"

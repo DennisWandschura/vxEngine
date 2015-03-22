@@ -3,7 +3,7 @@
 #include "Scene.h"
 #include "FileEntry.h"
 #include "MeshInstance.h"
-#include "sorted_array.h"
+#include <vxLib/Container/sorted_array.h>
 #include <vxLib\Graphics\Mesh.h>
 #include "Material.h"
 #include "Light.h"
