@@ -115,12 +115,14 @@ struct VX_ALIGN(16) CompressedRay
 	U32 mortonCode;
 	vx::float3 direction;
 	F32 distance;*/
-	__m128 v0;
-	__m128 v1;
+	vx::float3 origin;
+	int texCoords;
+	vx::float3 direction;
+	float distance;
 	//U32 compressedRay[3];
 };
 
-struct VX_ALIGN(8) RayLink
+struct RayLink
 {
 	U32 mortonCode;
 	U32 rayIndex;

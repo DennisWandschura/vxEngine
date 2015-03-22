@@ -268,7 +268,7 @@ bool RenderAspect::initializeBuffers()
 	createVoxelBuffer();
 
 	{
-		const auto maxRaySizeBytes = sizeof(CompressedRay) * 960 * 540;
+		const auto maxRaySizeBytes = sizeof(CompressedRay) * 1920 * 1080;
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
@@ -281,7 +281,7 @@ bool RenderAspect::initializeBuffers()
 	{
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
-		desc.size = sizeof(RayLink) * 960 * 540 * 4;
+		desc.size = sizeof(RayLink) * 1920 * 1080 * 4;
 		desc.immutable = 1;
 		desc.flags = vx::gl::BufferStorageFlags::Read | vx::gl::BufferStorageFlags::Write;
 
@@ -292,29 +292,9 @@ bool RenderAspect::initializeBuffers()
 		vx::gl::BufferDescription vboDesc;
 		vboDesc.bufferType = vx::gl::BufferType::Array_Buffer;
 		vboDesc.size = sizeof(VoxelTrianglePair) * 50000;
-		vboDesc.flags = vx::gl::BufferStorageFlags::Write;
+		vboDesc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Read;
 		vboDesc.immutable = 1;
 		m_voxelTrianglePairVbo.create(vboDesc);
-
-		m_voxelTrianglePairVao.create();
-
-		m_voxelTrianglePairVao.enableArrayAttrib(0);
-		m_voxelTrianglePairVao.arrayAttribBinding(0, 0);
-		m_voxelTrianglePairVao.arrayAttribFormatF(0, 3, 0, 0);
-
-		m_voxelTrianglePairVao.enableArrayAttrib(1);
-		m_voxelTrianglePairVao.arrayAttribBinding(1, 0);
-		m_voxelTrianglePairVao.arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
-
-		m_voxelTrianglePairVao.enableArrayAttrib(2);
-		m_voxelTrianglePairVao.arrayAttribBinding(2, 0);
-		m_voxelTrianglePairVao.arrayAttribFormatF(2, 3, 0, sizeof(vx::float3) * 2);
-
-		m_voxelTrianglePairVao.enableArrayAttrib(3);
-		m_voxelTrianglePairVao.arrayAttribBinding(3, 0);
-		m_voxelTrianglePairVao.arrayAttribFormatF(3, 3, 0, sizeof(vx::float3) * 3);
-
-		m_voxelTrianglePairVao.bindVertexBuffer(m_voxelTrianglePairVbo, 0, 0, sizeof(VoxelTrianglePair));
 	}
 
 	return true;
@@ -565,7 +545,7 @@ void RenderAspect::createTextures()
 
 	{
 		vx::gl::TextureDescription desc;
-		desc.format = vx::gl::TextureFormat::R8;
+		desc.format = vx::gl::TextureFormat::RGBA8;
 		desc.type = vx::gl::Texture_2D;
 		desc.size = vx::ushort3(1920, 1080, 1);
 		desc.miplevels = 1;
@@ -576,7 +556,7 @@ void RenderAspect::createTextures()
 
 	{
 		vx::gl::TextureDescription desc;
-		desc.format = vx::gl::TextureFormat::R8;
+		desc.format = vx::gl::TextureFormat::RGBA8;
 		desc.type = vx::gl::Texture_2D;
 		desc.size = vx::ushort3(960, 540, 1);
 		desc.miplevels = 1;
@@ -585,7 +565,7 @@ void RenderAspect::createTextures()
 
 		m_rayTraceShadowTextureSmall.setWrapMode2D(vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE);
 	}
-}
+	}
 
 void RenderAspect::createFrameBuffers()
 {
@@ -632,7 +612,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Framebuffer_sRGB);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Texture_Cube_Map_Seamless);
 	vx::gl::StateManager::setClearColor(0, 0, 0, 1);
-	//m_stateManager.setViewport(0, 0, windowResolution.x, windowResolution.y);
+	vx::gl::StateManager::setViewport(0, 0, windowResolution.x, windowResolution.y);
 
 
 	m_camera.setPosition(0, 2.5f, 15);
@@ -1200,22 +1180,21 @@ void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 
-	pProfiler->pushGpuMarker("zero rays()");
-	zeroRayBuffer();
-	pProfiler->popGpuMarker();
-
 	// voxelize
 	pProfiler->pushGpuMarker("voxelize()");
 	binaryVoxelize();
 	pProfiler->popGpuMarker();
 
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
 	if (dev::g_toggleRender == 0)
 	{
 		pProfiler->pushGpuMarker("create gbuffer()");
 		createGBuffer();
+		createGBufferSmall();
 		pProfiler->popGpuMarker();
 
-		createGBufferSmall();
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 		vx::gl::StateManager::setClearColor(0.1f, 0.1f, 0.1f, 1);
 
@@ -1232,46 +1211,37 @@ void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 			pProfiler->popGpuMarker();
 
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 			// create offsets for raylinks
 			pProfiler->pushGpuMarker("create link offsets");
 			createRayLinkOffsets();
 			pProfiler->popGpuMarker();
 
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 			pProfiler->pushGpuMarker("create ray links()");
 			createRayLinks();
 			pProfiler->popGpuMarker();
 
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
 			pProfiler->pushGpuMarker("test voxel triangles()");
 			testVoxelTriangles();
 			pProfiler->popGpuMarker();
 
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT | GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 
 			pProfiler->pushGpuMarker("test ray triangles()");
 			testRayTriangles();
 			pProfiler->popGpuMarker();
 
+			glMemoryBarrier(GL_ALL_BARRIER_BITS);
 			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 			renderFinalImage();
-
-			/*{
-				U32 pairCount = 0;
-				auto pCounter = m_rayAtomicCounter.map< U32 >(vx::gl::Map::Read_Only);
-
-				pairCount = pCounter[1];
-				pCounter.unmap();
-
-				U32 offsetCount = 0;
-				auto offset = m_rayOffsetBlock.map<U32>(vx::gl::Map::Read_Only);
-				offsetCount = *offset;
-				offset.unmap();
-
-				printf("%u %u\n", pairCount, offsetCount);
-				}*/
 		}
 	}
 	else
@@ -1298,7 +1268,7 @@ void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 void RenderAspect::clearTextures()
 {
 	m_rayTraceShadowTexture.clearImage(0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-	m_rayTraceShadowTextureSmall.clearImage(0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+	m_rayTraceShadowTextureSmall.clearImage(0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
 	m_voxelTexture.clearImage(0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
 	m_voxelRayLinkCountTexture.clearImage(0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
@@ -1311,7 +1281,7 @@ void RenderAspect::zeroRayBuffer()
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
 	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
 
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 960, 540);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 1920, 1080);
 }
 
 void RenderAspect::binaryVoxelize()
@@ -1386,11 +1356,11 @@ void RenderAspect::createRays()
 	auto pPipeline = m_shaderManager.getPipeline("ray_trace_voxel.pipe");
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
 
-	ImageBindingManager::bind(0, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_R8);
-	ImageBindingManager::bind(1, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(0, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(1, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_RGBA8);
 	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32UI);
 
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 960, 540);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 1920, 1080);
 }
 
 void RenderAspect::createRayLinkOffsets()
@@ -1413,12 +1383,12 @@ void RenderAspect::createRayLinks()
 	auto pPipeline = m_shaderManager.getPipeline("create_ray_links.pipe");
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
 
-	ImageBindingManager::bind(0, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_R8);
-	ImageBindingManager::bind(1, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(0, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(1, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_RGBA8);
 	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32UI);
 	ImageBindingManager::bind(3, m_voxelRayLinkOffsetTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32UI);
 
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 960, 540);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 1920, 1080);
 }
 
 void RenderAspect::testVoxelTriangles()
@@ -1446,29 +1416,26 @@ void RenderAspect::testVoxelTriangles()
 
 void RenderAspect::testRayTriangles()
 {
-	ImageBindingManager::bind(1, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_R8);
+	ImageBindingManager::bind(1, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_RGBA8);
 	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_READ_WRITE, GL_R32I);
 	ImageBindingManager::bind(3, m_voxelRayLinkOffsetTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32UI);
 
-	vx::gl::StateManager::setViewport(0, 0, 960, 540);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-
 	auto pPipeline = m_shaderManager.getPipeline("test_pair_rayLinks.pipe");
+
+	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::bindVertexArray(m_voxelTrianglePairVao.getId());
+	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
 
 	m_voxelTrianglePairCmdBuffer.bind();
 	glDrawArraysIndirect(GL_POINTS, 0);
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 }
 
 void RenderAspect::renderFinalImage()
 {
 	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
 	// draw final image
-	ImageBindingManager::bind(0, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_READ_ONLY, GL_R8);
-	ImageBindingManager::bind(1, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(1, m_rayTraceShadowTextureSmall.getId(), 0, 0, 0, GL_READ_ONLY, GL_RGBA8);
+	ImageBindingManager::bind(2, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_READ_ONLY, GL_RGBA8);
 
 	auto pPipeline = m_shaderManager.getPipeline("ray_trace_draw.pipe");
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());

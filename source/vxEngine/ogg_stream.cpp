@@ -133,7 +133,7 @@ bool ogg_stream::stream(ALuint buffer, U8* pBuffer, U32 bufferSize)
 		}
 		else
 		{
-			VX_ASSERT(result >= 0, "");
+			VX_ASSERT(result >= 0);
 			//if (result < 0)
 			//	return false;
 			//	throw std::exception();
@@ -185,7 +185,7 @@ void ogg_stream::check()
 
 	//if (error != AL_NO_ERROR)
 	//	throw std::exception("OpenAL error was raised.");
-	VX_ASSERT(error == AL_NO_ERROR, "OpenAL error");
+	VX_ASSERT(error == AL_NO_ERROR);
 }
 
 void ogg_stream::stop()

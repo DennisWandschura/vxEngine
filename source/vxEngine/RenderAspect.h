@@ -106,10 +106,14 @@ protected:
 		U32  baseInstance;
 	} DrawArraysIndirectCommand;
 
-	struct VX_ALIGN(16) VoxelTrianglePair
+	struct VoxelTrianglePair
 	{
-		vx::int3 voxelPos;
-		vx::float3 triangle[3];
+		vx::float3 p0;
+		int v0;
+		vx::float3 p1;
+		int v1;
+		vx::float3 p2;
+		int v2;
 	};
 
 	struct ColdData
@@ -179,7 +183,6 @@ protected:
 	U32 m_meshInstancesCountTotal{ 0 };
 	U32 m_numPointLights{ 0 };
 	vx::gl::VertexArray m_emptyVao;
-	vx::gl::VertexArray m_voxelTrianglePairVao;
 	vx::gl::VertexArray m_meshVao;
 	vx::gl::VertexArray m_navmeshVao;
 	U32 m_navmeshIndexCount{ 0 };
