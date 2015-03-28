@@ -1,34 +1,20 @@
 #include "ProfilerGraph.h"
 #include <algorithm>
-#include "ShaderManager.h"
+#include <vxLib/gl/ShaderManager.h>
 #include <vxLib/gl/gl.h>
 #include <vxLib/gl/StateManager.h>
 #include <Windows.h>
+#include <vxLib/gl/ProgramPipeline.h>
 
 I64 ProfilerGraph::s_frequency{ 1 };
 
 const F32 g_timeScale = 10.0f;
 const F32 g_graphHeight = 300.0f;
 
-bool ProfilerGraph::initialize(const ShaderManager &shaderManager, F32 targetMs)
+bool ProfilerGraph::initialize(const vx::gl::ShaderManager &shaderManager, F32 targetMs)
 {
-#ifdef _VX_GL_45
 	glCreateQueries(GL_TIMESTAMP, s_queryCount, m_queryGpuStart);
 	glCreateQueries(GL_TIMESTAMP, s_queryCount, m_queryGpuEnd);
-#else
-	glGenQueries(s_queryCount, m_queryGpuStart);
-	glGenQueries(s_queryCount, m_queryGpuEnd);
-
-	for (U32 i = 0; i < s_queryCount; ++i)
-	{
-		glBeginQuery(GL_TIME_ELAPSED, m_queryGpuStart[i]);
-		glEndQuery(GL_TIME_ELAPSED);
-
-		glBeginQuery(GL_TIME_ELAPSED, m_queryGpuEnd[i]);
-		glEndQuery(GL_TIME_ELAPSED);
-	}
-	
-#endif
 
 	QueryPerformanceFrequency((LARGE_INTEGER*)&s_frequency);
 
@@ -139,12 +125,8 @@ bool ProfilerGraph::initialize(const ShaderManager &shaderManager, F32 targetMs)
 
 	vx::gl::BufferDescription iboDesc;
 	iboDesc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
-#ifdef _VX_GL_45
 	iboDesc.flags = vx::gl::BufferStorageFlags::None;
 	iboDesc.immutable = 1;
-#else
-	iboDesc.usage = vx::gl::BufferDataUsage::Static_Draw;
-#endif
 	iboDesc.size = sizeof(U16) * indexCount;
 	iboDesc.pData = indices;
 	m_ibo.create(iboDesc);
@@ -158,7 +140,7 @@ bool ProfilerGraph::initialize(const ShaderManager &shaderManager, F32 targetMs)
 	m_vao.arrayAttribBinding(0, 0);
 
 	m_vao.enableArrayAttrib(1);
-	m_vao.arrayAttribFormatI(1, 1, vx::gl::DataType::UNSIGNED_INT, 0);
+	m_vao.arrayAttribFormatI(1, 1, vx::gl::DataType::Unsigned_Int, 0);
 	m_vao.arrayAttribBinding(1, 1);
 
 	m_vao.bindVertexBuffer(m_vbo, 0, 0, sizeof(vx::float2));

@@ -11,6 +11,15 @@ namespace vx
 #include "SceneBase.h"
 #include <vector>
 
+struct EditorSceneParams
+{
+	SceneBaseParams m_baseParams;
+	std::vector<MeshInstance> m_meshInstances;
+	std::vector<Waypoint> m_waypoints;
+
+	~EditorSceneParams();
+};
+
 class EditorScene : public SceneBase
 {
 	std::vector<MeshInstance> m_meshInstances;
@@ -24,9 +33,7 @@ class EditorScene : public SceneBase
 public:
 	EditorScene();
 	EditorScene(EditorScene &&rhs);
-	EditorScene(std::vector<MeshInstance> &&meshInstances, std::unique_ptr<Light[]> &&lights, U32 lightCount, vx::sorted_vector<vx::StringID64, Material*> &&materials,
-		vx::sorted_vector<vx::StringID64, const vx::Mesh*> &&meshes, U32 vertexCount, U32 indexCount, 
-		std::unique_ptr<Spawn[]> &&spawns, U32 spawnCount, vx::sorted_vector<vx::StringID64, Actor>  &&actors, NavMesh &&navmesh);
+	EditorScene(EditorSceneParams &params);
 	~EditorScene();
 
 	EditorScene& operator = (EditorScene &&rhs);

@@ -5,11 +5,12 @@
 #include <vxLib/gl/gl.h>
 #include "UniformBlocks.h"
 #include <vxLib/gl/StateManager.h>
+#include <vxLib/gl/ProgramPipeline.h>
 
 enum class EditorRenderAspect::EditorUpdate : U32{ Update_None, Update_Mesh, Update_Material, Editor_Added_Instance, Editor_Update_Instance, Editor_Set_Scene };
 
-EditorRenderAspect::EditorRenderAspect(Logfile &logfile, FileAspect &fileAspect)
-	:RenderAspect(logfile, fileAspect)
+EditorRenderAspect::EditorRenderAspect(FileAspect &fileAspect)
+	:RenderAspect(fileAspect)
 {
 }
 
@@ -54,10 +55,6 @@ void EditorRenderAspect::render()
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_materialBlock.getId());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_textureBlock.getId());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_commandBlock.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, m_bvhBlock.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, m_meshVertexBlock.getId());
-
-	glClearTexImage(m_rayTraceShadowTexture.getId(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	{

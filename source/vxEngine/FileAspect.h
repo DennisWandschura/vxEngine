@@ -59,7 +59,7 @@ class FileAspect
 	void getFolderString(FileType fileType, const char** folder);
 	U8* readFile(const char *file, U32 &fileSize);
 
-	void pushFileEvent(FileEvent code,Variant arg1, Variant arg2);
+	void pushFileEvent(FileEvent code,vx::Variant arg1, vx::Variant arg2);
 
 	LoadFileReturnType loadFile(const FileEntry &file, std::vector<FileEntry> &missingFiles, void* pUserData);
 	bool loadMesh(const char *filename, const U8 *ptr, U8 *pMeshMemory, vx::StringID64 sid, FileStatus &status);
@@ -68,7 +68,7 @@ class FileAspect
 	U8 loadScene(const char *filename, const U8 *ptr, vx::StringID64 sid, std::vector<FileEntry> &missingFiles, FileStatus &status, EditorScene* pScene);
 	Material* loadMaterial(const char *filename, const char *file, vx::StringID64 sid, std::vector<FileEntry> &missingFiles, FileStatus &status);
 
-	LoadFileReturnType saveFile(FileRequest &request, Variant* p);
+	LoadFileReturnType saveFile(FileRequest &request, vx::Variant* p);
 
 	void handleLoadRequest(FileRequest &request, std::vector<FileEntry> &missingFiles);
 	void handleSaveRequest(FileRequest &request);

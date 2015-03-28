@@ -124,6 +124,5 @@ struct VX_ALIGN(16) CompressedRay
 
 struct RayLink
 {
-	U32 mortonCode;
 	U32 rayIndex;
 };

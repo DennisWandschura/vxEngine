@@ -1,9 +1,9 @@
-#include "RenderAspect.h"
+#include "RenderAspectRayTracer.h"
 #include <vxLib\math\math.h>
 #include <vxLib/gl/VertexArray.h>
 #include <vxLib\gl\Debug.h>
 #include <vxLib\gl\gl.h>
-#include "BufferBlocks.h"
+#include "UniformBlocks.h"
 #include <vxLib\RawInput.h>
 #include <vxLib\math\math.h>
 #include "FileEntry.h"
@@ -32,7 +32,7 @@
 #include <vxLib/gl\StateManager.h>
 #include <vxLib/gl/ProgramPipeline.h>
 
-RenderAspect* g_renderAspect{ nullptr };
+RenderAspectRayTracer* g_RenderAspectRayTracer{ nullptr };
 
 namespace
 {
@@ -42,27 +42,37 @@ namespace
 	}
 }
 
-RenderAspect::RenderAspect(FileAspect &fileAspect)
+RenderAspectRayTracer::RenderAspectRayTracer(FileAspect &fileAspect)
 	:m_shaderManager(),
 	m_renderContext(),
 	m_camera(),
 	m_fileAspect(fileAspect),
 	m_pColdData()
 {
-	g_renderAspect = this;
+	g_RenderAspectRayTracer = this;
 }
 
-RenderAspect::~RenderAspect()
+RenderAspectRayTracer::~RenderAspectRayTracer()
 {
 }
 
-TextureRef RenderAspect::loadTextureFile(const TextureFile &textureFile, U8 srgb)
+TextureRef RenderAspectRayTracer::loadTextureFile(const TextureFile &textureFile, U8 srgb)
 {
 	return m_pColdData->m_textureManager.load(textureFile, 1, srgb);
 }
 
-bool RenderAspect::initializeBuffers()
+bool RenderAspectRayTracer::initializeBuffers()
 {
+	{
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Atomic_Counter_Buffer;
+		desc.size = sizeof(U32) * 5;
+		desc.pData = nullptr;
+		desc.immutable = 1;
+		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Read;
+		m_atomicCounter.create(desc);
+	}
+
 	m_emptyVao.create();
 
 	vx::gl::BufferDescription vboDesc;
@@ -184,6 +194,41 @@ bool RenderAspect::initializeBuffers()
 		m_pColdData->m_navConnectionsIbo.create(iboDesc);
 	}
 
+	{
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+		desc.size = sizeof(U32);
+		desc.immutable = 1;
+		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Read;
+		m_rayOffsetBlock.create(desc);
+	}
+
+	{
+		DrawArraysIndirectCommand cmd;
+		cmd.baseInstance = 0;
+		cmd.count = 0;
+		cmd.first = 0;
+		cmd.instanceCount = 1;
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+		desc.size = sizeof(DrawArraysIndirectCommand);
+		desc.immutable = 1;
+		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Read;
+		desc.pData = &cmd;
+		m_voxelTrianglePairCmdBuffer.create(desc);
+	}
+
+	{
+		struct PackedTriangle
+		{
+			vx::float2 v[5];
+		};
+
+		auto desc = vx::gl::BufferDescription::createImmutable(vx::gl::BufferType::Shader_Storage_Buffer, sizeof(PackedTriangle) * s_maxVoxelTriangles, 0, nullptr);
+		m_triangleBuffer.create(desc);
+	}
+
 	m_navNodesVao.create();
 	m_navNodesVao.enableArrayAttrib(0);
 	m_navNodesVao.arrayAttribFormatF(0, 3, 0, 0);
@@ -231,13 +276,78 @@ bool RenderAspect::initializeBuffers()
 		m_pColdData->m_screenshotBuffer.create(desc);
 	}
 
+	createVoxelBuffer();
+
+	{
+		const auto maxRaySizeBytes = sizeof(CompressedRay) * s_maxRayCount;
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+		desc.size = maxRaySizeBytes;
+		desc.immutable = 1;
+		desc.flags = vx::gl::BufferStorageFlags::Read | vx::gl::BufferStorageFlags::Write;
+		m_rayList.create(desc);
+	}
+
+	{
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+		desc.size = sizeof(RayLink) * s_maxRayLinkCount;
+		desc.immutable = 1;
+		desc.flags = vx::gl::BufferStorageFlags::Read | vx::gl::BufferStorageFlags::Write;
+
+		m_rayLinks.create(desc);
+	}
+
+	{
+		vx::gl::BufferDescription vboDesc;
+		vboDesc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+		vboDesc.size = sizeof(VoxelTrianglePair) * s_maxVoxelTrianglePairs;
+		vboDesc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Read;
+		vboDesc.immutable = 1;
+		m_voxelTrianglePairBuffer.create(vboDesc);
+
+		vboDesc.bufferType = vx::gl::BufferType::Atomic_Counter_Buffer;
+		vboDesc.size = sizeof(U32) * s_maxVoxelTrianglePairs;
+		m_voxelTriangePairAtomicBuffer.create(vboDesc);
+	}
+
 	return true;
 }
 
-void RenderAspect::getSphereLightShadowTransform(const Light &light, vx::mat4* projMatrix, vx::mat4 *pvMatrices)
+void RenderAspectRayTracer::createVoxelBuffer()
+{
+	const F32 gridSize = 30.0f;
+	const F32 gridHalfSize = gridSize / 2.0f;
+
+	const __m128 axisX = { 1, 0, 0, 0 };
+	const __m128 axisY = { 0, 1, 0, 0 };
+
+	auto voxelProjMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, (float)gridHalfSize, -gridHalfSize, (float)gridHalfSize, 0.0f, (float)gridSize);
+
+	VoxelBlock block;
+
+	block.projectionMatrices[0] = voxelProjMatrix * vx::MatrixRotationAxis(axisY, vx::degToRad(90.0f)) * vx::MatrixTranslation(gridHalfSize, 0, 0);
+	block.projectionMatrices[1] = voxelProjMatrix * vx::MatrixRotationAxis(axisX, vx::degToRad(90.0f)) * vx::MatrixTranslation(0, -gridHalfSize, 0);
+	block.projectionMatrices[2] = voxelProjMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
+
+	block.dim = s_voxelDimension;
+	block.halfDim = s_voxelDimension / 2;
+	block.gridCellSize = gridHalfSize / block.halfDim;
+	block.invGridCellSize = 1.0f / block.gridCellSize;
+
+	vx::gl::BufferDescription desc;
+	desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
+	desc.size = sizeof(VoxelBlock);
+	desc.immutable = 1;
+	desc.pData = &block;
+	m_voxelBlock.create(desc);
+}
+
+void RenderAspectRayTracer::getShadowTransform(const Light &light, vx::mat4 *projMatrix, vx::mat4 *pvMatrices)
 {
 	__m128 p = vx::loadFloat(&light.m_position);
-	*projMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0), 1.0f, 0.1f, light.m_falloff);
+	*projMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0), 1.0f, 1.0f, light.m_falloff);
 	auto lightTranslationMatrix = vx::MatrixTranslation(-light.m_position.x, -light.m_position.y, -light.m_position.z);
 
 	vx::mat4 viewMatrices[6];
@@ -272,24 +382,24 @@ void RenderAspect::getSphereLightShadowTransform(const Light &light, vx::mat4* p
 	}
 }
 
-void RenderAspect::updateLightBuffer(const Light *pLights, U32 numLights)
+void RenderAspectRayTracer::updateLightBuffer(const Light *pLights, U32 numLights)
 {
 	assert(numLights <= 10);
 
 	LightDataBlock lightDataBlock;
 
-	SphereLightShadowTransformBlock shadowTransforms;
+	ShadowTransformBlock shadowTransforms;
 	for (auto i = 0u; i < numLights; ++i)
 	{
-		vx::mat4 projMatrix;
-		getSphereLightShadowTransform(pLights[i], &projMatrix, shadowTransforms.pvMatrix + 6 * i);
+		/*vx::mat4 projMatrix;
+		getShadowTransform(pLights[i], &projMatrix, shadowTransforms.pvMatrix + 6 * i);
 
 		for (U32 j = 0; j < 6; ++j)
 		{
-			shadowTransforms.position[i * 6 + j] = vx::float4(pLights[i].m_position, 1.0f);
-		}
+		shadowTransforms.position[i * 6 + j] = vx::float4(pLights[i].m_position, 1.0f);
+		}*/
 
-		lightDataBlock.u_lightData[i].projectionMatrix = projMatrix;
+		//lightDataBlock.u_lightData[i].projectionMatrix = projMatrix;
 		lightDataBlock.u_lightData[i].position = vx::float4(pLights[i].m_position, 1.0f);
 		lightDataBlock.u_lightData[i].falloff = pLights[i].m_falloff;
 		lightDataBlock.u_lightData[i].surfaceRadius = pLights[i].m_surfaceRadius;
@@ -300,15 +410,13 @@ void RenderAspect::updateLightBuffer(const Light *pLights, U32 numLights)
 
 	m_numPointLights = numLights;
 
-	auto lightDataMappedBuffer = m_lightDataBlock.map<LightDataBlock>(vx::gl::Map::Write_Only);
-	*lightDataMappedBuffer = lightDataBlock;
-	lightDataMappedBuffer.unmap();
+	auto pLightData = m_lightDataBlock.map<LightDataBlock>(vx::gl::Map::Write_Only);
+	*pLightData = lightDataBlock;
 
-	//auto shadowTransformsMappedBuffer = m_sphereLightShadowTransformBlock.map<SphereLightShadowTransformBlock>(vx::gl::Map::Write_Only);
-	//vx::memcpy(shadowTransformsMappedBuffer.get(), shadowTransforms);
+	//cudaUpdateLights((const cu::SphereLightData*)lightDataBlock.u_lightData, numLights);
 }
 
-void RenderAspect::initializeUniformBuffers()
+void RenderAspectRayTracer::initializeUniformBuffers()
 {
 	vx::gl::BufferDescription cameraDesc;
 	cameraDesc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -337,20 +445,24 @@ void RenderAspect::initializeUniformBuffers()
 
 	LightDataBlock lightdata;
 	lightdata.size = 0;
-
 	vx::gl::BufferDescription lightDataDesc;
 	lightDataDesc.bufferType = vx::gl::BufferType::Uniform_Buffer;
 	lightDataDesc.size = sizeof(LightDataBlock);
+#ifdef _VX_GL_45
 	lightDataDesc.immutable = 1;
 	lightDataDesc.flags = vx::gl::BufferStorageFlags::Write;
+#else
+	lightDataDesc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
+#endif
 	lightDataDesc.pData = &lightdata;
 	m_lightDataBlock.create(lightDataDesc);
 
 	{
-		U64 handles[3];
+		U64 handles[4];
 		handles[0] = m_pColdData->m_gbufferAlbedoSlice.getTextureHandle();
 		handles[1] = m_pColdData->m_gbufferNormalSlice.getTextureHandle();
 		handles[2] = m_pColdData->m_gbufferSurfaceSlice.getTextureHandle();
+		handles[3] = m_pColdData->m_gbufferNormalSliceSmall.getTextureHandle();
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -359,14 +471,9 @@ void RenderAspect::initializeUniformBuffers()
 		desc.pData = handles;
 		m_gbufferBlock.create(desc);
 	}
-
-	{
-		vx::gl::BufferDescription desc = vx::gl::BufferDescription::createImmutable(vx::gl::BufferType::Uniform_Buffer, sizeof(SphereLightShadowTransformBlock), vx::gl::BufferStorageFlags::Write, nullptr);
-		m_sphereLightShadowTransformBlock.create(desc);
-	}
 }
 
-void RenderAspect::createTextures()
+void RenderAspectRayTracer::createTextures()
 {
 	m_pColdData->m_textureManager.createBucket(1, vx::ushort3(1024, 1024, 10), 1, vx::gl::Texture_2D_Array, vx::gl::SRGBA8);
 	m_pColdData->m_textureManager.createBucket(1, vx::ushort3(1024, 1024, 10), 1, vx::gl::Texture_2D_Array, vx::gl::SRGB8);
@@ -423,46 +530,63 @@ void RenderAspect::createTextures()
 	}
 
 	{
-		vx::gl::TextureDescription desc;
-		desc.format = vx::gl::TextureFormat::DEPTH32F;
-		desc.type = vx::gl::TextureType::Texture_Cubemap_Array;
-		desc.size = vx::ushort3(s_shadowMapResolution, s_shadowMapResolution, 60);
-		desc.miplevels = 1;
-		desc.sparse = 0;
-		m_pColdData->m_sphereLightShadowMaps.create(desc);
-
-		m_pColdData->m_sphereLightShadowMaps.setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
-		m_pColdData->m_sphereLightShadowMaps.setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
-
-		glTextureParameteri(m_pColdData->m_sphereLightShadowMaps.getId(), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-		glTextureParameteri(m_pColdData->m_sphereLightShadowMaps.getId(), GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-
-		float ones[] = { 1, 1, 1, 1 };
-		glTextureParameterfv(m_pColdData->m_sphereLightShadowMaps.getId(), GL_TEXTURE_BORDER_COLOR, ones);
+		auto desc = vx::gl::TextureDescription::create(vx::gl::Texture_2D, vx::gl::RGBA8, vx::ushort3(1920, 1080, 1), 1, 0);
+		m_voxelDebugTexture.create(desc);
 	}
 
 	{
 		vx::gl::TextureDescription desc;
-		desc.format = vx::gl::TextureFormat::DEPTH32;
-		desc.type = vx::gl::TextureType::Texture_2D_Array;
-		desc.size = vx::ushort3(s_shadowMapResolution, s_shadowMapResolution, 10);
+		desc.type = vx::gl::Texture_3D;
+		desc.size = vx::ushort3(s_voxelDimension, s_voxelDimension, s_voxelDimension);
 		desc.miplevels = 1;
 		desc.sparse = 0;
-		m_pColdData->m_SpotlightShadowMaps.create(desc);
+		desc.format = vx::gl::TextureFormat::R8;
+		m_voxelTexture.create(desc);
 
-		m_pColdData->m_SpotlightShadowMaps.setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
-		m_pColdData->m_SpotlightShadowMaps.setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
+		desc.format = vx::gl::TextureFormat::R32UI;
+		m_voxelRayLinkOffsetTexture.create(desc);
+		m_voxelRayLinkCountTexture.create(desc);
+	}
 
-		glTextureParameteri(m_pColdData->m_SpotlightShadowMaps.getId(), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-		glTextureParameteri(m_pColdData->m_SpotlightShadowMaps.getId(), GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	{
+		vx::gl::TextureDescription desc;
+		desc.type = vx::gl::Texture_2D;
+		desc.size = vx::ushort3(960, 540, 1);
+		desc.miplevels = 1;
+		desc.sparse = 0;
+		desc.format = vx::gl::TextureFormat::RGB16F;
+		m_pColdData->m_gbufferNormalSliceSmall.create(desc);
+		m_pColdData->m_gbufferNormalSliceSmall.makeTextureResident();
 
-		float ones[] = { 1, 1, 1, 1 };
-		glTextureParameterfv(m_pColdData->m_SpotlightShadowMaps.getId(), GL_TEXTURE_BORDER_COLOR, ones);
-		
+		desc.format = vx::gl::TextureFormat::DEPTH32;
+		m_pColdData->m_gbufferDepthTextureSmall.create(desc);
+
+	}
+
+	{
+		vx::gl::TextureDescription desc;
+		desc.format = vx::gl::TextureFormat::RGBA8;
+		desc.type = vx::gl::Texture_2D;
+		desc.size = vx::ushort3(1920, 1080, 1);
+		desc.miplevels = 1;
+		desc.sparse = 0;
+
+		m_rayTraceShadowTexture.create(desc);
+		m_rayTraceShadowTexture.setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
+	}
+
+	{
+		vx::gl::TextureDescription desc;
+		desc.format = vx::gl::TextureFormat::R8;
+		desc.type = vx::gl::Texture_2D;
+		desc.size = vx::ushort3(4096, 4096, 1);
+		desc.miplevels = 1;
+		desc.sparse = 0;
+		m_pColdData->m_rayFBTexture.create(desc);
 	}
 }
 
-void RenderAspect::createFrameBuffers()
+void RenderAspectRayTracer::createFrameBuffers()
 {
 	m_gbufferFB.create();
 	m_gbufferFB.attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_gbufferAlbedoSlice, 0);
@@ -473,12 +597,17 @@ void RenderAspect::createFrameBuffers()
 	GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glNamedFramebufferDrawBuffers(m_gbufferFB.getId(), 3, buffers);
 
-	m_shadowFB.create();
-	m_shadowFB.attachTexture(vx::gl::Attachment::Depth, m_pColdData->m_sphereLightShadowMaps, 0);
-	//glNamedFramebufferDrawBuffer(m_shadowFB.getId(), GL_NONE);
+	m_gbufferFBSmall.create();
+	m_gbufferFBSmall.attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_gbufferNormalSliceSmall, 0);
+	m_gbufferFBSmall.attachTexture(vx::gl::Attachment::Depth, m_pColdData->m_gbufferDepthTextureSmall, 0);
+	glNamedFramebufferDrawBuffers(m_gbufferFBSmall.getId(), 1, buffers);
+
+	m_rayFB.create();
+	m_rayFB.attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_rayFBTexture, 0);
+	glNamedFramebufferDrawBuffer(m_rayFB.getId(), GL_COLOR_ATTACHMENT0);
 }
 
-bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc &desc)
+bool RenderAspectRayTracer::initialize(const std::string &dataDir, const RenderAspectDesc &desc)
 {
 	vx::gl::ContextDescription contextDesc = vx::gl::ContextDescription::create(*desc.window, desc.resolution, desc.fovRad, desc.z_near, desc.z_far, 4, 5, desc.vsync, desc.debug);
 	if (!m_renderContext.initialize(contextDesc))
@@ -487,7 +616,7 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	return initializeImpl(dataDir, desc.resolution, desc.debug, desc.targetMs, desc.pAllocator, desc.pProfiler, desc.pGraph);
 }
 
-bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug,
+bool RenderAspectRayTracer::initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug,
 	F32 targetMs, vx::StackAllocator *pAllocator, Profiler2 *pProfiler, ProfilerGraph* pGraph)
 {
 	m_pColdData = std::make_unique<ColdData>();
@@ -553,7 +682,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	return true;
 }
 
-void RenderAspect::writeTransform(const vx::Transform &transform, U32 elementId)
+void RenderAspectRayTracer::writeTransform(const vx::Transform &transform, U32 elementId)
 {
 	//transform.m_rotation = vx::degToRad(transform.m_rotation);
 
@@ -573,14 +702,14 @@ void RenderAspect::writeTransform(const vx::Transform &transform, U32 elementId)
 	pTransforms.unmap();
 }
 
-void RenderAspect::writeMeshInstanceIdBuffer(U32 elementId, U32 materialIndex)
+void RenderAspectRayTracer::writeMeshInstanceIdBuffer(U32 elementId, U32 materialIndex)
 {
 	auto drawId = elementId | (materialIndex << 16);
 	auto pMeshId = m_pColdData->m_meshIdVbo.map<U32>(vx::gl::Map::Write_Only);
 	pMeshId[elementId] = drawId;
 }
 
-void RenderAspect::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 index, U32 elementId)
+void RenderAspectRayTracer::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 index, U32 elementId)
 {
 	vx::gl::DrawElementsIndirectCommand cmd;
 	cmd.count = meshEntry.indexCount;
@@ -594,7 +723,7 @@ void RenderAspect::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 ind
 	m_commandBlock.unmap();
 }
 
-void RenderAspect::updateBuffers(const MeshInstance *pInstances, U32 instanceCount, const vx::sorted_vector<const Material*, U32> &materialIndices, const vx::sorted_vector<vx::StringID64, MeshEntry> &meshEntries)
+void RenderAspectRayTracer::updateBuffers(const MeshInstance *pInstances, U32 instanceCount, const vx::sorted_vector<const Material*, U32> &materialIndices, const vx::sorted_vector<vx::StringID64, MeshEntry> &meshEntries)
 {
 	if (instanceCount == 0)
 	{
@@ -657,7 +786,7 @@ void RenderAspect::updateBuffers(const MeshInstance *pInstances, U32 instanceCou
 	}
 }
 
-void RenderAspect::writeMaterialToBuffer(const Material *pMaterial, U32 offset)
+void RenderAspectRayTracer::writeMaterialToBuffer(const Material *pMaterial, U32 offset)
 {
 	auto getTextureGpuEntry = [&](const TextureRef &ref)
 	{
@@ -691,7 +820,7 @@ void RenderAspect::writeMaterialToBuffer(const Material *pMaterial, U32 offset)
 	pMaterialGPU.unmap();
 }
 
-void RenderAspect::createMaterial(Material* pMaterial)
+void RenderAspectRayTracer::createMaterial(Material* pMaterial)
 {
 	assert(pMaterial);
 
@@ -713,7 +842,7 @@ void RenderAspect::createMaterial(Material* pMaterial)
 	pMaterial->setTextures(std::move(albedoRef), std::move(normalRef), std::move(surfaceRef));
 }
 
-void RenderAspect::loadCurrentScene(const Scene* pScene)
+void RenderAspectRayTracer::loadCurrentScene(const Scene* pScene)
 {
 	auto &sceneMaterial = pScene->getMaterials();
 	auto numMaterials = pScene->getMaterialCount();
@@ -756,7 +885,7 @@ void RenderAspect::loadCurrentScene(const Scene* pScene)
 	//m_camera.setPosition(pPlayerSpawn.x, pPlayerSpawn.y, pPlayerSpawn.z);
 }
 
-void RenderAspect::writeMeshToVertexBuffer(const vx::StringID64 &meshSid, const vx::Mesh* pMesh, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
+void RenderAspectRayTracer::writeMeshToVertexBuffer(const vx::StringID64 &meshSid, const vx::Mesh* pMesh, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
 {
 	/*auto pPosition = pMesh->getVertices();
 	auto pNormals = pMesh->getNormals();
@@ -858,7 +987,7 @@ void RenderAspect::writeMeshToVertexBuffer(const vx::StringID64 &meshSid, const 
 	//*indexOffset += indexCount;
 }
 
-void RenderAspect::writeMeshToBuffer(const vx::StringID64 &meshSid, const vx::Mesh* pMesh, VertexPNTUV* pVertices, U32* pIndices, U32* vertexOffset, U32* indexOffset, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
+void RenderAspectRayTracer::writeMeshToBuffer(const vx::StringID64 &meshSid, const vx::Mesh* pMesh, VertexPNTUV* pVertices, U32* pIndices, U32* vertexOffset, U32* indexOffset, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
 {
 	auto pMeshVertices = pMesh->getVertices();
 	auto vertexCount = pMesh->getVertexCount();
@@ -906,7 +1035,7 @@ void RenderAspect::writeMeshToBuffer(const vx::StringID64 &meshSid, const vx::Me
 	*indexOffset += indexCount;
 }
 
-void RenderAspect::writeMeshesToVertexBuffer(const vx::StringID64* meshSid, const vx::Mesh** pMesh, U32 count, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
+void RenderAspectRayTracer::writeMeshesToVertexBuffer(const vx::StringID64* meshSid, const vx::Mesh** pMesh, U32 count, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
 {
 	// get total vertex and indexcount
 	U32 vertexCount = 0, indexCount = 0;
@@ -946,7 +1075,7 @@ void RenderAspect::writeMeshesToVertexBuffer(const vx::StringID64* meshSid, cons
 	memcpy(pGpuIndices.get(), pIndices, indexSizeBytes);
 }
 
-void RenderAspect::updateMeshBuffer(const vx::sorted_vector<vx::StringID64, const vx::Mesh*> &meshes)
+void RenderAspectRayTracer::updateMeshBuffer(const vx::sorted_vector<vx::StringID64, const vx::Mesh*> &meshes)
 {
 	U32 totalVertexCount = 0;
 	U32 totalIndexCount = 0;
@@ -954,13 +1083,13 @@ void RenderAspect::updateMeshBuffer(const vx::sorted_vector<vx::StringID64, cons
 	writeMeshesToVertexBuffer(meshes.keys(), meshes.data(), meshCount, &totalVertexCount, &totalIndexCount);
 }
 
-void RenderAspect::shutdown(const HWND hwnd)
+void RenderAspectRayTracer::shutdown(const HWND hwnd)
 {
 	m_pColdData.reset(nullptr);
 	m_renderContext.shutdown(hwnd);
 }
 
-void RenderAspect::update()
+void RenderAspectRayTracer::update()
 {
 	auto projectionMatrix = m_renderContext.getProjectionMatrix();
 
@@ -974,13 +1103,13 @@ void RenderAspect::update()
 	vx::memcpy(p.get(), block);
 }
 
-void RenderAspect::updateTransform(U16 index, const vx::TransformGpu &transform)
+void RenderAspectRayTracer::updateTransform(U16 index, const vx::TransformGpu &transform)
 {
 	auto mappedTransformPtr = m_transformBlock.mapRange<vx::TransformGpu>(sizeof(vx::TransformGpu) * index, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
 	*mappedTransformPtr = transform;
 }
 
-void RenderAspect::updateTransforms(const vx::TransformGpu* transforms, U32 offsetCount, U32 count)
+void RenderAspectRayTracer::updateTransforms(const vx::TransformGpu* transforms, U32 offsetCount, U32 count)
 {
 	auto offsetInBytes = offsetCount * sizeof(vx::TransformGpu);
 	auto sizeInBytes = count * sizeof(vx::TransformGpu);
@@ -1028,7 +1157,7 @@ namespace
 	}
 }
 
-void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
+void RenderAspectRayTracer::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 {
 	pProfiler->pushGpuMarker("render()");
 	pGraph->startGpu();
@@ -1037,29 +1166,63 @@ void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 
 	clearTextures();
 
+	{
+		/*auto pCounter = m_atomicCounter.map<U32>(vx::gl::Map::Write_Only);
+		auto ptr = pCounter.get();
+		ptr[0] = 0; // u_rayCount
+		ptr[1] = 0; // u_rayLinkCount
+		ptr[2] = 0; // voxel triangle pair counter
+		ptr[3] = 0;
+		pCounter.unmap();*/
+	}
+	glClearNamedBufferData(m_atomicCounter.getId(), GL_R32UI, GL_RED, GL_UNSIGNED_INT, nullptr);
+
+	auto ptrRayOffsets = m_rayOffsetBlock.map<U32>(vx::gl::Map::Write_Only);
+	*ptrRayOffsets = 0;
+	ptrRayOffsets.unmap();
+
+	auto ptrVoxelTrianglePair = m_voxelTrianglePairCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	ptrVoxelTrianglePair->count = 0;
+	ptrVoxelTrianglePair.unmap();
+
+	glClearNamedBufferData(m_voxelTriangePairAtomicBuffer.getId(), GL_R32UI, GL_RED, GL_UNSIGNED_INT, nullptr);
+
 	pProfiler->popGpuMarker();
 
 	BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
 	BufferBindingManager::bindBaseUniform(1, m_lightDataBlock.getId());
 	BufferBindingManager::bindBaseUniform(2, m_cameraBufferStatic.getId());
 	BufferBindingManager::bindBaseUniform(3, m_gbufferBlock.getId());
-	BufferBindingManager::bindBaseUniform(4, m_sphereLightShadowTransformBlock.getId());
+	BufferBindingManager::bindBaseUniform(4, m_voxelBlock.getId());
 
 	BufferBindingManager::bindBaseShaderStorage(0, m_transformBlock.getId());
 	BufferBindingManager::bindBaseShaderStorage(1, m_materialBlock.getId());
 	BufferBindingManager::bindBaseShaderStorage(2, m_textureBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(3, m_rayList.getId());
+	BufferBindingManager::bindBaseShaderStorage(4, m_rayLinks.getId());
+	BufferBindingManager::bindBaseShaderStorage(5, m_bvhBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(6, m_meshVertexBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(7, m_rayOffsetBlock.getId());
+	BufferBindingManager::bindBaseShaderStorage(8, m_voxelTrianglePairCmdBuffer.getId());
+	BufferBindingManager::bindBaseShaderStorage(9, m_voxelTrianglePairBuffer.getId());
+	BufferBindingManager::bindBaseShaderStorage(10, m_voxelTriangePairAtomicBuffer.getId());
+	BufferBindingManager::bindBaseShaderStorage(11, m_triangleBuffer.getId());
+
+	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, m_atomicCounter.getId());
 
 
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 
 	if (dev::g_toggleRender == 0)
 	{
-		pProfiler->pushGpuMarker("create shadow maps");
-		renderShadowMaps();
+		// voxelize
+		pProfiler->pushGpuMarker("voxelize()");
+		binaryVoxelize();
 		pProfiler->popGpuMarker();
 
 		pProfiler->pushGpuMarker("create gbuffer()");
 		createGBuffer();
+		createGBufferSmall();
 		pProfiler->popGpuMarker();
 
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -1068,6 +1231,39 @@ void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 
 		vx::gl::StateManager::bindFrameBuffer(0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+		vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
+
+		pProfiler->pushGpuMarker("create rays()");
+		createRays();
+		pProfiler->popGpuMarker();
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		// create offsets for raylinks
+		pProfiler->pushGpuMarker("create link offsets");
+		createRayLinkOffsets();
+		pProfiler->popGpuMarker();
+
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		pProfiler->pushGpuMarker("create ray links()");
+		createRayLinks();
+		pProfiler->popGpuMarker();
+
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+		pProfiler->pushGpuMarker("test voxel triangles()");
+		testVoxelTriangles();
+		pProfiler->popGpuMarker();
+
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
+
+		pProfiler->pushGpuMarker("test ray triangles()");
+		testRayTriangles();
+		pProfiler->popGpuMarker();
 
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
@@ -1079,12 +1275,12 @@ void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 		//glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 		/*{
-			U32 pairCount = 0;
-			auto pCounter = m_atomicCounter.map<U32>(vx::gl::Map::Read_Only);
-			pairCount = pCounter[4];
-			pCounter.unmap();
+		U32 pairCount = 0;
+		auto pCounter = m_atomicCounter.map<U32>(vx::gl::Map::Read_Only);
+		pairCount = pCounter[4];
+		pCounter.unmap();
 
-			printf("triangles: %u\n", pairCount);
+		printf("triangles: %u\n", pairCount);
 		}*/
 	}
 	else
@@ -1112,37 +1308,45 @@ void RenderAspect::render(Profiler2* pProfiler, ProfilerGraph* pGraph)
 	m_renderContext.swapBuffers();
 }
 
-void RenderAspect::clearTextures()
+void RenderAspectRayTracer::clearTextures()
 {
+	m_rayTraceShadowTexture.clearImage(0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+	m_voxelTexture.clearImage(0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+	m_voxelRayLinkCountTexture.clearImage(0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+	m_voxelRayLinkOffsetTexture.clearImage(0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
 }
 
-void RenderAspect::renderShadowMaps()
+void RenderAspectRayTracer::binaryVoxelize()
 {
-	vx::gl::StateManager::setViewport(0, 0, s_shadowMapResolution, s_shadowMapResolution);
-	vx::gl::StateManager::setClearColor(0, 0, 0, 1);
-	vx::gl::StateManager::bindFrameBuffer(m_shadowFB.getId());
-	glClear(GL_DEPTH_BUFFER_BIT);
+	vx::gl::StateManager::setViewport(0, 0, s_voxelDimension, s_voxelDimension);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 
-	glDepthMask(GL_TRUE);
+	auto pPipeline = m_shaderManager.getPipeline("voxelize.pipe");
 
-	glPolygonOffset(2.5f, 10.0f);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Polygon_Offset_Fill);
-
-	auto pPipeline = m_shaderManager.getPipeline("create_shadowmaps.pipe");
-
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-
+	vx::gl::StateManager::bindFrameBuffer(0);
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
 	vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Cull_Face);
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+
+	ImageBindingManager::bind(0, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R8);
 
 	m_commandBlock.bind();
 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
 
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Polygon_Offset_Fill);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
 }
 
-void RenderAspect::createGBuffer()
+void RenderAspectRayTracer::createGBuffer()
 {
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
@@ -1158,25 +1362,139 @@ void RenderAspect::createGBuffer()
 
 	m_commandBlock.bind();
 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 }
 
-void RenderAspect::renderFinalImage()
+void RenderAspectRayTracer::createGBufferSmall()
 {
-	vx::gl::StateManager::bindFrameBuffer(0);
+	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+	vx::gl::StateManager::setViewport(0, 0, 1920 / 2, 1080 / 2);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+
+	vx::gl::StateManager::bindFrameBuffer(m_gbufferFBSmall.getId());
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	auto pPipeline = m_shaderManager.getPipeline("create_gbuffer_small.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
+
+	m_commandBlock.bind();
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+}
+
+void RenderAspectRayTracer::createRays()
+{
+	auto pPipeline = m_shaderManager.getPipeline("create_rays.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
+
+	ImageBindingManager::bind(0, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(1, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_RGBA8);
+	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32UI);
+
+	//glDispatchCompute(960, 540, 1);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 960, 540);
+}
+
+void RenderAspectRayTracer::createRayLinkOffsets()
+{
+	auto pPipeline = m_shaderManager.getPipeline("create_ray_link_offsets.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32UI);
+	ImageBindingManager::bind(3, m_voxelRayLinkOffsetTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32UI);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, s_voxelDimension, s_voxelDimension * s_voxelDimension);
+
+	//glDispatchCompute(s_voxelDimension / 2, s_voxelDimension / 2, s_voxelDimension / 2);
+}
+
+void RenderAspectRayTracer::createRayLinks()
+{
+	m_voxelRayLinkCountTexture.clearImage(0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+
+	glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
+
+	auto pPipeline = m_shaderManager.getPipeline("create_ray_links.pipe");
+	auto vsShader = pPipeline->getVertexShader();
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	ImageBindingManager::bind(0, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+	ImageBindingManager::bind(1, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_RGBA8);
+	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R32UI);
+	ImageBindingManager::bind(3, m_voxelRayLinkOffsetTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32UI);
+
+	glProgramUniform1ui(vsShader, 0, 1920 / 2);
+
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 1920 / 2, 1080 / 2);
+}
+
+void RenderAspectRayTracer::testVoxelTriangles()
+{
+	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32UI);
+
+	vx::gl::StateManager::setViewport(0, 0, s_voxelDimension, s_voxelDimension);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Cull_Face);
+
+	vx::gl::StateManager::bindFrameBuffer(0);
+	vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+
+	auto pPipeline = m_shaderManager.getPipeline("voxel_test_triangles.pipe");
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	m_commandBlock.bind();
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
+}
+
+void RenderAspectRayTracer::testRayTriangles()
+{
+	ImageBindingManager::bind(1, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_WRITE_ONLY, GL_RGBA8);
+	ImageBindingManager::bind(2, m_voxelRayLinkCountTexture.getId(), 0, 1, 0, GL_READ_ONLY, GL_R32UI);
+	ImageBindingManager::bind(3, m_voxelRayLinkOffsetTexture.getId(), 0, 1, 0, GL_READ_ONLY, GL_R32UI);
+
+	auto pPipeline = m_shaderManager.getPipeline("test_pair_rayLinks.pipe");
+
+	vx::gl::StateManager::bindFrameBuffer(m_rayFB);
+	vx::gl::StateManager::setViewport(0, 0, 4096, 4096);
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
+
+	auto gsProgram = pPipeline->getGeometryShader();
+	glProgramUniform1ui(gsProgram, 0, 4096);
+	glProgramUniform1ui(gsProgram, 1, 4096);
+
+	m_voxelTrianglePairCmdBuffer.bind();
+	glDrawArraysIndirect(GL_POINTS, 0);
+}
+
+void RenderAspectRayTracer::renderFinalImage()
+{
+	ImageBindingManager::bind(1, m_rayTraceShadowTexture.getId(), 0, 0, 0, GL_READ_ONLY, GL_RGBA8);
 
 	auto pPipeline = m_shaderManager.getPipeline("draw_final_image.pipe");
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
 	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
+	vx::gl::StateManager::bindFrameBuffer(0);
 	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
-
-	m_pColdData->m_sphereLightShadowMaps.bind();
-	glActiveTexture(GL_TEXTURE0);
 
 	glDrawArrays(GL_POINTS, 0, 1);
 }
 
-void RenderAspect::renderForward()
+void RenderAspectRayTracer::renderForward()
 {
 	vx::gl::StateManager::bindFrameBuffer(0);
 
@@ -1193,7 +1511,7 @@ void RenderAspect::renderForward()
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 }
 
-void RenderAspect::renderProfiler(Profiler2* pProfiler, ProfilerGraph* pGraph)
+void RenderAspectRayTracer::renderProfiler(Profiler2* pProfiler, ProfilerGraph* pGraph)
 {
 	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
 
@@ -1206,9 +1524,10 @@ void RenderAspect::renderProfiler(Profiler2* pProfiler, ProfilerGraph* pGraph)
 	pGraph->render();
 
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 }
 
-void RenderAspect::renderNavGraph()
+void RenderAspectRayTracer::renderNavGraph()
 {
 	// nav mesh
 	/*m_stateManager.enable(vx::gl::Capabilities::Blend);
@@ -1244,9 +1563,31 @@ void RenderAspect::renderNavGraph()
 	glDrawElements(GL_LINES, m_navConnectionCount, GL_UNSIGNED_SHORT, 0);
 
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 }
 
-U16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene)
+void RenderAspectRayTracer::renderVoxelDebug()
+{
+	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
+
+	ImageBindingManager::bind(0, m_voxelRayLinkCountTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R32UI);
+	ImageBindingManager::bind(1, m_voxelTexture.getId(), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+
+	auto pPipeline = m_shaderManager.getPipeline("voxel_debug.pipe");
+
+	vx::gl::StateManager::bindFrameBuffer(0);
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+	glLineWidth(3.0f);
+
+	glDrawArraysInstanced(GL_POINTS, 0, s_voxelDimension, s_voxelDimension * s_voxelDimension);
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+}
+
+U16 RenderAspectRayTracer::addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene)
 {
 	auto itMesh = m_meshEntries.find(mesh);
 	if (itMesh == m_meshEntries.end())
@@ -1307,7 +1648,7 @@ U16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::Str
 	return elementId;
 }
 
-U16 RenderAspect::getActorGpuIndex()
+U16 RenderAspectRayTracer::getActorGpuIndex()
 {
 	U32 elementId = s_meshMaxInstancesStatic + m_meshInstanceCountDynamic;
 
@@ -1318,7 +1659,7 @@ U16 RenderAspect::getActorGpuIndex()
 	return elementId;
 }
 
-void RenderAspect::keyPressed(U16 key)
+void RenderAspectRayTracer::keyPressed(U16 key)
 {
 	switch (key)
 	{
@@ -1328,13 +1669,13 @@ void RenderAspect::keyPressed(U16 key)
 	}
 }
 
-void RenderAspect::keyReleased(U16 key)
+void RenderAspectRayTracer::keyReleased(U16 key)
 {
 	UNREFERENCED_PARAMETER(key);
 }
 
 // pData aligned to 16 bytes
-void RenderAspect::writeScreenshot(const vx::uint2 &resolution, vx::float4 *pData)
+void RenderAspectRayTracer::writeScreenshot(const vx::uint2 &resolution, vx::float4 *pData)
 {
 	//std::unique_ptr<vx::float4[]> ptr(pData);
 
@@ -1372,7 +1713,7 @@ void RenderAspect::writeScreenshot(const vx::uint2 &resolution, vx::float4 *pDat
 	stbi_write_png(nameBuffer, resolution.x, resolution.y, 3, last_row, -3 * resolution.x);
 }
 
-void RenderAspect::takeScreenshot()
+void RenderAspectRayTracer::takeScreenshot()
 {
 	const auto resDim = m_pColdData->m_windowResolution.x * m_pColdData->m_windowResolution.y;
 	const auto pixelBufferSizeBytes = sizeof(vx::float4) * resDim;
@@ -1428,7 +1769,7 @@ void RenderAspect::takeScreenshot()
 	//std::async(std::bind(writeScreenshot, this), );
 }
 
-void RenderAspect::handleEvent(const Event &evt)
+void RenderAspectRayTracer::handleEvent(const Event &evt)
 {
 	switch (evt.type)
 	{
@@ -1443,7 +1784,7 @@ void RenderAspect::handleEvent(const Event &evt)
 	}
 }
 
-void RenderAspect::handleFileEvent(const Event &evt)
+void RenderAspectRayTracer::handleFileEvent(const Event &evt)
 {
 	auto fileEvent = (FileEvent)evt.code;
 
@@ -1460,7 +1801,7 @@ void RenderAspect::handleFileEvent(const Event &evt)
 	}
 }
 
-void RenderAspect::handleIngameEvent(const Event &evt)
+void RenderAspectRayTracer::handleIngameEvent(const Event &evt)
 {
 	auto type = (IngameEvent)evt.code;
 
@@ -1511,7 +1852,7 @@ void RenderAspect::handleIngameEvent(const Event &evt)
 	}
 }
 
-void RenderAspect::updateNavMeshBuffer(const NavMesh &navMesh)
+void RenderAspectRayTracer::updateNavMeshBuffer(const NavMesh &navMesh)
 {
 	auto pVertices = navMesh.getVertices();
 	auto pIndices = navMesh.getIndices();
@@ -1530,7 +1871,7 @@ void RenderAspect::updateNavMeshBuffer(const NavMesh &navMesh)
 	m_navmeshIndexCount = indexCount;
 }
 
-void RenderAspect::getProjectionMatrix(vx::mat4* m)
+void RenderAspectRayTracer::getProjectionMatrix(vx::mat4* m)
 {
 	*m = m_renderContext.getProjectionMatrix();
 }

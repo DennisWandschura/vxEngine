@@ -2,6 +2,11 @@
 #include "MeshInstance.h"
 #include "Waypoint.h"
 
+EditorSceneParams::~EditorSceneParams()
+{
+
+}
+
 EditorScene::EditorScene()
 	:m_meshInstances(), 
 	m_waypoints(),
@@ -10,11 +15,9 @@ EditorScene::EditorScene()
 
 }
 
-EditorScene::EditorScene(std::vector<MeshInstance> &&meshInstances, std::unique_ptr<Light[]> &&lights, U32 lightCount,
-	vx::sorted_vector<vx::StringID64, Material*> &&materials, vx::sorted_vector<vx::StringID64, const vx::Mesh*> &&meshes, U32 vertexCount, U32 indexCount, 
-	std::unique_ptr<Spawn[]> &&spawns, U32 spawnCount, vx::sorted_vector<vx::StringID64, Actor>  &&actors, NavMesh &&navmesh)
-	: SceneBase(std::move(lights), lightCount, std::move(materials), std::move(meshes), vertexCount, indexCount, std::move(spawns), spawnCount, std::move(actors), std::move(navmesh)),
-	m_meshInstances(std::move(meshInstances))
+EditorScene::EditorScene(EditorSceneParams &params)
+	: SceneBase(params.m_baseParams),
+	m_meshInstances(std::move(params.m_meshInstances))
 {
 }
 

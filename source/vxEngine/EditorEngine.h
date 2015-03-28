@@ -51,7 +51,7 @@ class EditorEngine
 	void handleFileEvent(const Event &evt);
 
 public:
-	explicit EditorEngine(Logfile &logfile);
+	explicit EditorEngine();
 	~EditorEngine();
 
 	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, EditorScene* pScene);

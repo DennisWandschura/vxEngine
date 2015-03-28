@@ -3,11 +3,10 @@
 #pragma once
 
 #include <vxLib/types.h>
+#include <vxLib/Variant.h>
 
 enum class FileStatus : U8;
 enum class FileType : U8;
-
-#include "Variant.h"
 
 struct LoadFileReturnType
 {
@@ -16,5 +15,5 @@ struct LoadFileReturnType
 	FileStatus status;
 };
 
-typedef void(*LoadFileCallback)(Variant, LoadFileReturnType, void* p);
+typedef void(*LoadFileCallback)(vx::Variant, LoadFileReturnType, void* p);
 #endif

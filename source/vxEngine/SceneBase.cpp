@@ -3,6 +3,11 @@
 #include "Spawn.h"
 #include "Actor.h"
 
+SceneBaseParams::~SceneBaseParams()
+{
+
+}
+
 SceneBase::SceneBase()
 	:m_pLights(),
 	m_pSpawns(),
@@ -25,19 +30,17 @@ SceneBase::SceneBase(SceneBase &&rhs)
 {
 }
 
-SceneBase::SceneBase(std::unique_ptr<Light[]> &&lights, U32 lightCount, vx::sorted_vector<vx::StringID64, Material*> &&materials,
-	vx::sorted_vector<vx::StringID64, const vx::Mesh*> &&meshes, U32 vertexCount, U32 indexCount, std::unique_ptr<Spawn[]> &&spawns, U32 spawnCount,
-	vx::sorted_vector<vx::StringID64, Actor>  &&actors, NavMesh &&navmesh)
-	: m_pLights(std::move(lights)),
-	m_materials(std::move(materials)),
-	m_meshes(std::move(meshes)),
-	m_pSpawns(std::move(spawns)),
-	m_actors(std::move(actors)),
-	m_navMesh(std::move(navmesh)),
-	m_lightCount(lightCount),
-	m_vertexCount(vertexCount),
-	m_indexCount(indexCount),
-	m_spawnCount(spawnCount)
+SceneBase::SceneBase(SceneBaseParams &params)
+	: m_pLights(std::move(params.m_pLights)),
+	m_materials(std::move(params.m_materials)),
+	m_meshes(std::move(params.m_meshes)),
+	m_pSpawns(std::move(params.m_pSpawns)),
+	m_actors(std::move(params.m_actors)),
+	m_navMesh(std::move(params.m_navMesh)),
+	m_lightCount(params.m_lightCount),
+	m_vertexCount(params.m_vertexCount),
+	m_indexCount(params.m_indexCount),
+	m_spawnCount(params.m_spawnCount)
 {
 }
 
@@ -62,7 +65,6 @@ SceneBase& SceneBase::operator = (SceneBase &&rhs)
 
 SceneBase::~SceneBase()
 {
-
 }
 
 const Light* SceneBase::getLights() const

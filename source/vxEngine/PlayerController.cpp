@@ -46,7 +46,7 @@ void PlayerController::handleKeyboard(Entity* pPlayer, const vx::Keyboard &keybo
 
 	auto &input = entityAspect.getComponentInput(pPlayer->input);
 
-	__m128 v = { input.orientation.y, input.orientation.x, 0, 0 };
+	__m128 v = { 0, input.orientation.x, 0, 0 };
 	v = vx::QuaternionRotationRollPitchYawFromVector(v);
 
 	// first get movement direction
@@ -58,9 +58,6 @@ void PlayerController::handleKeyboard(Entity* pPlayer, const vx::Keyboard &keybo
 
 	input.velocity.x = vVelocity.f[0];
 	input.velocity.z = vVelocity.f[2];
-
-
-	//input.action |= actionMask;
 }
 
 void PlayerController::handleMouse(Entity* pPlayer, const vx::Mouse &mouse, const F32 dt, EntityAspect &entityAspect)

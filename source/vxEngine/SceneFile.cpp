@@ -12,6 +12,7 @@
 #include "EditorScene.h"
 #include "Light.h"
 #include "Scene.h"
+#include "Waypoint.h"
 
 namespace YAML
 {
@@ -359,7 +360,7 @@ U32 SceneFile::getNumMeshInstances() const noexcept
 	return m_meshInstanceCount;
 }
 
-U8 SceneFile::createSceneMeshInstances(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
+bool SceneFile::createSceneMeshInstances(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
 MeshInstance* pMeshInstances, vx::sorted_vector<vx::StringID64, const vx::Mesh*>* sceneMeshes, vx::sorted_vector<vx::StringID64, Material*>* sceneMaterials)
 {
 	for (auto i = 0u; i < m_meshInstanceCount; ++i)
@@ -375,7 +376,7 @@ MeshInstance* pMeshInstances, vx::sorted_vector<vx::StringID64, const vx::Mesh*>
 
 		if (itMesh == meshes.end() || itMaterial == materials.end())
 		{
-			return 0;
+			return false;
 		}
 
 		sceneMeshes->insert(sidMesh, &*itMesh);
@@ -384,10 +385,10 @@ MeshInstance* pMeshInstances, vx::sorted_vector<vx::StringID64, const vx::Mesh*>
 		pMeshInstances[i] = MeshInstance(sidMesh, sidMaterial, instance.getTransform());
 	}
 
-	return 1;
+	return true;
 }
 
-U8 SceneFile::createSceneActors(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
+bool SceneFile::createSceneActors(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
 	vx::sorted_vector<vx::StringID64, Actor>* actors, vx::sorted_vector<vx::StringID64, const vx::Mesh*>* sceneMeshes, vx::sorted_vector<vx::StringID64, Material*>* sceneMaterials)
 {
 	if (m_actorCount != 0)
@@ -406,7 +407,7 @@ U8 SceneFile::createSceneActors(const vx::sorted_array<vx::StringID64, vx::Mesh>
 
 			if (itMesh == meshes.end() || itMaterial == materials.end())
 			{
-				return 0;
+				return false;
 			}
 
 			sceneMeshes->insert(sidMesh, &*itMesh);
@@ -421,7 +422,7 @@ U8 SceneFile::createSceneActors(const vx::sorted_array<vx::StringID64, vx::Mesh>
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials, Scene *pScene)
@@ -432,11 +433,11 @@ U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &mesh
 	vx::sorted_vector<vx::StringID64, const vx::Mesh*> sceneMeshes;
 
 	auto pMeshInstances = std::make_unique<MeshInstance[]>(m_meshInstanceCount);
-	if (createSceneMeshInstances(meshes, materials, pMeshInstances.get(), &sceneMeshes, &sceneMaterials) == 0)
+	if (!createSceneMeshInstances(meshes, materials, pMeshInstances.get(), &sceneMeshes, &sceneMaterials))
 		return 0;
 
 	vx::sorted_vector<vx::StringID64, Actor> actors;
-	if (createSceneActors(meshes, materials, &actors, &sceneMeshes, &sceneMaterials) == 0)
+	if (!createSceneActors(meshes, materials, &actors, &sceneMeshes, &sceneMaterials))
 		return 0;
 
 	auto spawns = std::make_unique<Spawn[]>(m_spawnCount);
@@ -456,8 +457,23 @@ U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &mesh
 	}
 
 	VX_ASSERT(pScene);
-	*pScene = Scene(std::move(pMeshInstances), m_meshInstanceCount, std::move(m_pLights), m_lightCount, std::move(sceneMaterials),
-		std::move(sceneMeshes), vertexCount, indexCount, std::move(spawns), m_spawnCount, std::move(actors), std::move(m_navMesh), AABB());
+	SceneParams sceneParams;
+	sceneParams.m_baseParams.m_actors = std::move(actors);
+	sceneParams.m_baseParams.m_indexCount = indexCount;
+	sceneParams.m_baseParams.m_lightCount = m_lightCount;
+	sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
+	sceneParams.m_baseParams.m_meshes = std::move(sceneMeshes);
+	sceneParams.m_baseParams.m_navMesh = std::move(m_navMesh);
+	sceneParams.m_baseParams.m_pLights = std::move(m_pLights);
+	sceneParams.m_baseParams.m_pSpawns = std::move(spawns);
+	sceneParams.m_baseParams.m_spawnCount = m_spawnCount;
+	sceneParams.m_baseParams.m_vertexCount = vertexCount;
+	sceneParams.m_meshInstanceCount = m_meshInstanceCount;
+	sceneParams.m_pMeshInstances = std::move(pMeshInstances);
+	sceneParams.m_waypointCount = 0;
+	sceneParams.m_waypoints;
+
+	*pScene = Scene(sceneParams);
 	pScene->sortMeshInstances();
 
 	return 1;
@@ -495,9 +511,22 @@ U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &mesh
 		indexCount += it->getIndexCount();
 	}
 
+	EditorSceneParams sceneParams;
+	sceneParams.m_baseParams.m_actors = std::move(actors);
+	sceneParams.m_baseParams.m_indexCount = indexCount;
+	sceneParams.m_baseParams.m_lightCount = m_lightCount;
+	sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
+	sceneParams.m_baseParams.m_meshes = std::move(sceneMeshes);
+	sceneParams.m_baseParams.m_navMesh = std::move(m_navMesh);
+	sceneParams.m_baseParams.m_pLights = std::move(m_pLights);
+	sceneParams.m_baseParams.m_pSpawns = std::move(spawns);
+	sceneParams.m_baseParams.m_spawnCount = m_spawnCount;
+	sceneParams.m_baseParams.m_vertexCount = vertexCount;
+	sceneParams.m_meshInstances = std::move(meshInstances);
+	sceneParams.m_waypoints;
+
 	VX_ASSERT(pScene);
-	*pScene = EditorScene(std::move(meshInstances), std::move(m_pLights), m_lightCount, std::move(sceneMaterials),
-		std::move(sceneMeshes), vertexCount, indexCount, std::move(spawns), m_spawnCount, std::move(actors), std::move(m_navMesh));
+	*pScene = EditorScene(sceneParams);
 	pScene->sortMeshInstances();
 
 	return 1;

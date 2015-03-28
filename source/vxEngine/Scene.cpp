@@ -3,18 +3,21 @@
 #include "MeshInstance.h"
 #include "Waypoint.h"
 
+SceneParams::~SceneParams()
+{
+
+}
+
 Scene::Scene()
-	:m_bounds()
 {
 }
 
-Scene::Scene(std::unique_ptr<MeshInstance[]> &&meshInstances, U32 numMeshInstances, std::unique_ptr<Light[]> &&lights, U32 lightCount,
-	vx::sorted_vector<vx::StringID64, Material*> &&materials, vx::sorted_vector<vx::StringID64, const vx::Mesh*> &&meshes, U32 vertexCount, U32 indexCount,
-	std::unique_ptr<Spawn[]> &&spawns, U32 spawnCount, vx::sorted_vector<vx::StringID64, Actor>  &&actors, NavMesh &&navmesh, const AABB &bounds)
-	: SceneBase(std::move(lights), lightCount, std::move(materials), std::move(meshes), vertexCount, indexCount, std::move(spawns), spawnCount, std::move(actors), std::move(navmesh)),
-	m_pMeshInstances(std::move(meshInstances)),
-	m_bounds(bounds),
-	m_meshInstanceCount(numMeshInstances)
+Scene::Scene(SceneParams &params)
+	: SceneBase(params.m_baseParams),
+	m_pMeshInstances(std::move(params.m_pMeshInstances)),
+	m_waypoints(std::move(params.m_waypoints)),
+	m_meshInstanceCount(params.m_meshInstanceCount),
+	m_waypointCount(params.m_waypointCount)
 {
 }
 

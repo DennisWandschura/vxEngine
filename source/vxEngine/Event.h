@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Variant.h"
+#include <vxLib/Variant.h>
 
 enum class EventType : U8;
 
@@ -12,6 +12,6 @@ struct Event
 	U16 filter;
 	// specific event code of type
 	U32 code;
-	Variant arg1;
-	Variant arg2;
+	vx::Variant arg1;
+	vx::Variant arg2;
 };

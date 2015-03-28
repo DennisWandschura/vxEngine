@@ -1,8 +1,9 @@
 #include "EditorRenderData.h"
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
-#include "ShaderManager.h"
+#include <vxLib/gl/ShaderManager.h>
 #include "Waypoint.h"
+#include <vxLib/gl/ProgramPipeline.h>
 
 namespace Editor
 {
@@ -55,7 +56,7 @@ namespace Editor
 		m_waypointsVao.bindVertexBuffer(m_editorWaypointsVbo, 0, 0, sizeof(Waypoint));
 	}
 
-	void RenderData::drawMouse(const ShaderManager &shaderManager) const
+	void RenderData::drawMouse(const vx::gl::ShaderManager &shaderManager) const
 	{
 		vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
 		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
@@ -71,7 +72,7 @@ namespace Editor
 		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 	}
 
-	void RenderData::drawWaypoints(const ShaderManager &shaderManager) const
+	void RenderData::drawWaypoints(const vx::gl::ShaderManager &shaderManager) const
 	{
 		vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
 		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);

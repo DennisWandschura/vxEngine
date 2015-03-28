@@ -7,10 +7,10 @@ U32 EditorEngine::s_editorTypeMesh{ -1 };
 U32 EditorEngine::s_editorTypeMaterial{ -1 };
 U32 EditorEngine::s_editorTypeScene{ -1 };
 
-EditorEngine::EditorEngine(Logfile &logfile)
+EditorEngine::EditorEngine()
 	:m_eventManager(),
 	m_physicsAspect(m_fileAspect),
-	m_renderAspect(logfile, m_fileAspect),
+	m_renderAspect(m_fileAspect),
 	m_fileAspect(m_eventManager),
 	m_bRunFileThread(),
 	m_fileAspectThread()

@@ -293,7 +293,7 @@ TextureRef TextureManager::load(const TextureFile &f, U8 mipLevels, U8 srgb)
 	auto pBucket = findBucket(sz, mipLevels, vx::gl::TextureType::Texture_2D_Array, format);
 	if (pBucket)
 	{
-		result = createTexture2DSlice(pBucket, textureSize, vx::gl::UNSIGNED_BYTE, f.get(0));
+		result = createTexture2DSlice(pBucket, textureSize, vx::gl::DataType::Unsigned_Byte, f.get(0));
 	}
 
 	return result;

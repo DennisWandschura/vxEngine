@@ -22,12 +22,12 @@ namespace
 	}
 }
 
-Engine::Engine(Logfile &logfile)
+Engine::Engine()
 	:m_eventManager(),
 	m_systemAspect(),
 	m_physicsAspect(m_fileAspect),
 	m_actorAspect(m_physicsAspect),
-	m_renderAspect(logfile, m_fileAspect),
+	m_renderAspect(m_fileAspect),
 	m_entityAspect(m_physicsAspect, m_renderAspect.getCamera(), m_fileAspect, m_renderAspect),
 	m_bRun(0),
 	m_fileAspect(m_eventManager),

@@ -43,7 +43,7 @@ class Engine
 	void mainLoop();
 
 public:
-	explicit Engine(Logfile &logfile);
+	Engine();
 	~Engine();
 
 	bool initialize();

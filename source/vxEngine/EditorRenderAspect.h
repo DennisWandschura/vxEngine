@@ -2,6 +2,8 @@
 
 #include "RenderAspect.h"
 #include "EditorRenderData.h"
+#include <vxLib/Variant.h>
+#include <vector>
 
 class EditorRenderAspect : public RenderAspect
 {
@@ -10,7 +12,7 @@ class EditorRenderAspect : public RenderAspect
 	Editor::RenderData m_editorData;
 	std::mutex m_updateDataMutex{};
 	std::atomic_uint m_updateEditor{ 0 };
-	std::vector<std::pair<Variant, EditorUpdate>> m_updateData;
+	std::vector<std::pair<vx::Variant, EditorUpdate>> m_updateData;
 
 	void addMesh(const vx::StringID64 &sid);
 	void addMaterial(const vx::StringID64 &sid);
@@ -21,7 +23,7 @@ class EditorRenderAspect : public RenderAspect
 	void handleEditorEvent(const Event &evt);
 
 public:
-	EditorRenderAspect(Logfile &logfile, FileAspect &fileAspect);
+	EditorRenderAspect(FileAspect &fileAspect);
 
 	bool initialize(const std::string &dataDir, HWND panel, HWND tmp, const vx::uint2 &windowResolution, F32 fovDeg, F32 zNear, F32 zFar, bool vsync, bool debug,
 		vx::StackAllocator *pAllocator);

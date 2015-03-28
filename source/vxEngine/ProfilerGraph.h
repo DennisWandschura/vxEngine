@@ -1,13 +1,12 @@
 #pragma once
 
-class ShaderManager;
-
 namespace vx
 {
 	namespace gl
 	{
 		class ProgramPipeline;
 		class StateManager;
+		class ShaderManager;
 	}
 }
 
@@ -38,7 +37,7 @@ class ProfilerGraph
 
 public:
 	ProfilerGraph() = default;
-	bool initialize(const ShaderManager &shaderManager, F32 targetMs);
+	bool initialize(const vx::gl::ShaderManager &shaderManager, F32 targetMs);
 
 	void startCpu();
 	void endCpu();

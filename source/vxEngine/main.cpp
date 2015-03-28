@@ -15,7 +15,7 @@
 #include "SmallObject.h"
 #include "SceneFile.h"
 
-F32 g_halfBounds = 10.0f;
+/*F32 g_halfBounds = 10.0f;
 F32 g_cellSize = 2.0f;
 U32 count = (g_halfBounds + g_halfBounds + 1) / g_cellSize;
 
@@ -44,6 +44,7 @@ U32 quantitizeRayOrigin(const vx::float3 &o)
 	return cellPos.z | (cellPos.y << 7) | (cellPos.x << 14);
 }
 
+*/
 struct Ray1
 {
 	vx::float3 o;
@@ -105,9 +106,91 @@ inline vx::uint3 bitunzip3(U32 c)
 	return vx::uint3(bitcomp2(c), bitcomp2(c >> 1), bitcomp2(c >> 2));
 }
 
+#include <DirectXMath.h>
+
 int main()
 {
-	auto result = mortonEncode_magicbits(127, 20, 100);
+	// ivec3 voxelPos = ivec3(input.wsPosition * u_voxel.invGridCellSize + u_voxel.halfDim);
+	const U32 s_voxelDimension = 128;
+	const F32 halfDim = s_voxelDimension / 2.0f;
+	const F32 gridSize = 30.0f;
+	const F32 gridHalfSize = gridSize / 2.0f;
+	const F32 gridCellSize = gridHalfSize / halfDim;
+	const F32 invGridCellSize = 1.0f / gridCellSize;
+	vx::float3 wsPosition(1.5f, 0.3f, -5.0f);
+
+	auto voxelProjMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, (float)gridHalfSize, -gridHalfSize, (float)gridHalfSize, 0.1f, (float)gridSize);
+
+
+
+	const __m128 axisY = { 0, 1, 0, 0 };
+	auto projectionMatrices0 = voxelProjMatrix * vx::MatrixRotationAxis(axisY, vx::degToRad(90.0f)) * vx::MatrixTranslation(-gridHalfSize, 0, 0);
+	auto projectionMatrices2 = voxelProjMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
+
+	auto gridProjMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, gridHalfSize, -gridHalfSize, gridHalfSize, 0.1f, gridSize);
+
+
+	auto voxelPos1 = wsPosition * invGridCellSize + halfDim;
+
+	__m128 voxelDim = {128, 128, 128, 0};
+	__m128 oneHalf = { 0.5f, 0.5f, 1.0f, 0.f };
+	__m128 oneHalf1 = { 0.5f, 0.5f, 0.f, 0.f };
+
+	__m128 pp0 = { 1.5f, 0.3f, -5.0f, 1.0f };
+	__m128 pp1 = { 2.5f, 0.3f, -4.5f, 1.0f };
+	__m128 pp2 = { 1.9f, 1.3f, -5.0f, 1.0f };
+
+	auto p = vx::Vector4Transform(projectionMatrices2, pp0);
+	p = _mm_fmadd_ps(p, oneHalf, oneHalf1);
+	p = _mm_mul_ps(p, voxelDim);
+
+	///
+	auto mat1 = vx::MatrixTranslation(gridHalfSize, gridHalfSize, gridHalfSize);
+	//D3DXMatrixTranslation(&mat1, -g_voxelSpace[0].x, -g_voxelSpace[0].y, -g_voxelSpace[0].z);
+	//D3DXMatrixScaling(&mat2, float(g_gridSizeX) / extent.x, float(g_gridSizeY) / extent.y, float(g_gridSizeZ) / extent.z);
+	auto mat2 = vx::MatrixScaling(invGridCellSize, invGridCellSize, invGridCellSize);
+	auto g_matWorldToVoxel = mat2 * mat1;
+	//g_matWorldToVoxel = vx::MatrixTranspose(g_matWorldToVoxel);
+	//D3DXMatrixMultiplyTranspose(&g_matWorldToVoxel, &mat1, &mat2);
+
+	auto p0 = vx::Vector4Transform(g_matWorldToVoxel, pp0);
+	auto p1 = vx::Vector4Transform(g_matWorldToVoxel, pp1);
+	auto p2 = vx::Vector4Transform(g_matWorldToVoxel, pp2);
+
+	// determine bounding box
+	auto vMin = _mm_min_ps(p0, _mm_min_ps(p1, p2));
+	auto vMax = _mm_max_ps(p0, _mm_max_ps(p1, p2));
+
+	auto voxOrigMin = _mm_floor_ps(vMin);
+	auto voxOrigMax = _mm_floor_ps( _mm_add_ps(vMax, vx::g_VXOne) );
+	auto voxOrigExtent = _mm_sub_ps(voxOrigMax, voxOrigMin);
+
+	// determine bounding box clipped to voxel grid
+	auto voxMin = _mm_max_ps(voxOrigMin, vx::g_VXZero);
+	auto voxMax = _mm_min_ps(voxOrigMax, voxelDim);
+
+	const auto voxExtent = _mm_sub_ps(voxMax, voxMin);
+
+	/*
+
+	const float3 voxOrigMin = float3(floor(vMin.x),
+		floor(vMin.y),
+		floor(vMin.z));
+	const float3 voxOrigMax = float3(floor(vMax.x + 1.0),
+		floor(vMax.y + 1.0),
+		floor(vMax.z + 1.0));
+
+	const float3 voxOrigExtent = voxOrigMax - voxOrigMin;*/
+
+	int klo = 0;
+	klo++;
+	// 4.20102549
+	// 64
+
+
+
+	//////////////////////////
+/*	auto result = mortonEncode_magicbits(127, 20, 100);
 	auto result1 = bitzip(127, 20, 100);
 	auto coords = bitunzip3(result1);
 	const F32 cellSize = 0.396728516f;
@@ -147,11 +230,16 @@ int main()
 	const int tmp = index / width;
 	const int tmp1 = index % width;
 
+	const int cellLinkCount = 670;
+	const int llok = (cellLinkCount + 64 - 1) / 64;*/
+
 	SmallObjAllocator alloc(1 KBYTE);
 	SmallObject::setAllocator(&alloc);
 
 	Clock mainClock;
 	Logfile mainLogfile(mainClock);
+
+	auto cc = vx::cross(vx::float3(2, 1, 0), vx::float3(2, 0, 0));
 
 	mainLogfile.create("logfile.xml");
 	SCOPE_EXIT
@@ -161,7 +249,7 @@ int main()
 	};
 
 	Scene scene;
-	Engine engine(mainLogfile);
+	Engine engine;
 
 	{
 		SceneFile sceneFile;

@@ -8,7 +8,7 @@ Decision::Decision(DecisionTreeNode* trueNode, DecisionTreeNode* falseNode)
 	m_nodes[1] = trueNode;
 }
 
-Decision::Decision(DecisionTreeNode* trueNode, DecisionTreeNode* falseNode, Variant testValue)
+Decision::Decision(DecisionTreeNode* trueNode, DecisionTreeNode* falseNode, vx::Variant testValue)
 	:m_nodes(),
 	m_testValue(testValue)
 {

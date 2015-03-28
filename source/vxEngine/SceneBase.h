@@ -6,6 +6,7 @@ class MeshInstance;
 struct Light;
 struct Spawn;
 struct Actor;
+class SceneFile;
 
 namespace vx
 {
@@ -16,6 +17,22 @@ namespace vx
 #include <vxLib/Container/sorted_vector.h>
 #include <memory>
 #include "NavMesh.h"
+
+struct SceneBaseParams
+{
+	std::unique_ptr<Light[]> m_pLights;
+	vx::sorted_vector<vx::StringID64, Material*> m_materials;
+	vx::sorted_vector<vx::StringID64, const vx::Mesh*> m_meshes;
+	std::unique_ptr<Spawn[]> m_pSpawns;
+	vx::sorted_vector<vx::StringID64, Actor> m_actors;
+	NavMesh m_navMesh;
+	U32 m_lightCount;
+	U32 m_vertexCount;
+	U32 m_indexCount;
+	U32 m_spawnCount;
+
+	~SceneBaseParams();
+};
 
 class SceneBase
 {
@@ -32,9 +49,7 @@ protected:
 	U32 m_spawnCount{ 0 };
 
 	SceneBase();
-	SceneBase(std::unique_ptr<Light[]> &&lights, U32 lightCount, vx::sorted_vector<vx::StringID64, Material*> &&materials,
-		vx::sorted_vector<vx::StringID64, const vx::Mesh*> &&meshes, U32 vertexCount, U32 indexCount, std::unique_ptr<Spawn[]> &&spawns, U32 spawnCount,
-		vx::sorted_vector<vx::StringID64, Actor>  &&actors, NavMesh &&navmesh);
+	SceneBase(SceneBaseParams &params);
 
 public:
 	SceneBase(SceneBase &&rhs);

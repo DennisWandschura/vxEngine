@@ -242,7 +242,7 @@ U8* FileAspect::readFile(const char *file, U32 &fileSize)
 	return pData;
 }
 
-void FileAspect::pushFileEvent(FileEvent code, Variant arg1, Variant arg2)
+void FileAspect::pushFileEvent(FileEvent code, vx::Variant arg1, vx::Variant arg2)
 {
 	Event e;
 	e.arg1 = arg1;
@@ -337,7 +337,7 @@ LoadFileReturnType FileAspect::loadFile(const FileEntry &fileEntry, std::vector<
 	return result;
 }
 
-LoadFileReturnType FileAspect::saveFile(FileRequest &request, Variant* p)
+LoadFileReturnType FileAspect::saveFile(FileRequest &request, vx::Variant* p)
 {
 	const char* fileName = request.m_fileEntry.getString();
 	auto fileType = request.m_fileEntry.getType();
@@ -405,7 +405,7 @@ LoadFileReturnType FileAspect::saveFile(FileRequest &request, Variant* p)
 
 void FileAspect::handleSaveRequest(FileRequest &request)
 {
-	Variant p;
+	vx::Variant p;
 	auto result = saveFile(request, &p);
 	if (result.result != 0)
 	{

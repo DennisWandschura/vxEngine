@@ -35,7 +35,10 @@ class NavMesh;
 #include <vxLib/gl/ShaderManager.h>
 #include <atomic>
 #include <mutex>
+#include "LoadFileCallback.h"
 #include <vxLib/Allocator/StackAllocator.h>
+#include "Squirrel.h"
+#include "BVH.h"
 
 inline vx::int2 __vectorcall packQRotation(const __m128 qRotation)
 {
@@ -68,17 +71,17 @@ struct RenderAspectDesc
 	Profiler2 *pProfiler;
 	ProfilerGraph* pGraph;
 	vx::uint2 resolution;
-	F32 fovRad; 
+	F32 fovRad;
 	F32 z_near;
-	F32 z_far; 
+	F32 z_far;
 	F32 targetMs;
-	bool vsync; 
+	bool vsync;
 	bool debug;
 };
 
-class RenderAspect : public EventListener
+class RenderAspectRayTracer : public EventListener
 {
-	static const auto s_shadowMapResolution = 2048;
+	static const auto s_voxelDimension = 128u;
 
 	static const auto s_maxNavMeshVertices = 100u;
 	static const auto s_maxNavMeshIndices = 100u;
@@ -96,8 +99,13 @@ class RenderAspect : public EventListener
 	static const auto s_meshMaxInstancesDynamic = 50u;
 	static const auto s_meshMaxInstances = s_meshMaxInstancesStatic + s_meshMaxInstancesDynamic;
 
+	static const auto s_maxRayCount = 1920 * 1080u;
+	static const auto s_maxRayLinkCount = s_maxRayCount * 4;
+	static const auto s_maxVoxelTriangles = 50000u;
+	static const auto s_maxVoxelTrianglePairs = 100000u;
+
 protected:
-	typedef  struct 
+	typedef  struct
 	{
 		U32  count;
 		U32  instanceCount;
@@ -113,14 +121,15 @@ protected:
 	struct ColdData
 	{
 		vx::gl::Texture m_gbufferDepthTexture;
+		vx::gl::Texture m_gbufferDepthTextureSmall;
 		// albedoSlice : rgb8
 		vx::gl::Texture m_gbufferAlbedoSlice;
 		// normalSlice : rgb10a2
 		vx::gl::Texture m_gbufferNormalSlice;
+		vx::gl::Texture m_gbufferNormalSliceSmall;
 		// surface : rgba8
 		vx::gl::Texture m_gbufferSurfaceSlice;
-		vx::gl::Texture m_sphereLightShadowMaps;
-		vx::gl::Texture m_SpotlightShadowMaps;
+		vx::gl::Texture m_rayFBTexture;
 		vx::gl::Buffer m_screenshotBuffer;
 		TextureManager m_textureManager;
 		vx::gl::Buffer m_meshVbo;
@@ -143,17 +152,36 @@ protected:
 	vx::gl::Buffer m_cameraBuffer;
 	vx::gl::Buffer m_cameraBufferStatic;
 	vx::gl::Buffer m_lightDataBlock;
-	vx::gl::Buffer m_sphereLightShadowTransformBlock;
 	vx::gl::Buffer m_gbufferBlock;
+	vx::gl::Buffer m_voxelBlock;
 	//
 	vx::gl::Buffer m_lightTexBlock;
 	vx::gl::Buffer m_transformBlock;
 	vx::gl::Buffer m_materialBlock;
 	//
+	vx::gl::Buffer m_meshVertexBlock;
+	vx::gl::Buffer m_bvhBlock;
+	vx::gl::Buffer m_rayOffsetBlock;
+	vx::gl::Buffer m_voxelTrianglePairCmdBuffer;
+	vx::gl::Buffer m_voxelTrianglePairBuffer;
+	vx::gl::Buffer m_voxelTriangePairAtomicBuffer;
+	vx::gl::Buffer m_triangleBuffer;
+	//
 	vx::gl::Buffer m_textureBlock;
-	
+	// contains compressed rays
+	vx::gl::Buffer m_rayList;
+	vx::gl::Buffer m_rayLinks;
+	vx::gl::Buffer m_atomicCounter;
+	vx::gl::Texture m_rayTraceShadowTexture;
+	vx::gl::Texture m_voxelTexture;
+	// each cell contains amount of rays that need to be checked against
+	vx::gl::Texture m_voxelRayLinkOffsetTexture;
+	vx::gl::Texture m_voxelRayLinkCountTexture;
+	vx::gl::Texture m_voxelDebugTexture;
+
+	vx::gl::Framebuffer m_rayFB;
 	vx::gl::Framebuffer m_gbufferFB;
-	vx::gl::Framebuffer m_shadowFB;
+	vx::gl::Framebuffer m_gbufferFBSmall;
 	// batch without instancing
 	vx::gl::DrawIndirectBuffer m_commandBlock;
 	U32 m_numTiles{ 0 };
@@ -175,13 +203,13 @@ protected:
 	vx::StackAllocator m_allocator;
 	U32 m_meshInstanceCountDynamic{ 0 };
 	U32 m_meshInstanceCountStatic{ 0 };
-	U32 m_meshVertexCountDynamic{0};
+	U32 m_meshVertexCountDynamic{ 0 };
 	U32 m_meshIndexCountDynamic{ 0 };
 	U32 m_materialCount{ 0 };
 	vx::sorted_vector<vx::StringID64, MeshEntry> m_meshEntries;
 	vx::sorted_vector<const Material*, U32> m_materialIndices;
 	//BVH m_bvh;
-	Scene* m_pScene{nullptr};
+	Scene* m_pScene{ nullptr };
 	FileAspect &m_fileAspect;
 	std::unique_ptr<ColdData> m_pColdData;
 
@@ -192,6 +220,7 @@ protected:
 	TextureRef loadTextureFile(const TextureFile &file, U8 srgb);
 	bool initializeBuffers();
 	void initializeUniformBuffers();
+	void createVoxelBuffer();
 
 	void takeScreenshot();
 	void writeScreenshot(const vx::uint2 &resolution, vx::float4 *pData);
@@ -207,7 +236,7 @@ protected:
 	void updateMeshBuffer(const vx::sorted_vector<vx::StringID64, const vx::Mesh*> &meshes);
 	void updateBuffers(const MeshInstance *pInstances, U32 instanceCount, const vx::sorted_vector<const Material*, U32> &materialIndices, const vx::sorted_vector<vx::StringID64, MeshEntry> &meshEntries);
 
-	void getSphereLightShadowTransform(const Light &light, vx::mat4* projMatrix, vx::mat4* pvMatrices);
+	void getShadowTransform(const Light &light, vx::mat4 *projMatrix, vx::mat4 *pvMatrices);
 	void updateLightBuffer(const Light *pLights, U32 numLights);
 
 	void createTextures();
@@ -226,16 +255,23 @@ protected:
 	void updateNavMeshBuffer(const NavMesh &navMesh);
 
 	void clearTextures();
-	void renderShadowMaps();
+	void binaryVoxelize();
 	void createGBuffer();
+	void createGBufferSmall();
+	void createRays();
+	void createRayLinkOffsets();
+	void createRayLinks();
+	void testVoxelTriangles();
+	void testRayTriangles();
 	void renderFinalImage();
 	void renderForward();
 	void renderProfiler(Profiler2* pProfiler, ProfilerGraph* pGraph);
 	void renderNavGraph();
+	void renderVoxelDebug();
 
 public:
-	RenderAspect(FileAspect &fileAspect);
-	virtual ~RenderAspect();
+	RenderAspectRayTracer(FileAspect &fileAspect);
+	virtual ~RenderAspectRayTracer();
 
 	bool initialize(const std::string &dataDir, const RenderAspectDesc &desc);
 	void shutdown(const HWND hwnd);
