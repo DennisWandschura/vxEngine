@@ -183,9 +183,6 @@
     <ClInclude Include="stack.h">
       <Filter>Header Files\Container</Filter>
     </ClInclude>
-    <ClInclude Include="Profiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PoolAllocator.h">
       <Filter>Header Files\Allocator</Filter>
     </ClInclude>
@@ -256,12 +253,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Pool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Profiler2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProfilerGraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Keys.h">
@@ -516,9 +507,6 @@
     <ClInclude Include="EditorRenderAspect.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="BVH_GPU.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Triangle.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
@@ -543,10 +531,40 @@
     <ClInclude Include="RenderStage.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="RenderAspectRayTracer.h">
+    <ClInclude Include="BufferBlocks.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="BufferBlocks.h">
+    <ClInclude Include="ProfilerGraph.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Profiler2.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="VoxelRenderer.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Quaternion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferManager.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderUpdateTask.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshRenderer.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneRenderer.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="LightBufferManager.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuFunctions.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenshotFactory.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
   </ItemGroup>
@@ -644,14 +662,8 @@
     <ClCompile Include="ProfilerGraph.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Profiler.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
     <ClCompile Include="Profiler2.cpp">
       <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Actor.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EventManager.cpp">
       <Filter>Source Files</Filter>
@@ -725,9 +737,6 @@
     <ClCompile Include="SmallObjAllocator.cpp">
       <Filter>Source Files\Allocator</Filter>
     </ClCompile>
-    <ClCompile Include="Grid.cpp">
-      <Filter>Source Files\Container</Filter>
-    </ClCompile>
     <ClCompile Include="InfluenceMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -788,9 +797,6 @@
     <ClCompile Include="EditorRenderAspect.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="BVH_GPU.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ImageBindingManager.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
@@ -806,18 +812,39 @@
     <ClCompile Include="RenderStageDescription.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="RenderAspectRayTracer.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerController.cpp">
       <Filter>Source Files\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Spawn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VoxelRenderer.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferManager.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshRenderer.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="LightBufferManager.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneRenderer.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuFunctions.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenshotFactory.cpp">
+      <Filter>Source Files\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">
-      <Filter>Shaders\include</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\include\quaternation.glsl">
       <Filter>Shaders\include</Filter>
     </None>
     <None Include="render.nut">
@@ -826,10 +853,28 @@
     <None Include="..\..\game\data\scripts\events.nut">
       <Filter>Squirrel</Filter>
     </None>
+    <None Include="..\..\game\data\shaders\include\uniform_buffers.glsl">
+      <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\math.glsl">
+      <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\structs.glsl">
+      <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\atomic_counters.glsl">
+      <Filter>Shaders\include</Filter>
+    </None>
     <None Include="..\..\game\data\shaders\create_gbuffer.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
+    <None Include="..\..\game\data\shaders\draw_aabb.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
     <None Include="..\..\game\data\shaders\draw_final_image.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\forward_render.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
     <None Include="..\..\game\data\shaders\graph.pipe">
@@ -841,10 +886,25 @@
     <None Include="..\..\game\data\shaders\text.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\create_gbuffer.fs.glsl">
+    <None Include="..\..\game\data\shaders\voxel_debug.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\voxelize.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\draw_aabb.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\draw_aabb.gs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\draw_aabb.vs.glsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\draw_final_image.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\draw_final_image.gs.glsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\forward_render.fs.glsl">
@@ -883,20 +943,80 @@
     <None Include="..\..\game\data\shaders\programs\text.vs.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\include\uniform_buffers.glsl">
-      <Filter>Shaders\include</Filter>
+    <None Include="..\..\game\data\shaders\programs\voxel_debug.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxel_debug.gs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxel_debug.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxelize.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxelize.gs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxelize.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\create_gbuffer.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\create_aabb.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\create_aabb.gs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\create_aabb.fs.glsl">
+      <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\shadow.vs.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\shadow_pointlight.gs.glsl">
+    <None Include="..\..\game\data\shaders\programs\shadow.gs.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\create_shadowmaps.pipe">
+    <None Include="..\..\game\data\shaders\shadow.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\draw_final_image.gs.glsl">
+    <None Include="..\..\game\data\shaders\programs\shadow.fs.glsl">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\coneTrace.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\coneTrace.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\blurpass1.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\blurpass1.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\blurpass2.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\blurpass2.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\coneTrace.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\screenquadRay.gs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\coneTrace.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\quaternion.glsl">
+      <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\mesh.glsl">
+      <Filter>Shaders\include</Filter>
     </None>
   </ItemGroup>
 </Project>

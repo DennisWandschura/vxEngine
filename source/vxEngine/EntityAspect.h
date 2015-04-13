@@ -66,7 +66,7 @@ class EntityAspect : public EventListener
 	//////////////////
 
 public:
-	EntityAspect(PhysicsAspect &physicsAspect, vx::Camera &camera, FileAspect &fileAspect, RenderAspect &renderAspect);
+	EntityAspect(PhysicsAspect &physicsAspect, FileAspect &fileAspect, RenderAspect &renderAspect);
 
 	//////////////////
 

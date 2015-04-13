@@ -9,8 +9,8 @@
 
 enum class EditorRenderAspect::EditorUpdate : U32{ Update_None, Update_Mesh, Update_Material, Editor_Added_Instance, Editor_Update_Instance, Editor_Set_Scene };
 
-EditorRenderAspect::EditorRenderAspect(FileAspect &fileAspect)
-	:RenderAspect(fileAspect)
+EditorRenderAspect::EditorRenderAspect()
+	:RenderAspect()
 {
 }
 
@@ -46,10 +46,10 @@ void EditorRenderAspect::update()
 
 void EditorRenderAspect::render()
 {
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_cameraBuffer.getId());
+	/*glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_cameraBuffer.getId());
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_lightDataBlock.getId());
 	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_cameraBufferStatic.getId());
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_gbufferBlock.getId());
+	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_utextureBlock.getId());
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transformBlock.getId());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_materialBlock.getId());
@@ -97,7 +97,7 @@ void EditorRenderAspect::render()
 
 		m_editorData.drawMouse(m_shaderManager);
 		m_editorData.drawWaypoints(m_shaderManager);
-	}
+	}*/
 
 	m_renderContext.swapBuffers();
 }

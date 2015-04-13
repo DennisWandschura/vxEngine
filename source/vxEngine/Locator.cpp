@@ -3,6 +3,7 @@
 
 EventManager* Locator::s_pEventManager{ nullptr };
 PhysicsAspect* Locator::s_pPhysicsAspect{ nullptr };
+FileAspect* Locator::s_pFileAspect{ nullptr };
 
 void Locator::provide(EventManager* p)
 {
@@ -26,8 +27,20 @@ PhysicsAspect* Locator::getPhysicsAspect()
 	return s_pPhysicsAspect;
 }
 
+void Locator::provide(FileAspect* p)
+{
+	s_pFileAspect = p;
+}
+
+FileAspect* Locator::getFileAspect()
+{
+	VX_ASSERT(s_pPhysicsAspect);
+	return s_pFileAspect;
+}
+
 void Locator::reset()
 {
 	s_pEventManager = nullptr;
 	s_pPhysicsAspect = nullptr;
+	s_pFileAspect = nullptr;
 }

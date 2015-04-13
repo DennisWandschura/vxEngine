@@ -3,7 +3,7 @@
 #include "RenderAspect.h"
 #include "EditorRenderData.h"
 #include <vxLib/Variant.h>
-#include <vector>
+#include <atomic>
 
 class EditorRenderAspect : public RenderAspect
 {
@@ -23,7 +23,7 @@ class EditorRenderAspect : public RenderAspect
 	void handleEditorEvent(const Event &evt);
 
 public:
-	EditorRenderAspect(FileAspect &fileAspect);
+	EditorRenderAspect();
 
 	bool initialize(const std::string &dataDir, HWND panel, HWND tmp, const vx::uint2 &windowResolution, F32 fovDeg, F32 zNear, F32 zFar, bool vsync, bool debug,
 		vx::StackAllocator *pAllocator);

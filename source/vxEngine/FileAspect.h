@@ -34,7 +34,6 @@ class FileAspect
 		enum OpenType : U8{Load = 0, Save = 1};
 
 		FileEntry m_fileEntry;
-		//LoadFileCallback m_callback{nullptr};
 		void* userData{nullptr};
 		U8 m_maxRetries{10};
 		OpenType m_openType{};
@@ -52,7 +51,6 @@ class FileAspect
 	Clock m_clock;
 
 	vx::sorted_array<vx::StringID64, vx::Mesh> m_meshes;
-	//vx::sorted_array<vx::StringID64, Scene> m_scenes;
 	vx::sorted_array<vx::StringID64, Material> m_materials;
 	vx::sorted_array<vx::StringID64, TextureFile> m_textureFiles;
 
@@ -61,18 +59,25 @@ class FileAspect
 
 	void pushFileEvent(FileEvent code,vx::Variant arg1, vx::Variant arg2);
 
-	LoadFileReturnType loadFile(const FileEntry &file, std::vector<FileEntry> &missingFiles, void* pUserData);
-	bool loadMesh(const char *filename, const U8 *ptr, U8 *pMeshMemory, vx::StringID64 sid, FileStatus &status);
-	TextureFile* loadTexture(const char *filename, const U8 *ptr, U32 size, vx::StringID64 sid, FileStatus &status);
-	U8 loadScene(const char *filename, const U8 *ptr, vx::StringID64 sid, std::vector<FileEntry> &missingFiles, FileStatus &status, Scene* pScene);
-	U8 loadScene(const char *filename, const U8 *ptr, vx::StringID64 sid, std::vector<FileEntry> &missingFiles, FileStatus &status, EditorScene* pScene);
-	Material* loadMaterial(const char *filename, const char *file, vx::StringID64 sid, std::vector<FileEntry> &missingFiles, FileStatus &status);
+	LoadFileReturnType loadFile(const FileEntry &file, std::vector<FileEntry>* missingFiles, void* pUserData);
+	bool loadMesh(const char *filename, const U8 *ptr, U8 *pMeshMemory, const vx::StringID64 &sid, FileStatus* status);
+	TextureFile* loadTexture(const char *filename, const U8 *ptr, U32 size, const vx::StringID64 &sid, FileStatus* status);
+	U8 loadScene(const char *filename, const U8 *ptr, const vx::StringID64 &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, Scene* pScene);
+	U8 loadScene(const char *filename, const U8 *ptr, const vx::StringID64 &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, EditorScene* pScene);
+	Material* loadMaterial(const char *filename, const char *file, const vx::StringID64 &sid, std::vector<FileEntry>* missingFiles, FileStatus* status);
 
-	LoadFileReturnType saveFile(FileRequest &request, vx::Variant* p);
+	LoadFileReturnType saveFile(const FileRequest &request, vx::Variant* p);
 
-	void handleLoadRequest(FileRequest &request, std::vector<FileEntry> &missingFiles);
-	void handleSaveRequest(FileRequest &request);
-	void handleRequest(FileRequest &request, std::vector<FileEntry> &missingFiles);
+	void loadFileMesh(const char* fileName, U32 fileSize, const vx::StringID64 &sid, U8* pData, LoadFileReturnType* result, void* pUserData);
+	void loadFileTexture(const char* fileName, U32 fileSize, const vx::StringID64 &sid, U8* pData, LoadFileReturnType* result);
+	void loadFileMaterial(const char* fileName, const char* file, const vx::StringID64 &sid, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles);
+	void loadFileOfType(FileType fileType, const char *fileName, const char* file, U32 fileSize, U8* pData, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles);
+
+	void handleLoadRequest(FileRequest* request, std::vector<FileEntry>* missingFiles);
+	void handleSaveRequest(FileRequest* request);
+	void handleRequest(FileRequest* request, std::vector<FileEntry>* missingFiles);
+	void onLoadFileFailed(FileRequest* request, const std::vector<FileEntry> &missingFiles);
+	void retryLoadFile(const FileRequest &request, const std::vector<FileEntry> &missingFiles);
 
 public:
 	explicit FileAspect(EventManager &evtManager);
@@ -99,7 +104,4 @@ public:
 	const Material* getMaterial(const vx::StringID64 &sid) const noexcept;
 
 	const vx::Mesh* getMesh(const vx::StringID64 &sid) const noexcept;
-
-	//Scene* getScene(const vx::StringID64 &sid) noexcept;
-	//const Scene* getScene(const vx::StringID64 &sid) const noexcept;
 };

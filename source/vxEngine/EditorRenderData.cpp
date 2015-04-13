@@ -4,9 +4,20 @@
 #include <vxLib/gl/ShaderManager.h>
 #include "Waypoint.h"
 #include <vxLib/gl/ProgramPipeline.h>
+#include "SceneRenderer.h"
 
 namespace Editor
 {
+	RenderData::RenderData()
+	{
+
+	}
+
+	RenderData::~RenderData()
+	{
+
+	}
+
 	void RenderData::initialize()
 	{
 		vx::float3 pos(0, 5.0f, 0);

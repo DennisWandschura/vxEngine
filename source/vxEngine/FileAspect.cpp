@@ -30,16 +30,16 @@ FileAspect::~FileAspect()
 
 bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir)
 {
-	const auto fileMemorySize = 1 MBYTE;
+	const auto fileMemorySize = 5 MBYTE;
 	auto pFileMemory = pMainAllocator->allocate(fileMemorySize, 64);
 	if (!pFileMemory)
 		return false;
+
 	m_allocReadFile = vx::StackAllocator(pFileMemory, fileMemorySize);
 
 	m_logfile.create("filelog.xml");
 
 	m_meshes = vx::sorted_array<vx::StringID64, vx::Mesh>(100, pMainAllocator);
-	//m_scenes = vx::sorted_array<vx::StringID64, Scene>(10, pMainAllocator);
 	m_materials = vx::sorted_array<vx::StringID64, Material>(100, pMainAllocator);
 	m_textureFiles = vx::sorted_array<vx::StringID64, TextureFile>(100, pMainAllocator);
 
@@ -59,14 +59,13 @@ void FileAspect::shutdown()
 {
 	m_textureFiles.cleanup();
 	m_materials.cleanup();
-	//m_scenes.cleanup();
 	m_meshes.cleanup();
 
 	m_logfile.close();
 	m_allocReadFile.release();
 }
 
-bool FileAspect::loadMesh(const char *filename, const U8 *ptr, U8 *pMeshMemory, vx::StringID64 sid, FileStatus &status)
+bool FileAspect::loadMesh(const char *filename, const U8 *ptr, U8 *pMeshMemory, const vx::StringID64 &sid, FileStatus* status)
 {
 	bool result = true;
 	auto it = m_meshes.find(sid);
@@ -77,19 +76,19 @@ bool FileAspect::loadMesh(const char *filename, const U8 *ptr, U8 *pMeshMemory, 
 		it = m_meshes.insert(sid, std::move(m));
 		// out of memory
 		VX_ASSERT(it != m_meshes.end());
-		status = FileStatus::Loaded;
+		*status = FileStatus::Loaded;
 
 		LOG_ARGS(m_logfile, "Loaded Mesh '%s' %llu\n", false, filename, sid.m_value);
 	}
 	else
 	{
-		status = FileStatus::Exists;
+		*status = FileStatus::Exists;
 	}
 
 	return result;
 }
 
-TextureFile* FileAspect::loadTexture(const char *filename, const U8 *ptr, U32 size, vx::StringID64 sid, FileStatus &status)
+TextureFile* FileAspect::loadTexture(const char *filename, const U8 *ptr, U32 size, const vx::StringID64 &sid, FileStatus* status)
 {
 	auto loadTextureFile = [](const U8 *ptr, U32 size, TextureFile* pTextureFile)
 	{
@@ -108,7 +107,7 @@ TextureFile* FileAspect::loadTexture(const char *filename, const U8 *ptr, U32 si
 			assert(texIt != m_textureFiles.end());
 			pResult = &*texIt;
 
-			status = FileStatus::Loaded;
+			*status = FileStatus::Loaded;
 			LOG_ARGS(m_logfile, "Loaded Texture '%s' %llu\n", false, filename, sid.m_value);
 		}
 		else
@@ -118,7 +117,7 @@ TextureFile* FileAspect::loadTexture(const char *filename, const U8 *ptr, U32 si
 	}
 	else
 	{
-		status = FileStatus::Exists;
+		*status = FileStatus::Exists;
 		pResult = &*texIt;
 	}
 
@@ -126,13 +125,13 @@ TextureFile* FileAspect::loadTexture(const char *filename, const U8 *ptr, U32 si
 	return pResult;
 }
 
-U8 FileAspect::loadScene(const char *filename, const U8 *ptr, vx::StringID64 sid, std::vector<FileEntry> &missingFiles, FileStatus &status, Scene* pScene)
+U8 FileAspect::loadScene(const char *filename, const U8 *ptr, const vx::StringID64 &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, Scene* pScene)
 {
 	U8 result = 0;
 	{
-		if (SceneFactory::load(ptr, m_meshes, m_materials, &missingFiles, pScene))
+		if (SceneFactory::load(ptr, m_meshes, m_materials, missingFiles, pScene))
 		{
-			status = FileStatus::Loaded;
+			*status = FileStatus::Loaded;
 			LOG_ARGS(m_logfile, "Loaded scene '%s' %llu\n", false, filename, sid.m_value);
 			result = 1;
 		}
@@ -144,13 +143,13 @@ U8 FileAspect::loadScene(const char *filename, const U8 *ptr, vx::StringID64 sid
 	return result;
 }
 
-U8 FileAspect::loadScene(const char *filename, const U8 *ptr, vx::StringID64 sid, std::vector<FileEntry> &missingFiles, FileStatus &status, EditorScene* pScene)
+U8 FileAspect::loadScene(const char *filename, const U8 *ptr, const vx::StringID64 &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, EditorScene* pScene)
 {
 	U8 result = 0;
 	{
-		if (SceneFactory::load(ptr, m_meshes, m_materials, &missingFiles, pScene))
+		if (SceneFactory::load(ptr, m_meshes, m_materials, missingFiles, pScene))
 		{
-			status = FileStatus::Loaded;
+			*status = FileStatus::Loaded;
 			LOG_ARGS(m_logfile, "Loaded scene '%s' %llu\n", false, filename, sid.m_value);
 			result = 1;
 		}
@@ -162,7 +161,7 @@ U8 FileAspect::loadScene(const char *filename, const U8 *ptr, vx::StringID64 sid
 	return result;
 }
 
-Material* FileAspect::loadMaterial(const char *filename, const char *file, vx::StringID64 sid, std::vector<FileEntry> &missingFiles, FileStatus &status)
+Material* FileAspect::loadMaterial(const char *filename, const char *file, const vx::StringID64 &sid, std::vector<FileEntry>* missingFiles, FileStatus* status)
 {
 	Material *pResult = nullptr;
 
@@ -175,7 +174,7 @@ Material* FileAspect::loadMaterial(const char *filename, const char *file, vx::S
 		{
 			it = m_materials.insert(sid, std::move(result.second));
 			pResult = &(*it);
-			status = FileStatus::Loaded;
+			*status = FileStatus::Loaded;
 			LOG_ARGS(m_logfile, "Loaded Material '%s'\n", false, filename);
 		}
 		else
@@ -185,7 +184,7 @@ Material* FileAspect::loadMaterial(const char *filename, const char *file, vx::S
 	}
 	else
 	{
-		status = FileStatus::Exists;
+		*status = FileStatus::Exists;
 		pResult = &(*it);
 	}
 
@@ -252,7 +251,81 @@ void FileAspect::pushFileEvent(FileEvent code, vx::Variant arg1, vx::Variant arg
 	m_eventManager.addEvent(e);
 }
 
-LoadFileReturnType FileAspect::loadFile(const FileEntry &fileEntry, std::vector<FileEntry> &missingFiles, void* pUserData)
+void FileAspect::loadFileMesh(const char* fileName, U32 fileSize, const vx::StringID64 &sid, U8* pData, LoadFileReturnType* result, void* pUserData)
+{
+	auto pMeshMemory = m_allocatorMeshData.allocate(fileSize, 8);
+	VX_ASSERT(pMeshMemory);
+
+	loadMesh(fileName, pData, pMeshMemory, sid, &result->status);
+	result->result = 1;
+	result->type = FileType::Mesh;
+
+	pushFileEvent(FileEvent::Mesh_Loaded, sid, pUserData);
+}
+
+void FileAspect::loadFileTexture(const char* fileName, U32 fileSize, const vx::StringID64 &sid, U8* pData, LoadFileReturnType* result)
+{
+	void* p = loadTexture(fileName, pData, fileSize, sid, &result->status);
+	if (p)
+	{
+		result->result = 1;
+		result->type = FileType::Texture;
+
+		pushFileEvent(FileEvent::Texture_Loaded, sid, p);
+	}
+}
+
+void FileAspect::loadFileMaterial(const char* fileName, const char* file, const vx::StringID64 &sid, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles)
+{
+	Material *pMaterial = loadMaterial(fileName, file, sid, missingFiles, &result->status);
+	if (pMaterial)
+	{
+		result->result = 1;
+		result->type = FileType::Material;
+
+		pushFileEvent(FileEvent::Material_Loaded, sid, pUserData);
+	}
+}
+
+void FileAspect::loadFileOfType(FileType fileType, const char *fileName, const char* file, U32 fileSize, U8* pData, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles)
+{
+	auto sid = vx::make_sid(fileName);
+
+	switch (fileType)
+	{
+	case FileType::Mesh:
+	{
+		loadFileMesh(fileName, fileSize, sid, pData, result, pUserData);
+	}break;
+	case FileType::Texture:
+	{
+		loadFileTexture(fileName, fileSize, sid, pData, result);
+	}break;
+	case FileType::Material:
+	{
+		loadFileMaterial(fileName, file, sid, result, pUserData, missingFiles);
+	}
+	break;
+	case FileType::Scene:
+	{
+#if _VX_EDITOR
+		if (loadScene(fileName, pData, sid, missingFiles, result.status, (EditorScene*)pUserData) != 0)
+#else
+		if (loadScene(fileName, pData, sid, missingFiles, &result->status, (Scene*)pUserData) != 0)
+#endif
+		{
+			pushFileEvent(FileEvent::Scene_Loaded, pUserData, sid);
+
+			result->result = 1;
+			result->type = FileType::Scene;
+		}
+	}break;
+	default:
+		break;
+	}
+}
+
+LoadFileReturnType FileAspect::loadFile(const FileEntry &fileEntry, std::vector<FileEntry>* missingFiles, void* pUserData)
 {
 	auto fileName = fileEntry.getString();
 	auto fileType = fileEntry.getType();
@@ -275,73 +348,15 @@ LoadFileReturnType FileAspect::loadFile(const FileEntry &fileEntry, std::vector<
 	if (pData == nullptr)
 		return result;
 
-	auto sid = vx::make_sid(fileName);
-
-	switch (fileType)
-	{
-	case FileType::Mesh:
-	{
-		auto pMeshMemory = m_allocatorMeshData.allocate(fileSize, 8);
-		VX_ASSERT(pMeshMemory);
-
-		loadMesh(fileName, pData, pMeshMemory, sid, result.status);
-		result.result = 1;
-		result.type = FileType::Mesh;
-
-		pushFileEvent(FileEvent::Mesh_Loaded, sid, pUserData);
-
-		//p->sid = sid;
-	}break;
-	case FileType::Texture:
-	{
-		void* p = nullptr;
-		if ((p = loadTexture(fileName, pData, fileSize, sid, result.status)))
-		{
-			result.result = 1;
-			result.type = FileType::Texture;
-
-			pushFileEvent(FileEvent::Texture_Loaded, sid, p);
-		}
-	}break;
-	case FileType::Material:
-	{
-		Material *pMaterial = loadMaterial(fileName, file, sid, missingFiles, result.status);
-		if (pMaterial)
-		{
-			result.result = 1;
-			//p->sid = sid;
-			result.type = FileType::Material;
-
-			pushFileEvent(FileEvent::Material_Loaded, sid, pUserData);
-		}
-	}
-	break;
-	case FileType::Scene:
-	{
-#if _VX_EDITOR
-		if (loadScene(fileName, pData, sid, missingFiles, result.status, (EditorScene*)pUserData) != 0)
-#else
-		if (loadScene(fileName, pData, sid, missingFiles, result.status, (Scene*)pUserData) != 0)
-#endif
-		{
-			pushFileEvent(FileEvent::Scene_Loaded, pUserData, sid);
-
-			result.result = 1;
-			result.type = FileType::Scene;
-		}
-	}break;
-	default:
-		break;
-	}
+	loadFileOfType(fileType, fileName, file, fileSize, pData, &result, pUserData, missingFiles);
 
 	return result;
 }
 
-LoadFileReturnType FileAspect::saveFile(FileRequest &request, vx::Variant* p)
+LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant* p)
 {
 	const char* fileName = request.m_fileEntry.getString();
 	auto fileType = request.m_fileEntry.getType();
-	auto pUserData = request.userData;
 
 	p->sid = vx::make_sid(fileName);
 
@@ -382,7 +397,6 @@ LoadFileReturnType FileAspect::saveFile(FileRequest &request, vx::Variant* p)
 	case FileType::Scene:
 	{
 		assert(false);
-		//saveResult = SceneFactory::save((const Scene*)pUserData, &f);
 		if (saveResult == 0)
 		{
 			LOG_ERROR_ARGS(m_logfile, "Error saving scene '%s'\n", false, file);
@@ -403,78 +417,71 @@ LoadFileReturnType FileAspect::saveFile(FileRequest &request, vx::Variant* p)
 	return result;
 }
 
-void FileAspect::handleSaveRequest(FileRequest &request)
+void FileAspect::handleSaveRequest(FileRequest* request)
 {
 	vx::Variant p;
-	auto result = saveFile(request, &p);
-	if (result.result != 0)
+	auto result = saveFile(*request, &p);
+	if (result.result == 0)
 	{
-		// success
-		//request.m_callback(p, result, request.userData);
-	}
-	else
-	{
-		if (request.m_maxRetries == 0)
+		if (request->m_maxRetries == 0)
 		{
-			result.type = FileType::Invalid;
-			//request.m_callback(p, result, request.userData);
-
-			LOG_WARNING_ARGS(m_logfile, "Warning: Save request timed out. '%s'\n", false, request.m_fileEntry.getString());
+			LOG_WARNING_ARGS(m_logfile, "Warning: Save request timed out. '%s'\n", false, request->m_fileEntry.getString());
 		}
 		else
 		{
-			--request.m_maxRetries;
+			--request->m_maxRetries;
 
-			LOG_WARNING_ARGS(m_logfile, "Warning: Retrying save request '%s'\n", false, request.m_fileEntry.getString());
+			LOG_WARNING_ARGS(m_logfile, "Warning: Retrying save request '%s'\n", false, request->m_fileEntry.getString());
 
 			std::lock_guard<std::mutex> guard(m_mutex);
-			m_fileRequests.push_back(request);
+			m_fileRequests.push_back(*request);
 		}
 	}
 }
 
-void FileAspect::handleLoadRequest(FileRequest &request, std::vector<FileEntry> &missingFiles)
+void FileAspect::retryLoadFile(const FileRequest &request, const std::vector<FileEntry> &missingFiles)
 {
-	auto result = loadFile(request.m_fileEntry, missingFiles, request.userData);
-	if (result.result != 0)
+	std::lock_guard<std::mutex> guard(m_mutex);
+	m_fileRequests.push_back(request);
+
+	FileRequest loadRequest;
+	for (auto &it : missingFiles)
 	{
-		// if callback is present, call it
-		//request.m_callback(p, result, request.userData);
-	}
-	else
-	{
-		// failed to load
-		if (request.m_maxRetries == 0)
-		{
-			result.type = FileType::Invalid;
-			//request.m_callback(p, result, request.userData);
-
-			LOG_WARNING_ARGS(m_logfile, "Warning: Load request timed out. '%s'\n", false, request.m_fileEntry.getString());
-		}
-		else
-		{
-			--request.m_maxRetries;
-
-			LOG_WARNING_ARGS(m_logfile, "Warning: Retrying load request '%s'\n", false, request.m_fileEntry.getString());
-
-			std::lock_guard<std::mutex> guard(m_mutex);
-			m_fileRequests.push_back(request);
-
-			FileRequest loadRequest;
-			//loadRequest.m_callback = request.m_callback;
-			for (auto &it : missingFiles)
-			{
-				loadRequest.m_fileEntry = it;
-				m_fileRequests.push_back(loadRequest);
-				LOG_ARGS(m_logfile, "Added load request '%s'\n", false, it.getString());
-			}
-		}
+		loadRequest.m_fileEntry = it;
+		m_fileRequests.push_back(loadRequest);
+		LOG_ARGS(m_logfile, "Added load request '%s'\n", false, it.getString());
 	}
 }
 
-void FileAspect::handleRequest(FileRequest &request, std::vector<FileEntry> &missingFiles)
+void FileAspect::onLoadFileFailed(FileRequest* request, const std::vector<FileEntry> &missingFiles)
 {
-	switch (request.m_openType)
+	// failed to load
+	if (request->m_maxRetries == 0)
+	{
+		LOG_WARNING_ARGS(m_logfile, "Warning: Load request timed out. '%s'\n", false, request->m_fileEntry.getString());
+	}
+	else
+	{
+		--request->m_maxRetries;
+
+		LOG_WARNING_ARGS(m_logfile, "Warning: Retrying load request '%s'\n", false, request->m_fileEntry.getString());
+
+		retryLoadFile(*request, missingFiles);
+	}
+}
+
+void FileAspect::handleLoadRequest(FileRequest* request, std::vector<FileEntry>* missingFiles)
+{
+	auto result = loadFile(request->m_fileEntry, missingFiles, request->userData);
+	if (result.result == 0)
+	{
+		onLoadFileFailed(request, *missingFiles);
+	}
+}
+
+void FileAspect::handleRequest(FileRequest* request, std::vector<FileEntry>* missingFiles)
+{
+	switch (request->m_openType)
 	{
 	case FileRequest::OpenType::Load:
 		handleLoadRequest(request, missingFiles);
@@ -505,7 +512,7 @@ void FileAspect::update()
 		m_fileRequests.pop_back();
 		lock.unlock();
 
-		handleRequest(request, missingFiles);
+		handleRequest(&request, &missingFiles);
 		missingFiles.clear();
 
 		lock.lock();
@@ -516,11 +523,8 @@ void FileAspect::update()
 
 void FileAspect::requestLoadFile(const FileEntry &fileEntry, void* p)
 {
-//	assert(callback);
-
 	FileRequest request;
 	request.m_fileEntry = fileEntry;
-	//request.m_callback = callback;
 	request.userData = p;
 	request.m_openType = FileRequest::Load;
 
@@ -532,7 +536,6 @@ void FileAspect::requestSaveFile(const FileEntry &fileEntry, void* p)
 {
 	FileRequest request;
 	request.m_fileEntry = fileEntry;
-	//request.m_callback = callback;
 	request.userData = p;
 	request.m_openType = FileRequest::Save;
 
@@ -583,25 +586,3 @@ const vx::Mesh* FileAspect::getMesh(const vx::StringID64 &sid) const noexcept
 
 	return p;
 }
-
-/*Scene* FileAspect::getScene(const vx::StringID64 &sid) noexcept
-{
-	Scene *p = nullptr;
-
-	auto it = m_scenes.find(sid);
-	if (it != m_scenes.end())
-		p = &*it;
-
-	return p;
-}
-
-const Scene* FileAspect::getScene(const vx::StringID64 &sid) const noexcept
-{
-	const Scene *p = nullptr;
-
-	auto it = m_scenes.find(sid);
-	if (it != m_scenes.end())
-		p = &*it;
-
-	return p;
-}*/

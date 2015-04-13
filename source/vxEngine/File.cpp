@@ -33,25 +33,32 @@ File::File()
 File::~File()
 {
 	if (m_pFile != nullptr)
+	{
 		close();
-
-	m_pFile = nullptr;
+		m_pFile = nullptr;
+	}
 }
 
-bool File::open(const char *file, FileAccess::FileAccess access)
+bool File::create(const char* file, FileAccess access)
 {
-	auto fileAccess = detail::g_access[access];
-	auto r = CreateFileA(file, fileAccess, 0, 0, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-	auto error = GetLastError();
-	if ((error != 0 && error != ERROR_ALREADY_EXISTS )||
-		r == INVALID_HANDLE_VALUE)
+	auto r = CreateFileA(file, static_cast<U32>(access), 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	if (r == INVALID_HANDLE_VALUE)
 	{
-		printError(error);
-
 		return false;
 	}
 
-	SetLastError(0);
+	m_pFile = r;
+	return true;
+}
+
+bool File::open(const char *file, FileAccess access)
+{
+	auto r = CreateFileA(file, static_cast<U32>(access), 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	if (r == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
 	m_pFile = r;
 	return true;
 }

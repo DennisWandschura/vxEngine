@@ -2,16 +2,16 @@
 #include <vxLib/math/Vector.h>
 #include <vxLib/RawInput.h>
 #include <vxLib/Graphics/Camera.h>
-#include "PhysicsAspect.h"
 #include "Entity.h"
 #include "Keys.h"
 #include "EntityAspect.h"
 #include "ComponentPhysics.h"
 #include "ComponentInput.h"
 #include "PhysicsDefines.h"
+#include "RenderAspect.h"
 
-PlayerController::PlayerController(vx::Camera &camera)
-	:m_camera(camera)
+PlayerController::PlayerController(RenderAspect* renderAspect)
+	:m_pRenderAspect(renderAspect)
 {
 }
 
@@ -22,11 +22,14 @@ void PlayerController::updatePlayerHuman(Entity* pPlayer, EntityAspect &entityAs
 
 	auto physComp = entityAspect.getComponentPhysics(pPlayer->physics);
 
-	__m128 v = { physComp.orientation.y, physComp.orientation.x, 0 ,0};
-	v = vx::QuaternionRotationRollPitchYawFromVector(v);
+	__m128 quaternionRotation = { physComp.orientation.y, physComp.orientation.x, 0, 0 };
+	quaternionRotation = vx::QuaternionRotationRollPitchYawFromVector(quaternionRotation);
 
-	m_camera.setPosition(physComp.position);
-	m_camera.setRotation(v);
+	RenderUpdateCameraData data;
+	data.position = vx::loadFloat(physComp.position);
+	data.quaternionRotation = quaternionRotation;
+
+	m_pRenderAspect->queueUpdateCamera(data);
 }
 
 void PlayerController::handleKeyboard(Entity* pPlayer, const vx::Keyboard &keyboard, EntityAspect &entityAspect)

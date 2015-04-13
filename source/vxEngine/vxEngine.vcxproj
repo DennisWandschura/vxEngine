@@ -42,7 +42,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 6.5.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -168,7 +167,7 @@
     <ClInclude Include="ActorFactory.h" />
     <ClInclude Include="BufferBindingManager.h" />
     <ClInclude Include="BufferBlocks.h" />
-    <ClInclude Include="BVH_GPU.h" />
+    <ClInclude Include="BufferManager.h" />
     <ClInclude Include="DrawCommand.h" />
     <ClInclude Include="DrawCommandDescription.h" />
     <ClInclude Include="EditorEngine.h" />
@@ -185,13 +184,20 @@
     <ClInclude Include="ConditionHasPath.h" />
     <ClInclude Include="developer.h" />
     <ClInclude Include="EventListener.h" />
+    <ClInclude Include="GpuFunctions.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="ImageBindingManager.h" />
     <ClInclude Include="InfluenceMap.h" />
     <ClInclude Include="EventsIngame.h" />
-    <ClInclude Include="RenderAspectRayTracer.h" />
+    <ClInclude Include="LightBufferManager.h" />
+    <ClInclude Include="NavMeshRenderer.h" />
+    <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RenderStageDescription.h" />
     <ClInclude Include="RenderStage.h" />
+    <ClInclude Include="RenderUpdateTask.h" />
+    <ClInclude Include="SceneRenderer.h" />
+    <ClInclude Include="ScreenshotFactory.h" />
+    <ClInclude Include="VoxelRenderer.h" />
     <ClInclude Include="SceneBase.h" />
     <ClInclude Include="SceneFile.h" />
     <ClInclude Include="SmallObjAllocator.h" />
@@ -254,7 +260,6 @@
     <ClInclude Include="PhysicsAspect.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="PoolAllocator.h" />
-    <ClInclude Include="Profiler.h" />
     <ClInclude Include="Profiler2.h" />
     <ClInclude Include="ProfilerGraph.h" />
     <ClInclude Include="Ray.h" />
@@ -306,15 +311,14 @@
     <ClCompile Include="ActionGoToPosition.cpp" />
     <ClCompile Include="ActionManager.cpp" />
     <ClCompile Include="ActionRequestPath.cpp" />
-    <ClCompile Include="Actor.cpp" />
     <ClCompile Include="ActorAspect.cpp" />
     <ClCompile Include="ActorFactory.cpp" />
     <ClCompile Include="Align.cpp" />
     <ClCompile Include="Arrive.cpp" />
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="BufferBindingManager.cpp" />
+    <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="BVH.cpp" />
-    <ClCompile Include="BVH_GPU.cpp" />
     <ClCompile Include="Clock.cpp" />
     <ClCompile Include="ConditionHasDestination.cpp" />
     <ClCompile Include="ConditionHasPath.cpp" />
@@ -330,23 +334,29 @@
     <ClCompile Include="EditorScene.cpp" />
     <ClCompile Include="EditorWaypointManager.cpp" />
     <ClCompile Include="EntityFactory.cpp" />
-    <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="GpuFunctions.cpp" />
     <ClCompile Include="ImageBindingManager.cpp" />
     <ClCompile Include="InfluenceMap.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="LightBufferManager.cpp" />
     <ClCompile Include="Locator.cpp" />
     <ClCompile Include="NavGraph.cpp" />
     <ClCompile Include="NavMesh.cpp" />
+    <ClCompile Include="NavMeshRenderer.cpp" />
     <ClCompile Include="ogg_stream.cpp" />
     <ClCompile Include="RaycastCondition.cpp" />
-    <ClCompile Include="RenderAspectRayTracer.cpp" />
     <ClCompile Include="RenderStage.cpp" />
     <ClCompile Include="RenderStageDescription.cpp" />
+    <ClCompile Include="SceneRenderer.cpp" />
+    <ClCompile Include="ScreenshotFactory.cpp" />
+    <ClCompile Include="VoxelRenderer.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneBase.cpp" />
     <ClCompile Include="SceneFile.cpp" />
     <ClCompile Include="SmallObjAllocator.cpp" />
     <ClCompile Include="SmallObject.cpp" />
     <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="Spawn.cpp" />
     <ClCompile Include="SquadHandler.cpp" />
     <ClCompile Include="SquadManager.cpp" />
     <ClCompile Include="StateMachine.cpp" />
@@ -372,7 +382,6 @@
     <ClCompile Include="PhysicsAspect.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="Pool.cpp" />
-    <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="Profiler2.cpp" />
     <ClCompile Include="ProfilerGraph.cpp" />
     <ClCompile Include="RenderAspect.cpp" />
@@ -389,13 +398,32 @@
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="VertexBatch.cpp" />
+    <None Include="..\..\game\data\shaders\blurpass1.pipe" />
+    <None Include="..\..\game\data\shaders\blurpass2.pipe" />
+    <None Include="..\..\game\data\shaders\coneTrace.pipe" />
     <None Include="..\..\game\data\shaders\create_gbuffer.pipe" />
-    <None Include="..\..\game\data\shaders\create_shadowmaps.pipe" />
+    <None Include="..\..\game\data\shaders\draw_aabb.pipe" />
     <None Include="..\..\game\data\shaders\draw_final_image.pipe" />
+    <None Include="..\..\game\data\shaders\forward_render.pipe" />
     <None Include="..\..\game\data\shaders\graph.pipe" />
+    <None Include="..\..\game\data\shaders\include\atomic_counters.glsl" />
+    <None Include="..\..\game\data\shaders\include\math.glsl" />
+    <None Include="..\..\game\data\shaders\include\mesh.glsl" />
+    <None Include="..\..\game\data\shaders\include\structs.glsl" />
     <None Include="..\..\game\data\shaders\include\uniform_buffers.glsl" />
     <None Include="..\..\game\data\shaders\navmesh.pipe" />
+    <None Include="..\..\game\data\shaders\programs\blurpass1.frag" />
+    <None Include="..\..\game\data\shaders\programs\blurpass2.frag" />
+    <None Include="..\..\game\data\shaders\programs\coneTrace.frag" />
+    <None Include="..\..\game\data\shaders\programs\coneTrace.geom" />
+    <None Include="..\..\game\data\shaders\programs\coneTrace.vert" />
     <None Include="..\..\game\data\shaders\programs\create_gbuffer.fs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\create_aabb.fs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\create_aabb.gs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\create_aabb.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\draw_aabb.fs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\draw_aabb.gs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\draw_aabb.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\draw_final_image.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\draw_final_image.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\forward_render.fs.glsl" />
@@ -408,20 +436,30 @@
     <None Include="..\..\game\data\shaders\programs\screenquad.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\screenquad.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\screenquad.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\screenquadRay.gs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\shadow.fs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\shadow.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\shadow.vs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\shadow_pointlight.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\text.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\text.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\voxelize.fs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\voxelize.gs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\voxelize.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\voxel_debug.fs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\voxel_debug.gs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\voxel_debug.vs.glsl" />
+    <None Include="..\..\game\data\shaders\shadow.pipe" />
     <None Include="..\..\game\data\shaders\text.pipe" />
+    <None Include="..\..\game\data\shaders\voxelize.pipe" />
+    <None Include="..\..\game\data\shaders\voxel_debug.pipe" />
     <None Include="render.nut" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl" />
-    <None Include="..\..\game\data\shaders\include\quaternation.glsl" />
+    <None Include="..\..\game\data\shaders\include\quaternion.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 6.5.targets" />
   </ImportGroup>
 </Project>

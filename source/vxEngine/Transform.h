@@ -20,6 +20,6 @@ namespace vx
 	{
 		vx::float3 translation;
 		F32 scaling;
-		vx::int2 packedQRotation;
+		vx::uint2 packedQRotation;
 	};
 }

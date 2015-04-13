@@ -9,16 +9,16 @@ namespace vx
 
 struct Entity;
 class EntityAspect;
-class PhysicsAspect;
+class RenderAspect;
 
 #include <vxLib/types.h>
 
 class PlayerController
 {
-	vx::Camera& m_camera;
+	RenderAspect* m_pRenderAspect;
 
 public:
-	explicit PlayerController(vx::Camera &camera);
+	explicit PlayerController(RenderAspect* renderAspect);
 
 	void updatePlayerHuman(Entity* pPlayer, EntityAspect &entityAspect);
 

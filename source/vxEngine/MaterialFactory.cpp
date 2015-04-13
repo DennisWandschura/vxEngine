@@ -5,7 +5,7 @@
 #include <vxLib/Container/sorted_array.h>
 #include "enums.h"
 
-bool MaterialFactory::checkTextureFile(const char(&filename)[32], const vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry> &missingFiles, vx::StringID64 &outSid)
+bool MaterialFactory::checkTextureFile(const char(&filename)[32], const vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry>* missingFiles, vx::StringID64* outSid)
 {
 	FileEntry fileEntry(filename, FileType::Texture);
 	vx::StringID64 sid = vx::make_sid(filename);
@@ -14,18 +14,18 @@ bool MaterialFactory::checkTextureFile(const char(&filename)[32], const vx::sort
 	auto it = textureFiles.find(sid);
 	if (it == textureFiles.end())
 	{
-		missingFiles.push_back(fileEntry);
+		missingFiles->push_back(fileEntry);
 		lresult = false;
 	}
 	else
 	{
-		outSid = sid;
+		*outSid = sid;
 	}
 
 	return lresult;
 }
 
-std::pair<bool, Material> MaterialFactory::load(const char *file, vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry> &missingFiles)
+std::pair<bool, Material> MaterialFactory::load(const char *file, const vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry>* missingFiles)
 {
 	std::pair<bool, Material> result;
 	result.first = false;
@@ -36,11 +36,11 @@ std::pair<bool, Material> MaterialFactory::load(const char *file, vx::sorted_arr
 	{
 		result.first = true;
 		// make sure all texture files are loaded
-		if (!checkTextureFile(materialFile.m_albedo.data, textureFiles, missingFiles, texSid[0]))
+		if (!checkTextureFile(materialFile.m_albedo.data, textureFiles, missingFiles, &texSid[0]))
 			result.first = false;
-		if (!checkTextureFile(materialFile.m_normal.data, textureFiles, missingFiles, texSid[1]))
+		if (!checkTextureFile(materialFile.m_normal.data, textureFiles, missingFiles, &texSid[1]))
 			result.first = false;
-		if (!checkTextureFile(materialFile.m_surface.data, textureFiles, missingFiles, texSid[2]))
+		if (!checkTextureFile(materialFile.m_surface.data, textureFiles, missingFiles, &texSid[2]))
 			result.first = false;
 	}
 

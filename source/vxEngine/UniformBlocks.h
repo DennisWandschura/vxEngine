@@ -48,7 +48,7 @@ struct CamerablockStatic
 	vx::mat4 orthoMatrix;
 };
 
-struct VoxelBlock
+struct VoxelBlockOld
 {
 	vx::mat4 projectionMatrices[3];
 	U32 dim;

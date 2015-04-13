@@ -1,3 +1,0 @@
-<?xml-stylesheet type='text/xsl' href='Stylesheet.xls' ?><log>
-<entry><time>00:00:03 </time><record>1</record><type>Information</type><description>Shutting down Engine</description><file>main.cpp</file><function>lambda []()->auto::operator()</function><line>35</line></entry>
-</log>

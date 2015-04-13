@@ -46,10 +46,8 @@
 
 #endif
 
-#pragma comment(lib, "cudart.lib")
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "Shlwapi.lib")
-#pragma comment(lib, "cuda.lib")
 
 #ifdef _PHYSX_CHECKED
 #pragma comment(lib, "PhysX3CharacterKinematicCHECKED_x64.lib")

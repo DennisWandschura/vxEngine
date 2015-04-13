@@ -5,6 +5,7 @@ namespace vx
 	namespace gl
 	{
 		class VertexArray;
+		class Buffer;
 	}
 }
 
@@ -12,13 +13,24 @@ namespace vx
 
 struct VertexPNTUV
 {
+	typedef VertexPNTUV value_type;
+
 	vx::float4 position;
 	vx::float3 normal;
 	vx::float3 tangent;
 	vx::float2 uv;
 
-	static void create(vx::gl::VertexArray &vao, U32 &vbo, U32 vertexCount, U32 bindingIndex, U32 &attributeOffset);
+	static void create(vx::gl::VertexArray* vao, vx::gl::Buffer* vbo, U32 vertexCount, U32 bindingIndex, U32 &attributeOffset);
 	static void update(const U32 vbo, const VertexPNTUV* __restrict pVertices, U32 vertexCount);
+};
+
+struct VertexPNTBUV
+{
+	vx::float3 position;
+	vx::float3 normal;
+	vx::float3 tangent;
+	vx::float3 bitangent;
+	vx::float2 uv;
 };
 
 struct VertexDrawId

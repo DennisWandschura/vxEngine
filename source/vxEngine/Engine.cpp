@@ -27,8 +27,8 @@ Engine::Engine()
 	m_systemAspect(),
 	m_physicsAspect(m_fileAspect),
 	m_actorAspect(m_physicsAspect),
-	m_renderAspect(m_fileAspect),
-	m_entityAspect(m_physicsAspect, m_renderAspect.getCamera(), m_fileAspect, m_renderAspect),
+	m_renderAspect(),
+	m_entityAspect(m_physicsAspect, m_fileAspect, m_renderAspect),
 	m_bRun(0),
 	m_fileAspect(m_eventManager),
 	m_bRunFileThread(),
@@ -46,6 +46,97 @@ Engine::~Engine()
 	}
 }
 
+void Engine::update()
+{
+	// process events
+	m_eventManager.update();
+
+	// update aspects in order
+
+	m_physicsAspect.fetch();
+
+	//////////////
+	//m_profiler.pushCpuMarker("update.input()");
+
+	m_systemAspect.update(g_dt);
+
+	m_entityAspect.updateInput(g_dt);
+
+	//m_profiler.popCpuMarker();
+	//////////////
+
+	//////////////
+
+	m_actorAspect.update(g_dt);
+
+	//////////////
+
+	//////////////
+	//m_profiler.pushCpuMarker("update.physics()");
+
+	m_entityAspect.updatePhysics_linear(g_dt);
+
+	m_physicsAspect.update(g_dt);
+
+	//m_profiler.popCpuMarker();
+	//////////////
+
+	//////////////
+	//m_profiler.pushCpuMarker("update.position()");
+
+	m_entityAspect.updatePlayerPositionCamera();
+	m_entityAspect.updateActorTransforms();
+
+	//m_profiler.popCpuMarker();
+	//////////////
+
+	//////////////
+	//m_profiler.pushCpuMarker("update.render()");
+
+	//m_renderAspect.update();
+
+	//m_profiler.popCpuMarker();
+	//////////////
+
+	////////////// UPDATE END
+}
+
+void Engine::renderLoop()
+{
+	auto frequency = Clock::getFrequency();
+	const F64 invFrequency = 1.0 / frequency;
+
+	m_renderAspect.makeCurrent(true);
+
+	LARGE_INTEGER last;
+	QueryPerformanceCounter(&last);
+
+	F32 accum = 0.0f;
+
+	while (m_bRunRenderThread.load() != 0)
+	{
+		LARGE_INTEGER current;
+		QueryPerformanceCounter(&current);
+
+		auto frameTicks = (current.QuadPart - last.QuadPart) * 1000;
+		F32 frameTime = frameTicks * invFrequency * 0.001f;
+		frameTime = fminf(frameTime, g_dt);
+
+		accum += frameTime;
+
+		while (accum >= g_dt)
+		{
+			m_renderAspect.update();
+
+			accum -= g_dt;
+		}
+
+		m_renderAspect.render();
+
+		last = current;
+	}
+}
+
 void Engine::mainLoop()
 {
 	auto frequency = Clock::getFrequency();
@@ -53,14 +144,6 @@ void Engine::mainLoop()
 
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
-
-	const U32 bufferSize = 4096 * 8;
-	U8 musicBuffer[bufferSize];
-	//ogg_stream music;
-	///assert(music.open("data/music/Complex Terms.ogg"));
-	//music.setVolume(0.2f);
-	//music.playback(musicBuffer, bufferSize);
-	//music.play(musicBuffer, bufferSize);
 
 	F32 accum = 0.0f;
 	while (m_bRun != 0)
@@ -74,93 +157,37 @@ void Engine::mainLoop()
 
 		accum += frameTime;
 
-		m_profileGraph.frame(frameTime);
-		m_profiler.frame();
+		//m_profileGraph.frame(frameTime);
+		//m_profiler.frame();
 
-		m_profileGraph.startCpu();
+		//m_profileGraph.startCpu();
 		////////////// FRAME START
-		m_profiler.pushCpuMarker("frame()");
+		//m_profiler.pushCpuMarker("frame()");
 
 		while (accum >= g_dt)
 		{
-			//if (music.isPlaying())
-			//music.update(musicBuffer, bufferSize);
-			////////////// UPDATE START
-			m_profiler.pushCpuMarker("update()");
-
-			// process events
-			m_eventManager.update();
-
-			// update aspects in order
-
-			m_physicsAspect.fetch();
-
-			//////////////
-			m_profiler.pushCpuMarker("update.input()");
-
-			m_systemAspect.update(g_dt);
-
-			m_entityAspect.updateInput(g_dt);
-
-			m_profiler.popCpuMarker();
-			//////////////
-
-			//////////////
-
-			m_actorAspect.update(g_dt);
-
-			//////////////
-
-			//////////////
-			m_profiler.pushCpuMarker("update.physics()");
-
-			m_entityAspect.updatePhysics_linear(g_dt);
-
-			m_physicsAspect.update(g_dt);
-
-			m_profiler.popCpuMarker();
-			//////////////
-
-			//////////////
-			m_profiler.pushCpuMarker("update.position()");
-
-			m_entityAspect.updatePlayerPositionCamera();
-			m_entityAspect.updateActorTransforms();
-
-			m_profiler.popCpuMarker();
-			//////////////
-
-			//////////////
-			m_profiler.pushCpuMarker("update.render()");
-
-			m_renderAspect.update();
-
-			m_profiler.popCpuMarker();
-			//////////////
-
-			////////////// UPDATE END
-			m_profiler.popCpuMarker();
+			//m_profiler.pushCpuMarker("update()");
+			update();
+			//m_profiler.popCpuMarker();
 
 			accum -= g_dt;
 
-			m_profiler.update(g_dt);
-			m_profileGraph.update();
+		//	m_profiler.update(g_dt);
+			//m_profileGraph.update();
 		}
 
 		//////////////
-		m_profiler.pushCpuMarker("render()");
-		m_renderAspect.render(&m_profiler, &m_profileGraph);
-		m_profiler.popCpuMarker();
+		//m_profiler.pushCpuMarker("render()");
+		//m_renderAspect.render();
+		//m_profiler.popCpuMarker();
 		//////////////
 
 		////////////// FRAME END
-		m_profiler.popCpuMarker();
-		m_profileGraph.endCpu();
+		//m_profiler.popCpuMarker();
+		//m_profileGraph.endCpu();
 
 		last = current;
 	}
-
-	//music.stop();
 }
 
 void Engine::loopFileThread()
@@ -215,12 +242,16 @@ bool Engine::initialize()
 	renderAspectDesc.vsync = vsync;
 	renderAspectDesc.debug = debug;
 	renderAspectDesc.targetMs = g_dt;
-	renderAspectDesc.pAllocator=&m_allocator;
-	renderAspectDesc.pProfiler=&m_profiler;
-	renderAspectDesc.pGraph=&m_profileGraph;
+	renderAspectDesc.pAllocator = &m_allocator;
+	renderAspectDesc.pProfiler = nullptr;
+	renderAspectDesc.pGraph = nullptr;
+	//renderAspectDesc.pProfiler=&m_profiler;
+	//renderAspectDesc.pGraph=&m_profileGraph;
 
 	if (!m_renderAspect.initialize(dataDir, renderAspectDesc))
 		return false;
+
+	m_renderAspect.makeCurrent(false);
 
 	if (!m_physicsAspect.initialize())
 		return false;
@@ -240,9 +271,11 @@ bool Engine::initialize()
 
 	m_bRun = 1;
 	m_bRunFileThread.store(1);
+	m_bRunRenderThread.store(1);
 	m_shutdown = 0;
 
 	Locator::provide(&m_eventManager);
+	Locator::provide(&m_fileAspect);
 
 	return true;
 }
@@ -250,6 +283,7 @@ bool Engine::initialize()
 void Engine::shutdown()
 {
 	m_fileAspectThread.join();
+	m_renderThread.join();
 
 	m_entityAspect.shutdown();
 	m_physicsAspect.shutdown();
@@ -264,6 +298,7 @@ void Engine::shutdown()
 void Engine::start()
 {
 	m_fileAspectThread = vx::thread(&Engine::loopFileThread, this);
+	m_renderThread = vx::thread(&Engine::renderLoop, this);
 	mainLoop();
 }
 
@@ -271,6 +306,7 @@ void Engine::stop()
 {
 	m_bRun = 0;
 	m_bRunFileThread.store(0);
+	m_bRunRenderThread.store(0);
 }
 
 void Engine::requestLoadFile(const FileEntry &fileEntry, void* p)
@@ -280,23 +316,27 @@ void Engine::requestLoadFile(const FileEntry &fileEntry, void* p)
 
 void Engine::keyPressed(U16 key)
 {
-	if (key == VK_ESCAPE)
+	if (key == vx::Keyboard::Key_Escape)
 	{
 		stop();
 	}
 
-	if (key == VK_NUMPAD0)
+	if (key == vx::Keyboard::Key_Num0)
 	{
 		dev::g_showNavGraph = dev::g_showNavGraph ^ 1;
 	}
 
-	if (key == VK_NUMPAD1)
+	if (key == vx::Keyboard::Key_Num1)
 	{
 		dev::g_toggleRender = dev::g_toggleRender ^ 1;
 	}
 
-	m_renderAspect.keyPressed(key);
-	m_entityAspect.keyPressed(key);
+	if(key == vx::Keyboard::Key_F10)
+	{
+		RenderUpdateTask task;
+		task.type = RenderUpdateTask::Type::TakeScreenshot;
+		m_renderAspect.queueUpdateTask(task);
+	}
 }
 
 void Engine::handleInput(const vx::Mouse &m, const vx::Keyboard &k, F32 dt)

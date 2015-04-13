@@ -18,8 +18,8 @@ namespace vx
 
 class MaterialFactory
 {
-	static bool checkTextureFile(const char(&filename)[32], const vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry> &missingFiles, vx::StringID64 &outSid);
+	static bool checkTextureFile(const char(&filename)[32], const vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry>* missingFiles, vx::StringID64* outSid);
 
 public:
-	static std::pair<bool, Material> load(const char *file, vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry> &missingFiles);
+	static std::pair<bool, Material> load(const char *file, const vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry>* missingFiles);
 };

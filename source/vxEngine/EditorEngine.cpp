@@ -10,7 +10,7 @@ U32 EditorEngine::s_editorTypeScene{ -1 };
 EditorEngine::EditorEngine()
 	:m_eventManager(),
 	m_physicsAspect(m_fileAspect),
-	m_renderAspect(m_fileAspect),
+	m_renderAspect(),
 	m_fileAspect(m_eventManager),
 	m_bRunFileThread(),
 	m_fileAspectThread()
@@ -269,7 +269,7 @@ void EditorEngine::call_editorCallback(const vx::StringID64 sid)
 U8 EditorEngine::raytraceMouse(I32 x, I32 y, vx::float3* p)
 {
 	// bring x, y to range -1 ... 1
-	F32 ndc_x = F32(x) / m_resolution.x;
+	/*F32 ndc_x = F32(x) / m_resolution.x;
 	F32 ndc_y = F32(y) / m_resolution.y;
 
 	ndc_x = ndc_x * 2.0f - 1.0f;
@@ -298,7 +298,8 @@ U8 EditorEngine::raytraceMouse(I32 x, I32 y, vx::float3* p)
 		m_renderAspect.editor_updateMouseHit(*p);
 	}
 
-	return result;
+	return result;*/
+	return 0;
 }
 
 void EditorEngine::addWaypoint(const vx::float3 &p)

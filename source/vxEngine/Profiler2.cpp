@@ -182,7 +182,7 @@ bool Profiler2::initialize(const Font* pFont, const vx::gl::ProgramPipeline* pPi
 	return true;
 }
 
-void Profiler2::updateBuffer(const U32 ascii_code, const vx::float2 position_x_texSlice, const vx::uint2 textureSize, const __m128 &invTextureSize, const __m128 &color,
+void Profiler2::updateBuffer(const U32 ascii_code, const vx::float2 &position_x_texSlice, const vx::uint2a &textureSize, const __m128 &invTextureSize, const __m128 &color,
 	vx::uint2 *bufferIndex, vx::float2 *cursorPos)
 {
 	const F32 scale = 0.25f;
@@ -200,22 +200,18 @@ void Profiler2::updateBuffer(const U32 ascii_code, const vx::float2 position_x_t
 		__m128 vCursorPos = { cursorPos->x, cursorPos->y, 0.0f, 0.0f };
 
 		auto pAtlasEntry = m_pFont->getAtlasEntry(ascii_code);
-		vx::float4 texRect(pAtlasEntry->x, textureSize.y - pAtlasEntry->y - pAtlasEntry->height, pAtlasEntry->width, pAtlasEntry->height);
-		__m128 vTexRect = _mm_loadu_ps(texRect);
+		vx::float4a texRect(pAtlasEntry->x, textureSize.y - pAtlasEntry->y - pAtlasEntry->height, pAtlasEntry->width, pAtlasEntry->height);
 
 		__m128 vAtlasPos = { pAtlasEntry->offsetX, pAtlasEntry->offsetY, 0.0f, 0.0f };
 
-		//vx::float2 entrySize(texRect.z, texRect.w);
-
-		__m128 vEntrySize = { texRect.z, -texRect.w ,0.0f, 0.0f};
+		__m128 vEntrySize = { texRect.z, -texRect.w, 0.0f, 0.0f};
 
 		__m128 vCurrentPosition = _mm_div_ps(vEntrySize, vx::g_VXTwo);
 		vCurrentPosition = _mm_add_ps(vCurrentPosition, vAtlasPos);
 		vCurrentPosition = _mm_fmadd_ps(vCurrentPosition, vScale, vCursorPos);
 		vCurrentPosition = _mm_movelh_ps(vCurrentPosition, tmp);
 
-		__m128 vSource = vTexRect;
-		vSource = _mm_mul_ps(vSource, invTextureSize);
+		__m128 vSource = _mm_mul_ps(texRect, invTextureSize);
 		__m128 vSourceSize = _mm_shuffle_ps(vSource, vSource, _MM_SHUFFLE(3, 2, 3, 2));
 
 		static const __m128 texOffsets[4] =
@@ -234,7 +230,7 @@ void Profiler2::updateBuffer(const U32 ascii_code, const vx::float2 position_x_t
 			{ -0.5f, 0.5f, 0, 0 }
 		};
 
-		vEntrySize = _mm_shuffle_ps(vTexRect, vTexRect, _MM_SHUFFLE(3, 2, 3, 2));
+		vEntrySize = _mm_shuffle_ps(texRect, texRect, _MM_SHUFFLE(3, 2, 3, 2));
 
 		for (U32 k = 0; k < 4; ++k)
 		{
@@ -257,7 +253,7 @@ void Profiler2::updateBuffer(const U32 ascii_code, const vx::float2 position_x_t
 	}
 }
 
-void Profiler2::writeBuffer(I32 strSize, const char* buffer, vx::float2 position_x_texSlice, const vx::uint2 &textureSize, const __m128 &vInvTexSize, const __m128 &color,
+void Profiler2::writeBuffer(I32 strSize, const char* buffer, const vx::float2 &position_x_texSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, const __m128 &color,
 	vx::uint2* bufferIndex, vx::float2* cursorPos)
 {
 	for (I32 i = 0; i < strSize; ++i)
@@ -268,7 +264,7 @@ void Profiler2::writeBuffer(I32 strSize, const char* buffer, vx::float2 position
 	}
 };
 
-void Profiler2::writeCpuMarkers(F32 textureSlice, const vx::uint2 &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos)
+void Profiler2::writeCpuMarkers(F32 textureSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos)
 {
 	auto convertTime = [](I64 time) ->double
 	{
@@ -321,7 +317,7 @@ void Profiler2::writeCpuMarkers(F32 textureSlice, const vx::uint2 &textureSize, 
 	}
 }
 
-void Profiler2::writeGpuMarkers(F32 textureSlice, const vx::uint2 &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos)
+void Profiler2::writeGpuMarkers(F32 textureSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos)
 {
 	const __m128 vColor = { 0.0f, 0.8f, 0.0f, 1 };
 	char buffer[s_maxGpuStringSize];
@@ -368,8 +364,8 @@ void Profiler2::update(F32 dt)
 
 		F32 textureSlice = m_pFont->getTextureEntry().getSlice();
 		auto textureSize = m_pFont->getTextureEntry().getTextureSize();
-		vx::float2 invTextureSize = 1.0f / static_cast<vx::float2>(textureSize);//vx::float2(1.0f / textureSize.x, 1.0f / textureSize.y);
-		__m128 vInvTexSize = vx::loadFloat(&invTextureSize);
+		vx::float2a invTextureSize = 1.0f / static_cast<vx::float2a>(textureSize);//vx::float2(1.0f / textureSize.x, 1.0f / textureSize.y);
+		__m128 vInvTexSize = vx::loadFloat(invTextureSize);
 		vInvTexSize = _mm_shuffle_ps(vInvTexSize, vInvTexSize, _MM_SHUFFLE(1, 0, 1, 0));
 
 		vx::uint2 bufferIndex = { 0, 0 };
@@ -401,42 +397,11 @@ void Profiler2::frame()
 	m_cpuThreadInfo.currentWriteId = 0;
 	m_cpuThreadInfo.m_pushedMarkers = 0;
 
-//	m_gpuThreadInfo.currentWriteId = 0;
 	m_gpuThreadInfo.m_pushedMarkers = 0;
-
-	//m_currentQuery = (m_currentQuery + 1) % s_queryCount;
-
-	//auto getIndex = (m_currentQuery + s_queryCount) % s_queryCount;
 
 	I64 displayed_frame = m_currentFrame - s_numFramesDelay - 1;
 	if (displayed_frame < 0) // don't draw anything during the first frames
 		return;
-
-	/*for (auto i = 0u; i < m_entryGpuCount; ++i)
-	{
-		auto &it = m_entriesGpu[i + m_frameOffset];
-
-		if (it.queryStart == 0 && it.queryEnd == 0)
-			continue;
-
-		GLint start_ok = 0;
-		GLint end_ok = 0;
-		glGetQueryObjectiv(it.queryStart, GL_QUERY_RESULT_AVAILABLE, &start_ok);
-		glGetQueryObjectiv(it.queryEnd, GL_QUERY_RESULT_AVAILABLE, &end_ok);
-		bool ok = (bool)(start_ok && end_ok);
-
-		if (ok)
-		{
-			U64 start, end;
-			glGetQueryObjectui64v(it.queryStart, GL_QUERY_RESULT, &start);
-			glGetQueryObjectui64v(it.queryEnd, GL_QUERY_RESULT, &end);
-
-			it.time = end - start;
-
-			it.timeMax = fmax(it.timeMin, it.timeMax);
-			it.timeMin = fmin(it.timeMin, it.time);
-		}
-	}*/
 
 	for (auto i = 0u; i < s_markersGpu; ++i)
 	{
@@ -444,7 +409,6 @@ void Profiler2::frame()
 
 		if (marker.frame == displayed_frame)
 		{
-			//puts("frame");
 			GLint start_ok = 0;
 			GLint end_ok = 0;
 			glGetQueryObjectiv(marker.id_query_start, GL_QUERY_RESULT_AVAILABLE, &start_ok);
@@ -458,7 +422,6 @@ void Profiler2::frame()
 				glGetQueryObjectui64v(marker.id_query_end, GL_QUERY_RESULT, &end);
 
 				marker.end = 0;
-				//marker.start = start;
 
 				vx::StringID64 sid = vx::make_sid(marker.name);
 				auto it = m_entriesGpuByName.find(sid);
@@ -499,26 +462,9 @@ void Profiler2::pushGpuMarker(const char *name)
 	marker.end = 0;
 	marker.layer = ti.m_pushedMarkers;
 	strncpy_s(marker.name, name, s_maxCharacters);
-	//marker.color = color;
 	marker.frame = m_currentFrame;
 	incrementCycle(&ti.currentWriteId, s_markersGpu);
-	//++ti.currentWriteId;
 	++ti.m_pushedMarkers;
-
-	/*vx::StringID64 sid = vx::make_sid(marker.name);
-	auto it = m_entriesGpuByName.find(sid);
-	if (it == m_entriesGpuByName.end())
-	{
-		EntryGpu entry;
-		strncpy_s(entry.name, marker.name, s_maxCharacters);
-		entry.layer = marker.layer;
-
-		m_entriesGpu[m_entryGpuCount] = entry;
-
-		it = m_entriesGpuByName.insert(sid, m_entryGpuCount);
-
-		++m_entryGpuCount;
-	}*/
 }
 
 void Profiler2::popGpuMarker()
@@ -537,14 +483,6 @@ void Profiler2::popGpuMarker()
 	glQueryCounter(marker.id_query_end, GL_TIMESTAMP);
 
 	--ti.m_pushedMarkers;
-
-	/*vx::StringID64 sid = vx::make_sid(marker.name);
-	auto it = m_entriesGpuByName.find(sid);
-
-	auto &entry = m_entriesGpu[*it + m_frameOffset];
-	entry.queryStart = marker.id_query_start;
-	entry.queryEnd = marker.id_query_end;
-	entry.layer = marker.layer;*/
 }
 
 void Profiler2::pushCpuMarker(const char* name)
@@ -591,10 +529,8 @@ void Profiler2::popCpuMarker()
 	// Get the most recent marker that has not been closed yet
 
 	auto index = ti.currentWriteId - 1;
-	//VX_ASSERT(index != -1, "Invalid index !");
 	while (ti.markers[index].end != 0) // skip closed markers
 		--index;
-	//decrementCycle(&index, s_markersPerThread);
 
 	Marker& marker = ti.markers[index];
 	marker.end = time.QuadPart;

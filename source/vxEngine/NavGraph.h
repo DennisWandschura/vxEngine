@@ -10,7 +10,6 @@ namespace vx
 
 #include <vxLib/math/Vector.h>
 #include <memory>
-#include "Grid.h"
 
 class NavGraph
 {

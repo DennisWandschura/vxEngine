@@ -2,6 +2,7 @@
 #include <vxLib\gl\gl.h>
 #include <cstring>
 #include <vxLib/gl/VertexArray.h>
+#include <vxLib/gl/Buffer.h>
 
 namespace detail
 {
@@ -21,37 +22,37 @@ namespace detail
 	}
 }
 
-void VertexPNTUV::create(vx::gl::VertexArray &vao, U32 &vbo, U32 vertexCount, U32 bindingIndex, U32 &attributeOffset)
+void VertexPNTUV::create(vx::gl::VertexArray* vao, vx::gl::Buffer* vbo, U32 vertexCount, U32 bindingIndex, U32 &attributeOffset)
 {
-	glCreateBuffers(1, &vbo);
+	*vbo = vx::gl::BufferDescription::createImmutable(vx::gl::BufferType::Array_Buffer, sizeof(value_type) * vertexCount, vx::gl::BufferStorageFlags::Write, nullptr);
 
-	glNamedBufferStorage(vbo, sizeof(VertexPNTUV) * vertexCount, nullptr, GL_MAP_WRITE_BIT);
+	vao->create();
 
 	// position
-	vao.enableArrayAttrib(attributeOffset);
-	vao.arrayAttribFormatF(attributeOffset, 4, 0, 0);
-	vao.arrayAttribBinding(attributeOffset, bindingIndex);
+	vao->enableArrayAttrib(attributeOffset);
+	vao->arrayAttribFormatF(attributeOffset, 4, 0, 0);
+	vao->arrayAttribBinding(attributeOffset, bindingIndex);
 	++attributeOffset;
 
 	// normal
-	vao.enableArrayAttrib(attributeOffset);
-	vao.arrayAttribFormatF(attributeOffset, 3, 0, sizeof(F32) * 4);
-	vao.arrayAttribBinding(attributeOffset, bindingIndex);
+	vao->enableArrayAttrib(attributeOffset);
+	vao->arrayAttribFormatF(attributeOffset, 3, 0, sizeof(F32) * 4);
+	vao->arrayAttribBinding(attributeOffset, bindingIndex);
 	++attributeOffset;
 
 	// tangent
-	vao.enableArrayAttrib(attributeOffset);
-	vao.arrayAttribFormatF(attributeOffset, 3, 0, sizeof(F32) * 7);
-	vao.arrayAttribBinding(attributeOffset, bindingIndex);
+	vao->enableArrayAttrib(attributeOffset);
+	vao->arrayAttribFormatF(attributeOffset, 3, 0, sizeof(F32) * 7);
+	vao->arrayAttribBinding(attributeOffset, bindingIndex);
 	++attributeOffset;
 
 	// uv
-	vao.enableArrayAttrib(attributeOffset);
-	vao.arrayAttribFormatF(attributeOffset, 2, 0, sizeof(F32) * 10);
-	vao.arrayAttribBinding(attributeOffset, bindingIndex);
+	vao->enableArrayAttrib(attributeOffset);
+	vao->arrayAttribFormatF(attributeOffset, 2, 0, sizeof(F32) * 10);
+	vao->arrayAttribBinding(attributeOffset, bindingIndex);
 	++attributeOffset;
 
-	vao.bindVertexBuffer(vbo, bindingIndex, 0, sizeof(VertexPNTUV));
+	vao->bindVertexBuffer(*vbo, bindingIndex, 0, sizeof(value_type));
 }
 
 void VertexPNTUV::update(const U32 vbo, const VertexPNTUV* __restrict pVertices, U32 vertexCount)

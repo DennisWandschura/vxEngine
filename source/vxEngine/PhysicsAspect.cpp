@@ -196,7 +196,7 @@ void PhysicsAspect::processScene(const Scene* pScene)
 		auto meshSid = meshInstance.getMeshSid();
 		auto instanceTransform = meshInstance.getTransform();
 
-		auto qRotation = vx::loadFloat(&instanceTransform.m_rotation);
+		auto qRotation = vx::loadFloat(instanceTransform.m_rotation);
 		qRotation = vx::QuaternionRotationRollPitchYawFromVector(qRotation);
 
 		physx::PxTransform transform;
@@ -298,7 +298,9 @@ void PhysicsAspect::move(const vx::float4a &velocity, F32 dt, physx::PxControlle
 	//filters.
 
 	physx::PxVec3 v;
-	vx::storeFloat3(&v.x, velocity);
+	v.x = velocity.x;
+	v.y = velocity.y;
+	v.z = velocity.z;
 
 	pController->move(v, 0.0001f, dt, filters);
 }

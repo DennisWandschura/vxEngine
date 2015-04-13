@@ -17,31 +17,6 @@
 namespace YAML
 {
 	template<>
-	struct convert < SpawnFile >
-	{
-		static bool decode(const YAML::Node &node, SpawnFile &data)
-		{
-			data.type = (PlayerType)node["type"].as<U32>();
-			data.position = node["position"].as<vx::float3>();
-			std::string actor = node["actor"].as<std::string>();
-
-			strncpy_s(data.actor, actor.data(), actor.size());
-
-			return true;
-		}
-
-		static Node encode(const SpawnFile &rhs)
-		{
-			Node node;
-			node["type"] = (U32)rhs.type;
-			node["position"] = rhs.position;
-			node["actor"] = std::string(rhs.actor);
-
-			return node;
-		}
-	};
-
-	template<>
 	struct convert < MeshInstanceFile >
 	{
 		static bool decode(const YAML::Node &node, MeshInstanceFile &data)
@@ -55,31 +30,6 @@ namespace YAML
 			Node n;
 			rhs.save(n);
 			return n;
-		}
-	};
-
-	template<>
-	struct convert < Light >
-	{
-		static bool decode(const YAML::Node &node, Light &data)
-		{
-			data.m_position = node["position"].as<vx::float3>();
-			data.m_falloff = node["falloff"].as<F32>();
-			data.m_surfaceRadius = node["surfaceRadius"].as<F32>();
-			data.m_lumen = node["lumen"].as<F32>();
-
-			return true;
-		}
-
-		static Node encode(const Light &rhs)
-		{
-			Node node;
-			node["position"] = rhs.m_position;
-			node["falloff"] = rhs.m_falloff;
-			node["surfaceRadius"] = rhs.m_surfaceRadius;
-			node["lumen"] = rhs.m_lumen;
-
-			return node;
 		}
 	};
 
@@ -110,113 +60,11 @@ namespace YAML
 			return n;
 		}
 	};
-
-
-	template<>
-	struct convert < Spawn >
-	{
-		static bool decode(const YAML::Node &node, Spawn &data)
-		{
-			data.type = (PlayerType)node["type"].as<U32>();
-			data.position = node["position"].as<vx::float3>();
-			return true;
-		}
-
-		static Node encode(const Spawn &rhs)
-		{
-			Node node;
-			node["type"] = (U32)rhs.type;
-			node["position"] = rhs.position;
-
-			return node;
-		}
-	};
 }
 
 SceneFile::SceneFile()
 {
 }
-
-/*#if _VX_EDITOR
-SceneFile::SceneFile(const Scene &scene)
-{
-	m_meshInstanceCount = scene.getMeshInstanceCount();
-	m_pMeshInstances = std::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
-
-	char meshNameBuffer[32];
-	char materialNameBuffer[32];
-	auto sceneMeshInstances = scene.getMeshInstances();
-	for (auto i = 0u; i < m_meshInstanceCount; ++i)
-	{
-		auto materialSid = sceneMeshInstances[i].getMaterialSid();
-		auto meshSid = sceneMeshInstances[i].getMeshSid();
-		auto transform = sceneMeshInstances[i].getTransform();
-		//auto isActor = sceneMeshInstances[i].isActor();
-
-		auto materialName = scene.getMaterialName(materialSid);
-		auto meshName = scene.getMeshName(meshSid);
-
-		strcpy_s(meshNameBuffer, meshName);
-		strcpy_s(materialNameBuffer, materialName);
-
-		m_pMeshInstances[i] = MeshInstanceFile(meshNameBuffer, materialNameBuffer, transform);
-
-		//instanceFile.
-
-		//m_pMeshInstances[i] = sceneMeshInstances[i];
-	}
-
-	m_lightCount = scene.getLightCount();
-	m_pLights = std::make_unique<Light[]>(m_lightCount);
-	auto pLights = scene.getLights();
-	for (auto i = 0u; i < m_lightCount; ++i)
-	{
-		m_pLights[i] = pLights[i];
-	}
-
-	m_spawnCount = scene.getSpawnCount();
-	m_pSpawns = std::make_unique<SpawnFile[]>(m_spawnCount);
-	auto pSpawns = scene.getSpawns();
-	for (auto i = 0; i < m_spawnCount; ++i)
-	{
-		auto &spawn = pSpawns[i];
-
-		m_pSpawns[i].actor[0] = '\0';
-		if (spawn.type != PlayerType::Human)
-		{
-			auto str = scene.getActorName(spawn.sid);
-
-			strcpy_s(m_pSpawns[i].actor, str);
-		}
-
-		m_pSpawns[i].position = spawn.position;
-		m_pSpawns[i].type = spawn.type;
-	}
-
-	auto &sceneActors = scene.getActors();
-	m_actorCount = sceneActors.size();
-	if (m_actorCount != 0)
-	{
-		m_pActors = std::make_unique<ActorFile[]>(m_actorCount);
-
-		for (auto i = 0; i < m_actorCount; ++i)
-		{
-			auto actorSid = *(sceneActors.keys() + i);
-			auto materialSid = sceneActors[i].material;
-			auto meshSid = sceneActors[i].mesh;
-
-			auto actorName = scene.getActorName(actorSid);
-			auto materialName = scene.getMaterialName(materialSid);
-			auto meshName = scene.getMeshName(meshSid);
-
-			strcpy_s(m_pActors[i].name, actorName);
-			strcpy_s(m_pActors[i].mesh, meshName);
-			strcpy_s(m_pActors[i].material, materialName);
-		}
-
-	}
-}
-#endif*/
 
 SceneFile::~SceneFile()
 {
@@ -251,9 +99,9 @@ void SceneFile::loadFromYAML(const char *file)
 {
 	auto root = YAML::LoadFile(file);
 
-	auto spawns = root["spawns"].as<std::vector<SpawnFile>>();
+	auto spawns = SpawnFile::loadFromYaml(root["spawns"]);
 	auto meshInstances = root["meshInstances"].as<std::vector<MeshInstanceFile>>();
-	auto lights = root["lights"].as<std::vector<Light>>();
+	auto lights = Light::loadFromYaml(root["lights"]);
 	auto actors = root["actors"].as<std::vector<ActorFile>>();
 	m_navMesh.loadFromYAML(root["navmesh"]);
 
@@ -281,7 +129,7 @@ void SceneFile::loadFromYAML(const char *file)
 void SceneFile::saveToFile(const char *file) const
 {
 	File f;
-	f.open(file, FileAccess::Write);
+	VX_ASSERT(f.create(file, FileAccess::Write));
 
 	f.write(m_meshInstanceCount);
 	f.write(m_lightCount);
@@ -322,17 +170,9 @@ void SceneFile::saveToYAML(const char *file) const
 		meshNode[i] = m_pMeshInstances[i];
 	}
 
-	YAML::Node lightNode;
-	for (auto i = 0u; i < m_lightCount; ++i)
-	{
-		lightNode[i] = m_pLights[i];
-	}
+	YAML::Node lightNode = Light::saveToYaml(m_pLights.get(), m_lightCount);
 
-	YAML::Node spawnsNode;
-	for (auto i = 0u; i < m_spawnCount; ++i)
-	{
-		spawnsNode[i] = m_pSpawns[i];
-	}
+	YAML::Node spawnsNode = SpawnFile::saveToYaml(m_pSpawns.get(), m_spawnCount);
 
 	YAML::Node actorNode;
 	for (auto i = 0u; i < m_actorCount; ++i)

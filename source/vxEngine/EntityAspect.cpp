@@ -23,6 +23,7 @@
 #include "EventsIngame.h"
 #include <vxLib/ScopeGuard.h>
 #include "Spawn.h"
+#include "GpuFunctions.h"
 
 namespace
 {
@@ -33,8 +34,8 @@ namespace
 	}
 }
 
-EntityAspect::EntityAspect(PhysicsAspect &physicsAspect, vx::Camera &camera, FileAspect &fileAspect, RenderAspect &renderAspect)
-	:m_playerController(camera),
+EntityAspect::EntityAspect(PhysicsAspect &physicsAspect, FileAspect &fileAspect, RenderAspect &renderAspect)
+	:m_playerController(&renderAspect),
 	m_physicsAspect(physicsAspect),
 	m_fileAspect(fileAspect),
 	m_renderAspect(renderAspect)
@@ -48,7 +49,6 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator)
 	createPool(g_maxEntities, 16, pAllocator, &m_poolRender);
 	createPool(g_maxEntities, 16, pAllocator, &m_poolEntity);
 	createPool(g_maxEntities, 16, pAllocator, &m_poolActor);
-
 
 	const auto pathChunkSize = s_maxNavNodes * sizeof(vx::float3);
 	const auto pathPoolSize = g_maxEntities * pathChunkSize;
@@ -129,7 +129,7 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 
 void EntityAspect::createActorEntity(const vx::float3 &position, const vx::StringID64 &actor, F32 height)
 {
-	U16 entityIndex;
+	/*U16 entityIndex;
 	auto pEntity = m_poolEntity.createEntry(&entityIndex);
 	auto pInput = m_poolInput.createEntry(&pEntity->input);
 	pInput->entityIndex = entityIndex;
@@ -159,7 +159,7 @@ void EntityAspect::createActorEntity(const vx::float3 &position, const vx::Strin
 	evt.arg1 = pActor;
 
 	auto pEvtManager = Locator::getEventManager();
-	pEvtManager->addEvent(evt);
+	pEvtManager->addEvent(evt);*/
 }
 
 void EntityAspect::updateInput(F32 dt)
@@ -296,7 +296,7 @@ void EntityAspect::updateActorTransforms()
 
 		__m128 v = { physics.orientation.y, physics.orientation.x, 0 , 0};
 		v = vx::QuaternionRotationRollPitchYawFromVector(v);
-		auto packedRotation = packQRotation(v);
+		auto packedRotation = GpuFunctions::packQRotation(v);
 
 		vx::TransformGpu transform;
 		transform.translation = physics.position;
@@ -348,7 +348,7 @@ void EntityAspect::updateActorTransforms()
 			++batchCount;
 		}
 
-		m_renderAspect.updateTransforms(pTransforms + offset, batchStart, batchCount);
+		//m_renderAspect.updateTransforms(pTransforms + offset, batchStart, batchCount);
 
 		count -= batchCount;
 		offset += batchCount;
@@ -438,7 +438,7 @@ void EntityAspect::handleIngameEvent(const Event &evt)
 			}
 			else
 			{
-				createActorEntity(it.position, it.sid, 2.0f);
+				//createActorEntity(it.position, it.sid, 2.0f);
 			}
 		}
 

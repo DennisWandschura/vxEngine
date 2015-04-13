@@ -248,7 +248,7 @@ U64 TextureManager::createTexture(const vx::ushort3 size, U8 miplevels, vx::gl::
 	newWrapper.m_texture.create(desc);
 	newWrapper.m_texture.makeTextureResident();
 	// if texture array, create slice array
-	if (type == vx::gl::Texture_2D_Array)
+	if (type == vx::gl::TextureType::Texture_2D_Array)
 	{
 		newWrapper.m_firstFreeSlice = 0;
 		newWrapper.m_freeSlices = size.z;
@@ -305,9 +305,9 @@ TextureRef TextureManager::load(const vx::ushort3 size, U8 miplevels, vx::gl::Te
 	auto pBucket = findBucket(size, miplevels, type, format);
 	if (pBucket)
 	{
-		assert(type != vx::gl::Texture_1D_Array);
-		assert(type == vx::gl::Texture_2D_Array ||
-			type == vx::gl::Texture_2D_MS_Array);
+		assert(type != vx::gl::TextureType::Texture_1D_Array);
+		assert(type == vx::gl::TextureType::Texture_2D_Array ||
+			type == vx::gl::TextureType::Texture_2D_MS_Array);
 
 		vx::uint2 sz = { size.x, size.y };
 		ref = createTexture2DSlice(pBucket, sz, dataType, ptr);

@@ -1,9 +1,7 @@
 #include "EventManager.h"
 #include "Event.h"
 #include "EventTypes.h"
-#include "Squirrel.h"
 #include "EventListener.h"
-#include <functional>
 
 EventManager::EventManager()
 	:m_events(),
@@ -18,8 +16,6 @@ EventManager::~EventManager()
 
 void EventManager::initialize()
 {
-	m_vm.initialize();
-	//m_vm.doFile(L"data/scripts/events.nut");
 }
 
 void EventManager::registerListener(EventListener* ptr, U64 priority)

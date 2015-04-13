@@ -320,9 +320,9 @@ namespace
 	// applies transform and updates mesh aabb
 	void applyTransformToTriangleMesh(const vx::Transform &transform, TriangleMesh_SIMD* pTriangleMesh, AABB_SIMD* pBounds)
 	{
-		auto qRotation = vx::loadFloat(&transform.m_rotation);
+		auto qRotation = vx::loadFloat(transform.m_rotation);
 		qRotation = vx::QuaternionRotationRollPitchYawFromVector(qRotation);
-		auto vTranslate = vx::loadFloat(&transform.m_translation);
+		auto vTranslate = vx::loadFloat(transform.m_translation);
 
 		__m128 vScaling = { transform.m_scaling, transform.m_scaling, transform.m_scaling, 0.0 };
 
@@ -412,9 +412,9 @@ void BVH::create(const MeshInstance* instances, U32 instanceCount, const FileAsp
 		auto &instance = instances[i];
 		auto meshSid = instance.getMeshSid();
 		auto transform = instance.getTransform();
-		auto qRotation = vx::loadFloat(&transform.m_rotation);
+		auto qRotation = vx::loadFloat(transform.m_rotation);
 		qRotation = vx::QuaternionRotationRollPitchYawFromVector(qRotation);
-		auto vTranslate = vx::loadFloat(&transform.m_translation);
+		auto vTranslate = vx::loadFloat(transform.m_translation);
 
 		auto meshIt = fileAspect.getMesh(meshSid);
 		auto pVertices = meshIt->getVertices();
@@ -430,7 +430,7 @@ void BVH::create(const MeshInstance* instances, U32 instanceCount, const FileAsp
 		{
 			auto position = pVertices[j].position * transform.m_scaling;
 
-			auto vTmp = vx::loadFloat(&position);
+			auto vTmp = vx::loadFloat(position);
 			vTmp = vx::Vector3Rotate(vTmp, qRotation);
 			vTmp = _mm_add_ps(vTmp, vTranslate);
 			vx::storeFloat(&position, vTmp);
@@ -493,9 +493,9 @@ void BVH::createTriangleMesh(const vx::Transform &transform, const vx::MeshVerte
 		auto i1 = pMeshIndices[j + 1];
 		auto i2 = pMeshIndices[j + 2];
 
-		pTriangles[i].v[0] = vx::loadFloat(&pMeshVertices[i0].position);
-		pTriangles[i].v[1] = vx::loadFloat(&pMeshVertices[i1].position);
-		pTriangles[i].v[2] = vx::loadFloat(&pMeshVertices[i2].position);
+		pTriangles[i].v[0] = vx::loadFloat(pMeshVertices[i0].position);
+		pTriangles[i].v[1] = vx::loadFloat(pMeshVertices[i1].position);
+		pTriangles[i].v[2] = vx::loadFloat(pMeshVertices[i2].position);
 	}
 
 	//U32* pIndices = (U32*)m_allocatorPrimData.allocate(sizeof(U32) * indexCount, 4);

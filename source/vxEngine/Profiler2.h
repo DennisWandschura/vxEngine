@@ -126,11 +126,11 @@ class Profiler2
 	PCM* m_pInstance{ nullptr };
 #endif
 
-	void updateBuffer(const U32 ascii_code, const vx::float2 position_x_texSlice, const vx::uint2 textureSize, const __m128 &invTextureSize, const __m128 &color, vx::uint2 *bufferIndex, vx::float2 *cursorPos);
+	void updateBuffer(const U32 ascii_code, const vx::float2 &position_x_texSlice, const vx::uint2a &textureSize, const __m128 &invTextureSize, const __m128 &color, vx::uint2 *bufferIndex, vx::float2 *cursorPos);
 
-	void writeBuffer(I32 strSize, const char* buffer, vx::float2 position_x_texSlice, const vx::uint2 &textureSize, const __m128 &vInvTexSize, const __m128 &color, vx::uint2* bufferIndex, vx::float2* cursorPos);
-	void writeCpuMarkers(F32 textureSlice, const vx::uint2 &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos);
-	void writeGpuMarkers(F32 textureSlice, const vx::uint2 &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos);
+	void writeBuffer(I32 strSize, const char* buffer, const vx::float2 &position_x_texSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, const __m128 &color, vx::uint2* bufferIndex, vx::float2* cursorPos);
+	void writeCpuMarkers(F32 textureSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos);
+	void writeGpuMarkers(F32 textureSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos);
 
 public:
 	Profiler2();

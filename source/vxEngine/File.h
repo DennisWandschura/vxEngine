@@ -4,17 +4,12 @@
 
 #include <vxLib\types.h>
 
-namespace FileAccess
+enum class FileAccess : U32
 {
-	enum FileAccess : U8
-	{
-		access = 0
-	};
-
-	static const FileAccess Read = (FileAccess)0;
-	static const FileAccess Write = (FileAccess)1;
-	static const FileAccess Read_Write = (FileAccess)2;
-}
+	Read = 0x80000000L,
+	Write = 0x40000000L,
+	Read_Write = Read | Write
+};
 
 class File
 {
@@ -24,7 +19,8 @@ public:
 	File();
 	~File();
 
-	bool open(const char *file, FileAccess::FileAccess access);
+	bool create(const char* file, FileAccess access);
+	bool open(const char *file, FileAccess access);
 	bool close();
 
 	bool read(void *ptr, U32 size);

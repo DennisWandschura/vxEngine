@@ -10,7 +10,7 @@ class TextureRef
 {
 	U32 m_textureId;
 	U32 m_slice;
-	vx::uint2 m_textureSize;
+	vx::uint2a m_textureSize;
 
 public:
 	TextureRef();
@@ -20,14 +20,14 @@ public:
 	TextureRef(TextureRef &&rhs);
 
 	TextureRef& operator=(const TextureRef&) = delete;
-	TextureRef& operator=(TextureRef && rhs);
+	TextureRef& operator=(TextureRef &&rhs);
 
 	void makeInvalid();
 
 	U32 getTextureId() const noexcept;
 
 	U32 getSlice() const noexcept;
-	vx::uint2 getTextureSize() const noexcept{ return m_textureSize; }
+	const vx::uint2a& getTextureSize() const noexcept{ return m_textureSize; }
 
 	bool isArray() const noexcept;
 	bool isValid() const noexcept;

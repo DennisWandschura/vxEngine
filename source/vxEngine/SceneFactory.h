@@ -36,10 +36,10 @@ public:
 		returns 1 on success and 0 on failure.
 	*/
 	static U8 load(const U8 *ptr, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-		std::vector<FileEntry> *pMissingFiles, Scene *pScene);
+		std::vector<FileEntry>* pMissingFiles, Scene *pScene);
 
 	static U8 load(const U8 *ptr, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-		std::vector<FileEntry> *pMissingFiles, EditorScene *pScene);
+		std::vector<FileEntry>* pMissingFiles, EditorScene *pScene);
 
 	static U8 save(const EditorScene *p, File* file);
 };

@@ -41,6 +41,9 @@ namespace Editor
 		void createWaypointBuffer();
 
 	public:
+		RenderData();
+		~RenderData();
+
 		void initialize();
 
 		void drawMouse(const vx::gl::ShaderManager &shaderManager) const;

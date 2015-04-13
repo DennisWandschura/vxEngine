@@ -35,7 +35,7 @@ void InfluenceMap::init(const NavMesh &navMesh, const NavGraph &navGraph, F32 ce
 
 	auto size = navBounds.max - navBounds.min;
 
-	auto vBoundsMin = vx::loadFloat(&navBounds.min);
+	auto vBoundsMin = vx::loadFloat(navBounds.min);
 	__m128 vCellSize = { cellSize, cellHeight, cellSize, 0 };
 
 	vx::ushort3 cellCount;
@@ -103,7 +103,7 @@ void InfluenceMap::init(const NavMesh &navMesh, const NavGraph &navGraph, F32 ce
 		for (U32 j = 0; j < nodeCount; ++j)
 		{
 			auto &node = pNodes[j];
-			auto p = vx::loadFloat(&node.m_position);
+			auto p = vx::loadFloat(node.m_position);
 
 			if (AABB_POINT::contains(cellBounds.vmin, cellBounds.vmax, p))
 			{
@@ -154,7 +154,7 @@ void InfluenceMap::updateActor(F32 dt, const vx::float3 &position)
 	//const F32 maxRadius = 1.0f;
 	const F32 actorInfluence = 2.0f;
 
-	auto vPosition = vx::loadFloat(&position);
+	auto vPosition = vx::loadFloat(position);
 
 	auto influence = dt * actorInfluence;
 
@@ -230,7 +230,7 @@ U8 InfluenceMap::isEmpty(U32 cellIndex) const
 
 U8 InfluenceMap::contains(U32 cellIndex, const vx::float3 &position) const
 {
-	auto vPosition = vx::loadFloat(&position);
+	auto vPosition = vx::loadFloat(position);
 	auto &bounds = m_cellBounds[cellIndex];
 
 	return AABB_POINT::contains(bounds.vmin, bounds.vmax, vPosition);

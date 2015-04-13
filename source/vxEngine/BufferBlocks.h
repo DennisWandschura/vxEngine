@@ -11,12 +11,6 @@ struct Camerablock
 	__m128 padding[3];
 };
 
-struct CamerablockCS
-{
-	vx::mat4 inversePVMatrix;
-	__m128 cameraPosition;
-};
-
 struct CamerablockStatic
 {
 	vx::mat4 invProjectionMatrix;
@@ -24,33 +18,33 @@ struct CamerablockStatic
 	vx::mat4 orthoMatrix;
 };
 
-struct SphereLightShadowTransformBlock
+struct VX_ALIGN(32) VoxelBlock
 {
-	vx::mat4 pvMatrix[60];
-	vx::float4 position[60];
+	vx::mat4 projectionMatrix[2];
+	U32 dim;
+	U32 halfDim;
+	float gridCellSize[2];
+	float invGridCellSize[2];
 };
 
-struct SpotLightData
+struct LightData
 {
-	vx::mat4 projectionMatrix;
-	vx::float4 position;
+	vx::float3 position; 
+	float falloff; 
 	vx::float3 direction;
-	F32 angle;
+	float lumen;
+	float cutoffAngle;
+	float padding[3];
 };
 
-struct SphereLightData
+struct ShadowTransformBlock
 {
-	vx::mat4 projectionMatrix;
-	vx::float4 position;
-	float falloff;
-	float surfaceRadius;
-	float lumen;
-	float _padding;
+	vx::mat4 pvMatrices[10];
 };
 
 struct LightDataBlock
 {
-	SphereLightData u_lightData[10];
+	LightData u_lightData[10];
 	U32 size;
 };
 
