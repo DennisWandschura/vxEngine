@@ -546,9 +546,6 @@
     <ClInclude Include="ScreenshotFactory.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Video.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Editor.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
@@ -933,9 +930,6 @@
       <Filter>Source Files\Render</Filter>
     </ClCompile>
     <ClCompile Include="ScreenshotFactory.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Video.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
     <ClCompile Include="ConverterSceneFileToScene.cpp">

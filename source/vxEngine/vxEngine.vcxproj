@@ -231,7 +231,6 @@
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureLayer.h" />
-    <ClInclude Include="Video.h" />
     <ClInclude Include="VoxelRenderer.h" />
     <ClInclude Include="SceneBase.h" />
     <ClInclude Include="SceneFile.h" />
@@ -406,7 +405,6 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureLayer.cpp" />
     <ClCompile Include="Triangle.cpp" />
-    <ClCompile Include="Video.cpp" />
     <ClCompile Include="VoxelRenderer.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneBase.cpp" />
