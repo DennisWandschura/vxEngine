@@ -1,6 +1,7 @@
 #include "SystemAspect.h"
 #include "Engine.h"
 #include "RenderAspect.h"
+#include "EngineConfig.h"
 
 SystemAspect::SystemAspect()
 	:m_window(),
@@ -8,9 +9,9 @@ SystemAspect::SystemAspect()
 {
 }
 
-bool SystemAspect::initialize(const vx::uint2 &windowResolution, CallbackKeyPressedFp fp, HandleInputFp inputFp)
+bool SystemAspect::initialize(const EngineConfig &config, CallbackKeyPressedFp fp, HandleInputFp inputFp)
 {
-	if (!m_window.initialize(L"vxEngine", windowResolution, false))
+	if (!m_window.initialize(L"vxEngine", config.getResolution(), false))
 		return false;
 
 	vx::RawInput::setCallbackKeyPressed(fp);

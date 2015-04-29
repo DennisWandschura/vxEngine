@@ -1,9 +1,9 @@
 #include "Arrive.h"
 #include "ComponentInput.h"
-#include "ComponentPhysics.h"
+#include "Entity.h"
 
-Arrive::Arrive(Component::Physics* pPhysics, Component::Input* pInput)
-	:m_pPhysics(pPhysics),
+Arrive::Arrive(EntityActor* entity, Component::Input* pInput)
+	:m_pEntity(entity),
 	m_pInput(pInput)
 {
 }
@@ -14,7 +14,7 @@ U8 Arrive::getSteering(SteeringOutput* output)
 //	const F32 slowRadius = 1.0f;
 	//const F32 timeToTarget = 0.1f;
 
-	auto direction = m_targetPosition - m_pPhysics->position;
+	auto direction = m_targetPosition - m_pEntity->position;
 	auto distance = vx::length(direction);
 
 	if (distance < targetRadius)
@@ -53,4 +53,9 @@ U8 Arrive::getSteering(SteeringOutput* output)
 void Arrive::setTarget(const vx::float3 &targetPos)
 {
 	m_targetPosition = targetPos;
+}
+
+Component::Input* Arrive::getInputComponent() const
+{
+	return m_pInput;
 }

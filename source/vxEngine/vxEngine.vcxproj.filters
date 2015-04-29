@@ -124,6 +124,15 @@
     <Filter Include="Source Files\Editor">
       <UniqueIdentifier>{633544a4-e453-4b42-bc26-a5f6ede6c1ab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Converter">
+      <UniqueIdentifier>{1cb8950f-257c-4239-b301-65fee806d41f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Render\Graphics\Profiler">
+      <UniqueIdentifier>{4aebb6e8-175d-4166-88f5-cb6093379c59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\File">
+      <UniqueIdentifier>{248bfd50-c7d4-4d47-a9f3-e4a4d2e713e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -185,12 +194,6 @@
     </ClInclude>
     <ClInclude Include="PoolAllocator.h">
       <Filter>Header Files\Allocator</Filter>
-    </ClInclude>
-    <ClInclude Include="FileEntry.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="File.h">
-      <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="StackAllocator.h">
       <Filter>Header Files\Allocator</Filter>
@@ -507,31 +510,10 @@
     <ClInclude Include="EditorRenderAspect.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Triangle.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="ImageBindingManager.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
     <ClInclude Include="BufferBindingManager.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="UniformBlocks.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="DrawCommand.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="DrawCommandDescription.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderStageDescription.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderStage.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="BufferBlocks.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
     <ClInclude Include="ProfilerGraph.h">
@@ -552,9 +534,6 @@
     <ClInclude Include="RenderUpdateTask.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="NavMeshRenderer.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="SceneRenderer.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
@@ -566,6 +545,138 @@
     </ClInclude>
     <ClInclude Include="ScreenshotFactory.h">
       <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Video.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor.h">
+      <Filter>Header Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuProfiler.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuStructs.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterSceneFileToScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterEditorSceneToSceneFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderAspectDescription.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugRenderSettings.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderCommand.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderCommandFinalImage.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawCommand.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Frame.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPass.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderStage.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgramUniformBinding.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilitySetting.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilitySettingPolygonOffset.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilitySettingBlend.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Capability.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilityEnableBlend.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilityDisableBlend.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilityEnablePolygonOffsetFill.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilityManager.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilityDisablePolygonOffsetFill.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilityFactory.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="DDS_File.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilityEnableDepthTest.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilityDisableDepthTest.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureLayer.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshTriangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Triangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Plane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshGraph.h">
+      <Filter>Header Files\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateActorData.h">
+      <Filter>Header Files\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityFactoryDescription.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateSceneDescription.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileEntry.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="FileFactory.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="FileHeader.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="File.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="FileInterface.h">
+      <Filter>Header Files\File</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -657,12 +768,6 @@
       <Filter>Source Files\Container</Filter>
     </ClCompile>
     <ClCompile Include="RenderAspect.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="ProfilerGraph.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Profiler2.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
     <ClCompile Include="EventManager.cpp">
@@ -803,15 +908,6 @@
     <ClCompile Include="BufferBindingManager.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
-    <ClCompile Include="DrawCommand.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderStage.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderStageDescription.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerController.cpp">
       <Filter>Source Files\Entity</Filter>
     </ClCompile>
@@ -827,9 +923,6 @@
     <ClCompile Include="BufferManager.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
-    <ClCompile Include="NavMeshRenderer.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
     <ClCompile Include="LightBufferManager.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
@@ -841,6 +934,96 @@
     </ClCompile>
     <ClCompile Include="ScreenshotFactory.cpp">
       <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Video.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterSceneFileToScene.cpp">
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterEditorSceneToSceneFile.cpp">
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderCommand.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderCommandFinalImage.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawCommand.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuProfiler.cpp">
+      <Filter>Source Files\Render\Graphics\Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="Profiler2.cpp">
+      <Filter>Source Files\Render\Graphics\Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="ProfilerGraph.cpp">
+      <Filter>Source Files\Render\Graphics\Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPass.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilitySettingPolygonOffset.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilitySettingBlend.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderStage.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilityEnableBlend.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Frame.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilityDisableBlend.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilityEnablePolygonOffsetFill.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilityDisablePolygonOffsetFill.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilityFactory.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="DDS_File.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilityEnableDepthTest.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilityDisableDepthTest.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="CapabilityManager.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureLayer.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshTriangle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Triangle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshGraph.cpp">
+      <Filter>Source Files\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="FileFactory.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -902,9 +1085,6 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\draw_final_image.fs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\programs\draw_final_image.gs.glsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\forward_render.fs.glsl">
@@ -982,28 +1162,16 @@
     <None Include="..\..\game\data\shaders\shadow.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\shadow.fs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\..\game\data\shaders\programs\coneTrace.frag">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\coneTrace.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\blurpass1.pipe">
-      <Filter>Shader Pipelines</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\programs\blurpass1.frag">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\..\game\data\shaders\blurpass2.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\blurpass2.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\programs\coneTrace.vert">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\screenquadRay.gs.glsl">
@@ -1017,6 +1185,78 @@
     </None>
     <None Include="..\..\game\data\shaders\include\mesh.glsl">
       <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\drawFinalImageAlbedo.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\drawFinalImageAlbedo.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\drawFinalImageNormals.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\drawFinalImageNormals.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxelMipmap.comp">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\voxelMipmap.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxelMipmap.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\shadowVsm.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\blurShadowY.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\blurpass.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\blurpass.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawPoint.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawPoint.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawLights.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawLights.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawLights.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorDrawPoint.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\influenceMap.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\influenceMap.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\influenceMap.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\influenceMap.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawPointColor.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawPointColor.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorDrawPointColor.pipe">
+      <Filter>Shader Pipelines</Filter>
     </None>
   </ItemGroup>
 </Project>

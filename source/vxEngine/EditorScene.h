@@ -2,6 +2,7 @@
 
 class MeshInstance;
 struct Waypoint;
+class FileEntry;
 
 namespace vx
 {
@@ -16,12 +17,17 @@ struct EditorSceneParams
 	SceneBaseParams m_baseParams;
 	std::vector<MeshInstance> m_meshInstances;
 	std::vector<Waypoint> m_waypoints;
+	vx::sorted_vector<vx::StringID64, char[32]> m_materialNames;
+	vx::sorted_vector<vx::StringID64, char[32]> m_meshNames;
+	vx::sorted_vector<vx::StringID64, char[32]> m_actorNames;
 
 	~EditorSceneParams();
 };
 
 class EditorScene : public SceneBase
 {
+	friend class ConverterEditorSceneToSceneFile;
+
 	std::vector<MeshInstance> m_meshInstances;
 	std::vector<Waypoint> m_waypoints;
 
@@ -33,7 +39,7 @@ class EditorScene : public SceneBase
 public:
 	EditorScene();
 	EditorScene(EditorScene &&rhs);
-	EditorScene(EditorSceneParams &params);
+	EditorScene(EditorSceneParams &&params);
 	~EditorScene();
 
 	EditorScene& operator = (EditorScene &&rhs);

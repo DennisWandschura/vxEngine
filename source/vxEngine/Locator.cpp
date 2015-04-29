@@ -34,7 +34,7 @@ void Locator::provide(FileAspect* p)
 
 FileAspect* Locator::getFileAspect()
 {
-	VX_ASSERT(s_pPhysicsAspect);
+	VX_ASSERT(s_pFileAspect);
 	return s_pFileAspect;
 }
 

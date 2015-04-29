@@ -128,7 +128,7 @@ void PhysicsAspect::handleFileEvent(const Event &evt)
 	}
 }
 
-U8 PhysicsAspect::raycast_static(const vx::float3 &o, const vx::float3 &dir, F32 maxDistance, vx::float3* hitPosition) const
+MeshInstance* PhysicsAspect::raycast_static(const vx::float3 &o, const vx::float3 &dir, F32 maxDistance, vx::float3* hitPosition) const
 {
 	physx::PxVec3 origin(o.x, o.y,o.z);                 // [in] Ray origin
 	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
@@ -142,14 +142,51 @@ U8 PhysicsAspect::raycast_static(const vx::float3 &o, const vx::float3 &dir, F32
 	m_pScene->raycast((physx::PxVec3)origin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData);
 
 	U8 result = hit.hasBlock;
+	MeshInstance* ptr = nullptr;
 	if (result != 0)
 	{
 		hitPosition->x = hit.block.position.x;
 		hitPosition->y = hit.block.position.y;
 		hitPosition->z = hit.block.position.z;
+
+		auto pActor = hit.block.actor;
+		ptr = (MeshInstance*)pActor->userData;
+	}
+
+	return ptr;
+}
+
+bool PhysicsAspect::editorGetStaticMeshInstancePosition(const MeshInstance* ptr, vx::float3* p) const
+{
+	bool result = false;
+
+	auto it = m_staticMeshInstances.find(ptr);
+	if (it != m_staticMeshInstances.end())
+	{
+		physx::PxTransform transform = (*it)->getGlobalPose();
+
+		p->x = transform.p.x;
+		p->y = transform.p.y;
+		p->z = transform.p.z;
+
+		result = true;
 	}
 
 	return result;
+}
+
+void PhysicsAspect::editorSetStaticMeshInstancePosition(const MeshInstance* ptr, const vx::float3 &p)
+{
+	auto it = m_staticMeshInstances.find(ptr);
+	if (it != m_staticMeshInstances.end())
+	{
+		physx::PxTransform transform = (*it)->getGlobalPose();
+		transform.p.x = p.x;
+		transform.p.y = p.y;
+		transform.p.z = p.z;
+
+		(*it)->setGlobalPose(transform);
+	}
 }
 
 void PhysicsAspect::processScene(const Scene* pScene)
@@ -223,6 +260,9 @@ void PhysicsAspect::processScene(const Scene* pScene)
 		auto pShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*itPhysxTriangleMesh), *pmat);
 		auto pRigidStatic = m_pPhysics->createRigidStatic(transform);
 		pRigidStatic->attachShape(*pShape);
+		pRigidStatic->userData = (void*)&meshInstance;
+
+		m_staticMeshInstances.insert(&meshInstance, pRigidStatic);
 
 		m_pScene->addActor(*pRigidStatic);
 

@@ -34,9 +34,9 @@ int main()
 	Engine engine;
 
 	{
-		SceneFile sceneFile;
-		sceneFile.loadFromYAML("data/scenes/scene5.scene.yaml");
-		sceneFile.saveToFile("data/scenes/scene5.scene");
+		//SceneFile sceneFile;
+		//sceneFile.loadFromYAML("data/scenes/scene5.scene.yaml");
+	//	sceneFile.saveToFile("data/scenes/scene5.scene");
 	}
 
 	SCOPE_EXIT
@@ -51,7 +51,7 @@ int main()
 		return 1;
 	}
 
-	engine.requestLoadFile(FileEntry("scene5.scene", FileType::Scene), &scene);
+	engine.requestLoadFile(FileEntry("test.scene", FileType::Scene), &scene);
 
 	LOG(mainLogfile, "Starting", false);
 

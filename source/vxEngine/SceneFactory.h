@@ -9,7 +9,11 @@ namespace vx
 	template<typename K, typename T>
 	class sorted_array;
 
+	template<typename K, typename T>
+	class sorted_vector;
+
 	class StringID64;
+	class StackAllocator;
 }
 
 class Scene;
@@ -18,28 +22,23 @@ class SceneFile;
 class FileEntry;
 class Material;
 class File;
+struct CreateSceneDescription;
 
 #include <vector>
 
 class SceneFactory
 {
-	static U8 loadSceneFile(const U8 *ptr, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-		std::vector<FileEntry> *pMissingFiles, SceneFile *pSceneFile);
+	struct LoadSceneFileDescription;
+
+	static bool checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc);
 
 public:
-	/* 
-		tries to load a scene file.
-		after loading the file itself it checks if all required meshes and materials are present in the provided maps.
-		if a required mesh or material is not found,
-		the filename is inserted into fileEntries
+	static bool createFromMemory(const CreateSceneDescription &desc, const U8* ptr, Scene *pScene);
 
-		returns 1 on success and 0 on failure.
-	*/
-	static U8 load(const U8 *ptr, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-		std::vector<FileEntry>* pMissingFiles, Scene *pScene);
+	static bool createFromFile(const CreateSceneDescription &desc, File* file, vx::StackAllocator* allocator, EditorScene *pScene);
+	static bool createFromMemory(const CreateSceneDescription &desc, const U8* ptr, EditorScene *pScene);
 
-	static U8 load(const U8 *ptr, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-		std::vector<FileEntry>* pMissingFiles, EditorScene *pScene);
+	static bool save(const EditorScene &scene, File* file);
 
-	static U8 save(const EditorScene *p, File* file);
+	static void convert(const EditorScene &scene, SceneFile* sceneFile);
 };

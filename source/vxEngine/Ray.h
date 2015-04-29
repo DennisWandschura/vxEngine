@@ -10,11 +10,4 @@ public:
 	mutable F32 mint{ .0f }, maxt{ FLT_MAX };
 	F32 time{ .0f };
 	U32 depth{ 0 };
-
-	Ray(){}
-
-	vx::float3 operator()(F32 t) const
-	{
-		return o + d * t;
-	}
 };

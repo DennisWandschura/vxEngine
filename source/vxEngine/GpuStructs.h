@@ -20,11 +20,11 @@ struct CamerablockStatic
 
 struct VX_ALIGN(32) VoxelBlock
 {
-	vx::mat4 projectionMatrix[2];
+	vx::mat4 projectionMatrix;
 	U32 dim;
 	U32 halfDim;
-	float gridCellSize[2];
-	float invGridCellSize[2];
+	float gridCellSize;
+	float invGridCellSize;
 };
 
 struct LightData
@@ -33,18 +33,23 @@ struct LightData
 	float falloff; 
 	vx::float3 direction;
 	float lumen;
-	float cutoffAngle;
-	float padding[3];
+};
+
+struct PointLightShadowTransform
+{
+	vx::mat4 projectionMatrix;
+	vx::mat4 viewMatrix[6];
+	vx::mat4 pvMatrices[6];
 };
 
 struct ShadowTransformBlock
 {
-	vx::mat4 pvMatrices[10];
+	PointLightShadowTransform transforms[5];
 };
 
 struct LightDataBlock
 {
-	LightData u_lightData[10];
+	LightData u_lightData[5];
 	U32 size;
 };
 

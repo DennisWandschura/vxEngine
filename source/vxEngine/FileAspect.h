@@ -22,7 +22,7 @@ class Scene;
 #include <vxLib\Graphics\Mesh.h>
 #include "EventTypesFwd.h"
 
-class FileAspect
+class VX_ALIGN(64) FileAspect
 {
 	static char s_textureFolder[32];
 	static char s_materialFolder[32];
@@ -53,6 +53,8 @@ class FileAspect
 	vx::sorted_array<vx::StringID64, vx::Mesh> m_meshes;
 	vx::sorted_array<vx::StringID64, Material> m_materials;
 	vx::sorted_array<vx::StringID64, TextureFile> m_textureFiles;
+
+	vx::sorted_vector<vx::StringID64, std::string> m_loadedFiles;
 
 	void getFolderString(FileType fileType, const char** folder);
 	U8* readFile(const char *file, U32 &fileSize);
@@ -104,4 +106,6 @@ public:
 	const Material* getMaterial(const vx::StringID64 &sid) const noexcept;
 
 	const vx::Mesh* getMesh(const vx::StringID64 &sid) const noexcept;
+
+	const char* getLoadedFileName(const vx::StringID64 &sid) const noexcept;
 };

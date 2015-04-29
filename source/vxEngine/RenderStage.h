@@ -1,24 +1,39 @@
 #pragma once
 
-#include "RenderStageDescription.h"
-#include "DrawCommand.h"
+class GpuProfiler;
 
-class RenderStage
+#include "RenderPass.h"
+#include <vector>
+#include <vxLib/Container/sorted_vector.h>
+#include <vxLib/StringID.h>
+
+namespace Graphics
 {
-	vx::uint2 m_viewportSize{0, 0};
-	U32 m_frameBuffer{0};
-	U32 m_clearBits{ 0 };
-	U32 m_vao{0};
-	U32 m_pipeline{0};
-	DrawCommand m_drawCommand{};
+	class Capability;
 
-	void setState();
+	class RenderStage
+	{
+		struct Pass
+		{
+			std::vector<Capability*> capablitiesBegin;
+			RenderPass pass;
+			std::vector<Capability*> capablitiesEnd;
+		};
 
-public:
-	RenderStage();
-	RenderStage(const RenderStageDescription &desc);
+		std::vector<Pass> m_renderPasses;
+		vx::sorted_vector<vx::StringID64, U32> m_indices;
+		//GpuProfiler* m_pGpuProfiler;
 
-	void drawArrays();
-	void drawElements();
-	void multiDrawElementsIndirect();
-};
+		Pass* findPass(const char* id);
+
+	public:
+		void draw() const;
+
+		void pushRenderPass(const char* id, const RenderPass &renderPass);
+		void attachCapabilityBegin(const char* id, Capability* cap);
+		void attachCapabilityEnd(const char* id, Capability* cap);
+
+		void setDrawCountAll(U32 count);
+		void setDrawCount(const char* id, U32 count);
+	};
+}

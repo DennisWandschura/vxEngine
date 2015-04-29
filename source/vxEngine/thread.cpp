@@ -46,7 +46,12 @@ namespace vx
 		return std::thread::hardware_concurrency();
 	}
 
-		void thread::detach() noexcept
+	bool thread::joinable() const noexcept
+	{
+		return m_thread.joinable();
+	}
+
+	void thread::detach() noexcept
 	{
 		if (m_thread.joinable())
 		{

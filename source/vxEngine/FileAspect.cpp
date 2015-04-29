@@ -9,6 +9,10 @@
 #include "EventManager.h"
 #include "Event.h"
 #include "EventTypes.h"
+#include <vxLib/util/DebugPrint.h>
+#include "developer.h"
+#include "FileFactory.h"
+#include "CreateSceneDescription.h"
 
 char FileAspect::s_textureFolder[32] = { "data/textures/" };
 char FileAspect::s_materialFolder[32] = { "data/materials/" };
@@ -129,7 +133,13 @@ U8 FileAspect::loadScene(const char *filename, const U8 *ptr, const vx::StringID
 {
 	U8 result = 0;
 	{
-		if (SceneFactory::load(ptr, m_meshes, m_materials, missingFiles, pScene))
+		CreateSceneDescription desc;
+		desc.loadedFiles = &m_loadedFiles;
+		desc.materials = &m_materials;
+		desc.meshes = &m_meshes;
+		desc.pMissingFiles = missingFiles;
+
+		if (SceneFactory::createFromMemory(desc, ptr, pScene))
 		{
 			*status = FileStatus::Loaded;
 			LOG_ARGS(m_logfile, "Loaded scene '%s' %llu\n", false, filename, sid.m_value);
@@ -147,7 +157,13 @@ U8 FileAspect::loadScene(const char *filename, const U8 *ptr, const vx::StringID
 {
 	U8 result = 0;
 	{
-		if (SceneFactory::load(ptr, m_meshes, m_materials, missingFiles, pScene))
+		CreateSceneDescription desc;
+		desc.loadedFiles = &m_loadedFiles;
+		desc.materials = &m_materials;
+		desc.meshes = &m_meshes;
+		desc.pMissingFiles = missingFiles;
+
+		if (SceneFactory::createFromMemory(desc, ptr, pScene))
 		{
 			*status = FileStatus::Loaded;
 			LOG_ARGS(m_logfile, "Loaded scene '%s' %llu\n", false, filename, sid.m_value);
@@ -309,7 +325,7 @@ void FileAspect::loadFileOfType(FileType fileType, const char *fileName, const c
 	case FileType::Scene:
 	{
 #if _VX_EDITOR
-		if (loadScene(fileName, pData, sid, missingFiles, result.status, (EditorScene*)pUserData) != 0)
+		if (loadScene(fileName, pData, sid, missingFiles, &result->status, (EditorScene*)pUserData) != 0)
 #else
 		if (loadScene(fileName, pData, sid, missingFiles, &result->status, (Scene*)pUserData) != 0)
 #endif
@@ -358,6 +374,8 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	const char* fileName = request.m_fileEntry.getString();
 	auto fileType = request.m_fileEntry.getType();
 
+	vx::verboseChannelPrintF(0, dev::Channel_FileAspect, "Trying to save file %s\n", fileName);
+
 	p->sid = vx::make_sid(fileName);
 
 	LoadFileReturnType result;
@@ -380,7 +398,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	sprintf_s(file, "%s%s", folder, fileName);
 
 	File f;
-	if (!f.open(file, FileAccess::Write))
+	if (!f.create(file, FileAccess::Write))
 	{
 		LOG_ERROR_ARGS(m_logfile, "Error opening file '%s'\n", false, file);
 		return result;
@@ -396,13 +414,18 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	{
 	case FileType::Scene:
 	{
-		assert(false);
+		auto &scene = *(EditorScene*)request.userData;
+
+		saveResult = FileFactory::save(&f, scene);
+		//saveResult = SceneFactory::save(scene, &f);
 		if (saveResult == 0)
 		{
+			vx::verboseChannelPrintF(0, dev::Channel_FileAspect, "Error saving scene !");
 			LOG_ERROR_ARGS(m_logfile, "Error saving scene '%s'\n", false, file);
 		}
 		else
 		{
+			vx::verboseChannelPrintF(0, dev::Channel_FileAspect, "Saved Scene");
 			LOG_ARGS(m_logfile, "Saved scene '%s'\n", false, file);
 		}
 	}
@@ -458,6 +481,7 @@ void FileAspect::onLoadFileFailed(FileRequest* request, const std::vector<FileEn
 	// failed to load
 	if (request->m_maxRetries == 0)
 	{
+		vx::verboseChannelPrintF(0, dev::Channel_FileAspect, "Failed to load file %s\n", request->m_fileEntry.getString());
 		LOG_WARNING_ARGS(m_logfile, "Warning: Load request timed out. '%s'\n", false, request->m_fileEntry.getString());
 	}
 	else
@@ -476,6 +500,12 @@ void FileAspect::handleLoadRequest(FileRequest* request, std::vector<FileEntry>*
 	if (result.result == 0)
 	{
 		onLoadFileFailed(request, *missingFiles);
+	}
+	else
+	{
+		auto fileName = request->m_fileEntry.getString();
+		auto sid = vx::make_sid(fileName);
+		m_loadedFiles.insert(sid, fileName);
 	}
 }
 
@@ -539,6 +569,7 @@ void FileAspect::requestSaveFile(const FileEntry &fileEntry, void* p)
 	request.userData = p;
 	request.m_openType = FileRequest::Save;
 
+	vx::verboseChannelPrintF(0, dev::Channel_FileAspect, "requesting save file");
 	std::lock_guard<std::mutex> guard(m_mutex);
 	m_fileRequests.push_back(request);
 }
@@ -585,4 +616,17 @@ const vx::Mesh* FileAspect::getMesh(const vx::StringID64 &sid) const noexcept
 		p = &*it;
 
 	return p;
+}
+
+const char* FileAspect::getLoadedFileName(const vx::StringID64 &sid) const noexcept
+{
+	auto it = m_loadedFiles.find(sid);
+
+	const char* result = nullptr;
+	if (it != m_loadedFiles.end())
+	{
+		result = it->c_str();
+	}
+
+	return result;
 }

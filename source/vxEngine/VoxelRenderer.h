@@ -20,23 +20,25 @@ class BufferManager;
 
 class VoxelRenderer
 {
-	static const U32 s_voxelDim = 128u;
-
 	struct ColdData
 	{
 		vx::gl::Texture m_voxelFbTexture;
+		vx::gl::Texture m_voxelEmmitanceTextures[6];
+		vx::gl::Texture m_voxelOpacityTexture;
 	};
 
-	const vx::gl::ProgramPipeline* m_pipelineVoxelize{nullptr};
-	const vx::gl::ProgramPipeline* m_pipelineDebug{nullptr};
+	U32 m_pipelineVoxelize{0};
+	U32 m_pipelineDebug{0};
+	U32 m_pipelineMipmap{ 0 };
 	vx::gl::Framebuffer m_voxelFB;
-	vx::gl::Texture m_voxelOpacityTexture;
-	vx::gl::Texture m_voxelOpacityTextureLod1;
-	vx::gl::Texture m_voxelEmmitanceTextures[6];
-	vx::gl::Texture m_voxelEmmitanceTexturesLod1[6];
+	U16 m_voxelTextureSize{0};
+	U8 m_mipcount{ 1 };
+	U32 m_voxelEmmitanceTexturesId[6];
+	U32 m_voxelOpacityTextureId;
+
 	std::unique_ptr<ColdData> m_pColdData;
 
-	void createVoxelBuffer(BufferManager* bufferManager);
+	void createVoxelBuffer( BufferManager* bufferManager);
 	void createVoxelTextureBuffer(BufferManager* bufferManager);
 	void createVoxelTextures();
 	void createFrameBuffer();
@@ -44,12 +46,13 @@ class VoxelRenderer
 public:
 	VoxelRenderer() = default;
 
-	void initialize(const vx::gl::ShaderManager &shaderManager, BufferManager* bufferManager);
+	void initialize(U16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, BufferManager* bufferManager);
 
 	void bindBuffers(const BufferManager &bufferManager);
 
 	void clearTextures();
 	void voxelizeScene(U32 count, const vx::gl::Buffer &indirectCmdBuffer, const vx::gl::VertexArray &vao);
+	void createMipmaps();
 
-	void debug(const vx::gl::VertexArray &vao);
+	void debug(const vx::gl::VertexArray &vao, vx::uint2 &resolution);
 };

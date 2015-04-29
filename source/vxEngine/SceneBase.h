@@ -79,5 +79,6 @@ public:
 
 	const vx::sorted_vector<vx::StringID64, Actor>& getActors() const;
 
+	NavMesh& getNavMesh();
 	const NavMesh& getNavMesh() const;
 };

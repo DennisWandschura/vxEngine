@@ -17,7 +17,7 @@ namespace Editor
 		Editor()
 			:clock(),
 			logfile(clock),
-			engine(logfile),
+			engine(),
 			scene()
 		{
 		}
@@ -96,22 +96,6 @@ namespace Editor
 		g_pEditor->engine.editor_loadFile(filename, type, f);
 	}
 
-	U32 addMeshInstance(U64 instanceSid, U64 meshSid, U64 materialSid, const vx::float3 &translation, const vx::float3 &rotation, const F32 scaling)
-	{
-		vx::Transform transform(translation, rotation, scaling);
-		return g_pEditor->engine.editor_addMeshInstance(vx::make_sid(instanceSid), vx::make_sid(meshSid), vx::make_sid(materialSid), transform);
-	}
-
-	U32 getTransform(U64 instanceSid, vx::float3 &translation, vx::float3 &rotation, F32 &scaling)
-	{
-		return g_pEditor->engine.editor_getTransform(vx::make_sid(instanceSid), translation, rotation, scaling);
-	}
-
-	void updateTranslation(U64 instanceSid, const vx::float3 &translation)
-	{
-		g_pEditor->engine.editor_updateTranslation(vx::make_sid(instanceSid), translation);
-	}
-
 	U64 getSid(const char *str)
 	{
 		return vx::make_sid(str).m_value;
@@ -119,6 +103,7 @@ namespace Editor
 
 	void saveScene(const char* name)
 	{
+		printf("%s\n",name);
 		g_pEditor->engine.editor_saveScene(name);
 	}
 
@@ -132,15 +117,59 @@ namespace Editor
 		g_pEditor->engine.editor_rotateCamera(dirX, dirY, dirZ);
 	}
 
-	void raytraceMouse(I32 x, I32 y, U32 mode)
+	bool selectNavMeshVertex(I32 x, I32 y)
 	{
-		vx::float3 hitPos;
-		auto result = g_pEditor->engine.raytraceMouse(x, y, &hitPos);
+		return g_pEditor->engine.selectNavMeshVertex(x, y);
+	}
 
-		if (result != 0 && mode == 1)
-		{
-			g_pEditor->engine.addWaypoint(hitPos);
-		}
+	bool multiSelectNavMeshVertex(I32 mouseX, I32 mouseY)
+	{
+		return g_pEditor->engine.multiSelectNavMeshVertex(mouseX, mouseY);
+	}
+
+	void deselectNavMeshVertex()
+	{
+		g_pEditor->engine.deselectNavMeshVertex();
+	}
+
+	bool createNavMeshTriangleFromSelectedVertices()
+	{
+		return g_pEditor->engine.createNavMeshTriangleFromSelectedVertices();
+	}
+
+	bool addNavMeshVertex(I32 x, I32 y)
+	{
+		return g_pEditor->engine.addNavMeshVertex(x, y);
+	}
+
+	void deleteSelectedNavMeshVertex()
+	{
+		g_pEditor->engine.deleteSelectedNavMeshVertex();
+	}
+
+	void getSelectNavMeshVertexPosition(vx::float3* position)
+	{
+		*position = g_pEditor->engine.getSelectedNavMeshVertexPosition();
+	}
+
+	void setSelectNavMeshVertexPosition(const vx::float3 &position)
+	{
+		g_pEditor->engine.setSelectedNavMeshVertexPosition(position);
+	}
+
+	bool selectMesh(I32 x, I32 y)
+	{
+		return g_pEditor->engine.selectMesh(x, y);
+	}
+
+	void deselectMesh()
+	{
+		g_pEditor->engine.deselectMesh();
+	}
+
+	void updateSelectedMeshInstanceTransform(const vx::float3 &translation)
+	{
+		g_pEditor->engine.updateSelectedMeshInstanceTransform(translation);
 	}
 }
 #endif

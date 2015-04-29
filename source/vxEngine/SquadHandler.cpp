@@ -16,9 +16,9 @@
 
 namespace ai
 {
-	const Pool<Component::Physics>* SquadHandler::s_pPhysicsPool{ nullptr };
+	//const Pool<Component::Physics>* SquadHandler::s_pPhysicsPool{ nullptr };
 	const Pool<Component::Actor>* SquadHandler::s_pActorPool{ nullptr };
-	const Pool<Entity>* SquadHandler::s_pEntityPool{ nullptr };
+	const Pool<EntityActor>* SquadHandler::s_pEntityPool{ nullptr };
 	const InfluenceMap* SquadHandler::s_pInfluenceMap{ nullptr };
 	const NavGraph* SquadHandler::s_pNavGraph{ nullptr };
 	std::mt19937_64 SquadHandler::s_gen{};
@@ -29,10 +29,10 @@ namespace ai
 	{
 	}
 
-	void SquadHandler::initializeStatics(const NavGraph* pNavGrap, const Pool<Component::Actor>* pActorPool, const Pool<Component::Physics>* pPhysicsPool, const Pool<Entity>* pEntityPool, const InfluenceMap* pInfluenceMap)
+	void SquadHandler::initializeStatics(const NavGraph* pNavGrap, const Pool<Component::Actor>* pActorPool, const Pool<Component::Physics>* pPhysicsPool, const Pool<EntityActor>* pEntityPool, const InfluenceMap* pInfluenceMap)
 	{
 		s_pActorPool = pActorPool;
-		s_pPhysicsPool = pPhysicsPool;
+		//s_pPhysicsPool = pPhysicsPool;
 		s_pEntityPool = pEntityPool;
 		s_pInfluenceMap = pInfluenceMap;
 		s_pNavGraph = pNavGrap;
@@ -40,7 +40,7 @@ namespace ai
 
 	void SquadHandler::update(vx::StackAllocator* pAllocatorScratch)
 	{
-		if (m_updateMask == 0)
+		/*if (m_updateMask == 0)
 			return;
 
 		auto checkIndex = [](U8 mask, U8 index) -> bool
@@ -77,7 +77,7 @@ namespace ai
 		// sort cells by current influence
 		std::sort(pCells, pCells + count, [](const InfluenceCell &l, const InfluenceCell &r)
 		{
-			return l.influence < r.influence;
+			return l.m_influence < r.m_influence;
 		});
 
 		auto pNavNodeIndices = s_pInfluenceMap->getNavNodeIndices();
@@ -105,7 +105,7 @@ namespace ai
 		{
 			updateActor(3, pCells, cellIndex, pNavNodeIndices, pAllocatorScratch);
 			++cellIndex;
-		}
+		}*/
 
 		m_updateMask = 0;
 	}
@@ -115,19 +115,19 @@ namespace ai
 		auto actorIndex = m_actors[index];
 		auto &actor = (*s_pActorPool)[actorIndex];
 		auto &entity = (*s_pEntityPool)[actor.entityIndex];
-		auto &physics = (*s_pPhysicsPool)[entity.physics];
+		//auto &physics = (*s_pPhysicsPool)[entity.physics];
 
 		auto nodeIndex = 0u;
-		if (pCells[cellIndex].count > 1)
+		if (pCells[cellIndex].m_count > 1)
 		{
-			std::uniform_int_distribution<U32> dist(0, pCells[cellIndex].count);
+			std::uniform_int_distribution<U32> dist(0, pCells[cellIndex].m_count);
 
 			nodeIndex = dist(s_gen);
 		}
 
 		// get path from navgraph
-		auto destNode = pNavNodeIndices[nodeIndex + pCells[cellIndex].offset];
-		auto startNode = s_pNavGraph->getClosestNode(physics.position);
+		auto destNode = pNavNodeIndices[nodeIndex + pCells[cellIndex].m_offset];
+		auto startNode = s_pNavGraph->getClosestNode(entity.position);
 
 		m_currentTargetNodes[index] = destNode;
 	//	printf("%u\n", destNode);
@@ -145,7 +145,7 @@ namespace ai
 		auto actorIndex = m_actors[index];
 		auto &actor = (*s_pActorPool)[actorIndex];
 		auto &entity = (*s_pEntityPool)[actor.entityIndex];
-		auto &physics = (*s_pPhysicsPool)[entity.physics];
+		//auto &physics = (*s_pPhysicsPool)[entity.physics];
 
 		const U32 maxCount = 5u;
 		auto marker = pAllocatorScratch->getMarker();
@@ -158,27 +158,27 @@ namespace ai
 
 		// get cells within certain radius
 		U32 count = 0;
-		s_pInfluenceMap->getCells(physics.position, 3.0f, 10.0f, maxCount, pCells, &count);
+		s_pInfluenceMap->getCells(entity.position, 3.0f, 10.0f, maxCount, pCells, &count);
 
 		// sort cells by current influence
 		std::sort(pCells, pCells + count, [](const InfluenceCell &l, const InfluenceCell &r)
 		{
-			return l.influence < r.influence;
+			return l.m_influence < r.m_influence;
 		});
 
 		auto pNavNodeIndices = s_pInfluenceMap->getNavNodeIndices();
 		// select random nav node from cell
 		auto nodeIndex = 0u;
-		if (pCells[0].count > 1)
+		if (pCells[0].m_count > 1)
 		{
-			std::uniform_int_distribution<U32> dist(0, pCells[0].count);
+			std::uniform_int_distribution<U32> dist(0, pCells[0].m_count);
 
 			nodeIndex = dist(s_gen);
 		}
 
 		// get path from navgraph
-		auto destNode = pNavNodeIndices[nodeIndex + pCells[0].offset];
-		auto startNode = s_pNavGraph->getClosestNode(physics.position);
+		auto destNode = pNavNodeIndices[nodeIndex + pCells[0].m_offset];
+		auto startNode = s_pNavGraph->getClosestNode(entity.position);
 
 		auto result = pathfindAStar(*s_pNavGraph, startNode, destNode, heuristicDistance, pAllocatorScratch, &actor.data->path, Locator::getPhysicsAspect());
 		VX_ASSERT(result != 0);

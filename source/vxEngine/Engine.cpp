@@ -1,8 +1,10 @@
 #include "Engine.h"
 #include "Clock.h"
-#include "yamlHelper.h"
+#include "EngineConfig.h"
 #include "Locator.h"
 #include "developer.h"
+#include "DebugRenderSettings.h"
+#include "GpuProfiler.h"
 
 const U32 g_hz = 30u;
 const F32 g_dt = 1.0f / g_hz;
@@ -103,20 +105,28 @@ void Engine::update()
 
 void Engine::renderLoop()
 {
+	m_renderAspect.makeCurrent(true);
+
 	auto frequency = Clock::getFrequency();
 	const F64 invFrequency = 1.0 / frequency;
 
-	m_renderAspect.makeCurrent(true);
+	GpuProfiler gpuProfiler;
+	m_renderAspect.initializeProfiler(&gpuProfiler, &m_allocator);
+
+	//Video video;
+	//video.initialize("test.video");
+
+	
 
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
 
 	F32 accum = 0.0f;
-
 	while (m_bRunRenderThread.load() != 0)
 	{
 		LARGE_INTEGER current;
 		QueryPerformanceCounter(&current);
+
 
 		auto frameTicks = (current.QuadPart - last.QuadPart) * 1000;
 		F32 frameTime = frameTicks * invFrequency * 0.001f;
@@ -124,17 +134,25 @@ void Engine::renderLoop()
 
 		accum += frameTime;
 
+		gpuProfiler.frame();
+
 		while (accum >= g_dt)
 		{
-			m_renderAspect.update();
+			gpuProfiler.update(g_dt);
 
 			accum -= g_dt;
 		}
 
-		m_renderAspect.render();
+		m_renderAspect.update();
+
+		gpuProfiler.pushGpuMarker("render()");
+		m_renderAspect.render(&gpuProfiler);
+		gpuProfiler.popGpuMarker();
 
 		last = current;
 	}
+
+	//video.shutdown();
 }
 
 void Engine::mainLoop()
@@ -221,32 +239,13 @@ bool Engine::initialize()
 	if (!initializeImpl(dataDir))
 		return false;
 
-	YAML::Node settingsFile = YAML::LoadFile("settings.yaml");
-	auto resNode = settingsFile["settings"];
-	auto windowResolution = resNode["window_resolution"].as<vx::uint2>();
-	F32 fov = resNode["fov"].as<F32>();
-	F32 z_near = resNode["z_near"].as<F32>();
-	F32 z_far = resNode["z_far"].as<F32>();
-	bool vsync = resNode["vsync"].as<bool>();
-	bool debug = resNode["debug"].as<bool>();
+	EngineConfig config;
+	config.loadFromYAML("settings.yaml");
 
-	if (!m_systemAspect.initialize(windowResolution, ::callbackKeyPressed, ::handleInput))
+	if (!m_systemAspect.initialize(config, ::callbackKeyPressed, ::handleInput))
 		return false;
 
-	RenderAspectDesc renderAspectDesc;
-	renderAspectDesc.window = &m_systemAspect.getWindow();
-	renderAspectDesc.resolution = windowResolution;
-	renderAspectDesc.fovRad = vx::degToRad(fov);
-	renderAspectDesc.z_near = z_near;
-	renderAspectDesc.z_far = z_far;
-	renderAspectDesc.vsync = vsync;
-	renderAspectDesc.debug = debug;
-	renderAspectDesc.targetMs = g_dt;
-	renderAspectDesc.pAllocator = &m_allocator;
-	renderAspectDesc.pProfiler = nullptr;
-	renderAspectDesc.pGraph = nullptr;
-	//renderAspectDesc.pProfiler=&m_profiler;
-	//renderAspectDesc.pGraph=&m_profileGraph;
+	RenderAspectDescription renderAspectDesc = config.getRenderAspectDescription(&m_systemAspect.getWindow(), &m_allocator);
 
 	if (!m_renderAspect.initialize(dataDir, renderAspectDesc))
 		return false;
@@ -320,22 +319,17 @@ void Engine::keyPressed(U16 key)
 	{
 		stop();
 	}
-
-	if (key == vx::Keyboard::Key_Num0)
+	/*else if (key == vx::Keyboard::Key_Num0)
 	{
 		dev::g_showNavGraph = dev::g_showNavGraph ^ 1;
 	}
-
-	if (key == vx::Keyboard::Key_Num1)
+	else if(key == vx::Keyboard::Key_Num1)
 	{
 		dev::g_toggleRender = dev::g_toggleRender ^ 1;
-	}
-
-	if(key == vx::Keyboard::Key_F10)
+	}*/
+	else
 	{
-		RenderUpdateTask task;
-		task.type = RenderUpdateTask::Type::TakeScreenshot;
-		m_renderAspect.queueUpdateTask(task);
+		m_renderAspect.keyPressed(key);
 	}
 }
 

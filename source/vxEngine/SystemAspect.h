@@ -3,6 +3,7 @@
 class Engine;
 class RenderAspect;
 class EntityAspect;
+class EngineConfig;
 
 #include <vxLib\Window.h>
 #include <vxLib\RawInput.h>
@@ -18,7 +19,7 @@ class SystemAspect
 public:
 	SystemAspect();
 
-	bool initialize(const vx::uint2 &windowResolution, CallbackKeyPressedFp fp, HandleInputFp inputFp);
+	bool initialize(const EngineConfig &config, CallbackKeyPressedFp fp, HandleInputFp inputFp);
 	void shutdown();
 
 	void update(const F32 dt);

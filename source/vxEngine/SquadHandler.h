@@ -17,7 +17,7 @@ class Pool;
 class NavGraph;
 class InfluenceMap;
 struct Event;
-struct Entity;
+struct EntityActor;
 struct InfluenceCell;
 
 #include <vxLib/math/Vector.h>
@@ -27,9 +27,9 @@ namespace ai
 {
 	class SquadHandler
 	{
-		static const Pool<Component::Physics>* s_pPhysicsPool;
+		//static const Pool<Component::Physics>* s_pPhysicsPool;
 		static const Pool<Component::Actor>* s_pActorPool;
-		static const Pool<Entity>* s_pEntityPool;
+		static const Pool<EntityActor>* s_pEntityPool;
 		static const InfluenceMap* s_pInfluenceMap;
 		static const NavGraph* s_pNavGraph;
 		static std::mt19937_64 s_gen;
@@ -48,7 +48,7 @@ namespace ai
 	public:
 		explicit SquadHandler(U16 filterMask);
 
-		static void initializeStatics(const NavGraph* pNavGrap, const Pool<Component::Actor>* pActorPool, const Pool<Component::Physics>* pPhysicsPool, const Pool<Entity>* pEntityPool, const InfluenceMap* pInfluenceMap);
+		static void initializeStatics(const NavGraph* pNavGrap, const Pool<Component::Actor>* pActorPool, const Pool<Component::Physics>* pPhysicsPool, const Pool<EntityActor>* pEntityPool, const InfluenceMap* pInfluenceMap);
 
 		void update(vx::StackAllocator* pAllocatorScratch);
 

@@ -1,6 +1,9 @@
 #include "EditorScene.h"
 #include "MeshInstance.h"
 #include "Waypoint.h"
+#include "SceneFile.h"
+#include "Actor.h"
+#include "Light.h"
 
 EditorSceneParams::~EditorSceneParams()
 {
@@ -15,9 +18,12 @@ EditorScene::EditorScene()
 
 }
 
-EditorScene::EditorScene(EditorSceneParams &params)
+EditorScene::EditorScene(EditorSceneParams &&params)
 	: SceneBase(params.m_baseParams),
-	m_meshInstances(std::move(params.m_meshInstances))
+	m_meshInstances(std::move(params.m_meshInstances)),
+	m_materialNames(std::move(params.m_materialNames)),
+	m_meshNames(std::move(params.m_meshNames)),
+	m_actorNames(std::move(params.m_actorNames))
 {
 }
 
@@ -30,8 +36,13 @@ EditorScene& EditorScene::operator = (EditorScene &&rhs)
 {
 	if (this != &rhs)
 	{
-		assert(false);
-		m_sortedMeshInstances = std::move(m_sortedMeshInstances);
+		SceneBase::operator=(std::move(rhs));
+		std::swap(m_meshInstances, rhs.m_meshInstances);
+		std::swap(m_waypoints, rhs.m_waypoints);
+		std::swap(m_sortedMeshInstances, rhs.m_sortedMeshInstances);
+		std::swap(m_materialNames, rhs.m_materialNames);
+		std::swap(m_meshNames, rhs.m_meshNames);
+		std::swap(m_actorNames, rhs.m_actorNames);
 	}
 
 	return *this;

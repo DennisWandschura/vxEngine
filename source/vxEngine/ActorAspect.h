@@ -10,7 +10,7 @@ template<typename T>
 class Pool;
 
 struct Event;
-struct Entity;
+struct EntityActor;
 class EntityAspect;
 class PhysicsAspect;
 class EventManager;
@@ -26,8 +26,8 @@ class EventManager;
 class ActorAspect : public EventListener
 {
 	const Pool<Component::Actor>* m_pActorPool{ nullptr };
-	const Pool<Component::Physics>* m_pPhysicsPool{ nullptr };
-	const Pool<Entity>* m_pEntityPool{ nullptr };
+	//const Pool<Component::Physics>* m_pPhysicsPool{ nullptr };
+	const Pool<EntityActor>* m_pEntityPool{ nullptr };
 	ai::SquadManager m_squadManager;
 	ActionManager m_actionManager;
 	InfluenceMap m_influenceMap;

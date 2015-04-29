@@ -32,6 +32,7 @@ namespace vx
 
 		static U32 hardware_concurrency() noexcept;
 
+		bool joinable() const noexcept;
 		void detach() noexcept;
 		void join() noexcept;
 

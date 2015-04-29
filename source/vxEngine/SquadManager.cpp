@@ -18,7 +18,7 @@ namespace ai
 
 	}
 
-	void SquadManager::initialize(const Pool<Component::Actor>* pActorPool, const NavGraph* pNavGraph, const InfluenceMap* pInfluenceMap, const Pool<Component::Physics>* pPhysicsPool, const Pool<Entity>* pEntityPool)
+	void SquadManager::initialize(const Pool<Component::Actor>* pActorPool, const NavGraph* pNavGraph, const InfluenceMap* pInfluenceMap, const Pool<Component::Physics>* pPhysicsPool, const Pool<EntityActor>* pEntityPool)
 	{
 		m_pNavGraph = pNavGraph;
 		m_pInfluenceMap = pInfluenceMap;

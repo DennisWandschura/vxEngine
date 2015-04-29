@@ -12,7 +12,7 @@ class PhysicsAspect;
 class FileAspect;
 class RenderAspect;
 struct Spawn;
-struct Entity;
+struct EntityActor;
 class Scene;
 class NavGraph;
 class InfluenceMap;
@@ -37,26 +37,26 @@ class EntityAspect : public EventListener
 
 	PlayerController m_playerController;
 	PhysicsAspect &m_physicsAspect;
-	Pool<Component::Physics> m_poolPhysics;
+	//Pool<Component::Physics> m_poolPhysics;
 	Pool<Component::Input> m_poolInput;
 	Pool<Component::Render> m_poolRender;
 	Pool<Component::Actor> m_poolActor;
+	Pool<EntityActor> m_poolEntity;
 	const NavGraph* m_pNavGraph{ nullptr };
 	InfluenceMap* m_pInfluenceMap{nullptr};
-	Pool<Entity> m_poolEntity;
-	Entity* m_pPlayer{ nullptr };
+	EntityActor* m_pPlayer{ nullptr };
 	FileAspect &m_fileAspect;
 	RenderAspect &m_renderAspect;
 	vx::StackAllocator m_allocator;
 	const Scene* m_pCurrentScene{ nullptr };
 	vx::PoolAllocator m_poolAllocatorPath;
 
-	Component::Physics* createComponentPhysics(const vx::float3 &position, U16 entityIndex, F32 height, U16* index);
 	Component::Actor* createComponentActor(U16 entityIndex, U16* actorIndex);
+	void createComponentPhysics(const vx::float3 &position, U16 entityIndex, F32 height);
 
 	void spawnPlayer(const vx::float3 &position, const Component::Physics &p);
 
-	void createActorEntity(const vx::float3 &position, const vx::StringID64 &actor, F32 height);
+	void createActorEntity(const vx::float3 &position, F32 height, U32 gpuIndex);
 
 	//////////////////
 
@@ -101,12 +101,10 @@ public:
 
 	//////////////////
 
-	Entity* getPlayer(){ return m_pPlayer; }
+	EntityActor* getPlayer(){ return m_pPlayer; }
 
-	Component::Physics& getComponentPhysics(U16 i);
 	Component::Input& getComponentInput(U16 i);
 
-	const Pool<Component::Physics>& getPhysicsPool() const { return m_poolPhysics; }
 	const Pool<Component::Actor>& getActorPool() const { return m_poolActor; }
-	const Pool<Entity>& getEntityPool() const { return m_poolEntity; }
+	const Pool<EntityActor>& getEntityPool() const { return m_poolEntity; }
 };

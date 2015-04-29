@@ -15,24 +15,24 @@ PlayerController::PlayerController(RenderAspect* renderAspect)
 {
 }
 
-void PlayerController::updatePlayerHuman(Entity* pPlayer, EntityAspect &entityAspect)
+void PlayerController::updatePlayerHuman(EntityActor* pPlayer, EntityAspect &entityAspect)
 {
 	if (pPlayer == nullptr)
 		return;
 
-	auto physComp = entityAspect.getComponentPhysics(pPlayer->physics);
+	//auto physComp = entityAspect.getComponentPhysics(pPlayer->physics);
 
-	__m128 quaternionRotation = { physComp.orientation.y, physComp.orientation.x, 0, 0 };
+	__m128 quaternionRotation = { pPlayer->orientation.y, pPlayer->orientation.x, 0, 0 };
 	quaternionRotation = vx::QuaternionRotationRollPitchYawFromVector(quaternionRotation);
 
 	RenderUpdateCameraData data;
-	data.position = vx::loadFloat(physComp.position);
+	data.position = vx::loadFloat(pPlayer->position);
 	data.quaternionRotation = quaternionRotation;
 
 	m_pRenderAspect->queueUpdateCamera(data);
 }
 
-void PlayerController::handleKeyboard(Entity* pPlayer, const vx::Keyboard &keyboard, EntityAspect &entityAspect)
+void PlayerController::handleKeyboard(EntityActor* pPlayer, const vx::Keyboard &keyboard, EntityAspect &entityAspect)
 {
 	if (pPlayer == nullptr)
 		return;
@@ -63,7 +63,7 @@ void PlayerController::handleKeyboard(Entity* pPlayer, const vx::Keyboard &keybo
 	input.velocity.z = vVelocity.f[2];
 }
 
-void PlayerController::handleMouse(Entity* pPlayer, const vx::Mouse &mouse, const F32 dt, EntityAspect &entityAspect)
+void PlayerController::handleMouse(EntityActor* pPlayer, const vx::Mouse &mouse, const F32 dt, EntityAspect &entityAspect)
 {
 	const F32 angleMax = 1.4f;
 	const F32 angleMin = -1.4f;

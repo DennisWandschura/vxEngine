@@ -10,20 +10,22 @@ class NavGraph;
 
 struct InfluenceCell
 {
-	vx::float3 position;
-	F32 influence;
-	U16 offset;
-	U16 count;
+	vx::float3 m_position;
+	F32 m_influence;
+	U16 m_offset;
+	U16 m_count;
+	F32 m_area;
+	F32 m_priority;
 };
 
 class InfluenceMap
 {
-	struct CellBounds
+	struct AABB_SIMD
 	{
 		__m128 vmin, vmax;
 	};
 
-	std::unique_ptr<CellBounds[]> m_cellBounds;
+	std::unique_ptr<AABB_SIMD[]> m_cellBounds;
 	std::unique_ptr<InfluenceCell[]> m_cells; // 8
 	// influence cell data
 	std::unique_ptr<U16[]> m_navNodeIndices;
@@ -32,14 +34,21 @@ class InfluenceMap
 	vx::float3 m_voxelHalfDim; // 12
 	vx::ushort3 m_cellCount; // 6
 
+	void createCells(const vx::uint3 &cellCount, U32 cellTotalCount, const vx::float3 &cellDim, const AABB &navBounds);
+	void createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uint3 &cellPosition, U32 index);
+	void createNodeIndicesAndSetCellData(const NavMesh &navMesh, U32 cellTotalCount);
+
 public:
-	void init(const NavMesh &navMesh, const NavGraph &navGraph, F32 cellSize, F32 cellHeight);
+	void initialize(const NavMesh &navMesh, F32 cellSize, F32 cellHeight);
 
 	void update(F32 dt);
 	void updateActor(F32 dt, const vx::float3 &position);
 
 	const InfluenceCell& getCell(U16 x, U16 y, U16 z) const;
 	const InfluenceCell& getCell(U32 index) const;
+	const InfluenceCell* getInfluenceCells() const;
+
+	U32 getCellCount() const;
 
 	I32 getClosestCellIndex_nocheck(const vx::float3 &position) const;
 	U32 getClosestCellIndex(const vx::float3 &position) const;

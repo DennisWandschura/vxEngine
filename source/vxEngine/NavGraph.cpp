@@ -9,16 +9,16 @@
 #include "AABB.h"
 #include <vxLib/ScopeGuard.h>
 
-namespace
+namespace 
 {
-	struct Triangle
+	struct NavGraphTriangle
 	{
 		vx::float3 v[3];
 		vx::float3 c;
 		U16 sharedEdges[3];
 		U8 sharedEdgesCount{ 0 };
 
-		bool sharesEdge(const Triangle &other)
+		bool sharesEdge(const NavGraphTriangle &other)
 		{
 			if (this == &other)
 				return false;
@@ -27,28 +27,16 @@ namespace
 
 			for (U32 i = 0; i < 3; ++i)
 			{
-				auto &current = v[i];
+				auto &vertex = v[i];
 				for (U32 j = 0; j < 3; ++j)
 				{
-					auto &otherCurrent = other.v[j];
+					auto &otherVertex = other.v[j];
 
-					auto result = (current.x == otherCurrent.x) & (current.y == otherCurrent.y) & (current.z == otherCurrent.z);
+					auto result = (vertex.x == otherVertex.x) & (vertex.y == otherVertex.y) & (vertex.z == otherVertex.z);
 
 					count += result;
-
-					//if (current.x == other.v[j].x && current.y == other.v[j].y && current.z == other.v[j].z)
-					//	++count;
 				}
 			}
-
-			/*if (v[0].x == other.v[0].x && v[0].y == other.v[0].y && v[0].z == other.v[0].z)
-				++count;
-
-			if (v[1].x == other.v[1].x && v[1].y == other.v[1].y && v[1].z == other.v[1].z)
-				++count;
-
-			if (v[2].x == other.v[2].x && v[2].y == other.v[2].y && v[2].z == other.v[2].z)
-				++count;*/
 
 			return (count > 1);
 		}
@@ -61,8 +49,16 @@ namespace
 }
 
 NavGraph::NavGraph()
+#if _VX_EDITOR
+	:m_connections(),
+	m_nodes(),
+#else
+	:m_connections(nullptr),
+	m_nodes(nullptr),
+#endif
+	m_connectionCount(0),
+	m_nodeCount(0)
 {
-
 }
 
 NavGraph::~NavGraph()
@@ -73,16 +69,10 @@ NavGraph::~NavGraph()
 void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator, vx::StackAllocator* pAllocatorScratch)
 {
 	auto vertices = navMesh.getVertices();
-	auto indices = navMesh.getIndices();
+	auto triangleIndices = navMesh.getTriangleIndices();
 
-	auto iCount = navMesh.getIndexCount();
+	auto triangleCount = navMesh.getTriangleCount();
 
-	VX_ASSERT(iCount % 3 == 0);
-
-	auto triangleCount = iCount / 3;
-
-	//std::vector<Triangle> triangles;
-	//triangles.reserve(triangleCount);
 	auto scratchMarker = pAllocatorScratch->getMarker();
 
 	SCOPE_EXIT
@@ -90,37 +80,31 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 		pAllocatorScratch->clear(scratchMarker);
 	};
 
-	auto triangles = (Triangle*)pAllocatorScratch->allocate(sizeof(Triangle) * triangleCount, __alignof(Triangle));
+	auto triangles = (NavGraphTriangle*)pAllocatorScratch->allocate(sizeof(NavGraphTriangle) * triangleCount, __alignof(NavGraphTriangle));
+	VX_ASSERT(triangles);
 
 	// bounds of centroids
 	AABB bounds;
 	// create triangles
-	for (U32 i = 0, j = 0; i < iCount; i += 3, ++j)
+	for (U32 i = 0; i < triangleCount; ++i)
 	{
-		auto i0 = indices[i];
-		auto i1 = indices[i + 1];
-		auto i2 = indices[i + 2];
+		auto i0 = triangleIndices[i].vertexIndex[0];
+		auto i1 = triangleIndices[i].vertexIndex[1];
+		auto i2 = triangleIndices[i].vertexIndex[2];
 
-		Triangle t;
+		NavGraphTriangle t;
 		t.v[0] = vertices[i0];
 		t.v[1] = vertices[i1];
 		t.v[2] = vertices[i2];
 		t.c = (t.v[0] + t.v[1] + t.v[2]) / 3.0f;
 
-		bounds = bounds.Union(t.c);
+		bounds = AABB::merge(bounds, t.c);
 
-		triangles[j] = t;
+		triangles[i] = t;
 	}
 
-	//vx::float3 center = (bounds.max + bounds.min) * 0.5f;
-//	auto size = (bounds.max - center) + (center - bounds.min);
-//	vx::uint3 cellCount = (size + vx::float3(s_cellSize)) / vx::float3(s_cellSize);
-	//const F32 cellHalfSize = s_cellSize / 2.0f;
-
-	//auto index = Cell::getCellIndex(center, center, cellCount, s_cellSize);
-
 	// sort triangles by position
-	std::sort(triangles, triangles + triangleCount, [](const Triangle &lhs, const Triangle &rhs)
+	std::sort(triangles, triangles + triangleCount, [](const NavGraphTriangle &lhs, const NavGraphTriangle &rhs)
 	{
 		return (
 			(lhs.c.x < rhs.c.x) ||
@@ -129,60 +113,12 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 			);
 	});
 
-	/*auto totalCellCount = cellCount.x * cellCount.y * cellCount.z;
-	std::vector<BuildCell> cells;
-	cells.reserve(totalCellCount);
-
-	for (U32 i = 0; i < totalCellCount; ++i)
-	{
-		cells.push_back(BuildCell());
-
-		// get 3d index
-		U32 z = i / (cellCount.x * cellCount.y);
-		U32 y = (i - (z*cellCount.x*cellCount.y)) / cellCount.x;
-		U32 x = i - y * cellCount.x - z * cellCount.x * cellCount.y;
-
-		auto tmp = vx::float3(x, y, z);
-
-		// assuming origin in bottom left
-		AABB cellBounds;
-		cellBounds.min = tmp * vx::float3(s_cellSize);
-		//cellBounds.max = (tmp + vx::float3(1.0f)) * vx::float3(s_cellSize);
-
-		// offset by halfsize
-		auto offset = cellHalfSize * vx::float3(cellCount);
-		cellBounds.min = cellBounds.min - offset;
-		cellBounds.max = cellBounds.min + vx::float3(s_cellSize);
-
-		auto dim = (cellBounds.max - cellBounds.min) * 0.5f;
-		auto cc = (cellBounds.max + cellBounds.min) * 0.5f + center;
-
-		cellBounds.min = cc - dim;
-		cellBounds.max = cc + dim;
-
-		auto &cell = cells[i];
-
-		// iterate over trangles
-		for (U32 j = 0; j < triangleCount; ++j)
-		{
-			if (cellBounds.contains(triangles[j].c))
-			{
-				cell.indices.push_back(j);
-			}
-		}
-
-		int k = 0;
-		++k;
-	}*/
-	//auto trianglesGridSorted = (Triangle*)pAllocatorScratch->allocate(sizeof(Triangle) * triangleCount, __alignof(Triangle));
-
-
 	U32 connectionCount = 0;
 	// find triangles that share edges
 	for (U32 j = 0; j < triangleCount; ++j)
 	{
 		auto &it = triangles[j];
-		//std::vector<U16> edges;
+
 		U8 sharedCount = 0;
 		for (U32 i = 0; i < triangleCount; ++i)
 		{
@@ -202,15 +138,27 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 	U32 connectionOffset = 0;
 
 	m_nodeCount = triangleCount;
+#if _VX_EDITOR
+	VX_UNREFERENCED_PARAMETER(pAllocator);
+	m_nodes.reserve(m_nodeCount);
+#else
 	m_nodes = (NavNode*)pAllocator->allocate(sizeof(NavNode) * m_nodeCount, __alignof(NavNode));
+#endif
 
 	for (U32 i = 0; i < triangleCount; ++i)
 	{
 		auto &triangle = triangles[i];
 
-		m_nodes[i].m_connectionCount = triangle.sharedEdgesCount;
-		m_nodes[i].m_connectionOffset = connectionOffset;
-		m_nodes[i].m_position = triangle.c;
+		NavNode node;
+		node.m_connectionCount = triangle.sharedEdgesCount;
+		node.m_connectionOffset = connectionOffset;
+		node.m_position = triangle.c;
+
+#if _VX_EDITOR
+		m_nodes.push_back(node);
+#else
+		m_nodes[i] = node;
+#endif
 
 		for (U32 j = 0; j < triangle.sharedEdgesCount; ++j)
 		{
@@ -230,15 +178,29 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 
 	VX_ASSERT(connectionCount == connectionOffset);
 
+#if _VX_EDITOR
+	m_connections.reserve(connectionCount);
+	for(U32 i = 0;i < connectionCount; ++i)
+	{
+		m_connections.push_back(connections[i]);
+	}
+#else
 	m_connections = (NavConnection*)pAllocator->allocate(sizeof(NavConnection) * connectionCount, __alignof(NavConnection));
 	vx::memcpy(m_connections, connections, connectionCount);
+#endif
 	m_connectionCount = connectionCount;
 }
 
 void NavGraph::shutdown(vx::StackAllocator* pAllocator)
 {
+#if _VX_EDITOR
+	VX_UNREFERENCED_PARAMETER(pAllocator);
+	m_nodes.clear();
+	m_connections.clear();
+#else
 	pAllocator->rangeDestroy(m_connections, m_connections + m_connectionCount);
 	pAllocator->rangeDestroy(m_nodes, m_nodes + m_nodeCount);
+#endif
 }
 
 U32 NavGraph::getClosestNode(const vx::float3 &position) const

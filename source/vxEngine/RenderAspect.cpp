@@ -1,5 +1,5 @@
 #include "RenderAspect.h"
-#include "BufferBlocks.h"
+#include "GpuStructs.h"
 #include <vxLib/gl/gl.h>
 #include <vxLib/gl/Debug.h>
 #include <vxLib/gl/StateManager.h>
@@ -10,6 +10,17 @@
 #include "EventTypes.h"
 #include "EventsIngame.h"
 #include "ScreenshotFactory.h"
+#include "DebugRenderSettings.h"
+#include <vxLib/Keyboard.h>
+#include <vxLib/util/DebugPrint.h>
+#include "GpuProfiler.h"
+#include "CapabilityEnablePolygonOffsetFill.h"
+#include "CapabilityDisablePolygonOffsetFill.h"
+#include "CapabilitySettingPolygonOffset.h"
+#include "CapabilityFactory.h"
+#include "CreateActorData.h"
+#include "Locator.h"
+#include "EventManager.h"
 
 RenderAspect* g_renderAspect{ nullptr };
 
@@ -41,11 +52,21 @@ bool RenderAspect::createBuffers()
 	{
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Pixel_Pack_Buffer;
-		desc.size = m_pColdData->m_windowResolution.x * m_pColdData->m_windowResolution.y * sizeof(F32) * 4;
+		desc.size = m_resolution.x * m_resolution.y * sizeof(F32) * 4;
 		desc.immutable = 1;
 		desc.flags = vx::gl::BufferStorageFlags::Read;
 		m_pColdData->m_screenshotBuffer.create(desc);
 	}
+
+	/*vx::gl::BufferDescription desc;
+	desc.bufferType = vx::gl::BufferType::Pixel_Pack_Buffer;
+	desc.size = m_pColdData->m_windowResolution.x * m_pColdData->m_windowResolution.y * sizeof(F32) * 4;
+	desc.immutable = 1;
+	desc.flags = vx::gl::BufferStorageFlags::Read;
+
+	//m_videoBuffers[0].create(desc);
+//	m_videoBuffers[1].create(desc);
+	//m_videoBuffers[2].create(desc);*/
 
 	return true;
 }
@@ -88,7 +109,7 @@ void RenderAspect::createUniformBuffers()
 	}
 
 	{
-		U64 handles[9];
+		U64 handles[8];
 		handles[0] = m_pColdData->m_gbufferAlbedoSlice.getTextureHandle();
 		handles[1] = m_pColdData->m_gbufferNormalSlice.getTextureHandle();
 		handles[2] = m_pColdData->m_gbufferSurfaceSlice.getTextureHandle();
@@ -97,7 +118,6 @@ void RenderAspect::createUniformBuffers()
 		handles[5] = m_pColdData->m_aabbTexture.getTextureHandle();
 		handles[6] = m_pColdData->m_shadowTexture.getTextureHandle();
 		handles[7] = m_pColdData->m_ambientColorTexture.getTextureHandle();
-		handles[8] = m_pColdData->m_ambientColorBlurTexture.getTextureHandle();
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -114,7 +134,7 @@ void RenderAspect::createTextures()
 	{
 		vx::gl::TextureDescription desc;
 		desc.type = vx::gl::TextureType::Texture_2D;
-		desc.size = vx::ushort3(m_pColdData->m_windowResolution.x, m_pColdData->m_windowResolution.y, 1);
+		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
 		desc.miplevels = 1;
 		desc.sparse = 0;
 
@@ -136,7 +156,7 @@ void RenderAspect::createTextures()
 
 		desc.format = vx::gl::TextureFormat::DEPTH32;
 		desc.type = vx::gl::TextureType::Texture_2D;
-		desc.size = vx::ushort3(m_pColdData->m_windowResolution.x, m_pColdData->m_windowResolution.y, 1);
+		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
 		m_pColdData->m_gbufferDepthTexture.create(desc);
 		m_pColdData->m_gbufferDepthTexture.makeTextureResident();
 	}
@@ -145,13 +165,15 @@ void RenderAspect::createTextures()
 		vx::gl::TextureDescription desc;
 		desc.type = vx::gl::TextureType::Texture_2D;
 		desc.format = vx::gl::TextureFormat::RGBA16F;
-		desc.size = vx::ushort3(1920, 1080, 1);
+		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
 		desc.miplevels = 1;
 		m_pColdData->m_ambientColorTexture.create(desc);
 		m_pColdData->m_ambientColorTexture.makeTextureResident();
 
-		m_pColdData->m_ambientColorBlurTexture.create(desc);
-		m_pColdData->m_ambientColorBlurTexture.makeTextureResident();
+		for (int i = 0; i < 2; ++i)
+		{
+			m_pColdData->m_ambientColorBlurTexture[i].create(desc);
+		}
 	}
 
 	{
@@ -169,29 +191,20 @@ void RenderAspect::createTextures()
 
 	{
 		vx::gl::TextureDescription desc;
-		desc.type = vx::gl::TextureType::Texture_2D;
-		desc.format = vx::gl::TextureFormat::R8;
-		desc.size = vx::ushort3(4096, 4096, 1);
-		desc.miplevels = 1;
-		m_pColdData->m_testTexture.create(desc);
-	}
-
-	{
-		vx::gl::TextureDescription desc;
-		desc.format = vx::gl::TextureFormat::DEPTH32;
-		desc.type = vx::gl::TextureType::Texture_2D;
-		desc.size = vx::ushort3(s_shadowMapResolution, s_shadowMapResolution, 1);
+		desc.format = vx::gl::TextureFormat::DEPTH32F;
+		desc.type = vx::gl::TextureType::Texture_Cubemap;
+		desc.size = vx::ushort3(s_shadowMapResolution, s_shadowMapResolution, 6);
 		desc.miplevels = 1;
 		desc.sparse = 0;
 		m_pColdData->m_shadowTexture.create(desc);
 
 		m_pColdData->m_shadowTexture.setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
-		m_pColdData->m_shadowTexture.setWrapMode2D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
+		m_pColdData->m_shadowTexture.setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE);
 
 		glTextureParameteri(m_pColdData->m_shadowTexture.getId(), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 		glTextureParameteri(m_pColdData->m_shadowTexture.getId(), GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-		float ones[] = { 0, 0, 0, 0 };
-		glTextureParameterfv(m_pColdData->m_shadowTexture.getId(), GL_TEXTURE_BORDER_COLOR, ones);
+		//float ones[] = { 0, 0, 0, 0 };
+		//glTextureParameterfv(m_pColdData->m_shadowTexture.getId(), GL_TEXTURE_BORDER_COLOR, ones);
 
 		m_pColdData->m_shadowTexture.makeTextureResident();
 	}
@@ -233,27 +246,28 @@ void RenderAspect::createFrameBuffers()
 	}
 
 	{
-
-		m_blurFB.create();
-		m_blurFB.attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_ambientColorBlurTexture, 0);
-		glNamedFramebufferDrawBuffer(m_blurFB.getId(), GL_COLOR_ATTACHMENT0);
+		for (int i = 0; i < 2; ++i)
+		{
+			m_blurFB[i].create();
+			m_blurFB[i].attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_ambientColorBlurTexture[i], 0);
+			glNamedFramebufferDrawBuffer(m_blurFB[i].getId(), GL_COLOR_ATTACHMENT0);
+		}
 	}
 }
 
-bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc &desc)
+bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc)
 {
 	vx::gl::ContextDescription contextDesc = vx::gl::ContextDescription::create(*desc.window, desc.resolution, desc.fovRad, desc.z_near, desc.z_far, 4, 5, desc.vsync, desc.debug);
 	if (!m_renderContext.initialize(contextDesc))
 		return false;
 
-	return initializeImpl(dataDir, desc.resolution, desc.debug, desc.targetMs, desc.pAllocator, desc.pProfiler, desc.pGraph);
+	return initializeImpl(dataDir, desc.resolution, desc.debug, desc.pAllocator);
 }
 
-bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug,
-	F32 targetMs, vx::StackAllocator *pAllocator, Profiler2 *pProfiler, ProfilerGraph* pGraph)
+bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, vx::StackAllocator *pAllocator)
 {
 	m_pColdData = std::make_unique<ColdData>();
-	m_pColdData->m_windowResolution = windowResolution;
+	m_resolution = windowResolution;
 
 	m_allocator = vx::StackAllocator(pAllocator->allocate(5 MBYTE, 64), 5 MBYTE);
 	
@@ -285,20 +299,6 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	createUniformBuffers();
 	createBuffers();
 
-	/*{
-		TextureFile fontTexture;
-		if (!fontTexture.loadFromFile((dataDir + "textures/verdana.png").c_str()))
-			return false;
-
-		auto ref = m_pColdData->m_textureManager.load(fontTexture, 1, 1);
-
-		FontAtlas fontAtlas;
-		if (!fontAtlas.loadFromFile((dataDir + "fonts/meta/VerdanaRegular.sdff").c_str()))
-			return false;
-
-		m_pColdData->m_font = Font(std::move(ref), std::move(fontAtlas));
-	}*/
-
 #if _VX_PROFILER
 	/*if (pProfiler)
 	{
@@ -312,48 +312,75 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 		pGraph->initialize(m_shaderManager, targetMs);
 	}*/
 #else
-	VX_UNREFERENCED_PARAMETER(pProfiler);
-	VX_UNREFERENCED_PARAMETER(pGraph);
-	VX_UNREFERENCED_PARAMETER(targetMs);
 	VX_UNREFERENCED_PARAMETER(pAllocator);
 #endif
 
 	m_sceneRenderer.initialize(10, &m_bufferManager, pAllocator);
-	m_navMeshRenderer.initialize(m_shaderManager);
-	m_voxelRenderer.initialize(m_shaderManager, &m_bufferManager);
+	m_voxelRenderer.initialize(128, m_shaderManager, &m_bufferManager);
+
+	{
+		auto file = (dataDir + "textures/verdana.png");
+		auto ref = m_sceneRenderer.loadTexture(file.c_str());
+
+		FontAtlas fontAtlas;
+		if (!fontAtlas.loadFromFile((dataDir + "fonts/meta/VerdanaRegular.sdff").c_str()))
+			return false;
+
+		m_pColdData->m_font = Font(std::move(ref), std::move(fontAtlas));
+	}
+
+	m_renderpassFinalImageFullShading.initialize(m_emptyVao, *m_shaderManager.getPipeline("draw_final_image.pipe"), m_resolution);
+	m_renderpassFinalImageAlbedo.initialize(m_emptyVao, *m_shaderManager.getPipeline("drawFinalImageAlbedo.pipe"), m_resolution);
+	m_renderpassFinalImageNormals.initialize(m_emptyVao, *m_shaderManager.getPipeline("drawFinalImageNormals.pipe"), m_resolution);
+
+	m_pRenderPassFinalImage = &m_renderpassFinalImageFullShading;
+
+	createRenderPassCreateShadowMaps();
+
 	bindBuffers();
 
 	return true;
 }
 
-/*void RenderAspect::writeMeshToVertexBuffer(const vx::StringID64 &meshSid, const vx::Mesh* pMesh, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
+void RenderAspect::createRenderPassCreateShadowMaps()
 {
-	auto marker = m_scratchAllocator.getMarker();
-	SCOPE_EXIT
-	{
-		m_scratchAllocator.clear(marker);
-	};
+	m_pColdData->m_capabilityManager.createCapabilitySettingsPolygonOffsetFill(2.5f, 10.0f, "polygonOffsetFillShadowMap");
+	auto capEnablePolygonOffsetFill = m_pColdData->m_capabilityManager.createEnablePolygonOffsetFill("enablePolygonOffsetFillShadowMap", "polygonOffsetFillShadowMap");
+	auto capEnableDepthTest = m_pColdData->m_capabilityManager.createEnableDepthTest("enableDepthTest");
+	auto capDisablePolygonOffsetFill = m_pColdData->m_capabilityManager.createDisablePolygonOffsetFill("disablePolygonOffsetFill");
 
-	auto vertexCount = pMesh->getVertexCount();
-	auto vertexSizeBytes = sizeof(VertexPNTUV) * vertexCount;
-	VertexPNTUV* pVertices = (VertexPNTUV*)m_scratchAllocator.allocate(vertexSizeBytes);
+	auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
+	auto &meshVao = m_sceneRenderer.getMeshVao();
 
-	auto indexCount = pMesh->getIndexCount();
-	U32 indexSizeBytes = sizeof(U32) * indexCount;
-	U32* pIndices = (U32*)m_scratchAllocator.allocate(indexSizeBytes);
+	Graphics::DrawCommandDescription drawCmdDesc;
+	drawCmdDesc.dataType = vx::gl::DataType::Unsigned_Int;
+	drawCmdDesc.primitiveMode = Graphics::PrimitiveMode::Triangles;
+	drawCmdDesc.indirectBuffer = cmdBuffer.getId();
+	drawCmdDesc.renderMode = Graphics::RenderMode::MultiDrawElementsIndirect;
 
-	U32 offsetBytes = *vertexOffsetGpu * sizeof(VertexPNTUV);
-	U32 offsetIndicesBytes = sizeof(U32) * (*indexOffsetGpu);
+	Graphics::RenderPassDescription desc;
+	desc.drawCmdDesc = drawCmdDesc;
+	desc.resolution = vx::uint2(s_shadowMapResolution, s_shadowMapResolution);
+	desc.vao = meshVao.getId();
+	desc.fbo = m_shadowFB.getId();
+	desc.clearBits = GL_DEPTH_BUFFER_BIT;
+	desc.pipeline = m_shaderManager.getPipeline("shadow.pipe")->getId();
 
-	U32 tmpOffset = 0;
-	writeMeshToBuffer(meshSid, pMesh, pVertices, pIndices, &tmpOffset, &tmpOffset, vertexOffsetGpu, indexOffsetGpu);
+	Graphics::RenderPass renderPassCreateShadowMap;
+	renderPassCreateShadowMap.initialize(desc);
 
-	auto pGpuVertices = m_pColdData->m_meshVbo.mapRange<VertexPNTUV>(offsetBytes, vertexSizeBytes, vx::gl::MapRange::Write);
-	memcpy(pGpuVertices.get(), pVertices, vertexSizeBytes);
+	m_renderStageCreateShadowMap.pushRenderPass("createShadowMap", renderPassCreateShadowMap);
+	m_renderStageCreateShadowMap.attachCapabilityBegin("createShadowMap", capEnablePolygonOffsetFill);
+	m_renderStageCreateShadowMap.attachCapabilityBegin("createShadowMap", capEnableDepthTest);
+	m_renderStageCreateShadowMap.attachCapabilityEnd("createShadowMap", capDisablePolygonOffsetFill);
+}
 
-	auto pGpuIndices = m_pColdData->m_meshIbo.mapRange<U32>(offsetIndicesBytes, indexSizeBytes, vx::gl::MapRange::Write);
-	memcpy(pGpuIndices.get(), pIndices, indexSizeBytes);
-}*/
+bool RenderAspect::initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocator* allocator)
+{
+	auto fontHandle = glGetTextureHandleARB(m_pColdData->m_font.getTextureEntry().getTextureId());
+
+	return m_sceneRenderer.initializeProfiler(m_pColdData->m_font, fontHandle, m_resolution, m_shaderManager, gpuProfiler, allocator);
+}
 
 void RenderAspect::shutdown(const HWND hwnd)
 {
@@ -394,11 +421,20 @@ void RenderAspect::update()
 		case RenderUpdateTask::Type::UpdateCamera:
 			taskUpdateCamera();
 			break;
+		case RenderUpdateTask::Type::UpdateDynamicTransforms:
+			taskUpdateDynamicTransforms(it.ptr);
+			break;
+		case RenderUpdateTask::Type::CreateActorGpuIndex:
+			taskCreateActorGpuIndex(it.ptr);
+			break;
 		case RenderUpdateTask::Type::TakeScreenshot:
 			taskTakeScreenshot();
 			break;
 		case RenderUpdateTask::Type::LoadScene:
 			taskLoadScene(it.ptr);
+			break;
+		case RenderUpdateTask::Type::ToggleRenderMode:
+			taskToggleRenderMode();
 			break;
 		default:
 			break;
@@ -431,14 +467,79 @@ void RenderAspect::taskTakeScreenshot()
 void RenderAspect::taskLoadScene(void* p)
 {
 	Scene* pScene = (Scene*)p;
-	m_sceneRenderer.loadScene(*pScene, m_bufferManager, &m_navMeshRenderer);
+	vx::verboseChannelPrintF(0, dev::Channel_Render, "Loading Scene into Render");
+	m_sceneRenderer.loadScene(*pScene, m_bufferManager);
 	m_pScene = pScene;
+
+	auto count = m_sceneRenderer.getMeshInstanceCount();
+	m_renderStageCreateShadowMap.setDrawCountAll(count);
 }
 
-void RenderAspect::render()
+void RenderAspect::taskToggleRenderMode()
 {
+	vx::verboseChannelPrintF(0, dev::Channel_Render, "Toggling Rendermode");
+
+	ShadingMode mode = dev::g_debugRenderSettings.getShadingMode();
+
+	switch (mode)
+	{
+	case ShadingMode::Full:
+		m_pRenderPassFinalImage = &m_renderpassFinalImageFullShading;
+		//m_voxelize = dev::g_debugRenderSettings.voxelize();
+		break;
+	case ShadingMode::Albedo:
+		m_pRenderPassFinalImage = &m_renderpassFinalImageAlbedo;
+		//m_voxelize = 0;
+		break;
+	case ShadingMode::Normals:
+		m_pRenderPassFinalImage = &m_renderpassFinalImageNormals;
+		//m_voxelize = 0;
+		break;
+	default:
+		break;
+	}
+}
+
+void RenderAspect::taskCreateActorGpuIndex(void* p)
+{
+	auto evtManager = Locator::getEventManager();
+
+	CreateActorData* data = (CreateActorData*)p;
+	auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material, data->pScene);
+
+	printf("gpuIndex: %u\n", gpuIndex);
+
+	Event e;
+	e.arg1 = data->index;
+	e.arg2 = (U32)gpuIndex;
+	e.code = (U32)IngameEvent::Created_Actor_GPU;
+	e.type = EventType::Ingame_Event;
+
+	evtManager->addEvent(e);
+
+	delete(data);
+}
+
+void RenderAspect::taskUpdateDynamicTransforms(void* p)
+{
+	RenderUpdateDataTransforms data = *(RenderUpdateDataTransforms*)p;
+	delete(p);
+
+	for (U32 i = 0; i < data.count; ++i)
+	{
+		m_sceneRenderer.updateTransform(data.transforms[i], data.indices[i]);
+	}
+
+	delete[]data.indices;
+	_aligned_free(data.transforms);
+}
+
+void RenderAspect::render(GpuProfiler* gpuProfiler)
+{
+	gpuProfiler->pushGpuMarker("clear");
 	clearTextures();
 	clearBuffers();
+	gpuProfiler->popGpuMarker();
 
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
@@ -447,49 +548,68 @@ void RenderAspect::render()
 	auto meshCount = m_sceneRenderer.getMeshInstanceCount();
 	auto &meshVao = m_sceneRenderer.getMeshVao();
 
+	gpuProfiler->pushGpuMarker("shadow mapping");
 	createShadowMap(meshVao,cmdBuffer, meshCount);
+	gpuProfiler->popGpuMarker();
 
+	gpuProfiler->pushGpuMarker("gbuffer");
 	createGBuffer(meshVao,cmdBuffer, meshCount);
+	gpuProfiler->popGpuMarker();
 
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		gpuProfiler->pushGpuMarker("voxelize");
+		voxelize(meshVao, cmdBuffer, meshCount);
+		gpuProfiler->popGpuMarker();
 
-	voxelize(meshVao, cmdBuffer, meshCount);
+		gpuProfiler->pushGpuMarker("mipmap");
+		m_voxelRenderer.createMipmaps();
+		gpuProfiler->popGpuMarker();
 
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		gpuProfiler->pushGpuMarker("cone trace");
+		coneTrace();
+		gpuProfiler->popGpuMarker();
+
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+		gpuProfiler->pushGpuMarker("blur");
+		blurAmbientColor();
+		gpuProfiler->popGpuMarker();
 
 	vx::gl::StateManager::setClearColor(0.1f, 0.1f, 0.1f, 1);
-
 	vx::gl::StateManager::bindFrameBuffer(0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-	coneTrace();
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-	blurAmbientColor();
-
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-	renderFinalImage();
+	gpuProfiler->pushGpuMarker("final");
+	m_pRenderPassFinalImage->render(1);
+	gpuProfiler->popGpuMarker();
 
 	//voxelDebug();
 
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	renderProfiler(gpuProfiler);
 
-	// nav nodes
-	if (dev::g_showNavGraph != 0)
-	{
-		renderNavGraph();
-	}
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 	m_renderContext.swapBuffers();
 }
 
+void RenderAspect::readFrame()
+{
+	/*m_currentReadBuffer = (m_currentReadBuffer + 1) % 3;
+	m_currentWriteBuffer = (m_currentWriteBuffer + 1) % 3;
+
+	m_videoBuffers[m_currentWriteBuffer].bind();
+	glReadPixels(0, 0, m_resolution.x, m_resolution.x, GL_RGBA, GL_FLOAT, 0);*/
+}
+
+void RenderAspect::getFrameData(vx::float4a* dst)
+{
+	//glGetNamedBufferSubData(m_videoBuffers[m_currentReadBuffer].getId(), 0, sizeof(vx::float4a) * m_resolution.x*m_resolution.y, dst);
+}
 
 void RenderAspect::bindBuffers()
 {
@@ -502,7 +622,6 @@ void RenderAspect::bindBuffers()
 	BufferBindingManager::bindBaseUniform(2, pCameraBufferStatic->getId());
 	BufferBindingManager::bindBaseUniform(3, pUniformTextureBuffer->getId());
 	BufferBindingManager::bindBaseUniform(5, pShadowTransformBuffer->getId());
-
 
 	BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
 
@@ -523,29 +642,20 @@ void RenderAspect::clearBuffers()
 
 void RenderAspect::createShadowMap(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count)
 {
-	vx::gl::StateManager::setViewport(0, 0, s_shadowMapResolution, s_shadowMapResolution);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Polygon_Offset_Fill);
+	//vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+	//vx::gl::StateManager::enable(vx::gl::Capabilities::Polygon_Offset_Fill);
 
-	glPolygonOffset(2.5f, 10.0f);
+	//glPolygonOffset(2.5f, 10.0f);
 
-	vx::gl::StateManager::bindFrameBuffer(m_shadowFB);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	m_renderStageCreateShadowMap.draw();
 
-	auto pPipeline = m_shaderManager.getPipeline("shadow.pipe");
-	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::bindVertexArray(vao);
-
-	cmdBuffer.bind();
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Polygon_Offset_Fill);
+	//vx::gl::StateManager::disable(vx::gl::Capabilities::Polygon_Offset_Fill);
 }
 
 void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count)
 {
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 
 	vx::gl::StateManager::bindFrameBuffer(m_gbufferFB);
@@ -567,31 +677,8 @@ void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer
 
 void RenderAspect::voxelDebug()
 {
-	m_voxelRenderer.debug(m_emptyVao);
+	m_voxelRenderer.debug(m_emptyVao, m_resolution);
 }
-
-/*void RenderAspect::createTrianglesAndAABBs()
-{
-	vx::gl::StateManager::setViewport(0, 0, 1024, 2);
-	vx::gl::StateManager::setClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
-	vx::gl::StateManager::bindFrameBuffer(m_aabbFB);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-
-	glBlendEquation(GL_MIN);
-	glBlendFunc(GL_SRC_COLOR, GL_ZERO);
-
-	auto pPipeline = m_shaderManager.getPipeline("create_triangles_aabb.pipe");
-
-	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
-
-	m_commandBlock.bind();
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-}*/
 
 void RenderAspect::coneTrace()
 {
@@ -604,62 +691,75 @@ void RenderAspect::coneTrace()
 	auto fs = pPipeline->getFragmentShader();
 
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
 
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_ONE, GL_ONE);
-
 	glDrawArrays(GL_POINTS, 0, 1);
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 }
 
 void RenderAspect::blurAmbientColor()
 {
-	glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
-
-	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+	vx::gl::StateManager::setClearColor(0, 0, 0, 1);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
 
-	vx::gl::StateManager::bindFrameBuffer(m_blurFB);
-	glClear(GL_COLOR_BUFFER_BIT);
 
-	auto pPipeline = m_shaderManager.getPipeline("blurpass1.pipe");
+
+	auto pPipeline = m_shaderManager.getPipeline("blurpass.pipe");
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	auto fsShader = pPipeline->getFragmentShader();
+
+	U32 src = 0;
+	U32 dst = 1;
+	F32 pixelDistance = 2.0f;
+
+//	glProgramUniform1f(fsShader, 0, pixelDistance);
+
+	vx::gl::StateManager::bindFrameBuffer(m_blurFB[dst]);
+	glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+	m_pColdData->m_ambientColorTexture.bind();
 
 	glDrawArrays(GL_POINTS, 0, 1);
 
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	std::swap(src, dst);
 
-	vx::gl::StateManager::bindFrameBuffer(m_coneTraceFB);
-	glClear(GL_COLOR_BUFFER_BIT);
+	for (int i = 2; i < 5; ++i)
+	{
+		pixelDistance = pow(2.0f, i);
+		glProgramUniform1f(fsShader, 0, pixelDistance);
+
+		vx::gl::StateManager::bindFrameBuffer(m_blurFB[dst]);
+
+		glActiveTexture(GL_TEXTURE0);
+		m_pColdData->m_ambientColorBlurTexture[src].bind();
+
+		glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_FRAMEBUFFER_BARRIER_BIT);
+		glDrawArrays(GL_POINTS, 0, 1);
+
+		std::swap(src, dst);
+	}
 
 	pPipeline = m_shaderManager.getPipeline("blurpass2.pipe");
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	glDrawArrays(GL_POINTS, 0, 1);
-}
 
-void RenderAspect::renderFinalImage()
-{
-	vx::gl::StateManager::bindFrameBuffer(0);
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+	glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_FRAMEBUFFER_BARRIER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+	m_pColdData->m_ambientColorBlurTexture[src].bind();
 
-	auto pPipeline = m_shaderManager.getPipeline("draw_final_image.pipe");
-	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
-	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
+	vx::gl::StateManager::bindFrameBuffer(m_coneTraceFB);
 
 	glDrawArrays(GL_POINTS, 0, 1);
+
+	//pPipeline = m_shaderManager.getPipeline("blurpass2.pipe");
+	//vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	//glDrawArrays(GL_POINTS, 0, 1);
 }
 
-void RenderAspect::renderProfiler(Profiler2* pProfiler, ProfilerGraph* pGraph)
+void RenderAspect::renderProfiler(GpuProfiler* gpuProfiler)
 {
-	/*vx::gl::StateManager::setViewport(0, 0, 1920, 1080);
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
@@ -667,86 +767,67 @@ void RenderAspect::renderProfiler(Profiler2* pProfiler, ProfilerGraph* pGraph)
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	pProfiler->render();
-	pGraph->render();
+	gpuProfiler->render();
 
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);*/
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 }
 
-void RenderAspect::renderNavGraph()
+void RenderAspect::keyPressed(U16 key)
 {
-	m_navMeshRenderer.render();
+	if (key == vx::Keyboard::Key_Num0)
+	{
+		RenderUpdateTask task;
+		task.type = RenderUpdateTask::Type::ToggleRenderMode;
+
+		dev::g_debugRenderSettings.toggleVoxelize();
+
+		queueUpdateTask(task);
+	}
+	else if (key == vx::Keyboard::Key_Num7)
+	{
+		RenderUpdateTask task;
+		task.type = RenderUpdateTask::Type::ToggleRenderMode;
+
+		dev::g_debugRenderSettings.setShadingMode(ShadingMode::Full);
+
+		queueUpdateTask(task);
+	}
+	else if (key == vx::Keyboard::Key_Num8)
+	{
+		RenderUpdateTask task;
+		task.type = RenderUpdateTask::Type::ToggleRenderMode;
+		dev::g_debugRenderSettings.setShadingMode(ShadingMode::Albedo);
+		queueUpdateTask(task);
+	}
+	else if(key == vx::Keyboard::Key_Num9)
+	{
+		RenderUpdateTask task;
+		task.type = RenderUpdateTask::Type::ToggleRenderMode;
+		dev::g_debugRenderSettings.setShadingMode(ShadingMode::Normals);
+		queueUpdateTask(task);
+	}
+	else if(key == vx::Keyboard::Key_F10)
+	{
+		RenderUpdateTask task;
+		task.type = RenderUpdateTask::Type::TakeScreenshot;
+		queueUpdateTask(task);
+	}
 }
-
-/*U16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene)
-{
-	auto itMesh = m_meshEntries.find(mesh);
-	if (itMesh == m_meshEntries.end())
-	{
-		auto &sceneMeshes = pScene->getMeshes();
-		auto itSceneMesh = sceneMeshes.find(mesh);
-
-		U32 vertexOffset = m_meshVertexCountDynamic + s_maxVerticesStatic;
-		U32 indexOffset = m_meshIndexCountDynamic + s_maxIndicesStatic;
-		writeMeshToVertexBuffer(mesh, (*itSceneMesh), &vertexOffset, &indexOffset);
-
-		m_meshVertexCountDynamic += (*itSceneMesh)->getVertexCount();
-		m_meshIndexCountDynamic += (*itSceneMesh)->getIndexCount();
-
-		itMesh = m_meshEntries.find(mesh);
-	}
-
-	auto pMaterial = m_fileAspect.getMaterial(material);
-
-	// add material
-	auto itMaterial = m_materialIndices.find(pMaterial);
-	if (itMaterial == m_materialIndices.end())
-	{
-		createMaterial(pMaterial);
-
-		writeMaterialToBuffer(pMaterial, m_materialCount);
-
-		itMaterial = m_materialIndices.insert(pMaterial, m_materialCount);
-
-		++m_materialCount;
-	}
-
-	// create transform and draw command
-	auto materialIndex = *itMaterial;
-
-	U32 elementId = s_meshMaxInstancesStatic + m_meshInstanceCountDynamic;
-	U16 index = m_meshInstancesCountTotal;
-
-	writeTransform(transform, elementId);
-	writeMeshInstanceIdBuffer(elementId, materialIndex);
-	writeMeshInstanceToCommandBuffer(*itMesh, index, elementId);
-
-	++m_meshInstanceCountDynamic;
-
-	m_meshInstancesCountTotal = m_meshInstanceCountStatic + m_meshInstanceCountDynamic;
-
-	return elementId;
-}*/
-
-/*U16 RenderAspect::getActorGpuIndex()
-{
-
-}*/
 
 void RenderAspect::takeScreenshot()
 {
-	const auto resDim = m_pColdData->m_windowResolution.x * m_pColdData->m_windowResolution.y;
+	const auto resDim = m_resolution.x * m_resolution.y;
 	const auto pixelBufferSizeBytes = sizeof(vx::float4a) * resDim;
 
 	m_pColdData->m_screenshotBuffer.bind();
-	glReadPixels(0, 0, m_pColdData->m_windowResolution.x, m_pColdData->m_windowResolution.y, GL_RGBA, GL_FLOAT, 0);
+	glReadPixels(0, 0, m_resolution.x, m_resolution.y, GL_RGBA, GL_FLOAT, 0);
 
 	auto pScreenshotData = (vx::float4a*)_aligned_malloc(pixelBufferSizeBytes, 16);
 	auto p = m_pColdData->m_screenshotBuffer.map<U8>(vx::gl::Map::Read_Only);
 	memcpy(pScreenshotData, p.get(), pixelBufferSizeBytes);
 	p.unmap();
 
-	ScreenshotFactory::writeScreenshotToFile(m_pColdData->m_windowResolution, pScreenshotData);
+	ScreenshotFactory::writeScreenshotToFile(m_resolution, pScreenshotData);
 }
 
 void RenderAspect::handleEvent(const Event &evt)
@@ -772,6 +853,7 @@ void RenderAspect::handleFileEvent(const Event &evt)
 	{
 	case FileEvent::Scene_Loaded:
 	{
+		vx::verboseChannelPrintF(0, dev::Channel_Render, "Queuing loading Scene into Render");
 		auto pScene = (Scene*)evt.arg1.ptr;
 		
 		RenderUpdateTask task;
@@ -791,13 +873,35 @@ void RenderAspect::handleIngameEvent(const Event &evt)
 
 	if (type == IngameEvent::Created_NavGraph)
 	{
-		NavGraph* pGraph = (NavGraph*)evt.arg1.ptr;
+		//NavGraph* pGraph = (NavGraph*)evt.arg1.ptr;
 
-		m_navMeshRenderer.updateBuffer(*pGraph);
+		//m_navMeshRenderer.updateBuffer(*pGraph);
+	}
+	else if (type == IngameEvent::Create_Actor)
+	{
+		auto evtManager = Locator::getEventManager();
+
+		CreateActorData* data = (CreateActorData*)evt.arg2.ptr;
+		auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material, data->pScene);
+
+		delete(data);
+
+		Event e;
+		e.arg1 = evt.arg1;
+		e.arg2 = (U32)gpuIndex;
+		e.code = (U32)IngameEvent::Created_Actor_GPU;
+		e.type = EventType::Ingame_Event;
+
+		evtManager->addEvent(e);
 	}
 }
 
 void RenderAspect::getProjectionMatrix(vx::mat4* m)
 {
 	*m = m_renderContext.getProjectionMatrix();
+}
+
+U16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene)
+{
+	return m_sceneRenderer.addActorToBuffer(transform, mesh, material, pScene);
 }

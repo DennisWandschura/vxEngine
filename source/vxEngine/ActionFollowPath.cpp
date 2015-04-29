@@ -9,9 +9,8 @@
 #include "NavNode.h"
 #include "ComponentActor.h"
 
-ActionFollowPath::ActionFollowPath(Component::Input* pInput, Component::Physics* pPhysics, Component::Actor* pActor)
-	:m_pInput(pInput),
-	m_arrive(pPhysics, pInput),
+ActionFollowPath::ActionFollowPath(Component::Input* pInput, EntityActor* entity, Component::Actor* pActor)
+	:m_arrive(entity, pInput),
 	m_pData(pActor->data.get()),
 	m_pActor(pActor)
 {

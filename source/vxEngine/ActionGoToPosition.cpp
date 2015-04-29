@@ -6,9 +6,8 @@
 #include "EventsAI.h"
 #include "EventTypes.h"
 
-ActionGoToPosition::ActionGoToPosition(Component::Input* pInput, Component::Physics* pPhysics)
-	:m_pInput(pInput),
-	m_arrive(pPhysics, pInput)
+ActionGoToPosition::ActionGoToPosition(Component::Input* pInput, EntityActor* entity)
+	:m_arrive(entity, pInput)
 {
 }
 
@@ -37,7 +36,7 @@ void ActionGoToPosition::run()
 			printf("arrived\n");
 		}
 
-		m_pInput->velocity = out.velocity;
+		m_arrive.getInputComponent()->velocity = out.velocity;
 	}
 }
 

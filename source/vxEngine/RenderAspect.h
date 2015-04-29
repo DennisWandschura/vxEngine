@@ -1,19 +1,13 @@
 #pragma once
 
-namespace vx
+namespace Graphics
 {
-	//struct Keyboard;
-	//struct Mouse;
-	//class Window;
-	//class StackAllocator;
-	//class Mesh;
-	//struct Transform;
-	//struct TransformGpu;
+	class CapabilitySetting;
 }
 
-class Profiler2;
-class ProfilerGraph;
+class GpuProfiler;
 
+#include "RenderAspectDescription.h"
 #include "EventListener.h"
 #include <vxLib\gl\RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
@@ -21,31 +15,17 @@ class ProfilerGraph;
 #include "VoxelRenderer.h"
 #include "Font.h"
 #include "RenderUpdateTask.h"
-#include "NavMeshRenderer.h"
 #include "BufferManager.h"
 #include <vxLib/gl/ShaderManager.h>
 #include <mutex>
 #include <vector>
+#include "RenderCommandFinalImage.h"
+#include "RenderStage.h"
+#include "CapabilityManager.h"
 
-struct RenderAspectDesc
+class VX_ALIGN(64) RenderAspect : public EventListener
 {
-	const vx::Window* window;
-	vx::StackAllocator* pAllocator;
-	Profiler2 *pProfiler;
-	ProfilerGraph* pGraph;
-	vx::uint2 resolution;
-	F32 fovRad; 
-	F32 z_near;
-	F32 z_far; 
-	F32 targetMs;
-	bool vsync; 
-	bool debug;
-};
-
-class RenderAspect : public EventListener
-{
-
-	static const auto s_shadowMapResolution = 4096;
+	static const auto s_shadowMapResolution = 2048;
 
 protected:
 	struct ColdData
@@ -60,25 +40,25 @@ protected:
 		// surface : rgbaf16
 		vx::gl::Texture m_gbufferTangentSlice;
 		vx::gl::Texture m_aabbTexture;
-		vx::gl::Texture m_testTexture;
 		vx::gl::Buffer m_screenshotBuffer;
 
 		vx::gl::Texture m_shadowTexture;
 		vx::gl::Texture m_ambientColorTexture;
-		vx::gl::Texture m_ambientColorBlurTexture;
-
-		vx::uint2 m_windowResolution;
+		vx::gl::Texture m_ambientColorBlurTexture[2];
 		// contains index into texture array sorted by texture handle
 
 		Font m_font;
+		Graphics::CapabilityManager m_capabilityManager;
 	};
 
+	Graphics::RenderStage m_renderStageCreateShadowMap;
+	vx::uint2 m_resolution;
 	SceneRenderer m_sceneRenderer;
 	VoxelRenderer m_voxelRenderer;
+	RenderCommand* m_pRenderPassFinalImage;
 	std::mutex m_updateMutex;
 	std::vector<RenderUpdateTask> m_tasks;
 	RenderUpdateCameraData m_updateCameraData;
-	NavMeshRenderer m_navMeshRenderer;
 
 	vx::gl::Buffer m_cameraBuffer;
 	
@@ -86,9 +66,12 @@ protected:
 	vx::gl::Framebuffer m_gbufferFB;
 	vx::gl::Framebuffer m_aabbFB;
 	vx::gl::Framebuffer m_coneTraceFB;
-	vx::gl::Framebuffer m_blurFB;
+	vx::gl::Framebuffer m_blurFB[2];
 	vx::gl::VertexArray m_emptyVao;
 
+	RenderCommandFinalImage m_renderpassFinalImageFullShading;
+	RenderCommandFinalImage m_renderpassFinalImageAlbedo;
+	RenderCommandFinalImage m_renderpassFinalImageNormals;
 	vx::gl::ShaderManager m_shaderManager;
 	vx::gl::RenderContext m_renderContext;
 	vx::Camera m_camera;
@@ -109,8 +92,7 @@ protected:
 	void createTextures();
 	void createFrameBuffers();
 
-	bool initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, F32 targetMs,
-		vx::StackAllocator *pAllocator, Profiler2 *pProfiler, ProfilerGraph* pGraph);
+	bool initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, vx::StackAllocator *pAllocator);
 
 	////////////// Event handling
 	void handleFileEvent(const Event &evt);
@@ -132,24 +114,28 @@ protected:
 	void coneTrace();
 	void blurAmbientColor();
 
-	void renderFinalImage();
-	void renderProfiler(Profiler2* pProfiler, ProfilerGraph* pGraph);
-	void renderNavGraph();
+	void renderProfiler(GpuProfiler* gpuProfiler);
 
 	void taskUpdateCamera();
 	void taskTakeScreenshot();
 	void taskLoadScene(void* p);
+	void taskToggleRenderMode();
+	void taskCreateActorGpuIndex(void* p);
+	void taskUpdateDynamicTransforms(void* p);
 
-	// returns index into transform buffer
-	U16 getActorGpuIndex();
 	U16 addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene);
+	U16 getActorGpuIndex();
+
+	void createRenderPassCreateShadowMaps();
 
 public:
 	RenderAspect();
 	virtual ~RenderAspect();
 
-	bool initialize(const std::string &dataDir, const RenderAspectDesc &desc);
+	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc);
 	void shutdown(const HWND hwnd);
+
+	bool initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocator* allocator);
 
 	void makeCurrent(bool b);
 
@@ -157,9 +143,14 @@ public:
 	void queueUpdateCamera(const RenderUpdateCameraData &data);
 	void update();
 
-	void render();
+	void render(GpuProfiler* gpuProfiler);
 
 	virtual void handleEvent(const Event &evt) override;
+
+	void keyPressed(U16 key);
+
+	void readFrame();
+	void getFrameData(vx::float4a* dst);
 
 	const vx::gl::ShaderManager& getShaderManager() const { return m_shaderManager; }
 	void getProjectionMatrix(vx::mat4* m);

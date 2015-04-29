@@ -1,7 +1,7 @@
 #include "SceneRenderer.h"
 #include "Scene.h"
 #include "Vertex.h"
-#include "BufferBlocks.h"
+#include "GpuStructs.h"
 #include "Transform.h"
 #include "GpuFunctions.h"
 #include "utility.h"
@@ -12,9 +12,11 @@
 #include "BufferManager.h"
 #include "BufferBindingManager.h"
 #include "Light.h"
-#include "NavMeshRenderer.h"
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
+#include "TextureFile.h"
+#include "GpuProfiler.h"
+#include <vxLib/gl/ShaderManager.h>
 
 SceneRenderer::SceneRenderer()
 {
@@ -139,6 +141,15 @@ void SceneRenderer::initialize(U32 maxLightCount, BufferManager* pBufferManager,
 	m_coldData->m_lightBufferManager.initialize(maxLightCount);
 }
 
+bool SceneRenderer::initializeProfiler(const Font &font, U64 fontTextureHandle, const vx::uint2 &resolution, const vx::gl::ShaderManager &shaderManager, GpuProfiler* gpuProfiler, vx::StackAllocator *pAllocator)
+{
+	auto textureIndex = *m_coldData->m_texturesGPU.find(fontTextureHandle);
+	if (!gpuProfiler->initialize(&font, shaderManager.getPipeline("text.pipe"), textureIndex, resolution, pAllocator))
+		return false;
+
+	return true;
+}
+
 void SceneRenderer::createMaterial(Material* pMaterial)
 {
 	assert(pMaterial);
@@ -168,6 +179,60 @@ void SceneRenderer::createMaterial(Material* pMaterial)
 	pMaterial->setTextures(std::move(albedoRef), std::move(normalRef), std::move(surfaceRef));
 }
 
+U16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene)
+{
+	auto itMesh = m_coldData->m_meshEntries.find(mesh);
+	if (itMesh == m_coldData->m_meshEntries.end())
+	{
+		auto &sceneMeshes = pScene->getMeshes();
+		auto itSceneMesh = sceneMeshes.find(mesh);
+
+		U32 vertexOffset = m_coldData->m_meshVertexCountDynamic + s_maxVerticesStatic;
+		U32 indexOffset = m_coldData->m_meshIndexCountDynamic + s_maxIndicesStatic;
+
+		writeMeshesToVertexBuffer(&mesh, &(*itSceneMesh), 1, &vertexOffset, &indexOffset);
+		//writeMeshToVertexBuffer(mesh, (*itSceneMesh), );
+
+		m_coldData->m_meshVertexCountDynamic += (*itSceneMesh)->getVertexCount();
+		m_coldData->m_meshIndexCountDynamic += (*itSceneMesh)->getIndexCount();
+
+		itMesh = m_coldData->m_meshEntries.find(mesh);
+	}
+
+	auto fileAspect = Locator::getFileAspect();
+	auto pMaterial = fileAspect->getMaterial(material);
+
+	// add material
+	auto itMaterial = m_coldData->m_materialIndices.find(pMaterial);
+	if (itMaterial == m_coldData->m_materialIndices.end())
+	{
+		createMaterial(pMaterial);
+
+		writeMaterialToBuffer(pMaterial, m_coldData->m_materialCount);
+
+		itMaterial = m_coldData->m_materialIndices.insert(pMaterial, m_coldData->m_materialCount);
+
+		++m_coldData->m_materialCount;
+	}
+
+	// create transform and draw command
+	auto materialIndex = *itMaterial;
+
+	U32 elementId = s_meshMaxInstancesStatic + m_coldData->m_meshInstanceCountDynamic;
+	U16 index = m_meshInstancesCountTotal;
+
+	updateTransform(transform, elementId);
+	writeMeshInstanceIdBuffer(elementId, materialIndex);
+
+	writeMeshInstanceToCommandBuffer(*itMesh, index, elementId, nullptr);
+
+	++m_coldData->m_meshInstanceCountDynamic;
+
+	m_meshInstancesCountTotal = m_coldData->m_meshInstanceCountStatic + m_coldData->m_meshInstanceCountDynamic;
+
+	return elementId;
+}
+
 void SceneRenderer::updateTransform(const vx::Transform &transform, U32 elementId)
 {
 	auto qRotation = vx::loadFloat(transform.m_rotation);
@@ -179,10 +244,13 @@ void SceneRenderer::updateTransform(const vx::Transform &transform, U32 elementI
 	t.scaling = transform.m_scaling;
 	t.packedQRotation = packedRotation;
 
-	//glNamedBufferSubData(m_transformBlock.getId(), sizeof(vx::TransformGpu) * elementId, sizeof(vx::TransformGpu), &t);
+	updateTransform(t, elementId);
+}
 
+void SceneRenderer::updateTransform(const vx::TransformGpu &transform, U32 elementId)
+{
 	auto pTransforms = m_coldData->m_transformBlock.map<vx::TransformGpu>(vx::gl::Map::Write_Only);
-	vx::memcpy(pTransforms.get() + elementId, t);
+	vx::memcpy(pTransforms.get() + elementId, transform);
 	pTransforms.unmap();
 }
 
@@ -347,12 +415,13 @@ void SceneRenderer::updateMeshBuffer(const vx::sorted_vector<vx::StringID64, con
 
 void SceneRenderer::updateLightBuffer(const Light *pLights, U32 lightCount, const BufferManager &bufferManager)
 {
-	assert(lightCount <= 10);
+	assert(lightCount <= 5);
 
 	ShadowTransformBlock shadowTransforms;
+
 	for (auto i = 0u; i < lightCount; ++i)
 	{
-		pLights[i].getTransformationMatrix(&shadowTransforms.pvMatrices[i]);
+		pLights[i].getShadowTransform(&shadowTransforms.transforms[i]);
 	}
 
 	m_coldData->m_lightBufferManager.updateLightDataBuffer(pLights, lightCount);
@@ -369,7 +438,7 @@ void SceneRenderer::writeMeshInstanceIdBuffer(U32 elementId, U32 materialIndex)
 	pMeshId[elementId] = drawId;
 }
 
-void SceneRenderer::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 index, U32 elementId)
+void SceneRenderer::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 index, U32 elementId, vx::gl::DrawElementsIndirectCommand* drawCmd)
 {
 	vx::gl::DrawElementsIndirectCommand cmd;
 	cmd.count = meshEntry.indexCount;
@@ -377,6 +446,9 @@ void SceneRenderer::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 in
 	cmd.firstIndex = meshEntry.firstIndex;
 	cmd.baseVertex = 0;
 	cmd.baseInstance = elementId;
+
+	if (drawCmd)
+		*drawCmd = cmd;
 
 	auto mappedCmdBuffer = m_commandBlock.map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer[index] = cmd;
@@ -416,7 +488,11 @@ void SceneRenderer::updateBuffers(const MeshInstance *pInstances, U32 instanceCo
 
 		updateTransform(transform, elementId);
 		writeMeshInstanceIdBuffer(elementId, materialIndex);
-		writeMeshInstanceToCommandBuffer(*meshEntry, elementId, elementId);
+
+		vx::gl::DrawElementsIndirectCommand cmd;
+		writeMeshInstanceToCommandBuffer(*meshEntry, elementId, elementId, &cmd);
+
+		m_coldData->m_instanceCmds.insert(&pInstances[i], cmd);
 
 		++batchInstanceCount;
 		++totalInstanceCount;
@@ -433,7 +509,7 @@ void SceneRenderer::bindBuffers()
 	m_coldData->m_lightBufferManager.bindBuffer();
 }
 
-void SceneRenderer::loadScene(const Scene &scene, const BufferManager &bufferManager, NavMeshRenderer* pNavMeshRenderer)
+void SceneRenderer::loadScene(const Scene &scene, const BufferManager &bufferManager)
 {
 	auto &sceneMaterial = scene.getMaterials();
 	auto numMaterials = scene.getMaterialCount();
@@ -459,11 +535,22 @@ void SceneRenderer::loadScene(const Scene &scene, const BufferManager &bufferMan
 	updateMeshBuffer(scene.getMeshes());
 	updateBuffers(scene.getMeshInstances(), scene.getMeshInstanceCount(), m_coldData->m_materialIndices, m_coldData->m_meshEntries);
 
-	pNavMeshRenderer->updateNavMeshBuffer(scene.getNavMesh());
-
 	m_coldData->m_meshInstanceCountStatic = scene.getMeshInstanceCount();
 
 	m_meshInstancesCountTotal = m_coldData->m_meshInstanceCountStatic + m_coldData->m_meshInstanceCountDynamic;
+}
+
+TextureRef SceneRenderer::loadTexture(const char* file)
+{
+	TextureRef ref;
+
+	TextureFile texture;
+	if (texture.loadFromFile(file))
+	{
+		ref = m_coldData->m_textureManager.load(texture, 1, 1);
+	}
+
+	return ref;
 }
 
 U16 SceneRenderer::getActorGpuIndex()
@@ -475,4 +562,18 @@ U16 SceneRenderer::getActorGpuIndex()
 	++m_coldData->m_meshInstanceCountDynamic;
 
 	return elementId;
+}
+
+vx::gl::DrawElementsIndirectCommand SceneRenderer::getDrawCommand(const MeshInstance* p) const
+{
+	vx::gl::DrawElementsIndirectCommand cmd;
+	cmd.count = 0;
+
+	auto it = m_coldData->m_instanceCmds.find(p);
+	if (it != m_coldData->m_instanceCmds.end())
+	{
+		cmd = *it;
+	}
+
+	return cmd;
 }

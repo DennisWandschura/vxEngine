@@ -3,9 +3,26 @@
 #include "EventTypes.h"
 #include "Scene.h"
 #include <vxLib/gl/gl.h>
-#include "UniformBlocks.h"
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/ProgramPipeline.h>
+#include <vxLib/util/DebugPrint.h>
+#include "developer.h"
+#include "GpuStructs.h"
+#include "InfluenceMap.h"
+#include "NavMeshGraph.h"
+#include "utility.h"
+
+struct VertexNavMesh
+{
+	vx::float3 position;
+	vx::float3 color;
+};
+
+struct InfluenceCellVertex
+{
+	vx::float3 position;
+	U32 count;
+};
 
 enum class EditorRenderAspect::EditorUpdate : U32{ Update_None, Update_Mesh, Update_Material, Editor_Added_Instance, Editor_Update_Instance, Editor_Set_Scene };
 
@@ -30,9 +47,112 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 		return false;
 	}
 
+	m_pEditorColdData = std::make_unique<EditorColdData>();
 	m_editorData.initialize();
 
-	return initializeImpl(dataDir, windowResolution, debug, 0.0f, pAllocator, nullptr, nullptr);
+	createNavMeshVertexBuffer();
+	createNavMeshIndexBuffer();
+	createNavMeshVertexVao();
+	createNavMeshVao();
+
+	createInfluenceCellVbo();
+	createInfluenceCellVao();
+
+	createNavMeshNodesVbo();
+	createNavMeshNodesVao();
+
+	return initializeImpl(dataDir, windowResolution, debug, pAllocator);
+}
+
+void EditorRenderAspect::createNavMeshVertexBuffer()
+{
+	vx::gl::BufferDescription dsc;
+	dsc.bufferType = vx::gl::BufferType::Array_Buffer;
+	dsc.flags = vx::gl::BufferStorageFlags::Write;
+	dsc.immutable = 1;
+	dsc.size = sizeof(VertexNavMesh) * 256;
+	m_pEditorColdData->m_navMeshVertexVbo.create(dsc);
+}
+
+void EditorRenderAspect::createNavMeshIndexBuffer()
+{
+	vx::gl::BufferDescription dsc;
+	dsc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
+	dsc.flags = vx::gl::BufferStorageFlags::Write;
+	dsc.immutable = 1;
+	dsc.size = sizeof(U16) * 256 * 3;
+	m_pEditorColdData->m_navMeshVertexIbo.create(dsc);
+}
+
+void EditorRenderAspect::createNavMeshVao()
+{
+	m_navMeshVao.create();
+	m_navMeshVao.enableArrayAttrib(0);
+	m_navMeshVao.arrayAttribFormatF(0, 3, 0, 0);
+	m_navMeshVao.arrayAttribBinding(0, 0);
+	m_navMeshVao.bindVertexBuffer(m_pEditorColdData->m_navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
+
+	m_navMeshVao.bindIndexBuffer(m_pEditorColdData->m_navMeshVertexIbo);
+}
+
+void EditorRenderAspect::createNavMeshVertexVao()
+{
+	m_navMeshVertexVao.create();
+	m_navMeshVertexVao.enableArrayAttrib(0);
+	m_navMeshVertexVao.arrayAttribFormatF(0, 3, 0, 0);
+	m_navMeshVertexVao.arrayAttribBinding(0, 0);
+
+	m_navMeshVertexVao.enableArrayAttrib(1);
+	m_navMeshVertexVao.arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
+	m_navMeshVertexVao.arrayAttribBinding(1, 0);
+
+	m_navMeshVertexVao.bindVertexBuffer(m_pEditorColdData->m_navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
+}
+
+void EditorRenderAspect::createInfluenceCellVbo()
+{
+	vx::gl::BufferDescription dsc;
+	dsc.bufferType = vx::gl::BufferType::Array_Buffer;
+	dsc.flags = vx::gl::BufferStorageFlags::Write;
+	dsc.immutable = 1;
+	dsc.size = sizeof(InfluenceCellVertex) * 256;
+	m_pEditorColdData->m_influenceCellVbo.create(dsc);
+}
+
+void EditorRenderAspect::createInfluenceCellVao()
+{
+	m_influenceVao.create();
+
+	m_influenceVao.enableArrayAttrib(0);
+	m_influenceVao.arrayAttribFormatF(0, 3, 0, 0);
+	m_influenceVao.arrayAttribBinding(0, 0);
+
+	m_influenceVao.enableArrayAttrib(1);
+	m_influenceVao.arrayAttribFormatI(1, 1, vx::gl::DataType::Unsigned_Int, sizeof(vx::float3));
+	m_influenceVao.arrayAttribBinding(1, 0);
+
+	m_influenceVao.bindVertexBuffer(m_pEditorColdData->m_influenceCellVbo, 0, 0, sizeof(InfluenceCellVertex));
+}
+
+void EditorRenderAspect::createNavMeshNodesVbo()
+{
+	vx::gl::BufferDescription dsc;
+	dsc.bufferType = vx::gl::BufferType::Array_Buffer;
+	dsc.flags = vx::gl::BufferStorageFlags::Write;
+	dsc.immutable = 1;
+	dsc.size = sizeof(vx::float3) * 256;
+	m_pEditorColdData->m_navMeshGraphNodesVbo.create(dsc);
+}
+
+void EditorRenderAspect::createNavMeshNodesVao()
+{
+	m_navMeshGraphNodesVao.create();
+
+	m_navMeshGraphNodesVao.enableArrayAttrib(0);
+	m_navMeshGraphNodesVao.arrayAttribFormatF(0, 3, 0, 0);
+	m_navMeshGraphNodesVao.arrayAttribBinding(0, 0);
+
+	m_navMeshGraphNodesVao.bindVertexBuffer(m_pEditorColdData->m_navMeshGraphNodesVbo, 0, 0, sizeof(vx::float3));
 }
 
 void EditorRenderAspect::update()
@@ -42,62 +162,151 @@ void EditorRenderAspect::update()
 		updateEditor();
 		m_updateEditor.store(0);
 	}
+
+	updateCamera();
+	RenderAspect::update();
+}
+
+void EditorRenderAspect::renderLights()
+{
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+
+	auto pipe = m_shaderManager.getPipeline("editorDrawLights.pipe");
+	vx::gl::StateManager::bindPipeline(*pipe);
+
+	vx::gl::StateManager::bindVertexArray(m_emptyVao);
+
+	glPointSize(5.0f);
+
+	glDrawArrays(GL_POINTS, 0, m_lightCount);
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+}
+
+void EditorRenderAspect::renderNavMeshVertices()
+{
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+
+	auto pipe = m_shaderManager.getPipeline("editorDrawPointColor.pipe");
+	auto fsShader = pipe->getFragmentShader();
+	vx::gl::StateManager::bindPipeline(*pipe);
+
+	vx::gl::StateManager::bindVertexArray(m_navMeshVertexVao);
+	glPointSize(5.0f);
+
+	glDrawArrays(GL_POINTS, 0, m_navMeshVertexCount);
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+}
+
+void EditorRenderAspect::renderNavMeshGraphNodes()
+{
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+
+	auto pipe = m_shaderManager.getPipeline("editorDrawPoint.pipe");
+	auto fsShader = pipe->getFragmentShader();
+
+	const F32 color[] = {0, 1, 0, 0.5f};
+
+	glProgramUniform4fv(fsShader, 0, 1, color);
+
+	vx::gl::StateManager::bindPipeline(*pipe);
+
+	vx::gl::StateManager::bindVertexArray(m_navMeshGraphNodesVao);
+	glPointSize(5.0f);
+
+	glDrawArrays(GL_POINTS, 0, m_navMeshGraphNodesCount);
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+}
+
+void EditorRenderAspect::renderNavMesh()
+{
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	auto pPipeline = m_shaderManager.getPipeline("navmesh.pipe");
+	vx::float4 color(0.5f, 0, 0.5f, 0.25f);
+	glProgramUniform4fv(pPipeline->getFragmentShader(), 0, 1, color);
+
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_navMeshVao.getId());
+	glDrawElements(GL_TRIANGLES, m_navMeshIndexCount, GL_UNSIGNED_SHORT, 0);
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+}
+
+void EditorRenderAspect::renderInfluenceMap()
+{
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+	auto pPipeline = m_shaderManager.getPipeline("influenceMap.pipe");
+
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_influenceVao.getId());
+	glDrawArrays(GL_POINTS, 0, m_influenceCellCount);
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 }
 
 void EditorRenderAspect::render()
 {
-	/*glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_cameraBuffer.getId());
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_lightDataBlock.getId());
-	glBindBufferBase(GL_UNIFORM_BUFFER, 2, m_cameraBufferStatic.getId());
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, m_utextureBlock.getId());
+	clearTextures();
+	clearBuffers();
 
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_transformBlock.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_materialBlock.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_textureBlock.getId());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_commandBlock.getId());
-
+	vx::gl::StateManager::bindFrameBuffer(0);
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
+	auto meshCount = m_sceneRenderer.getMeshInstanceCount();
+	auto &meshVao = m_sceneRenderer.getMeshVao();
+
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+
+	vx::gl::StateManager::bindVertexArray(meshVao);
+
+	cmdBuffer.bind();
+
+	if (m_selectedInstance.ptr != nullptr)
 	{
-		//m_stageForwardRender.draw(m_stateManager);
+		auto offset = m_selectedInstance.cmd.baseInstance * sizeof(vx::gl::DrawElementsIndirectCommand);
 
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+		auto pipe = m_shaderManager.getPipeline("editorSelectedMesh.pipe");
+		vx::gl::StateManager::bindPipeline(*pipe);
 
-		vx::gl::StateManager::bindFrameBuffer(m_gbufferFB.getId());
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		auto pPipeline = m_shaderManager.getPipeline("forward_render.pipe");
-		vx::gl::StateManager::bindPipeline(pPipeline->getId());
-
-		vx::gl::StateManager::bindVertexArray(m_meshVao.getId());
-
-		m_commandBlock.bind();
-		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, m_meshInstancesCountTotal, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-		//m_stageForwardRender = RenderStage(, m_meshVao, m_commandBlock, 0, m_pColdData->m_windowResolution, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, std::move(forwardFramebuffer));
-
-		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+		glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)offset);
 	}
 
-	{
-		vx::gl::StateManager::setClearColor(0.1f, 0.1f, 0.1f, 1);
+	auto pipe = m_shaderManager.getPipeline("editor.pipe");
+	vx::gl::StateManager::bindPipeline(*pipe);
 
-		vx::gl::StateManager::bindFrameBuffer(0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, meshCount, sizeof(vx::gl::DrawElementsIndirectCommand));
 
-		// only do ray tracing if we actually have stuff
-		if (m_meshInstancesCountTotal != 0)
-		{
-			vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
+	renderLights();
 
-			auto pPipeline = m_shaderManager.getPipeline("ray_trace_draw_editor.pipe");
-			vx::gl::StateManager::bindPipeline(pPipeline->getId());
-			glDrawArrays(GL_POINTS, 0, 1);
+	renderInfluenceMap();
 
-		}
+	renderNavMesh();
 
-		m_editorData.drawMouse(m_shaderManager);
-		m_editorData.drawWaypoints(m_shaderManager);
-	}*/
+	renderNavMeshVertices();
+
+	renderNavMeshGraphNodes();
+
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 	m_renderContext.swapBuffers();
 }
@@ -294,89 +503,6 @@ void EditorRenderAspect::updateEditor()
 	m_updateData.clear();
 }
 
-void EditorRenderAspect::editor_addMesh(const vx::StringID64 &sid, const char* name, const vx::Mesh* pMesh)
-{
-	VX_UNREFERENCED_PARAMETER(sid);
-	VX_UNREFERENCED_PARAMETER(name);
-	VX_UNREFERENCED_PARAMETER(pMesh);
-	/*std::lock_guard<std::mutex> guard(m_updateDataMutex);
-	if (m_pCurrentScene->addMesh(sid, name, pMesh) != 0)
-	{
-	m_updateData.push_back(std::make_pair(sid, EditorUpdate::Update_Mesh));
-
-	m_updateEditor.store(1);
-	}*/
-}
-
-void EditorRenderAspect::editor_addMaterial(const vx::StringID64 &sid, const char* name, Material* pMaterial)
-{
-	VX_UNREFERENCED_PARAMETER(name);
-	VX_ASSERT(sid != 0u);
-	VX_ASSERT(pMaterial);
-	/*std::lock_guard<std::mutex> guard(m_updateDataMutex);
-	if (m_pCurrentScene->addMaterial(sid, name, pMaterial) != 0)
-	{
-	m_updateData.push_back(std::make_pair(sid, EditorUpdate::Update_Material));
-
-	m_updateEditor.store(1);
-	}*/
-}
-
-U8 EditorRenderAspect::editor_addMeshInstance(const vx::StringID64 instanceSid, const vx::StringID64 meshSid, const vx::StringID64 materialSid, const vx::Transform &transform)
-{
-	VX_UNREFERENCED_PARAMETER(instanceSid);
-	VX_UNREFERENCED_PARAMETER(meshSid);
-	VX_UNREFERENCED_PARAMETER(materialSid);
-	VX_UNREFERENCED_PARAMETER(transform);
-	/*std::lock_guard<std::mutex> guard(m_updateDataMutex);
-
-	if (m_pCurrentScene->addMeshInstance(instanceSid, meshSid, materialSid, transform) != 0)
-	{
-	m_updateData.push_back(std::make_pair(vx::StringID64(), EditorUpdate::Editor_Added_Instance));
-
-	m_updateEditor.store(1);
-
-	return 1;
-	}*/
-
-	return 0;
-}
-
-U32 EditorRenderAspect::editor_getTransform(const vx::StringID64 instanceSid, vx::float3 &translation, vx::float3 &rotation, F32 &scaling)
-{
-	VX_UNREFERENCED_PARAMETER(instanceSid);
-	VX_UNREFERENCED_PARAMETER(translation);
-	VX_UNREFERENCED_PARAMETER(rotation);
-	VX_UNREFERENCED_PARAMETER(scaling);
-	/*auto p = m_pCurrentScene->findMeshInstance(instanceSid);
-	if (p)
-	{
-	auto transform = p->getTransform();
-	translation = transform.m_translation;
-	rotation = transform.m_rotation;
-	scaling = transform.m_scaling;
-	return 1;
-	}*/
-
-	return 0;
-}
-
-void EditorRenderAspect::editor_updateTranslation(const vx::StringID64 instanceSid, const vx::float3 &translation)
-{
-	VX_UNREFERENCED_PARAMETER(instanceSid);
-	VX_UNREFERENCED_PARAMETER(translation);
-	/*std::lock_guard<std::mutex> guard(m_updateDataMutex);
-
-	auto p = m_pCurrentScene->findMeshInstance(instanceSid);
-	if (p)
-	{
-	p->setTranslation(translation);
-	m_updateData.push_back(std::make_pair(instanceSid, EditorUpdate::Editor_Update_Instance));
-
-	m_updateEditor.store(1);
-	}*/
-}
-
 void EditorRenderAspect::editor_moveCamera(F32 dirX, F32 dirY, F32 dirZ)
 {
 	const F32 speed = 0.05f;
@@ -403,4 +529,177 @@ void EditorRenderAspect::editor_updateWaypoint(U32 offset, U32 count, const Wayp
 void EditorRenderAspect::handleEditorEvent(const Event &evt)
 {
 	VX_UNREFERENCED_PARAMETER(evt);
+}
+
+void EditorRenderAspect::handleLoadScene(const Event &evt)
+{
+	auto scene = (Scene*)evt.arg1.ptr;
+	m_lightCount = scene->getLightCount();
+	auto &navMesh = scene->getNavMesh();
+
+	updateNavMeshBuffer(navMesh);
+}
+
+void EditorRenderAspect::handleFileEvent(const Event &evt)
+{
+	RenderAspect::handleFileEvent(evt);
+
+	if ((FileEvent)evt.code == FileEvent::Scene_Loaded)
+	{
+		handleLoadScene(evt);
+	}
+}
+
+void EditorRenderAspect::updateNavMeshBuffer(const NavMesh &navMesh)
+{
+	auto navMeshVertexCount = navMesh.getVertexCount();
+	if (navMeshVertexCount != 0)
+	{
+		auto vertices = navMesh.getVertices();
+		U32 tmp[3];
+		updateNavMeshVertexBufferWithSelectedVertex(vertices, navMeshVertexCount, tmp, 0);
+
+		m_navMeshVertexCount = navMeshVertexCount;
+	}
+
+	updateNavMeshIndexBuffer(navMesh);
+}
+
+void EditorRenderAspect::updateNavMeshBuffer(const NavMesh &navMesh, U32(&selectedVertexIndex)[3], U8 selectedCount)
+{
+	auto navMeshVertexCount = navMesh.getVertexCount();
+	if (navMeshVertexCount != 0)
+	{
+		auto vertices = navMesh.getVertices();
+		updateNavMeshVertexBufferWithSelectedVertex(vertices, navMeshVertexCount, selectedVertexIndex, selectedCount);
+		
+		m_navMeshVertexCount = navMeshVertexCount;
+	}
+
+	updateNavMeshIndexBuffer(navMesh);
+}
+
+void EditorRenderAspect::uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, U32 count)
+{
+	auto dst = m_pEditorColdData->m_navMeshVertexVbo.map<VertexNavMesh>(vx::gl::Map::Write_Only);
+	::memcpy(dst.get(), vertices, sizeof(VertexNavMesh) * count);
+}
+
+void EditorRenderAspect::updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, U32 count, U32(&selectedVertexIndex)[3], U8 selectedCount)
+{
+	auto color = vx::float3(1, 0, 0);
+	auto src = std::make_unique<VertexNavMesh[]>(count);
+	for (U32 i = 0; i < count; ++i)
+	{
+		src[i].position = vertices[i];
+		src[i].color = color;
+	}
+
+	for (U8 i = 0; i < selectedCount; ++i)
+	{
+		auto index = selectedVertexIndex[i];
+		src[index].color.y = 1.0f;
+	}
+
+	uploadToNavMeshVertexBuffer(src.get(), count);
+}
+
+void EditorRenderAspect::updateNavMeshIndexBuffer(const NavMesh &navMesh)
+{
+	auto triangleCount = navMesh.getTriangleCount();
+	if (triangleCount != 0)
+	{
+		auto indices = navMesh.getTriangleIndices();
+		updateNavMeshIndexBuffer(indices, triangleCount);
+
+		m_navMeshIndexCount = triangleCount * 3;
+	}
+}
+
+void EditorRenderAspect::updateNavMeshIndexBuffer(const TriangleIndices* indices, U32 triangleCount)
+{
+	auto dst = m_pEditorColdData->m_navMeshVertexIbo.map<U16>(vx::gl::Map::Write_Only);
+	::memcpy(dst.get(), indices, sizeof(TriangleIndices) * triangleCount);
+}
+
+void EditorRenderAspect::updateCamera()
+{
+	auto projectionMatrix = m_renderContext.getProjectionMatrix();
+
+	Camerablock block;
+	m_camera.getViewMatrix(block.viewMatrix);
+	block.pvMatrix = projectionMatrix * block.viewMatrix;
+	block.inversePVMatrix = vx::MatrixInverse(block.pvMatrix);
+	block.cameraPosition = m_camera.getPosition();
+
+	m_cameraBuffer.subData(0, sizeof(Camerablock), &block);
+}
+
+const vx::Camera& EditorRenderAspect::getCamera() const
+{
+	return m_camera;
+}
+
+bool EditorRenderAspect::setSelectedMeshInstance(const MeshInstance* p)
+{
+	if (p)
+	{
+		auto cmd = m_sceneRenderer.getDrawCommand(p);
+
+		if (cmd.count == 0)
+		{
+			return false;
+		}
+
+		m_selectedInstance.cmd = cmd;
+	}
+
+	m_selectedInstance.ptr = p;
+
+	return true;
+}
+
+void EditorRenderAspect::updateSelectedMeshInstanceTransform(vx::Transform &transform)
+{
+	if (m_selectedInstance.ptr)
+	{
+		auto index = m_selectedInstance.cmd.baseInstance;
+
+		m_sceneRenderer.updateTransform(transform, index);
+	}
+}
+
+void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influenceMap)
+{
+	auto cellCount = influenceMap.getCellCount();
+	auto cells = influenceMap.getInfluenceCells();
+
+	auto vertices = std::make_unique<InfluenceCellVertex[]>(cellCount);
+	for (U32 i = 0; i < cellCount; ++i)
+	{
+		vertices[i].position = cells[i].m_position;
+		vertices[i].count = cells[i].m_count;
+	}
+
+	m_influenceCellCount = cellCount;
+
+	auto mappedBuffer = m_pEditorColdData->m_influenceCellVbo.map<InfluenceCellVertex>(vx::gl::Map::Write_Only);
+	::memcpy(mappedBuffer.get(), vertices.get(), sizeof(InfluenceCellVertex) * cellCount);
+}
+
+void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph)
+{
+	auto nodes = navMeshGraph.getNodes();
+	auto nodeCount = navMeshGraph.getNodeCount();
+
+	auto src = std::make_unique < vx::float3[]>(nodeCount);
+	for (U32 i = 0; i < nodeCount; ++i)
+	{
+		src[i] = nodes[i].position;
+	}
+
+	m_navMeshGraphNodesCount = nodeCount;
+
+	auto mappedBuffer = m_pEditorColdData->m_navMeshGraphNodesVbo.map<vx::float3>(vx::gl::Map::Write_Only);
+	vx::memcpy(mappedBuffer.get(), src.get(), nodeCount);
 }

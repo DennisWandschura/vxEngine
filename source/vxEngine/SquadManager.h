@@ -18,7 +18,7 @@ namespace vx
 template<typename T>
 class Pool;
 
-struct Entity;
+struct EntityActor;
 class NavGraph;
 class InfluenceMap;
 
@@ -40,7 +40,7 @@ namespace ai
 		SquadManager();
 		~SquadManager();
 
-		void initialize(const Pool<Component::Actor>* pActorPool, const NavGraph* pNavGraph, const InfluenceMap* pInfluenceMap, const Pool<Component::Physics>* pPhysicsPool, const Pool<Entity>* pEntityPool);
+		void initialize(const Pool<Component::Actor>* pActorPool, const NavGraph* pNavGraph, const InfluenceMap* pInfluenceMap, const Pool<Component::Physics>* pPhysicsPool, const Pool<EntityActor>* pEntityPool);
 
 		void update(vx::StackAllocator* pAllocatorScratch);
 

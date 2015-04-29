@@ -9,14 +9,24 @@
 #include "Light.h"
 #include "enums.h"
 #include "Actor.h"
+#include "EditorScene.h"
+#include "ConverterSceneFileToScene.h"
+#include "ConverterEditorSceneToSceneFile.h"
+#include "FileFactory.h"
+#include "CreateSceneDescription.h"
 
-U8 SceneFactory::loadSceneFile(const U8 *ptr, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-	std::vector<FileEntry> *pMissingFiles, SceneFile *pSceneFile)
+struct SceneFactory::LoadSceneFileDescription
 {
-	pSceneFile->load(ptr);
+	const vx::sorted_array<vx::StringID64, vx::Mesh>* meshes;
+	const vx::sorted_array<vx::StringID64, Material>* materials;
+	std::vector<FileEntry> *pMissingFiles;
+	SceneFile *pSceneFile;
+};
 
-	auto &pMeshInstances = pSceneFile->getMeshInstances();
-	auto meshInstanceCount = pSceneFile->getNumMeshInstances();
+bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
+{
+	auto &pMeshInstances = desc.pSceneFile->getMeshInstances();
+	auto meshInstanceCount = desc.pSceneFile->getNumMeshInstances();
 
 	// check if all meshes are loaded
 	U8 result = 1;
@@ -26,29 +36,29 @@ U8 SceneFactory::loadSceneFile(const U8 *ptr, const vx::sorted_array<vx::StringI
 		auto meshSid = vx::make_sid(meshFile);
 
 		// check for mesh
-		auto itMesh = meshes.find(meshSid);
-		if (itMesh == meshes.end())
+		auto itMesh = desc.meshes->find(meshSid);
+		if (itMesh == desc.meshes->end())
 		{
 			// request load
-			pMissingFiles->push_back(FileEntry(meshFile, FileType::Mesh));
+			desc.pMissingFiles->push_back(FileEntry(meshFile, FileType::Mesh));
 
-			result = 0;
+			result = false;
 		}
 
 		// check for material
 		auto materialFile = pMeshInstances[i].getMaterialFile();
 		auto materialSid = vx::make_sid(materialFile);
-		auto itMaterial = materials.find(materialSid);
-		if (itMaterial == materials.end())
+		auto itMaterial = desc.materials->find(materialSid);
+		if (itMaterial == desc.materials->end())
 		{
-			pMissingFiles->push_back(FileEntry(materialFile, FileType::Material));
+			desc.pMissingFiles->push_back(FileEntry(materialFile, FileType::Material));
 
-			result = 0;
+			result = false;
 		}
 	}
 
-	auto pActors = pSceneFile->getActors();
-	auto actorCount = pSceneFile->getActorCount();
+	auto pActors = desc.pSceneFile->getActors();
+	auto actorCount = desc.pSceneFile->getActorCount();
 	for (U32 i = 0; i < actorCount; ++i)
 	{
 		auto &actor = pActors[i];
@@ -57,62 +67,112 @@ U8 SceneFactory::loadSceneFile(const U8 *ptr, const vx::sorted_array<vx::StringI
 		auto materialSid = vx::make_sid(actor.material);
 
 		// check for mesh
-		auto itMesh = meshes.find(meshSid);
-		if (itMesh == meshes.end())
+		auto itMesh = desc.meshes->find(meshSid);
+		if (itMesh == desc.meshes->end())
 		{
 			// request load
-			pMissingFiles->push_back(FileEntry(actor.mesh, FileType::Mesh));
+			desc.pMissingFiles->push_back(FileEntry(actor.mesh, FileType::Mesh));
 
-			result = 0;
+			result = false;
 		}
 
-		auto itMaterial = materials.find(materialSid);
-		if (itMaterial == materials.end())
+		auto itMaterial = desc.materials->find(materialSid);
+		if (itMaterial == desc.materials->end())
 		{
 			// request load
-			pMissingFiles->push_back(FileEntry(actor.material, FileType::Material));
+			desc.pMissingFiles->push_back(FileEntry(actor.material, FileType::Material));
 
-			result = 0;
+			result = false;
 		}
 	}
 
 	return result;
 }
 
-U8 SceneFactory::load(const U8 *ptr, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-	std::vector<FileEntry> *pMissingFiles, Scene *pScene)
+bool SceneFactory::createFromMemory(const CreateSceneDescription &desc, const U8* ptr, Scene *pScene)
 {
-	SceneFile sceneFile;
-	auto result = loadSceneFile(ptr, meshes, materials, pMissingFiles, &sceneFile);
+	//auto result = loadSceneFile(loadDesc, ptr);
 
-	if (result != 0)
+	SceneFile sceneFile;
+	auto result = FileFactory::load(ptr, &sceneFile);
+
+	if (result)
 	{
-		result = sceneFile.createScene(meshes, materials, pScene);
+		LoadSceneFileDescription loadDesc;
+		loadDesc.materials = desc.materials;
+		loadDesc.meshes = desc.meshes;
+		loadDesc.pMissingFiles = desc.pMissingFiles;
+		loadDesc.pSceneFile = &sceneFile;
+
+		result = checkIfAssetsAreLoaded(loadDesc);
+	}
+
+	if (result)
+	{
+		//result = sceneFile.createScene(meshes, materials, pScene);
+		result = ConverterSceneFileToScene::convert(*desc.meshes, *desc.materials, sceneFile, pScene);
 	}
 
 	return result;
 }
 
-U8 SceneFactory::load(const U8 *ptr, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-	std::vector<FileEntry> *pMissingFiles, EditorScene *pScene)
+bool SceneFactory::createFromFile(const CreateSceneDescription &desc, File* file, vx::StackAllocator* allocator, EditorScene *pScene)
 {
 	SceneFile sceneFile;
-	auto result = loadSceneFile(ptr, meshes, materials, pMissingFiles, &sceneFile);
+	auto result = FileFactory::load(file, &sceneFile, allocator);
 
-	if (result != 0)
+	if (result)
 	{
-		result = sceneFile.createScene(meshes, materials, pScene);
+		LoadSceneFileDescription loadDesc;
+		loadDesc.materials = desc.materials;
+		loadDesc.meshes = desc.meshes;
+		loadDesc.pMissingFiles = desc.pMissingFiles;
+		loadDesc.pSceneFile = &sceneFile;
+
+		result = checkIfAssetsAreLoaded(loadDesc);
+	}
+
+	if (result)
+	{
+		result = sceneFile.createScene(*desc.meshes, *desc.materials, *desc.loadedFiles, pScene);
 	}
 
 	return result;
 }
 
-U8 SceneFactory::save(const EditorScene *p, File* file)
+bool SceneFactory::createFromMemory(const CreateSceneDescription &desc, const U8* ptr, EditorScene* pScene)
 {
-	/*SceneFile sceneFile(*p);
-	sceneFile.saveToYAML("test.yaml");
-	sceneFile.saveToFile(file);
+	SceneFile sceneFile;
+	auto result = FileFactory::load(ptr, &sceneFile);
 
-	return 1;*/
-	return 0;
+	if (result)
+	{
+		LoadSceneFileDescription loadDesc;
+		loadDesc.materials = desc.materials;
+		loadDesc.meshes = desc.meshes;
+		loadDesc.pMissingFiles = desc.pMissingFiles;
+		loadDesc.pSceneFile = &sceneFile;
+
+		result = checkIfAssetsAreLoaded(loadDesc);
+	}
+
+	if (result)
+	{
+		result = sceneFile.createScene(*desc.meshes, *desc.materials, *desc.loadedFiles, pScene);
+	}
+
+	return result;
+}
+
+bool SceneFactory::save(const EditorScene &scene, File* file)
+{
+	SceneFile sceneFile;
+	convert(scene, &sceneFile);
+
+	return sceneFile.saveToFile(file);
+}
+
+void SceneFactory::convert(const EditorScene &scene, SceneFile* sceneFile)
+{
+	ConverterEditorSceneToSceneFile::convert(scene, sceneFile);
 }

@@ -112,6 +112,11 @@ const vx::sorted_vector<vx::StringID64, Actor>& SceneBase::getActors() const
 	return m_actors;
 }
 
+NavMesh& SceneBase::getNavMesh()
+{
+	return m_navMesh;
+}
+
 const NavMesh& SceneBase::getNavMesh() const
 {
 	return m_navMesh;

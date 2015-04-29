@@ -24,6 +24,8 @@
 #include <vxLib/ScopeGuard.h>
 #include "Spawn.h"
 #include "GpuFunctions.h"
+#include "CreateActorData.h"
+#include "EntityFactoryDescription.h"
 
 namespace
 {
@@ -44,7 +46,7 @@ EntityAspect::EntityAspect(PhysicsAspect &physicsAspect, FileAspect &fileAspect,
 
 bool EntityAspect::initialize(vx::StackAllocator* pAllocator)
 {
-	createPool(g_maxEntities, 16, pAllocator, &m_poolPhysics);
+	//createPool(g_maxEntities, 16, pAllocator, &m_poolPhysics);
 	createPool(g_maxEntities, 16, pAllocator, &m_poolInput);
 	createPool(g_maxEntities, 16, pAllocator, &m_poolRender);
 	createPool(g_maxEntities, 16, pAllocator, &m_poolEntity);
@@ -65,19 +67,15 @@ void EntityAspect::shutdown()
 	m_poolEntity.release();
 	m_poolRender.release();
 	m_poolInput.release();
-	m_poolPhysics.release();
+	//m_poolPhysics.release();
 }
 
-Component::Physics* EntityAspect::createComponentPhysics(const vx::float3 &position, U16 entityIndex, F32 height, U16* index)
+void EntityAspect::createComponentPhysics(const vx::float3 &position, U16 entityIndex, F32 height)
 {
-	auto pPhysics = m_poolPhysics.createEntry(index);
 	auto pActor = m_physicsAspect.createActor(position, height);
 
-	pPhysics->position = position;
-	pPhysics->entityIndex = entityIndex;
-	pPhysics->pRigidActor = pActor;
-
-	return pPhysics;
+	m_poolEntity[entityIndex].position = position;
+	m_poolEntity[entityIndex].pRigidActor = pActor;
 }
 
 Component::Actor* EntityAspect::createComponentActor(U16 entityIndex, U16* actorIndex)
@@ -85,7 +83,6 @@ Component::Actor* EntityAspect::createComponentActor(U16 entityIndex, U16* actor
 	auto pActor = m_poolActor.createEntry(actorIndex);
 	pActor->entityIndex = entityIndex;
 
-	// add empty initial action
 	/*Action* pEmptyAction = new Action();
 	// trigger if distance to object is greater than 1.0f
 	RaycastGreaterCondition* pRaycastCondition = new RaycastGreaterCondition(m_physicsAspect, pPhys, 3.0f, 1.0f);
@@ -123,35 +120,40 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 		pInput->entityIndex = entityIndex;
 		pInput->orientation.x = 0.0f;
 
-		createComponentPhysics(position, entityIndex, g_heightStanding, &m_pPlayer->physics);
+		createComponentPhysics(position, entityIndex, g_heightStanding);
 	}
 }
 
-void EntityAspect::createActorEntity(const vx::float3 &position, const vx::StringID64 &actor, F32 height)
+void EntityAspect::createActorEntity(const vx::float3 &position, F32 height, U32 gpuIndex)
 {
-	/*U16 entityIndex;
+	U16 entityIndex;
 	auto pEntity = m_poolEntity.createEntry(&entityIndex);
 	auto pInput = m_poolInput.createEntry(&pEntity->input);
 	pInput->entityIndex = entityIndex;
 
-	auto pPhysics = createComponentPhysics(position, entityIndex, height, &pEntity->physics);
+	createComponentPhysics(position, entityIndex, height);
 
-	auto &actors = m_pCurrentScene->getActors();
-	auto itActor = actors.find(actor);
+	//auto &actors = m_pCurrentScene->getActors();
+	//auto itActor = actors.find(actor);
 
-	vx::Transform transform;
-	transform.m_translation = position;
+	//vx::Transform transform;
+	//transform.m_translation = position;
 
-	auto gpuIndex = m_renderAspect.addActorToBuffer(transform, itActor->mesh, itActor->material, m_pCurrentScene);
-	//auto gpuIndex = m_renderAspect.getActorGpuIndex();
+	//auto gpuIndex = m_renderAspect.addActorToBuffer(transform, itActor->mesh, itActor->material, m_pCurrentScene);
 	auto pRender = m_poolRender.createEntry(&pEntity->render);
 	pRender->entityIndex = entityIndex;
 	pRender->gpuIndex = gpuIndex;
 
 	auto pActor = createComponentActor(entityIndex, &pEntity->actor);
 
-	F32 halfHeight = height * 0.5f;
-	EntityFactory::create(m_pNavGraph, pActor, pInput, pPhysics, halfHeight, &m_poolAllocatorPath);
+	EntityFactoryDescription desc;
+	desc.entity = pEntity;
+	desc.halfHeight = height * 0.5f;
+	desc.navGraph = m_pNavGraph;
+	desc.p = pActor;
+	desc.pInput = pInput;
+
+	EntityFactory::create(desc, &m_poolAllocatorPath);
 
 	Event evt;
 	evt.type = EventType::Ingame_Event;
@@ -159,7 +161,7 @@ void EntityAspect::createActorEntity(const vx::float3 &position, const vx::Strin
 	evt.arg1 = pActor;
 
 	auto pEvtManager = Locator::getEventManager();
-	pEvtManager->addEvent(evt);*/
+	pEvtManager->addEvent(evt);
 }
 
 void EntityAspect::updateInput(F32 dt)
@@ -175,8 +177,8 @@ void EntityAspect::updateInput(F32 dt)
 	auto p = m_poolInput.first();
 	while (p != nullptr)
 	{
-		auto entity = m_poolEntity[p->entityIndex];
-		auto &physics = m_poolPhysics[entity.physics];
+		auto &entity = m_poolEntity[p->entityIndex];
+	//	auto &physics = m_poolPhysics[entity.physics];
 
 		/*F32 x_axis = ((I8)(p->action >> Component::Input::Action_Right) & 0x1) - ((I8)(p->action >> Component::Input::Action_Left) & 0x1);
 		F32 z_axis = ((I8)(p->action >> Component::Input::Action_Backward) & 0x1) - ((I8)(p->action >> Component::Input::Action_Forward) & 0x1);
@@ -228,7 +230,7 @@ void EntityAspect::updateInput(F32 dt)
 
 		m_physicsAspect.move(vOffset, dt, physics.pRigidActor);*/
 
-		physics.orientation = p->orientation;
+		entity.orientation = p->orientation;
 
 		//__m128 vSpeed = { 0, 0, 0, 0 };
 		//vSpeed = _mm_fmadd_ps(vSpeed, runOffset, move);
@@ -238,7 +240,7 @@ void EntityAspect::updateInput(F32 dt)
 		vVelocity = _mm_add_ps(vVelocity, vGravity);
 		//vVelocity = _mm_mul_ps(vVelocity, vDt);
 
-		m_physicsAspect.move(vVelocity, dt, physics.pRigidActor);
+		m_physicsAspect.move(vVelocity, dt, entity.pRigidActor);
 
 		p = m_poolInput.next_nocheck(p);
 	}
@@ -248,17 +250,20 @@ void EntityAspect::updatePhysics_linear(F32 dt)
 {
 	UNREFERENCED_PARAMETER(dt);
 
-	auto p = m_poolPhysics.first();
+	auto p = m_poolEntity.first();
 	while (p != nullptr)
 	{
+		auto footPosition = p->pRigidActor->getFootPosition();
+
 		auto position = p->pRigidActor->getPosition();
 		p->position.x = position.x;
 		p->position.y = position.y;
 		p->position.z = position.z;
+		p->footPositionY = footPosition.y;
 
 		m_pInfluenceMap->updateActor(dt, p->position);
 
-		p = m_poolPhysics.next_nocheck(p);
+		p = m_poolEntity.next_nocheck(p);
 	}
 }
 
@@ -284,36 +289,37 @@ void EntityAspect::updateActorTransforms()
 	};
 
 	//U16* pIndices = (U16*)m_allocator.allocate(sizeof(U16) * count, 4);
-	std::pair<U16, U16>* pIndices_Sorted = (std::pair<U16, U16>*)m_allocator.allocate(sizeof(std::pair<U16, U16>) * count, 4);
-	vx::TransformGpu* pTransforms = (vx::TransformGpu*)m_allocator.allocate(sizeof(vx::TransformGpu) * count, 16);
+	//std::pair<U16, U16>* pIndices_Sorted = (std::pair<U16, U16>*)m_allocator.allocate(sizeof(std::pair<U16, U16>) * count, 4);
+//	vx::TransformGpu* pTransforms = (vx::TransformGpu*)m_allocator.allocate(sizeof(vx::TransformGpu) * count, 16);
+	auto pTransforms = (vx::TransformGpu*)_aligned_malloc(sizeof(vx::TransformGpu) * count, 16);
+	auto indices = new U32[count];
 	U32 index = 0;
 
 	auto p = m_poolRender.first();
 	while (p != nullptr)
 	{
-		auto entity = m_poolEntity[p->entityIndex];
-		auto physics = m_poolPhysics[entity.physics];
+		auto &entity = m_poolEntity[p->entityIndex];
+		//auto physics = m_poolPhysics[entity.physics];
 
-		__m128 v = { physics.orientation.y, physics.orientation.x, 0 , 0};
+		__m128 v = { entity.orientation.y, entity.orientation.x, 0, 0 };
 		v = vx::QuaternionRotationRollPitchYawFromVector(v);
 		auto packedRotation = GpuFunctions::packQRotation(v);
 
 		vx::TransformGpu transform;
-		transform.translation = physics.position;
+		transform.translation = entity.position;
 		transform.scaling = 1.0f;
 		transform.packedQRotation = packedRotation;
 
 		//pIndices[index] = p->gpuIndex;
-		pIndices_Sorted[index] = std::make_pair(p->gpuIndex, index);
+		//pIndices_Sorted[index] = std::make_pair(p->gpuIndex, index);
+		indices[index] = p->gpuIndex;
 		pTransforms[index] = transform;
 		++index;
-
-		//m_renderAspect.updateTransform(p->gpuIndex, transform);
 
 		p = m_poolRender.next_nocheck(p);
 	}
 
-	std::sort(pIndices_Sorted, pIndices_Sorted + count, [](const std::pair<U16, U16> &l, const std::pair<U16, U16> &r)
+	/*std::sort(pIndices_Sorted, pIndices_Sorted + count, [](const std::pair<U16, U16> &l, const std::pair<U16, U16> &r)
 	{
 		return l.first < r.first;
 	});
@@ -352,14 +358,17 @@ void EntityAspect::updateActorTransforms()
 
 		count -= batchCount;
 		offset += batchCount;
-	}
+	}*/
 
-	//m_renderAspect.updateTransforms();
-}
+	auto data = new RenderUpdateDataTransforms();
+	data->transforms = pTransforms;
+	data->indices = indices;
+	data->count = count;
 
-Component::Physics& EntityAspect::getComponentPhysics(U16 i)
-{
-	return m_poolPhysics[i];
+	RenderUpdateTask task;
+	task.type = RenderUpdateTask::Type::UpdateDynamicTransforms;
+	task.ptr = data;
+	m_renderAspect.queueUpdateTask(task);
 }
 
 Component::Input& EntityAspect::getComponentInput(U16 i)
@@ -438,7 +447,34 @@ void EntityAspect::handleIngameEvent(const Event &evt)
 			}
 			else
 			{
-				//createActorEntity(it.position, it.sid, 2.0f);
+				auto evtManager = Locator::getEventManager();
+
+			//	it.position, it.sid, 2.0f, gpuIndex
+
+				auto &actors = m_pCurrentScene->getActors();
+				auto itActor = actors.find(it.sid);
+
+				CreateActorData* data = new CreateActorData();
+				data->material = itActor->material;
+				data->mesh = itActor->mesh;
+				data->pScene = m_pCurrentScene;
+				data->transform.m_rotation = vx::float3(0);
+				data->transform.m_scaling = 1.0f;
+				data->transform.m_translation = it.position;
+				data->index = i;
+
+				RenderUpdateTask task;
+				task.ptr = data;
+				task.type = RenderUpdateTask::Type::CreateActorGpuIndex;
+				m_renderAspect.queueUpdateTask(task);
+
+				/*Event e;
+				e.type = EventType::Ingame_Event;
+				e.code = (U32)IngameEvent::Create_Actor;
+				e.arg1 = i;
+				e.arg2 = data;
+
+				evtManager->addEvent(e);*/
 			}
 		}
 
@@ -446,6 +482,15 @@ void EntityAspect::handleIngameEvent(const Event &evt)
 	case IngameEvent::Created_InfluenceMap:
 	{
 		m_pInfluenceMap = (InfluenceMap*)evt.arg1.ptr;
+	}break;
+	case IngameEvent::Created_Actor_GPU:
+	{
+		auto spawns = m_pCurrentScene->getSpawns();
+		auto spawnIndex = evt.arg1.u32;
+		auto gpuIndex = evt.arg2.u32;
+
+		auto &it = spawns[spawnIndex];
+		createActorEntity(it.position, 2.0f, gpuIndex);
 	}break;
 	default:
 		break;

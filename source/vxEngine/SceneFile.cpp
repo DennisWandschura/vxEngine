@@ -13,6 +13,7 @@
 #include "Light.h"
 #include "Scene.h"
 #include "Waypoint.h"
+#include <vxLib/util/CityHash.h>
 
 namespace YAML
 {
@@ -70,7 +71,7 @@ SceneFile::~SceneFile()
 {
 }
 
-const U8* SceneFile::load(const U8 *ptr)
+const U8* SceneFile::loadFromMemory(const U8 *ptr, U32 version)
 {
 	ptr = vx::read(m_meshInstanceCount, ptr);
 	ptr = vx::read(m_lightCount, ptr);
@@ -126,28 +127,31 @@ void SceneFile::loadFromYAML(const char *file)
 	m_actorCount = actors.size();
 }
 
-void SceneFile::saveToFile(const char *file) const
+bool SceneFile::saveToFile(const char *file) const
 {
+	bool result = false;
 	File f;
-	VX_ASSERT(f.create(file, FileAccess::Write));
-
-	f.write(m_meshInstanceCount);
-	f.write(m_lightCount);
-	f.write(m_spawnCount);
-	f.write(m_actorCount);
-
-	f.write(m_pMeshInstances.get(), m_meshInstanceCount);
-	f.write(m_pLights.get(), m_lightCount);
-	f.write(m_pSpawns.get(), m_spawnCount);
-	f.write(m_pActors.get(), m_actorCount);
-
-	m_navMesh.saveToFile(&f);
-
+	if (f.create(file, FileAccess::Write))
+	{
+		saveToFile(&f);
+	}
+	else
+	{
+		printf("SceneFile::saveToFile: Could not create file %s\n", file);
+	}
 	f.close();
+
+	return result;
 }
 
-void SceneFile::saveToFile(File *file) const
+bool SceneFile::saveToFile(File *file) const
 {
+	if (!m_navMesh.isValid())
+	{
+		printf("SceneFile::saveToFile: Nav Mesh not valid !\n");
+		return false;
+	}
+
 	file->write(m_meshInstanceCount);
 	file->write(m_lightCount);
 	file->write(m_spawnCount);
@@ -159,6 +163,8 @@ void SceneFile::saveToFile(File *file) const
 	file->write(m_pActors.get(), m_actorCount);
 
 	m_navMesh.saveToFile(file);
+
+	return true;
 }
 
 void SceneFile::saveToYAML(const char *file) const
@@ -185,6 +191,10 @@ void SceneFile::saveToYAML(const char *file) const
 	root["meshInstances"] = meshNode;
 	root["lights"] = lightNode;
 	root["actors"] = actorNode;
+
+	YAML::Node tmp;
+	m_navMesh.saveToYAML(tmp);
+	root["navmesh"] = tmp;
 
 	std::ofstream outfile(file);
 	outfile << root;
@@ -319,7 +329,8 @@ U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &mesh
 	return 1;
 }
 
-U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials, EditorScene *pScene)
+U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
+	const vx::sorted_vector<vx::StringID64, std::string> &loadedFiles, EditorScene *pScene)
 {
 	vx::sorted_vector<vx::StringID64, Material*> sceneMaterials;
 	sceneMaterials.reserve(5);
@@ -327,7 +338,7 @@ U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &mesh
 	vx::sorted_vector<vx::StringID64, const vx::Mesh*> sceneMeshes;
 
 	std::vector<MeshInstance> meshInstances(m_meshInstanceCount);
-	//meshInstances.reserve(m_meshInstanceCount);
+
 	if (createSceneMeshInstances(meshes, materials, meshInstances.data(), &sceneMeshes, &sceneMaterials) == 0)
 		return 0;
 
@@ -351,6 +362,50 @@ U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &mesh
 		indexCount += it->getIndexCount();
 	}
 
+	auto materialCount = sceneMaterials.size();
+	vx::sorted_vector<vx::StringID64, char[32]> materialNames;
+	materialNames.reserve(materialCount);
+	for (U32 i = 0; i < materialCount; ++i)
+	{
+		auto sid = sceneMaterials.keys()[i];
+
+		auto it = loadedFiles.find(sid);
+
+		char str[32];
+		strncpy_s(str, it->c_str(), 32);
+
+		materialNames.insert(sid, str);
+	}
+
+	auto meshCount = sceneMeshes.size();
+	vx::sorted_vector<vx::StringID64, char[32]> meshNames;
+	meshNames.reserve(meshCount);
+	for (U32 i = 0; i < meshCount; ++i)
+	{
+		auto sid = sceneMeshes.keys()[i];
+
+		auto it = loadedFiles.find(sid);
+
+		char str[32];
+		strncpy_s(str, it->c_str(), 32);
+
+		meshNames.insert(sid, str);
+	}
+
+	vx::sorted_vector<vx::StringID64, char[32]> actorNames;
+	actorNames.reserve(m_actorCount);
+	for (U32 i = 0; i < m_actorCount; ++i)
+	{
+		auto &actorFile = m_pActors[i];
+		
+		auto sid = vx::make_sid(actorFile.name);
+
+		char str[32];
+		strncpy_s(str, actorFile.name, 32);
+
+		actorNames.insert(sid, str);
+	}
+
 	EditorSceneParams sceneParams;
 	sceneParams.m_baseParams.m_actors = std::move(actors);
 	sceneParams.m_baseParams.m_indexCount = indexCount;
@@ -365,9 +420,55 @@ U8 SceneFile::createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &mesh
 	sceneParams.m_meshInstances = std::move(meshInstances);
 	sceneParams.m_waypoints;
 
+
+	sceneParams.m_materialNames = std::move(materialNames);
+	sceneParams.m_meshNames = std::move(meshNames);
+	sceneParams.m_actorNames = std::move(actorNames);
+
 	VX_ASSERT(pScene);
-	*pScene = EditorScene(sceneParams);
+	*pScene = EditorScene(std::move(sceneParams));
 	pScene->sortMeshInstances();
 
+	return 1;
+}
+
+U64 SceneFile::getCrc() const
+{
+	auto navMeshVertexSize = sizeof(vx::float3) * m_navMesh.getVertexCount();
+	auto navMeshTriangleSize = sizeof(TriangleIndices) * m_navMesh.getTriangleCount();
+	auto navMeshSize = navMeshVertexSize + navMeshTriangleSize;
+
+	auto meshInstanceSize = sizeof(MeshInstanceFile) * m_meshInstanceCount;
+	auto lightSize = sizeof(Light) * m_lightCount;
+	auto spawnSize = sizeof(SpawnFile) * m_spawnCount;
+	auto actorSize = sizeof(ActorFile) * m_actorCount;
+
+	auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize;
+	auto ptr = std::make_unique<U8[]>(totalSize);
+
+	auto offset = 0;
+	::memcpy(ptr.get() + offset, m_pMeshInstances.get(), meshInstanceSize);
+	offset += meshInstanceSize;
+
+	::memcpy(ptr.get() + offset, m_pLights.get(), lightSize);
+	offset += lightSize;
+
+	::memcpy(ptr.get() + offset, m_pSpawns.get(), spawnSize);
+	offset += spawnSize;
+
+	::memcpy(ptr.get() + offset, m_pActors.get(), actorSize);
+	offset += actorSize;
+
+	::memcpy(ptr.get() + offset, m_navMesh.getVertices(), navMeshVertexSize);
+	offset += navMeshVertexSize;
+
+	::memcpy(ptr.get() + offset, m_navMesh.getTriangleIndices(), navMeshTriangleSize);
+	offset += navMeshTriangleSize;
+
+	return CityHash64((char*)ptr.get(), totalSize);
+}
+
+U32 SceneFile::getVersion() const
+{
 	return 1;
 }

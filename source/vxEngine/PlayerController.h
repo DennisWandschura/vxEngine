@@ -7,7 +7,7 @@ namespace vx
 	class Camera;
 }
 
-struct Entity;
+struct EntityActor;
 class EntityAspect;
 class RenderAspect;
 
@@ -20,10 +20,10 @@ class PlayerController
 public:
 	explicit PlayerController(RenderAspect* renderAspect);
 
-	void updatePlayerHuman(Entity* pPlayer, EntityAspect &entityAspect);
+	void updatePlayerHuman(EntityActor* pPlayer, EntityAspect &entityAspect);
 
-	void handleKeyboard(Entity* pPlayer, const vx::Keyboard &keyboard, EntityAspect &entityAspect);
-	void handleMouse(Entity* pPlayer, const vx::Mouse &mouse, const F32 dt, EntityAspect &entityAspect);
+	void handleKeyboard(EntityActor* pPlayer, const vx::Keyboard &keyboard, EntityAspect &entityAspect);
+	void handleMouse(EntityActor* pPlayer, const vx::Mouse &mouse, const F32 dt, EntityAspect &entityAspect);
 
 	void keyPressed(U16 key, EntityAspect &entityAspect);
 };

@@ -1,5 +1,5 @@
 #include "LightBufferManager.h"
-#include "BufferBlocks.h"
+#include "GpuStructs.h"
 #include "BufferBindingManager.h"
 #include "Light.h"
 
@@ -30,7 +30,7 @@ void LightBufferManager::bindBuffer()
 
 void LightBufferManager::updateLightDataBuffer(const Light* lights, U32 count)
 {
-	VX_ASSERT(count <= 10);
+	VX_ASSERT(count <= 5);
 
 	LightDataBlock data;
 	for (auto i = 0u; i < count; ++i)

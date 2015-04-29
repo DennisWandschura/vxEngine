@@ -2,10 +2,11 @@
 
 class Scene;
 class BufferManager;
-class NavMeshRenderer;
 class Material;
 class MeshInstance;
 struct VertexPNTUV;
+class GpuProfiler;
+class Font;
 
 namespace vx
 {
@@ -15,6 +16,7 @@ namespace vx
 	}
 
 	struct Transform;
+	struct TransformGpu;
 	struct StringID64;
 	class Mesh;
 }
@@ -67,6 +69,7 @@ class SceneRenderer
 		TextureManager m_textureManager;
 		vx::sorted_vector<const Material*, U32> m_materialIndices;
 		vx::sorted_vector<vx::StringID64, MeshEntry> m_meshEntries;
+		vx::sorted_vector<const MeshInstance*, vx::gl::DrawElementsIndirectCommand> m_instanceCmds;
 		vx::sorted_vector<U64, U32> m_texturesGPU;
 	};
 
@@ -87,13 +90,11 @@ class SceneRenderer
 
 	void createMaterial(Material* pMaterial);
 
-	void updateTransform(const vx::Transform &t, U32 elementId);
-
 	void writeMaterialToBuffer(const Material *pMaterial, U32 offset);
 	void writeMeshToBuffer(const vx::StringID64 &meshSid, const vx::Mesh* pMesh, VertexPNTUV* pVertices, U32* pIndices, U32* vertexOffset, U32* indexOffset, U32 *vertexOffsetGpu, U32 *indexOffsetGpu);
 	void writeMeshesToVertexBuffer(const vx::StringID64* meshSid, const vx::Mesh** pMesh, U32 count, U32 *vertexOffsetGpu, U32 *indexOffsetGpu);
 	void writeMeshInstanceIdBuffer(U32 elementId, U32 materialIndex);
-	void writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 index, U32 elementId);
+	void writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 index, U32 elementId, vx::gl::DrawElementsIndirectCommand* cmd);
 
 	void updateMeshBuffer(const vx::sorted_vector<vx::StringID64, const vx::Mesh*> &meshes);
 	void updateLightBuffer(const Light *pLights, U32 numLights, const BufferManager &bufferManager);
@@ -104,13 +105,21 @@ public:
 	~SceneRenderer();
 
 	void initialize(U32 maxLightCount, BufferManager* pBufferManager, vx::StackAllocator *pAllocator);
+	bool initializeProfiler(const Font &font, U64 fontTextureHandle,const vx::uint2 &resolution, const vx::gl::ShaderManager &shaderManager, GpuProfiler* gpuProfiler, vx::StackAllocator *pAllocator);
+
 	void bindBuffers();
 
-	void loadScene(const Scene &scene, const BufferManager &bufferManager, NavMeshRenderer* pNavMeshRenderer);
+	void loadScene(const Scene &scene, const BufferManager &bufferManager);
+	TextureRef loadTexture(const char* file);
 
 	U16 getActorGpuIndex();
 
 	const vx::gl::Buffer& getCmdBuffer() const { return m_commandBlock; }
 	U32 getMeshInstanceCount() const { return m_meshInstancesCountTotal; }
 	const vx::gl::VertexArray& getMeshVao() const { return m_meshVao; }
+	vx::gl::DrawElementsIndirectCommand getDrawCommand(const MeshInstance* p) const;
+
+	U16 addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene);
+	void updateTransform(const vx::Transform &t, U32 elementId);
+	void updateTransform(const vx::TransformGpu &t, U32 elementId);
 };

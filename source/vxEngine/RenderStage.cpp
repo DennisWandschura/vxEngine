@@ -1,49 +1,79 @@
 #include "RenderStage.h"
-#include <vxLib/gl/StateManager.h>
-#include <vxLib/gl/gl.h>
+#include "Capability.h"
 
-RenderStage::RenderStage()
+namespace Graphics
 {
-}
+	void RenderStage::draw() const
+	{
+		for (auto &it : m_renderPasses)
+		{
+			for (auto &cap : it.capablitiesBegin)
+			{
+				cap->set();
+			}
 
-RenderStage::RenderStage(const RenderStageDescription &desc)
-	:m_viewportSize(desc.m_viewportSize),
-	m_frameBuffer(desc.m_frameBuffer),
-	m_clearBits(desc.m_clearBits),
-	m_vao(desc.m_vao),
-	m_pipeline(desc.m_pipeline),
-	m_drawCommand(desc.m_drawCommandDesc)
-{
-}
+			it.pass.draw();
 
-void RenderStage::setState()
-{
-	vx::gl::StateManager::setViewport(0, 0, m_viewportSize.x, m_viewportSize.y);
+			for (auto &cap : it.capablitiesEnd)
+			{
+				cap->set();
+			}
+		}
+	}
 
-	vx::gl::StateManager::bindFrameBuffer(m_frameBuffer);
-	glClear(m_clearBits);
+	void RenderStage::pushRenderPass(const char* id, const RenderPass &renderPass)
+	{
+		U32 index = m_renderPasses.size();
 
-	vx::gl::StateManager::bindPipeline(m_pipeline);
-	vx::gl::StateManager::bindVertexArray(m_vao);
-}
+		Pass p;
+		p.pass = renderPass;
 
-void RenderStage::drawArrays()
-{
-	setState();
+		m_renderPasses.push_back(p);
+		m_indices.insert(vx::make_sid(id), index);
+	}
 
-	m_drawCommand.drawArrays();
-}
+	RenderStage::Pass* RenderStage::findPass(const char* id)
+	{
+		auto sid = vx::make_sid(id);
+		auto it = m_indices.find(sid);
 
-void RenderStage::drawElements()
-{
-	setState();
+		Pass* p = (it == m_indices.end()) ? nullptr : &m_renderPasses[*it];
 
-	m_drawCommand.drawElements();
-}
+		return p;
+	}
 
-void RenderStage::multiDrawElementsIndirect()
-{
-	setState();
+	void RenderStage::attachCapabilityBegin(const char* id, Capability* cap)
+	{
+		auto pass = findPass(id);
+		if (pass)
+		{
+			pass->capablitiesBegin.push_back(cap);
+		}
+	}
 
-	m_drawCommand.multiDrawIndirect();
+	void RenderStage::attachCapabilityEnd(const char* id, Capability* cap)
+	{
+		auto pass = findPass(id);
+		if (pass)
+		{
+			pass->capablitiesEnd.push_back(cap);
+		}
+	}
+
+	void RenderStage::setDrawCountAll(U32 count)
+	{
+		for (auto &it : m_renderPasses)
+		{
+			it.pass.setDrawCount(count);
+		}
+	}
+
+	void RenderStage::setDrawCount(const char* id, U32 count)
+	{
+		auto pass = findPass(id);
+		if (pass)
+		{
+			pass->pass.setDrawCount(count);
+		}
+	}
 }

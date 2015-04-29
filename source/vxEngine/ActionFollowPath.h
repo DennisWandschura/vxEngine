@@ -2,10 +2,10 @@
 
 namespace Component
 {
-	struct Physics;
 	struct Actor;
 }
 
+struct EntityActor;
 class ActorData;
 
 #include "Action.h"
@@ -21,7 +21,7 @@ class ActionFollowPath : public Action
 	U8 m_update{1};
 
 public:
-	ActionFollowPath(Component::Input* pInput, Component::Physics* pPhysics, Component::Actor* pActor);
+	ActionFollowPath(Component::Input* pInput, EntityActor* entity, Component::Actor* pActor);
 
 	void run() override;
 	bool isComplete() const override;

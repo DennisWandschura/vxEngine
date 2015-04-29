@@ -4,9 +4,15 @@
 #include <algorithm>
 #include "NavGraph.h"
 #include "NavNode.h"
+#include "NavMeshTriangle.h"
 
 namespace
 {
+	struct Triangle_SIMD
+	{
+		__m128 v[3];
+	};
+
 	struct AABB_POINT
 	{
 		static bool VX_CALLCONV contains(const __m128 vmin, const __m128 vmax, const __m128 p)
@@ -25,107 +31,252 @@ namespace
 			return (m == resultMask);
 		}
 	};
+
+	bool VX_CALLCONV intersects(const __m128 vmin, const __m128 vmax, const Triangle_SIMD &triangle)
+	{
+		/*auto c = _mm_mul_ps(_mm_add_ps(vmin, vmax), vx::g_VXOneHalf);
+		auto e = _mm_mul_ps(_mm_sub_ps(vmax, vmin), vx::g_VXOneHalf);
+
+		auto v0 = _mm_sub_ps(triangle.v[0], c);
+		auto v1 = _mm_sub_ps(triangle.v[1], c);
+		auto v2 = _mm_sub_ps(triangle.v[2], c);
+
+		auto f0 = _mm_sub_ps(v1, v0);
+		auto f1 = _mm_sub_ps(v2, v1);
+		auto f2 = _mm_sub_ps(v0, v2);
+
+		const __m128 mask0 = {0, -1.0f, 1.0f, 0.0f};
+
+		__m128 f = VX_PERMUTE_PS(f0, _MM_SHUFFLE(0, 1, 2, 0));
+		// a00
+		f = _mm_mul_ps(f, mask0);
+		auto absF = vx::detail::abs(f);
+
+		auto p0 = vx::Vector3Dot(v0, f);
+		auto p1 = vx::Vector3Dot(v1, f);
+		auto p2 = vx::Vector3Dot(v2, f);
+
+		auto tmp = vx::VectorNegate(_mm_max_ps(p0, p2));
+		auto tmp1 = _mm_min_ps(p0, p2);
+		auto r0 = vx::Vector3Dot(e, absF);
+
+		auto cmp = _mm_max_ps(tmp, tmp1);
+
+		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+		// a01
+		f = VX_PERMUTE_PS(f1, _MM_SHUFFLE(0, 1, 2, 0));
+		f = _mm_mul_ps(f, mask0);
+		absF = vx::detail::abs(f);
+		p0 = vx::Vector3Dot(v0, f);
+		p1 = vx::Vector3Dot(v1, f);
+		p2 = vx::Vector3Dot(v2, f);
+
+		tmp = vx::VectorNegate(_mm_max_ps(p0, p2));
+		tmp1 = _mm_min_ps(p0, p2);
+		auto r1 = vx::Vector3Dot(e, absF);
+
+		cmp = _mm_shuffle_ps(cmp, _mm_max_ps(tmp, tmp1), _MM_SHUFFLE(1, 0, 1, 0));
+
+		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+		// a02
+		f = VX_PERMUTE_PS(f2, _MM_SHUFFLE(0, 1, 2, 0));
+		f = _mm_mul_ps(f, mask0);
+		absF = vx::detail::abs(f);
+		p0 = vx::Vector3Dot(v0, f);
+		p1 = vx::Vector3Dot(v1, f);
+		p2 = vx::Vector3Dot(v2, f);
+		tmp = vx::VectorNegate(_mm_max_ps(p0, p2));
+		tmp1 = _mm_min_ps(p0, p2);
+
+		auto r2 = vx::Vector3Dot(e, absF);
+		cmp = _mm_shuffle_ps(cmp, _mm_max_ps(tmp, tmp1), _MM_SHUFFLE(1, 0, 2, 0));
+
+		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+		// a10
+		f = vx::float3(f0.z, 0, -f0.x);
+		p0 = vx::dot(v0, f);
+		p1 = vx::dot(v1, f);
+		p2 = vx::dot(v2, f);
+		r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+		// a11
+		f = vx::float3(f1.z, 0, -f1.x);
+		p0 = vx::dot(v0, f);
+		p1 = vx::dot(v1, f);
+		p2 = vx::dot(v2, f);
+		r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+		// a12
+		f = vx::float3(f2.z, 0, -f2.x);
+		p0 = vx::dot(v0, f);
+		p1 = vx::dot(v1, f);
+		p2 = vx::dot(v2, f);
+		r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+		// a20
+		f = vx::float3(-f0.y, f0.x, 0);
+		p0 = vx::dot(v0, f);
+		p1 = vx::dot(v1, f);
+		p2 = vx::dot(v2, f);
+		r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+		// a21
+		f = vx::float3(-f1.y, f1.x, 0);
+		p0 = vx::dot(v0, f);
+		p1 = vx::dot(v1, f);
+		p2 = vx::dot(v2, f);
+		r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+		// a22
+		f = vx::float3(-f2.y, f2.x, 0);
+		p0 = vx::dot(v0, f);
+		p1 = vx::dot(v1, f);
+		p2 = vx::dot(v2, f);
+		r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+		auto max3 = [](F32 a, F32 b, F32 c)
+		{
+			return std::max(a, std::max(b, c));
+		};
+
+		auto min3 = [](F32 a, F32 b, F32 c)
+		{
+			return std::min(a, std::min(b, c));
+		};
+
+		if (max3(v0.x, v1.x, v2.x) < -e.x || min3(v0.x, v1.x, v2.x) > e.x) return false;
+		if (max3(v0.y, v1.y, v2.y) < -e.y || min3(v0.y, v1.y, v2.y) > e.y) return false;
+		if (max3(v0.z, v1.z, v2.z) < -e.z || min3(v0.z, v1.z, v2.z) > e.z) return false;
+
+		Plane p;
+		p.n = vx::cross(f0, f1);
+		p.d = vx::dot(p.n, v0);
+
+		auto c = (max + min) * 0.5f;
+		auto e = max - c;
+
+		auto r = e.x * abs(p.n.x) + e.y * abs(p.n.y) + e.z * abs(p.n.z);
+		auto s = vx::dot(p.n, c) - p.d;
+
+		return fabsf(s) <= r;*/
+		return false;
+	}
 }
 
-void InfluenceMap::init(const NavMesh &navMesh, const NavGraph &navGraph, F32 cellSize, F32 cellHeight)
+void InfluenceMap::createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uint3 &cellPosition, U32 index)
 {
-	auto navBounds = navMesh.getBounds();
-	//	auto vCount = navMesh.getVertexCount();
-	//auto vertices = navMesh.getVertices();
+	__m128 vOffset = { (F32)cellPosition.x, (F32)cellPosition.y, (F32)cellPosition.z, 0.0f };
 
-	auto size = navBounds.max - navBounds.min;
+	auto vmin = _mm_fmadd_ps(vOffset, vCellSize, vBoundsMin);
+	auto vmax = _mm_add_ps(vmin, vCellSize);
 
+	auto vPosition = _mm_add_ps(vmax, vmin);
+	vPosition = _mm_mul_ps(vPosition, vx::g_VXOneHalf);
+
+	m_cellBounds[index].vmin = vmin;
+	m_cellBounds[index].vmax = vmax;
+
+	InfluenceCell c;
+	_mm_store_ps(&c.m_position.x, vPosition);
+	c.m_influence = 0.0f;
+	c.m_offset = 0;
+	c.m_count = 0;
+	c.m_area = 0.0f;
+	c.m_priority = 0.0f;
+	m_cells[index] = c;
+}
+
+void InfluenceMap::createCells(const vx::uint3 &cellCount, U32 cellTotalCount, const vx::float3 &cellDim, const AABB &navBounds)
+{
+	__m128 vCellSize = { cellDim.x, cellDim.y, cellDim.z, 0 };
 	auto vBoundsMin = vx::loadFloat(navBounds.min);
-	__m128 vCellSize = { cellSize, cellHeight, cellSize, 0 };
-
-	vx::ushort3 cellCount;
-	cellCount.x = (size.x + cellSize) / cellSize;
-	cellCount.y = (size.y + cellHeight) / cellHeight;
-	cellCount.z = (size.z + cellSize) / cellSize;
-
-	U32 cellTotalCount = cellCount.x * cellCount.y * cellCount.z;
 
 	m_cells = std::make_unique<InfluenceCell[]>(cellTotalCount);
-	m_cellBounds = std::make_unique<CellBounds[]>(cellTotalCount);
+	m_cellBounds = std::make_unique<AABB_SIMD[]>(cellTotalCount);
 
 	U32 index = 0;
-	for (U32 z = 0; z < cellCount.z; ++z)
+	vx::uint3 cellPosition;
+	for (cellPosition.z = 0; cellPosition.z < cellCount.z; ++cellPosition.z)
 	{
-		F32 fz = z;
-		__m128 vz = _mm_load_ss(&fz);
-
-		for (U32 y = 0; y < cellCount.y; ++y)
+		for (cellPosition.y = 0; cellPosition.y < cellCount.y; ++cellPosition.y)
 		{
-			F32 fy = y;
-			__m128 vy = _mm_load_ss(&fy);
-
-			for (U32 x = 0; x < cellCount.x; ++x)
+			for (cellPosition.x = 0; cellPosition.x < cellCount.x; ++cellPosition.x)
 			{
-				F32 fx = static_cast<F32>(x);
-
-				__m128 vOffset = _mm_load_ss(&fx);
-				// x, z
-				vOffset = _mm_unpacklo_ps(vOffset, vz);
-				// x, y, z
-				vOffset = _mm_unpacklo_ps(vOffset, vy);
-
-				auto vmin = _mm_fmadd_ps(vOffset, vCellSize, vBoundsMin);
-				auto vmax = _mm_add_ps(vmin, vCellSize);
-
-				auto vPosition = _mm_add_ps(vmax, vmin);
-				vPosition = _mm_mul_ps(vPosition, vx::g_VXOneHalf);
-
-				m_cellBounds[index].vmin = vmin;
-				m_cellBounds[index].vmax = vmax;
-
-				InfluenceCell c;
-				_mm_store_ps(&c.position.x, vPosition);
-				c.influence = 0.0f;
-				c.offset = 0;
-				c.count = 0;
-				m_cells[index] = c;
-
+				createCell(vBoundsMin, vCellSize, cellPosition, index);
 				++index;
 			}
 		}
 	}
+}
 
-	auto nodeCount = navGraph.getNodeCount();
-	auto pNodes = navGraph.getNodes();
-	m_navNodeIndices = std::make_unique<U16[]>(nodeCount);
+void InfluenceMap::createNodeIndicesAndSetCellData(const NavMesh &navMesh, U32 cellTotalCount)
+{
+	auto triangleCount = navMesh.getTriangleCount();
+	auto navMeshTriangles = navMesh.getNavMeshTriangles();
+
+	m_navNodeIndices = std::make_unique<U16[]>(triangleCount);
 	U32 offset = 0;
 	for (U32 i = 0; i < cellTotalCount; ++i)
 	{
 		auto &cellBounds = m_cellBounds[i];
 		auto &cell = m_cells[i];
 
-		U32 count = 0;
-		for (U32 j = 0; j < nodeCount; ++j)
-		{
-			auto &node = pNodes[j];
-			auto p = vx::loadFloat(node.m_position);
+		AABB bounds;
+		vx::storeFloat(&bounds.min, cellBounds.vmin);
+		vx::storeFloat(&bounds.max, cellBounds.vmax);
 
-			if (AABB_POINT::contains(cellBounds.vmin, cellBounds.vmax, p))
+		U32 count = 0;
+		for (U32 j = 0; j < triangleCount; ++j)
+		{
+			auto &navMeshTriangle = navMeshTriangles[j];
+
+			if (bounds.intersects(navMeshTriangle.m_triangle))
 			{
 				m_navNodeIndices[offset + count] = j;
+				cell.m_area += navMeshTriangle.m_triangle.getArea();
 
 				++count;
 			}
 		}
 
-		cell.count = count;
-		cell.offset = offset;
+		cell.m_count = count;
+		cell.m_offset = offset;
 
 		offset += count;
 	}
+}
+
+void InfluenceMap::initialize(const NavMesh &navMesh, F32 cellSize, F32 cellHeight)
+{
+	auto navBounds = navMesh.getBounds();
+	auto size = navBounds.max - navBounds.min;
+
+	vx::ushort3 cellCount;
+	cellCount.x = (size.x + cellSize) / cellSize;
+	cellCount.y = (size.y + cellHeight) / cellHeight;
+	cellCount.z = (size.z + cellSize) / cellSize;
+
+	auto cellDim = vx::float3(cellSize, cellHeight, cellSize);
+	U32 cellTotalCount = cellCount.x * cellCount.y * cellCount.z;
+	createCells(cellCount, cellTotalCount, cellDim, navBounds);
+
+	createNodeIndicesAndSetCellData(navMesh, cellTotalCount);
 
 	vx::float3 gridBoundsMin = navBounds.min;
-	vx::float3 gridBoundsMax = navBounds.min + vx::float3(cellCount) * vx::float3(cellSize, cellHeight, cellSize);
+	vx::float3 gridBoundsMax = navBounds.min + vx::float3(cellCount) * cellDim;
 
 	m_center = (gridBoundsMax + gridBoundsMin) * 0.5f;
 	m_cellCount = cellCount;
 
-	vx::float3 cellDim(cellSize, cellHeight, cellSize);
 	vx::float3 totalSize = vx::float3(m_cellCount) * cellDim;
 
 	m_voxelHalfDim = vx::float3(m_cellCount) / 2.0f;
@@ -143,9 +294,9 @@ void InfluenceMap::update(F32 dt)
 
 	for (U32 i = 0; i < cellCount; ++i)
 	{
-		F32 newInfluence = m_cells[i].influence - (influenceDecrease * dt);
+		F32 newInfluence = m_cells[i].m_influence - (influenceDecrease * dt);
 
-		m_cells[i].influence = vx::max(newInfluence, 0.0f);
+		m_cells[i].m_influence = vx::max(newInfluence, 0.0f);
 	}
 }
 
@@ -165,7 +316,7 @@ void InfluenceMap::updateActor(F32 dt, const vx::float3 &position)
 
 		if (AABB_POINT::contains(bounds.vmin, bounds.vmax, vPosition))
 		{
-			m_cells[i].influence += influence;
+			m_cells[i].m_influence += influence;
 			break;
 		}
 	}
@@ -193,6 +344,16 @@ const InfluenceCell& InfluenceMap::getCell(U32 index) const
 	return m_cells[index];
 }
 
+const InfluenceCell* InfluenceMap::getInfluenceCells() const
+{
+	return m_cells.get();
+}
+
+U32 InfluenceMap::getCellCount() const
+{
+	return m_cellCount.x * m_cellCount.y * m_cellCount.z;
+}
+
 I32 InfluenceMap::getClosestCellIndex_nocheck(const vx::float3 &position) const
 {
 	vx::int3 cellPos = vx::fma((position - m_center), m_invGridCellSize, m_voxelHalfDim);
@@ -215,7 +376,7 @@ const vx::float3& InfluenceMap::getClosestCellPosition(const vx::float3 &positio
 {
 	auto index = getClosestCellIndex(position);
 
-	return m_cells[index].position;
+	return m_cells[index].m_position;
 }
 
 const U16* InfluenceMap::getNavNodeIndices() const
@@ -225,7 +386,7 @@ const U16* InfluenceMap::getNavNodeIndices() const
 
 U8 InfluenceMap::isEmpty(U32 cellIndex) const
 {
-	return (m_cells[cellIndex].count == 0);
+	return (m_cells[cellIndex].m_count == 0);
 }
 
 U8 InfluenceMap::contains(U32 cellIndex, const vx::float3 &position) const
@@ -248,11 +409,11 @@ void InfluenceMap::getCells(const vx::float3 &p, F32 minRadius, F32 maxRadius, U
 	{
 		auto &cell = m_cells[i];
 
-		auto dist2 = vx::distance2(cell.position, p);
+		auto dist2 = vx::distance2(cell.m_position, p);
 
 		auto cmp = (dist2 > minRadius2) & (dist2 < maxRadius2);
 
-		if (cmp && (cell.count != 0))
+		if (cmp && (cell.m_count != 0))
 		{
 			pCell[(*count)++] = cell;
 

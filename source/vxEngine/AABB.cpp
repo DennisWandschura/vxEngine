@@ -1,6 +1,8 @@
 #include "AABB.h"
 #include "Ray.h"
 #include <algorithm>
+#include "Triangle.h"
+#include "Plane.h"
 
 AABB::AABB(const vx::float3 &p)
 	:min(p),
@@ -9,19 +11,19 @@ AABB::AABB(const vx::float3 &p)
 
 }
 
-AABB AABB::Union(const AABB &other) const
+AABB AABB::merge(const AABB &a, const AABB &b)
 {
 	AABB r;
-	r.min = vx::min(min, other.min);
-	r.max = vx::max(max, other.max);
+	r.min = vx::min(a.min, b.min);
+	r.max = vx::max(a.max, b.max);
 	return r;
 }
 
-AABB AABB::Union(const vx::float3 &p) const
+AABB AABB::merge(const AABB &a, const vx::float3 &p)
 {
 	AABB r;
-	r.min = vx::min(min, p);
-	r.max = vx::max(max, p);
+	r.min = vx::min(a.min, p);
+	r.max = vx::max(a.max, p);
 	return r;
 }
 
@@ -105,9 +107,17 @@ bool AABB::contains(const __m128 &p) const
 	return (m == resultMask);
 }
 
-bool AABB::intersect(const Ray &ray, F32* hitt0, F32* hitt1) const
+bool AABB::intersects(const Ray &ray, F32* hitt0, F32* hitt1) const
 {
 	F32 t0 = ray.mint, t1 = ray.maxt;
+
+	/*vx::float3 invRayDir = 1.0f / ray.d;
+
+	auto tNear = (min - ray.o) * invRayDir;
+	auto tFar = (max - ray.o) * invRayDir;
+
+	auto tmin =*/
+
 	for (U32 i = 0; i < 3; ++i)
 	{
 		F32 invRayDir = 1.0f / ray.d[i];
@@ -127,6 +137,123 @@ bool AABB::intersect(const Ray &ray, F32* hitt0, F32* hitt1) const
 	if (hitt0) *hitt0 = t0;
 	if (hitt1) *hitt1 = t1;
 	return true;
+}
+
+bool AABB::intersects(const Triangle &triangle)
+{
+	auto c = (min + max) * 0.5f;
+	auto e = (max - min) * 0.5f;
+
+	auto v0 = triangle[0] - c;
+	auto v1 = triangle[1] - c;
+	auto v2 = triangle[2] - c;
+
+	auto f0 = v1 - v0;
+	auto f1 = v2 - v1;
+	auto f2 = v0 - v2;
+
+	// a00
+	auto f = vx::float3(0, -f0.z, f0.y);
+	auto p0 = vx::dot(v0, f);
+	auto p1 = vx::dot(v1, f);
+	auto p2 = vx::dot(v2, f);
+	auto r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+	// a01
+	f = vx::float3(0, -f1.z, f1.y);
+	p0 = vx::dot(v0, f);
+	p1 = vx::dot(v1, f);
+	p2 = vx::dot(v2, f);
+	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+	// a02
+	f = vx::float3(0, -f2.z, f2.y);
+	p0 = vx::dot(v0, f);
+	p1 = vx::dot(v1, f);
+	p2 = vx::dot(v2, f);
+	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+	// a10
+	f = vx::float3(f0.z, 0, -f0.x);
+	p0 = vx::dot(v0, f);
+	p1 = vx::dot(v1, f);
+	p2 = vx::dot(v2, f);
+	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+	// a11
+	f = vx::float3(f1.z, 0, -f1.x);
+	p0 = vx::dot(v0, f);
+	p1 = vx::dot(v1, f);
+	p2 = vx::dot(v2, f);
+	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+	// a12
+	f = vx::float3(f2.z, 0, -f2.x);
+	p0 = vx::dot(v0, f);
+	p1 = vx::dot(v1, f);
+	p2 = vx::dot(v2, f);
+	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+	// a20
+	f = vx::float3(-f0.y, f0.x, 0);
+	p0 = vx::dot(v0, f);
+	p1 = vx::dot(v1, f);
+	p2 = vx::dot(v2, f);
+	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+	// a21
+	f = vx::float3(-f1.y, f1.x, 0);
+	p0 = vx::dot(v0, f);
+	p1 = vx::dot(v1, f);
+	p2 = vx::dot(v2, f);
+	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+	// a22
+	f = vx::float3(-f2.y, f2.x, 0);
+	p0 = vx::dot(v0, f);
+	p1 = vx::dot(v1, f);
+	p2 = vx::dot(v2, f);
+	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
+	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
+
+	auto max3 = [](F32 a, F32 b, F32 c)
+	{
+		return std::max(a, std::max(b, c));
+	};
+
+	auto min3 = [](F32 a, F32 b, F32 c)
+	{
+		return std::min(a, std::min(b, c));
+	};
+
+	if (max3(v0.x, v1.x, v2.x) < -e.x || min3(v0.x, v1.x, v2.x) > e.x) return false;
+	if (max3(v0.y, v1.y, v2.y) < -e.y || min3(v0.y, v1.y, v2.y) > e.y) return false;
+	if (max3(v0.z, v1.z, v2.z) < -e.z || min3(v0.z, v1.z, v2.z) > e.z) return false;
+
+	Plane p;
+	p.n = vx::cross(f0, f1);
+	p.d = vx::dot(p.n, v0);
+
+	return intersects(p);
+}
+
+bool AABB::intersects(const Plane &plane)
+{
+	auto c = (max + min) * 0.5f;
+	auto e = max - c;
+
+	auto r = e.x * abs(plane.n.x) + e.y * abs(plane.n.y) + e.z * abs(plane.n.z);
+	auto s = vx::dot(plane.n, c) - plane.d;
+
+	return fabsf(s) <= r;
 }
 
 vx::float3& AABB::operator[](U32 i)

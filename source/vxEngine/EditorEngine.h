@@ -11,47 +11,77 @@ class EditorScene;
 #include "memory.h"
 #include "LevelEditor.h"
 #include "EditorWaypointManager.h"
+#include "Editor.h"
+#include "EventListener.h"
+#include "InfluenceMap.h"
 
-namespace Editor
-{
-	typedef void(*LoadFileCallback)(UINT64, unsigned int);
-}
+enum class SelectedType{ None, MeshInstance, NavMeshVertex };
 
-class EditorEngine
+class EditorEngine : public EventListener
 {
 	static U32 s_editorTypeMesh;
 	static U32 s_editorTypeMaterial;
 	static U32 s_editorTypeScene;
 
+	struct SelectedNavMeshVertices
+	{
+		U32 m_vertices[3];
+		U8 m_count;
+	};
+
+	struct Selected
+	{
+		SelectedType m_type;
+		union
+		{
+			SelectedNavMeshVertices m_navMeshVertices;
+			void* m_item{ nullptr };
+		};
+	};
+
 	EventManager m_eventManager;
 	PhysicsAspect m_physicsAspect;
 	EditorRenderAspect m_renderAspect;
 	EditorScene* m_pEditorScene{ nullptr };
+	InfluenceMap m_influenceMap;
 	std::mutex m_editorMutex;
 	VX_ALIGN(64) struct
 	{
 		FileAspect m_fileAspect;
 		std::atomic_uint m_bRunFileThread;
 	};
+	Selected m_selected;
 	Editor::WaypointManager m_waypointManager;
 	vx::thread m_fileAspectThread;
 	vx::StackAllocator m_allocator;
+	vx::StackAllocator m_scratchAllocator;
 	U32 m_shutdown{ 0 };
 	Memory m_memory;
 	vx::uint2 m_resolution;
+	HWND m_panel;
 
 	vx::sorted_vector<vx::StringID64, std::pair<Editor::LoadFileCallback, U32>> m_requestedFiles;
 
 	// calls the callback provided by editor_loadFile
-	void call_editorCallback(const vx::StringID64 sid);
+	void call_editorCallback(const vx::StringID64 &sid);
 
 	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);
 
 	void handleFileEvent(const Event &evt);
 
+	vx::float4a getRayDir(I32 mouseX, I32 mouseY);
+
+	MeshInstance* raytraceAgainstStaticMeshes(I32 mouseX, I32 mouseY, vx::float3* hitPosition);
+
+	void createStateMachine();
+
+	U32 getSelectedNavMeshVertex(I32 mouseX, I32 mouseY);
+
+	void buildNavGraph();
+
 public:
-	explicit EditorEngine();
+	EditorEngine();
 	~EditorEngine();
 
 	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, EditorScene* pScene);
@@ -65,12 +95,6 @@ public:
 	void editor_render(F32 dt);
 	void editor_loadFile(const char *filename, U32 type, Editor::LoadFileCallback f);
 
-	// returns 1 on success, 0 on failure
-	U8 editor_addMeshInstance(const vx::StringID64 instanceSid, const vx::StringID64 meshSid, const vx::StringID64 materialSid, const vx::Transform &transform);
-
-	U32 editor_getTransform(const vx::StringID64 instanceSid, vx::float3 &translation, vx::float3 &rotation, F32 &scaling);
-	void editor_updateTranslation(const vx::StringID64 instanceSid, const vx::float3 &translation);
-
 	void editor_moveCamera(F32 dirX, F32 dirY, F32 dirZ);
 	void editor_rotateCamera(F32 dirX, F32 dirY, F32 dirZ);
 
@@ -80,7 +104,24 @@ public:
 
 	void requestLoadFile(const FileEntry &fileEntry, void* p);
 
-	U8 raytraceMouse(I32 x, I32 y, vx::float3* p);
+	void updateSelectedMeshInstanceTransform(const vx::float3 &p);
 
 	void addWaypoint(const vx::float3 &p);
+
+
+	void setSelectedNavMeshVertexPosition(const vx::float3 &position);
+	vx::float3 getSelectedNavMeshVertexPosition() const;
+
+	bool selectMesh(I32 mouseX, I32 mouseY);
+	void deselectMesh();
+
+	bool addNavMeshVertex(I32 mouseX, I32 mouseY);
+	void deleteSelectedNavMeshVertex();
+	bool selectNavMeshVertex(I32 mouseX, I32 mouseY);
+	bool multiSelectNavMeshVertex(I32 mouseX, I32 mouseY);
+	void deselectNavMeshVertex();
+	bool createNavMeshTriangleFromSelectedVertices();
+
+	SelectedType getSelectedItemType() const;
+	EditorScene* getEditorScene() const;
 };

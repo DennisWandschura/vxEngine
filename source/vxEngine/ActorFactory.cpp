@@ -11,24 +11,25 @@
 #include "Transition.h"
 #include "ConditionHasDestination.h"
 #include <vxLib/Allocator/PoolAllocator.h>
+#include "EntityFactoryDescription.h"
 
-void ActorFactory::create(const NavGraph* navGraph, Component::Actor *p, Component::Input *pInput, Component::Physics *pPhysics, F32 halfHeight, vx::PoolAllocator* pAllocator)
+void ActorFactory::create(const EntityFactoryDescription &description, vx::PoolAllocator* pAllocator)
 {
 	U32 flags = Component::Actor::WaitingForOrders;
 
-	auto capacity = navGraph->getNodeCount();
+	auto capacity = description.navGraph->getNodeCount();
 
-	p->flags = flags;
-	p->data = std::make_unique<ActorData>();
-	p->data->path = std::move(vx::array<vx::float3>(capacity, pAllocator));
+	description.p->flags = flags;
+	description.p->data = std::make_unique<ActorData>();
+	description.p->data->path = std::move(vx::array<vx::float3>(capacity, pAllocator));
 /*	p->data->destination.x = 7.0f;
 	p->data->destination.y = 1.5f;
 	p->data->destination.z = -5.5f;*/
-	p->halfHeight = halfHeight;
+	description.p->halfHeight = description.halfHeight;
 	//p->data->path = std::move(nodes);
 
-	ConditionHasDestination* hasDest = new ConditionHasDestination(p);
-	ConditionHasNoDestination* hasNoDest = new ConditionHasNoDestination(p);
+	ConditionHasDestination* hasDest = new ConditionHasDestination(description.p);
+	ConditionHasNoDestination* hasNoDest = new ConditionHasNoDestination(description.p);
 
 	State* requestPatrolState = new State();
 	State* patrolState = new State();
@@ -37,19 +38,19 @@ void ActorFactory::create(const NavGraph* navGraph, Component::Actor *p, Compone
 	Transition* requestToPatrol = new Transition(hasDest, patrolState);
 
 	{
-		ActionFollowPath* pActionTrue1 = new ActionFollowPath(pInput, pPhysics, p);
+		ActionFollowPath* pActionTrue1 = new ActionFollowPath(description.pInput, description.entity, description.p);
 		pActionTrue1->updateTargetPosition();
 		patrolState->setAction(pActionTrue1);
 		patrolState->addTransition(patrolToRequest);
 	}
 
 	{
-		ActionRequestPath* pActionRequestPath = new ActionRequestPath(p);
+		ActionRequestPath* pActionRequestPath = new ActionRequestPath(description.p);
 		requestPatrolState->addTransition(requestToPatrol);
 		requestPatrolState->setAction(pActionRequestPath);
 	}
 
-	p->m_sm.addState(requestPatrolState);
-	p->m_sm.setInitialState(patrolState);
+	description.p->m_sm.addState(requestPatrolState);
+	description.p->m_sm.setInitialState(patrolState);
 	//p->m_root = std::make_unique<DecisionHasDestination>(p, pActionTrue1, pActionFalse);
 }

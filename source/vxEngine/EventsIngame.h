@@ -7,5 +7,7 @@ enum class IngameEvent : U16
 	Level_Started,
 	Created_NavGraph,
 	Created_InfluenceMap,
-	Created_Actor
+	Create_Actor,
+	Created_Actor,
+	Created_Actor_GPU
 };

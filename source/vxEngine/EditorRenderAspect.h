@@ -1,5 +1,12 @@
 #pragma once
 
+class MeshInstance;
+class NavMesh;
+struct VertexNavMesh;
+class InfluenceMap;
+struct TriangleIndices;
+class NavMeshGraph;
+
 #include "RenderAspect.h"
 #include "EditorRenderData.h"
 #include <vxLib/Variant.h>
@@ -9,10 +16,50 @@ class EditorRenderAspect : public RenderAspect
 {
 	enum class EditorUpdate : U32;
 
+	struct SelectedMeshInstance
+	{
+		const MeshInstance* ptr{nullptr};
+		vx::gl::DrawElementsIndirectCommand cmd;
+	};
+
+	struct EditorColdData
+	{
+		vx::gl::Buffer m_navMeshVertexVbo;
+		vx::gl::Buffer m_navMeshVertexIbo;
+
+		vx::gl::Buffer m_influenceCellVbo;
+
+		vx::gl::Buffer m_navMeshGraphNodesVbo;
+	};
+
+	vx::gl::VertexArray m_navMeshVertexVao;
+	vx::gl::VertexArray m_navMeshVao;
+	vx::gl::VertexArray m_influenceVao;
+	vx::gl::VertexArray m_navMeshGraphNodesVao;
+	U32 m_navMeshVertexCount{ 0 };
+	U32 m_navMeshIndexCount{0};
+	U32 m_influenceCellCount{0};
+	U32 m_navMeshGraphNodesCount{0};
 	Editor::RenderData m_editorData;
+	U32 m_lightCount{ 0 };
+	SelectedMeshInstance m_selectedInstance{};
 	std::mutex m_updateDataMutex{};
 	std::atomic_uint m_updateEditor{ 0 };
 	std::vector<std::pair<vx::Variant, EditorUpdate>> m_updateData;
+	std::unique_ptr<EditorColdData> m_pEditorColdData;
+
+	void createNavMeshVertexBuffer();
+	void createNavMeshIndexBuffer();
+	void createNavMeshVao();
+	void createNavMeshVertexVao();
+
+	void createInfluenceCellVbo();
+	void createInfluenceCellVao();
+
+	void createNavMeshNodesVbo();
+	void createNavMeshNodesVao();
+
+	void handleFileEvent(const Event &evt);
 
 	void addMesh(const vx::StringID64 &sid);
 	void addMaterial(const vx::StringID64 &sid);
@@ -21,6 +68,21 @@ class EditorRenderAspect : public RenderAspect
 	void updateEditor();
 
 	void handleEditorEvent(const Event &evt);
+	void handleLoadScene(const Event &evt);
+
+	void updateCamera();
+
+	void renderLights();
+
+	void renderNavMeshVertices();
+	void renderNavMesh();
+	void renderInfluenceMap();
+	void renderNavMeshGraphNodes();
+
+	void uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, U32 count);
+	void updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, U32 count, U32(&selectedVertexIndex)[3], U8 selectedCount);
+	void updateNavMeshIndexBuffer(const TriangleIndices* indices, U32 count);
+	void updateNavMeshIndexBuffer(const NavMesh &navMesh);
 
 public:
 	EditorRenderAspect();
@@ -31,13 +93,6 @@ public:
 	void update();
 	void render();
 
-	void editor_addMesh(const vx::StringID64 &sid, const char* name, const vx::Mesh* pMesh);
-	void editor_addMaterial(const vx::StringID64 &sid, const char* name, Material* pMaterial);
-	// returns 1 on success, 0 on failure
-	U8 editor_addMeshInstance(const vx::StringID64 instanceSid, const vx::StringID64 meshSid, const vx::StringID64 materialSid, const vx::Transform &transform);
-	U32 editor_getTransform(const vx::StringID64 instanceSid, vx::float3 &translation, vx::float3 &rotation, F32 &scaling);
-	void editor_updateTranslation(const vx::StringID64 instanceSid, const vx::float3 &translation);
-
 	void editor_moveCamera(F32 dirX, F32 dirY, F32 dirZ);
 	void VX_CALLCONV editor_rotateCamera(const __m128 rotation);
 
@@ -45,4 +100,16 @@ public:
 	void editor_updateWaypoint(U32 offset, U32 count, const Waypoint* src);
 
 	void handleEvent(const Event &evt) override;
+
+	const vx::Camera& getCamera() const;
+
+	bool setSelectedMeshInstance(const MeshInstance* p);
+	void updateSelectedMeshInstanceTransform(vx::Transform &transform);
+
+	void updateNavMeshBuffer(const NavMesh &navMesh, U32(&selectedVertex)[3], U8 selectedCount);
+	void updateNavMeshBuffer(const NavMesh &navMesh);
+
+	void updateInfluenceCellBuffer(const InfluenceMap &influenceMap);
+
+	void updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph);
 };

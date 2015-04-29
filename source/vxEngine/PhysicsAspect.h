@@ -12,6 +12,7 @@ namespace physx
 	class PxMaterial;
 	class PxController;
 	class PxControllerManager;
+	class PxRigidStatic;
 }
 
 namespace vx
@@ -27,6 +28,7 @@ namespace vx
 
 class Scene;
 class FileAspect;
+class MeshInstance;
 
 #include "EventListener.h"
 #include <PhysX/foundation/PxErrorCallback.h>
@@ -59,6 +61,7 @@ class PhysicsAspect : public EventListener
 	std::vector<const physx::PxTriangleMesh*> m_triangleMeshInstances;
 	vx::sorted_vector<vx::StringID64, physx::PxTriangleMesh*> m_physxMeshes;
 	vx::sorted_vector<vx::StringID64, physx::PxMaterial*> m_physxMaterials;
+	vx::sorted_vector<const MeshInstance*, physx::PxRigidStatic*> m_staticMeshInstances;
 	physx::PxFoundation *m_pFoundation;
 	physx::PxDefaultCpuDispatcher* m_pCpuDispatcher;
 	physx::PxCooking* m_pCooking;
@@ -86,6 +89,8 @@ public:
 	void move(const vx::float4a &velocity, F32 dt, physx::PxController* pController);
 	void setPosition(const vx::float3 &position, physx::PxController* pController);
 
-	// returns 1 on hit
-	U8 raycast_static(const vx::float3 &origin, const vx::float3 &unitDir, F32 maxDist, vx::float3* hitPosition) const;
+	MeshInstance* raycast_static(const vx::float3 &origin, const vx::float3 &unitDir, F32 maxDist, vx::float3* hitPosition) const;
+
+	bool editorGetStaticMeshInstancePosition(const MeshInstance* ptr, vx::float3* p) const;
+	void editorSetStaticMeshInstancePosition(const MeshInstance* ptr, const vx::float3 &p);
 };

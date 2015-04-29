@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vxLib/math/Vector.h>
-#include <Windows.h>
+#include "Editor.h"
 
 #ifdef _VX_EDITOR
 #define DLL_EXPORT __declspec( dllexport )
@@ -14,11 +14,6 @@ namespace Editor
 	extern "C" DLL_EXPORT void frame();
 
 	extern "C" DLL_EXPORT void loadFile(const char *filename, U32 type, LoadFileCallback f);
-	// returns 1 on success, 0 on failure
-	extern "C" DLL_EXPORT U32 addMeshInstance(U64 instanceSid, U64 meshSid, U64 materialSid, const vx::float3 &translation, const vx::float3 &rotation, const F32 scaling);
-
-	extern "C" DLL_EXPORT U32 getTransform(U64 instanceSid, vx::float3 &translation, vx::float3 &rotation, F32 &scaling);
-	extern "C" DLL_EXPORT void updateTranslation(U64 instanceSid, const vx::float3 &translation);
 
 	extern "C" DLL_EXPORT U64 getSid(const char *str);
 
@@ -28,6 +23,17 @@ namespace Editor
 
 	extern "C" DLL_EXPORT void rotateCamera(F32 dirX, F32 dirY, F32 dirZ);
 
-	extern "C" DLL_EXPORT void raytraceMouse(I32 x, I32 y, U32 mode);
+	extern "C" DLL_EXPORT bool addNavMeshVertex(I32 x, I32 y);
+	extern "C" DLL_EXPORT void deleteSelectedNavMeshVertex();
+	extern "C" DLL_EXPORT bool selectNavMeshVertex(I32 x, I32 y);
+	extern "C" DLL_EXPORT bool multiSelectNavMeshVertex(I32 mouseX, I32 mouseY);
+	extern "C" DLL_EXPORT void deselectNavMeshVertex();
+	extern "C" DLL_EXPORT bool createNavMeshTriangleFromSelectedVertices();
+	extern "C" DLL_EXPORT void getSelectNavMeshVertexPosition(vx::float3* position);
+	extern "C" DLL_EXPORT void setSelectNavMeshVertexPosition(const vx::float3 &position);
+
+	extern "C" DLL_EXPORT bool selectMesh(I32 x, I32 y);
+	extern "C" DLL_EXPORT void deselectMesh();
+	extern "C" DLL_EXPORT void updateSelectedMeshInstanceTransform(const vx::float3 &translation);
 }
 #endif

@@ -1,5 +1,7 @@
 #pragma once
 
+struct PointLightShadowTransform;
+
 #include <vxLib/math/matrix.h>
 #include "AABB.h"
 #include <vector>
@@ -21,4 +23,6 @@ struct Light
 	static YAML::Node saveToYaml(const Light* lights, U32 count);
 
 	void getTransformationMatrix(vx::mat4* m) const;
+
+	void getShadowTransform(PointLightShadowTransform* shadowTransform) const;
 };

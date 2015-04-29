@@ -33,7 +33,7 @@ void ActorAspect::initialize(const EntityAspect &entityAspect, EventManager &evt
 	m_allocatorScratch = vx::StackAllocator(pAllocator->allocate(szSratch, 64), szSratch);
 
 	m_pActorPool = &entityAspect.getActorPool();
-	m_pPhysicsPool = &entityAspect.getPhysicsPool();
+	//m_pPhysicsPool = &entityAspect.getPhysicsPool();
 	m_pEntityPool = &entityAspect.getEntityPool();
 
 	evtManager.registerListener(&m_squadManager, 2);
@@ -128,9 +128,9 @@ void ActorAspect::handleFileEvent(const Event &evt)
 
 
 		// create influence map
-		m_influenceMap.init(pNavMesh, m_navGraph, 3.0f, 2.1f);
+		m_influenceMap.initialize(pNavMesh, 3.0f, 2.1f);
 
-		m_squadManager.initialize(m_pActorPool ,&m_navGraph, &m_influenceMap, m_pPhysicsPool, m_pEntityPool);
+		m_squadManager.initialize(m_pActorPool ,&m_navGraph, &m_influenceMap, nullptr, m_pEntityPool);
 
 
 
