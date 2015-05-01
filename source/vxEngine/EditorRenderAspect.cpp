@@ -63,7 +63,11 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 
 	createIndirectCmdBuffers();
 
-	return initializeImpl(dataDir, windowResolution, debug, pAllocator);
+	auto result = initializeImpl(dataDir, windowResolution, debug, pAllocator);
+
+	bindBuffers();
+
+	return result;
 }
 
 void EditorRenderAspect::createNavMeshVertexBuffer()
@@ -297,7 +301,7 @@ void EditorRenderAspect::render()
 	clearBuffers();
 
 	vx::gl::StateManager::bindFrameBuffer(0);
-	vx::gl::StateManager::setClearColor(0.1f, 0, 0, 1);
+	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
