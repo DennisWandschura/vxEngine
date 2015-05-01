@@ -11,6 +11,7 @@ class NavMeshGraph;
 #include "EditorRenderData.h"
 #include <vxLib/Variant.h>
 #include <atomic>
+#include "Graphics/CommandList.h"
 
 class EditorRenderAspect : public RenderAspect
 {
@@ -24,24 +25,35 @@ class EditorRenderAspect : public RenderAspect
 
 	struct EditorColdData
 	{
+		vx::gl::Buffer m_meshCountBuffer;
 		vx::gl::Buffer m_navMeshVertexVbo;
 		vx::gl::Buffer m_navMeshVertexIbo;
 
 		vx::gl::Buffer m_influenceCellVbo;
 
 		vx::gl::Buffer m_navMeshGraphNodesVbo;
+
+		vx::gl::Buffer m_navMeshVertexIndirectBuffer;
+		vx::gl::Buffer m_navMeshIndexCountBuffer;
+		vx::gl::Buffer m_lightCmdBuffer;
+		vx::gl::Buffer m_influenceMapCmdBuffer;
+
+		U32 m_influenceCellCount{ 0 };
+		U32 m_lightCount{ 0 };
+		U32 m_navMeshIndexCount{ 0 };
+		U32 m_navMeshVertexCount{ 0 };
+		vx::gl::VertexArray m_navMeshVao;
+		vx::gl::VertexArray m_navMeshVertexVao;
+		vx::gl::VertexArray m_influenceVao;
 	};
 
-	vx::gl::VertexArray m_navMeshVertexVao;
-	vx::gl::VertexArray m_navMeshVao;
-	vx::gl::VertexArray m_influenceVao;
+	Graphics::CommandList m_commandList;
+
 	vx::gl::VertexArray m_navMeshGraphNodesVao;
-	U32 m_navMeshVertexCount{ 0 };
-	U32 m_navMeshIndexCount{0};
-	U32 m_influenceCellCount{0};
+
 	U32 m_navMeshGraphNodesCount{0};
 	Editor::RenderData m_editorData;
-	U32 m_lightCount{ 0 };
+
 	SelectedMeshInstance m_selectedInstance{};
 	std::mutex m_updateDataMutex{};
 	std::atomic_uint m_updateEditor{ 0 };
@@ -59,6 +71,8 @@ class EditorRenderAspect : public RenderAspect
 	void createNavMeshNodesVbo();
 	void createNavMeshNodesVao();
 
+	void createIndirectCmdBuffers();
+
 	void handleFileEvent(const Event &evt);
 
 	void addMesh(const vx::StringID64 &sid);
@@ -72,11 +86,6 @@ class EditorRenderAspect : public RenderAspect
 
 	void updateCamera();
 
-	void renderLights();
-
-	void renderNavMeshVertices();
-	void renderNavMesh();
-	void renderInfluenceMap();
 	void renderNavMeshGraphNodes();
 
 	void uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, U32 count);

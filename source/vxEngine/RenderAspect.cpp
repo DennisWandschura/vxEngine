@@ -261,7 +261,12 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	if (!m_renderContext.initialize(contextDesc))
 		return false;
 
-	return initializeImpl(dataDir, desc.resolution, desc.debug, desc.pAllocator);
+	auto result = initializeImpl(dataDir, desc.resolution, desc.debug, desc.pAllocator);
+
+	if (result)
+		bindBuffers();
+
+	return result;
 }
 
 bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, vx::StackAllocator *pAllocator)
@@ -336,8 +341,6 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	m_pRenderPassFinalImage = &m_renderpassFinalImageFullShading;
 
 	createRenderPassCreateShadowMaps();
-
-	bindBuffers();
 
 	return true;
 }

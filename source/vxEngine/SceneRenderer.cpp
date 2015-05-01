@@ -499,12 +499,22 @@ void SceneRenderer::updateBuffers(const MeshInstance *pInstances, U32 instanceCo
 	}
 }
 
+void SceneRenderer::bindTransformBuffer()
+{
+	BufferBindingManager::bindBaseShaderStorage(0, m_coldData->m_transformBlock.getId());
+}
+
+void SceneRenderer::bindMaterialBuffer()
+{
+	BufferBindingManager::bindBaseShaderStorage(1, m_coldData->m_materialBlock.getId());
+}
+
 void SceneRenderer::bindBuffers()
 {
 	BufferBindingManager::bindBaseUniform(4, m_commandBlock.getId());
 
-	BufferBindingManager::bindBaseShaderStorage(0, m_coldData->m_transformBlock.getId());
-	BufferBindingManager::bindBaseShaderStorage(1, m_coldData->m_materialBlock.getId());
+	bindTransformBuffer();
+	bindMaterialBuffer();
 
 	m_coldData->m_lightBufferManager.bindBuffer();
 }

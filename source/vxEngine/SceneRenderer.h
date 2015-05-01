@@ -107,6 +107,8 @@ public:
 	void initialize(U32 maxLightCount, BufferManager* pBufferManager, vx::StackAllocator *pAllocator);
 	bool initializeProfiler(const Font &font, U64 fontTextureHandle,const vx::uint2 &resolution, const vx::gl::ShaderManager &shaderManager, GpuProfiler* gpuProfiler, vx::StackAllocator *pAllocator);
 
+	void bindTransformBuffer();
+	void bindMaterialBuffer();
 	void bindBuffers();
 
 	void loadScene(const Scene &scene, const BufferManager &bufferManager);

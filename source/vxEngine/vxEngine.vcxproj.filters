@@ -85,9 +85,6 @@
     <Filter Include="Header Files\AI\Actions">
       <UniqueIdentifier>{ba5ccc37-65e2-4838-9d22-92814ea2c01b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\AI\Navigation">
-      <UniqueIdentifier>{2c0367ea-7bb1-4975-8778-859b7f2a54ac}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\AI\Navigation">
       <UniqueIdentifier>{184e5c93-2bc5-48b1-94fd-89236205ad1b}</UniqueIdentifier>
     </Filter>
@@ -132,6 +129,12 @@
     </Filter>
     <Filter Include="Header Files\File">
       <UniqueIdentifier>{248bfd50-c7d4-4d47-a9f3-e4a4d2e713e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Navigation">
+      <UniqueIdentifier>{2c0367ea-7bb1-4975-8778-859b7f2a54ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Converter">
+      <UniqueIdentifier>{8a5d2184-34ad-4cd0-b1ad-7170b4c30eee}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -348,17 +351,14 @@
     <ClInclude Include="RaycastCondition.h">
       <Filter>Header Files\AI\Conditions</Filter>
     </ClInclude>
-    <ClInclude Include="NavMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="NavGraph.h">
-      <Filter>Header Files\AI\Navigation</Filter>
+      <Filter>Header Files\Navigation</Filter>
     </ClInclude>
     <ClInclude Include="NavNode.h">
-      <Filter>Header Files\AI\Navigation</Filter>
+      <Filter>Header Files\Navigation</Filter>
     </ClInclude>
     <ClInclude Include="NavConnection.h">
-      <Filter>Header Files\AI\Navigation</Filter>
+      <Filter>Header Files\Navigation</Filter>
     </ClInclude>
     <ClInclude Include="AStar.h">
       <Filter>Header Files\AI</Filter>
@@ -555,12 +555,6 @@
     <ClInclude Include="GpuStructs.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="ConverterSceneFileToScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ConverterEditorSceneToSceneFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EngineConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -636,9 +630,6 @@
     <ClInclude Include="TextureLayer.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="NavMeshTriangle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Triangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -672,8 +663,32 @@
     <ClInclude Include="File.h">
       <Filter>Header Files\File</Filter>
     </ClInclude>
-    <ClInclude Include="FileInterface.h">
+    <ClInclude Include="Serializable.h">
       <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshFile.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMesh.h">
+      <Filter>Header Files\Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshTriangle.h">
+      <Filter>Header Files\Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterEditorSceneToSceneFile.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterSceneFileToScene.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\State.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Segment.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\CommandList.h">
+      <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1019,6 +1034,15 @@
     <ClCompile Include="FileFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\State.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Segment.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\CommandList.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">
@@ -1251,6 +1275,12 @@
     </None>
     <None Include="..\..\game\data\shaders\editorDrawPointColor.pipe">
       <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editor.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editor.frag">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

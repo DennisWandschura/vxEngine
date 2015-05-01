@@ -2,10 +2,10 @@
 
 #include <vxLib/types.h>
 
-class FileInterface
+class Serializable
 {
 public:
-	virtual ~FileInterface(){}
+	virtual ~Serializable(){}
 
 	virtual const U8* loadFromMemory(const U8 *ptr, U32 version) = 0;
 

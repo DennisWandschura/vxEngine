@@ -22,7 +22,6 @@ namespace Graphics
 
 		std::vector<Pass> m_renderPasses;
 		vx::sorted_vector<vx::StringID64, U32> m_indices;
-		//GpuProfiler* m_pGpuProfiler;
 
 		Pass* findPass(const char* id);
 

@@ -24,9 +24,9 @@ namespace vx
 #include "NavMesh.h"
 #include <memory>
 #include <vxLib/Container/sorted_vector.h>
-#include "FileInterface.h"
+#include "Serializable.h"
 
-class SceneFile : public FileInterface
+class SceneFile : public Serializable
 {
 	friend class ConverterSceneFileToScene;
 	friend class ConverterEditorSceneToSceneFile;
@@ -36,10 +36,10 @@ class SceneFile : public FileInterface
 	std::unique_ptr<SpawnFile[]> m_pSpawns;
 	std::unique_ptr<ActorFile[]> m_pActors;
 	NavMesh m_navMesh;
-	U32 m_meshInstanceCount{ 0 };
-	U32 m_lightCount{ 0 };
-	U32 m_spawnCount{ 0 };
-	U32 m_actorCount{ 0 };
+	U32 m_meshInstanceCount;
+	U32 m_lightCount;
+	U32 m_spawnCount;
+	U32 m_actorCount;
 
 	bool createSceneMeshInstances(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
 		MeshInstance* pMeshInstances, vx::sorted_vector<vx::StringID64, const vx::Mesh*>* sceneMeshes, vx::sorted_vector<vx::StringID64, Material*>* sceneMaterials);

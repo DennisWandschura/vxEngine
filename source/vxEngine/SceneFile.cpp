@@ -64,6 +64,10 @@ namespace YAML
 }
 
 SceneFile::SceneFile()
+	:m_meshInstanceCount(0),
+	m_lightCount(0),
+	m_spawnCount(0),
+	m_actorCount(0)
 {
 }
 
