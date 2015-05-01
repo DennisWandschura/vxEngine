@@ -61,6 +61,8 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	createNavMeshNodesVbo();
 	createNavMeshNodesVao();
 
+	createIndirectCmdBuffers();
+
 	return initializeImpl(dataDir, windowResolution, debug, pAllocator);
 }
 
@@ -86,27 +88,27 @@ void EditorRenderAspect::createNavMeshIndexBuffer()
 
 void EditorRenderAspect::createNavMeshVao()
 {
-	m_navMeshVao.create();
-	m_navMeshVao.enableArrayAttrib(0);
-	m_navMeshVao.arrayAttribFormatF(0, 3, 0, 0);
-	m_navMeshVao.arrayAttribBinding(0, 0);
-	m_navMeshVao.bindVertexBuffer(m_pEditorColdData->m_navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
+	m_pEditorColdData->m_navMeshVao.create();
+	m_pEditorColdData->m_navMeshVao.enableArrayAttrib(0);
+	m_pEditorColdData->m_navMeshVao.arrayAttribFormatF(0, 3, 0, 0);
+	m_pEditorColdData->m_navMeshVao.arrayAttribBinding(0, 0);
+	m_pEditorColdData->m_navMeshVao.bindVertexBuffer(m_pEditorColdData->m_navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
 
-	m_navMeshVao.bindIndexBuffer(m_pEditorColdData->m_navMeshVertexIbo);
+	m_pEditorColdData->m_navMeshVao.bindIndexBuffer(m_pEditorColdData->m_navMeshVertexIbo);
 }
 
 void EditorRenderAspect::createNavMeshVertexVao()
 {
-	m_navMeshVertexVao.create();
-	m_navMeshVertexVao.enableArrayAttrib(0);
-	m_navMeshVertexVao.arrayAttribFormatF(0, 3, 0, 0);
-	m_navMeshVertexVao.arrayAttribBinding(0, 0);
+	m_pEditorColdData->m_navMeshVertexVao.create();
+	m_pEditorColdData->m_navMeshVertexVao.enableArrayAttrib(0);
+	m_pEditorColdData->m_navMeshVertexVao.arrayAttribFormatF(0, 3, 0, 0);
+	m_pEditorColdData->m_navMeshVertexVao.arrayAttribBinding(0, 0);
 
-	m_navMeshVertexVao.enableArrayAttrib(1);
-	m_navMeshVertexVao.arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
-	m_navMeshVertexVao.arrayAttribBinding(1, 0);
+	m_pEditorColdData->m_navMeshVertexVao.enableArrayAttrib(1);
+	m_pEditorColdData->m_navMeshVertexVao.arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
+	m_pEditorColdData->m_navMeshVertexVao.arrayAttribBinding(1, 0);
 
-	m_navMeshVertexVao.bindVertexBuffer(m_pEditorColdData->m_navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
+	m_pEditorColdData->m_navMeshVertexVao.bindVertexBuffer(m_pEditorColdData->m_navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
 }
 
 void EditorRenderAspect::createInfluenceCellVbo()
@@ -121,17 +123,17 @@ void EditorRenderAspect::createInfluenceCellVbo()
 
 void EditorRenderAspect::createInfluenceCellVao()
 {
-	m_influenceVao.create();
+	m_pEditorColdData->m_influenceVao.create();
 
-	m_influenceVao.enableArrayAttrib(0);
-	m_influenceVao.arrayAttribFormatF(0, 3, 0, 0);
-	m_influenceVao.arrayAttribBinding(0, 0);
+	m_pEditorColdData->m_influenceVao.enableArrayAttrib(0);
+	m_pEditorColdData->m_influenceVao.arrayAttribFormatF(0, 3, 0, 0);
+	m_pEditorColdData->m_influenceVao.arrayAttribBinding(0, 0);
 
-	m_influenceVao.enableArrayAttrib(1);
-	m_influenceVao.arrayAttribFormatI(1, 1, vx::gl::DataType::Unsigned_Int, sizeof(vx::float3));
-	m_influenceVao.arrayAttribBinding(1, 0);
+	m_pEditorColdData->m_influenceVao.enableArrayAttrib(1);
+	m_pEditorColdData->m_influenceVao.arrayAttribFormatI(1, 1, vx::gl::DataType::Unsigned_Int, sizeof(vx::float3));
+	m_pEditorColdData->m_influenceVao.arrayAttribBinding(1, 0);
 
-	m_influenceVao.bindVertexBuffer(m_pEditorColdData->m_influenceCellVbo, 0, 0, sizeof(InfluenceCellVertex));
+	m_pEditorColdData->m_influenceVao.bindVertexBuffer(m_pEditorColdData->m_influenceCellVbo, 0, 0, sizeof(InfluenceCellVertex));
 }
 
 void EditorRenderAspect::createNavMeshNodesVbo()
@@ -155,6 +157,33 @@ void EditorRenderAspect::createNavMeshNodesVao()
 	m_navMeshGraphNodesVao.bindVertexBuffer(m_pEditorColdData->m_navMeshGraphNodesVbo, 0, 0, sizeof(vx::float3));
 }
 
+void EditorRenderAspect::createIndirectCmdBuffers()
+{
+	DrawArraysIndirectCommand arrayCmd;
+	memset(&arrayCmd, 0, sizeof(DrawArraysIndirectCommand));
+	arrayCmd.instanceCount = 1;
+
+	vx::gl::BufferDescription desc;
+	desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+	desc.flags = vx::gl::BufferStorageFlags::Write;
+	desc.immutable = 1;
+	desc.pData = &arrayCmd;
+	desc.size = sizeof(DrawArraysIndirectCommand);
+
+	m_pEditorColdData->m_navMeshVertexCmdBuffer.create(desc);
+	m_pEditorColdData->m_lightCmdBuffer.create(desc);
+	m_pEditorColdData->m_influenceMapCmdBuffer.create(desc);
+
+	vx::gl::DrawElementsIndirectCommand elementsCmd;
+	memset(&elementsCmd, 0, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	desc.pData = &elementsCmd;
+	desc.size = sizeof(vx::gl::DrawElementsIndirectCommand);
+	elementsCmd.instanceCount = 1;
+
+	m_pEditorColdData->m_navmeshCmdBuffer.create(desc);
+}
+
 void EditorRenderAspect::update()
 {
 	if (m_updateEditor.load() != 0)
@@ -167,7 +196,7 @@ void EditorRenderAspect::update()
 	RenderAspect::update();
 }
 
-void EditorRenderAspect::renderLights()
+/*void EditorRenderAspect::renderLights()
 {
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
@@ -183,9 +212,9 @@ void EditorRenderAspect::renderLights()
 
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-}
+}*/
 
-void EditorRenderAspect::renderNavMeshVertices()
+/*void EditorRenderAspect::renderNavMeshVertices()
 {
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
@@ -201,7 +230,7 @@ void EditorRenderAspect::renderNavMeshVertices()
 
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-}
+}*/
 
 void EditorRenderAspect::renderNavMeshGraphNodes()
 {
@@ -226,7 +255,7 @@ void EditorRenderAspect::renderNavMeshGraphNodes()
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 }
 
-void EditorRenderAspect::renderNavMesh()
+/*void EditorRenderAspect::renderNavMesh()
 {
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
@@ -260,7 +289,7 @@ void EditorRenderAspect::renderInfluenceMap()
 	glDrawArrays(GL_POINTS, 0, m_influenceCellCount);
 
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-}
+}*/
 
 void EditorRenderAspect::render()
 {
@@ -268,7 +297,7 @@ void EditorRenderAspect::render()
 	clearBuffers();
 
 	vx::gl::StateManager::bindFrameBuffer(0);
-	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+	vx::gl::StateManager::setClearColor(0.1f, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
@@ -296,15 +325,7 @@ void EditorRenderAspect::render()
 
 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, meshCount, sizeof(vx::gl::DrawElementsIndirectCommand));
 
-	renderLights();
-
-	renderInfluenceMap();
-
-	renderNavMesh();
-
-	renderNavMeshVertices();
-
-	renderNavMeshGraphNodes();
+//	m_commandList.draw();
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
@@ -534,7 +555,7 @@ void EditorRenderAspect::handleEditorEvent(const Event &evt)
 void EditorRenderAspect::handleLoadScene(const Event &evt)
 {
 	auto scene = (Scene*)evt.arg1.ptr;
-	m_lightCount = scene->getLightCount();
+	m_pEditorColdData->m_lightCount = scene->getLightCount();
 	auto &navMesh = scene->getNavMesh();
 
 	updateNavMeshBuffer(navMesh);
@@ -558,8 +579,6 @@ void EditorRenderAspect::updateNavMeshBuffer(const NavMesh &navMesh)
 		auto vertices = navMesh.getVertices();
 		U32 tmp[3];
 		updateNavMeshVertexBufferWithSelectedVertex(vertices, navMeshVertexCount, tmp, 0);
-
-		m_navMeshVertexCount = navMeshVertexCount;
 	}
 
 	updateNavMeshIndexBuffer(navMesh);
@@ -572,8 +591,6 @@ void EditorRenderAspect::updateNavMeshBuffer(const NavMesh &navMesh, U32(&select
 	{
 		auto vertices = navMesh.getVertices();
 		updateNavMeshVertexBufferWithSelectedVertex(vertices, navMeshVertexCount, selectedVertexIndex, selectedCount);
-		
-		m_navMeshVertexCount = navMeshVertexCount;
 	}
 
 	updateNavMeshIndexBuffer(navMesh);
@@ -601,6 +618,7 @@ void EditorRenderAspect::updateNavMeshVertexBufferWithSelectedVertex(const vx::f
 		src[index].color.y = 1.0f;
 	}
 
+	m_pEditorColdData->m_navMeshVertexCount = count;
 	uploadToNavMeshVertexBuffer(src.get(), count);
 }
 
@@ -612,7 +630,7 @@ void EditorRenderAspect::updateNavMeshIndexBuffer(const NavMesh &navMesh)
 		auto indices = navMesh.getTriangleIndices();
 		updateNavMeshIndexBuffer(indices, triangleCount);
 
-		m_navMeshIndexCount = triangleCount * 3;
+		m_pEditorColdData->m_navMeshIndexCount = triangleCount * 3;
 	}
 }
 
@@ -681,7 +699,7 @@ void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influence
 		vertices[i].count = cells[i].m_count;
 	}
 
-	m_influenceCellCount = cellCount;
+	m_pEditorColdData->m_influenceCellCount = cellCount;
 
 	auto mappedBuffer = m_pEditorColdData->m_influenceCellVbo.map<InfluenceCellVertex>(vx::gl::Map::Write_Only);
 	::memcpy(mappedBuffer.get(), vertices.get(), sizeof(InfluenceCellVertex) * cellCount);

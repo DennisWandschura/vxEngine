@@ -13,6 +13,13 @@ class NavMeshGraph;
 #include <atomic>
 #include "Graphics/CommandList.h"
 
+typedef  struct {
+	U32  count;
+	U32  instanceCount;
+	U32  first;
+	U32  baseInstance;
+} DrawArraysIndirectCommand;
+
 class EditorRenderAspect : public RenderAspect
 {
 	enum class EditorUpdate : U32;
@@ -33,8 +40,8 @@ class EditorRenderAspect : public RenderAspect
 
 		vx::gl::Buffer m_navMeshGraphNodesVbo;
 
-		vx::gl::Buffer m_navMeshVertexIndirectBuffer;
-		vx::gl::Buffer m_navMeshIndexCountBuffer;
+		vx::gl::Buffer m_navMeshVertexCmdBuffer;
+		vx::gl::Buffer m_navmeshCmdBuffer;
 		vx::gl::Buffer m_lightCmdBuffer;
 		vx::gl::Buffer m_influenceMapCmdBuffer;
 
