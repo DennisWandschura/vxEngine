@@ -189,6 +189,8 @@
     <ClInclude Include="FileFactory.h" />
     <ClInclude Include="FileHeader.h" />
     <ClInclude Include="Graphics\CommandList.h" />
+    <ClInclude Include="Graphics\Commands.h" />
+    <ClInclude Include="Graphics\BufferFactory.h" />
     <ClInclude Include="Graphics\Segment.h" />
     <ClInclude Include="Graphics\State.h" />
     <ClInclude Include="MeshFile.h" />
@@ -389,6 +391,7 @@
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="GpuFunctions.cpp" />
     <ClCompile Include="GpuProfiler.cpp" />
+    <ClCompile Include="Graphics\BufferFactory.cpp" />
     <ClCompile Include="Graphics\CommandList.cpp" />
     <ClCompile Include="Graphics\Segment.cpp" />
     <ClCompile Include="Graphics\State.cpp" />
@@ -472,6 +475,8 @@
     <None Include="..\..\game\data\shaders\draw_final_image.pipe" />
     <None Include="..\..\game\data\shaders\editor.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawPointColor.pipe" />
+    <None Include="..\..\game\data\shaders\editorDrawLights.pipe" />
+    <None Include="..\..\game\data\shaders\editorDrawSpawn.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawPoint.pipe" />
     <None Include="..\..\game\data\shaders\forward_render.pipe" />
     <None Include="..\..\game\data\shaders\graph.pipe" />
@@ -497,6 +502,9 @@
     <None Include="..\..\game\data\shaders\programs\draw_aabb.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\draw_final_image.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\editor.frag" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.frag" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.geom" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.vert" />
     <None Include="..\..\game\data\shaders\programs\editorDrawLights.frag" />
     <None Include="..\..\game\data\shaders\programs\editorDrawLights.geom" />
     <None Include="..\..\game\data\shaders\programs\editorDrawLights.vert" />

@@ -690,6 +690,12 @@
     <ClInclude Include="Graphics\CommandList.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Commands.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\BufferFactory.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -1043,6 +1049,9 @@
     <ClCompile Include="Graphics\CommandList.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\BufferFactory.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">
@@ -1270,9 +1279,6 @@
     <None Include="..\..\game\data\shaders\programs\editorDrawPointColor.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\editorDrawPointColor.pipe">
-      <Filter>Shader Pipelines</Filter>
-    </None>
     <None Include="..\..\game\data\shaders\editor.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
@@ -1280,6 +1286,24 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\drawFinalImageNormals.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorDrawLights.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorDrawSpawn.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorDrawPointColor.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
   </ItemGroup>

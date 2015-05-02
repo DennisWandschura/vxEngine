@@ -446,7 +446,6 @@ bool DDS_File::loadFromFile(const char* file, bool flipImage)
 	FILE* inFile = fopen(file, "rb");
 	if (!inFile)
 	{
-		fclose(inFile);
 		return false;
 	}
 
@@ -627,4 +626,12 @@ inline bool DDS_File::isCompressed() const
 		return true;
 	else
 		return false;
+}
+
+void DDS_File::clear()
+{
+	m_images.clear();
+	m_components = 0;
+	m_type = Type::Flat;
+	m_format = 0;
 }

@@ -32,6 +32,11 @@ class EditorRenderAspect : public RenderAspect
 
 	struct EditorColdData
 	{
+		vx::gl::Texture m_editorTextures;
+		vx::gl::Buffer m_editorTextureBuffer;
+		vx::gl::Buffer m_spawnPointVbo;
+		vx::gl::VertexArray m_spawnPointVao;
+		vx::gl::Buffer m_spawnPointCmdBuffer;
 
 		vx::gl::Buffer m_navMeshVertexVbo;
 		vx::gl::Buffer m_navMeshVertexIbo;
@@ -69,20 +74,18 @@ class EditorRenderAspect : public RenderAspect
 	std::vector<std::pair<vx::Variant, EditorUpdate>> m_updateData;
 	std::unique_ptr<EditorColdData> m_pEditorColdData;
 
-	void createNavMeshVertexBuffer();
-	void createNavMeshIndexBuffer();
 	void createNavMeshVao();
 	void createNavMeshVertexVao();
 
-	void createInfluenceCellVbo();
 	void createInfluenceCellVao();
 
-	void createNavMeshNodesVbo();
 	void createNavMeshNodesVao();
 
 	void createIndirectCmdBuffers();
 
 	void createCommandList();
+
+	void createEditorTextures();
 
 	void handleFileEvent(const Event &evt);
 

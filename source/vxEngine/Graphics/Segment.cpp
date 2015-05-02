@@ -1,6 +1,7 @@
 #include "Segment.h"
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
+#include "Commands.h"
 
 namespace Graphics
 {
@@ -36,8 +37,11 @@ namespace Graphics
 		const F32* dataPtr = (F32*)(command + 1);
 		switch (command->m_count)
 		{
+		case 1:
+			glProgramUniform1f(command->m_program, command->m_location, *dataPtr);
+			break;
 		case 4:
-			glProgramUniform4fv(command->m_program, 0, 1, dataPtr);
+			glProgramUniform4fv(command->m_program, command->m_location, 1, dataPtr);
 		break;
 		default:
 			assert(false);

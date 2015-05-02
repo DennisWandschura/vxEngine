@@ -12,6 +12,10 @@
 #include "NavMeshGraph.h"
 #include "utility.h"
 #include "Graphics/Segment.h"
+#include "DDS_File.h"
+#include "Graphics/BufferFactory.h"
+#include "Spawn.h"
+#include "Graphics/Commands.h"
 
 struct VertexNavMesh
 {
@@ -51,16 +55,23 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	m_pEditorColdData = std::make_unique<EditorColdData>();
 	m_editorData.initialize();
 
-	createNavMeshVertexBuffer();
-	createNavMeshIndexBuffer();
+	m_pEditorColdData->m_navMeshVertexVbo = Graphics::BufferFactory::createVertexBuffer(sizeof(VertexNavMesh) * 256, vx::gl::BufferStorageFlags::Write);
+	m_pEditorColdData->m_navMeshVertexIbo = Graphics::BufferFactory::createIndexBuffer(sizeof(U16) * 256 * 3, vx::gl::BufferStorageFlags::Write);
 	createNavMeshVertexVao();
 	createNavMeshVao();
 
-	createInfluenceCellVbo();
+	m_pEditorColdData->m_influenceCellVbo = Graphics::BufferFactory::createVertexBuffer(sizeof(InfluenceCellVertex) * 256, vx::gl::BufferStorageFlags::Write);
 	createInfluenceCellVao();
 
-	createNavMeshNodesVbo();
+	m_pEditorColdData->m_navMeshGraphNodesVbo = Graphics::BufferFactory::createVertexBuffer(sizeof(vx::float3) * 256, vx::gl::BufferStorageFlags::Write);
 	createNavMeshNodesVao();
+
+	m_pEditorColdData->m_spawnPointVbo = Graphics::BufferFactory::createVertexBuffer(sizeof(vx::float3) * 256, vx::gl::BufferStorageFlags::Write);
+	m_pEditorColdData->m_spawnPointVao.create();
+	m_pEditorColdData->m_spawnPointVao.enableArrayAttrib(0);
+	m_pEditorColdData->m_spawnPointVao.arrayAttribBinding(0, 0);
+	m_pEditorColdData->m_spawnPointVao.arrayAttribFormatF(0, 3, 0, 0);
+	m_pEditorColdData->m_spawnPointVao.bindVertexBuffer(m_pEditorColdData->m_spawnPointVbo, 0, 0, sizeof(vx::float3));
 
 	createIndirectCmdBuffers();
 
@@ -68,32 +79,15 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 
 	createCommandList();
 
+	createEditorTextures();
+
 	bindBuffers();
+	glBindBufferBase(GL_UNIFORM_BUFFER, 8, m_pEditorColdData->m_editorTextureBuffer.getId());
 
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	return result;
-}
-
-void EditorRenderAspect::createNavMeshVertexBuffer()
-{
-	vx::gl::BufferDescription dsc;
-	dsc.bufferType = vx::gl::BufferType::Array_Buffer;
-	dsc.flags = vx::gl::BufferStorageFlags::Write;
-	dsc.immutable = 1;
-	dsc.size = sizeof(VertexNavMesh) * 256;
-	m_pEditorColdData->m_navMeshVertexVbo.create(dsc);
-}
-
-void EditorRenderAspect::createNavMeshIndexBuffer()
-{
-	vx::gl::BufferDescription dsc;
-	dsc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
-	dsc.flags = vx::gl::BufferStorageFlags::Write;
-	dsc.immutable = 1;
-	dsc.size = sizeof(U16) * 256 * 3;
-	m_pEditorColdData->m_navMeshVertexIbo.create(dsc);
 }
 
 void EditorRenderAspect::createNavMeshVao()
@@ -121,16 +115,6 @@ void EditorRenderAspect::createNavMeshVertexVao()
 	m_pEditorColdData->m_navMeshVertexVao.bindVertexBuffer(m_pEditorColdData->m_navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
 }
 
-void EditorRenderAspect::createInfluenceCellVbo()
-{
-	vx::gl::BufferDescription dsc;
-	dsc.bufferType = vx::gl::BufferType::Array_Buffer;
-	dsc.flags = vx::gl::BufferStorageFlags::Write;
-	dsc.immutable = 1;
-	dsc.size = sizeof(InfluenceCellVertex) * 256;
-	m_pEditorColdData->m_influenceCellVbo.create(dsc);
-}
-
 void EditorRenderAspect::createInfluenceCellVao()
 {
 	m_pEditorColdData->m_influenceVao.create();
@@ -144,16 +128,6 @@ void EditorRenderAspect::createInfluenceCellVao()
 	m_pEditorColdData->m_influenceVao.arrayAttribBinding(1, 0);
 
 	m_pEditorColdData->m_influenceVao.bindVertexBuffer(m_pEditorColdData->m_influenceCellVbo, 0, 0, sizeof(InfluenceCellVertex));
-}
-
-void EditorRenderAspect::createNavMeshNodesVbo()
-{
-	vx::gl::BufferDescription dsc;
-	dsc.bufferType = vx::gl::BufferType::Array_Buffer;
-	dsc.flags = vx::gl::BufferStorageFlags::Write;
-	dsc.immutable = 1;
-	dsc.size = sizeof(vx::float3) * 256;
-	m_pEditorColdData->m_navMeshGraphNodesVbo.create(dsc);
 }
 
 void EditorRenderAspect::createNavMeshNodesVao()
@@ -173,26 +147,17 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 	memset(&arrayCmd, 0, sizeof(DrawArraysIndirectCommand));
 	arrayCmd.instanceCount = 1;
 
-	vx::gl::BufferDescription desc;
-	desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
-	desc.flags = vx::gl::BufferStorageFlags::Write;
-	desc.immutable = 1;
-	desc.pData = &arrayCmd;
-	desc.size = sizeof(DrawArraysIndirectCommand);
-
-	m_pEditorColdData->m_navMeshVertexCmdBuffer.create(desc);
-	m_pEditorColdData->m_lightCmdBuffer.create(desc);
-	m_pEditorColdData->m_influenceMapCmdBuffer.create(desc);
-	m_pEditorColdData->m_graphNodesCmdBuffer.create(desc);
+	m_pEditorColdData->m_navMeshVertexCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
+	m_pEditorColdData->m_lightCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
+	m_pEditorColdData->m_influenceMapCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
+	m_pEditorColdData->m_graphNodesCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
+	m_pEditorColdData->m_spawnPointCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
 
 	vx::gl::DrawElementsIndirectCommand elementsCmd;
 	memset(&elementsCmd, 0, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	desc.pData = &elementsCmd;
-	desc.size = sizeof(vx::gl::DrawElementsIndirectCommand);
 	elementsCmd.instanceCount = 1;
 
-	m_pEditorColdData->m_navmeshCmdBuffer.create(desc);
+	m_pEditorColdData->m_navmeshCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawElementsIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&elementsCmd);
 
 	{
 		U32 drawCount = 0;
@@ -223,18 +188,13 @@ void EditorRenderAspect::createCommandList()
 	Graphics::DrawArraysIndirectCommand drawArraysPointsCmd;
 	drawArraysPointsCmd.set(GL_POINTS);
 
-	Graphics::Segment segmentDrawLights;
-	segmentDrawLights.setState(stateDrawLights);
-	segmentDrawLights.pushCommand(pointSizeCmd);
-	segmentDrawLights.pushCommand(drawArraysPointsCmd);
-
 	Graphics::State stateDrawNavMesh;
 	stateDrawNavMesh.set(0, m_pEditorColdData->m_navMeshVao.getId(), navmesh->getId(), m_pEditorColdData->m_navmeshCmdBuffer.getId());
 	stateDrawNavMesh.setBlendState(true);
 	stateDrawNavMesh.setDepthTest(false);
 
 	Graphics::ProgramUniformCommand navmeshUniformCmd;
-	navmeshUniformCmd.setFloat4(navmesh->getFragmentShader());
+	navmeshUniformCmd.setFloat4(navmesh->getFragmentShader(), 0);
 
 	vx::float4 color(0.5f, 0, 0.5f, 0.25f);
 	Graphics::ProgramUniformData<vx::float4> navmeshUniformData;
@@ -268,7 +228,27 @@ void EditorRenderAspect::createCommandList()
 		m_commandList.pushSegment(segmentDrawMeshes, "drawMeshes");
 	}
 
-	m_commandList.pushSegment(segmentDrawLights, "drawLights");
+	{
+		Graphics::State stateDrawLights;
+		stateDrawLights.set(0, m_emptyVao.getId(), editorDrawLights->getId(), m_pEditorColdData->m_lightCmdBuffer.getId());
+		stateDrawLights.setBlendState(true);
+		stateDrawLights.setDepthTest(false);
+
+		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
+		editorDrawPointUniformCmd.setFloat(editorDrawLights->getFragmentShader(), 0);
+
+		Graphics::ProgramUniformData<F32> uniformData;
+		uniformData.set(0.0f);
+
+		Graphics::Segment segmentDrawLights;
+		segmentDrawLights.setState(stateDrawLights);
+		segmentDrawLights.pushCommand(editorDrawPointUniformCmd, uniformData);
+		segmentDrawLights.pushCommand(drawArraysPointsCmd);
+
+		m_commandList.pushSegment(segmentDrawLights, "drawLights");
+	}
+
+
 	m_commandList.pushSegment(segmentDrawNavmesh, "drawNavmesh");
 
 	{
@@ -297,7 +277,7 @@ void EditorRenderAspect::createCommandList()
 		state.setDepthTest(false);
 
 		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
-		editorDrawPointUniformCmd.setFloat4(fsShader);
+		editorDrawPointUniformCmd.setFloat4(fsShader, 0);
 
 		vx::float4 color(0, 1, 0.5f, 0.5f);
 		Graphics::ProgramUniformData<vx::float4> editorDrawPointUniformData;
@@ -314,6 +294,28 @@ void EditorRenderAspect::createCommandList()
 	}
 
 	{
+		auto pPipeline = m_shaderManager.getPipeline("editorDrawSpawn.pipe");
+
+		Graphics::State state;
+		state.set(0, m_pEditorColdData->m_spawnPointVao.getId(), pPipeline->getId(), m_pEditorColdData->m_spawnPointCmdBuffer.getId());
+		state.setBlendState(true);
+		state.setDepthTest(false);
+
+		Graphics::ProgramUniformCommand uniformCmd;
+		uniformCmd.setFloat(pPipeline->getFragmentShader(), 0);
+
+		Graphics::ProgramUniformData<F32> uniformData;
+		uniformData.set(1.0f);
+
+		Graphics::Segment segmentDrawSpawnPoint;
+		segmentDrawSpawnPoint.setState(state);
+		segmentDrawSpawnPoint.pushCommand(uniformCmd, uniformData);
+		segmentDrawSpawnPoint.pushCommand(drawArraysPointsCmd);
+
+		m_commandList.pushSegment(segmentDrawSpawnPoint, "drawSpawnPoints");
+	}
+
+	{
 		auto pPipeline = m_shaderManager.getPipeline("influenceMap.pipe");
 
 		Graphics::State state;
@@ -324,9 +326,58 @@ void EditorRenderAspect::createCommandList()
 		Graphics::Segment segmentDrawInfluenceCells;
 		segmentDrawInfluenceCells.setState(state);
 		segmentDrawInfluenceCells.pushCommand(drawArraysPointsCmd);
-		
+
 		m_commandList.pushSegment(segmentDrawInfluenceCells, "drawInfluenceCells");
 	}
+}
+
+void EditorRenderAspect::createEditorTextures()
+{
+	vx::gl::TextureDescription desc;
+	desc.format = vx::gl::TextureFormat::SRGBA_DXT5;
+	desc.miplevels = 1;
+	desc.size = vx::ushort3(512, 512, 2);
+	desc.sparse = 0;
+	desc.type = vx::gl::TextureType::Texture_2D_Array;
+
+	m_pEditorColdData->m_editorTextures.create(desc);
+
+	DDS_File ddsFileLight;
+	DDS_File ddsFileSpawn;
+	if (!ddsFileLight.loadFromFile("../../game/data/textures/editor/light.dds") ||
+		!ddsFileSpawn.loadFromFile("../../game/data/textures/editor/spawnPoint.dds"))
+	{
+		puts("Error loading texture !");
+		return;
+	}
+
+	auto &textureLight = ddsFileLight.getTexture(0);
+	auto &textureSpawn = ddsFileSpawn.getTexture(0);
+
+	vx::gl::TextureCompressedSubImageDescription subImgDesc;
+	subImgDesc.dataSize = textureLight.getSize();
+	subImgDesc.miplevel = 0;
+	subImgDesc.offset = vx::ushort3(0);
+	subImgDesc.p = textureLight.getPixels();
+	subImgDesc.size = vx::ushort3(512, 512, 1);
+	m_pEditorColdData->m_editorTextures.subImageCompressed(subImgDesc);
+
+	subImgDesc.offset = vx::ushort3(0, 0, 1);
+	subImgDesc.dataSize = textureSpawn.getSize();
+	subImgDesc.p = textureSpawn.getPixels();
+	m_pEditorColdData->m_editorTextures.subImageCompressed(subImgDesc);
+
+	auto handle = m_pEditorColdData->m_editorTextures.getTextureHandle();
+	m_pEditorColdData->m_editorTextures.makeTextureResident();
+
+	vx::gl::BufferDescription bufferDesc;
+	bufferDesc.bufferType = vx::gl::BufferType::Uniform_Buffer;
+	bufferDesc.flags = 0;
+	bufferDesc.immutable = 1;
+	bufferDesc.pData = &handle;
+	bufferDesc.size = sizeof(U64);
+
+	m_pEditorColdData->m_editorTextureBuffer.create(bufferDesc);
 }
 
 void EditorRenderAspect::update()
@@ -608,8 +659,24 @@ void EditorRenderAspect::handleLoadScene(const Event &evt)
 	U32 count = scene->getMeshInstanceCount();
 	m_meshCountBuffer.subData(0, sizeof(U32), &count);
 
-	auto mappedCmdBuffer = m_pEditorColdData->m_lightCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
-	mappedCmdBuffer->count = lightCount;
+	{
+		auto mappedCmdBuffer = m_pEditorColdData->m_lightCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		mappedCmdBuffer->count = lightCount;
+	}
+
+	auto spawnCount = scene->getSpawnCount();
+	auto spawns = scene->getSpawns();
+	{
+		auto mappedCmdBuffer = m_pEditorColdData->m_spawnPointCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		mappedCmdBuffer->count = spawnCount;
+		mappedCmdBuffer.unmap();
+
+		auto mappedVbo = m_pEditorColdData->m_spawnPointVbo.map<vx::float3>(vx::gl::Map::Write_Only);
+		for (U32 i = 0; i < spawnCount; ++i)
+		{
+			mappedVbo[i] = spawns[i].position;
+		}
+	}
 }
 
 void EditorRenderAspect::handleFileEvent(const Event &evt)

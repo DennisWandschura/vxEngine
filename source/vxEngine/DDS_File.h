@@ -101,4 +101,6 @@ public:
 	bool isCompressed() const;
 
 	const Texture& getTexture(U32 i) const { return m_images[i]; }
+
+	void clear();
 };
