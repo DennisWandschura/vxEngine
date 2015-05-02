@@ -32,7 +32,7 @@ class EditorRenderAspect : public RenderAspect
 
 	struct EditorColdData
 	{
-		vx::gl::Buffer m_meshCountBuffer;
+
 		vx::gl::Buffer m_navMeshVertexVbo;
 		vx::gl::Buffer m_navMeshVertexIbo;
 
@@ -41,6 +41,7 @@ class EditorRenderAspect : public RenderAspect
 		vx::gl::Buffer m_navMeshGraphNodesVbo;
 
 		vx::gl::Buffer m_navMeshVertexCmdBuffer;
+		vx::gl::Buffer m_graphNodesCmdBuffer;
 		vx::gl::Buffer m_navmeshCmdBuffer;
 		vx::gl::Buffer m_lightCmdBuffer;
 		vx::gl::Buffer m_influenceMapCmdBuffer;
@@ -54,6 +55,7 @@ class EditorRenderAspect : public RenderAspect
 		vx::gl::VertexArray m_influenceVao;
 	};
 
+	vx::gl::Buffer m_meshCountBuffer;
 	Graphics::CommandList m_commandList;
 
 	vx::gl::VertexArray m_navMeshGraphNodesVao;
@@ -80,6 +82,8 @@ class EditorRenderAspect : public RenderAspect
 
 	void createIndirectCmdBuffers();
 
+	void createCommandList();
+
 	void handleFileEvent(const Event &evt);
 
 	void addMesh(const vx::StringID64 &sid);
@@ -92,8 +96,6 @@ class EditorRenderAspect : public RenderAspect
 	void handleLoadScene(const Event &evt);
 
 	void updateCamera();
-
-	void renderNavMeshGraphNodes();
 
 	void uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, U32 count);
 	void updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, U32 count, U32(&selectedVertexIndex)[3], U8 selectedCount);

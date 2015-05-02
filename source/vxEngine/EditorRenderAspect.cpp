@@ -11,6 +11,7 @@
 #include "InfluenceMap.h"
 #include "NavMeshGraph.h"
 #include "utility.h"
+#include "Graphics/Segment.h"
 
 struct VertexNavMesh
 {
@@ -65,7 +66,12 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 
 	auto result = initializeImpl(dataDir, windowResolution, debug, pAllocator);
 
+	createCommandList();
+
 	bindBuffers();
+
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	return result;
 }
@@ -177,6 +183,7 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 	m_pEditorColdData->m_navMeshVertexCmdBuffer.create(desc);
 	m_pEditorColdData->m_lightCmdBuffer.create(desc);
 	m_pEditorColdData->m_influenceMapCmdBuffer.create(desc);
+	m_pEditorColdData->m_graphNodesCmdBuffer.create(desc);
 
 	vx::gl::DrawElementsIndirectCommand elementsCmd;
 	memset(&elementsCmd, 0, sizeof(vx::gl::DrawElementsIndirectCommand));
@@ -186,6 +193,140 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 	elementsCmd.instanceCount = 1;
 
 	m_pEditorColdData->m_navmeshCmdBuffer.create(desc);
+
+	{
+		U32 drawCount = 0;
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Parameter_Buffer;
+		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
+		desc.immutable = 1;
+		desc.pData = &drawCount;
+		desc.size = sizeof(U32);
+
+		m_meshCountBuffer.create(desc);
+	}
+}
+
+void EditorRenderAspect::createCommandList()
+{
+	auto editorDrawLights = m_shaderManager.getPipeline("editorDrawLights.pipe");
+	auto navmesh = m_shaderManager.getPipeline("navmesh.pipe");
+
+	Graphics::PointSizeCommand pointSizeCmd;
+	pointSizeCmd.set(5.0f);
+
+	Graphics::State stateDrawLights;
+	stateDrawLights.set(0, m_emptyVao.getId(), editorDrawLights->getId(), m_pEditorColdData->m_lightCmdBuffer.getId());
+	stateDrawLights.setBlendState(true);
+	stateDrawLights.setDepthTest(false);
+
+	Graphics::DrawArraysIndirectCommand drawArraysPointsCmd;
+	drawArraysPointsCmd.set(GL_POINTS);
+
+	Graphics::Segment segmentDrawLights;
+	segmentDrawLights.setState(stateDrawLights);
+	segmentDrawLights.pushCommand(pointSizeCmd);
+	segmentDrawLights.pushCommand(drawArraysPointsCmd);
+
+	Graphics::State stateDrawNavMesh;
+	stateDrawNavMesh.set(0, m_pEditorColdData->m_navMeshVao.getId(), navmesh->getId(), m_pEditorColdData->m_navmeshCmdBuffer.getId());
+	stateDrawNavMesh.setBlendState(true);
+	stateDrawNavMesh.setDepthTest(false);
+
+	Graphics::ProgramUniformCommand navmeshUniformCmd;
+	navmeshUniformCmd.setFloat4(navmesh->getFragmentShader());
+
+	vx::float4 color(0.5f, 0, 0.5f, 0.25f);
+	Graphics::ProgramUniformData<vx::float4> navmeshUniformData;
+	navmeshUniformData.set(color);
+
+	Graphics::DrawElementsIndirectCommand drawNavmeshCmd;
+	drawNavmeshCmd.set(GL_TRIANGLES, GL_UNSIGNED_SHORT);
+
+	Graphics::Segment segmentDrawNavmesh;
+	segmentDrawNavmesh.setState(stateDrawNavMesh);
+	segmentDrawNavmesh.pushCommand(navmeshUniformCmd, navmeshUniformData);
+	segmentDrawNavmesh.pushCommand(drawNavmeshCmd);
+
+	{
+		auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
+		auto &meshVao = m_sceneRenderer.getMeshVao();
+		auto pipe = m_shaderManager.getPipeline("editor.pipe");
+
+		Graphics::State state;
+		state.set(0, meshVao.getId(), pipe->getId(), cmdBuffer.getId(), m_meshCountBuffer.getId());
+		state.setDepthTest(true);
+		state.setBlendState(false);
+
+		Graphics::MultiDrawElementsIndirectCountCommand drawCmd;
+		drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT, 100);
+
+		Graphics::Segment segmentDrawMeshes;
+		segmentDrawMeshes.setState(state);
+		segmentDrawMeshes.pushCommand(drawCmd);
+
+		m_commandList.pushSegment(segmentDrawMeshes, "drawMeshes");
+	}
+
+	m_commandList.pushSegment(segmentDrawLights, "drawLights");
+	m_commandList.pushSegment(segmentDrawNavmesh, "drawNavmesh");
+
+	{
+		auto pipe = m_shaderManager.getPipeline("editorDrawPointColor.pipe");
+
+		Graphics::State state;
+		state.set(0, m_pEditorColdData->m_navMeshVertexVao.getId(), pipe->getId(), m_pEditorColdData->m_navMeshVertexCmdBuffer.getId());
+		state.setBlendState(true);
+		state.setDepthTest(false);
+
+		Graphics::Segment segmentDrawNavmeshVertices;
+		segmentDrawNavmeshVertices.setState(state);
+		segmentDrawNavmeshVertices.pushCommand(pointSizeCmd);
+		segmentDrawNavmeshVertices.pushCommand(drawArraysPointsCmd);
+
+		m_commandList.pushSegment(segmentDrawNavmeshVertices, "drawNavmeshVertices");
+	}
+
+	{
+		auto pipe = m_shaderManager.getPipeline("editorDrawPoint.pipe");
+		auto fsShader = pipe->getFragmentShader();
+
+		Graphics::State state;
+		state.set(0, m_navMeshGraphNodesVao.getId(), pipe->getId(), m_pEditorColdData->m_graphNodesCmdBuffer.getId());
+		state.setBlendState(true);
+		state.setDepthTest(false);
+
+		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
+		editorDrawPointUniformCmd.setFloat4(fsShader);
+
+		vx::float4 color(0, 1, 0.5f, 0.5f);
+		Graphics::ProgramUniformData<vx::float4> editorDrawPointUniformData;
+		editorDrawPointUniformData.set(color);
+
+
+		Graphics::Segment segmentDrawGraphVertices;
+		segmentDrawGraphVertices.setState(state);
+		segmentDrawGraphVertices.pushCommand(pointSizeCmd);
+		segmentDrawGraphVertices.pushCommand(editorDrawPointUniformCmd, editorDrawPointUniformData);
+		segmentDrawGraphVertices.pushCommand(drawArraysPointsCmd);
+
+		m_commandList.pushSegment(segmentDrawGraphVertices, "drawGraphVertices");
+	}
+
+	{
+		auto pPipeline = m_shaderManager.getPipeline("influenceMap.pipe");
+
+		Graphics::State state;
+		state.set(0, m_pEditorColdData->m_influenceVao.getId(), pPipeline->getId(), m_pEditorColdData->m_influenceMapCmdBuffer.getId());
+		state.setBlendState(true);
+		state.setDepthTest(false);
+
+		Graphics::Segment segmentDrawInfluenceCells;
+		segmentDrawInfluenceCells.setState(state);
+		segmentDrawInfluenceCells.pushCommand(drawArraysPointsCmd);
+		
+		m_commandList.pushSegment(segmentDrawInfluenceCells, "drawInfluenceCells");
+	}
 }
 
 void EditorRenderAspect::update()
@@ -200,101 +341,6 @@ void EditorRenderAspect::update()
 	RenderAspect::update();
 }
 
-/*void EditorRenderAspect::renderLights()
-{
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-
-	auto pipe = m_shaderManager.getPipeline("editorDrawLights.pipe");
-	vx::gl::StateManager::bindPipeline(*pipe);
-
-	vx::gl::StateManager::bindVertexArray(m_emptyVao);
-
-	glPointSize(5.0f);
-
-	glDrawArrays(GL_POINTS, 0, m_lightCount);
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-}*/
-
-/*void EditorRenderAspect::renderNavMeshVertices()
-{
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-
-	auto pipe = m_shaderManager.getPipeline("editorDrawPointColor.pipe");
-	auto fsShader = pipe->getFragmentShader();
-	vx::gl::StateManager::bindPipeline(*pipe);
-
-	vx::gl::StateManager::bindVertexArray(m_navMeshVertexVao);
-	glPointSize(5.0f);
-
-	glDrawArrays(GL_POINTS, 0, m_navMeshVertexCount);
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-}*/
-
-void EditorRenderAspect::renderNavMeshGraphNodes()
-{
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-
-	auto pipe = m_shaderManager.getPipeline("editorDrawPoint.pipe");
-	auto fsShader = pipe->getFragmentShader();
-
-	const F32 color[] = {0, 1, 0, 0.5f};
-
-	glProgramUniform4fv(fsShader, 0, 1, color);
-
-	vx::gl::StateManager::bindPipeline(*pipe);
-
-	vx::gl::StateManager::bindVertexArray(m_navMeshGraphNodesVao);
-	glPointSize(5.0f);
-
-	glDrawArrays(GL_POINTS, 0, m_navMeshGraphNodesCount);
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-}
-
-/*void EditorRenderAspect::renderNavMesh()
-{
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	auto pPipeline = m_shaderManager.getPipeline("navmesh.pipe");
-	vx::float4 color(0.5f, 0, 0.5f, 0.25f);
-	glProgramUniform4fv(pPipeline->getFragmentShader(), 0, 1, color);
-
-	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::bindVertexArray(m_navMeshVao.getId());
-	glDrawElements(GL_TRIANGLES, m_navMeshIndexCount, GL_UNSIGNED_SHORT, 0);
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-}
-
-void EditorRenderAspect::renderInfluenceMap()
-{
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-	auto pPipeline = m_shaderManager.getPipeline("influenceMap.pipe");
-
-	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::bindVertexArray(m_influenceVao.getId());
-	glDrawArrays(GL_POINTS, 0, m_influenceCellCount);
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-}*/
-
 void EditorRenderAspect::render()
 {
 	clearTextures();
@@ -304,18 +350,17 @@ void EditorRenderAspect::render()
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
-	auto meshCount = m_sceneRenderer.getMeshInstanceCount();
-	auto &meshVao = m_sceneRenderer.getMeshVao();
-
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-
-	vx::gl::StateManager::bindVertexArray(meshVao);
-
-	cmdBuffer.bind();
-
 	if (m_selectedInstance.ptr != nullptr)
 	{
+		auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
+		auto &meshVao = m_sceneRenderer.getMeshVao();
+
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+
+		vx::gl::StateManager::bindVertexArray(meshVao);
+
+		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer.getId());
+
 		auto offset = m_selectedInstance.cmd.baseInstance * sizeof(vx::gl::DrawElementsIndirectCommand);
 
 		auto pipe = m_shaderManager.getPipeline("editorSelectedMesh.pipe");
@@ -324,12 +369,7 @@ void EditorRenderAspect::render()
 		glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)offset);
 	}
 
-	auto pipe = m_shaderManager.getPipeline("editor.pipe");
-	vx::gl::StateManager::bindPipeline(*pipe);
-
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, meshCount, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-//	m_commandList.draw();
+	m_commandList.draw();
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
@@ -559,10 +599,17 @@ void EditorRenderAspect::handleEditorEvent(const Event &evt)
 void EditorRenderAspect::handleLoadScene(const Event &evt)
 {
 	auto scene = (Scene*)evt.arg1.ptr;
-	m_pEditorColdData->m_lightCount = scene->getLightCount();
+	auto lightCount = scene->getLightCount();
+	m_pEditorColdData->m_lightCount = lightCount;
 	auto &navMesh = scene->getNavMesh();
 
 	updateNavMeshBuffer(navMesh);
+
+	U32 count = scene->getMeshInstanceCount();
+	m_meshCountBuffer.subData(0, sizeof(U32), &count);
+
+	auto mappedCmdBuffer = m_pEditorColdData->m_lightCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	mappedCmdBuffer->count = lightCount;
 }
 
 void EditorRenderAspect::handleFileEvent(const Event &evt)
@@ -624,6 +671,9 @@ void EditorRenderAspect::updateNavMeshVertexBufferWithSelectedVertex(const vx::f
 
 	m_pEditorColdData->m_navMeshVertexCount = count;
 	uploadToNavMeshVertexBuffer(src.get(), count);
+
+	auto mappedCmdBuffer = m_pEditorColdData->m_navMeshVertexCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	mappedCmdBuffer->count = count;
 }
 
 void EditorRenderAspect::updateNavMeshIndexBuffer(const NavMesh &navMesh)
@@ -634,7 +684,11 @@ void EditorRenderAspect::updateNavMeshIndexBuffer(const NavMesh &navMesh)
 		auto indices = navMesh.getTriangleIndices();
 		updateNavMeshIndexBuffer(indices, triangleCount);
 
-		m_pEditorColdData->m_navMeshIndexCount = triangleCount * 3;
+		auto navMeshIndexCount = triangleCount * 3;
+		m_pEditorColdData->m_navMeshIndexCount = navMeshIndexCount;
+
+		auto mappedCmdBuffer = m_pEditorColdData->m_navmeshCmdBuffer.map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
+		mappedCmdBuffer->count = navMeshIndexCount;
 	}
 }
 
@@ -707,6 +761,9 @@ void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influence
 
 	auto mappedBuffer = m_pEditorColdData->m_influenceCellVbo.map<InfluenceCellVertex>(vx::gl::Map::Write_Only);
 	::memcpy(mappedBuffer.get(), vertices.get(), sizeof(InfluenceCellVertex) * cellCount);
+
+	auto mappedCmdBuffer = m_pEditorColdData->m_influenceMapCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	mappedCmdBuffer->count = cellCount;
 }
 
 void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph)
@@ -724,4 +781,7 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 
 	auto mappedBuffer = m_pEditorColdData->m_navMeshGraphNodesVbo.map<vx::float3>(vx::gl::Map::Write_Only);
 	vx::memcpy(mappedBuffer.get(), src.get(), nodeCount);
+
+	auto mappedCmdBuffer = m_pEditorColdData->m_graphNodesCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	mappedCmdBuffer->count = nodeCount;
 }

@@ -1213,9 +1213,6 @@
     <None Include="..\..\game\data\shaders\programs\drawFinalImageNormals.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\drawFinalImageNormals.pipe">
-      <Filter>Shader Pipelines</Filter>
-    </None>
     <None Include="..\..\game\data\shaders\programs\voxelMipmap.comp">
       <Filter>Shaders</Filter>
     </None>
@@ -1281,6 +1278,9 @@
     </None>
     <None Include="..\..\game\data\shaders\programs\editor.frag">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\drawFinalImageNormals.pipe">
+      <Filter>Shader Pipelines</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -5,10 +5,10 @@
 namespace Graphics
 {
 	template<typename T>
-	void handleCommand(U32* ptr, U32* offset)
+	void handleCommand(U8* ptr, U32* offset)
 	{
 		handleCommandImpl((T*)ptr);
-		*offset += sizeof(T) / sizeof(U32);
+		*offset += sizeof(T);
 	}
 
 	void handleCommandImpl(const ViewportCommand* command)
@@ -23,12 +23,12 @@ namespace Graphics
 
 	void handleCommandImpl(const DrawArraysIndirectCommand* command)
 	{
-		glDrawArraysIndirect(command->m_mode, 0);
+		glDrawArraysIndirect(command->m_mode, (void*)command->m_offset);
 	}
 
 	void handleCommandImpl(const DrawElementsIndirectCommand* command)
 	{
-		glDrawElementsIndirect(command->m_mode, command->m_type, 0);
+		glDrawElementsIndirect(command->m_mode, command->m_type, (void*)command->m_offset);
 	}
 
 	void programUniformFloat(const ProgramUniformCommand* command, U32* offset)
@@ -38,13 +38,13 @@ namespace Graphics
 		{
 		case 4:
 			glProgramUniform4fv(command->m_program, 0, 1, dataPtr);
-			break;
+		break;
 		default:
 			assert(false);
 			break;
 		}
 
-		*offset += command->m_count;
+		*offset += (command->m_count * sizeof(F32));
 	}
 
 	void handleCommandImpl(const MultiDrawElementsIndirectCountCommand* command)
@@ -66,10 +66,10 @@ namespace Graphics
 	}
 
 	template<>
-	void handleCommand<ProgramUniformCommand>(U32* ptr, U32* offset)
+	void handleCommand<ProgramUniformCommand>(U8* ptr, U32* offset)
 	{
 		handleCommandImpl((ProgramUniformCommand*)ptr, offset);
-		*offset += sizeof(ProgramUniformCommand) / sizeof(U32);
+		*offset += sizeof(ProgramUniformCommand);
 	}
 
 	Segment::Segment()
@@ -82,6 +82,14 @@ namespace Graphics
 	Segment::~Segment()
 	{
 
+	}
+
+	void Segment::pushCommand(const U8* ptr, U32 count)
+	{
+		for (U32 i = 0; i < count; ++i)
+		{
+			m_commmands.push_back(ptr[i]);
+		}
 	}
 
 	void Segment::setState(const State &state)

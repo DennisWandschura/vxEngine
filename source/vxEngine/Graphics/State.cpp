@@ -44,20 +44,20 @@ namespace Graphics
 	{
 		if (m_blendState == 0)
 		{
-		vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+			vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 		}
 		else
 		{
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+			vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
 		}
 
 		if (m_depthTestState == 0)
 		{
-		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+			vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 		}
 		else
 		{
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+			vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 		}
 
 		vx::gl::StateManager::bindFrameBuffer(m_fbo);
@@ -66,12 +66,12 @@ namespace Graphics
 
 		if (m_indirectBuffer != 0)
 		{
-			glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_indirectBuffer);
+			vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, m_indirectBuffer);
 		}
 
 		if (m_paramBuffer != 0)
 		{
-			glBindBuffer(GL_PARAMETER_BUFFER_ARB, m_paramBuffer);
+			vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, m_paramBuffer);
 		}
 	}
 }

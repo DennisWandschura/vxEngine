@@ -61,9 +61,9 @@ namespace Graphics
 	template<typename T>
 	struct ProgramUniformData
 	{
-		enum { Count = (sizeof(T) + sizeof(U32) - 1) / sizeof(U32) };
+		enum { Count = sizeof(T) };
 
-		U32 u[Count];
+		U8 u[Count];
 
 		ProgramUniformData() : u()
 		{
@@ -74,12 +74,12 @@ namespace Graphics
 			memcpy(u, &data, sizeof(T));
 		}
 
-		U32& operator[](U32 i)
+		U8& operator[](U32 i)
 		{
 			return u[i];
 		}
 
-		const U32& operator[](U32 i) const
+		const U8& operator[](U32 i) const
 		{
 			return u[i];
 		}
@@ -89,11 +89,13 @@ namespace Graphics
 	{
 		CommandHeader m_header;
 		U32 m_mode;
+		U32 m_offset;
 
-		void set(U32 mode)
+		void set(U32 mode, U32 offset = 0)
 		{
 			m_header = CommandHeader::DrawArraysIndirectCommand;
 			m_mode = mode;
+			m_offset = offset;
 		}
 	};
 
@@ -102,12 +104,14 @@ namespace Graphics
 		CommandHeader m_header;
 		U32 m_mode;
 		U32 m_type;
+		U32 m_offset;
 
-		void set(U32 mode, U32 type)
+		void set(U32 mode, U32 type, U32 offset = 0)
 		{
 			m_header = CommandHeader::DrawElementsIndirectCommand;
 			m_mode = mode;
 			m_type = type;
+			m_offset = offset;
 		}
 	};
 
@@ -133,8 +137,10 @@ namespace Graphics
 
 	class Segment
 	{
-		std::vector<U32> m_commmands;
+		std::vector<U8> m_commmands;
 		State m_state;
+
+		void pushCommand(const U8*, U32 count);
 
 	public:
 		Segment();
@@ -143,32 +149,20 @@ namespace Graphics
 		void setState(const State &state);
 
 		template < typename T >
-		void pushCommand(const T &command)
+		std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
+		 pushCommand(const T &command)
 		{
-			U32* ptr = (U32*)&command;
-			auto count = sizeof(T) / sizeof(U32);
+			U8* ptr = (U8*)&command;
 
-			for (U32 i = 0; i < count; ++i)
-			{
-				m_commmands.push_back(ptr[i]);
-			}
+			pushCommand(ptr, sizeof(T));
 		}
 
 		template < typename T >
 		void pushCommand(const ProgramUniformCommand &command, const ProgramUniformData<T> &data)
 		{
-			U32* ptr = (U32*)&command;
-			auto count = sizeof(ProgramUniformCommand) / sizeof(U32);
-
-			for (U32 i = 0; i < count; ++i)
-			{
-				m_commmands.push_back(ptr[i]);
-			}
-
-			for (U32 i = 0; i < ProgramUniformData<T>::Count; ++i)
-			{
-				m_commmands.push_back(data[i]);
-			}
+			U8* ptr = (U8*)&command;
+			pushCommand(ptr, sizeof(ProgramUniformCommand));
+			pushCommand(data.u, sizeof(T));
 		}
 
 		void draw();
