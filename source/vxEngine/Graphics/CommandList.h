@@ -1,9 +1,9 @@
 #pragma once
 
 #include <vxLib/types.h>
-#include <vector>
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
+#include <memory>
 
 namespace Graphics
 {
@@ -11,20 +11,28 @@ namespace Graphics
 
 	class CommandList
 	{
-		std::vector<Segment> m_segments;
-		vx::sorted_vector<vx::StringID, U32> m_segmentIndices;
+		struct ColdData
+		{
+			vx::sorted_vector<U32, Segment> m_inactiveSegments;
+			vx::sorted_vector<vx::StringID, U32> m_inactiveSegmentIndices;
+		};
 
+		vx::sorted_vector<U32, Segment> m_sortedSegments;
+		vx::sorted_vector<vx::StringID, U32> m_segmentIndices;
+		std::unique_ptr<ColdData> m_coldData;
+	
 		void swapSegmentsImpl(U32 a, U32 b);
 
 	public:
 		CommandList();
 		~CommandList();
 
-		void pushSegment(const Segment &segment, const char* id);
+		void initialize();
 
-		void eraseSegment(const char* id);
-		void swapSegments(const char* segmentA, const char* segmentB);
-		void swapSegments(U32 a, U32 b);
+		void pushSegment(const Segment &segment, const char* id, U32 slot);
+
+		void enableSegment(const char* id);
+		void disableSegment(const char* id);
 
 		void draw();
 	};

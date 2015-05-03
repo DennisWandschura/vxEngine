@@ -747,5 +747,15 @@ namespace LevelEditor
         {
             NativeMethods.saveScene(m_currentSceneFileName);
         }
+
+        private void itemShotNavmesh_Click(object sender, EventArgs e)
+        {
+            NativeMethods.showNavmesh(itemShotNavmesh.Checked);
+        }
+
+        private void itemInfluenceMap_Click(object sender, EventArgs e)
+        {
+            NativeMethods.showInfluenceMap(itemInfluenceMap.Checked);
+        }
     }
 }

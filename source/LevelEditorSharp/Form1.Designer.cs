@@ -65,8 +65,11 @@
             this.numericUpDownNavmeshPositionY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownNavmeshPositionX = new System.Windows.Forms.NumericUpDown();
             this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
-            this.groupBoxNavMesh = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
+            this.groupBoxNavMesh = new System.Windows.Forms.GroupBox();
+            this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.itemShotNavmesh = new System.Windows.Forms.ToolStripMenuItem();
+            this.itemInfluenceMap = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_x)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_y)).BeginInit();
@@ -93,7 +96,8 @@
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.createToolStripMenuItem});
+            this.createToolStripMenuItem,
+            this.viewToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1904, 24);
@@ -562,16 +566,6 @@
             this.flowLayoutPanel4.Size = new System.Drawing.Size(380, 28);
             this.flowLayoutPanel4.TabIndex = 15;
             // 
-            // groupBoxNavMesh
-            // 
-            this.groupBoxNavMesh.Controls.Add(this.flowLayoutPanel4);
-            this.groupBoxNavMesh.Location = new System.Drawing.Point(1380, 760);
-            this.groupBoxNavMesh.Name = "groupBoxNavMesh";
-            this.groupBoxNavMesh.Size = new System.Drawing.Size(398, 100);
-            this.groupBoxNavMesh.TabIndex = 16;
-            this.groupBoxNavMesh.TabStop = false;
-            this.groupBoxNavMesh.Text = "Navmesh";
-            // 
             // label4
             // 
             this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -583,6 +577,45 @@
             this.label4.TabIndex = 16;
             this.label4.Text = "Position";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // groupBoxNavMesh
+            // 
+            this.groupBoxNavMesh.Controls.Add(this.flowLayoutPanel4);
+            this.groupBoxNavMesh.Location = new System.Drawing.Point(1380, 760);
+            this.groupBoxNavMesh.Name = "groupBoxNavMesh";
+            this.groupBoxNavMesh.Size = new System.Drawing.Size(398, 100);
+            this.groupBoxNavMesh.TabIndex = 16;
+            this.groupBoxNavMesh.TabStop = false;
+            this.groupBoxNavMesh.Text = "Navmesh";
+            // 
+            // viewToolStripMenuItem
+            // 
+            this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.itemShotNavmesh,
+            this.itemInfluenceMap});
+            this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.viewToolStripMenuItem.Text = "View";
+            // 
+            // itemShotNavmesh
+            // 
+            this.itemShotNavmesh.Checked = true;
+            this.itemShotNavmesh.CheckOnClick = true;
+            this.itemShotNavmesh.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.itemShotNavmesh.Name = "itemShotNavmesh";
+            this.itemShotNavmesh.Size = new System.Drawing.Size(152, 22);
+            this.itemShotNavmesh.Text = "Navmesh";
+            this.itemShotNavmesh.Click += new System.EventHandler(this.itemShotNavmesh_Click);
+            // 
+            // itemInfluenceMap
+            // 
+            this.itemInfluenceMap.Checked = true;
+            this.itemInfluenceMap.CheckOnClick = true;
+            this.itemInfluenceMap.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.itemInfluenceMap.Name = "itemInfluenceMap";
+            this.itemInfluenceMap.Size = new System.Drawing.Size(152, 22);
+            this.itemInfluenceMap.Text = "Influence Map";
+            this.itemInfluenceMap.Click += new System.EventHandler(this.itemInfluenceMap_Click);
             // 
             // Form1
             // 
@@ -675,6 +708,9 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
         private System.Windows.Forms.GroupBox groupBoxNavMesh;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem itemShotNavmesh;
+        private System.Windows.Forms.ToolStripMenuItem itemInfluenceMap;
     }
 }
 

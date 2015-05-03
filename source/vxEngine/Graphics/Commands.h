@@ -15,6 +15,11 @@ namespace Graphics
 		ProgramUniformCommand
 	};
 
+	struct Command
+	{
+		static void handleCommand(CommandHeader* header, U32* offset);
+	};
+
 	struct ViewportCommand
 	{
 		CommandHeader m_header;

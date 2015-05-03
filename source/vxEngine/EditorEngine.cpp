@@ -559,3 +559,13 @@ EditorScene* EditorEngine::getEditorScene() const
 {
 	return m_pEditorScene; 
 }
+
+void EditorEngine::showNavmesh(bool b)
+{
+	m_renderAspect.showNavmesh(b);
+}
+
+void EditorEngine::showInfluenceMap(bool b)
+{
+	m_renderAspect.showInfluenceMap(b);
+}

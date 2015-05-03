@@ -188,10 +188,12 @@
     <ClInclude Include="EngineConfig.h" />
     <ClInclude Include="FileFactory.h" />
     <ClInclude Include="FileHeader.h" />
+    <ClInclude Include="Graphics\CommandCompiler.h" />
     <ClInclude Include="Graphics\CommandList.h" />
     <ClInclude Include="Graphics\Commands.h" />
     <ClInclude Include="Graphics\BufferFactory.h" />
     <ClInclude Include="Graphics\Segment.h" />
+    <ClInclude Include="Graphics\SegmentBuilder.h" />
     <ClInclude Include="Graphics\State.h" />
     <ClInclude Include="MeshFile.h" />
     <ClInclude Include="Reference.h" />
@@ -393,8 +395,11 @@
     <ClCompile Include="GpuFunctions.cpp" />
     <ClCompile Include="GpuProfiler.cpp" />
     <ClCompile Include="Graphics\BufferFactory.cpp" />
+    <ClCompile Include="Graphics\CommandCompiler.cpp" />
     <ClCompile Include="Graphics\CommandList.cpp" />
+    <ClCompile Include="Graphics\Commands.cpp" />
     <ClCompile Include="Graphics\Segment.cpp" />
+    <ClCompile Include="Graphics\SegmentBuilder.cpp" />
     <ClCompile Include="Graphics\State.cpp" />
     <ClCompile Include="ImageBindingManager.cpp" />
     <ClCompile Include="InfluenceMap.cpp" />

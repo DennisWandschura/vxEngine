@@ -22,11 +22,11 @@ char FileAspect::s_meshFolder[32] = { "data/mesh/" };
 namespace
 {
 	template<typename T>
-	void createPool(U32 maxCount, Pool<T> *pool, vx::StackAllocator* allocator)
+	void createPool(U16 maxCount, Pool<T> *pool, vx::StackAllocator* allocator)
 	{
 		auto sizeInBytes = sizeof(T) * maxCount;
 
-		pool->initialize(allocator->allocate(sizeInBytes, 64), sizeInBytes);
+		pool->initialize(allocator->allocate(sizeInBytes, 64), maxCount);
 	}
 
 	template<typename T>

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vxLib/types.h>
+#include <string>
 
 namespace Graphics
 {
@@ -25,5 +26,7 @@ namespace Graphics
 		void setBlendState(bool b);
 
 		void update();
+
+		void compile(std::string* str);
 	};
 }

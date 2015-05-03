@@ -133,4 +133,7 @@ public:
 	void updateInfluenceCellBuffer(const InfluenceMap &influenceMap);
 
 	void updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph);
+
+	void showNavmesh(bool b);
+	void showInfluenceMap(bool b);
 };

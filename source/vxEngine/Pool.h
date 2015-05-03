@@ -12,7 +12,7 @@ protected:
 	U16 m_capacity{ 0 };
 
 	PoolBase(){}
-	~PoolBase(){}
+	virtual ~PoolBase(){}
 
 	void initialize(U8* ptr, U16 capacity, U32 chunkSize);
 

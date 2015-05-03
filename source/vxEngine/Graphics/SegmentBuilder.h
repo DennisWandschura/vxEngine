@@ -4,6 +4,14 @@
 #include "State.h"
 #include <memory>
 
+namespace vx
+{
+	namespace gl
+	{
+		enum class DataType : U8;
+	}
+}
+
 namespace Graphics
 {
 	class ProgramUniformCommand;
@@ -11,22 +19,30 @@ namespace Graphics
 	template<typename T>
 	class ProgramUniformData;
 
-	class Segment
+	class SegmentBuilder
 	{
+		static void* s_dllHandle;
+		static std::string s_allSegmentsSourceData;
+		static std::string s_allSegmentsHeaderData;
+
 		std::vector<U8> m_commmands;
 		State m_state;
 
 		void pushCommand(const U8*, U32 count);
 
+		U32 getDataTypeSize(vx::gl::DataType dataType) const;
+		U32 getTotalBufferSize() const;
+		void writeDataToBuffer(U8* buffer);
+
 	public:
-		Segment();
-		~Segment();
+		SegmentBuilder();
+		~SegmentBuilder();
 
 		void setState(const State &state);
 
 		template < typename T >
 		std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		 pushCommand(const T &command)
+			pushCommand(const T &command)
 		{
 			U8* ptr = (U8*)&command;
 
@@ -41,25 +57,10 @@ namespace Graphics
 			pushCommand(data.u, sizeof(T));
 		}
 
-		void draw();
-	};
+		void appendSegment(const char* name, std::unique_ptr<U8[]>* dataBuffer);
 
-	class SegmentCompiled
-	{
-		typedef void(*DrawFunctionType)();
-
-		DrawFunctionType m_drawFunctionFp;
-		std::unique_ptr<U8[]> m_buffer;
-
-	public:
-		SegmentCompiled();
-		SegmentCompiled(SegmentCompiled &&rhs);
-		~SegmentCompiled();
-
-		SegmentCompiled& operator=(SegmentCompiled &&rhs);
-
-		void set(void* fp, std::unique_ptr<U8[]> &&buffer);
-
-		void draw();
+		static void compile();
+		static void closeDll();
+		static void* getFunctionPtr(const char* functionName);
 	};
 }

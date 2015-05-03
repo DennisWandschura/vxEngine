@@ -4,9 +4,10 @@
 namespace Graphics
 {
 	CommandList::CommandList()
-		:m_segments()
+		:m_sortedSegments(),
+		m_segmentIndices(),
+		m_coldData()
 	{
-
 	}
 
 	CommandList::~CommandList()
@@ -14,63 +15,54 @@ namespace Graphics
 
 	}
 
-	void CommandList::pushSegment(const Segment &segment, const char* id)
+	void CommandList::initialize()
 	{
-		auto index = m_segments.size();
-		m_segments.push_back(segment);
-
-		m_segmentIndices.insert(vx::make_sid(id), index);
+		m_coldData = std::make_unique<ColdData>();
 	}
 
-	void CommandList::eraseSegment(const char* id)
+	void CommandList::pushSegment(const Segment &segment, const char* id, U32 slot)
+	{
+		m_sortedSegments.insert(slot, segment);
+		m_segmentIndices.insert(vx::make_sid(id), slot);
+	}
+
+	void CommandList::enableSegment(const char* id)
+	{
+		auto sid = vx::make_sid(id);
+		auto it = m_coldData->m_inactiveSegmentIndices.find(sid);
+		if (it != m_coldData->m_inactiveSegmentIndices.end())
+		{
+			auto segmentIndex = *it;
+			auto itSegment = m_coldData->m_inactiveSegments.find(segmentIndex);
+
+			m_sortedSegments.insert(segmentIndex, std::move(*itSegment));
+			m_segmentIndices.insert(sid, segmentIndex);
+
+			m_coldData->m_inactiveSegments.erase(itSegment);
+			m_coldData->m_inactiveSegmentIndices.erase(it);
+		}
+	}
+
+	void CommandList::disableSegment(const char* id)
 	{
 		auto sid = vx::make_sid(id);
 		auto it = m_segmentIndices.find(sid);
 		if (it != m_segmentIndices.end())
 		{
 			auto segmentIndex = *it;
+			auto itSegment = m_sortedSegments.find(segmentIndex);
 
-			m_segments.erase(m_segments.begin() + segmentIndex);
+			m_coldData->m_inactiveSegments.insert(segmentIndex, std::move(*itSegment));
+			m_coldData->m_inactiveSegmentIndices.insert(sid, segmentIndex);
 
+			m_sortedSegments.erase(itSegment);
 			m_segmentIndices.erase(it);
 		}
 	}
 
-	void CommandList::swapSegments(const char* segmentA, const char* segmentB)
-	{
-		auto sida = vx::make_sid(segmentA);
-		auto sidb = vx::make_sid(segmentB);
-
-		auto ita = m_segmentIndices.find(sida);
-		auto itb = m_segmentIndices.find(sidb);
-
-		if (ita == m_segmentIndices.end() || itb == m_segmentIndices.end())
-			return;
-
-		U32 a = *ita;
-		U32 b = *itb;
-
-		swapSegmentsImpl(a, b);
-	}
-
-	void CommandList::swapSegments(U32 a, U32 b)
-	{
-		auto size = m_segments.size();
-		if (a >= size || b >= size)
-			return;
-
-		swapSegmentsImpl(a, b);
-	}
-
-	void CommandList::swapSegmentsImpl(U32 a, U32 b)
-	{
-		std::swap(m_segmentIndices[a], m_segmentIndices[b]);
-		std::swap(m_segments[a], m_segments[b]);
-	}
-
 	void CommandList::draw()
 	{
-		for (auto &it : m_segments)
+		for (auto &it : m_sortedSegments)
 		{
 			it.draw();
 		}

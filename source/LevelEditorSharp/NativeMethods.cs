@@ -89,5 +89,11 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void updateSelectedMeshInstanceTransform(ref Float3 translation);
+
+         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void showNavmesh(bool b);
+
+         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+         public unsafe static extern void showInfluenceMap(bool b);
     }
 }

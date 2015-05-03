@@ -74,4 +74,48 @@ namespace Graphics
 			vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, m_paramBuffer);
 		}
 	}
+
+	void State::compile(std::string* str)
+	{
+		if (m_blendState == 0)
+		{
+			//*str += std::string("vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);\n");
+			*str += std::string("glDisable(GL_BLEND);\n");
+		}
+		else
+		{
+			//*str += std::string("vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);\n");
+			*str += std::string("glEnable(GL_BLEND);\n");
+		}
+
+		if (m_depthTestState == 0)
+		{
+		//	*str += std::string("vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);\n");
+			*str += std::string("glDisable(GL_DEPTH_TEST);\n");
+		}
+		else
+		{
+			//*str += std::string("vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);\n");
+			*str += std::string("glEnable(GL_DEPTH_TEST);\n");
+		}
+
+		//*str += std::string("vx::gl::StateManager::bindFrameBuffer(") + std::to_string(m_fbo) + ");\n";
+		*str += std::string("glBindFramebuffer(GL_FRAMEBUFFER, ") + std::to_string(m_fbo) + std::string(");\n");
+		//*str += std::string("vx::gl::StateManager::bindVertexArray(") + std::to_string(m_vao) + std::string(");\n");
+		*str += std::string("glBindVertexArray(") + std::to_string(m_vao) + std::string(");\n");
+		//*str += std::string("vx::gl::StateManager::bindPipeline(") + std::to_string(m_pipeline) + std::string(");\n");
+		*str += std::string("glBindProgramPipeline(") + std::to_string(m_pipeline) + std::string(");\n");
+
+		if (m_indirectBuffer != 0)
+		{
+			//*str += std::string("vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer,") + std::to_string(m_indirectBuffer) + std::string(");\n");
+			*str += "glBindBuffer(GL_DRAW_INDIRECT_BUFFER, " + std::to_string(m_indirectBuffer) + ");\n";
+		}
+
+		if (m_paramBuffer != 0)
+		{
+			//*str += std::string("vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, ") + std::to_string(m_paramBuffer) + std::string(");\n");
+			*str += "glBindBuffer(GL_PARAMETER_BUFFER_ARB, " + std::to_string(m_paramBuffer) + ");\n";
+		}
+	}
 }

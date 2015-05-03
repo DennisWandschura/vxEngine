@@ -176,5 +176,15 @@ namespace Editor
 	{
 		return g_pEditor->engine.selectLight(x, y);
 	}
+
+	void showNavmesh(bool b)
+	{
+		g_pEditor->engine.showNavmesh(b);
+	}
+
+	void showInfluenceMap(bool b)
+	{
+		g_pEditor->engine.showInfluenceMap(b);
+	}
 }
 #endif

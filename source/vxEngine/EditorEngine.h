@@ -127,4 +127,7 @@ public:
 
 	SelectedType getSelectedItemType() const;
 	EditorScene* getEditorScene() const;
+
+	void showNavmesh(bool b);
+	void showInfluenceMap(bool b);
 };

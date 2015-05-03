@@ -16,6 +16,7 @@
 #include "Graphics/BufferFactory.h"
 #include "Spawn.h"
 #include "Graphics/Commands.h"
+#include "Graphics/Segment.h"
 
 struct VertexNavMesh
 {
@@ -174,6 +175,8 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 
 void EditorRenderAspect::createCommandList()
 {
+	m_commandList.initialize();
+
 	auto editorDrawLights = m_shaderManager.getPipeline("editorDrawLights.pipe");
 	auto navmesh = m_shaderManager.getPipeline("navmesh.pipe");
 
@@ -203,10 +206,13 @@ void EditorRenderAspect::createCommandList()
 	Graphics::DrawElementsIndirectCommand drawNavmeshCmd;
 	drawNavmeshCmd.set(GL_TRIANGLES, GL_UNSIGNED_SHORT);
 
-	Graphics::Segment segmentDrawNavmesh;
-	segmentDrawNavmesh.setState(stateDrawNavMesh);
-	segmentDrawNavmesh.pushCommand(navmeshUniformCmd, navmeshUniformData);
-	segmentDrawNavmesh.pushCommand(drawNavmeshCmd);
+	std::unique_ptr<U8[]> bufferDrawMesh;
+	std::unique_ptr<U8[]> bufferDrawLights;
+	std::unique_ptr<U8[]> bufferDrawNavmesh;
+	std::unique_ptr<U8[]> bufferDrawNavmeshVertices;
+	std::unique_ptr<U8[]> bufferDrawGraphVertices;
+	std::unique_ptr<U8[]> bufferDrawSpawnPoints;
+	std::unique_ptr<U8[]> bufferDrawInfluenceCells;
 
 	{
 		auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
@@ -225,7 +231,7 @@ void EditorRenderAspect::createCommandList()
 		segmentDrawMeshes.setState(state);
 		segmentDrawMeshes.pushCommand(drawCmd);
 
-		m_commandList.pushSegment(segmentDrawMeshes, "drawMeshes");
+		m_commandList.pushSegment(segmentDrawMeshes, "drawMeshes", 0);
 	}
 
 	{
@@ -245,11 +251,17 @@ void EditorRenderAspect::createCommandList()
 		segmentDrawLights.pushCommand(editorDrawPointUniformCmd, uniformData);
 		segmentDrawLights.pushCommand(drawArraysPointsCmd);
 
-		m_commandList.pushSegment(segmentDrawLights, "drawLights");
+		m_commandList.pushSegment(segmentDrawLights, "drawLights", 1);
 	}
 
+	{
+		Graphics::Segment segmentDrawNavmesh;
+		segmentDrawNavmesh.setState(stateDrawNavMesh);
+		segmentDrawNavmesh.pushCommand(navmeshUniformCmd, navmeshUniformData);
+		segmentDrawNavmesh.pushCommand(drawNavmeshCmd);
 
-	m_commandList.pushSegment(segmentDrawNavmesh, "drawNavmesh");
+		m_commandList.pushSegment(segmentDrawNavmesh, "drawNavmesh", 2);
+	}
 
 	{
 		auto pipe = m_shaderManager.getPipeline("editorDrawPointColor.pipe");
@@ -264,7 +276,7 @@ void EditorRenderAspect::createCommandList()
 		segmentDrawNavmeshVertices.pushCommand(pointSizeCmd);
 		segmentDrawNavmeshVertices.pushCommand(drawArraysPointsCmd);
 
-		m_commandList.pushSegment(segmentDrawNavmeshVertices, "drawNavmeshVertices");
+		m_commandList.pushSegment(segmentDrawNavmeshVertices, "drawNavmeshVertices", 3);
 	}
 
 	{
@@ -290,7 +302,7 @@ void EditorRenderAspect::createCommandList()
 		segmentDrawGraphVertices.pushCommand(editorDrawPointUniformCmd, editorDrawPointUniformData);
 		segmentDrawGraphVertices.pushCommand(drawArraysPointsCmd);
 
-		m_commandList.pushSegment(segmentDrawGraphVertices, "drawGraphVertices");
+		m_commandList.pushSegment(segmentDrawGraphVertices, "drawGraphVertices", 4);
 	}
 
 	{
@@ -312,7 +324,7 @@ void EditorRenderAspect::createCommandList()
 		segmentDrawSpawnPoint.pushCommand(uniformCmd, uniformData);
 		segmentDrawSpawnPoint.pushCommand(drawArraysPointsCmd);
 
-		m_commandList.pushSegment(segmentDrawSpawnPoint, "drawSpawnPoints");
+		m_commandList.pushSegment(segmentDrawSpawnPoint, "drawSpawnPoints", 5);
 	}
 
 	{
@@ -326,8 +338,7 @@ void EditorRenderAspect::createCommandList()
 		Graphics::Segment segmentDrawInfluenceCells;
 		segmentDrawInfluenceCells.setState(state);
 		segmentDrawInfluenceCells.pushCommand(drawArraysPointsCmd);
-
-		m_commandList.pushSegment(segmentDrawInfluenceCells, "drawInfluenceCells");
+		m_commandList.pushSegment(segmentDrawInfluenceCells, "drawInfluenceMap", 6);
 	}
 }
 
@@ -754,8 +765,8 @@ void EditorRenderAspect::updateNavMeshIndexBuffer(const NavMesh &navMesh)
 		auto navMeshIndexCount = triangleCount * 3;
 		m_pEditorColdData->m_navMeshIndexCount = navMeshIndexCount;
 
-		auto mappedCmdBuffer = m_pEditorColdData->m_navmeshCmdBuffer.map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
-		mappedCmdBuffer->count = navMeshIndexCount;
+			auto mappedCmdBuffer = m_pEditorColdData->m_navmeshCmdBuffer.map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
+			mappedCmdBuffer->count = navMeshIndexCount;
 	}
 }
 
@@ -829,8 +840,8 @@ void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influence
 	auto mappedBuffer = m_pEditorColdData->m_influenceCellVbo.map<InfluenceCellVertex>(vx::gl::Map::Write_Only);
 	::memcpy(mappedBuffer.get(), vertices.get(), sizeof(InfluenceCellVertex) * cellCount);
 
-	auto mappedCmdBuffer = m_pEditorColdData->m_influenceMapCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
-	mappedCmdBuffer->count = cellCount;
+		auto mappedCmdBuffer = m_pEditorColdData->m_influenceMapCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		mappedCmdBuffer->count = cellCount;
 }
 
 void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph)
@@ -851,4 +862,29 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 
 	auto mappedCmdBuffer = m_pEditorColdData->m_graphNodesCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer->count = nodeCount;
+}
+
+void EditorRenderAspect::showNavmesh(bool b)
+{
+	if (b)
+	{
+		m_commandList.enableSegment("drawNavmesh");
+	}
+	else
+	{
+		m_commandList.disableSegment("drawNavmesh");
+	}
+}
+
+void EditorRenderAspect::showInfluenceMap(bool b)
+{
+	if (b)
+	{
+		m_commandList.enableSegment("drawInfluenceMap");
+	}
+	else
+	{
+		m_commandList.disableSegment("drawInfluenceMap");
+
+	}
 }

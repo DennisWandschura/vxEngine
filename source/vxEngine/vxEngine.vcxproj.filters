@@ -699,6 +699,12 @@
     <ClInclude Include="Reference.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\CommandCompiler.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\SegmentBuilder.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -1053,6 +1059,15 @@
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\BufferFactory.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\CommandCompiler.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands.cpp">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\SegmentBuilder.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
   </ItemGroup>

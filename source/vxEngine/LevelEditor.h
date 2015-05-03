@@ -37,5 +37,8 @@ namespace Editor
 	extern "C" DLL_EXPORT void updateSelectedMeshInstanceTransform(const vx::float3 &translation);
 
 	extern "C" DLL_EXPORT bool selectLight(I32 x, I32 y);
+
+	extern "C" DLL_EXPORT void showNavmesh(bool b);
+	extern "C" DLL_EXPORT void showInfluenceMap(bool b);
 }
 #endif

@@ -59,8 +59,6 @@ std::unique_ptr<NavMeshNode[]> NavMeshGraph::buildNodes(const NavMesh &navMesh, 
 		vertexIndex += 3;
 	}
 
-	printf("Old nodecount: %u\n", nodeCount);
-
 	// search for duplicate vertices
 	U32 current = 0;
 	while (current != nodeCount)
@@ -101,8 +99,6 @@ std::unique_ptr<NavMeshNode[]> NavMeshGraph::buildNodes(const NavMesh &navMesh, 
 
 		++current;
 	}
-
-	printf("New nodecount: %u\n", nodeCount);
 
 	auto result = std::make_unique <NavMeshNode[]>(nodeCount);
 	for (U32 i = 0; i < nodeCount; ++i)
