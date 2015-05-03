@@ -88,7 +88,7 @@ class GpuProfiler
 
 	I64 m_currentFrame{ 0 };
 	GpuThreadInfo m_gpuThreadInfo;
-	vx::sorted_array<vx::StringID64, U32> m_entriesGpuByName;
+	vx::sorted_array<vx::StringID, U32> m_entriesGpuByName;
 	U16 m_entryGpuCount{ 0 };
 	std::unique_ptr<EntryGpu[]> m_entriesGpu;
 	const vx::gl::ProgramPipeline *m_pPipeline{ nullptr };

@@ -87,7 +87,7 @@ protected:
 
 	void takeScreenshot();
 
-	void writeMeshToVertexBuffer(const vx::StringID64 &meshSid, const vx::Mesh* pMesh, U32 *vertexOffsetGpu, U32 *indexOffsetGpu);
+	void writeMeshToVertexBuffer(const vx::StringID &meshSid, const vx::Mesh* pMesh, U32 *vertexOffsetGpu, U32 *indexOffsetGpu);
 
 	void createTextures();
 	void createFrameBuffers();
@@ -123,7 +123,7 @@ protected:
 	void taskCreateActorGpuIndex(void* p);
 	void taskUpdateDynamicTransforms(void* p);
 
-	U16 addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene);
+	U16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene);
 	U16 getActorGpuIndex();
 
 	void createRenderPassCreateShadowMaps();

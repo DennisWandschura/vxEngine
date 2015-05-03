@@ -89,10 +89,10 @@ class EditorRenderAspect : public RenderAspect
 
 	void handleFileEvent(const Event &evt);
 
-	void addMesh(const vx::StringID64 &sid);
-	void addMaterial(const vx::StringID64 &sid);
+	void addMesh(const vx::StringID &sid);
+	void addMaterial(const vx::StringID &sid);
 	void addMeshInstanceToBuffers();
-	void updateInstance(const vx::StringID64 &sid);
+	void updateInstance(const vx::StringID &sid);
 	void updateEditor();
 
 	void handleEditorEvent(const Event &evt);

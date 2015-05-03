@@ -17,8 +17,8 @@
 
 struct SceneFactory::LoadSceneFileDescription
 {
-	const vx::sorted_array<vx::StringID64, vx::Mesh>* meshes;
-	const vx::sorted_array<vx::StringID64, Material>* materials;
+	const vx::sorted_array<vx::StringID, vx::Mesh*>* sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*>* sortedMaterials;
 	std::vector<FileEntry> *pMissingFiles;
 	SceneFile *pSceneFile;
 };
@@ -36,8 +36,8 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 		auto meshSid = vx::make_sid(meshFile);
 
 		// check for mesh
-		auto itMesh = desc.meshes->find(meshSid);
-		if (itMesh == desc.meshes->end())
+		auto itMesh = desc.sortedMeshes->find(meshSid);
+		if (itMesh == desc.sortedMeshes->end())
 		{
 			// request load
 			desc.pMissingFiles->push_back(FileEntry(meshFile, FileType::Mesh));
@@ -48,8 +48,8 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 		// check for material
 		auto materialFile = pMeshInstances[i].getMaterialFile();
 		auto materialSid = vx::make_sid(materialFile);
-		auto itMaterial = desc.materials->find(materialSid);
-		if (itMaterial == desc.materials->end())
+		auto itMaterial = desc.sortedMaterials->find(materialSid);
+		if (itMaterial == desc.sortedMaterials->end())
 		{
 			desc.pMissingFiles->push_back(FileEntry(materialFile, FileType::Material));
 
@@ -67,8 +67,8 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 		auto materialSid = vx::make_sid(actor.material);
 
 		// check for mesh
-		auto itMesh = desc.meshes->find(meshSid);
-		if (itMesh == desc.meshes->end())
+		auto itMesh = desc.sortedMeshes->find(meshSid);
+		if (itMesh == desc.sortedMeshes->end())
 		{
 			// request load
 			desc.pMissingFiles->push_back(FileEntry(actor.mesh, FileType::Mesh));
@@ -76,8 +76,8 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 			result = false;
 		}
 
-		auto itMaterial = desc.materials->find(materialSid);
-		if (itMaterial == desc.materials->end())
+		auto itMaterial = desc.sortedMaterials->find(materialSid);
+		if (itMaterial == desc.sortedMaterials->end())
 		{
 			// request load
 			desc.pMissingFiles->push_back(FileEntry(actor.material, FileType::Material));
@@ -89,7 +89,7 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const CreateSceneDescription &desc, const U8* ptr, Scene *pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const U8* ptr, Scene *pScene)
 {
 	//auto result = loadSceneFile(loadDesc, ptr);
 
@@ -99,8 +99,8 @@ bool SceneFactory::createFromMemory(const CreateSceneDescription &desc, const U8
 	if (result)
 	{
 		LoadSceneFileDescription loadDesc;
-		loadDesc.materials = desc.materials;
-		loadDesc.meshes = desc.meshes;
+		loadDesc.sortedMaterials = desc.materials;
+		loadDesc.sortedMeshes = desc.meshes;
 		loadDesc.pMissingFiles = desc.pMissingFiles;
 		loadDesc.pSceneFile = &sceneFile;
 
@@ -110,13 +110,13 @@ bool SceneFactory::createFromMemory(const CreateSceneDescription &desc, const U8
 	if (result)
 	{
 		//result = sceneFile.createScene(meshes, materials, pScene);
-		result = ConverterSceneFileToScene::convert(*desc.meshes, *desc.materials, sceneFile, pScene);
+		result = ConverterSceneFileToScene::convert(desc.meshes, desc.materials, sceneFile, pScene);
 	}
 
 	return result;
 }
 
-bool SceneFactory::createFromFile(const CreateSceneDescription &desc, File* file, vx::StackAllocator* allocator, EditorScene *pScene)
+bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, File* file, vx::StackAllocator* allocator, EditorScene *pScene)
 {
 	SceneFile sceneFile;
 	auto result = FileFactory::load(file, &sceneFile, allocator);
@@ -124,8 +124,8 @@ bool SceneFactory::createFromFile(const CreateSceneDescription &desc, File* file
 	if (result)
 	{
 		LoadSceneFileDescription loadDesc;
-		loadDesc.materials = desc.materials;
-		loadDesc.meshes = desc.meshes;
+		loadDesc.sortedMaterials = desc.materials;
+		loadDesc.sortedMeshes = desc.meshes;
 		loadDesc.pMissingFiles = desc.pMissingFiles;
 		loadDesc.pSceneFile = &sceneFile;
 
@@ -134,13 +134,18 @@ bool SceneFactory::createFromFile(const CreateSceneDescription &desc, File* file
 
 	if (result)
 	{
-		result = sceneFile.createScene(*desc.meshes, *desc.materials, *desc.loadedFiles, pScene);
+		CreateEditorSceneDescription createSceneDescriptionDesc;
+		createSceneDescriptionDesc.pScene = pScene;
+		createSceneDescriptionDesc.sortedMaterials = desc.materials;
+		createSceneDescriptionDesc.sortedMeshes = desc.meshes;
+		createSceneDescriptionDesc.loadedFiles = desc.loadedFiles;
+		result = sceneFile.createScene(createSceneDescriptionDesc);
 	}
 
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const CreateSceneDescription &desc, const U8* ptr, EditorScene* pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const U8* ptr, EditorScene* pScene)
 {
 	SceneFile sceneFile;
 	auto result = FileFactory::load(ptr, &sceneFile);
@@ -148,8 +153,8 @@ bool SceneFactory::createFromMemory(const CreateSceneDescription &desc, const U8
 	if (result)
 	{
 		LoadSceneFileDescription loadDesc;
-		loadDesc.materials = desc.materials;
-		loadDesc.meshes = desc.meshes;
+		loadDesc.sortedMaterials = desc.materials;
+		loadDesc.sortedMeshes = desc.meshes;
 		loadDesc.pMissingFiles = desc.pMissingFiles;
 		loadDesc.pSceneFile = &sceneFile;
 
@@ -158,7 +163,12 @@ bool SceneFactory::createFromMemory(const CreateSceneDescription &desc, const U8
 
 	if (result)
 	{
-		result = sceneFile.createScene(*desc.meshes, *desc.materials, *desc.loadedFiles, pScene);
+		CreateEditorSceneDescription createSceneDescriptionDesc;
+		createSceneDescriptionDesc.pScene = pScene;
+		createSceneDescriptionDesc.sortedMaterials = desc.materials;
+		createSceneDescriptionDesc.sortedMeshes = desc.meshes;
+		createSceneDescriptionDesc.loadedFiles = desc.loadedFiles;
+		result = sceneFile.createScene(createSceneDescriptionDesc);
 	}
 
 	return result;

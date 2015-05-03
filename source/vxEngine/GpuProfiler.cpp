@@ -101,7 +101,7 @@ bool GpuProfiler::initialize(const Font* pFont, const vx::gl::ProgramPipeline* p
 
 	m_pVertices = std::make_unique<Vertex[]>(s_maxVertices);
 
-	m_entriesGpuByName = vx::sorted_array<vx::StringID64, U32>(s_markersGpu, pAllocator);
+	m_entriesGpuByName = vx::sorted_array<vx::StringID, U32>(s_markersGpu, pAllocator);
 	m_entriesGpu = std::make_unique<EntryGpu[]>(s_markersGpu);
 
 	for (auto i = 0u; i < s_markersGpu; ++i)
@@ -342,7 +342,7 @@ void GpuProfiler::frame()
 
 				marker.end = 0;
 
-				vx::StringID64 sid = vx::make_sid(marker.name);
+				vx::StringID sid = vx::make_sid(marker.name);
 				auto it = m_entriesGpuByName.find(sid);
 
 				if (it == m_entriesGpuByName.end())

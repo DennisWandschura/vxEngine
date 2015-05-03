@@ -5,6 +5,7 @@ struct Light;
 struct SpawnFile;
 struct ActorFile;
 struct Actor;
+struct Spawn;
 
 class MeshInstance;
 class File;
@@ -18,18 +19,64 @@ namespace vx
 	class sorted_array;
 
 	class Mesh;
-	class StringID64;
 }
 
 #include "NavMesh.h"
 #include <memory>
 #include <vxLib/Container/sorted_vector.h>
 #include "Serializable.h"
+#include <vxLib/StringID.h>
+
+struct CreateSceneDescription
+{
+	const vx::sorted_array<vx::StringID, vx::Mesh*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	Scene *pScene;
+};
+
+struct CreateEditorSceneDescription
+{
+	const vx::sorted_array<vx::StringID, vx::Mesh*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	const vx::sorted_vector<vx::StringID, std::string> *loadedFiles;
+	EditorScene *pScene;
+};
 
 class SceneFile : public Serializable
 {
 	friend class ConverterSceneFileToScene;
 	friend class ConverterEditorSceneToSceneFile;
+
+	struct CreateSceneMeshInstancesDesc
+	{
+		const vx::sorted_array<vx::StringID, vx::Mesh*> *sortedMeshes;
+		const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+		MeshInstance* pMeshInstances;
+		vx::sorted_vector<vx::StringID, const vx::Mesh*>* sceneMeshes;
+		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	};
+
+	struct CreateSceneActorsDesc
+	{
+		const vx::sorted_array<vx::StringID, vx::Mesh*> *sortedMeshes;
+		const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+		vx::sorted_vector<vx::StringID, Actor>* sceneActors;
+		vx::sorted_vector<vx::StringID, const vx::Mesh*>* sceneMeshes;
+		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	};
+
+	struct CreateSceneShared
+	{
+		const vx::sorted_array<vx::StringID, vx::Mesh*> *sortedMeshes;
+		const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+		MeshInstance* pMeshInstances;
+		vx::sorted_vector<vx::StringID, const vx::Mesh*>* sceneMeshes;
+		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+		vx::sorted_vector<vx::StringID, Actor>* sceneActors;
+		Spawn* sceneSpawns;
+		U32* vertexCount;
+		U32* indexCount;
+	};
 
 	std::unique_ptr<MeshInstanceFile[]> m_pMeshInstances;
 	std::unique_ptr<Light[]> m_pLights;
@@ -41,11 +88,10 @@ class SceneFile : public Serializable
 	U32 m_spawnCount;
 	U32 m_actorCount;
 
-	bool createSceneMeshInstances(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-		MeshInstance* pMeshInstances, vx::sorted_vector<vx::StringID64, const vx::Mesh*>* sceneMeshes, vx::sorted_vector<vx::StringID64, Material*>* sceneMaterials);
+	bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc);
+	bool createSceneActors(const CreateSceneActorsDesc &desc);
 
-	bool createSceneActors(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-		vx::sorted_vector<vx::StringID64, Actor>* actors, vx::sorted_vector<vx::StringID64, const vx::Mesh*>* sceneMeshes, vx::sorted_vector<vx::StringID64, Material*>* sceneMaterials);
+	bool createSceneShared(const CreateSceneShared &desc);
 
 public:
 	SceneFile();
@@ -61,8 +107,8 @@ public:
 	const std::unique_ptr<MeshInstanceFile[]>& getMeshInstances() const noexcept;
 	U32 getNumMeshInstances() const noexcept;
 
-	U8 createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials, Scene *pScene);
-	U8 createScene(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials, const vx::sorted_vector<vx::StringID64, std::string> &loadedFiles, EditorScene *pScene);
+	U8 createScene(const CreateSceneDescription &desc);
+	U8 createScene(const CreateEditorSceneDescription &desc);
 
 	U32 getActorCount() const { return m_actorCount; }
 	const ActorFile* getActors() const { return m_pActors.get(); }

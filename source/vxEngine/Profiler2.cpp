@@ -105,8 +105,8 @@ bool Profiler2::initialize(const Font* pFont, const vx::gl::ProgramPipeline* pPi
 
 	m_pVertices = std::make_unique<Vertex[]>(s_maxVertices);
 
-	m_entriesCpuByName = vx::sorted_array<vx::StringID64, U32>(s_markersPerCpuThread, pAllocator);
-	m_entriesGpuByName = vx::sorted_array<vx::StringID64, U32>(s_markersGpu, pAllocator);
+	m_entriesCpuByName = vx::sorted_array<vx::StringID, U32>(s_markersPerCpuThread, pAllocator);
+	m_entriesGpuByName = vx::sorted_array<vx::StringID, U32>(s_markersGpu, pAllocator);
 	m_entriesCpu = std::make_unique<EntryCpu[]>(s_markersPerCpuThread);
 	m_entriesGpu = std::make_unique<EntryGpu[]>(s_markersGpu);
 
@@ -423,7 +423,7 @@ void Profiler2::frame()
 
 				marker.end = 0;
 
-				vx::StringID64 sid = vx::make_sid(marker.name);
+				vx::StringID sid = vx::make_sid(marker.name);
 				auto it = m_entriesGpuByName.find(sid);
 
 				if (it == m_entriesGpuByName.end())
@@ -505,7 +505,7 @@ void Profiler2::pushCpuMarker(const char* name)
 	++m_cpuThreadInfo.currentWriteId;
 	++m_cpuThreadInfo.m_pushedMarkers;
 
-	vx::StringID64 sid = vx::make_sid(marker.name);
+	vx::StringID sid = vx::make_sid(marker.name);
 	auto it = m_entriesCpuByName.find(sid);
 	if (it == m_entriesCpuByName.end())
 	{
@@ -537,7 +537,7 @@ void Profiler2::popCpuMarker()
 
 	--ti.m_pushedMarkers;
 
-	vx::StringID64 sid = vx::make_sid(marker.name);
+	vx::StringID sid = vx::make_sid(marker.name);
 	auto it = m_entriesCpuByName.find(sid);
 	auto &entry = m_entriesCpu[*it];
 

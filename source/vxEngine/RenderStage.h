@@ -21,7 +21,7 @@ namespace Graphics
 		};
 
 		std::vector<Pass> m_renderPasses;
-		vx::sorted_vector<vx::StringID64, U32> m_indices;
+		vx::sorted_vector<vx::StringID, U32> m_indices;
 
 		Pass* findPass(const char* id);
 

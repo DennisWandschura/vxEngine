@@ -66,7 +66,7 @@ void Node::reserve(U32 n)
 	m_data.reserve(n);
 }
 
-void Node::addData(void *ptr, const rtti::TypeData *pTypeData, vx::StringID64 sid)
+void Node::addData(void *ptr, const rtti::TypeData *pTypeData, vx::StringID sid)
 {
 	NodeData *pData = new NodeData(ptr, pTypeData);
 
@@ -78,7 +78,7 @@ void Node::erase(const char *id)
 	erase(vx::make_sid(id));
 }
 
-void Node::erase(const vx::StringID64 sid)
+void Node::erase(const vx::StringID sid)
 {
 	auto it = m_data.find(sid);
 	if (it != m_data.end())

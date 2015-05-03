@@ -12,7 +12,7 @@ namespace Graphics
 	class CommandList
 	{
 		std::vector<Segment> m_segments;
-		vx::sorted_vector<vx::StringID64, U32> m_segmentIndices;
+		vx::sorted_vector<vx::StringID, U32> m_segmentIndices;
 
 		void swapSegmentsImpl(U32 a, U32 b);
 

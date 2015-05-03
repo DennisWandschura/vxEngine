@@ -56,7 +56,7 @@
             this.numericUpDown_scale_y = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown_scale_x = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
-            this.groupBox_transform = new System.Windows.Forms.GroupBox();
+            this.groupBoxMesh = new System.Windows.Forms.GroupBox();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.comboBox_selectEditorMode = new System.Windows.Forms.ToolStripComboBox();
             this.openFileDialog1_loadScene = new System.Windows.Forms.OpenFileDialog();
@@ -65,6 +65,8 @@
             this.numericUpDownNavmeshPositionY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownNavmeshPositionX = new System.Windows.Forms.NumericUpDown();
             this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
+            this.groupBoxNavMesh = new System.Windows.Forms.GroupBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_x)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_y)).BeginInit();
@@ -78,12 +80,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_z)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_y)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_x)).BeginInit();
-            this.groupBox_transform.SuspendLayout();
+            this.groupBoxMesh.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionX)).BeginInit();
             this.flowLayoutPanel4.SuspendLayout();
+            this.groupBoxNavMesh.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -450,17 +453,17 @@
             this.label3.Text = "Scale";
             this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // groupBox_transform
+            // groupBoxMesh
             // 
-            this.groupBox_transform.Controls.Add(this.flowLayoutPanel1);
-            this.groupBox_transform.Controls.Add(this.flowLayoutPanel2);
-            this.groupBox_transform.Controls.Add(this.flowLayoutPanel3);
-            this.groupBox_transform.Location = new System.Drawing.Point(1380, 621);
-            this.groupBox_transform.Name = "groupBox_transform";
-            this.groupBox_transform.Size = new System.Drawing.Size(398, 124);
-            this.groupBox_transform.TabIndex = 10;
-            this.groupBox_transform.TabStop = false;
-            this.groupBox_transform.Text = "Transform";
+            this.groupBoxMesh.Controls.Add(this.flowLayoutPanel1);
+            this.groupBoxMesh.Controls.Add(this.flowLayoutPanel2);
+            this.groupBoxMesh.Controls.Add(this.flowLayoutPanel3);
+            this.groupBoxMesh.Location = new System.Drawing.Point(1380, 621);
+            this.groupBoxMesh.Name = "groupBoxMesh";
+            this.groupBoxMesh.Size = new System.Drawing.Size(398, 124);
+            this.groupBoxMesh.TabIndex = 10;
+            this.groupBoxMesh.TabStop = false;
+            this.groupBoxMesh.Text = "Transform";
             // 
             // toolStrip1
             // 
@@ -494,7 +497,7 @@
             // numericUpDownNavmeshPositionZ
             // 
             this.numericUpDownNavmeshPositionZ.DecimalPlaces = 4;
-            this.numericUpDownNavmeshPositionZ.Location = new System.Drawing.Point(215, 3);
+            this.numericUpDownNavmeshPositionZ.Location = new System.Drawing.Point(265, 3);
             this.numericUpDownNavmeshPositionZ.Maximum = new decimal(new int[] {
             50000,
             0,
@@ -513,7 +516,7 @@
             // numericUpDownNavmeshPositionY
             // 
             this.numericUpDownNavmeshPositionY.DecimalPlaces = 4;
-            this.numericUpDownNavmeshPositionY.Location = new System.Drawing.Point(109, 3);
+            this.numericUpDownNavmeshPositionY.Location = new System.Drawing.Point(159, 3);
             this.numericUpDownNavmeshPositionY.Maximum = new decimal(new int[] {
             50000,
             0,
@@ -532,7 +535,7 @@
             // numericUpDownNavmeshPositionX
             // 
             this.numericUpDownNavmeshPositionX.DecimalPlaces = 4;
-            this.numericUpDownNavmeshPositionX.Location = new System.Drawing.Point(3, 3);
+            this.numericUpDownNavmeshPositionX.Location = new System.Drawing.Point(53, 3);
             this.numericUpDownNavmeshPositionX.Maximum = new decimal(new int[] {
             50000,
             0,
@@ -550,22 +553,45 @@
             // 
             // flowLayoutPanel4
             // 
+            this.flowLayoutPanel4.Controls.Add(this.label4);
             this.flowLayoutPanel4.Controls.Add(this.numericUpDownNavmeshPositionX);
             this.flowLayoutPanel4.Controls.Add(this.numericUpDownNavmeshPositionY);
             this.flowLayoutPanel4.Controls.Add(this.numericUpDownNavmeshPositionZ);
-            this.flowLayoutPanel4.Location = new System.Drawing.Point(1463, 131);
+            this.flowLayoutPanel4.Location = new System.Drawing.Point(12, 34);
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
-            this.flowLayoutPanel4.Size = new System.Drawing.Size(318, 28);
+            this.flowLayoutPanel4.Size = new System.Drawing.Size(380, 28);
             this.flowLayoutPanel4.TabIndex = 15;
+            // 
+            // groupBoxNavMesh
+            // 
+            this.groupBoxNavMesh.Controls.Add(this.flowLayoutPanel4);
+            this.groupBoxNavMesh.Location = new System.Drawing.Point(1380, 760);
+            this.groupBoxNavMesh.Name = "groupBoxNavMesh";
+            this.groupBoxNavMesh.Size = new System.Drawing.Size(398, 100);
+            this.groupBoxNavMesh.TabIndex = 16;
+            this.groupBoxNavMesh.TabStop = false;
+            this.groupBoxNavMesh.Text = "Navmesh";
+            // 
+            // label4
+            // 
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(3, 0);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(44, 26);
+            this.label4.TabIndex = 16;
+            this.label4.Text = "Position";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1904, 1041);
-            this.Controls.Add(this.flowLayoutPanel4);
+            this.Controls.Add(this.groupBoxNavMesh);
             this.Controls.Add(this.toolStrip1);
-            this.Controls.Add(this.groupBox_transform);
+            this.Controls.Add(this.groupBoxMesh);
             this.Controls.Add(this.treeView_entities);
             this.Controls.Add(this.panel_render);
             this.Controls.Add(this.menuStrip1);
@@ -593,14 +619,16 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_z)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_y)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_x)).EndInit();
-            this.groupBox_transform.ResumeLayout(false);
-            this.groupBox_transform.PerformLayout();
+            this.groupBoxMesh.ResumeLayout(false);
+            this.groupBoxMesh.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionX)).EndInit();
             this.flowLayoutPanel4.ResumeLayout(false);
+            this.flowLayoutPanel4.PerformLayout();
+            this.groupBoxNavMesh.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -633,7 +661,7 @@
         private System.Windows.Forms.NumericUpDown numericUpDown_scale_x;
         private System.Windows.Forms.NumericUpDown numericUpDown_scale_y;
         private System.Windows.Forms.NumericUpDown numericUpDown_scale_z;
-        private System.Windows.Forms.GroupBox groupBox_transform;
+        private System.Windows.Forms.GroupBox groupBoxMesh;
         private System.Windows.Forms.ToolStripMenuItem saveSceneToolStripMenuItem;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripMenuItem importAssetToolStripMenuItem;
@@ -645,6 +673,8 @@
         private System.Windows.Forms.NumericUpDown numericUpDownNavmeshPositionX;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
+        private System.Windows.Forms.GroupBox groupBoxNavMesh;
+        private System.Windows.Forms.Label label4;
     }
 }
 

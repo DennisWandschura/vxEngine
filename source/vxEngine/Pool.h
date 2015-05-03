@@ -38,6 +38,9 @@ protected:
 	void* operator[](U16 i);
 	const void* operator[](U16 i) const;
 
+	void* get(){ return m_ptr; }
+	const void* get() const{ return m_ptr; }
+
 public:
 	U8* release();
 
@@ -104,6 +107,9 @@ public:
 		return reinterpret_cast<pointer>(m_ptr)[i];
 	}
 
+	pointer get() { return (pointer)PoolBase::get(); }
+	const pointer get() const { return (const pointer)PoolBase::get(); }
+
 	pointer first() const
 	{
 		return (pointer)PoolBase::first(sizeof(T));
@@ -118,5 +124,15 @@ public:
 	{
 		auto index = (p - reinterpret_cast<pointer>(m_ptr));
 		return index;
+	}
+
+	void clear()
+	{
+		auto current = first();
+		while (current != nullptr)
+		{
+			current->~value_type();
+			current = next_nocheck(current);
+		}
 	}
 };

@@ -18,8 +18,8 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 		auto sidActor = scene.m_actors.keys()[i];
 		auto &it = scene.m_actors[i];
 
-		auto sidMaterial = it.material;
-		auto sidMesh = it.mesh;
+		vx::StringID sidMaterial = it.material;
+		vx::StringID sidMesh = it.mesh;
 
 		auto actorNameIt = scene.m_actorNames.find(sidActor);
 		auto meshNameIt = scene.m_meshNames.find(sidMesh);

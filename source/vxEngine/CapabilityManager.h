@@ -11,8 +11,8 @@ namespace Graphics
 
 	class CapabilityManager
 	{
-		vx::sorted_vector<vx::StringID64, std::unique_ptr<Graphics::Capability>> m_graphicsCapabilities;
-		vx::sorted_vector<vx::StringID64, std::unique_ptr<Graphics::CapabilitySetting>> m_graphicsCapabilitySetting;
+		vx::sorted_vector<vx::StringID, std::unique_ptr<Graphics::Capability>> m_graphicsCapabilities;
+		vx::sorted_vector<vx::StringID, std::unique_ptr<Graphics::CapabilitySetting>> m_graphicsCapabilitySetting;
 
 	public:
 		~CapabilityManager();

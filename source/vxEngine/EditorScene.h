@@ -17,9 +17,9 @@ struct EditorSceneParams
 	SceneBaseParams m_baseParams;
 	std::vector<MeshInstance> m_meshInstances;
 	std::vector<Waypoint> m_waypoints;
-	vx::sorted_vector<vx::StringID64, char[32]> m_materialNames;
-	vx::sorted_vector<vx::StringID64, char[32]> m_meshNames;
-	vx::sorted_vector<vx::StringID64, char[32]> m_actorNames;
+	vx::sorted_vector<vx::StringID, char[32]> m_materialNames;
+	vx::sorted_vector<vx::StringID, char[32]> m_meshNames;
+	vx::sorted_vector<vx::StringID, char[32]> m_actorNames;
 
 	~EditorSceneParams();
 };
@@ -28,13 +28,24 @@ class EditorScene : public SceneBase
 {
 	friend class ConverterEditorSceneToSceneFile;
 
+	template<typename T>
+	struct SelectableWrapper
+	{
+		AABB m_bounds;
+		T* m_ptr;
+
+		SelectableWrapper() :m_bounds(), m_ptr(nullptr){}
+	};
+
 	std::vector<MeshInstance> m_meshInstances;
 	std::vector<Waypoint> m_waypoints;
+	std::vector<SelectableWrapper<Light>> m_selectableLights;
+	std::vector<SelectableWrapper<Spawn>> m_selectableSpawns;
 
-	vx::sorted_vector<vx::StringID64, MeshInstance> m_sortedMeshInstances;
-	vx::sorted_vector<vx::StringID64, char[32]> m_materialNames{};
-	vx::sorted_vector<vx::StringID64, char[32]> m_meshNames{};
-	vx::sorted_vector<vx::StringID64, char[32]> m_actorNames{};
+	vx::sorted_vector<vx::StringID, MeshInstance> m_sortedMeshInstances;
+	vx::sorted_vector<vx::StringID, char[32]> m_materialNames{};
+	vx::sorted_vector<vx::StringID, char[32]> m_meshNames{};
+	vx::sorted_vector<vx::StringID, char[32]> m_actorNames{};
 
 public:
 	EditorScene();
@@ -47,20 +58,23 @@ public:
 	void sortMeshInstances() override;
 
 	// returns 1 on insert, 0 if already present
-	U8 addMesh(const vx::StringID64 &sid, const char* name, const vx::Mesh* pMesh);
+	U8 addMesh(vx::StringID sid, const char* name, const vx::Mesh* pMesh);
 	// returns 1 on insert, 0 if already present
-	U8 addMaterial(const vx::StringID64 &sid, const char* name, Material* pMaterial);
+	U8 addMaterial(vx::StringID sid, const char* name, Material* pMaterial);
 	// returns 1 on insert, 0 if mesh or material is missing
-	U8 addMeshInstance(const vx::StringID64 &instanceSid, const vx::StringID64 &meshSid, const vx::StringID64 &materialSid, const vx::Transform &transform);
+	U8 addMeshInstance(vx::StringID instanceSid, vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform);
 	void addWaypoint(const Waypoint &wp);
 
-	MeshInstance* findMeshInstance(const vx::StringID64 &instanceSid);
+	MeshInstance* findMeshInstance(vx::StringID instanceSid);
 
-	const vx::sorted_vector<vx::StringID64, MeshInstance>& getMeshInstancesSortedByName() const { return m_sortedMeshInstances; }
+	const vx::sorted_vector<vx::StringID, MeshInstance>& getMeshInstancesSortedByName() const { return m_sortedMeshInstances; }
 	const MeshInstance* getMeshInstances() const override;
 	U32 getMeshInstanceCount() const override;
 
-	const char* getMaterialName(const vx::StringID64 &sid) const;
-	const char* getMeshName(const vx::StringID64 &sid) const;
-	const char* getActorName(const vx::StringID64 &sid) const;
+	const char* getMaterialName(vx::StringID sid) const;
+	const char* getMeshName(vx::StringID sid) const;
+	const char* getActorName(vx::StringID sid) const;
+
+	Spawn* getSpawn(const Ray &ray);
+	Light* getLight(const Ray &ray);
 };

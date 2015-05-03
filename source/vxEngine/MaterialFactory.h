@@ -8,18 +8,24 @@ class TextureFile;
 
 namespace vx
 {
-	class StringID64;
-
 	template<typename K, typename T>
 	class sorted_array;
+
+	using StringID = U64;
 }
 
 #include <vector>
 
+struct MaterialFactoryLoadDescription
+{
+	const char *file;
+	const vx::sorted_array<vx::StringID, TextureFile*>* textureFiles;
+	std::vector<FileEntry>* missingFiles;
+	Material* material;
+};
+
 class MaterialFactory
 {
-	static bool checkTextureFile(const char(&filename)[32], const vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry>* missingFiles, vx::StringID64* outSid);
-
 public:
-	static std::pair<bool, Material> load(const char *file, const vx::sorted_array<vx::StringID64, TextureFile> &textureFiles, std::vector<FileEntry>* missingFiles);
+	static bool load(const MaterialFactoryLoadDescription &desc);
 };

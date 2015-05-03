@@ -292,7 +292,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 
 	m_camera.setPosition(0, 2.5f, 15);
 
-	if (!m_shaderManager.initialize(dataDir))
+	if (!m_shaderManager.initialize(dataDir, true))
 	{
 		puts("Error initializing Shadermanager");
 		return false;
@@ -303,22 +303,6 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 
 	createUniformBuffers();
 	createBuffers();
-
-#if _VX_PROFILER
-	/*if (pProfiler)
-	{
-		auto textureIndex = *m_pColdData->m_texturesGPU.find(glGetTextureHandleARB(m_pColdData->m_font.getTextureEntry().getTextureId()));
-		if (!pProfiler->initialize(&m_pColdData->m_font, m_shaderManager.getPipeline("text.pipe"), textureIndex, m_pColdData->m_windowResolution, pAllocator))
-			return false;
-	}
-
-	if (pGraph)
-	{
-		pGraph->initialize(m_shaderManager, targetMs);
-	}*/
-#else
-	VX_UNREFERENCED_PARAMETER(pAllocator);
-#endif
 
 	m_sceneRenderer.initialize(10, &m_bufferManager, pAllocator);
 	m_voxelRenderer.initialize(128, m_shaderManager, &m_bufferManager);
@@ -509,8 +493,6 @@ void RenderAspect::taskCreateActorGpuIndex(void* p)
 
 	CreateActorData* data = (CreateActorData*)p;
 	auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material, data->pScene);
-
-	printf("gpuIndex: %u\n", gpuIndex);
 
 	Event e;
 	e.arg1 = data->index;
@@ -904,7 +886,7 @@ void RenderAspect::getProjectionMatrix(vx::mat4* m)
 	*m = m_renderContext.getProjectionMatrix();
 }
 
-U16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene)
+U16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene)
 {
 	return m_sceneRenderer.addActorToBuffer(transform, mesh, material, pScene);
 }

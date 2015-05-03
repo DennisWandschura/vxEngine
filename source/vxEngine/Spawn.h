@@ -16,7 +16,7 @@ struct Spawn
 	PlayerType type;
 	vx::float3 position;
 	// actor id, not used for human
-	vx::StringID64 sid;
+	vx::StringID sid;
 };
 
 struct SpawnFile

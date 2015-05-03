@@ -60,10 +60,10 @@ class EditorEngine : public EventListener
 	vx::uint2 m_resolution;
 	HWND m_panel;
 
-	vx::sorted_vector<vx::StringID64, std::pair<Editor::LoadFileCallback, U32>> m_requestedFiles;
+	vx::sorted_vector<vx::StringID, std::pair<Editor::LoadFileCallback, U32>> m_requestedFiles;
 
 	// calls the callback provided by editor_loadFile
-	void call_editorCallback(const vx::StringID64 &sid);
+	void call_editorCallback(vx::StringID sid);
 
 	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);
@@ -76,6 +76,7 @@ class EditorEngine : public EventListener
 
 	void createStateMachine();
 
+	Ray getRay(I32 mouseX, I32 mouseY);
 	U32 getSelectedNavMeshVertex(I32 mouseX, I32 mouseY);
 
 	void buildNavGraph();
@@ -121,6 +122,8 @@ public:
 	bool multiSelectNavMeshVertex(I32 mouseX, I32 mouseY);
 	void deselectNavMeshVertex();
 	bool createNavMeshTriangleFromSelectedVertices();
+
+	bool selectLight(I32 mouseX, I32 mouseY);
 
 	SelectedType getSelectedItemType() const;
 	EditorScene* getEditorScene() const;

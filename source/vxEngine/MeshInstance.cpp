@@ -9,7 +9,7 @@ MeshInstance::MeshInstance()
 {
 }
 
-MeshInstance::MeshInstance(vx::StringID64 meshSid, vx::StringID64 materialSid, const vx::Transform &transform)
+MeshInstance::MeshInstance(vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform)
 	:m_meshSid(meshSid),
 	m_materialSid(materialSid),
 	m_transform(transform)

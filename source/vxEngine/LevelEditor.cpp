@@ -98,7 +98,7 @@ namespace Editor
 
 	U64 getSid(const char *str)
 	{
-		return vx::make_sid(str).m_value;
+		return vx::make_sid(str);
 	}
 
 	void saveScene(const char* name)
@@ -170,6 +170,11 @@ namespace Editor
 	void updateSelectedMeshInstanceTransform(const vx::float3 &translation)
 	{
 		g_pEditor->engine.updateSelectedMeshInstanceTransform(translation);
+	}
+
+	bool selectLight(I32 x, I32 y)
+	{
+		return g_pEditor->engine.selectLight(x, y);
 	}
 }
 #endif

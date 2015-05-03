@@ -10,12 +10,17 @@ using System.Windows.Forms;
 
 namespace LevelEditor
 {
-    public enum EditorState { EditMesh, EditNavMesh };
+    public enum EditorState { EditMesh, EditNavMesh, EditLights, EditSpawns };
 
     public partial class Form1 : Form
     {
         const string s_textEditMesh = "Edit Mesh";
         const string s_textEditNavMesh = "Edit Nav Mesh";
+        const string s_textEditLights = "Edit Lights";
+        const string s_textEditSpawns = "Edit Spawns";
+        const int s_groupBoxEditPositionX = 1380;
+        const int s_groupBoxEditPositionY = 620;
+
         const UInt32 s_typeMesh = 0;
         const UInt32 s_typeMaterial = 1;
         const UInt32 s_typeMeshInstance = 2;
@@ -56,7 +61,7 @@ namespace LevelEditor
             treeView_entities.Nodes.Add("Lights");
             m_currentSceneFileName = "untitled.scene";
 
-            groupBox_transform.Hide();
+            groupBoxMesh.Hide();
 
             m_requestedFiles = new Dictionary<ulong, string>();
 
@@ -93,7 +98,17 @@ namespace LevelEditor
             m_editorState = EditorState.EditMesh;
             comboBox_selectEditorMode.Items.Add(s_textEditMesh);
             comboBox_selectEditorMode.Items.Add(s_textEditNavMesh);
+            comboBox_selectEditorMode.Items.Add(s_textEditLights);
+            comboBox_selectEditorMode.Items.Add(s_textEditSpawns);
             comboBox_selectEditorMode.SelectedIndex = 0;
+
+            Point p = new Point();
+            p.X = s_groupBoxEditPositionX;
+            p.Y = s_groupBoxEditPositionY;
+
+            groupBoxNavMesh.Hide();
+            groupBoxNavMesh.Location = p;
+            groupBoxMesh.Location = p;
         }
 
         ~Form1()
@@ -365,12 +380,12 @@ namespace LevelEditor
                         numericUpDown_translation_z.Value = (decimal)translation.z;
                     }*/
 
-                    groupBox_transform.Show();
+                    groupBoxMesh.Show();
                 }
             }
             catch
             {
-                groupBox_transform.Hide();
+                groupBoxMesh.Hide();
             }
         }
 
@@ -439,8 +454,6 @@ namespace LevelEditor
 
         public void selectNavMeshVertex()
         {
-           
-
             if(NativeMethods.selectNavMeshVertex(m_mouseX, m_mouseY))
             {
                 m_selectedNavMesh = true;
@@ -450,24 +463,25 @@ namespace LevelEditor
                 NativeMethods.getSelectNavMeshVertexPosition(ref position);
                 setNumericUpDownNavMeshPosition(position);
 
+                groupBoxNavMesh.Show();
                 m_selectedNavMesh = false;
             }
             else
             {
-
+                groupBoxNavMesh.Hide();
             }
-
-            
         }
 
         public void multiSelectNavMeshVertex()
         {
             NativeMethods.multiSelectNavMeshVertex(m_mouseX, m_mouseY);
+            groupBoxMesh.Hide();
         }
 
         public void deselectNavMeshVertex()
         {
             NativeMethods.deselectNavMeshVertex();
+            groupBoxNavMesh.Hide();
         }
 
         private void addNavMeshVertex(int x, int y)
@@ -490,8 +504,6 @@ namespace LevelEditor
             m_mouseY = e.Y;
             m_lastClickedMouseButton = e.Button;
             m_isMouseDown = true;
-
-
         }
 
         private void panel_render_MouseUp(object sender, MouseEventArgs e)
@@ -568,8 +580,6 @@ namespace LevelEditor
             m_keyDownAlt = e.Alt;
 
             m_keys ^= (1 << (int)e.KeyCode);
-
-
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -585,8 +595,6 @@ namespace LevelEditor
 
             m_keyDownAlt = e.Alt;
             m_keys ^= (1 << (int)e.KeyCode);
-
-            //updateStateMachine();
         }
 
         private void toolStripButton1_Click(object sender, EventArgs e)
@@ -646,13 +654,22 @@ namespace LevelEditor
 
         private void comboBox_selectEditorMode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBox_selectEditorMode.SelectedItem.ToString() == s_textEditMesh)
+            var selectedString = comboBox_selectEditorMode.SelectedItem.ToString();
+            if (selectedString == s_textEditMesh)
             {
                 m_editorState = EditorState.EditMesh;
             }
-            else if (comboBox_selectEditorMode.SelectedItem.ToString() == s_textEditNavMesh)
+            else if (selectedString == s_textEditNavMesh)
             {
                 m_editorState = EditorState.EditNavMesh;
+            }
+            else if (selectedString == s_textEditLights)
+            {
+                m_editorState = EditorState.EditLights;
+            }
+            else if (selectedString == s_textEditSpawns)
+            {
+                m_editorState = EditorState.EditSpawns;
             }
 
             updateStateMachine();

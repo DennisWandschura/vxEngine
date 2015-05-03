@@ -14,7 +14,7 @@ class Material
 	F32 m_restitution{ 0 };
 
 public:
-	vx::StringID64 m_textureSid[3];
+	vx::StringID m_textureSid[3];
 
 	Material();
 	Material(const Material&) = delete;

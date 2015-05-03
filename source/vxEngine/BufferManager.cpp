@@ -13,7 +13,7 @@ BufferManager::~BufferManager()
 
 void BufferManager::initialize(U32 maxBufferCount, vx::StackAllocator* allocator)
 {
-	m_buffers = vx::sorted_array<vx::StringID64, vx::gl::Buffer>(maxBufferCount, allocator);
+	m_buffers = vx::sorted_array<vx::StringID, vx::gl::Buffer>(maxBufferCount, allocator);
 }
 
 void BufferManager::shutdown()
@@ -22,7 +22,7 @@ void BufferManager::shutdown()
 	//m_buffers.clear();
 }
 
-vx::StringID64 BufferManager::createBuffer(const char* key, const vx::gl::BufferDescription &desc)
+vx::StringID BufferManager::createBuffer(const char* key, const vx::gl::BufferDescription &desc)
 {
 	vx::gl::Buffer buffer;
 	buffer.create(desc);
@@ -32,13 +32,13 @@ vx::StringID64 BufferManager::createBuffer(const char* key, const vx::gl::Buffer
 
 	if (it == m_buffers.end())
 	{
-		sid.m_value = 0u;
+		sid = 0u;
 	}
 
 	return sid;
 }
 
-vx::gl::Buffer* BufferManager::getBuffer(const vx::StringID64 &sid) const
+vx::gl::Buffer* BufferManager::getBuffer(const vx::StringID &sid) const
 {
 	auto it = m_buffers.find(sid);
 

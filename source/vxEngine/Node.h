@@ -38,9 +38,9 @@ public:
 
 class Node
 {
-	vx::sorted_vector<vx::StringID64, NodeData*> m_data;
+	vx::sorted_vector<vx::StringID, NodeData*> m_data;
 
-	void addData(void *ptr, const rtti::TypeData *pTypeData, vx::StringID64 sid);
+	void addData(void *ptr, const rtti::TypeData *pTypeData, vx::StringID sid);
 
 public:
 	Node();
@@ -58,7 +58,7 @@ public:
 		T *ptr = new T(value);
 		auto pTypeData = rtti::SingletonRTTI::get().getTypeData<T>();
 
-		addData(ptr, pTypeData, vx::StringID64(id));
+		addData(ptr, pTypeData, vx::StringID(id));
 	}
 
 	template<class T, typename = typename std::enable_if_t<!std::is_pointer<T>::value>>
@@ -69,15 +69,15 @@ public:
 		value_type *ptr = new value_type(std::forward<value_type>(value));
 		auto pTypeData = rtti::SingletonRTTI::get().getTypeData<value_type>();
 
-		addData(ptr, pTypeData, vx::StringID64(id));
+		addData(ptr, pTypeData, vx::StringID(id));
 	}
 
 	template<class T> T* get(const char *id)
 	{
-		return get<T>(vx::StringID64(id));
+		return get<T>(vx::StringID(id));
 	}
 
-	template<class T> T* get(const vx::StringID64 sid)
+	template<class T> T* get(const vx::StringID sid)
 	{
 		auto it = m_data.find(sid);
 		if (it == m_data.end())
@@ -88,10 +88,10 @@ public:
 
 	template<class T> const T* get(const char *id) const
 	{
-		return get<T>(vx::StringID64(id));
+		return get<T>(vx::StringID(id));
 	}
 
-	template<class T> const T* get(const vx::StringID64 sid) const
+	template<class T> const T* get(const vx::StringID sid) const
 	{
 		auto it = m_data.find(sid);
 		if (it == m_data.end())
@@ -101,5 +101,5 @@ public:
 	}
 
 	void erase(const char *id);
-	void erase(const vx::StringID64 sid);
+	void erase(const vx::StringID sid);
 };

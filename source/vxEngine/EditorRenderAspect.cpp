@@ -445,7 +445,7 @@ void EditorRenderAspect::handleEvent(const Event &evt)
 	}
 }
 
-void EditorRenderAspect::addMesh(const vx::StringID64 &sid)
+void EditorRenderAspect::addMesh(const vx::StringID &sid)
 {
 	VX_UNREFERENCED_PARAMETER(sid);
 	/*auto &sceneMeshes = m_pCurrentScene->getMeshes();
@@ -461,7 +461,7 @@ void EditorRenderAspect::addMesh(const vx::StringID64 &sid)
 	//printf("vertex count: %u\n", m_editorVertexCount);
 }
 
-void EditorRenderAspect::addMaterial(const vx::StringID64 &sid)
+void EditorRenderAspect::addMaterial(const vx::StringID &sid)
 {
 	VX_UNREFERENCED_PARAMETER(sid);
 	/*auto &sceneMaterials = m_pCurrentScene->getMaterials();
@@ -492,7 +492,7 @@ void EditorRenderAspect::addMeshInstanceToBuffers()
 
 	m_editorMeshInstanceIndices.clear();
 
-	std::vector<std::pair<vx::StringID64, const MeshInstance*>> meshInstances;
+	std::vector<std::pair<vx::StringID, const MeshInstance*>> meshInstances;
 	meshInstances.reserve(instanceCount);
 
 	auto &sceneMeshInstances = m_pCurrentScene->getMeshInstancesSortedByName();
@@ -504,7 +504,7 @@ void EditorRenderAspect::addMeshInstanceToBuffers()
 	}
 
 	auto &sceneMaterials = m_pCurrentScene->getMaterials();
-	std::sort(meshInstances.begin(), meshInstances.end(), [&](const std::pair<vx::StringID64, const MeshInstance*> &lhs, const std::pair<vx::StringID64, const MeshInstance*> &rhs)
+	std::sort(meshInstances.begin(), meshInstances.end(), [&](const std::pair<vx::StringID, const MeshInstance*> &lhs, const std::pair<vx::StringID, const MeshInstance*> &rhs)
 	{
 	Material &lhsMaterial = **sceneMaterials.find(lhs.second->getMaterialSid());
 	Material &rhsMaterial = **sceneMaterials.find(rhs.second->getMaterialSid());
@@ -580,7 +580,7 @@ void EditorRenderAspect::addMeshInstanceToBuffers()
 	printf("drawcount: %u, totalInstanceCount: %u\n", m_drawCount, totalInstanceCount);*/
 }
 
-void EditorRenderAspect::updateInstance(const vx::StringID64 &sid)
+void EditorRenderAspect::updateInstance(const vx::StringID &sid)
 {
 	VX_UNREFERENCED_PARAMETER(sid);
 	/*auto pInstance = m_pCurrentScene->findMeshInstance(sid);

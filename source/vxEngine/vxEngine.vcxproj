@@ -194,6 +194,7 @@
     <ClInclude Include="Graphics\Segment.h" />
     <ClInclude Include="Graphics\State.h" />
     <ClInclude Include="MeshFile.h" />
+    <ClInclude Include="Reference.h" />
     <ClInclude Include="Serializable.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GpuStructs.h" />

@@ -9,21 +9,36 @@ struct Actor;
 namespace vx
 {
 	class Mesh;
-	struct StringID64;
 }
 
 #include <vxLib/Container/sorted_array.h>
+#include <vxLib/StringID.h>
 
 class ConverterSceneFileToScene
 {
-	static bool createSceneMeshInstances(const SceneFile &sceneFile, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes,
-		const vx::sorted_array<vx::StringID64, Material> &materials,
-		MeshInstance* pMeshInstances, vx::sorted_vector<vx::StringID64, const vx::Mesh*>* sceneMeshes, 
-		vx::sorted_vector<vx::StringID64, Material*>* sceneMaterials);
+	struct CreateSceneMeshInstancesDesc
+	{
+		const SceneFile *sceneFile;
+		const vx::sorted_array<vx::StringID, vx::Mesh*> *sortedMeshes;
+		const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+		MeshInstance* pMeshInstances;
+		vx::sorted_vector<vx::StringID, const vx::Mesh*>* sceneMeshes;
+		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	};
 
-	static bool createSceneActors(const SceneFile &sceneFile, const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials,
-		vx::sorted_vector<vx::StringID64, Actor>* actors, vx::sorted_vector<vx::StringID64, const vx::Mesh*>* sceneMeshes, vx::sorted_vector<vx::StringID64, Material*>* sceneMaterials);
+	struct CreateSceneActorsDesc
+	{
+		const SceneFile *sceneFile;
+		const vx::sorted_array<vx::StringID, vx::Mesh*> *sortedMeshes;
+		const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+		vx::sorted_vector<vx::StringID, Actor>* sceneActors;
+		vx::sorted_vector<vx::StringID, const vx::Mesh*>* sceneMeshes; 
+		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	};
+
+	static bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc);
+	static bool createSceneActors(const CreateSceneActorsDesc &desc);
 
 public:
-	static bool convert(const vx::sorted_array<vx::StringID64, vx::Mesh> &meshes, const vx::sorted_array<vx::StringID64, Material> &materials, const SceneFile &sceneFile, Scene* scene);
+	static bool convert(const vx::sorted_array<vx::StringID, vx::Mesh*> *sortedMeshes, const vx::sorted_array<vx::StringID, Material*> *sortedMaterials, const SceneFile &sceneFile, Scene* scene);
 };

@@ -17,16 +17,16 @@ namespace YAML
 
 class MeshInstance
 {
-	vx::StringID64 m_meshSid;
-	vx::StringID64 m_materialSid;
+	vx::StringID m_meshSid;
+	vx::StringID m_materialSid;
 	vx::Transform m_transform;
 
 public:
 	MeshInstance();
-	MeshInstance(vx::StringID64 meshSid, vx::StringID64 materialSid, const vx::Transform &transform);
+	MeshInstance(vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform);
 
-	vx::StringID64 getMeshSid() const noexcept{ return m_meshSid; }
-	vx::StringID64 getMaterialSid() const noexcept{ return m_materialSid; }
+	vx::StringID getMeshSid() const noexcept{ return m_meshSid; }
+	vx::StringID getMaterialSid() const noexcept{ return m_materialSid; }
 	const vx::Transform& getTransform() const noexcept{ return m_transform; }
 
 #if _VX_EDITOR

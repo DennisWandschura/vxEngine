@@ -293,13 +293,13 @@ void EditorEngine::editor_rotateCamera(F32 dirX, F32 dirY, F32 dirZ)
 	m_renderAspect.editor_rotateCamera(v);
 }
 
-void EditorEngine::call_editorCallback(const vx::StringID64 &sid)
+void EditorEngine::call_editorCallback(vx::StringID sid)
 {
 	std::lock_guard<std::mutex> guard(m_editorMutex);
 	auto it = m_requestedFiles.find(sid);
 	if (it != m_requestedFiles.end())
 	{
-		(*it->first)(sid.m_value, it->second);
+		(*it->first)(sid, it->second);
 		m_requestedFiles.erase(it);
 	}
 }
@@ -409,7 +409,7 @@ void EditorEngine::deleteSelectedNavMeshVertex()
 	}
 }
 
-U32 EditorEngine::getSelectedNavMeshVertex(I32 mouseX, I32 mouseY)
+Ray EditorEngine::getRay(I32 mouseX, I32 mouseY)
 {
 	auto rayDir = getRayDir(mouseX, mouseY);
 	auto cameraPosition = m_renderAspect.getCamera().getPosition();
@@ -418,6 +418,13 @@ U32 EditorEngine::getSelectedNavMeshVertex(I32 mouseX, I32 mouseY)
 	vx::storeFloat(&ray.o, cameraPosition);
 	vx::storeFloat(&ray.d, rayDir);
 	ray.maxt = 50.0f;
+
+	return ray;
+}
+
+U32 EditorEngine::getSelectedNavMeshVertex(I32 mouseX, I32 mouseY)
+{
+	auto ray = getRay(mouseX, mouseY);
 
 	auto &navMesh = m_pEditorScene->getNavMesh();
 
@@ -526,6 +533,20 @@ vx::float3 EditorEngine::getSelectedNavMeshVertexPosition() const
 
 		result = vertices[selectedIndex];
 	}
+	return result;
+}
+
+bool EditorEngine::selectLight(I32 mouseX, I32 mouseY)
+{
+	bool result = false;
+	if (m_pEditorScene)
+	{
+		auto ray = getRay(mouseX, mouseY);
+		auto selectedLight = m_pEditorScene->getLight(ray);
+
+		result = (selectedLight != nullptr);
+	}
+
 	return result;
 }
 

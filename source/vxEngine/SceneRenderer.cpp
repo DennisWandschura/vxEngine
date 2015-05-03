@@ -179,7 +179,7 @@ void SceneRenderer::createMaterial(Material* pMaterial)
 	pMaterial->setTextures(std::move(albedoRef), std::move(normalRef), std::move(surfaceRef));
 }
 
-U16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID64 &mesh, const vx::StringID64 &material, const Scene* pScene)
+U16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene)
 {
 	auto itMesh = m_coldData->m_meshEntries.find(mesh);
 	if (itMesh == m_coldData->m_meshEntries.end())
@@ -287,7 +287,7 @@ void SceneRenderer::writeMaterialToBuffer(const Material *pMaterial, U32 offset)
 	pMaterialGPU.unmap();
 }
 
-void SceneRenderer::writeMeshToBuffer(const vx::StringID64 &meshSid, const vx::Mesh* pMesh, VertexPNTUV* pVertices, U32* pIndices, U32* vertexOffset, U32* indexOffset, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
+void SceneRenderer::writeMeshToBuffer(const vx::StringID &meshSid, const vx::Mesh* pMesh, VertexPNTUV* pVertices, U32* pIndices, U32* vertexOffset, U32* indexOffset, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
 {
 	auto pMeshVertices = pMesh->getVertices();
 	auto vertexCount = pMesh->getVertexCount();
@@ -365,7 +365,7 @@ void SceneRenderer::writeMeshToBuffer(const vx::StringID64 &meshSid, const vx::M
 	*indexOffset += indexCount;
 }
 
-void SceneRenderer::writeMeshesToVertexBuffer(const vx::StringID64* meshSid, const vx::Mesh** pMesh, U32 count, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
+void SceneRenderer::writeMeshesToVertexBuffer(const vx::StringID* meshSid, const vx::Mesh** pMesh, U32 count, U32 *vertexOffsetGpu, U32 *indexOffsetGpu)
 {
 	// get total vertex and indexcount
 	U32 vertexCount = 0, indexCount = 0;
@@ -405,7 +405,7 @@ void SceneRenderer::writeMeshesToVertexBuffer(const vx::StringID64* meshSid, con
 	memcpy(pGpuIndices.get(), pIndices, indexSizeBytes);
 }
 
-void SceneRenderer::updateMeshBuffer(const vx::sorted_vector<vx::StringID64, const vx::Mesh*> &meshes)
+void SceneRenderer::updateMeshBuffer(const vx::sorted_vector<vx::StringID, const vx::Mesh*> &meshes)
 {
 	U32 totalVertexCount = 0;
 	U32 totalIndexCount = 0;
@@ -454,7 +454,7 @@ void SceneRenderer::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 in
 	mappedCmdBuffer[index] = cmd;
 }
 
-void SceneRenderer::updateBuffers(const MeshInstance *pInstances, U32 instanceCount, const vx::sorted_vector<const Material*, U32> &materialIndices, const vx::sorted_vector<vx::StringID64, MeshEntry> &meshEntries)
+void SceneRenderer::updateBuffers(const MeshInstance *pInstances, U32 instanceCount, const vx::sorted_vector<const Material*, U32> &materialIndices, const vx::sorted_vector<vx::StringID, MeshEntry> &meshEntries)
 {
 	if (instanceCount == 0)
 	{

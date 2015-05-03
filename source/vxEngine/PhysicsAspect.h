@@ -59,8 +59,8 @@ class PhysicsAspect : public EventListener
 	physx::PxPhysics *m_pPhysics;
 	std::mutex m_mutex;
 	std::vector<const physx::PxTriangleMesh*> m_triangleMeshInstances;
-	vx::sorted_vector<vx::StringID64, physx::PxTriangleMesh*> m_physxMeshes;
-	vx::sorted_vector<vx::StringID64, physx::PxMaterial*> m_physxMaterials;
+	vx::sorted_vector<vx::StringID, physx::PxTriangleMesh*> m_physxMeshes;
+	vx::sorted_vector<vx::StringID, physx::PxMaterial*> m_physxMaterials;
 	vx::sorted_vector<const MeshInstance*, physx::PxRigidStatic*> m_staticMeshInstances;
 	physx::PxFoundation *m_pFoundation;
 	physx::PxDefaultCpuDispatcher* m_pCpuDispatcher;

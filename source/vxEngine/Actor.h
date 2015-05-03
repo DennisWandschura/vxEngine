@@ -19,6 +19,6 @@ struct ActorFile
 // describes an AI in game character
 struct Actor
 {
-	vx::StringID64 mesh;
-	vx::StringID64 material;
+	vx::StringID mesh;
+	vx::StringID material;
 };

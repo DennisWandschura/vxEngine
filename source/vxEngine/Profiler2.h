@@ -108,8 +108,8 @@ class Profiler2
 	I64 m_currentFrame{ 0 };
 	CpuThreadInfo m_cpuThreadInfo;
 	GpuThreadInfo m_gpuThreadInfo;
-	vx::sorted_array<vx::StringID64, U32> m_entriesCpuByName;
-	vx::sorted_array<vx::StringID64, U32> m_entriesGpuByName;
+	vx::sorted_array<vx::StringID, U32> m_entriesCpuByName;
+	vx::sorted_array<vx::StringID, U32> m_entriesGpuByName;
 	U16 m_entryCpuCount{0};
 	U16 m_entryGpuCount{0};
 	std::unique_ptr<EntryCpu[]> m_entriesCpu;

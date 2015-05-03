@@ -99,13 +99,15 @@ namespace Editor
 		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 	}
 
-	void RenderData::addMesh(const vx::StringID64 &sid)
+	void RenderData::addMesh(vx::StringID sid)
 	{
-
+		VX_UNREFERENCED_PARAMETER(sid);
 	}
 
-	U32 RenderData::addMaterial(const vx::StringID64 &sid, const Material* pMaterial)
+	U32 RenderData::addMaterial(vx::StringID sid, const Material* pMaterial)
 	{
+		VX_UNREFERENCED_PARAMETER(sid);
+
 		auto materialIndex = m_editorMaterialCount;
 
 		//writeMaterialToBuffer(pMaterial, m_editorMaterialCount);
@@ -134,7 +136,7 @@ namespace Editor
 		++m_waypointCount;
 	}
 
-	U8 RenderData::getMeshInstanceId(const vx::StringID64 &sid, U32* id)
+	U8 RenderData::getMeshInstanceId(vx::StringID sid, U32* id)
 	{
 		auto it = m_editorMeshInstanceIndices.find(sid);
 
