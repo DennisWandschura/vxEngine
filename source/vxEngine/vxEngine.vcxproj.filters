@@ -43,9 +43,6 @@
     <Filter Include="Header Files\Entity">
       <UniqueIdentifier>{d4c36c08-3ca7-4c0e-b8ad-edfe714bb475}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Squirrel">
-      <UniqueIdentifier>{cd9c03b0-e774-4f4c-b265-9d13c993ff9a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Physics">
       <UniqueIdentifier>{8e1f8408-2fe9-4124-8432-ab2a415facbd}</UniqueIdentifier>
     </Filter>
@@ -275,12 +272,6 @@
     </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>Header Files\Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="Squirrel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SquirrelVM.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>Header Files</Filter>
@@ -705,6 +696,12 @@
     <ClInclude Include="Graphics\SegmentBuilder.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Renderer.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\StaticMeshRenderer.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -783,12 +780,6 @@
       <Filter>Source Files\Render\gl</Filter>
     </ClCompile>
     <ClCompile Include="Pool.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Squirrel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SquirrelVM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BVH.cpp">
@@ -1064,22 +1055,22 @@
     <ClCompile Include="Graphics\CommandCompiler.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\Commands.cpp">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\SegmentBuilder.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\StaticMeshRenderer.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Renderer.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">
       <Filter>Shaders\include</Filter>
-    </None>
-    <None Include="render.nut">
-      <Filter>Squirrel</Filter>
-    </None>
-    <None Include="..\..\game\data\scripts\events.nut">
-      <Filter>Squirrel</Filter>
     </None>
     <None Include="..\..\game\data\shaders\include\uniform_buffers.glsl">
       <Filter>Shaders\include</Filter>

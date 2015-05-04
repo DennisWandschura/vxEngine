@@ -1,18 +1,34 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015 Dennis Wandschura
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 #ifndef __LIBRARIES_H
 #define __LIBRARIES_H
 #pragma once
 
 #ifdef _DEBUG
-#ifdef _VX_GL_45
 #pragma comment(lib, "vxLib_d.lib")
-#else
-#pragma comment(lib, "vxLib_gl43_d.lib")
-#endif
 #pragma comment(lib, "yaml-cpp_d.lib")
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
-
-#pragma comment(lib, "squirrel_d.lib")
-#pragma comment(lib, "sqstdlib_d.lib")
 
 #ifdef _VX_NOAUDIO
 #else
@@ -26,14 +42,6 @@
 
 #pragma comment(lib, "vxLib.lib")
 #pragma comment(lib, "yaml-cpp.lib")
-#pragma comment(lib, "squirrel.lib")
-#pragma comment(lib, "sqstdlib.lib")
-
-#ifdef _PHYSX_CHECKED
-#pragma comment(lib, "PhysX3ExtensionsCHECKED.lib")
-#else
-//#pragma comment(lib, "PhysX3Extensions.lib")
-#endif
 
 #ifdef _VX_NOAUDIO
 #else
@@ -44,7 +52,7 @@
 #pragma comment(lib, "vxAudio.lib")
 #endif
 
-#endif
+#endif // _DEBUG
 
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "Shlwapi.lib")
@@ -59,10 +67,6 @@
 #pragma comment(lib, "PhysX3_x64.lib")
 #pragma comment(lib, "PhysX3Common_x64.lib")
 #pragma comment(lib, "PhysX3Cooking_x64.lib")
-#endif
-
-#if _VX_IPCM
-#pragma comment(lib,"Intelpcm_x64.lib")
 #endif
 
 #endif

@@ -1,3 +1,26 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015 Dennis Wandschura
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 #include "FileAspect.h"
 #include "MaterialFactory.h"
 #include "SceneFactory.h"
@@ -115,7 +138,7 @@ bool FileAspect::loadMesh(const char *filename, const U8 *ptr, U8 *pMeshMemory, 
 
 		*status = FileStatus::Loaded;
 
-		LOG_ARGS(m_logfile, "Loaded Mesh '%s' %llu\n", false, filename, sid);
+		LOG_ARGS(m_logfile, "Loaded Mesh '%s' %llu\n", false, filename, sid.value);
 	}
 	else
 	{
@@ -143,7 +166,7 @@ TextureFile* FileAspect::loadTexture(const char *filename, const U8 *ptr, U32 si
 			pResult = textureFilePtr;
 
 			*status = FileStatus::Loaded;
-			LOG_ARGS(m_logfile, "Loaded Texture '%s' %llu\n", false, filename, sid);
+			LOG_ARGS(m_logfile, "Loaded Texture '%s' %llu\n", false, filename, sid.value);
 		}
 		else
 		{
@@ -173,7 +196,7 @@ U8 FileAspect::loadScene(const char *filename, const U8 *ptr, const vx::StringID
 		if (SceneFactory::createFromMemory(desc, ptr, pScene))
 		{
 			*status = FileStatus::Loaded;
-			LOG_ARGS(m_logfile, "Loaded scene '%s' %llu\n", false, filename, sid);
+			LOG_ARGS(m_logfile, "Loaded scene '%s' %llu\n", false, filename, sid.value);
 			result = 1;
 		}
 		else
@@ -197,7 +220,7 @@ U8 FileAspect::loadScene(const char *filename, const U8 *ptr, const vx::StringID
 		if (SceneFactory::createFromMemory(desc, ptr, pScene))
 		{
 			*status = FileStatus::Loaded;
-			LOG_ARGS(m_logfile, "Loaded scene '%s' %llu\n", false, filename, sid);
+			LOG_ARGS(m_logfile, "Loaded scene '%s' %llu\n", false, filename, sid.value);
 			result = 1;
 		}
 		else
@@ -318,7 +341,13 @@ void FileAspect::loadFileMesh(const char* fileName, U32 fileSize, const vx::Stri
 	result->result = 1;
 	result->type = FileType::Mesh;
 
-	pushFileEvent(FileEvent::Mesh_Loaded, sid, pUserData);
+	vx::Variant arg1;
+	arg1.u64 = sid.value;
+
+	vx::Variant arg2;
+	arg2.ptr = pUserData;
+
+	pushFileEvent(FileEvent::Mesh_Loaded, arg1, arg2);
 }
 
 void FileAspect::loadFileTexture(const char* fileName, U32 fileSize, const vx::StringID &sid, U8* pData, LoadFileReturnType* result)
@@ -329,7 +358,13 @@ void FileAspect::loadFileTexture(const char* fileName, U32 fileSize, const vx::S
 		result->result = 1;
 		result->type = FileType::Texture;
 
-		pushFileEvent(FileEvent::Texture_Loaded, sid, p);
+		vx::Variant arg1;
+		arg1.u64 = sid.value;
+
+		vx::Variant arg2;
+		arg2.ptr = p;
+
+		pushFileEvent(FileEvent::Texture_Loaded, arg1, arg2);
 	}
 }
 
@@ -341,7 +376,13 @@ void FileAspect::loadFileMaterial(const char* fileName, const char* file, const 
 		result->result = 1;
 		result->type = FileType::Material;
 
-		pushFileEvent(FileEvent::Material_Loaded, sid, pUserData);
+		vx::Variant arg1;
+		arg1.u64 = sid.value;
+
+		vx::Variant arg2;
+		arg2.ptr = pUserData;
+
+		pushFileEvent(FileEvent::Material_Loaded, arg1, arg2);
 	}
 }
 
@@ -372,7 +413,13 @@ void FileAspect::loadFileOfType(FileType fileType, const char *fileName, const c
 		if (loadScene(fileName, pData, sid, missingFiles, &result->status, (Scene*)pUserData) != 0)
 #endif
 		{
-			pushFileEvent(FileEvent::Scene_Loaded, pUserData, sid);
+			vx::Variant arg1;
+			arg1.ptr = pUserData;
+
+			vx::Variant arg2;
+			arg2.u64 = sid.value;
+
+			pushFileEvent(FileEvent::Scene_Loaded, arg1, arg2);
 
 			result->result = 1;
 			result->type = FileType::Scene;
@@ -418,7 +465,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 
 	vx::verboseChannelPrintF(0, dev::Channel_FileAspect, "Trying to save file %s\n", fileName);
 
-	p->sid = vx::make_sid(fileName);
+	p->u64 = vx::make_sid(fileName).value;
 
 	LoadFileReturnType result;
 	result.result = 0;

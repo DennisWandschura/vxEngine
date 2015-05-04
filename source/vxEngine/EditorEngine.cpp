@@ -1,3 +1,26 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015 Dennis Wandschura
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 #include "EditorEngine.h"
 #include "enums.h"
 #include "Event.h"
@@ -190,19 +213,18 @@ void EditorEngine::handleFileEvent(const Event &evt)
 	{
 		//vx::verboseChannelPrintF(1, dev::Channel_Editor, "Loaded Material");
 		//std::string* pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
-		auto sid = evt.arg1.sid;
 
 		//auto pMaterial = m_fileAspect.getMaterial(sid);
 		//VX_ASSERT(pMaterial != nullptr);
 		//m_renderAspect.editor_addMaterial(sid, pStr->c_str(), pMaterial);
 
-		call_editorCallback(sid);
+		call_editorCallback(evt.arg1.u64);
 
 		//delete(pStr);
 	}break;
 	case FileEvent::Scene_Loaded:
 		vx::verboseChannelPrintF(0, dev::Channel_Editor, "Loaded Scene");
-		call_editorCallback(evt.arg2.sid);
+		call_editorCallback(evt.arg2.u64);
 
 		buildNavGraph();
 		break;
@@ -299,7 +321,7 @@ void EditorEngine::call_editorCallback(vx::StringID sid)
 	auto it = m_requestedFiles.find(sid);
 	if (it != m_requestedFiles.end())
 	{
-		(*it->first)(sid, it->second);
+		(*it->first)(sid.value, it->second);
 		m_requestedFiles.erase(it);
 	}
 }

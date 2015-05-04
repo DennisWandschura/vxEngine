@@ -1,15 +1,33 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015 Dennis Wandschura
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 #include "Commands.h"
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
 
 namespace Graphics
 {
-	template<typename T>
-	void handleCommandFun(CommandHeader* ptr, U32* offset)
-	{
-		handleCommandImpl((T*)ptr);
-		*offset += sizeof(T);
-	}
+	typedef void(*HandleCommandProc)(CommandHeader*, U32*);
 
 	void handleCommandImpl(const ViewportCommand* command)
 	{
@@ -55,6 +73,11 @@ namespace Graphics
 		glMultiDrawElementsIndirectCountARB(command->m_mode, command->m_type, command->m_indirectOffset, command->m_parameterBufferOffset, command->m_maxdrawcount, sizeof(vx::gl::DrawElementsIndirectCommand));
 	}
 
+	void handleCommandImpl(const ClearColorCommand* command)
+	{
+		vx::gl::StateManager::setClearColor(command->m_clearColor.x, command->m_clearColor.y, command->m_clearColor.z, command->m_clearColor.w);
+	}
+
 	void handleCommandImpl(const ProgramUniformCommand* command, U32* offset)
 	{
 		switch (command->m_dataType)
@@ -68,6 +91,13 @@ namespace Graphics
 		}
 	}
 
+	template<typename T>
+	void handleCommandFun(CommandHeader* ptr, U32* offset)
+	{
+		handleCommandImpl((T*)ptr);
+		*offset += sizeof(T);
+	}
+
 	template<>
 	void handleCommandFun<ProgramUniformCommand>(CommandHeader* ptr, U32* offset)
 	{
@@ -75,31 +105,19 @@ namespace Graphics
 		*offset += sizeof(ProgramUniformCommand);
 	}
 
+	HandleCommandProc g_functionTable[] =
+	{
+		&handleCommandFun<ViewportCommand>,
+		&handleCommandFun<PointSizeCommand>,
+		&handleCommandFun<DrawArraysIndirectCommand>,
+		&handleCommandFun<DrawElementsIndirectCommand>,
+		&handleCommandFun<MultiDrawElementsIndirectCountCommand>,
+		&handleCommandFun<ProgramUniformCommand>,
+		&handleCommandFun<ClearColorCommand>
+	};
+
 	void Command::handleCommand(CommandHeader* header, U32* offset)
 	{
-		switch (*header)
-		{
-		case CommandHeader::ViewportCommand:
-			handleCommandFun<ViewportCommand>(header, offset);
-			break;
-		case CommandHeader::PointSizeCommand:
-			handleCommandFun<PointSizeCommand>(header, offset);
-			break;
-		case CommandHeader::DrawArraysIndirectCommand:
-			handleCommandFun<DrawArraysIndirectCommand>(header, offset);
-			break;
-		case CommandHeader::DrawElementsIndirectCommand:
-			handleCommandFun<DrawElementsIndirectCommand>(header, offset);
-			break;
-		case CommandHeader::MultiDrawElementsIndirectCountCommand:
-			handleCommandFun<MultiDrawElementsIndirectCountCommand>(header, offset);
-			break;
-		case CommandHeader::ProgramUniformCommand:
-			handleCommandFun<ProgramUniformCommand>(header, offset);
-			break;
-		default:
-			assert(false);
-			break;
-		}
+		g_functionTable[(U32)*header](header, offset);
 	}
 }
