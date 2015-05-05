@@ -70,10 +70,10 @@ bool ConverterSceneFileToScene::createSceneActors(const CreateSceneActorsDesc &d
 		{
 			auto &actor = desc.sceneFile->m_pActors[i];
 
-			auto sidMesh = vx::make_sid(actor.mesh);
+			auto sidMesh = vx::make_sid(actor.m_mesh);
 			auto itMesh = desc.sortedMeshes->find(sidMesh);
 
-			auto sidMaterial = vx::make_sid(actor.material);
+			auto sidMaterial = vx::make_sid(actor.m_material);
 			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
 
 			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
@@ -84,11 +84,11 @@ bool ConverterSceneFileToScene::createSceneActors(const CreateSceneActorsDesc &d
 			desc.sceneMeshes->insert(sidMesh, *itMesh);
 			desc.sceneMaterials->insert(sidMaterial, *itMaterial);
 
-			auto sidName = vx::make_sid(actor.name);
+			auto sidName = vx::make_sid(actor.m_name);
 
 			Actor a;
-			a.mesh = sidMesh;
-			a.material = sidMaterial;
+			a.m_mesh = sidMesh;
+			a.m_material = sidMaterial;
 			desc.sceneActors->insert(sidName, a);
 		}
 	}

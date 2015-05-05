@@ -314,6 +314,8 @@ void Engine::shutdown()
 	m_fileAspect.shutdown();
 	m_shutdown = 1;
 
+	Locator::reset();
+
 	m_allocator.release();
 }
 

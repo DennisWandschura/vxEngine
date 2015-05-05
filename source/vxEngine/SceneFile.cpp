@@ -66,9 +66,9 @@ namespace YAML
 			std::string strMaterial = node["material"].as<std::string>();
 			std::string strName = node["name"].as<std::string>();
 
-			strncpy_s(data.mesh, strMesh.data(), strMesh.size());
-			strncpy_s(data.material, strMaterial.data(), strMaterial.size());
-			strncpy_s(data.name, strName.data(), strName.size());
+			strncpy_s(data.m_mesh, strMesh.data(), strMesh.size());
+			strncpy_s(data.m_material, strMaterial.data(), strMaterial.size());
+			strncpy_s(data.m_name, strName.data(), strName.size());
 
 			return true;
 		}
@@ -77,9 +77,9 @@ namespace YAML
 		{
 			Node n;
 
-			n["mesh"] = std::string(rhs.mesh);
-			n["material"] = std::string(rhs.material);
-			n["name"] = std::string(rhs.name);
+			n["mesh"] = std::string(rhs.m_mesh);
+			n["material"] = std::string(rhs.m_material);
+			n["name"] = std::string(rhs.m_name);
 
 			return n;
 		}
@@ -274,10 +274,10 @@ bool SceneFile::createSceneActors(const CreateSceneActorsDesc &desc)
 		{
 			auto &actor = m_pActors[i];
 
-			auto sidMesh = vx::make_sid(actor.mesh);
+			auto sidMesh = vx::make_sid(actor.m_mesh);
 			auto itMesh = desc.sortedMeshes->find(sidMesh);
 
-			auto sidMaterial = vx::make_sid(actor.material);
+			auto sidMaterial = vx::make_sid(actor.m_material);
 			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
 
 			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
@@ -288,11 +288,11 @@ bool SceneFile::createSceneActors(const CreateSceneActorsDesc &desc)
 			desc.sceneMeshes->insert(sidMesh, *itMesh);
 			desc.sceneMaterials->insert(sidMaterial, *itMaterial);
 
-			auto sidName = vx::make_sid(actor.name);
+			auto sidName = vx::make_sid(actor.m_name);
 
 			Actor a;
-			a.mesh = sidMesh;
-			a.material = sidMaterial;
+			a.m_mesh = sidMesh;
+			a.m_material = sidMaterial;
 			desc.sceneActors->insert(sidName, a);
 		}
 	}
@@ -451,10 +451,10 @@ U8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	{
 		auto &actorFile = m_pActors[i];
 		
-		auto sid = vx::make_sid(actorFile.name);
+		auto sid = vx::make_sid(actorFile.m_name);
 
 		char str[32];
-		strncpy_s(str, actorFile.name, 32);
+		strncpy_s(str, actorFile.m_name, 32);
 
 		actorNames.insert(sid, str);
 	}

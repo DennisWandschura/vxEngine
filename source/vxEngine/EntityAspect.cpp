@@ -476,8 +476,8 @@ void EntityAspect::handleIngameEvent(const Event &evt)
 				auto itActor = actors.find(it.sid);
 
 				CreateActorData* data = new CreateActorData();
-				data->material = itActor->material;
-				data->mesh = itActor->mesh;
+				data->material = itActor->m_material;
+				data->mesh = itActor->m_mesh;
 				data->pScene = m_pCurrentScene;
 				data->transform.m_rotation = vx::float3(0);
 				data->transform.m_scaling = 1.0f;

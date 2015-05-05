@@ -29,7 +29,7 @@ SOFTWARE.
 #include "Logfile.h"
 #include "Clock.h"
 #include "enums.h"
-#include "Locator.h"
+#include <csignal>
 
 #include "Scene.h"
 #include "File.h"
@@ -38,24 +38,66 @@ SOFTWARE.
 #include "SmallObject.h"
 #include "SceneFile.h"
 
+namespace
+{
+	Logfile* g_logfile{ nullptr };
+	Engine* g_engine{ nullptr };
+
+	void shutdown()
+	{
+		if (g_logfile)
+		{
+			g_logfile->close();
+			g_logfile = nullptr;
+		}
+
+		if (g_engine)
+		{
+			g_engine->shutdown();
+			g_engine = nullptr;
+		}
+	}
+
+	void signalHandler(int signal)
+	{
+		if (signal == SIGABRT)
+		{
+			puts("SIGABRT received");
+			shutdown();
+		}
+		else
+		{
+			printf("Unexpected signal %d  received\n", signal);
+		}
+		std::exit(EXIT_FAILURE);
+	}
+}
+
 int main()
 {
+	auto previousHandler = std::signal(SIGABRT, signalHandler);
+	if (previousHandler == SIG_ERR)
+	{
+		return 1;
+	}
+
 	SmallObjAllocator alloc(1 KBYTE);
 	SmallObject::setAllocator(&alloc);
 
 	Clock mainClock;
 	Logfile mainLogfile(mainClock);
+	g_logfile = &mainLogfile;
 
-	mainLogfile.create("logfile.xml");
-	SCOPE_EXIT
+	if (!mainLogfile.create("logfile.xml"))
 	{
-		LOG(mainLogfile, "Shutting down Engine", false);
-		mainLogfile.close();
-	};
+		g_logfile = nullptr;
+		return 1;
+	}
 
 	Scene scene;
 	Engine engine;
 
+	g_engine = &engine;
 	{
 		//SceneFile sceneFile;
 		//sceneFile.loadFromYAML("data/scenes/scene5.scene.yaml");
@@ -65,6 +107,10 @@ int main()
 	SCOPE_EXIT
 	{
 		engine.shutdown();
+		LOG(mainLogfile, "Shutting down Engine", false);
+		mainLogfile.close();
+
+		g_logfile = nullptr;
 	};
 
 	LOG(mainLogfile, "Initializing Engine", false);
@@ -79,8 +125,6 @@ int main()
 	LOG(mainLogfile, "Starting", false);
 
 	engine.start();
-
-	Locator::reset();
 
 	return 0;
 }

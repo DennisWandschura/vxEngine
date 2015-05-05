@@ -19,3 +19,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Code Format Guide:
+See Code Format Guide.txt
+
+Project Goals:
+Stealth game with one level.
+The player needs to reach the goal while evading the AI players.
+The AI should be able to react to its surroundings (previously open doors are closed, sounds, etc...) and communicate with each other.

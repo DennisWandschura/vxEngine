@@ -86,15 +86,15 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	{
 		auto &actor = pActors[i];
 
-		auto meshSid = vx::make_sid(actor.mesh);
-		auto materialSid = vx::make_sid(actor.material);
+		auto meshSid = vx::make_sid(actor.m_mesh);
+		auto materialSid = vx::make_sid(actor.m_material);
 
 		// check for mesh
 		auto itMesh = desc.sortedMeshes->find(meshSid);
 		if (itMesh == desc.sortedMeshes->end())
 		{
 			// request load
-			desc.pMissingFiles->push_back(FileEntry(actor.mesh, FileType::Mesh));
+			desc.pMissingFiles->push_back(FileEntry(actor.m_mesh, FileType::Mesh));
 
 			result = false;
 		}
@@ -103,7 +103,7 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 		if (itMaterial == desc.sortedMaterials->end())
 		{
 			// request load
-			desc.pMissingFiles->push_back(FileEntry(actor.material, FileType::Material));
+			desc.pMissingFiles->push_back(FileEntry(actor.m_material, FileType::Material));
 
 			result = false;
 		}

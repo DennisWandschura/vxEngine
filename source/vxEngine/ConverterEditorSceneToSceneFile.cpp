@@ -41,16 +41,16 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 		auto sidActor = scene.m_actors.keys()[i];
 		auto &it = scene.m_actors[i];
 
-		vx::StringID sidMaterial = it.material;
-		vx::StringID sidMesh = it.mesh;
+		vx::StringID sidMaterial = it.m_material;
+		vx::StringID sidMesh = it.m_mesh;
 
 		auto actorNameIt = scene.m_actorNames.find(sidActor);
 		auto meshNameIt = scene.m_meshNames.find(sidMesh);
 		auto materialNameIt = scene.m_materialNames.find(sidMaterial);
 
-		strncpy_s(sceneFile->m_pActors[i].material, *materialNameIt, 32);
-		strncpy_s(sceneFile->m_pActors[i].mesh, *meshNameIt, 32);
-		strncpy_s(sceneFile->m_pActors[i].name, *actorNameIt, 32);
+		strncpy_s(sceneFile->m_pActors[i].m_material, *materialNameIt, 32);
+		strncpy_s(sceneFile->m_pActors[i].m_mesh, *meshNameIt, 32);
+		strncpy_s(sceneFile->m_pActors[i].m_name, *actorNameIt, 32);
 	}
 
 	sceneFile->m_lightCount = scene.m_lightCount;

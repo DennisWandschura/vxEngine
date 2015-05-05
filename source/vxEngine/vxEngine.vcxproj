@@ -278,7 +278,6 @@
     <ClInclude Include="Font.h" />
     <ClInclude Include="FontAtlas.h" />
     <ClInclude Include="Heap.h" />
-    <ClInclude Include="kernel.h" />
     <ClInclude Include="Keys.h" />
     <ClInclude Include="LevelEditor.h" />
     <ClInclude Include="libraries.h" />
@@ -337,7 +336,6 @@
     <ClInclude Include="Transition.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="utility.h" />
-    <ClInclude Include="Variant.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexArray.h" />
     <ClInclude Include="VertexBatch.h" />
