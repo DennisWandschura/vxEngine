@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #include "SceneFile.h"
 #include "utility.h"
-#include "yamlHelper.h"
 #include "File.h"
 #include "MeshInstance.h"
 #include "Material.h"
@@ -38,7 +37,7 @@ SOFTWARE.
 #include "Waypoint.h"
 #include <vxLib/util/CityHash.h>
 
-namespace YAML
+/*namespace YAML
 {
 	template<>
 	struct convert < MeshInstanceFile >
@@ -84,7 +83,7 @@ namespace YAML
 			return n;
 		}
 	};
-}
+}*/
 
 SceneFile::SceneFile()
 	:m_meshInstanceCount(0),
@@ -123,7 +122,7 @@ const U8* SceneFile::loadFromMemory(const U8 *ptr, U32 version)
 	return m_navMesh.load(ptr);
 }
 
-void SceneFile::loadFromYAML(const char *file)
+/*void SceneFile::loadFromYAML(const char *file)
 {
 	auto root = YAML::LoadFile(file);
 
@@ -152,7 +151,7 @@ void SceneFile::loadFromYAML(const char *file)
 	m_lightCount = lights.size();
 	m_spawnCount = spawns.size();
 	m_actorCount = actors.size();
-}
+}*/
 
 bool SceneFile::saveToFile(const char *file) const
 {
@@ -194,7 +193,7 @@ bool SceneFile::saveToFile(File *file) const
 	return true;
 }
 
-void SceneFile::saveToYAML(const char *file) const
+/*void SceneFile::saveToYAML(const char *file) const
 {
 	YAML::Node meshNode;
 
@@ -225,7 +224,7 @@ void SceneFile::saveToYAML(const char *file) const
 
 	std::ofstream outfile(file);
 	outfile << root;
-}
+}*/
 
 const std::unique_ptr<MeshInstanceFile[]>& SceneFile::getMeshInstances() const noexcept
 {

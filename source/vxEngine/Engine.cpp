@@ -263,7 +263,7 @@ bool Engine::initialize()
 		return false;
 
 	EngineConfig config;
-	config.loadFromYAML("settings.yaml");
+	config.loadFromFile("settings.txt");
 
 	if (!m_systemAspect.initialize(config, ::callbackKeyPressed, ::handleInput))
 		return false;

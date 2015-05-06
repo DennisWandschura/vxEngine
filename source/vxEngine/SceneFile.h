@@ -121,11 +121,11 @@ public:
 	~SceneFile();
 
 	const U8* loadFromMemory(const U8 *ptr, U32 version);
-	void loadFromYAML(const char *file);
+	//void loadFromYAML(const char *file);
 
 	bool saveToFile(const char *file) const;
 	bool saveToFile(File *file) const;
-	void saveToYAML(const char *file) const;
+	//void saveToYAML(const char *file) const;
 
 	const std::unique_ptr<MeshInstanceFile[]>& getMeshInstances() const noexcept;
 	U32 getNumMeshInstances() const noexcept;

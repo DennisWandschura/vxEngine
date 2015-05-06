@@ -133,6 +133,12 @@
     <Filter Include="Header Files\Converter">
       <UniqueIdentifier>{8a5d2184-34ad-4cd0-b1ad-7170b4c30eee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Text Parser">
+      <UniqueIdentifier>{9942faeb-09c7-4b93-928b-d1930324f0f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Text Parser">
+      <UniqueIdentifier>{b36dd6f5-1249-4dbc-ad9f-d58828eb803c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -215,9 +221,6 @@
     </ClInclude>
     <ClInclude Include="Font.h">
       <Filter>Header Files\Render\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="yamlHelper.h">
-      <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="MaterialFactory.h">
       <Filter>Header Files</Filter>
@@ -696,6 +699,18 @@
     <ClInclude Include="Graphics\StaticMeshRenderer.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="TextParserNodeConverter.h">
+      <Filter>Header Files\Text Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="TextParserNode.h">
+      <Filter>Header Files\Text Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="TextParserFile.h">
+      <Filter>Header Files\Text Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="yamlHelper1.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -1060,6 +1075,12 @@
     </ClCompile>
     <ClCompile Include="Graphics\Renderer.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="TextParserFile.cpp">
+      <Filter>Source Files\Text Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TextParserNode.cpp">
+      <Filter>Source Files\Text Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

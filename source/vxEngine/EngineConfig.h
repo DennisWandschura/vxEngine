@@ -46,7 +46,8 @@ class EngineConfig
 	bool m_renderDebug{false};
 
 public:
-	void loadFromYAML(const char* file);
+	//void loadFromYAML(const char* file);
+	bool loadFromFile(const char* file);
 
 	const vx::uint2& getResolution() const { return m_resolution; }
 	bool isVSync() const { return m_vsync; }

@@ -27,7 +27,6 @@ SOFTWARE.
 
 #ifdef _DEBUG
 #pragma comment(lib, "vxLib_d.lib")
-#pragma comment(lib, "yaml-cpp_d.lib")
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
 
 #ifdef _VX_NOAUDIO
@@ -41,7 +40,6 @@ SOFTWARE.
 #else
 
 #pragma comment(lib, "vxLib.lib")
-#pragma comment(lib, "yaml-cpp.lib")
 
 #ifdef _VX_NOAUDIO
 #else
