@@ -22,12 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "NavMesh.h"
-#include "yamlHelper.h"
 #include "utility.h"
 #include "File.h"
 #include "NavMeshTriangle.h"
 
-namespace YAML
+/*namespace YAML
 {
 	template<>
 	struct convert < AABB >
@@ -78,7 +77,7 @@ namespace YAML
 			return true;
 		}
 	};
-}
+}*/
 
 NavMesh::NavMesh()
 	:m_navMeshTriangles(),
@@ -182,7 +181,7 @@ void NavMesh::copyTo(NavMesh* other) const
 	other->m_triangleCount = m_triangleCount;
 }
 
-void NavMesh::loadFromYAML(const YAML::Node &node)
+/*void NavMesh::loadFromYAML(const YAML::Node &node)
 {
 	auto vertices = node["vertices"].as<std::vector<vx::float3>>();
 	auto triangleIndices = node["indices"].as<std::vector<TriangleIndices>>();
@@ -218,7 +217,7 @@ void NavMesh::loadFromYAML(const YAML::Node &node)
 #endif
 
 	m_navMeshTriangles = createNavMeshTriangles();
-}
+}*/
 
 void NavMesh::saveToFile(File *file) const
 {
@@ -235,7 +234,7 @@ void NavMesh::saveToFile(File *file) const
 #endif
 }
 
-void NavMesh::saveToYAML(YAML::Node &node) const
+/*void NavMesh::saveToYAML(YAML::Node &node) const
 {
 #if _VX_EDITOR
 	node["vertices"] = m_vertices;
@@ -251,7 +250,7 @@ void NavMesh::saveToYAML(YAML::Node &node) const
 	node["indices"] = triangles;
 #endif
 	node["bounds"] = m_bounds;
-}
+}*/
 
 const U8* NavMesh::load(const U8 *ptr)
 {

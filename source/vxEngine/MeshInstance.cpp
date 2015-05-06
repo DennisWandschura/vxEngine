@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #include "MeshInstance.h"
 #include <cstring>
-#include "yamlHelper.h"
 
 MeshInstance::MeshInstance()
 	:m_meshSid(),
@@ -68,7 +67,7 @@ void MeshInstanceFile::load(const U8 *ptr)
 	memcpy(this, ptr, sizeof(MeshInstanceFile));
 }
 
-void MeshInstanceFile::load(const YAML::Node &node)
+/*void MeshInstanceFile::load(const YAML::Node &node)
 {
 	auto strMesh = node["mesh"].as<std::string>();
 	auto strMaterial = node["material"].as<std::string>();
@@ -87,7 +86,7 @@ void MeshInstanceFile::save(YAML::Node &node) const
 	node["translation"] = m_transform.m_translation;
 	node["rotation"] = m_transform.m_rotation;
 	node["scaling"] = m_transform.m_scaling;
-}
+}*/
 
 const char* MeshInstanceFile::getMeshFile() const noexcept
 {

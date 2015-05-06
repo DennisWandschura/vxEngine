@@ -70,9 +70,9 @@ public:
 	MeshInstanceFile(const char(&meshName)[32], const char(&materialName)[32], const vx::Transform &transform);
 
 	void load(const U8 *ptr);
-	void load(const YAML::Node &node);
+//	void load(const YAML::Node &node);
 
-	void save(YAML::Node &node) const;
+	//void save(YAML::Node &node) const;
 
 	const char* getMeshFile() const noexcept;
 	const char* getMaterialFile() const noexcept;

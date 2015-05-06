@@ -22,10 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Light.h"
-#include "yamlHelper.h"
 #include "GpuStructs.h"
 
-namespace YAML
+/*namespace YAML
 {
 	template<>
 	struct convert < AABB >
@@ -82,7 +81,7 @@ YAML::Node Light::saveToYaml(const Light* lights, U32 count)
 	}
 
 	return n;
-}
+}*/
 
 void Light::getTransformationMatrix(vx::mat4* m) const
 {

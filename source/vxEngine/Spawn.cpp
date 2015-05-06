@@ -22,9 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Spawn.h"
-#include "yamlHelper.h"
 
-namespace YAML
+/*namespace YAML
 {
 	template<>
 	struct convert < Spawn >
@@ -86,4 +85,4 @@ YAML::Node SpawnFile::saveToYaml(const SpawnFile* spawns, U32 count)
 	}
 
 	return spawnsNode;
-}
+}*/

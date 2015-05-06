@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Material.h"
-#include <yaml-cpp\yaml.h>
 #include "TextureFile.h"
+#include "TextParserFile.h"
 
 Material::Material()
 	:m_albedo(),
@@ -85,7 +85,23 @@ void MaterialFile::load(const U8 *ptr)
 
 bool MaterialFile::loadFromFile(const char *file)
 {
-	try
+	TextParser::File text;
+	if (!text.createFromFile(file))
+		return false;
+
+	std::string albedoTextureFile;
+	text.getNode("albedo")->as(albedoTextureFile);
+
+	std::string normalTextureFile;
+	text.getNode("normals")->as(normalTextureFile);
+
+	std::string surfaceTextureFile;
+	text.getNode("surface")->as(surfaceTextureFile);
+
+	text.getNode("static friction")->as(m_staticFriction);
+	text.getNode("dynamic friction")->as(m_dynamicFriction);
+	text.getNode("restitution")->as(m_restitution);
+	/*try
 	{
 		YAML::Node root = YAML::LoadFile(file);
 
@@ -109,7 +125,11 @@ bool MaterialFile::loadFromFile(const char *file)
 		VX_UNREFERENCED_PARAMETER(e);
 		return false;
 	}
+	*/
 
+	strncpy_s(m_albedo.data, albedoTextureFile.c_str(), albedoTextureFile.size());
+	strncpy_s(m_normal.data, normalTextureFile.c_str(), normalTextureFile.size());
+	strncpy_s(m_surface.data, surfaceTextureFile.c_str(), surfaceTextureFile.size());
 
 	return true;
 }

@@ -81,13 +81,13 @@ public:
 	void copyTo(NavMesh* other) const;
 
 	/////////////// loading
-	void loadFromYAML(const YAML::Node &node);
+	//void loadFromYAML(const YAML::Node &node);
 	const U8* load(const U8 *ptr);
 	/////////////// loading
 
 	/////////////// saving
 	void saveToFile(File *file) const;
-	void saveToYAML(YAML::Node &node) const;
+	//void saveToYAML(YAML::Node &node) const;
 	/////////////// saving
 
 	/////////////// getters

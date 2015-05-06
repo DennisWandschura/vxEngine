@@ -100,6 +100,17 @@ namespace TextParser
 		}
 	};
 
+	template<>
+	struct NodeConverter < std::string >
+	{
+		static int decode(const Node &node, std::string &data)
+		{
+			data = node.getData();
+
+			return true;
+		}
+	};
+
 	struct NodeConverterArray
 	{
 		static const char* getNext(const char* str)
