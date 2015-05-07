@@ -34,6 +34,7 @@ SOFTWARE.
 #include <vxLib/gl/Buffer.h>
 #include "../GpuStructs.h"
 #include "../gl/BufferBindingManager.h"
+#include "Commands/ProgramUniformCommand.h"
 
 namespace Graphics
 {
@@ -172,11 +173,13 @@ namespace Graphics
 		segmentCreateShadowmap.pushCommand(viewportCmd);
 		segmentCreateShadowmap.pushCommand(polyCmd);
 
+		Graphics::ProgramUniformCommand uniformCmd;
+		uniformCmd.setUInt(gsShader, 0, 1);
+
 		auto maxLightCount = s_settings->m_maxActiveLights;
-		for (U32 i = 0; i < 1; ++i)
+		for (U32 i = 0; i < maxLightCount; ++i)
 		{
-			Graphics::ProgramUniformCommand uniformCmd;
-			uniformCmd.setUInt(gsShader, 0);
+
 			Graphics::ProgramUniformData<U32> uniformData;
 			uniformData.set(i);
 

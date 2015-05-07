@@ -173,9 +173,6 @@ public:
 
 	void keyPressed(U16 key);
 
-	void readFrame();
-	void getFrameData(vx::float4a* dst);
-
 	const vx::gl::ShaderManager& getShaderManager() const { return m_shaderManager; }
 	void getProjectionMatrix(vx::mat4* m);
 };

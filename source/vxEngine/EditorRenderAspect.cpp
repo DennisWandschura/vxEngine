@@ -40,6 +40,7 @@ SOFTWARE.
 #include "Spawn.h"
 #include "Graphics/Commands.h"
 #include "Graphics/Segment.h"
+#include "Graphics/Commands/ProgramUniformCommand.h"
 
 struct VertexNavMesh
 {
@@ -209,7 +210,7 @@ void EditorRenderAspect::createCommandList()
 	drawArraysPointsCmd.set(GL_POINTS);
 
 	Graphics::ProgramUniformCommand navmeshUniformCmd;
-	navmeshUniformCmd.setFloat4(navmesh->getFragmentShader(), 0);
+	navmeshUniformCmd.setFloat(navmesh->getFragmentShader(), 0, 4);
 
 	vx::float4 color(0.5f, 0, 0.5f, 0.25f);
 	Graphics::ProgramUniformData<vx::float4> navmeshUniformData;
@@ -269,7 +270,7 @@ void EditorRenderAspect::createCommandList()
 		stateDrawLights.set(desc);
 
 		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
-		editorDrawPointUniformCmd.setFloat(editorDrawLights->getFragmentShader(), 0);
+		editorDrawPointUniformCmd.setFloat(editorDrawLights->getFragmentShader(), 0, 1);
 
 		Graphics::DrawArraysIndirectCommand lightDrawCmd;
 		lightDrawCmd.set(GL_POINTS);
@@ -347,7 +348,7 @@ void EditorRenderAspect::createCommandList()
 		state.set(desc);
 
 		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
-		editorDrawPointUniformCmd.setFloat4(fsShader, 0);
+		editorDrawPointUniformCmd.setFloat(fsShader, 0, 4);
 
 		vx::float4 color(0, 1, 0.5f, 0.5f);
 		Graphics::ProgramUniformData<vx::float4> editorDrawPointUniformData;
@@ -379,7 +380,7 @@ void EditorRenderAspect::createCommandList()
 		state.set(desc);
 
 		Graphics::ProgramUniformCommand uniformCmd;
-		uniformCmd.setFloat(pPipeline->getFragmentShader(), 0);
+		uniformCmd.setFloat(pPipeline->getFragmentShader(), 0, 1);
 
 		Graphics::ProgramUniformData<F32> uniformData;
 		uniformData.set(1.0f);

@@ -139,6 +139,9 @@
     <Filter Include="Source Files\Text Parser">
       <UniqueIdentifier>{b36dd6f5-1249-4dbc-ad9f-d58828eb803c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Render\Graphics\Commands">
+      <UniqueIdentifier>{1d0a9662-c3ff-48c0-a84f-1d210a2f147a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -543,12 +546,6 @@
     <ClInclude Include="DebugRenderSettings.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="RenderCommand.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderCommandFinalImage.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="DrawCommand.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
@@ -677,6 +674,15 @@
     </ClInclude>
     <ClInclude Include="Graphics\ShadowRenderer.h">
       <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderCommand.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderCommandFinalImage.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\ProgramUniformCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -995,9 +1001,6 @@
     <ClCompile Include="Graphics\StaticMeshRenderer.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\Commands.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\Renderer.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
@@ -1017,6 +1020,12 @@
       <Filter>Source Files\Render\gl</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ShadowRenderer.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\ProgramUniformCommand.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
   </ItemGroup>

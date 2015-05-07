@@ -182,6 +182,7 @@
     <ClInclude Include="Graphics\CommandList.h" />
     <ClInclude Include="Graphics\Commands.h" />
     <ClInclude Include="Graphics\BufferFactory.h" />
+    <ClInclude Include="Graphics\Commands\ProgramUniformCommand.h" />
     <ClInclude Include="Graphics\Renderer.h" />
     <ClInclude Include="Graphics\Segment.h" />
     <ClInclude Include="Graphics\ShadowRenderer.h" />
@@ -189,6 +190,8 @@
     <ClInclude Include="Graphics\StaticMeshRenderer.h" />
     <ClInclude Include="MeshFile.h" />
     <ClInclude Include="Reference.h" />
+    <ClInclude Include="RenderCommand.h" />
+    <ClInclude Include="RenderCommandFinalImage.h" />
     <ClInclude Include="RenderSettings.h" />
     <ClInclude Include="Serializable.h" />
     <ClInclude Include="Frame.h" />
@@ -220,8 +223,6 @@
     <ClInclude Include="Plane.h" />
     <ClInclude Include="ProgramUniformBinding.h" />
     <ClInclude Include="RenderAspectDescription.h" />
-    <ClInclude Include="RenderCommand.h" />
-    <ClInclude Include="RenderCommandFinalImage.h" />
     <ClInclude Include="DebugRenderSettings.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="RenderStage.h" />
@@ -378,6 +379,7 @@
     <ClCompile Include="Graphics\BufferFactory.cpp" />
     <ClCompile Include="Graphics\CommandList.cpp" />
     <ClCompile Include="Graphics\Commands.cpp" />
+    <ClCompile Include="Graphics\Commands\ProgramUniformCommand.cpp" />
     <ClCompile Include="Graphics\Renderer.cpp" />
     <ClCompile Include="Graphics\Segment.cpp" />
     <ClCompile Include="Graphics\ShadowRenderer.cpp" />

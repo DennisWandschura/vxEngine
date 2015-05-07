@@ -59,53 +59,13 @@ namespace Graphics
 		auto count = m_commmands.size();
 		for (U32 i = 0; i < count;)
 		{
-			CommandHeader* header = (CommandHeader*)&m_commmands[i];
+			Command* header = (Command*)&m_commmands[i];
 			U32 offset = 0;
 
 			Command::handleCommand(header, &offset);
+			VX_ASSERT(offset != 0);
 
 			i += offset;
 		}
-	}
-
-	SegmentCompiled::SegmentCompiled()
-		:m_drawFunctionFp(nullptr),
-		m_buffer()
-	{
-	}
-
-	SegmentCompiled::SegmentCompiled(SegmentCompiled &&rhs)
-		: m_drawFunctionFp(rhs.m_drawFunctionFp),
-		m_buffer(std::move(rhs.m_buffer))
-	{
-		rhs.m_drawFunctionFp = nullptr;
-	}
-
-	SegmentCompiled::~SegmentCompiled()
-	{
-
-	}
-
-	SegmentCompiled& SegmentCompiled::operator = (SegmentCompiled &&rhs)
-	{
-		if (this != &rhs)
-		{
-			std::swap(m_drawFunctionFp, rhs.m_drawFunctionFp);
-			std::swap(m_buffer, rhs.m_buffer);
-		}
-
-		return *this;
-	}
-
-	void SegmentCompiled::set(void* fp, std::unique_ptr<U8[]> &&buffer)
-	{
-		VX_ASSERT(fp);
-		m_drawFunctionFp = (DrawFunctionType)fp;
-		m_buffer = std::move(buffer);
-	}
-
-	void SegmentCompiled::draw()
-	{
-		m_drawFunctionFp();
 	}
 }

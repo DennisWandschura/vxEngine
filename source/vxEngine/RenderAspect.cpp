@@ -50,7 +50,7 @@ namespace
 {
 	void __stdcall debugCallback()
 	{
-		assert(false);
+		std::abort();
 	}
 }
 
@@ -79,16 +79,6 @@ bool RenderAspect::createBuffers()
 		desc.flags = vx::gl::BufferStorageFlags::Read;
 		m_pColdData->m_screenshotBuffer.create(desc);
 	}
-
-	/*vx::gl::BufferDescription desc;
-	desc.bufferType = vx::gl::BufferType::Pixel_Pack_Buffer;
-	desc.size = m_pColdData->m_windowResolution.x * m_pColdData->m_windowResolution.y * sizeof(F32) * 4;
-	desc.immutable = 1;
-	desc.flags = vx::gl::BufferStorageFlags::Read;
-
-	//m_videoBuffers[0].create(desc);
-//	m_videoBuffers[1].create(desc);
-	//m_videoBuffers[2].create(desc);*/
 
 	return true;
 }
@@ -259,7 +249,7 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	m_pColdData->m_settings.m_maxActiveLights = 5;
 	m_pColdData->m_settings.m_shadowmapResolution = 2048;
 	m_pColdData->m_settings.voxelGiQuality = 0;
-	m_pColdData->m_settings.m_maxMeshInstances = 255;
+	m_pColdData->m_settings.m_maxMeshInstances = 150;
 
 	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, &m_pColdData->m_settings);
 
@@ -569,20 +559,6 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 	m_renderContext.swapBuffers();
-}
-
-void RenderAspect::readFrame()
-{
-	/*m_currentReadBuffer = (m_currentReadBuffer + 1) % 3;
-	m_currentWriteBuffer = (m_currentWriteBuffer + 1) % 3;
-
-	m_videoBuffers[m_currentWriteBuffer].bind();
-	glReadPixels(0, 0, m_resolution.x, m_resolution.x, GL_RGBA, GL_FLOAT, 0);*/
-}
-
-void RenderAspect::getFrameData(vx::float4a* dst)
-{
-	//glGetNamedBufferSubData(m_videoBuffers[m_currentReadBuffer].getId(), 0, sizeof(vx::float4a) * m_resolution.x*m_resolution.y, dst);
 }
 
 void RenderAspect::bindBuffers()

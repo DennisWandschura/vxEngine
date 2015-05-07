@@ -21,146 +21,80 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 #include "Commands.h"
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
 
 namespace Graphics
 {
-	typedef void(*HandleCommandProc)(CommandHeader*, U32*);
-
-	void handleCommandImpl(const ViewportCommand* command)
+	void ViewportCommand::execute(U32* offset)
 	{
-		vx::gl::StateManager::setViewport(command->m_offset.x, command->m_offset.y, command->m_size.x, command->m_size.y);
+		vx::gl::StateManager::setViewport(m_offset.x, m_offset.y, m_size.x, m_size.y);
+
+		*offset += sizeof(ViewportCommand);
 	}
 
-	void handleCommandImpl(const PointSizeCommand* command)
+	void PointSizeCommand::execute(U32* offset)
 	{
-		glPointSize(command->m_pointSize);
+		glPointSize(m_pointSize);
+
+		*offset += sizeof(PointSizeCommand);
 	}
 
-	void handleCommandImpl(const DrawArraysIndirectCommand* command)
+	void DrawArraysIndirectCommand::execute(U32* offset)
 	{
-		glDrawArraysIndirect(command->m_mode, (void*)command->m_offset);
+		glDrawArraysIndirect(m_mode, (void*)m_offset);
+
+		*offset += sizeof(DrawArraysIndirectCommand);
 	}
 
-	void handleCommandImpl(const DrawElementsIndirectCommand* command)
+	void DrawElementsIndirectCommand::execute(U32* offset)
 	{
-		glDrawElementsIndirect(command->m_mode, command->m_type, (void*)command->m_offset);
+		glDrawElementsIndirect(m_mode, m_type, (void*)m_offset);
+
+		*offset += sizeof(DrawElementsIndirectCommand);
 	}
 
-	void programUniformFloat(const ProgramUniformCommand* command, U32* offset)
+	void MultiDrawElementsIndirectCountCommand::execute(U32* offset)
 	{
-		const F32* dataPtr = (F32*)(command + 1);
-		switch (command->m_count)
-		{
-		case 1:
-			glProgramUniform1f(command->m_program, command->m_location, *dataPtr);
-			break;
-		case 4:
-			glProgramUniform4fv(command->m_program, command->m_location, 1, dataPtr);
-			break;
-		default:
-			assert(false);
-			break;
-		}
+		glMultiDrawElementsIndirectCountARB(m_mode, m_type, m_indirectOffset, m_parameterBufferOffset, m_maxdrawcount, sizeof(vx::gl::DrawElementsIndirectCommand));
 
-		*offset += (command->m_count * sizeof(F32));
+		*offset += sizeof(MultiDrawElementsIndirectCountCommand);
 	}
 
-	void programUniformUInt(const ProgramUniformCommand* command, U32* offset)
+	void MultiDrawArraysIndirectCountCommand::execute(U32* offset)
 	{
-		const U32* dataPtr = (U32*)(command + 1);
-		switch (command->m_count)
-		{
-		case 1:
-			glProgramUniform1ui(command->m_program, command->m_location, *dataPtr);
-			break;
-		default:
-			assert(false);
-			break;
-		}
+		glMultiDrawArraysIndirectCountARB(m_mode, m_indirectOffset, m_parameterBufferOffset, m_maxdrawcount, sizeof(vx::gl::DrawArraysIndirectCommand));
 
-		*offset += (command->m_count * sizeof(U32));
+		*offset += sizeof(MultiDrawArraysIndirectCountCommand);
 	}
 
-	void handleCommandImpl(const MultiDrawElementsIndirectCountCommand* command)
+	void ClearColorCommand::execute(U32* offset)
 	{
-		glMultiDrawElementsIndirectCountARB(command->m_mode, command->m_type, command->m_indirectOffset, command->m_parameterBufferOffset, command->m_maxdrawcount, sizeof(vx::gl::DrawElementsIndirectCommand));
+		vx::gl::StateManager::setClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
+
+		*offset += sizeof(ClearColorCommand);
 	}
 
-	void handleCommandImpl(const MultiDrawArraysIndirectCountCommand* command)
+	void FramebufferTextureCommand::execute(U32* offset)
 	{
-		glMultiDrawArraysIndirectCountARB(command->m_mode, command->m_indirectOffset, command->m_parameterBufferOffset, command->m_maxdrawcount, sizeof(vx::gl::DrawArraysIndirectCommand));
+		glNamedFramebufferTexture(m_framebufferId, m_attachment, m_texture, m_level);
+
+		*offset += sizeof(FramebufferTextureCommand);
 	}
 
-	void handleCommandImpl(const ClearColorCommand* command)
+	void PolygonOffsetCommand::execute(U32* offset)
 	{
-		vx::gl::StateManager::setClearColor(command->m_clearColor.x, command->m_clearColor.y, command->m_clearColor.z, command->m_clearColor.w);
+		glPolygonOffset(m_factor, m_units);
+
+		*offset += sizeof(PolygonOffsetCommand);
 	}
 
-	void handleCommandImpl(const ProgramUniformCommand* command, U32* offset)
+	void ClearCommand::execute(U32* offset)
 	{
-		switch (command->m_dataType)
-		{
-		case vx::gl::DataType::Float:
-			programUniformFloat(command, offset);
-			break;
-		case vx::gl::DataType::Unsigned_Int:
-			programUniformUInt(command, offset);
-			break;
-		default:
-			assert(false);
-			break;
-		}
-	}
+		glClear(m_bits);
 
-	template<typename T>
-	void handleCommandFun(CommandHeader* ptr, U32* offset)
-	{
-		handleCommandImpl((T*)ptr);
-		*offset += sizeof(T);
-	}
-
-	template<>
-	void handleCommandFun<ProgramUniformCommand>(CommandHeader* ptr, U32* offset)
-	{
-		handleCommandImpl((ProgramUniformCommand*)ptr, offset);
-		*offset += sizeof(ProgramUniformCommand);
-	}
-
-	void handleCommandImpl(const FramebufferTextureCommand* command)
-	{
-		glNamedFramebufferTexture(command->m_framebufferId, command->m_attachment, command->m_texture, command->m_level);
-	}
-
-	void handleCommandImpl(const PolygonOffsetCommand* command)
-	{
-		glPolygonOffset(command->m_factor, command->m_units);
-	}
-
-	void handleCommandImpl(const ClearCommand* command)
-	{
-		glClear(command->m_bits);
-	}
-
-	HandleCommandProc g_functionTable[] =
-	{
-		&handleCommandFun<ViewportCommand>,
-		&handleCommandFun<PointSizeCommand>,
-		&handleCommandFun<DrawArraysIndirectCommand>,
-		&handleCommandFun<DrawElementsIndirectCommand>,
-		&handleCommandFun<MultiDrawElementsIndirectCountCommand>,
-		&handleCommandFun<MultiDrawArraysIndirectCountCommand>,
-		&handleCommandFun<ProgramUniformCommand>,
-		&handleCommandFun<ClearColorCommand>,
-		&handleCommandFun<FramebufferTextureCommand>,
-		&handleCommandFun<PolygonOffsetCommand>,
-		&handleCommandFun<ClearCommand>
-	};
-
-	void Command::handleCommand(CommandHeader* header, U32* offset)
-	{
-		g_functionTable[(U32)*header](header, offset);
+		*offset += sizeof(ClearCommand);
 	}
 }

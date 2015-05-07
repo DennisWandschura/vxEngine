@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,49 +23,53 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vector>
-#include "State.h"
-#include <memory>
+#include "../Commands.h"
 
 namespace Graphics
 {
-	class ProgramUniformCommand;
+	struct ProgramUniformCommand : public Command
+	{
+		U32 m_program;
+		vx::gl::DataType m_dataType;
+		U8 m_padding;
+		U16 m_count;
+		U32 m_location;
+
+		void setUInt(U32 program, U32 location, U32 count);
+		void setFloat(U32 program, U32 location, U32 count);
+
+		void execute(U32* offset) override;
+
+	private:
+		void programUniformFloat(U32* offset);
+		void programUniformUInt(U32* offset);
+	};
 
 	template<typename T>
-	class ProgramUniformData;
-
-	class Segment
+	struct ProgramUniformData
 	{
-		std::vector<U8> m_commmands;
-		State m_state;
+		enum { Count = sizeof(T) };
 
-		void pushCommand(const U8*, U32 count);
+		U8 u[Count];
 
-	public:
-		Segment();
-		~Segment();
-
-		void setState(const State &state);
-
-		template < typename T >
-		std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		 pushCommand(const T &command)
+		ProgramUniformData() : u()
 		{
-			U8* ptr = (U8*)&command;
-
-			pushCommand(ptr, sizeof(T));
 		}
 
-		template < typename T >
-		void pushCommand(const ProgramUniformCommand &command, const ProgramUniformData<T> &data)
+		void set(const T &data)
 		{
-			U8* ptr = (U8*)&command;
-			pushCommand(ptr, sizeof(ProgramUniformCommand));
-			pushCommand(data.u, sizeof(T));
+			memcpy(u, &data, sizeof(T));
 		}
 
-		void draw();
+		U8& operator[](U32 i)
+		{
+			return u[i];
+		}
+
+		const U8& operator[](U32 i) const
+		{
+			return u[i];
+		}
 	};
 }

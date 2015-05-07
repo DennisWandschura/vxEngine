@@ -28,150 +28,76 @@ SOFTWARE.
 
 namespace Graphics
 {
-	enum class CommandHeader : U32
-	{
-		ViewportCommand,
-		PointSizeCommand,
-		DrawArraysIndirectCommand,
-		DrawElementsIndirectCommand,
-		MultiDrawElementsIndirectCountCommand,
-		MultiDrawArraysIndirectCountCommand,
-		ProgramUniformCommand,
-		ClearColorCommand,
-		FramebufferTextureCommand,
-		PolygonOffsetCommand,
-		ClearCommand,
-		ProfilerCommand
-	};
-
 	struct Command
 	{
-		static void handleCommand(CommandHeader* header, U32* offset);
+		virtual ~Command(){}
+
+		virtual void execute(U32* offset) = 0;
+
+		static void handleCommand(Command* header, U32* offset)
+		{
+			header->execute(offset);
+		}
 	};
 
-	struct ViewportCommand
+	struct ViewportCommand : public Command
 	{
-		CommandHeader m_header;
 		vx::uint2 m_offset;
 		vx::uint2 m_size;
 
 		void set(const vx::uint2 &offset, const vx::uint2 &size)
 		{
-			m_header = CommandHeader::ViewportCommand;
 			m_offset = offset;
 			m_size = size;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct PointSizeCommand
+	struct PointSizeCommand : public Command
 	{
-		CommandHeader m_header;
 		F32 m_pointSize;
 
 		void set(F32 pointSize)
 		{
-			m_header = CommandHeader::PointSizeCommand;
 			m_pointSize = pointSize;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct ProgramUniformCommand
+	struct DrawArraysIndirectCommand : public Command
 	{
-		CommandHeader m_header;
-		U32 m_program;
-		vx::gl::DataType m_dataType;
-		U8 m_padding;
-		U16 m_count;
-		U32 m_location;
-
-		void setUInt(U32 program, U32 location)
-		{
-			m_header = CommandHeader::ProgramUniformCommand;
-			m_program = program;
-			m_dataType = vx::gl::DataType::Unsigned_Int;
-			m_count = 1;
-			m_location = location;
-		}
-
-		void setFloat(U32 program, U32 location)
-		{
-			m_header = CommandHeader::ProgramUniformCommand;
-			m_program = program;
-			m_dataType = vx::gl::DataType::Float;
-			m_count = 1;
-			m_location = location;
-		}
-
-		void setFloat4(U32 program, U32 location)
-		{
-			m_header = CommandHeader::ProgramUniformCommand;
-			m_program = program;
-			m_dataType = vx::gl::DataType::Float;
-			m_count = 4;
-			m_location = location;
-		}
-	};
-
-	template<typename T>
-	struct ProgramUniformData
-	{
-		enum { Count = sizeof(T) };
-
-		U8 u[Count];
-
-		ProgramUniformData() : u()
-		{
-		}
-
-		void set(const T &data)
-		{
-			memcpy(u, &data, sizeof(T));
-		}
-
-		U8& operator[](U32 i)
-		{
-			return u[i];
-		}
-
-		const U8& operator[](U32 i) const
-		{
-			return u[i];
-		}
-	};
-
-	struct DrawArraysIndirectCommand
-	{
-		CommandHeader m_header;
 		U32 m_mode;
 		U32 m_offset;
 
 		void set(U32 mode, U32 offset = 0)
 		{
-			m_header = CommandHeader::DrawArraysIndirectCommand;
 			m_mode = mode;
 			m_offset = offset;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct DrawElementsIndirectCommand
+	struct DrawElementsIndirectCommand : public Command
 	{
-		CommandHeader m_header;
 		U32 m_mode;
 		U32 m_type;
 		U32 m_offset;
 
 		void set(U32 mode, U32 type, U32 offset = 0)
 		{
-			m_header = CommandHeader::DrawElementsIndirectCommand;
 			m_mode = mode;
 			m_type = type;
 			m_offset = offset;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct MultiDrawElementsIndirectCountCommand
+	struct MultiDrawElementsIndirectCountCommand : public Command
 	{
-		CommandHeader m_header;
 		U32 m_mode;
 		U32 m_type;
 		U32 m_indirectOffset;
@@ -180,18 +106,18 @@ namespace Graphics
 
 		void set(U32 mode, U32 type, U32 maxDrawCount, U32 indirectOffset = 0, U32 paramOffset = 0)
 		{
-			m_header = CommandHeader::MultiDrawElementsIndirectCountCommand;
 			m_mode = mode;
 			m_type = type;
 			m_indirectOffset = indirectOffset;
 			m_parameterBufferOffset = paramOffset;
 			m_maxdrawcount = maxDrawCount;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct MultiDrawArraysIndirectCountCommand
+	struct MultiDrawArraysIndirectCountCommand : public Command
 	{
-		CommandHeader m_header;
 		U32 m_mode;
 		U32 m_indirectOffset;
 		U32 m_parameterBufferOffset;
@@ -199,29 +125,29 @@ namespace Graphics
 
 		void set(U32 mode, U32 maxDrawCount, U32 indirectOffset = 0, U32 paramOffset = 0)
 		{
-			m_header = CommandHeader::MultiDrawArraysIndirectCountCommand;
 			m_mode = mode;
 			m_indirectOffset = indirectOffset;
 			m_parameterBufferOffset = paramOffset;
 			m_maxdrawcount = maxDrawCount;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct ClearColorCommand
+	struct ClearColorCommand : public Command
 	{
-		CommandHeader m_header;
 		vx::float4 m_clearColor;
 
 		void set(const vx::float4 &clearColor)
 		{
-			m_header = CommandHeader::ClearColorCommand;
 			m_clearColor = clearColor;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct FramebufferTextureCommand
+	struct FramebufferTextureCommand : public Command
 	{
-		CommandHeader m_header;
 		U32 m_framebufferId;
 		U32 m_attachment;
 		U32 m_texture;
@@ -229,51 +155,52 @@ namespace Graphics
 
 		void set(U32 framebufferId, U32 attachment, U32 texture, U32 level)
 		{
-			m_header = CommandHeader::FramebufferTextureCommand;
 			m_framebufferId = framebufferId;
 			m_attachment = attachment;
 			m_texture = texture;
 			m_level = level;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct PolygonOffsetCommand
+	struct PolygonOffsetCommand : public Command
 	{
-		CommandHeader m_header;
 		F32 m_factor;
 		F32 m_units;
 
 		void set(F32 factor, F32 units)
 		{
-			m_header = CommandHeader::PolygonOffsetCommand;
 			m_factor = factor;
 			m_units = units;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct ClearCommand
+	struct ClearCommand : public Command
 	{
-		CommandHeader m_header;
 		U32 m_bits;
 
 		void set(U32 bits)
 		{
-			m_header = CommandHeader::ClearCommand;
 			m_bits = bits;
 		}
+
+		void execute(U32* offset) override;
 	};
 
-	struct ProfilerCommand
+	struct ProfilerCommand : public Command
 	{
-		CommandHeader m_header;
 		char m_name[20];
 		class GpuProfiler* m_pGpuProfiler;
 
 		void set(GpuProfiler* pGpuProfiler, const char* name)
 		{
-			m_header = CommandHeader::ProfilerCommand;
 			m_pGpuProfiler = pGpuProfiler;
 			strcpy_s(m_name, name);
 		}
+
+		void execute(U32* offset) override;
 	};
 }
