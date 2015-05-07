@@ -25,7 +25,8 @@ SOFTWARE.
 
 namespace Graphics
 {
-	class CapabilitySetting;
+	class Renderer;
+	class ShadowRenderer;
 }
 
 class GpuProfiler;
@@ -44,8 +45,8 @@ class GpuProfiler;
 #include <vector>
 #include "RenderCommandFinalImage.h"
 #include "RenderStage.h"
-#include "CapabilityManager.h"
 #include "RenderSettings.h"
+#include "Graphics/CommandList.h"
 
 class VX_ALIGN(64) RenderAspect : public EventListener
 {
@@ -67,16 +68,16 @@ protected:
 		vx::gl::Texture m_aabbTexture;
 		vx::gl::Buffer m_screenshotBuffer;
 
-		vx::gl::Texture m_shadowTexture[5];
 		vx::gl::Texture m_ambientColorTexture;
 		vx::gl::Texture m_ambientColorBlurTexture[2];
 		// contains index into texture array sorted by texture handle
 
 		Font m_font;
-		Graphics::CapabilityManager m_capabilityManager;
+	//	std::vector<std::unique_ptr<Graphics::Renderer>> m_renderers;
 	};
 
-	Graphics::RenderStage m_renderStageCreateShadowMap;
+	Graphics::CommandList m_commandList;
+	std::unique_ptr<Graphics::ShadowRenderer> m_shadowRenderer;
 	vx::uint2 m_resolution;
 	SceneRenderer m_sceneRenderer;
 	VoxelRenderer m_voxelRenderer;
@@ -87,7 +88,7 @@ protected:
 
 	vx::gl::Buffer m_cameraBuffer;
 	
-	vx::gl::Framebuffer m_shadowFB;
+	//vx::gl::Framebuffer m_shadowFB;
 	vx::gl::Framebuffer m_gbufferFB;
 	vx::gl::Framebuffer m_aabbFB;
 	vx::gl::Framebuffer m_coneTraceFB;

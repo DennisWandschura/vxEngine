@@ -564,43 +564,7 @@
     <ClInclude Include="ProgramUniformBinding.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="CapabilitySetting.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilitySettingPolygonOffset.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilitySettingBlend.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Capability.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilityEnableBlend.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilityDisableBlend.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilityEnablePolygonOffsetFill.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilityManager.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilityDisablePolygonOffsetFill.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilityFactory.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="DDS_File.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilityEnableDepthTest.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="CapabilityDisableDepthTest.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
@@ -680,9 +644,6 @@
     </ClInclude>
     <ClInclude Include="Graphics\CommandCompiler.h">
       <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\SegmentBuilder.h">
-      <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\Renderer.h">
       <Filter>Header Files\Render\Graphics</Filter>
@@ -992,43 +953,13 @@
     <ClCompile Include="RenderPass.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="CapabilitySettingPolygonOffset.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CapabilitySettingBlend.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="RenderStage.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CapabilityEnableBlend.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Frame.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="CapabilityDisableBlend.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CapabilityEnablePolygonOffsetFill.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CapabilityDisablePolygonOffsetFill.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CapabilityFactory.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="DDS_File.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CapabilityEnableDepthTest.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CapabilityDisableDepthTest.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="CapabilityManager.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
@@ -1059,12 +990,6 @@
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\BufferFactory.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\CommandCompiler.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\SegmentBuilder.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\StaticMeshRenderer.cpp">

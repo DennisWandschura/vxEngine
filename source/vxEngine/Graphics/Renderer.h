@@ -28,7 +28,6 @@ struct RenderSettings;
 namespace gl
 {
 	class ObjectManager;
-	class BufferBindingManager;
 }
 
 namespace vx
@@ -62,7 +61,8 @@ namespace Graphics
 
 		virtual void getSegments(std::vector<Segment>* segments) = 0;
 
-		virtual void bindBuffers(gl::BufferBindingManager* bufferBindingManager) = 0;
+		virtual void clearData() = 0;
+		virtual void bindBuffers() = 0;
 
 		static void provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, RenderSettings* settings);
 	};

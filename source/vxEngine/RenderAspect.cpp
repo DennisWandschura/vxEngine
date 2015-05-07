@@ -37,14 +37,12 @@ SOFTWARE.
 #include <vxLib/Keyboard.h>
 #include <vxLib/util/DebugPrint.h>
 #include "GpuProfiler.h"
-#include "CapabilityEnablePolygonOffsetFill.h"
-#include "CapabilityDisablePolygonOffsetFill.h"
-#include "CapabilitySettingPolygonOffset.h"
-#include "CapabilityFactory.h"
 #include "CreateActorData.h"
 #include "Locator.h"
 #include "EventManager.h"
 #include "Graphics/Renderer.h"
+#include "Graphics/ShadowRenderer.h"
+#include "Graphics/Segment.h"
 
 RenderAspect* g_renderAspect{ nullptr };
 
@@ -150,23 +148,6 @@ void RenderAspect::createUniformBuffers()
 
 		m_objectManager.createBuffer("UniformTextureBuffer", desc);
 	}
-
-	{
-		UniformShadowTextureBufferBlock data;
-		data.u_shadowTextures[0] = m_pColdData->m_shadowTexture[0].getTextureHandle();
-		data.u_shadowTextures[1] = m_pColdData->m_shadowTexture[1].getTextureHandle();
-		data.u_shadowTextures[2] = m_pColdData->m_shadowTexture[2].getTextureHandle();
-		data.u_shadowTextures[3] = m_pColdData->m_shadowTexture[3].getTextureHandle();
-		data.u_shadowTextures[4] = m_pColdData->m_shadowTexture[4].getTextureHandle();
-
-		vx::gl::BufferDescription desc;
-		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
-		desc.size = sizeof(UniformTextureBufferBlock);
-		desc.immutable = 1;
-		desc.pData = &data;
-
-		m_objectManager.createBuffer("uniformShadowTextureBufferBlock", desc);
-	}
 }
 
 void RenderAspect::createTextures()
@@ -228,31 +209,6 @@ void RenderAspect::createTextures()
 
 		m_pColdData->m_aabbTexture.makeTextureResident();
 	}
-
-	{
-		vx::gl::TextureDescription desc;
-		desc.format = vx::gl::TextureFormat::DEPTH32F;
-		desc.type = vx::gl::TextureType::Texture_Cubemap;
-		desc.size = vx::ushort3(s_shadowMapResolution, s_shadowMapResolution, 6);
-		desc.miplevels = 1;
-		desc.sparse = 0;
-
-		for (int i = 0; i < 5; ++i)
-		{
-			m_pColdData->m_shadowTexture[i].create(desc);
-
-			m_pColdData->m_shadowTexture[i].setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
-			m_pColdData->m_shadowTexture[i].setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE);
-
-			glTextureParameteri(m_pColdData->m_shadowTexture[i].getId(), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-			glTextureParameteri(m_pColdData->m_shadowTexture[i].getId(), GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-			//float ones[] = { 0, 0, 0, 0 };
-			//glTextureParameterfv(m_pColdData->m_shadowTexture.getId(), GL_TEXTURE_BORDER_COLOR, ones);
-
-			m_pColdData->m_shadowTexture[i].makeTextureResident();
-		}
-		
-	}
 }
 
 void RenderAspect::createFrameBuffers()
@@ -276,15 +232,6 @@ void RenderAspect::createFrameBuffers()
 	}
 
 	{
-		m_shadowFB.create();
-		m_shadowFB.attachTexture(vx::gl::Attachment::Depth, m_pColdData->m_shadowTexture[0], 0);
-		glNamedFramebufferDrawBuffer(m_shadowFB.getId(), GL_NONE);
-
-		auto status = m_shadowFB.checkStatus();
-		assert(status == GL_FRAMEBUFFER_COMPLETE);
-	}
-
-	{
 		m_coneTraceFB.create();
 		m_coneTraceFB.attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_ambientColorTexture, 0);
 		glNamedFramebufferDrawBuffer(m_coneTraceFB.getId(), GL_COLOR_ATTACHMENT0);
@@ -302,13 +249,21 @@ void RenderAspect::createFrameBuffers()
 
 bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc)
 {
+	m_pColdData = std::make_unique<ColdData>();
+
 	vx::gl::ContextDescription contextDesc = vx::gl::ContextDescription::create(*desc.window, desc.resolution, desc.fovRad, desc.z_near, desc.z_far, 4, 5, desc.vsync, desc.debug);
 	if (!m_renderContext.initialize(contextDesc))
 		return false;
 
-	auto result = initializeImpl(dataDir, desc.resolution, desc.debug, desc.pAllocator);
+	m_pColdData->m_settings.m_resolution = desc.resolution;
+	m_pColdData->m_settings.m_maxActiveLights = 5;
+	m_pColdData->m_settings.m_shadowmapResolution = 2048;
+	m_pColdData->m_settings.voxelGiQuality = 0;
+	m_pColdData->m_settings.m_maxMeshInstances = 255;
 
 	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, &m_pColdData->m_settings);
+
+	auto result = initializeImpl(dataDir, desc.resolution, desc.debug, desc.pAllocator);
 
 	if (result)
 		bindBuffers();
@@ -318,14 +273,7 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 
 bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, vx::StackAllocator *pAllocator)
 {
-	m_pColdData = std::make_unique<ColdData>();
 	m_resolution = windowResolution;
-
-	m_pColdData->m_settings.m_resolution = windowResolution;
-	m_pColdData->m_settings.m_maxActiveLights = 5;
-	m_pColdData->m_settings.m_shadowmapResolution = 2048;
-	m_pColdData->m_settings.voxelGiQuality = 0;
-	m_pColdData->m_settings.m_maxMeshInstances = 255;
 
 	m_allocator = vx::StackAllocator(pAllocator->allocate(5 MBYTE, 64), 5 MBYTE);
 	
@@ -357,8 +305,24 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	createUniformBuffers();
 	createBuffers();
 
+	m_commandList.initialize();
+
 	m_sceneRenderer.initialize(10, &m_objectManager, pAllocator);
 	m_voxelRenderer.initialize(128, m_shaderManager, &m_objectManager);
+
+	{
+		auto pShadowRenderer = std::make_unique<Graphics::ShadowRenderer>();
+		pShadowRenderer->initialize();
+
+		std::vector<Graphics::Segment> segments;
+		pShadowRenderer->getSegments(&segments);
+		pShadowRenderer->bindBuffers();
+
+		m_commandList.pushSegment(segments.front(), "segmentCreateShadows", 0);
+
+		m_shadowRenderer = std::move(pShadowRenderer);
+		//m_pColdData->m_renderers.push_back(std::move(pShadowRenderer));
+	}
 
 	{
 		auto file = (dataDir + "textures/verdana.png");
@@ -384,35 +348,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 
 void RenderAspect::createRenderPassCreateShadowMaps()
 {
-	m_pColdData->m_capabilityManager.createCapabilitySettingsPolygonOffsetFill(2.5f, 10.0f, "polygonOffsetFillShadowMap");
-	auto capEnablePolygonOffsetFill = m_pColdData->m_capabilityManager.createEnablePolygonOffsetFill("enablePolygonOffsetFillShadowMap", "polygonOffsetFillShadowMap");
-	auto capEnableDepthTest = m_pColdData->m_capabilityManager.createEnableDepthTest("enableDepthTest");
-	auto capDisablePolygonOffsetFill = m_pColdData->m_capabilityManager.createDisablePolygonOffsetFill("disablePolygonOffsetFill");
 
-	auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
-	auto &meshVao = m_sceneRenderer.getMeshVao();
-
-	Graphics::DrawCommandDescription drawCmdDesc;
-	drawCmdDesc.dataType = vx::gl::DataType::Unsigned_Int;
-	drawCmdDesc.primitiveMode = Graphics::PrimitiveMode::Triangles;
-	drawCmdDesc.indirectBuffer = cmdBuffer.getId();
-	drawCmdDesc.renderMode = Graphics::RenderMode::MultiDrawElementsIndirect;
-
-	Graphics::RenderPassDescription desc;
-	desc.drawCmdDesc = drawCmdDesc;
-	desc.resolution = vx::uint2(s_shadowMapResolution, s_shadowMapResolution);
-	desc.vao = meshVao.getId();
-	desc.fbo = m_shadowFB.getId();
-	desc.clearBits = GL_DEPTH_BUFFER_BIT;
-	desc.pipeline = m_shaderManager.getPipeline("shadow.pipe")->getId();
-
-	Graphics::RenderPass renderPassCreateShadowMap;
-	renderPassCreateShadowMap.initialize(desc);
-
-	m_renderStageCreateShadowMap.pushRenderPass("createShadowMap", renderPassCreateShadowMap);
-	m_renderStageCreateShadowMap.attachCapabilityBegin("createShadowMap", capEnablePolygonOffsetFill);
-	m_renderStageCreateShadowMap.attachCapabilityBegin("createShadowMap", capEnableDepthTest);
-	m_renderStageCreateShadowMap.attachCapabilityEnd("createShadowMap", capDisablePolygonOffsetFill);
 }
 
 bool RenderAspect::initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocator* allocator)
@@ -512,7 +448,8 @@ void RenderAspect::taskLoadScene(void* p)
 	m_pScene = pScene;
 
 	auto count = m_sceneRenderer.getMeshInstanceCount();
-	m_renderStageCreateShadowMap.setDrawCountAll(count);
+	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
+	buffer->subData(0, sizeof(U32), &count);
 }
 
 void RenderAspect::taskToggleRenderMode()
@@ -582,67 +519,37 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 
-	auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
 	auto meshCount = m_sceneRenderer.getMeshInstanceCount();
-	auto &meshVao = m_sceneRenderer.getMeshVao();
+	auto cmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
+	auto meshVao = m_objectManager.getVertexArray("meshVao");
+	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");
 
 	gpuProfiler->pushGpuMarker("shadow mapping");
-	{
-		auto lightCount = m_sceneRenderer.getLightCount();
-		auto pipeline = m_shaderManager.getPipeline("shadow.pipe");
-		auto pipelineId = pipeline->getId();
-		auto gsShader = pipeline->getGeometryShader();
-
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Polygon_Offset_Fill);
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-
-		glPolygonOffset(2.5f, 10.0f);
-
-		vx::gl::StateManager::setViewport(0, 0, s_shadowMapResolution, s_shadowMapResolution);
-
-		vx::gl::StateManager::bindVertexArray(meshVao);
-		vx::gl::StateManager::bindPipeline(pipelineId);
-		cmdBuffer.bind();
-		vx::gl::StateManager::bindFrameBuffer(m_shadowFB);
-
-		for (U32 i = 0; i < lightCount; ++i)
-		{
-			auto &texture = m_pColdData->m_shadowTexture[i];
-
-			m_shadowFB.attachTexture(vx::gl::Attachment::Depth, texture, 0);
-			glClear(GL_DEPTH_BUFFER_BIT);
-
-			glProgramUniform1ui(gsShader, 0, i);
-
-			glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, meshCount, sizeof(vx::gl::DrawElementsIndirectCommand));
-		}
-
-		vx::gl::StateManager::disable(vx::gl::Capabilities::Polygon_Offset_Fill);
-	}
+	m_commandList.draw();
 	gpuProfiler->popGpuMarker();
 
 	gpuProfiler->pushGpuMarker("gbuffer");
-	createGBuffer(meshVao,cmdBuffer, meshCount);
+	createGBuffer(*meshVao, *cmdBuffer, meshCount);
 	gpuProfiler->popGpuMarker();
 
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-		gpuProfiler->pushGpuMarker("voxelize");
-		voxelize(meshVao, cmdBuffer, meshCount);
-		gpuProfiler->popGpuMarker();
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	gpuProfiler->pushGpuMarker("voxelize");
+	voxelize(*meshVao, *cmdBuffer, meshCount);
+	gpuProfiler->popGpuMarker();
 
-		gpuProfiler->pushGpuMarker("mipmap");
-		m_voxelRenderer.createMipmaps();
-		gpuProfiler->popGpuMarker();
+	gpuProfiler->pushGpuMarker("mipmap");
+	m_voxelRenderer.createMipmaps();
+	gpuProfiler->popGpuMarker();
 
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-		gpuProfiler->pushGpuMarker("cone trace");
-		coneTrace();
-		gpuProfiler->popGpuMarker();
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	gpuProfiler->pushGpuMarker("cone trace");
+	coneTrace();
+	gpuProfiler->popGpuMarker();
 
-		glMemoryBarrier(GL_ALL_BARRIER_BITS);
-		gpuProfiler->pushGpuMarker("blur");
-		blurAmbientColor();
-		gpuProfiler->popGpuMarker();
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	gpuProfiler->pushGpuMarker("blur");
+	blurAmbientColor();
+	gpuProfiler->popGpuMarker();
 
 	vx::gl::StateManager::setClearColor(0.1f, 0.1f, 0.1f, 1);
 	vx::gl::StateManager::bindFrameBuffer(0);
@@ -684,13 +591,11 @@ void RenderAspect::bindBuffers()
 	auto pTextureBuffer = m_objectManager.getBuffer("TextureBuffer");
 	auto pUniformTextureBuffer = m_objectManager.getBuffer("UniformTextureBuffer");
 	auto pCameraBufferStatic = m_objectManager.getBuffer("CameraBufferStatic");
-	auto uniformShadowTextureBufferBlock = m_objectManager.getBuffer("uniformShadowTextureBufferBlock");
 
 	gl::BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
 	gl::BufferBindingManager::bindBaseUniform(2, pCameraBufferStatic->getId());
 	gl::BufferBindingManager::bindBaseUniform(3, pUniformTextureBuffer->getId());
 	gl::BufferBindingManager::bindBaseUniform(5, pShadowTransformBuffer->getId());
-	gl::BufferBindingManager::bindBaseUniform(9, uniformShadowTextureBufferBlock->getId());
 
 	gl::BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
 
@@ -703,6 +608,8 @@ void RenderAspect::clearTextures()
 	m_voxelRenderer.clearTextures();
 
 	m_pColdData->m_ambientColorTexture.clearImage(0, GL_RGBA, GL_UNSIGNED_SHORT, nullptr);
+
+	m_shadowRenderer->clearData();
 }
 
 void RenderAspect::clearBuffers()
@@ -715,6 +622,7 @@ void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::B
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 
+	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer.getId());
 	vx::gl::StateManager::bindFrameBuffer(m_gbufferFB);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -723,8 +631,8 @@ void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::B
 
 	vx::gl::StateManager::bindVertexArray(vao);
 
-	cmdBuffer.bind();
 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
+	//glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 128, sizeof(vx::gl::DrawElementsIndirectCommand));
 }
 
 void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count)
@@ -962,8 +870,9 @@ U16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::Str
 {
 	auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, pScene);
 
-	auto instanceCount = m_sceneRenderer.getMeshInstanceCount();
-	m_renderStageCreateShadowMap.setDrawCountAll(instanceCount);
+	auto count = m_sceneRenderer.getMeshInstanceCount();
+	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
+	buffer->subData(0, sizeof(U32), &count);
 
 	return gpuIndex;
 }

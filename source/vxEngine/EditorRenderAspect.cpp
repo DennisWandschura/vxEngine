@@ -227,15 +227,15 @@ void EditorRenderAspect::createCommandList()
 	std::unique_ptr<U8[]> bufferDrawInfluenceCells;
 
 	{
-		auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
-		auto &meshVao = m_sceneRenderer.getMeshVao();
+		auto cmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
+		auto meshVao = m_objectManager.getVertexArray("meshVao");
 		auto pipe = m_shaderManager.getPipeline("editor.pipe");
 
 		Graphics::StateDescription desc;
 		desc.fbo = 0;
-		desc.vao = meshVao.getId();
+		desc.vao = meshVao->getId();
 		desc.pipeline = pipe->getId();
-		desc.indirectBuffer = cmdBuffer.getId();
+		desc.indirectBuffer = cmdBuffer->getId();
 		desc.paramBuffer = m_meshCountBuffer.getId();
 		desc.depthState = true;
 		desc.blendState = false;
@@ -486,14 +486,14 @@ void EditorRenderAspect::render()
 
 	if (m_selectedInstance.ptr != nullptr)
 	{
-		auto &cmdBuffer = m_sceneRenderer.getCmdBuffer();
-		auto &meshVao = m_sceneRenderer.getMeshVao();
+		auto cmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
+		auto meshVao = m_objectManager.getVertexArray("meshVao");
 
 		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 
-		vx::gl::StateManager::bindVertexArray(meshVao);
+		vx::gl::StateManager::bindVertexArray(*meshVao);
 
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer.getId());
+		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer->getId());
 
 		auto offset = m_selectedInstance.cmd.baseInstance * sizeof(vx::gl::DrawElementsIndirectCommand);
 

@@ -32,9 +32,11 @@ namespace Graphics
 	class ShadowRenderer : public Renderer
 	{
 		std::unique_ptr<U32[]> m_shadowTextureIds;
+		U32 m_textureCount;
 
 		void createShadowTextureBuffer();
 		void createShadowTextures();
+		void createFramebuffer();
 
 	public:
 		ShadowRenderer();
@@ -46,6 +48,9 @@ namespace Graphics
 
 		void getSegments(std::vector<Segment>* segments) override;
 
-		void bindBuffers(gl::BufferBindingManager* bufferBindingManager) override;
+		void clearData() override;
+		void bindBuffers() override;
+
+		const U32* getTextureIds() const;
 	};
 }

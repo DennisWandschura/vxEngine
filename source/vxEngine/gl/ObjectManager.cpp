@@ -39,6 +39,7 @@ namespace gl
 		m_bufferManager.shutdown();
 		m_vertexArrays.cleanup();
 		m_frameBuffers.cleanup();
+		m_textures.cleanup();
 	}
 
 	vx::StringID ObjectManager::createVertexArray(const char* id)

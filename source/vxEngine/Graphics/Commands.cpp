@@ -51,22 +51,6 @@ namespace Graphics
 
 	void programUniformFloat(const ProgramUniformCommand* command, U32* offset)
 	{
-		const U32* dataPtr = (U32*)(command + 1);
-		switch (command->m_count)
-		{
-		case 1:
-			glProgramUniform1ui(command->m_program, command->m_location, *dataPtr);
-			break;
-		default:
-			assert(false);
-			break;
-		}
-
-		*offset += (command->m_count * sizeof(U32));
-	}
-
-	void programUniformUInt(const ProgramUniformCommand* command, U32* offset)
-	{
 		const F32* dataPtr = (F32*)(command + 1);
 		switch (command->m_count)
 		{
@@ -82,6 +66,22 @@ namespace Graphics
 		}
 
 		*offset += (command->m_count * sizeof(F32));
+	}
+
+	void programUniformUInt(const ProgramUniformCommand* command, U32* offset)
+	{
+		const U32* dataPtr = (U32*)(command + 1);
+		switch (command->m_count)
+		{
+		case 1:
+			glProgramUniform1ui(command->m_program, command->m_location, *dataPtr);
+			break;
+		default:
+			assert(false);
+			break;
+		}
+
+		*offset += (command->m_count * sizeof(U32));
 	}
 
 	void handleCommandImpl(const MultiDrawElementsIndirectCountCommand* command)
@@ -139,6 +139,11 @@ namespace Graphics
 		glPolygonOffset(command->m_factor, command->m_units);
 	}
 
+	void handleCommandImpl(const ClearCommand* command)
+	{
+		glClear(command->m_bits);
+	}
+
 	HandleCommandProc g_functionTable[] =
 	{
 		&handleCommandFun<ViewportCommand>,
@@ -150,7 +155,8 @@ namespace Graphics
 		&handleCommandFun<ProgramUniformCommand>,
 		&handleCommandFun<ClearColorCommand>,
 		&handleCommandFun<FramebufferTextureCommand>,
-		&handleCommandFun<PolygonOffsetCommand>
+		&handleCommandFun<PolygonOffsetCommand>,
+		&handleCommandFun<ClearCommand>
 	};
 
 	void Command::handleCommand(CommandHeader* header, U32* offset)

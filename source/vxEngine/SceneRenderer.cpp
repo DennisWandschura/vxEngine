@@ -42,6 +42,7 @@ SOFTWARE.
 #include <vxLib/gl/ShaderManager.h>
 
 SceneRenderer::SceneRenderer()
+	:m_pObjectManager(nullptr)
 {
 
 }
@@ -51,7 +52,7 @@ SceneRenderer::~SceneRenderer()
 
 }
 
-void SceneRenderer::createTextures(gl::ObjectManager* objectManager)
+void SceneRenderer::createTextures()
 {
 	m_coldData->m_textureManager.createBucket(1, vx::ushort3(1024, 1024, 10), 1, vx::gl::TextureType::Texture_2D_Array, vx::gl::TextureFormat::SRGBA8);
 	m_coldData->m_textureManager.createBucket(1, vx::ushort3(1024, 1024, 10), 1, vx::gl::TextureType::Texture_2D_Array, vx::gl::TextureFormat::SRGB8);
@@ -74,7 +75,7 @@ void SceneRenderer::createTextures(gl::ObjectManager* objectManager)
 	desc.immutable = 1;
 	desc.pData = handles;
 
-	objectManager->createBuffer("TextureBuffer", desc);
+	m_pObjectManager->createBuffer("TextureBuffer", desc);
 }
 
 void SceneRenderer::createMeshDrawIdVbo()
@@ -108,14 +109,38 @@ void SceneRenderer::bindMeshDrawIdVboToVao(vx::gl::VertexArray* vao)
 
 void SceneRenderer::createMeshBuffers()
 {
-	U32 attributeOffset = 0;
-	VertexPNTUV::create(&m_meshVao, &m_coldData->m_meshVbo, s_maxVerticesTotal, 0, attributeOffset);
+	auto sidVao = m_pObjectManager->createVertexArray("meshVao");
+	auto meshVao = m_pObjectManager->getVertexArray(sidVao);
+
+	m_coldData->m_meshVbo = vx::gl::BufferDescription::createImmutable(vx::gl::BufferType::Array_Buffer, sizeof(VertexPNTUV) * s_maxVerticesTotal, vx::gl::BufferStorageFlags::Write, nullptr);
+
+	// position
+	meshVao->enableArrayAttrib(0);
+	meshVao->arrayAttribFormatF(0, 4, 0, 0);
+	meshVao->arrayAttribBinding(0, 0);
+
+	// normal
+	meshVao->enableArrayAttrib(1);
+	meshVao->arrayAttribFormatF(1, 3, 0, sizeof(F32) * 4);
+	meshVao->arrayAttribBinding(1, 0);
+
+	// tangent
+	meshVao->enableArrayAttrib(2);
+	meshVao->arrayAttribFormatF(2, 3, 0, sizeof(F32) * 7);
+	meshVao->arrayAttribBinding(2, 0);
+
+	// uv
+	meshVao->enableArrayAttrib(3);
+	meshVao->arrayAttribFormatF(3, 2, 0, sizeof(F32) * 10);
+	meshVao->arrayAttribBinding(3, 0);
+
+	meshVao->bindVertexBuffer(m_coldData->m_meshVbo, 0, 0, sizeof(VertexPNTUV));
 
 	createMeshDrawIdVbo();
 	createMeshIbo();
 
-	bindMeshDrawIdVboToVao(&m_meshVao);
-	m_meshVao.bindIndexBuffer(m_coldData->m_meshIbo);
+	bindMeshDrawIdVboToVao(meshVao);
+	meshVao->bindIndexBuffer(m_coldData->m_meshIbo);
 }
 
 void SceneRenderer::createMeshCmdBuffer()
@@ -126,7 +151,14 @@ void SceneRenderer::createMeshCmdBuffer()
 	meshCmdDesc.immutable = 1;
 	meshCmdDesc.flags = vx::gl::BufferStorageFlags::Write;
 
-	m_commandBlock.create(meshCmdDesc);
+	m_pObjectManager->createBuffer("meshCmdBuffer", meshCmdDesc);
+
+	U32 count = 0;
+	meshCmdDesc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
+	meshCmdDesc.bufferType = vx::gl::BufferType::Parameter_Buffer;
+	meshCmdDesc.size = sizeof(U32);
+	meshCmdDesc.pData = &count;
+	m_pObjectManager->createBuffer("meshParamBuffer", meshCmdDesc);
 }
 
 void SceneRenderer::createMeshTransformBuffer()
@@ -151,10 +183,11 @@ void SceneRenderer::createMeshMaterialBuffer()
 
 void SceneRenderer::initialize(U32 maxLightCount, gl::ObjectManager* objectManager, vx::StackAllocator *pAllocator)
 {
+	m_pObjectManager = objectManager;
 	m_coldData = std::make_unique<ColdData>();
 	m_coldData->m_scratchAllocator = vx::StackAllocator(pAllocator->allocate(1 MBYTE, 64), 1 MBYTE);
 
-	createTextures(objectManager);
+	createTextures();
 
 	createMeshBuffers();
 	createMeshCmdBuffer();
@@ -279,7 +312,7 @@ void SceneRenderer::updateTransform(const vx::TransformGpu &transform, U32 eleme
 
 void SceneRenderer::updateLights(const Light* lights, U32 count)
 {
-	m_coldData->m_lightBufferManager.updateLightDataBuffer(lights,count);
+	m_coldData->m_lightBufferManager.updateLightDataBuffer(lights, count);
 }
 
 void SceneRenderer::writeMaterialToBuffer(const Material *pMaterial, U32 offset)
@@ -478,7 +511,8 @@ void SceneRenderer::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 in
 	if (drawCmd)
 		*drawCmd = cmd;
 
-	auto mappedCmdBuffer = m_commandBlock.map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
+	auto cmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
+	auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer[index] = cmd;
 }
 
@@ -539,7 +573,9 @@ void SceneRenderer::bindMaterialBuffer()
 
 void SceneRenderer::bindBuffers()
 {
-	gl::BufferBindingManager::bindBaseUniform(4, m_commandBlock.getId());
+	auto cmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
+
+	gl::BufferBindingManager::bindBaseUniform(4, cmdBuffer->getId());
 
 	bindTransformBuffer();
 	bindMaterialBuffer();

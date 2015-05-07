@@ -74,6 +74,33 @@ namespace Graphics
 		g_capabilityFun[m_blendState](vx::gl::Capabilities::Blend);
 		g_capabilityFun[m_polygonOffsetFillState](vx::gl::Capabilities::Polygon_Offset_Fill);
 
+		/*if (m_depthTestState == 0)
+		{
+			vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+		}
+		else
+		{
+			vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+		}
+
+		if (m_blendState == 0)
+		{
+			vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+		}
+		else
+		{
+			vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+		}
+
+		if (m_polygonOffsetFillState == 0)
+		{
+			vx::gl::StateManager::disable(vx::gl::Capabilities::Polygon_Offset_Fill);
+		}
+		else
+		{
+			vx::gl::StateManager::enable(vx::gl::Capabilities::Polygon_Offset_Fill);
+		}*/
+
 		vx::gl::StateManager::bindFrameBuffer(m_fbo);
 		vx::gl::StateManager::bindVertexArray(m_vao);
 		vx::gl::StateManager::bindPipeline(m_pipeline);
@@ -81,11 +108,13 @@ namespace Graphics
 		if (m_indirectBuffer != 0)
 		{
 			vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, m_indirectBuffer);
+			//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_indirectBuffer);
 		}
 
 		if (m_paramBuffer != 0)
 		{
 			vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, m_paramBuffer);
+			//glBindBuffer(GL_PARAMETER_BUFFER_ARB, m_paramBuffer);
 		}
 	}
 

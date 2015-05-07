@@ -39,7 +39,9 @@ namespace Graphics
 		ProgramUniformCommand,
 		ClearColorCommand,
 		FramebufferTextureCommand,
-		PolygonOffsetCommand
+		PolygonOffsetCommand,
+		ClearCommand,
+		ProfilerCommand
 	};
 
 	struct Command
@@ -246,6 +248,32 @@ namespace Graphics
 			m_header = CommandHeader::PolygonOffsetCommand;
 			m_factor = factor;
 			m_units = units;
+		}
+	};
+
+	struct ClearCommand
+	{
+		CommandHeader m_header;
+		U32 m_bits;
+
+		void set(U32 bits)
+		{
+			m_header = CommandHeader::ClearCommand;
+			m_bits = bits;
+		}
+	};
+
+	struct ProfilerCommand
+	{
+		CommandHeader m_header;
+		char m_name[20];
+		class GpuProfiler* m_pGpuProfiler;
+
+		void set(GpuProfiler* pGpuProfiler, const char* name)
+		{
+			m_header = CommandHeader::ProfilerCommand;
+			m_pGpuProfiler = pGpuProfiler;
+			strcpy_s(m_name, name);
 		}
 	};
 }

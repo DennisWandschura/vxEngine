@@ -21,15 +21,50 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
+#include "vxAudio/AudioManager.h"
+#include <AL/alc.h>
+#include <cstdio>
 
-#include "Capability.h"
+#pragma comment(lib, "OpenAL32.lib")
 
-namespace Graphics
+AudioManager::AudioManager()
 {
-	class CapabilityDisablePolygonOffsetFill : public Capability
+}
+
+bool AudioManager::init()
+{
+	m_pDevice = alcOpenDevice(nullptr);
+	if (m_pDevice == nullptr)
+		return false;
+
+	m_pContext = alcCreateContext(m_pDevice, nullptr);
+	if (!alcMakeContextCurrent(m_pContext))
 	{
-	public:
-		void set() override;
-	};
+		//puts(" failed to make context current");
+		return false;
+	}
+
+	//puts("Created audio device and context");
+	return true;
+}
+
+AudioManager::~AudioManager()
+{
+	shutdown();
+}
+
+void AudioManager::shutdown()
+{
+	if (m_pContext)
+	{
+		alcMakeContextCurrent(nullptr);
+		alcDestroyContext(m_pContext);
+		m_pContext = nullptr;
+	}
+
+	if (m_pDevice)
+	{
+		alcCloseDevice(m_pDevice);
+		m_pDevice = nullptr;
+	}
 }

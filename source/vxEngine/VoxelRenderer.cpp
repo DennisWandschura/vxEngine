@@ -190,8 +190,8 @@ void VoxelRenderer::voxelizeScene(U32 count, const vx::gl::Buffer &indirectCmdBu
 
 	vx::gl::StateManager::bindPipeline(m_pipelineVoxelize);
 	vx::gl::StateManager::bindVertexArray(vao);
+	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, indirectCmdBuffer.getId());
 
-	indirectCmdBuffer.bind();
 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

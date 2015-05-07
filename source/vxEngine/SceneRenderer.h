@@ -100,12 +100,11 @@ class SceneRenderer
 		vx::sorted_vector<U64, U32> m_texturesGPU;
 	};
 
-	vx::gl::Buffer m_commandBlock;
-	vx::gl::VertexArray m_meshVao;
+	gl::ObjectManager* m_pObjectManager;
 	U32 m_meshInstancesCountTotal{ 0 };
 	std::unique_ptr<ColdData> m_coldData;
 
-	void createTextures(gl::ObjectManager* objectManager);
+	void createTextures();
 	void createMeshDrawIdVbo();
 	void createMeshIbo();
 	void bindMeshDrawIdVboToVao(vx::gl::VertexArray* vao);
@@ -143,9 +142,7 @@ public:
 
 	U16 getActorGpuIndex();
 
-	const vx::gl::Buffer& getCmdBuffer() const { return m_commandBlock; }
 	U32 getMeshInstanceCount() const { return m_meshInstancesCountTotal; }
-	const vx::gl::VertexArray& getMeshVao() const { return m_meshVao; }
 	vx::gl::DrawElementsIndirectCommand getDrawCommand(const MeshInstance* p) const;
 
 	U16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene);

@@ -23,31 +23,18 @@ SOFTWARE.
 */
 #pragma once
 
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <memory>
+typedef struct ALCdevice_struct ALCdevice;
+typedef struct ALCcontext_struct ALCcontext;
 
-namespace Graphics
+class __declspec(dllexport) AudioManager
 {
-	class Capability;
-	class CapabilitySetting;
+	ALCdevice* m_pDevice{ nullptr };
+	ALCcontext* m_pContext{ nullptr };
 
-	class CapabilityManager
-	{
-		vx::sorted_vector<vx::StringID, std::unique_ptr<Graphics::Capability>> m_graphicsCapabilities;
-		vx::sorted_vector<vx::StringID, std::unique_ptr<Graphics::CapabilitySetting>> m_graphicsCapabilitySetting;
+public:
+	AudioManager();
+	~AudioManager();
 
-	public:
-		~CapabilityManager();
-
-		void createCapabilitySettingsPolygonOffsetFill(F32 factor, F32 units, const char* id);
-
-		Capability* createEnableDepthTest(const char *id);
-		Capability* createDisableDepthTest(const char *id);
-
-		Capability* createEnablePolygonOffsetFill(const char *id, const char* settingsId);
-		Capability* createDisablePolygonOffsetFill(const char *id);
-
-		Capability* getCapability(const char* id);
-	};
-}
+	bool init();
+	void shutdown();
+};

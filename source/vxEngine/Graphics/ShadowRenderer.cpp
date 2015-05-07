@@ -38,6 +38,7 @@ SOFTWARE.
 namespace Graphics
 {
 	ShadowRenderer::ShadowRenderer()
+		:m_textureCount(0)
 	{
 
 	}
@@ -65,12 +66,12 @@ namespace Graphics
 
 	void ShadowRenderer::createShadowTextures()
 	{
-		auto textureCount = s_settings->m_maxActiveLights;
+		m_textureCount = s_settings->m_maxActiveLights;
 		auto textureResolution = s_settings->m_shadowmapResolution;
 
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
 
-		m_shadowTextureIds = std::make_unique<U32[]>(textureCount);
+		m_shadowTextureIds = std::make_unique<U32[]>(m_textureCount);
 
 		vx::gl::TextureDescription desc;
 		desc.format = vx::gl::TextureFormat::DEPTH32F;
@@ -86,10 +87,9 @@ namespace Graphics
 
 		auto mappedBuffer = shadowTexBuffer->map<UniformShadowTextureBufferBlock>(vx::gl::Map::Write_Only);
 
-		for (U32 i = 0; i < textureCount; ++i)
+		for (U32 i = 0; i < m_textureCount; ++i)
 		{
-			sprintf(nameBuffer + textureNameSize, "%u", i);
-			//auto name = textureName + std::to_string(i);
+			sprintf(nameBuffer + textureNameSize - 1, "%u", i);
 
 			auto sid = s_objectManager->createTexture(nameBuffer, desc);
 			VX_ASSERT(sid != 0);
@@ -112,9 +112,19 @@ namespace Graphics
 		}
 	}
 
+	void ShadowRenderer::createFramebuffer()
+	{
+		auto sid = s_objectManager->createFramebuffer("shadowFbo");
+		auto fbo = s_objectManager->getFramebuffer(sid);
+
+		glNamedFramebufferDrawBuffer(fbo->getId(), GL_NONE);
+	}
+
 	void ShadowRenderer::initialize()
 	{
+		createShadowTextureBuffer();
 		createShadowTextures();
+		createFramebuffer();
 	}
 
 	void ShadowRenderer::update()
@@ -128,9 +138,9 @@ namespace Graphics
 		auto resolution = s_settings->m_shadowmapResolution;
 
 		auto fbo = s_objectManager->getFramebuffer("shadowFbo");
-		auto vao = s_objectManager->getVertexArray("staticMeshVao");
-		auto cmdBuffer = s_objectManager->getBuffer("staticMeshCmdBuffer");
-		auto paramBuffer = s_objectManager->getBuffer("staticMeshParamBuffer");
+		auto vao = s_objectManager->getVertexArray("meshVao");
+		auto cmdBuffer = s_objectManager->getBuffer("meshCmdBuffer");
+		auto paramBuffer = s_objectManager->getBuffer("meshParamBuffer");
 		auto pipeline = s_shaderManager->getPipeline("shadow.pipe");
 		auto gsShader = pipeline->getGeometryShader();
 
@@ -163,28 +173,40 @@ namespace Graphics
 		segmentCreateShadowmap.pushCommand(polyCmd);
 
 		auto maxLightCount = s_settings->m_maxActiveLights;
-		for (U32 i = 0; i < maxLightCount; ++i)
+		for (U32 i = 0; i < 1; ++i)
 		{
-			Graphics::FramebufferTextureCommand fbTexCmd;
-			fbTexCmd.set(fbo->getId(), GL_DEPTH_ATTACHMENT, m_shadowTextureIds[i], 0);
-
 			Graphics::ProgramUniformCommand uniformCmd;
 			uniformCmd.setUInt(gsShader, 0);
-
 			Graphics::ProgramUniformData<U32> uniformData;
 			uniformData.set(i);
 
-			segmentCreateShadowmap.pushCommand(uniformCmd, uniformData);
+			Graphics::FramebufferTextureCommand fbTexCmd;
+			fbTexCmd.set(fbo->getId(), GL_DEPTH_ATTACHMENT, m_shadowTextureIds[i], 0);
+
+			Graphics::ClearCommand clearCmd;
+			clearCmd.set(GL_DEPTH_BUFFER_BIT);
+
 			segmentCreateShadowmap.pushCommand(fbTexCmd);
+			segmentCreateShadowmap.pushCommand(clearCmd);
+			segmentCreateShadowmap.pushCommand(uniformCmd, uniformData);
 			segmentCreateShadowmap.pushCommand(drawCmd);
 		}
 
 		segments->push_back(segmentCreateShadowmap);
 	}
 
-	void ShadowRenderer::bindBuffers(gl::BufferBindingManager* bufferBindingManager)
+	void ShadowRenderer::clearData()
+	{
+	}
+
+	void ShadowRenderer::bindBuffers()
 	{
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
-		bufferBindingManager->bindBaseUniform(9, shadowTexBuffer->getId());
+		gl::BufferBindingManager::bindBaseUniform(9, shadowTexBuffer->getId());
+	}
+
+	const U32* ShadowRenderer::getTextureIds() const
+	{
+		return m_shadowTextureIds.get();
 	}
 }
