@@ -53,6 +53,11 @@ class EditorRenderAspect : public RenderAspect
 		vx::gl::DrawElementsIndirectCommand cmd;
 	};
 
+	struct SelectedLight
+	{
+
+	};
+
 	struct EditorColdData
 	{
 		vx::gl::Texture m_editorTextures;
@@ -156,6 +161,8 @@ public:
 	void updateInfluenceCellBuffer(const InfluenceMap &influenceMap);
 
 	void updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph);
+
+	void updateLightBuffer(const Light* lights, U32 count);
 
 	void showNavmesh(bool b);
 	void showInfluenceMap(bool b);

@@ -51,6 +51,7 @@ namespace LevelEditor
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importAssetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,6 +62,9 @@ namespace LevelEditor
             this.createToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createMeshInstanceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createLightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.itemShotNavmesh = new System.Windows.Forms.ToolStripMenuItem();
+            this.itemInfluenceMap = new System.Windows.Forms.ToolStripMenuItem();
             this.panel_render = new System.Windows.Forms.Panel();
             this.openFileDialog_importAsset = new System.Windows.Forms.OpenFileDialog();
             this.treeView_entities = new System.Windows.Forms.TreeView();
@@ -90,9 +94,13 @@ namespace LevelEditor
             this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBoxNavMesh = new System.Windows.Forms.GroupBox();
-            this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.itemShotNavmesh = new System.Windows.Forms.ToolStripMenuItem();
-            this.itemInfluenceMap = new System.Windows.Forms.ToolStripMenuItem();
+            this.groupBoxLight = new System.Windows.Forms.GroupBox();
+            this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
+            this.label5 = new System.Windows.Forms.Label();
+            this.numericUpDownLightX = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownLightY = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownLightZ = new System.Windows.Forms.NumericUpDown();
+            this.toolStripButtonCreateLight = new System.Windows.Forms.ToolStripButton();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_x)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_y)).BeginInit();
@@ -113,6 +121,11 @@ namespace LevelEditor
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionX)).BeginInit();
             this.flowLayoutPanel4.SuspendLayout();
             this.groupBoxNavMesh.SuspendLayout();
+            this.groupBoxLight.SuspendLayout();
+            this.flowLayoutPanel5.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightX)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightY)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightZ)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -199,6 +212,35 @@ namespace LevelEditor
             this.createLightToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.createLightToolStripMenuItem.Text = "Create Light";
             this.createLightToolStripMenuItem.Click += new System.EventHandler(this.createLightToolStripMenuItem_Click);
+            // 
+            // viewToolStripMenuItem
+            // 
+            this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.itemShotNavmesh,
+            this.itemInfluenceMap});
+            this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.viewToolStripMenuItem.Text = "View";
+            // 
+            // itemShotNavmesh
+            // 
+            this.itemShotNavmesh.Checked = true;
+            this.itemShotNavmesh.CheckOnClick = true;
+            this.itemShotNavmesh.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.itemShotNavmesh.Name = "itemShotNavmesh";
+            this.itemShotNavmesh.Size = new System.Drawing.Size(150, 22);
+            this.itemShotNavmesh.Text = "Navmesh";
+            this.itemShotNavmesh.Click += new System.EventHandler(this.itemShotNavmesh_Click);
+            // 
+            // itemInfluenceMap
+            // 
+            this.itemInfluenceMap.Checked = true;
+            this.itemInfluenceMap.CheckOnClick = true;
+            this.itemInfluenceMap.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.itemInfluenceMap.Name = "itemInfluenceMap";
+            this.itemInfluenceMap.Size = new System.Drawing.Size(150, 22);
+            this.itemInfluenceMap.Text = "Influence Map";
+            this.itemInfluenceMap.Click += new System.EventHandler(this.itemInfluenceMap_Click);
             // 
             // panel_render
             // 
@@ -495,7 +537,8 @@ namespace LevelEditor
             // toolStrip1
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.comboBox_selectEditorMode});
+            this.comboBox_selectEditorMode,
+            this.toolStripButtonCreateLight});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1904, 25);
@@ -584,7 +627,7 @@ namespace LevelEditor
             this.flowLayoutPanel4.Controls.Add(this.numericUpDownNavmeshPositionX);
             this.flowLayoutPanel4.Controls.Add(this.numericUpDownNavmeshPositionY);
             this.flowLayoutPanel4.Controls.Add(this.numericUpDownNavmeshPositionZ);
-            this.flowLayoutPanel4.Location = new System.Drawing.Point(12, 34);
+            this.flowLayoutPanel4.Location = new System.Drawing.Point(12, 19);
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
             this.flowLayoutPanel4.Size = new System.Drawing.Size(380, 28);
             this.flowLayoutPanel4.TabIndex = 15;
@@ -606,45 +649,117 @@ namespace LevelEditor
             this.groupBoxNavMesh.Controls.Add(this.flowLayoutPanel4);
             this.groupBoxNavMesh.Location = new System.Drawing.Point(1380, 760);
             this.groupBoxNavMesh.Name = "groupBoxNavMesh";
-            this.groupBoxNavMesh.Size = new System.Drawing.Size(398, 100);
+            this.groupBoxNavMesh.Size = new System.Drawing.Size(398, 59);
             this.groupBoxNavMesh.TabIndex = 16;
             this.groupBoxNavMesh.TabStop = false;
             this.groupBoxNavMesh.Text = "Navmesh";
             // 
-            // viewToolStripMenuItem
+            // groupBoxLight
             // 
-            this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.itemShotNavmesh,
-            this.itemInfluenceMap});
-            this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-            this.viewToolStripMenuItem.Text = "View";
+            this.groupBoxLight.Controls.Add(this.flowLayoutPanel5);
+            this.groupBoxLight.Location = new System.Drawing.Point(1380, 825);
+            this.groupBoxLight.Name = "groupBoxLight";
+            this.groupBoxLight.Size = new System.Drawing.Size(398, 59);
+            this.groupBoxLight.TabIndex = 17;
+            this.groupBoxLight.TabStop = false;
+            this.groupBoxLight.Text = "Lights";
             // 
-            // itemShotNavmesh
+            // flowLayoutPanel5
             // 
-            this.itemShotNavmesh.Checked = true;
-            this.itemShotNavmesh.CheckOnClick = true;
-            this.itemShotNavmesh.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.itemShotNavmesh.Name = "itemShotNavmesh";
-            this.itemShotNavmesh.Size = new System.Drawing.Size(152, 22);
-            this.itemShotNavmesh.Text = "Navmesh";
-            this.itemShotNavmesh.Click += new System.EventHandler(this.itemShotNavmesh_Click);
+            this.flowLayoutPanel5.Controls.Add(this.label5);
+            this.flowLayoutPanel5.Controls.Add(this.numericUpDownLightX);
+            this.flowLayoutPanel5.Controls.Add(this.numericUpDownLightY);
+            this.flowLayoutPanel5.Controls.Add(this.numericUpDownLightZ);
+            this.flowLayoutPanel5.Location = new System.Drawing.Point(12, 19);
+            this.flowLayoutPanel5.Name = "flowLayoutPanel5";
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(380, 28);
+            this.flowLayoutPanel5.TabIndex = 15;
             // 
-            // itemInfluenceMap
+            // label5
             // 
-            this.itemInfluenceMap.Checked = true;
-            this.itemInfluenceMap.CheckOnClick = true;
-            this.itemInfluenceMap.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.itemInfluenceMap.Name = "itemInfluenceMap";
-            this.itemInfluenceMap.Size = new System.Drawing.Size(152, 22);
-            this.itemInfluenceMap.Text = "Influence Map";
-            this.itemInfluenceMap.Click += new System.EventHandler(this.itemInfluenceMap_Click);
+            this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(3, 0);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(44, 26);
+            this.label5.TabIndex = 16;
+            this.label5.Text = "Position";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // numericUpDownLightX
+            // 
+            this.numericUpDownLightX.DecimalPlaces = 4;
+            this.numericUpDownLightX.Location = new System.Drawing.Point(53, 3);
+            this.numericUpDownLightX.Maximum = new decimal(new int[] {
+            50000,
+            0,
+            0,
+            0});
+            this.numericUpDownLightX.Minimum = new decimal(new int[] {
+            50000,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownLightX.Name = "numericUpDownLightX";
+            this.numericUpDownLightX.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownLightX.TabIndex = 12;
+            this.numericUpDownLightX.ValueChanged += new System.EventHandler(this.numericUpDownLightX_ValueChanged);
+            // 
+            // numericUpDownLightY
+            // 
+            this.numericUpDownLightY.DecimalPlaces = 4;
+            this.numericUpDownLightY.Location = new System.Drawing.Point(159, 3);
+            this.numericUpDownLightY.Maximum = new decimal(new int[] {
+            50000,
+            0,
+            0,
+            0});
+            this.numericUpDownLightY.Minimum = new decimal(new int[] {
+            50000,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownLightY.Name = "numericUpDownLightY";
+            this.numericUpDownLightY.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownLightY.TabIndex = 13;
+            this.numericUpDownLightY.ValueChanged += new System.EventHandler(this.numericUpDownLightY_ValueChanged);
+            // 
+            // numericUpDownLightZ
+            // 
+            this.numericUpDownLightZ.DecimalPlaces = 4;
+            this.numericUpDownLightZ.Location = new System.Drawing.Point(265, 3);
+            this.numericUpDownLightZ.Maximum = new decimal(new int[] {
+            50000,
+            0,
+            0,
+            0});
+            this.numericUpDownLightZ.Minimum = new decimal(new int[] {
+            50000,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownLightZ.Name = "numericUpDownLightZ";
+            this.numericUpDownLightZ.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownLightZ.TabIndex = 14;
+            this.numericUpDownLightZ.ValueChanged += new System.EventHandler(this.numericUpDownLightZ_ValueChanged);
+            // 
+            // toolStripButtonCreateLight
+            // 
+            this.toolStripButtonCreateLight.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonCreateLight.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCreateLight.Image")));
+            this.toolStripButtonCreateLight.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonCreateLight.Name = "toolStripButtonCreateLight";
+            this.toolStripButtonCreateLight.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonCreateLight.Text = "toolStripButton1";
+            this.toolStripButtonCreateLight.Click += new System.EventHandler(this.toolStripButtonCreateLight_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1904, 1041);
+            this.Controls.Add(this.groupBoxLight);
             this.Controls.Add(this.groupBoxNavMesh);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.groupBoxMesh);
@@ -685,6 +800,12 @@ namespace LevelEditor
             this.flowLayoutPanel4.ResumeLayout(false);
             this.flowLayoutPanel4.PerformLayout();
             this.groupBoxNavMesh.ResumeLayout(false);
+            this.groupBoxLight.ResumeLayout(false);
+            this.flowLayoutPanel5.ResumeLayout(false);
+            this.flowLayoutPanel5.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightX)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightY)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightZ)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -734,6 +855,13 @@ namespace LevelEditor
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem itemShotNavmesh;
         private System.Windows.Forms.ToolStripMenuItem itemInfluenceMap;
+        private System.Windows.Forms.GroupBox groupBoxLight;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.NumericUpDown numericUpDownLightX;
+        private System.Windows.Forms.NumericUpDown numericUpDownLightY;
+        private System.Windows.Forms.NumericUpDown numericUpDownLightZ;
+        private System.Windows.Forms.ToolStripButton toolStripButtonCreateLight;
     }
 }
 

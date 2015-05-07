@@ -46,7 +46,7 @@ void PlayerController::updatePlayerHuman(EntityActor* pPlayer, EntityAspect &ent
 	//auto physComp = entityAspect.getComponentPhysics(pPlayer->physics);
 
 	__m128 quaternionRotation = { pPlayer->orientation.y, pPlayer->orientation.x, 0, 0 };
-	quaternionRotation = vx::QuaternionRotationRollPitchYawFromVector(quaternionRotation);
+	quaternionRotation = vx::quaternionRotationRollPitchYawFromVector(quaternionRotation);
 
 	RenderUpdateCameraData data;
 	data.position = vx::loadFloat(pPlayer->position);
@@ -73,12 +73,12 @@ void PlayerController::handleKeyboard(EntityActor* pPlayer, const vx::Keyboard &
 	auto &input = entityAspect.getComponentInput(pPlayer->input);
 
 	__m128 v = { 0, input.orientation.x, 0, 0 };
-	v = vx::QuaternionRotationRollPitchYawFromVector(v);
+	v = vx::quaternionRotationRollPitchYawFromVector(v);
 
 	// first get movement direction
 	__m128 vVelocity = { x_axis, 0, z_axis, 0 };
 	// rotate movement direction
-	vVelocity = vx::Vector3Rotate(vVelocity, v);
+	vVelocity = vx::quaternionRotation(vVelocity, v);
 	// multiply with max velocity
 	vVelocity = _mm_mul_ps(vVelocity, g_vMoveVelocity);
 

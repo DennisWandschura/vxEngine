@@ -29,18 +29,20 @@ using System.Threading.Tasks;
 
 namespace LevelEditor
 {
-    class ConditionEditorStateEditMesh : Condition
+    class ConditionEditorState : Condition
     {
         Form1 m_editorForm;
+        EditorState m_state;
 
-        public ConditionEditorStateEditMesh(Form1 editorForm)
+        public ConditionEditorState(Form1 editorForm, EditorState state)
         {
             m_editorForm = editorForm;
+            m_state = state;
         }
 
         public override bool test()
         {
-            if (m_editorForm.getEditorState() == EditorState.EditMesh)
+            if (m_editorForm.getEditorState() == m_state)
             {
                 return true;
             }

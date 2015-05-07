@@ -147,7 +147,11 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 	NavMesh navMesh;
 	sceneFile.m_navMesh.copyTo(&navMesh);
 
+#if _VX_EDITOR
+	auto pLights = std::vector<Light>(sceneFile.m_lightCount);
+#else
 	auto pLights = std::make_unique<Light[]>(sceneFile.m_lightCount);
+#endif
 	for (U32 i = 0; i < sceneFile.m_lightCount; ++i)
 	{
 		pLights[i] = sceneFile.m_pLights[i];

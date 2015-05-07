@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Action.cs" />
+    <Compile Include="ActionCallFunction.cs" />
     <Compile Include="ActionConsole.cs" />
     <Compile Include="ActionCreateNavMeshTriangle.cs" />
     <Compile Include="ActionCreateNavMeshVertex.cs" />
@@ -99,8 +100,7 @@
     <Compile Include="ActionSelectMesh.cs" />
     <Compile Include="ActionSelectNavMesh.cs" />
     <Compile Include="Condition.cs" />
-    <Compile Include="ConditionEditorStateEditMesh.cs" />
-    <Compile Include="ConditionEditorStateEditNavMesh.cs" />
+    <Compile Include="ConditionEditorState.cs" />
     <Compile Include="CreateMeshInstanceForm.cs">
       <SubType>Form</SubType>
     </Compile>

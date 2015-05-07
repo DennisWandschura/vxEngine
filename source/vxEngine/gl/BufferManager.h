@@ -21,34 +21,38 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "BufferBindingManager.h"
-#include <vxLib/gl/gl.h>
+#pragma once
 
-BufferBindingManager::Binding BufferBindingManager::s_uniformBindings[s_maxBindings]{};
-BufferBindingManager::Binding BufferBindingManager::s_shaderStorageBindings[s_maxBindings]{};
-
-void BufferBindingManager::bindBaseUniform(U32 index, U32 bufferId)
+namespace vx
 {
-	if (index >= s_maxBindings)
-		return;
-
-	auto current = s_uniformBindings[index];
-	if (current.bufferId != bufferId)
+	namespace gl
 	{
-		glBindBufferBase(GL_UNIFORM_BUFFER, index, bufferId);
-		s_uniformBindings[index].bufferId = bufferId;
+		class Buffer;
+		struct BufferDescription;
 	}
+
+	class StackAllocator;
 }
 
-void BufferBindingManager::bindBaseShaderStorage(U32 index, U32 bufferId)
-{
-	if (index >= s_maxBindings)
-		return;
+#include <vxLib/Container/sorted_array.h>
+#include <vxLib/StringID.h>
 
-	auto current = s_shaderStorageBindings[index];
-	if (current.bufferId != bufferId)
+namespace gl
+{
+	class BufferManager
 	{
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, bufferId);
-		s_shaderStorageBindings[index].bufferId = bufferId;
-	}
+		vx::sorted_array<vx::StringID, vx::gl::Buffer> m_buffers;
+
+	public:
+		BufferManager();
+		~BufferManager();
+
+		void initialize(U32 maxBufferCount, vx::StackAllocator* allocator);
+		void shutdown();
+
+		vx::StringID createBuffer(const char* key, const vx::gl::BufferDescription &desc);
+
+		vx::gl::Buffer* getBuffer(const vx::StringID &sid) const;
+		vx::gl::Buffer* getBuffer(const char* buffer) const;
+	};
 }

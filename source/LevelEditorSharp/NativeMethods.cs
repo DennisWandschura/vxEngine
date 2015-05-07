@@ -113,10 +113,26 @@ namespace LevelEditor
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void updateSelectedMeshInstanceTransform(ref Float3 translation);
 
-         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void showNavmesh(bool b);
 
-         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-         public unsafe static extern void showInfluenceMap(bool b);
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void showInfluenceMap(bool b);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void createLight();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern bool selectLight(int x, int y);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void deselectLight();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void getSelectLightPosition(ref Float3 position);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setSelectLightPosition(ref Float3 position);
+
     }
 }

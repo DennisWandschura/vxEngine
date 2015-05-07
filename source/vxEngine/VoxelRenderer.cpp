@@ -28,10 +28,10 @@ SOFTWARE.
 #include <vxLib/gl/ShaderManager.h>
 #include <vxLib/gl/gl.h>
 #include "GpuStructs.h"
-#include "BufferBindingManager.h"
-#include "BufferManager.h"
+#include "gl/BufferBindingManager.h"
+#include "gl/ObjectManager.h"
 
-void VoxelRenderer::initialize(U16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, BufferManager* bufferManager)
+void VoxelRenderer::initialize(U16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager)
 {
 	m_voxelTextureSize = voxelTextureSize;
 	m_mipcount = std::log2(m_voxelTextureSize);
@@ -44,20 +44,20 @@ void VoxelRenderer::initialize(U16 voxelTextureSize, const vx::gl::ShaderManager
 	createVoxelTextures();
 	createFrameBuffer();
 
-	createVoxelBuffer(bufferManager);
-	createVoxelTextureBuffer(bufferManager);
+	createVoxelBuffer(objectManager);
+	createVoxelTextureBuffer(objectManager);
 }
 
-void VoxelRenderer::createVoxelBuffer(BufferManager* bufferManager)
+void VoxelRenderer::createVoxelBuffer(gl::ObjectManager* objectManager)
 {
 	const __m128 axisX = { 1, 0, 0, 0 };
 	const __m128 axisY = { 0, 1, 0, 0 };
 
 	const U32 halfDim = m_voxelTextureSize / 2;
 
-	F32 gridSize = 10.0f;
+	const F32 gridSize = 10.0f;
 
-	F32 gridHalfSize = gridSize / 2.0f;
+	const F32 gridHalfSize = gridSize / 2.0f;
 	auto gridCellSize = gridHalfSize / halfDim;
 	auto invGridCellSize = 1.0f / gridCellSize;
 
@@ -78,10 +78,10 @@ void VoxelRenderer::createVoxelBuffer(BufferManager* bufferManager)
 	desc.immutable = 1;
 	desc.pData = &voxelBlock;
 
-	bufferManager->createBuffer("VoxelBuffer", desc);
+	objectManager->createBuffer("VoxelBuffer", desc);
 }
 
-void VoxelRenderer::createVoxelTextureBuffer(BufferManager* bufferManager)
+void VoxelRenderer::createVoxelTextureBuffer(gl::ObjectManager* objectManager)
 {
 	struct VoxelHandles
 	{
@@ -109,7 +109,7 @@ void VoxelRenderer::createVoxelTextureBuffer(BufferManager* bufferManager)
 	desc.immutable = 1;
 	desc.pData = &voxelHandles;
 
-	bufferManager->createBuffer("VoxelTextureBuffer", desc);
+	objectManager->createBuffer("VoxelTextureBuffer", desc);
 }
 
 void VoxelRenderer::createVoxelTextures()
@@ -152,13 +152,13 @@ void VoxelRenderer::createFrameBuffer()
 	glNamedFramebufferDrawBuffer(m_voxelFB.getId(), GL_COLOR_ATTACHMENT0);
 }
 
-void VoxelRenderer::bindBuffers(const BufferManager &bufferManager)
+void VoxelRenderer::bindBuffers(const gl::ObjectManager &objectManager)
 {
-	auto pVoxelBuffer = bufferManager.getBuffer("VoxelBuffer");
-	auto pVoxelTextureBuffer = bufferManager.getBuffer("VoxelTextureBuffer");
+	auto pVoxelBuffer = objectManager.getBuffer("VoxelBuffer");
+	auto pVoxelTextureBuffer = objectManager.getBuffer("VoxelTextureBuffer");
 
-	BufferBindingManager::bindBaseUniform(6, pVoxelBuffer->getId());
-	BufferBindingManager::bindBaseUniform(7, pVoxelTextureBuffer->getId());
+	gl::BufferBindingManager::bindBaseUniform(6, pVoxelBuffer->getId());
+	gl::BufferBindingManager::bindBaseUniform(7, pVoxelTextureBuffer->getId());
 }
 
 void VoxelRenderer::clearTextures()

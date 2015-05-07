@@ -387,9 +387,11 @@ void Profiler2::update(F32 dt)
 
 		F32 textureSlice = m_pFont->getTextureEntry().getSlice();
 		auto textureSize = m_pFont->getTextureEntry().getTextureSize();
-		vx::float2a invTextureSize = 1.0f / static_cast<vx::float2a>(textureSize);//vx::float2(1.0f / textureSize.x, 1.0f / textureSize.y);
-		__m128 vInvTexSize = vx::loadFloat(invTextureSize);
-		vInvTexSize = _mm_shuffle_ps(vInvTexSize, vInvTexSize, _MM_SHUFFLE(1, 0, 1, 0));
+		vx::float4a invTextureSize;
+		invTextureSize.x = 1.0f / textureSize.x;
+		invTextureSize.y = 1.0f / textureSize.y;
+
+		auto vInvTexSize = _mm_shuffle_ps(invTextureSize.v, invTextureSize.v, _MM_SHUFFLE(1, 0, 1, 0));
 
 		vx::uint2 bufferIndex = { 0, 0 };
 		vx::float2 position = s_position;

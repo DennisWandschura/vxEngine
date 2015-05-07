@@ -379,7 +379,8 @@ U32 InfluenceMap::getCellCount() const
 
 I32 InfluenceMap::getClosestCellIndex_nocheck(const vx::float3 &position) const
 {
-	vx::int3 cellPos = vx::fma((position - m_center), m_invGridCellSize, m_voxelHalfDim);
+	auto tmp = (position - m_center);
+	vx::int3 cellPos = tmp * m_invGridCellSize + m_voxelHalfDim;
 
 	return cellPos.x + m_cellCount.x * (cellPos.y + m_cellCount.y * cellPos.z);
 }

@@ -34,7 +34,10 @@ namespace vx
 	}
 }
 
-class BufferManager;
+namespace gl
+{
+	class ObjectManager;
+}
 
 #include <vxLib/gl/Framebuffer.h>
 #include <vxLib/gl/Texture.h>
@@ -61,17 +64,17 @@ class VoxelRenderer
 
 	std::unique_ptr<ColdData> m_pColdData;
 
-	void createVoxelBuffer( BufferManager* bufferManager);
-	void createVoxelTextureBuffer(BufferManager* bufferManager);
+	void createVoxelBuffer(gl::ObjectManager* objectManager);
+	void createVoxelTextureBuffer(gl::ObjectManager* objectManager);
 	void createVoxelTextures();
 	void createFrameBuffer();
 
 public:
 	VoxelRenderer() = default;
 
-	void initialize(U16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, BufferManager* bufferManager);
+	void initialize(U16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager);
 
-	void bindBuffers(const BufferManager &bufferManager);
+	void bindBuffers(const gl::ObjectManager &objectManager);
 
 	void clearTextures();
 	void voxelizeScene(U32 count, const vx::gl::Buffer &indirectCmdBuffer, const vx::gl::VertexArray &vao);

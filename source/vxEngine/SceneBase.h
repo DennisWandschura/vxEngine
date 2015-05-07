@@ -43,7 +43,11 @@ namespace vx
 
 struct SceneBaseParams
 {
+#if _VX_EDITOR
+	std::vector<Light> m_pLights;
+#else
 	std::unique_ptr<Light[]> m_pLights;
+#endif
 	vx::sorted_vector<vx::StringID, Material*> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::Mesh*> m_meshes;
 	std::unique_ptr<Spawn[]> m_pSpawns;
@@ -60,7 +64,11 @@ struct SceneBaseParams
 class SceneBase
 {
 protected:
+#if _VX_EDITOR
+	std::vector<Light> m_pLights;
+#else
 	std::unique_ptr<Light[]> m_pLights;
+#endif
 	vx::sorted_vector<vx::StringID, Material*> m_materials{};
 	vx::sorted_vector<vx::StringID, const vx::Mesh*> m_meshes{};
 	std::unique_ptr<Spawn[]> m_pSpawns;

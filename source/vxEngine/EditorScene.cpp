@@ -50,21 +50,7 @@ EditorScene::EditorScene(EditorSceneParams &&params)
 	m_meshNames(std::move(params.m_meshNames)),
 	m_actorNames(std::move(params.m_actorNames))
 {
-	m_selectableLights.reserve(m_lightCount);
-	for (U32 i = 0; i < m_lightCount; ++i)
-	{
-		auto &light = m_pLights[i];
-
-		AABB bounds;
-		bounds.max = light.m_position + vx::float3(0.1f);
-		bounds.min = light.m_position - vx::float3(0.1f);
-
-		SelectableWrapper<Light> selectLight;
-		selectLight.m_bounds = bounds;
-		selectLight.m_ptr = &light;
-
-		m_selectableLights.push_back(selectLight);
-	}
+	buildSelectableLights();
 
 	m_selectableSpawns.reserve(m_spawnCount);
 	for (U32 i = 0; i < m_spawnCount; ++i)
@@ -105,12 +91,46 @@ EditorScene& EditorScene::operator = (EditorScene &&rhs)
 	return *this;
 }
 
+void EditorScene::buildSelectableLights()
+{
+	m_selectableLights.clear();
+	m_selectableLights.reserve(m_lightCount);
+	for (U32 i = 0; i < m_lightCount; ++i)
+	{
+		auto &light = m_pLights[i];
+
+		AABB bounds;
+		bounds.max = light.m_position + vx::float3(0.1f);
+		bounds.min = light.m_position - vx::float3(0.1f);
+
+		SelectableWrapper<Light> selectLight;
+		selectLight.m_bounds = bounds;
+		selectLight.m_ptr = &light;
+
+		m_selectableLights.push_back(selectLight);
+	}
+}
+
 void EditorScene::sortMeshInstances()
 {
 	std::sort(m_meshInstances.begin(), m_meshInstances.end(), [&](const MeshInstance &lhs, const MeshInstance &rhs)
 	{
 		return (lhs.getMeshSid() < rhs.getMeshSid());
 	});
+}
+
+Light* EditorScene::addLight(const Light &light)
+{
+#if _VX_EDITOR
+	m_pLights.push_back(light);
+	++m_lightCount;
+
+	buildSelectableLights();
+
+	return &m_pLights.back();
+#else
+	return nullptr;
+#endif
 }
 
 U8 EditorScene::addMesh(vx::StringID sid, const char* name, const vx::Mesh* pMesh)
@@ -247,4 +267,18 @@ Light* EditorScene::getLight(const Ray &ray)
 	}
 
 	return result;
+}
+
+void EditorScene::updateLightPositions()
+{
+	for (U32 i = 0; i < m_lightCount; ++i)
+	{
+		auto &light = m_pLights[i];
+
+		AABB bounds;
+		bounds.max = light.m_position + vx::float3(0.1f);
+		bounds.min = light.m_position - vx::float3(0.1f);
+
+		m_selectableLights[i].m_bounds = bounds;
+	}
 }

@@ -40,4 +40,6 @@ public:
 
 	void bindBuffer();
 	void updateLightDataBuffer(const Light* lights, U32 count);
+
+	U32 getLightCount() const { return m_lightCount; }
 };

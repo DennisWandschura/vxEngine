@@ -323,7 +323,7 @@ void EntityAspect::updateActorTransforms()
 		//auto physics = m_poolPhysics[entity.physics];
 
 		__m128 v = { entity.orientation.y, entity.orientation.x, 0, 0 };
-		v = vx::QuaternionRotationRollPitchYawFromVector(v);
+		v = vx::quaternionRotationRollPitchYawFromVector(v);
 		auto packedRotation = GpuFunctions::packQRotation(v);
 
 		vx::TransformGpu transform;

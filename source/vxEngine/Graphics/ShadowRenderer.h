@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,49 +23,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-struct RenderSettings;
-
-namespace gl
-{
-	class ObjectManager;
-	class BufferBindingManager;
-}
-
-namespace vx
-{
-	namespace gl
-	{
-		class  ShaderManager;
-	}
-}
-
-#include <vector>
-#include <vxLib/types.h>
+#include "Renderer.h"
+#include <memory>
 
 namespace Graphics
 {
-	class Segment;
-
-	class Renderer
+	class ShadowRenderer : public Renderer
 	{
-	protected:
-		static vx::gl::ShaderManager* s_shaderManager;
-		static gl::ObjectManager* s_objectManager;
-		static RenderSettings* s_settings;
+		std::unique_ptr<U32[]> m_shadowTextureIds;
+
+		void createShadowTextureBuffer();
+		void createShadowTextures();
 
 	public:
-		virtual ~Renderer(){}
+		ShadowRenderer();
+		~ShadowRenderer();
 
-		virtual void initialize() = 0;
+		void initialize() override;
 
-		virtual void update() = 0;
+		void update() override;
 
-		virtual void getSegments(std::vector<Segment>* segments) = 0;
+		void getSegments(std::vector<Segment>* segments) override;
 
-		virtual void bindBuffers(gl::BufferBindingManager* bufferBindingManager) = 0;
-
-		static void provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, RenderSettings* settings);
+		void bindBuffers(gl::BufferBindingManager* bufferBindingManager) override;
 	};
 }

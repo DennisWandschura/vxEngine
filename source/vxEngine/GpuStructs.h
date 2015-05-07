@@ -70,6 +70,22 @@ struct ShadowTransformBlock
 	PointLightShadowTransform transforms[5];
 };
 
+struct UniformTextureBufferBlock
+{
+	U64 u_albedoSlice;
+	U64 u_normalSlice;
+	U64 u_surfaceSlice;
+	U64 u_tangentSlice;
+	U64 u_depthSlice;
+	U64 u_aabbTexture;
+	U64 u_ambientSlice;
+};
+
+struct UniformShadowTextureBufferBlock
+{
+	U64 u_shadowTextures[5];
+};
+
 struct LightDataBlock
 {
 	LightData u_lightData[5];

@@ -26,4 +26,13 @@ SOFTWARE.
 namespace Graphics
 {
 	vx::gl::ShaderManager* Renderer::s_shaderManager{nullptr};
+	gl::ObjectManager* Renderer::s_objectManager{nullptr};
+	RenderSettings* Renderer::s_settings{nullptr};
+
+	void Renderer::provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, RenderSettings* settings)
+	{
+		s_shaderManager = shaderManager;
+		s_objectManager = objectManager;
+		s_settings = settings;
+	}
 }

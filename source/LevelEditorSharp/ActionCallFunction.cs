@@ -1,4 +1,4 @@
-/*
+﻿/*
 The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
@@ -21,24 +21,56 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/types.h>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-class BufferBindingManager
+namespace LevelEditor
 {
-	static const U8 s_maxBindings = 255;
+    class ActionCallFunction : Action
+    {
+        public delegate void ActionCallFunctionProc();
 
-	struct Binding
-	{
-		U32 index;
-		U32 bufferId;
-	};
+        ActionCallFunctionProc fun;
 
-	static Binding s_uniformBindings[s_maxBindings];
-	static Binding s_shaderStorageBindings[s_maxBindings];
+        public ActionCallFunction(ActionCallFunctionProc fn)
+        {
+            fun = fn;
+        }
 
-public:
-	static void bindBaseUniform(U32 index, U32 bufferId);
-	static void bindBaseShaderStorage(U32 index, U32 bufferId);
-};
+        public override void run()
+        {
+            fun();
+        }
+
+        public override bool isComplete()
+        {
+            return true;
+        }
+    }
+
+    class ActionCallFunctionReturnBool : Action
+    {
+        public delegate bool ActionCallFunctionProc();
+
+        ActionCallFunctionProc fun;
+
+        public ActionCallFunctionReturnBool(ActionCallFunctionProc fn)
+        {
+            fun = fn;
+        }
+
+        public override void run()
+        {
+            fun();
+        }
+
+        public override bool isComplete()
+        {
+            return true;
+        }
+    }
+}

@@ -29,6 +29,8 @@ SOFTWARE.
 #include <vxLib/gl/ProgramPipeline.h>
 #include "Commands.h"
 #include <vxLib/gl/gl.h>
+#include "../gl/ObjectManager.h"
+#include "../RenderSettings.h"
 
 namespace Graphics
 {
@@ -65,18 +67,14 @@ namespace Graphics
 		VertexPNTUV::create(&m_vao, &m_vbo, s_maxVertices, 0, attributeOffset);
 	}
 
-	void StaticMeshRenderer::bindMeshDrawIdVboToVao()
+	void StaticMeshRenderer::bindBuffersToVao()
 	{
 		m_vao.enableArrayAttrib(4);
 		m_vao.arrayAttribFormatI(4, 1, vx::gl::DataType::Unsigned_Int, 0);
 		m_vao.arrayAttribBinding(4, 1);
 		m_vao.arrayBindingDivisor(1, 1);
 		m_vao.bindVertexBuffer(m_idVbo, 1, 0, sizeof(U32));
-	}
 
-	void StaticMeshRenderer::bindBuffersToVao()
-	{
-		bindMeshDrawIdVboToVao();
 		m_vao.bindIndexBuffer(m_ibo);
 	}
 
@@ -96,37 +94,27 @@ namespace Graphics
 
 	Segment StaticMeshRenderer::createSegmentGBuffer()
 	{
-		/*vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-		vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-
-		vx::gl::StateManager::bindFrameBuffer(m_gbufferFB);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		auto pPipeline = m_shaderManager.getPipeline("create_gbuffer.pipe");
-		vx::gl::StateManager::bindPipeline(pPipeline->getId());
-
-		vx::gl::StateManager::bindVertexArray(vao);
-
-		cmdBuffer.bind();
-		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));*/
-
 		auto pPipeline = s_shaderManager->getPipeline("create_gbuffer.pipe");
+		auto fbo = s_objectManager->getFramebuffer("gbufferFb");
+
+		StateDescription desc;
+		desc.fbo = fbo->getId();
+		desc.vao = m_vao.getId();
+		desc.pipeline = pPipeline->getId();
+		desc.indirectBuffer = m_indirectCmdBuffer.getId();
+		desc.paramBuffer = m_drawCountBuffer.getId();
 
 		State state;
-		//state.set(, m_vao.getId(), pPipeline->getId(), m_indirectCmdBuffer.getId(), m_drawCountBuffer.getId());
-		state.setBlendState(false);
-		state.setDepthTest(true);
+		state.set(desc);
 
-		ClearColorCommand clearColorCommand;
-		clearColorCommand.set(vx::float4(0.0f));
+		ViewportCommand viewportCmd;
+		viewportCmd.set(vx::uint2(0), s_settings->m_resolution);
 
 		MultiDrawElementsIndirectCountCommand drawCmd;
 		drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT, s_maxMeshInstanceCount);
 
 		Segment segment;
-		segment.setState(state);
-		segment.pushCommand(clearColorCommand);
+		segment.pushCommand(viewportCmd);
 		segment.pushCommand(drawCmd);
 
 		return segment;
@@ -134,6 +122,6 @@ namespace Graphics
 
 	void StaticMeshRenderer::getSegments(std::vector<Segment>* segments)
 	{
-
+		auto segmentCreateGbuffer = createSegmentGBuffer();
 	}
 }

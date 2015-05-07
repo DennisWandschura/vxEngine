@@ -38,13 +38,14 @@ class GpuProfiler;
 #include "VoxelRenderer.h"
 #include "Font.h"
 #include "RenderUpdateTask.h"
-#include "BufferManager.h"
+#include "gl/ObjectManager.h"
 #include <vxLib/gl/ShaderManager.h>
 #include <mutex>
 #include <vector>
 #include "RenderCommandFinalImage.h"
 #include "RenderStage.h"
 #include "CapabilityManager.h"
+#include "RenderSettings.h"
 
 class VX_ALIGN(64) RenderAspect : public EventListener
 {
@@ -53,6 +54,7 @@ class VX_ALIGN(64) RenderAspect : public EventListener
 protected:
 	struct ColdData
 	{
+		RenderSettings m_settings;
 		vx::gl::Texture m_gbufferDepthTexture;
 		// albedoSlice : rgb8
 		vx::gl::Texture m_gbufferAlbedoSlice;
@@ -65,7 +67,7 @@ protected:
 		vx::gl::Texture m_aabbTexture;
 		vx::gl::Buffer m_screenshotBuffer;
 
-		vx::gl::Texture m_shadowTexture;
+		vx::gl::Texture m_shadowTexture[5];
 		vx::gl::Texture m_ambientColorTexture;
 		vx::gl::Texture m_ambientColorBlurTexture[2];
 		// contains index into texture array sorted by texture handle
@@ -102,7 +104,7 @@ protected:
 	vx::StackAllocator m_allocator;
 
 	Scene* m_pScene{nullptr};
-	BufferManager m_bufferManager;
+	gl::ObjectManager m_objectManager;
 	std::unique_ptr<ColdData> m_pColdData;
 
 	bool createBuffers();
@@ -129,8 +131,6 @@ protected:
 
 	void voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count);
 	void voxelDebug();
-
-	void createShadowMap(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count);
 
 	void createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count);
 

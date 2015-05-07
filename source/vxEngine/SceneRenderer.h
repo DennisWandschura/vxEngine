@@ -24,12 +24,16 @@ SOFTWARE.
 #pragma once
 
 class Scene;
-class BufferManager;
 class Material;
 class MeshInstance;
 struct VertexPNTUV;
 class GpuProfiler;
 class Font;
+
+namespace gl
+{
+	class ObjectManager;
+}
 
 namespace vx
 {
@@ -101,7 +105,7 @@ class SceneRenderer
 	U32 m_meshInstancesCountTotal{ 0 };
 	std::unique_ptr<ColdData> m_coldData;
 
-	void createTextures(BufferManager* pBufferManager);
+	void createTextures(gl::ObjectManager* objectManager);
 	void createMeshDrawIdVbo();
 	void createMeshIbo();
 	void bindMeshDrawIdVboToVao(vx::gl::VertexArray* vao);
@@ -120,21 +124,21 @@ class SceneRenderer
 	void writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, U32 index, U32 elementId, vx::gl::DrawElementsIndirectCommand* cmd);
 
 	void updateMeshBuffer(const vx::sorted_vector<vx::StringID, const vx::Mesh*> &meshes);
-	void updateLightBuffer(const Light *pLights, U32 numLights, const BufferManager &bufferManager);
+	void updateLightBuffer(const Light *pLights, U32 numLights, const gl::ObjectManager &objectManager);
 	void updateBuffers(const MeshInstance *pInstances, U32 instanceCount, const vx::sorted_vector<const Material*, U32> &materialIndices, const vx::sorted_vector<vx::StringID, MeshEntry> &meshEntries);
 
 public:
 	SceneRenderer();
 	~SceneRenderer();
 
-	void initialize(U32 maxLightCount, BufferManager* pBufferManager, vx::StackAllocator *pAllocator);
+	void initialize(U32 maxLightCount, gl::ObjectManager* objectManager, vx::StackAllocator *pAllocator);
 	bool initializeProfiler(const Font &font, U64 fontTextureHandle,const vx::uint2 &resolution, const vx::gl::ShaderManager &shaderManager, GpuProfiler* gpuProfiler, vx::StackAllocator *pAllocator);
 
 	void bindTransformBuffer();
 	void bindMaterialBuffer();
 	void bindBuffers();
 
-	void loadScene(const Scene &scene, const BufferManager &bufferManager);
+	void loadScene(const Scene &scene, const gl::ObjectManager &objectManager);
 	TextureRef loadTexture(const char* file);
 
 	U16 getActorGpuIndex();
@@ -147,4 +151,7 @@ public:
 	U16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene);
 	void updateTransform(const vx::Transform &t, U32 elementId);
 	void updateTransform(const vx::TransformGpu &t, U32 elementId);
+	void updateLights(const Light* lights, U32 count);
+
+	U32 getLightCount() const;
 };

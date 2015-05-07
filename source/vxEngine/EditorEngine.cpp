@@ -32,6 +32,7 @@ SOFTWARE.
 #include "Ray.h"
 #include "EditorScene.h"
 #include "NavMeshGraph.h"
+#include "Light.h"
 
 U32 EditorEngine::s_editorTypeMesh{ -1 };
 U32 EditorEngine::s_editorTypeMaterial{ -1 };
@@ -310,7 +311,7 @@ void EditorEngine::editor_rotateCamera(F32 dirX, F32 dirY, F32 dirZ)
 	y += dirY * 0.01f;
 
 	vx::float4a rot(y, x, 0, 0);
-	auto v = vx::QuaternionRotationRollPitchYawFromVector(rot);
+	auto v = vx::quaternionRotationRollPitchYawFromVector(rot);
 
 	m_renderAspect.editor_rotateCamera(v);
 }
@@ -347,7 +348,7 @@ vx::float4a EditorEngine::getRayDir(I32 mouseX, I32 mouseY)
 	m_renderAspect.getCamera().getViewMatrix(viewMatrix);
 	auto inverseViewMatrix = vx::MatrixInverse(viewMatrix);
 	vx::float4a ray_world = vx::Vector4Transform(inverseViewMatrix, ray_eye);
-	ray_world = vx::Vector3Normalize(ray_world);
+	ray_world = vx::normalize3(ray_world);
 
 	return ray_world;
 }
@@ -558,6 +559,25 @@ vx::float3 EditorEngine::getSelectedNavMeshVertexPosition() const
 	return result;
 }
 
+void EditorEngine::createLight()
+{
+	if (m_pEditorScene)
+	{
+		Light light;
+		light.m_position = vx::float3(0);
+		light.m_falloff = 5.0f;
+		light.m_lumen = 100.0f;
+
+		m_selected.m_item = m_pEditorScene->addLight(light);
+		m_selected.m_type = SelectedType::Light;
+
+		auto lightCount = m_pEditorScene->getLightCount();
+		auto lights = m_pEditorScene->getLights();
+
+		m_renderAspect.updateLightBuffer(lights, lightCount);
+	}
+}
+
 bool EditorEngine::selectLight(I32 mouseX, I32 mouseY)
 {
 	bool result = false;
@@ -566,10 +586,56 @@ bool EditorEngine::selectLight(I32 mouseX, I32 mouseY)
 		auto ray = getRay(mouseX, mouseY);
 		auto selectedLight = m_pEditorScene->getLight(ray);
 
+		if (selectedLight)
+		{
+			m_selected.m_type = SelectedType::Light;
+			m_selected.m_item = selectedLight;
+		}
+
 		result = (selectedLight != nullptr);
 	}
 
 	return result;
+}
+
+void EditorEngine::deselectLight()
+{
+	if (m_pEditorScene)
+	{
+		if (m_selected.m_type == SelectedType::Light)
+		{
+			m_selected.m_item = nullptr;
+		}
+	}
+}
+
+void EditorEngine::getSelectLightPosition(vx::float3* position)
+{
+	if (m_pEditorScene &&
+		m_selected.m_type == SelectedType::Light &&
+		m_selected.m_item)
+	{
+		Light* ptr = (Light*)m_selected.m_item;
+		*position = ptr->m_position;
+	}
+}
+
+void EditorEngine::setSelectLightPosition(const vx::float3 &position)
+{
+	if (m_pEditorScene &&
+		m_selected.m_type == SelectedType::Light &&
+		m_selected.m_item)
+	{
+		Light* ptr = (Light*)m_selected.m_item;
+		ptr->m_position = position;
+
+		m_pEditorScene->updateLightPositions();
+
+		auto lightCount = m_pEditorScene->getLightCount();
+		auto lights = m_pEditorScene->getLights();
+
+		m_renderAspect.updateLightBuffer(lights, lightCount);
+	}
 }
 
 SelectedType EditorEngine::getSelectedItemType() const 

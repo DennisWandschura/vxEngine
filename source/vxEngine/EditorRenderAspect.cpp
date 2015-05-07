@@ -200,24 +200,13 @@ void EditorRenderAspect::createCommandList()
 {
 	m_commandList.initialize();
 
-	auto editorDrawLights = m_shaderManager.getPipeline("editorDrawLights.pipe");
 	auto navmesh = m_shaderManager.getPipeline("navmesh.pipe");
 
 	Graphics::PointSizeCommand pointSizeCmd;
 	pointSizeCmd.set(5.0f);
 
-	Graphics::State stateDrawLights;
-	stateDrawLights.set(0, m_emptyVao.getId(), editorDrawLights->getId(), m_pEditorColdData->m_lightCmdBuffer.getId());
-	stateDrawLights.setBlendState(true);
-	stateDrawLights.setDepthTest(false);
-
 	Graphics::DrawArraysIndirectCommand drawArraysPointsCmd;
 	drawArraysPointsCmd.set(GL_POINTS);
-
-	Graphics::State stateDrawNavMesh;
-	stateDrawNavMesh.set(0, m_pEditorColdData->m_navMeshVao.getId(), navmesh->getId(), m_pEditorColdData->m_navmeshCmdBuffer.getId());
-	stateDrawNavMesh.setBlendState(true);
-	stateDrawNavMesh.setDepthTest(false);
 
 	Graphics::ProgramUniformCommand navmeshUniformCmd;
 	navmeshUniformCmd.setFloat4(navmesh->getFragmentShader(), 0);
@@ -242,10 +231,17 @@ void EditorRenderAspect::createCommandList()
 		auto &meshVao = m_sceneRenderer.getMeshVao();
 		auto pipe = m_shaderManager.getPipeline("editor.pipe");
 
+		Graphics::StateDescription desc;
+		desc.fbo = 0;
+		desc.vao = meshVao.getId();
+		desc.pipeline = pipe->getId();
+		desc.indirectBuffer = cmdBuffer.getId();
+		desc.paramBuffer = m_meshCountBuffer.getId();
+		desc.depthState = true;
+		desc.blendState = false;
+
 		Graphics::State state;
-		state.set(0, meshVao.getId(), pipe->getId(), cmdBuffer.getId(), m_meshCountBuffer.getId());
-		state.setDepthTest(true);
-		state.setBlendState(false);
+		state.set(desc);
 
 		Graphics::MultiDrawElementsIndirectCountCommand drawCmd;
 		drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT, 100);
@@ -258,13 +254,25 @@ void EditorRenderAspect::createCommandList()
 	}
 
 	{
+		auto editorDrawLights = m_shaderManager.getPipeline("editorDrawLights.pipe");
+
+		Graphics::StateDescription desc;
+		desc.fbo = 0;
+		desc.vao = m_emptyVao.getId();
+		desc.pipeline = editorDrawLights->getId();
+		desc.indirectBuffer = m_pEditorColdData->m_lightCmdBuffer.getId();
+		desc.paramBuffer = 0;
+		desc.depthState = false;
+		desc.blendState = true;
+
 		Graphics::State stateDrawLights;
-		stateDrawLights.set(0, m_emptyVao.getId(), editorDrawLights->getId(), m_pEditorColdData->m_lightCmdBuffer.getId());
-		stateDrawLights.setBlendState(true);
-		stateDrawLights.setDepthTest(false);
+		stateDrawLights.set(desc);
 
 		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
 		editorDrawPointUniformCmd.setFloat(editorDrawLights->getFragmentShader(), 0);
+
+		Graphics::DrawArraysIndirectCommand lightDrawCmd;
+		lightDrawCmd.set(GL_POINTS);
 
 		Graphics::ProgramUniformData<F32> uniformData;
 		uniformData.set(0.0f);
@@ -272,12 +280,25 @@ void EditorRenderAspect::createCommandList()
 		Graphics::Segment segmentDrawLights;
 		segmentDrawLights.setState(stateDrawLights);
 		segmentDrawLights.pushCommand(editorDrawPointUniformCmd, uniformData);
-		segmentDrawLights.pushCommand(drawArraysPointsCmd);
+		segmentDrawLights.pushCommand(lightDrawCmd);
 
 		m_commandList.pushSegment(segmentDrawLights, "drawLights", 1);
 	}
 
 	{
+
+		Graphics::StateDescription desc;
+		desc.fbo = 0;
+		desc.vao = m_pEditorColdData->m_navMeshVao.getId();
+		desc.pipeline = navmesh->getId();
+		desc.indirectBuffer = m_pEditorColdData->m_navmeshCmdBuffer.getId();
+		desc.paramBuffer = 0;
+		desc.depthState = false;
+		desc.blendState = true;
+
+		Graphics::State stateDrawNavMesh;
+		stateDrawNavMesh.set(desc);
+
 		Graphics::Segment segmentDrawNavmesh;
 		segmentDrawNavmesh.setState(stateDrawNavMesh);
 		segmentDrawNavmesh.pushCommand(navmeshUniformCmd, navmeshUniformData);
@@ -289,10 +310,17 @@ void EditorRenderAspect::createCommandList()
 	{
 		auto pipe = m_shaderManager.getPipeline("editorDrawPointColor.pipe");
 
+		Graphics::StateDescription desc;
+		desc.fbo = 0;
+		desc.vao = m_pEditorColdData->m_navMeshVertexVao.getId();
+		desc.pipeline = pipe->getId();
+		desc.indirectBuffer = m_pEditorColdData->m_navMeshVertexCmdBuffer.getId();
+		desc.paramBuffer = 0;
+		desc.depthState = false;
+		desc.blendState = true;
+
 		Graphics::State state;
-		state.set(0, m_pEditorColdData->m_navMeshVertexVao.getId(), pipe->getId(), m_pEditorColdData->m_navMeshVertexCmdBuffer.getId());
-		state.setBlendState(true);
-		state.setDepthTest(false);
+		state.set(desc);
 
 		Graphics::Segment segmentDrawNavmeshVertices;
 		segmentDrawNavmeshVertices.setState(state);
@@ -306,10 +334,17 @@ void EditorRenderAspect::createCommandList()
 		auto pipe = m_shaderManager.getPipeline("editorDrawPoint.pipe");
 		auto fsShader = pipe->getFragmentShader();
 
+		Graphics::StateDescription desc;
+		desc.fbo = 0;
+		desc.vao = m_navMeshGraphNodesVao.getId();
+		desc.pipeline = pipe->getId();
+		desc.indirectBuffer = m_pEditorColdData->m_graphNodesCmdBuffer.getId();
+		desc.paramBuffer = 0;
+		desc.depthState = false;
+		desc.blendState = true;
+
 		Graphics::State state;
-		state.set(0, m_navMeshGraphNodesVao.getId(), pipe->getId(), m_pEditorColdData->m_graphNodesCmdBuffer.getId());
-		state.setBlendState(true);
-		state.setDepthTest(false);
+		state.set(desc);
 
 		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
 		editorDrawPointUniformCmd.setFloat4(fsShader, 0);
@@ -331,10 +366,17 @@ void EditorRenderAspect::createCommandList()
 	{
 		auto pPipeline = m_shaderManager.getPipeline("editorDrawSpawn.pipe");
 
+		Graphics::StateDescription desc;
+		desc.fbo = 0;
+		desc.vao = m_pEditorColdData->m_spawnPointVao.getId();
+		desc.pipeline = pPipeline->getId();
+		desc.indirectBuffer = m_pEditorColdData->m_spawnPointCmdBuffer.getId();
+		desc.paramBuffer = 0;
+		desc.depthState = false;
+		desc.blendState = true;
+
 		Graphics::State state;
-		state.set(0, m_pEditorColdData->m_spawnPointVao.getId(), pPipeline->getId(), m_pEditorColdData->m_spawnPointCmdBuffer.getId());
-		state.setBlendState(true);
-		state.setDepthTest(false);
+		state.set(desc);
 
 		Graphics::ProgramUniformCommand uniformCmd;
 		uniformCmd.setFloat(pPipeline->getFragmentShader(), 0);
@@ -353,10 +395,17 @@ void EditorRenderAspect::createCommandList()
 	{
 		auto pPipeline = m_shaderManager.getPipeline("influenceMap.pipe");
 
+		Graphics::StateDescription desc;
+		desc.fbo = 0;
+		desc.vao = m_pEditorColdData->m_influenceVao.getId();
+		desc.pipeline = pPipeline->getId();
+		desc.indirectBuffer = m_pEditorColdData->m_influenceMapCmdBuffer.getId();
+		desc.paramBuffer = 0;
+		desc.depthState = false;
+		desc.blendState = true;
+
 		Graphics::State state;
-		state.set(0, m_pEditorColdData->m_influenceVao.getId(), pPipeline->getId(), m_pEditorColdData->m_influenceMapCmdBuffer.getId());
-		state.setBlendState(true);
-		state.setDepthTest(false);
+		state.set(desc);
 
 		Graphics::Segment segmentDrawInfluenceCells;
 		segmentDrawInfluenceCells.setState(state);
@@ -690,8 +739,10 @@ void EditorRenderAspect::handleLoadScene(const Event &evt)
 
 	updateNavMeshBuffer(navMesh);
 
-	U32 count = scene->getMeshInstanceCount();
-	m_meshCountBuffer.subData(0, sizeof(U32), &count);
+	{
+		U32 count = scene->getMeshInstanceCount();
+		m_meshCountBuffer.subData(0, sizeof(U32), &count);
+	}
 
 	{
 		auto mappedCmdBuffer = m_pEditorColdData->m_lightCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
@@ -885,6 +936,16 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 
 	auto mappedCmdBuffer = m_pEditorColdData->m_graphNodesCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer->count = nodeCount;
+}
+
+void EditorRenderAspect::updateLightBuffer(const Light* lights, U32 count)
+{
+	m_sceneRenderer.updateLights(lights, count);
+
+	{
+		auto mappedCmdBuffer = m_pEditorColdData->m_lightCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		mappedCmdBuffer->count = count;
+	}
 }
 
 void EditorRenderAspect::showNavmesh(bool b)

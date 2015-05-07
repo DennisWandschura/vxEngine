@@ -70,6 +70,8 @@ class EditorScene : public SceneBase
 	vx::sorted_vector<vx::StringID, char[32]> m_meshNames{};
 	vx::sorted_vector<vx::StringID, char[32]> m_actorNames{};
 
+	void buildSelectableLights();
+
 public:
 	EditorScene();
 	EditorScene(EditorScene &&rhs);
@@ -80,6 +82,7 @@ public:
 
 	void sortMeshInstances() override;
 
+	Light* addLight(const Light &light);
 	// returns 1 on insert, 0 if already present
 	U8 addMesh(vx::StringID sid, const char* name, const vx::Mesh* pMesh);
 	// returns 1 on insert, 0 if already present
@@ -100,4 +103,6 @@ public:
 
 	Spawn* getSpawn(const Ray &ray);
 	Light* getLight(const Ray &ray);
+
+	void updateLightPositions();
 };

@@ -373,7 +373,15 @@ U8 SceneFile::createScene(const CreateSceneDescription &desc)
 	sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
 	sceneParams.m_baseParams.m_meshes = std::move(sceneMeshes);
 	sceneParams.m_baseParams.m_navMesh = std::move(m_navMesh);
+#if _VX_EDITOR
+	sceneParams.m_baseParams.m_pLights.reserve(m_lightCount);
+	for(U32 i =0;i < m_lightCount; ++i)
+	{
+		sceneParams.m_baseParams.m_pLights.push_back(m_pLights[i]);
+	}
+#else
 	sceneParams.m_baseParams.m_pLights = std::move(m_pLights);
+#endif
 	sceneParams.m_baseParams.m_pSpawns = std::move(sceneSpawns);
 	sceneParams.m_baseParams.m_spawnCount = m_spawnCount;
 	sceneParams.m_baseParams.m_vertexCount = vertexCount;
@@ -465,7 +473,15 @@ U8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
 	sceneParams.m_baseParams.m_meshes = std::move(sceneMeshes);
 	sceneParams.m_baseParams.m_navMesh = std::move(m_navMesh);
+#if _VX_EDITOR
+	sceneParams.m_baseParams.m_pLights.reserve(m_lightCount);
+	for (U32 i = 0; i < m_lightCount; ++i)
+	{
+		sceneParams.m_baseParams.m_pLights.push_back(m_pLights[i]);
+	}
+#else
 	sceneParams.m_baseParams.m_pLights = std::move(m_pLights);
+#endif
 	sceneParams.m_baseParams.m_pSpawns = std::move(sceneSpawns);
 	sceneParams.m_baseParams.m_spawnCount = m_spawnCount;
 	sceneParams.m_baseParams.m_vertexCount = vertexCount;

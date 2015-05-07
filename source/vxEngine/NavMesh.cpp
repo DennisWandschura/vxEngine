@@ -25,6 +25,7 @@ SOFTWARE.
 #include "utility.h"
 #include "File.h"
 #include "NavMeshTriangle.h"
+#include <algorithm>
 
 /*namespace YAML
 {

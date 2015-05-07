@@ -35,8 +35,11 @@ namespace Graphics
 		DrawArraysIndirectCommand,
 		DrawElementsIndirectCommand,
 		MultiDrawElementsIndirectCountCommand,
+		MultiDrawArraysIndirectCountCommand,
 		ProgramUniformCommand,
-		ClearColorCommand
+		ClearColorCommand,
+		FramebufferTextureCommand,
+		PolygonOffsetCommand
 	};
 
 	struct Command
@@ -78,6 +81,15 @@ namespace Graphics
 		U8 m_padding;
 		U16 m_count;
 		U32 m_location;
+
+		void setUInt(U32 program, U32 location)
+		{
+			m_header = CommandHeader::ProgramUniformCommand;
+			m_program = program;
+			m_dataType = vx::gl::DataType::Unsigned_Int;
+			m_count = 1;
+			m_location = location;
+		}
 
 		void setFloat(U32 program, U32 location)
 		{
@@ -175,6 +187,24 @@ namespace Graphics
 		}
 	};
 
+	struct MultiDrawArraysIndirectCountCommand
+	{
+		CommandHeader m_header;
+		U32 m_mode;
+		U32 m_indirectOffset;
+		U32 m_parameterBufferOffset;
+		U32 m_maxdrawcount;
+
+		void set(U32 mode, U32 maxDrawCount, U32 indirectOffset = 0, U32 paramOffset = 0)
+		{
+			m_header = CommandHeader::MultiDrawArraysIndirectCountCommand;
+			m_mode = mode;
+			m_indirectOffset = indirectOffset;
+			m_parameterBufferOffset = paramOffset;
+			m_maxdrawcount = maxDrawCount;
+		}
+	};
+
 	struct ClearColorCommand
 	{
 		CommandHeader m_header;
@@ -184,6 +214,38 @@ namespace Graphics
 		{
 			m_header = CommandHeader::ClearColorCommand;
 			m_clearColor = clearColor;
+		}
+	};
+
+	struct FramebufferTextureCommand
+	{
+		CommandHeader m_header;
+		U32 m_framebufferId;
+		U32 m_attachment;
+		U32 m_texture;
+		U32 m_level;
+
+		void set(U32 framebufferId, U32 attachment, U32 texture, U32 level)
+		{
+			m_header = CommandHeader::FramebufferTextureCommand;
+			m_framebufferId = framebufferId;
+			m_attachment = attachment;
+			m_texture = texture;
+			m_level = level;
+		}
+	};
+
+	struct PolygonOffsetCommand
+	{
+		CommandHeader m_header;
+		F32 m_factor;
+		F32 m_units;
+
+		void set(F32 factor, F32 units)
+		{
+			m_header = CommandHeader::PolygonOffsetCommand;
+			m_factor = factor;
+			m_units = units;
 		}
 	};
 }

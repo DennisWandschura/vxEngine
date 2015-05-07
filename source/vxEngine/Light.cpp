@@ -91,11 +91,11 @@ void Light::getTransformationMatrix(vx::mat4* m) const
 	auto lightPos = vx::loadFloat(m_position);
 	auto lightDir = vx::loadFloat(m_direction);
 
-	auto upDir = vx::Vector3Cross(x_axis, lightDir);
+	auto upDir = vx::cross3(x_axis, lightDir);
 	auto dot = vx::dot(upDir, upDir);
 	if (dot == 0.0f)
 	{
-		upDir = vx::Vector3Cross(y_axis, lightDir);
+		upDir = vx::cross3(y_axis, lightDir);
 	}
 
 	auto projMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(m_angle), 1.0f, 0.1f, m_falloff);

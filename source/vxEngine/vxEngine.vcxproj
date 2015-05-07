@@ -167,7 +167,6 @@
     <ClInclude Include="ActorFactory.h" />
     <ClInclude Include="CreateSceneDescription.h" />
     <ClInclude Include="EntityFactoryDescription.h" />
-    <ClInclude Include="BufferBindingManager.h" />
     <ClInclude Include="Capability.h" />
     <ClInclude Include="CapabilityDisableBlend.h" />
     <ClInclude Include="CapabilityDisableDepthTest.h" />
@@ -188,6 +187,9 @@
     <ClInclude Include="EngineConfig.h" />
     <ClInclude Include="FileFactory.h" />
     <ClInclude Include="FileHeader.h" />
+    <ClInclude Include="gl\BufferBindingManager.h" />
+    <ClInclude Include="gl\BufferManager.h" />
+    <ClInclude Include="gl\ObjectManager.h" />
     <ClInclude Include="Graphics\CommandCompiler.h" />
     <ClInclude Include="Graphics\CommandList.h" />
     <ClInclude Include="Graphics\Commands.h" />
@@ -195,14 +197,15 @@
     <ClInclude Include="Graphics\Renderer.h" />
     <ClInclude Include="Graphics\Segment.h" />
     <ClInclude Include="Graphics\SegmentBuilder.h" />
+    <ClInclude Include="Graphics\ShadowRenderer.h" />
     <ClInclude Include="Graphics\State.h" />
     <ClInclude Include="Graphics\StaticMeshRenderer.h" />
     <ClInclude Include="MeshFile.h" />
     <ClInclude Include="Reference.h" />
+    <ClInclude Include="RenderSettings.h" />
     <ClInclude Include="Serializable.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GpuStructs.h" />
-    <ClInclude Include="BufferManager.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="EditorEngine.h" />
     <ClInclude Include="EditorRenderAspect.h" />
@@ -229,7 +232,6 @@
     <ClInclude Include="NavMeshTriangle.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="ProgramUniformBinding.h" />
-    <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RenderAspectDescription.h" />
     <ClInclude Include="RenderCommand.h" />
     <ClInclude Include="RenderCommandFinalImage.h" />
@@ -359,8 +361,6 @@
     <ClCompile Include="Align.cpp" />
     <ClCompile Include="Arrive.cpp" />
     <ClCompile Include="AStar.cpp" />
-    <ClCompile Include="BufferBindingManager.cpp" />
-    <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="BVH.cpp" />
     <ClCompile Include="CapabilityDisableBlend.cpp" />
     <ClCompile Include="CapabilityDisableDepthTest.cpp" />
@@ -393,6 +393,9 @@
     <ClCompile Include="EntityFactory.cpp" />
     <ClCompile Include="FileFactory.cpp" />
     <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="gl\BufferBindingManager.cpp" />
+    <ClCompile Include="gl\BufferManager.cpp" />
+    <ClCompile Include="gl\ObjectManager.cpp" />
     <ClCompile Include="GpuFunctions.cpp" />
     <ClCompile Include="GpuProfiler.cpp" />
     <ClCompile Include="Graphics\BufferFactory.cpp" />
@@ -402,6 +405,7 @@
     <ClCompile Include="Graphics\Renderer.cpp" />
     <ClCompile Include="Graphics\Segment.cpp" />
     <ClCompile Include="Graphics\SegmentBuilder.cpp" />
+    <ClCompile Include="Graphics\ShadowRenderer.cpp" />
     <ClCompile Include="Graphics\State.cpp" />
     <ClCompile Include="Graphics\StaticMeshRenderer.cpp" />
     <ClCompile Include="ImageBindingManager.cpp" />

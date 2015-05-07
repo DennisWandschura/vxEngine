@@ -46,7 +46,6 @@ namespace Graphics
 		void createIbo();
 		void createDrawIdVbo();
 		void createVaoVbo();
-		void bindMeshDrawIdVboToVao();
 		void bindBuffersToVao();
 
 		Segment createSegmentGBuffer();

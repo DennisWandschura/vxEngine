@@ -45,14 +45,14 @@ bool Triangle::contains(const vx::float3 &point) const
 	b = _mm_sub_ps(b, p);
 	c = _mm_sub_ps(c, p);
 
-	auto u = vx::Vector3Cross(b, c);
-	auto v = vx::Vector3Cross(c, a);
+	auto u = vx::cross3(b, c);
+	auto v = vx::cross3(c, a);
 
 	auto uDotV = vx::dot(u, v);
 	if (uDotV < 0.0f)
 		return false;
 
-	auto w = vx::Vector3Cross(a, b);
+	auto w = vx::cross3(a, b);
 
 	auto uDotW = vx::dot(u, w);
 	if (uDotW < 0.0f)

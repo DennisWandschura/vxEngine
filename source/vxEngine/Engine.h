@@ -34,15 +34,11 @@ SOFTWARE.
 #include "memory.h"
 #include "LevelEditor.h"
 #include "EntityAspect.h"
-#include "Profiler2.h"
-#include "ProfilerGraph.h"
 #include "EventManager.h"
 #include "ActorAspect.h"
 
 class Engine
 {
-	//Profiler2 m_profiler;
-	//ProfilerGraph m_profileGraph;
 	EventManager m_eventManager;
 	SystemAspect m_systemAspect;
 	PhysicsAspect m_physicsAspect;

@@ -21,61 +21,27 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "BufferManager.h"
-#include <vxLib/gl/Buffer.h>
+#pragma once
 
-BufferManager::BufferManager()
+#include <vxLib/types.h>
+
+namespace gl
 {
-
-}
-
-BufferManager::~BufferManager()
-{
-
-}
-
-void BufferManager::initialize(U32 maxBufferCount, vx::StackAllocator* allocator)
-{
-	m_buffers = vx::sorted_array<vx::StringID, vx::gl::Buffer>(maxBufferCount, allocator);
-}
-
-void BufferManager::shutdown()
-{
-	m_buffers.cleanup();
-	//m_buffers.clear();
-}
-
-vx::StringID BufferManager::createBuffer(const char* key, const vx::gl::BufferDescription &desc)
-{
-	vx::gl::Buffer buffer;
-	buffer.create(desc);
-
-	auto sid = vx::make_sid(key);
-	auto it = m_buffers.insert(sid, std::move(buffer));
-
-	if (it == m_buffers.end())
+	class BufferBindingManager
 	{
-		sid = 0u;
-	}
+		static const U8 s_maxBindings = 255;
 
-	return sid;
-}
+		struct Binding
+		{
+			U32 index;
+			U32 bufferId;
+		};
 
-vx::gl::Buffer* BufferManager::getBuffer(const vx::StringID &sid) const
-{
-	auto it = m_buffers.find(sid);
+		static Binding s_uniformBindings[s_maxBindings];
+		static Binding s_shaderStorageBindings[s_maxBindings];
 
-	vx::gl::Buffer* ptr = nullptr;
-	if (it != m_buffers.end())
-	{
-		ptr = &*it;
-	}
-
-	return ptr;
-}
-
-vx::gl::Buffer* BufferManager::getBuffer(const char* buffer) const
-{
-	auto sid = vx::make_sid(buffer);
-	return getBuffer(sid);
+	public:
+		static void bindBaseUniform(U32 index, U32 bufferId);
+		static void bindBaseShaderStorage(U32 index, U32 bufferId);
+	};
 }

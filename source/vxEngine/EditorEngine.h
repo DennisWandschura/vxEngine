@@ -38,7 +38,7 @@ class EditorScene;
 #include "EventListener.h"
 #include "InfluenceMap.h"
 
-enum class SelectedType{ None, MeshInstance, NavMeshVertex };
+enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
 class EditorEngine : public EventListener
 {
@@ -146,7 +146,11 @@ public:
 	void deselectNavMeshVertex();
 	bool createNavMeshTriangleFromSelectedVertices();
 
+	void createLight();
 	bool selectLight(I32 mouseX, I32 mouseY);
+	void deselectLight();
+	void getSelectLightPosition(vx::float3* position);
+	void setSelectLightPosition(const vx::float3 &position);
 
 	SelectedType getSelectedItemType() const;
 	EditorScene* getEditorScene() const;

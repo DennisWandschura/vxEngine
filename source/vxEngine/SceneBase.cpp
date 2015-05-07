@@ -92,7 +92,11 @@ SceneBase::~SceneBase()
 
 const Light* SceneBase::getLights() const
 {
+#if _VX_EDITOR
+	return m_pLights.data();
+#else
 	return m_pLights.get();
+#endif
 }
 
 U32 SceneBase::getLightCount() const

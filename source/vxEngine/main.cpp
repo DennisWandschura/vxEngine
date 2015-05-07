@@ -120,7 +120,7 @@ int main()
 		return 1;
 	}
 
-	engine.requestLoadFile(FileEntry("test.scene", FileType::Scene), &scene);
+	engine.requestLoadFile(FileEntry("test1.scene", FileType::Scene), &scene);
 
 	LOG(mainLogfile, "Starting", false);
 

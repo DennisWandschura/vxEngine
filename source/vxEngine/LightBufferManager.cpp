@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "LightBufferManager.h"
 #include "GpuStructs.h"
-#include "BufferBindingManager.h"
+#include "gl/BufferBindingManager.h"
 #include "Light.h"
 
 void LightBufferManager::initialize(U32 maxLightCount)
@@ -48,7 +48,7 @@ void LightBufferManager::createLightDataBuffer(U32 maxLightCount)
 
 void LightBufferManager::bindBuffer()
 {
-	BufferBindingManager::bindBaseUniform(1, m_lightDataBuffer.getId());
+	gl::BufferBindingManager::bindBaseUniform(1, m_lightDataBuffer.getId());
 }
 
 void LightBufferManager::updateLightDataBuffer(const Light* lights, U32 count)

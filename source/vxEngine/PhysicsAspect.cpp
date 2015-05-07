@@ -257,7 +257,7 @@ void PhysicsAspect::processScene(const Scene* pScene)
 		auto instanceTransform = meshInstance.getTransform();
 
 		auto qRotation = vx::loadFloat(instanceTransform.m_rotation);
-		qRotation = vx::QuaternionRotationRollPitchYawFromVector(qRotation);
+		qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
 
 		physx::PxTransform transform;
 		transform.p.x = instanceTransform.m_translation.x;

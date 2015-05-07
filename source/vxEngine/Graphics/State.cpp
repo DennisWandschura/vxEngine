@@ -25,6 +25,17 @@ SOFTWARE.
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
 
+namespace
+{
+	typedef void(*CapabilityFunctionProc)(vx::gl::Capabilities);
+
+	CapabilityFunctionProc g_capabilityFun[]=
+	{
+		&vx::gl::StateManager::disable,
+		&vx::gl::StateManager::enable
+	};
+}
+
 namespace Graphics
 {
 	State::State()
@@ -34,7 +45,8 @@ namespace Graphics
 		m_indirectBuffer(0),
 		m_paramBuffer(0),
 		m_blendState(0),
-		m_depthTestState(1)
+		m_depthTestState(1),
+		m_polygonOffsetFillState(0)
 	{
 
 	}
@@ -44,44 +56,23 @@ namespace Graphics
 
 	}
 
-	void State::set(U32 fbo, U32 vao, U32 pipeline, U32 indirectBuffer, U32 paramBuffer)
+	void State::set(const StateDescription &desc)
 	{
-		m_fbo = fbo;
-		m_vao = vao;
-		m_pipeline = pipeline;
-		m_indirectBuffer = indirectBuffer;
-		m_paramBuffer = paramBuffer;
-	}
-
-	void State::setDepthTest(bool b)
-	{
-		m_depthTestState = b;
-	}
-
-	void State::setBlendState(bool b)
-	{
-		m_blendState = b;
+		m_fbo = desc.fbo;
+		m_vao = desc.vao;
+		m_pipeline = desc.pipeline;
+		m_indirectBuffer = desc.indirectBuffer;
+		m_paramBuffer = desc.paramBuffer;
+		m_depthTestState = desc.depthState;
+		m_blendState = desc.blendState;
+		m_polygonOffsetFillState = desc.polygonOffsetFillState;
 	}
 
 	void State::update()
 	{
-		if (m_blendState == 0)
-		{
-			vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-		}
-		else
-		{
-			vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-		}
-
-		if (m_depthTestState == 0)
-		{
-			vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-		}
-		else
-		{
-			vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-		}
+		g_capabilityFun[m_depthTestState](vx::gl::Capabilities::Depth_Test);
+		g_capabilityFun[m_blendState](vx::gl::Capabilities::Blend);
+		g_capabilityFun[m_polygonOffsetFillState](vx::gl::Capabilities::Polygon_Offset_Fill);
 
 		vx::gl::StateManager::bindFrameBuffer(m_fbo);
 		vx::gl::StateManager::bindVertexArray(m_vao);

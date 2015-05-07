@@ -32,8 +32,8 @@ SOFTWARE.
 #include "FileAspect.h"
 #include <vxLib/ScopeGuard.h>
 #include "MeshInstance.h"
-#include "BufferManager.h"
-#include "BufferBindingManager.h"
+#include "gl/ObjectManager.h"
+#include "gl/BufferBindingManager.h"
 #include "Light.h"
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
@@ -51,7 +51,7 @@ SceneRenderer::~SceneRenderer()
 
 }
 
-void SceneRenderer::createTextures(BufferManager* pBufferManager)
+void SceneRenderer::createTextures(gl::ObjectManager* objectManager)
 {
 	m_coldData->m_textureManager.createBucket(1, vx::ushort3(1024, 1024, 10), 1, vx::gl::TextureType::Texture_2D_Array, vx::gl::TextureFormat::SRGBA8);
 	m_coldData->m_textureManager.createBucket(1, vx::ushort3(1024, 1024, 10), 1, vx::gl::TextureType::Texture_2D_Array, vx::gl::TextureFormat::SRGB8);
@@ -74,7 +74,7 @@ void SceneRenderer::createTextures(BufferManager* pBufferManager)
 	desc.immutable = 1;
 	desc.pData = handles;
 
-	pBufferManager->createBuffer("TextureBuffer", desc);
+	objectManager->createBuffer("TextureBuffer", desc);
 }
 
 void SceneRenderer::createMeshDrawIdVbo()
@@ -149,12 +149,12 @@ void SceneRenderer::createMeshMaterialBuffer()
 	m_coldData->m_materialBlock.create(materialDesc);
 }
 
-void SceneRenderer::initialize(U32 maxLightCount, BufferManager* pBufferManager, vx::StackAllocator *pAllocator)
+void SceneRenderer::initialize(U32 maxLightCount, gl::ObjectManager* objectManager, vx::StackAllocator *pAllocator)
 {
 	m_coldData = std::make_unique<ColdData>();
 	m_coldData->m_scratchAllocator = vx::StackAllocator(pAllocator->allocate(1 MBYTE, 64), 1 MBYTE);
 
-	createTextures(pBufferManager);
+	createTextures(objectManager);
 
 	createMeshBuffers();
 	createMeshCmdBuffer();
@@ -259,7 +259,7 @@ U16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::St
 void SceneRenderer::updateTransform(const vx::Transform &transform, U32 elementId)
 {
 	auto qRotation = vx::loadFloat(transform.m_rotation);
-	qRotation = vx::QuaternionRotationRollPitchYawFromVector(qRotation);
+	qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
 	auto packedRotation = GpuFunctions::packQRotation(qRotation);
 
 	vx::TransformGpu t;
@@ -275,6 +275,11 @@ void SceneRenderer::updateTransform(const vx::TransformGpu &transform, U32 eleme
 	auto pTransforms = m_coldData->m_transformBlock.map<vx::TransformGpu>(vx::gl::Map::Write_Only);
 	vx::memcpy(pTransforms.get() + elementId, transform);
 	pTransforms.unmap();
+}
+
+void SceneRenderer::updateLights(const Light* lights, U32 count)
+{
+	m_coldData->m_lightBufferManager.updateLightDataBuffer(lights,count);
 }
 
 void SceneRenderer::writeMaterialToBuffer(const Material *pMaterial, U32 offset)
@@ -321,8 +326,8 @@ void SceneRenderer::writeMeshToBuffer(const vx::StringID &meshSid, const vx::Mes
 	auto getRotationQuat = [](const __m128 &from, const __m128 &to)
 	{
 		__m128 H = _mm_add_ps(from, to);
-		H = vx::Vector3Normalize(H);
-		auto dot = vx::Vector3Dot(from, H);
+		H = vx::normalize3(H);
+		auto dot = vx::dot3(from, H);
 
 		__m128 result;
 		result.f[3] = dot.f[0];
@@ -436,7 +441,7 @@ void SceneRenderer::updateMeshBuffer(const vx::sorted_vector<vx::StringID, const
 	writeMeshesToVertexBuffer(meshes.keys(), meshes.data(), meshCount, &totalVertexCount, &totalIndexCount);
 }
 
-void SceneRenderer::updateLightBuffer(const Light *pLights, U32 lightCount, const BufferManager &bufferManager)
+void SceneRenderer::updateLightBuffer(const Light *pLights, U32 lightCount, const gl::ObjectManager &objectManager)
 {
 	assert(lightCount <= 5);
 
@@ -449,7 +454,7 @@ void SceneRenderer::updateLightBuffer(const Light *pLights, U32 lightCount, cons
 
 	m_coldData->m_lightBufferManager.updateLightDataBuffer(pLights, lightCount);
 
-	auto pShadowTransformBuffer = bufferManager.getBuffer("ShadowTransformBuffer");
+	auto pShadowTransformBuffer = objectManager.getBuffer("ShadowTransformBuffer");
 	auto shadowTransformsMappedBuffer = pShadowTransformBuffer->map<ShadowTransformBlock>(vx::gl::Map::Write_Only);
 	vx::memcpy(shadowTransformsMappedBuffer.get(), shadowTransforms);
 }
@@ -524,17 +529,17 @@ void SceneRenderer::updateBuffers(const MeshInstance *pInstances, U32 instanceCo
 
 void SceneRenderer::bindTransformBuffer()
 {
-	BufferBindingManager::bindBaseShaderStorage(0, m_coldData->m_transformBlock.getId());
+	gl::BufferBindingManager::bindBaseShaderStorage(0, m_coldData->m_transformBlock.getId());
 }
 
 void SceneRenderer::bindMaterialBuffer()
 {
-	BufferBindingManager::bindBaseShaderStorage(1, m_coldData->m_materialBlock.getId());
+	gl::BufferBindingManager::bindBaseShaderStorage(1, m_coldData->m_materialBlock.getId());
 }
 
 void SceneRenderer::bindBuffers()
 {
-	BufferBindingManager::bindBaseUniform(4, m_commandBlock.getId());
+	gl::BufferBindingManager::bindBaseUniform(4, m_commandBlock.getId());
 
 	bindTransformBuffer();
 	bindMaterialBuffer();
@@ -542,7 +547,7 @@ void SceneRenderer::bindBuffers()
 	m_coldData->m_lightBufferManager.bindBuffer();
 }
 
-void SceneRenderer::loadScene(const Scene &scene, const BufferManager &bufferManager)
+void SceneRenderer::loadScene(const Scene &scene, const gl::ObjectManager &objectManager)
 {
 	auto &sceneMaterial = scene.getMaterials();
 	auto numMaterials = scene.getMaterialCount();
@@ -564,7 +569,7 @@ void SceneRenderer::loadScene(const Scene &scene, const BufferManager &bufferMan
 
 	m_coldData->m_meshEntries.reserve(scene.getMeshes().size());
 
-	updateLightBuffer(scene.getLights(), scene.getLightCount(), bufferManager);
+	updateLightBuffer(scene.getLights(), scene.getLightCount(), objectManager);
 	updateMeshBuffer(scene.getMeshes());
 	updateBuffers(scene.getMeshInstances(), scene.getMeshInstanceCount(), m_coldData->m_materialIndices, m_coldData->m_meshEntries);
 
@@ -609,4 +614,9 @@ vx::gl::DrawElementsIndirectCommand SceneRenderer::getDrawCommand(const MeshInst
 	}
 
 	return cmd;
+}
+
+U32 SceneRenderer::getLightCount() const
+{
+	return m_coldData->m_lightBufferManager.getLightCount();
 }

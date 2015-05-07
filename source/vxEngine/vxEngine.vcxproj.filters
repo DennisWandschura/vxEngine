@@ -501,9 +501,6 @@
     <ClInclude Include="ImageBindingManager.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="BufferBindingManager.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="ProfilerGraph.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
@@ -511,12 +508,6 @@
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="VoxelRenderer.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Quaternion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BufferManager.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
     <ClInclude Include="RenderUpdateTask.h">
@@ -710,6 +701,21 @@
     </ClInclude>
     <ClInclude Include="yamlHelper1.h">
       <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="gl\ObjectManager.h">
+      <Filter>Header Files\Render\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="gl\BufferManager.h">
+      <Filter>Header Files\Render\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="gl\BufferBindingManager.h">
+      <Filter>Header Files\Render\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSettings.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ShadowRenderer.h">
+      <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -932,9 +938,6 @@
     <ClCompile Include="ImageBindingManager.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
-    <ClCompile Include="BufferBindingManager.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerController.cpp">
       <Filter>Source Files\Entity</Filter>
     </ClCompile>
@@ -945,9 +948,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VoxelRenderer.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="BufferManager.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
     <ClCompile Include="LightBufferManager.cpp">
@@ -1081,6 +1081,18 @@
     </ClCompile>
     <ClCompile Include="TextParserNode.cpp">
       <Filter>Source Files\Text Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="gl\BufferBindingManager.cpp">
+      <Filter>Source Files\Render\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="gl\BufferManager.cpp">
+      <Filter>Source Files\Render\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="gl\ObjectManager.cpp">
+      <Filter>Source Files\Render\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\ShadowRenderer.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

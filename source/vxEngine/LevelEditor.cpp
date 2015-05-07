@@ -195,9 +195,29 @@ namespace Editor
 		g_pEditor->engine.updateSelectedMeshInstanceTransform(translation);
 	}
 
+	void createLight()
+	{
+		g_pEditor->engine.createLight();
+	}
+
 	bool selectLight(I32 x, I32 y)
 	{
 		return g_pEditor->engine.selectLight(x, y);
+	}
+
+	void deselectLight()
+	{
+		g_pEditor->engine.deselectLight();
+	}
+
+	void getSelectLightPosition(vx::float3* position)
+	{
+		g_pEditor->engine.getSelectLightPosition(position);
+	}
+
+	void setSelectLightPosition(const vx::float3 &position)
+	{
+		g_pEditor->engine.setSelectLightPosition(position);
 	}
 
 	void showNavmesh(bool b)
