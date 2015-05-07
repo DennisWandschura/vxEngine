@@ -28,12 +28,12 @@ SOFTWARE.
 
 namespace Graphics
 {
-	enum class CommandHeader : U32;
+	enum class CommandHeader : u32;
 
 	class CommandCompiler
 	{
 	public:
-		static void getNextCommand(CommandHeader* ptr, U32* offset);
-		static void compileCommand(CommandHeader* ptr, U32* offset, std::string* srcFile, U8* dataBuffer, U32* bufferOffset);
+		static void getNextCommand(CommandHeader* ptr, u32* offset);
+		static void compileCommand(CommandHeader* ptr, u32* offset, std::string* srcFile, u8* dataBuffer, u32* bufferOffset);
 	};
 }

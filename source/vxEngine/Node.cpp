@@ -84,7 +84,7 @@ Node& Node::operator = (Node &&rhs)
 	return *this;
 }
 
-void Node::reserve(U32 n)
+void Node::reserve(u32 n)
 {
 	m_data.reserve(n);
 }

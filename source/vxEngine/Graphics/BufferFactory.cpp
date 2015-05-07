@@ -25,7 +25,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	vx::gl::Buffer BufferFactory::createVertexBuffer(U64 size, vx::gl::BufferStorageFlags::Flags flags, const U8* ptr)
+	vx::gl::Buffer BufferFactory::createVertexBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr)
 	{
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Array_Buffer;
@@ -40,7 +40,7 @@ namespace Graphics
 		return buffer;
 	}
 
-	vx::gl::Buffer BufferFactory::createIndexBuffer(U64 size, vx::gl::BufferStorageFlags::Flags flags,  const U8* ptr)
+	vx::gl::Buffer BufferFactory::createIndexBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags,  const u8* ptr)
 	{
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
@@ -55,7 +55,7 @@ namespace Graphics
 		return buffer;
 	}
 
-	vx::gl::Buffer BufferFactory::createIndirectCmdBuffer(U64 size, vx::gl::BufferStorageFlags::Flags flags, const U8* ptr)
+	vx::gl::Buffer BufferFactory::createIndirectCmdBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr)
 	{
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
@@ -70,7 +70,7 @@ namespace Graphics
 		return buffer;
 	}
 
-	vx::gl::Buffer BufferFactory::createParameterBuffer(U64 size, vx::gl::BufferStorageFlags::Flags flags, const U8* ptr)
+	vx::gl::Buffer BufferFactory::createParameterBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr)
 	{
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Parameter_Buffer;

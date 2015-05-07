@@ -41,7 +41,7 @@ void EventManager::initialize()
 {
 }
 
-void EventManager::registerListener(EventListener* ptr, U64 priority)
+void EventManager::registerListener(EventListener* ptr, u64 priority)
 {
 	m_eventListeners.push_back(std::make_pair(priority, ptr));
 

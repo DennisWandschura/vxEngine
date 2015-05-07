@@ -37,5 +37,5 @@ class ConditionHasPath : public Condition
 public:
 	explicit ConditionHasPath(const Component::Actor* pActor);
 
-	U8 test() const override;
+	u8 test() const override;
 };

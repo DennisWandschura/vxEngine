@@ -49,9 +49,9 @@ namespace Editor
 	Editor* g_pEditor{ nullptr };
 	void* g_pMemory{nullptr};
 	LARGE_INTEGER g_last{};
-	F64 g_invFrequency{1.0};
-	const U32 g_hz = 40u;
-	const F32 g_dt = 1.0f / g_hz;
+	f64 g_invFrequency{1.0};
+	const u32 g_hz = 40u;
+	const f32 g_dt = 1.0f / g_hz;
 
 	template<class T>
 	void destroy(T *p)
@@ -59,7 +59,7 @@ namespace Editor
 		p->~T();
 	}
 
-	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, U32 panelSizeX, U32 panelSizeY, U32 typeMesh, U32 typeMaterial, U32 typeScene)
+	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene)
 	{
 		EditorEngine::editor_setTypes(typeMesh, typeMaterial, typeScene);
 
@@ -105,7 +105,7 @@ namespace Editor
 		QueryPerformanceCounter(&current);
 
 		auto frameTicks = (current.QuadPart - g_last.QuadPart) * 1000;
-		F32 frameTime = frameTicks * g_invFrequency * 0.001f;
+		f32 frameTime = frameTicks * g_invFrequency * 0.001f;
 		frameTime = fminf(frameTime, g_dt);
 
 		g_last = current;
@@ -119,7 +119,7 @@ namespace Editor
 		g_pEditor->engine.editor_loadFile(filename, type, f);
 	}
 
-	U64 getSid(const char *str)
+	u64 getSid(const char *str)
 	{
 		return vx::make_sid(str).value;
 	}
@@ -130,22 +130,22 @@ namespace Editor
 		g_pEditor->engine.editor_saveScene(name);
 	}
 
-	void moveCamera(F32 dirX, F32 dirY, F32 dirZ)
+	void moveCamera(f32 dirX, f32 dirY, f32 dirZ)
 	{
 		g_pEditor->engine.editor_moveCamera(dirX, dirY, dirZ);
 	}
 
-	void rotateCamera(F32 dirX, F32 dirY, F32 dirZ)
+	void rotateCamera(f32 dirX, f32 dirY, f32 dirZ)
 	{
 		g_pEditor->engine.editor_rotateCamera(dirX, dirY, dirZ);
 	}
 
-	bool selectNavMeshVertex(I32 x, I32 y)
+	bool selectNavMeshVertex(s32 x, s32 y)
 	{
 		return g_pEditor->engine.selectNavMeshVertex(x, y);
 	}
 
-	bool multiSelectNavMeshVertex(I32 mouseX, I32 mouseY)
+	bool multiSelectNavMeshVertex(s32 mouseX, s32 mouseY)
 	{
 		return g_pEditor->engine.multiSelectNavMeshVertex(mouseX, mouseY);
 	}
@@ -160,7 +160,7 @@ namespace Editor
 		return g_pEditor->engine.createNavMeshTriangleFromSelectedVertices();
 	}
 
-	bool addNavMeshVertex(I32 x, I32 y)
+	bool addNavMeshVertex(s32 x, s32 y)
 	{
 		return g_pEditor->engine.addNavMeshVertex(x, y);
 	}
@@ -180,7 +180,7 @@ namespace Editor
 		g_pEditor->engine.setSelectedNavMeshVertexPosition(position);
 	}
 
-	bool selectMesh(I32 x, I32 y)
+	bool selectMesh(s32 x, s32 y)
 	{
 		return g_pEditor->engine.selectMesh(x, y);
 	}
@@ -200,7 +200,7 @@ namespace Editor
 		g_pEditor->engine.createLight();
 	}
 
-	bool selectLight(I32 x, I32 y)
+	bool selectLight(s32 x, s32 y)
 	{
 		return g_pEditor->engine.selectLight(x, y);
 	}

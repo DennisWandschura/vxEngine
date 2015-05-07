@@ -38,7 +38,7 @@ SOFTWARE.
 
 void ActorFactory::create(const EntityFactoryDescription &description, vx::PoolAllocator* pAllocator)
 {
-	U32 flags = Component::Actor::WaitingForOrders;
+	u32 flags = Component::Actor::WaitingForOrders;
 
 	auto capacity = description.navGraph->getNodeCount();
 

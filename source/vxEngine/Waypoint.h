@@ -28,5 +28,5 @@ SOFTWARE.
 struct Waypoint
 {
 	vx::float3 position;
-	F32 value;
+	f32 value;
 };

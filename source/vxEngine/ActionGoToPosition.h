@@ -31,7 +31,7 @@ struct EntityActor;
 class ActionGoToPosition : public Action
 {
 	Arrive m_arrive;
-	U16 m_arrived{0};
+	u16 m_arrived{0};
 
 public:
 	ActionGoToPosition(Component::Input* pInput, EntityActor* entity);

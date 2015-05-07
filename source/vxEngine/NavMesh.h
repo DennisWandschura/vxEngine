@@ -40,7 +40,7 @@ namespace YAML
 
 struct TriangleIndices
 {
-	U16 vertexIndex[3];
+	u16 vertexIndex[3];
 };
 
 class NavMesh
@@ -55,13 +55,13 @@ class NavMesh
 	std::unique_ptr<TriangleIndices[]> m_triangleIndices;
 #endif
 	AABB m_bounds;
-	U32 m_vertexCount;
-	U32 m_triangleCount;
+	u32 m_vertexCount;
+	u32 m_triangleCount;
 
 	bool isCCW(const vx::float3 &p0, const vx::float3 &p1, const vx::float3 &p2) const;
 
-	void findAndEraseVertexFromIndices(U16 vertexIndex);
-	void fixVertexIndicesAfterErasedVertex(U16 erasedVertexIndex);
+	void findAndEraseVertexFromIndices(u16 vertexIndex);
+	void fixVertexIndicesAfterErasedVertex(u16 erasedVertexIndex);
 
 	std::unique_ptr<NavMeshTriangle[]> createNavMeshTriangles();
 
@@ -82,7 +82,7 @@ public:
 
 	/////////////// loading
 	//void loadFromYAML(const YAML::Node &node);
-	const U8* load(const U8 *ptr);
+	const u8* load(const u8 *ptr);
 	/////////////// loading
 
 	/////////////// saving
@@ -95,19 +95,19 @@ public:
 	const TriangleIndices* getTriangleIndices() const;
 	const NavMeshTriangle* getNavMeshTriangles() const;
 
-	U32 getVertexCount() const { return m_vertexCount; }
-	U32 getTriangleCount() const { return m_triangleCount; }
+	u32 getVertexCount() const { return m_vertexCount; }
+	u32 getTriangleCount() const { return m_triangleCount; }
 
 	const AABB& getBounds() const { return m_bounds; }
 	/////////////// getters
 
 	void addVertex(const vx::float3 &vertex);
-	void deleteVertex(U32 index);
-	void addTriangle(const U32(&indices)[3]);
-	void setVertexPosition(U32 i, const vx::float3 &position);
+	void deleteVertex(u32 index);
+	void addTriangle(const u32(&indices)[3]);
+	void setVertexPosition(u32 i, const vx::float3 &position);
 
 	bool isValid() const;
 
-	// returns U32 max on failure
-	U32 testRayAgainstVertices(const Ray &ray);
+	// returns u32 max on failure
+	u32 testRayAgainstVertices(const Ray &ray);
 };

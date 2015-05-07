@@ -42,6 +42,6 @@ struct RenderUpdateCameraData
 struct RenderUpdateDataTransforms
 {
 	vx::TransformGpu* transforms;
-	U32* indices;
-	U32 count;
+	u32* indices;
+	u32 count;
 };

@@ -31,36 +31,36 @@ SOFTWARE.
 
 namespace Editor
 {
-	extern "C" DLL_EXPORT bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, U32 panelSizeX, U32 panelSizeY, U32 typeMesh, U32 typeMaterial, U32 typeScene);
+	extern "C" DLL_EXPORT bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene);
 	extern "C" DLL_EXPORT void shutdownEditor();
 
 	extern "C" DLL_EXPORT void frame();
 
-	extern "C" DLL_EXPORT void loadFile(const char *filename, U32 type, LoadFileCallback f);
+	extern "C" DLL_EXPORT void loadFile(const char *filename, u32 type, LoadFileCallback f);
 
-	extern "C" DLL_EXPORT U64 getSid(const char *str);
+	extern "C" DLL_EXPORT u64 getSid(const char *str);
 
 	extern "C" DLL_EXPORT void saveScene(const char* name);
 
-	extern "C" DLL_EXPORT void moveCamera(F32 dirX, F32 dirY, F32 dirZ);
+	extern "C" DLL_EXPORT void moveCamera(f32 dirX, f32 dirY, f32 dirZ);
 
-	extern "C" DLL_EXPORT void rotateCamera(F32 dirX, F32 dirY, F32 dirZ);
+	extern "C" DLL_EXPORT void rotateCamera(f32 dirX, f32 dirY, f32 dirZ);
 
-	extern "C" DLL_EXPORT bool addNavMeshVertex(I32 x, I32 y);
+	extern "C" DLL_EXPORT bool addNavMeshVertex(s32 x, s32 y);
 	extern "C" DLL_EXPORT void deleteSelectedNavMeshVertex();
-	extern "C" DLL_EXPORT bool selectNavMeshVertex(I32 x, I32 y);
-	extern "C" DLL_EXPORT bool multiSelectNavMeshVertex(I32 mouseX, I32 mouseY);
+	extern "C" DLL_EXPORT bool selectNavMeshVertex(s32 x, s32 y);
+	extern "C" DLL_EXPORT bool multiSelectNavMeshVertex(s32 mouseX, s32 mouseY);
 	extern "C" DLL_EXPORT void deselectNavMeshVertex();
 	extern "C" DLL_EXPORT bool createNavMeshTriangleFromSelectedVertices();
 	extern "C" DLL_EXPORT void getSelectNavMeshVertexPosition(vx::float3* position);
 	extern "C" DLL_EXPORT void setSelectNavMeshVertexPosition(const vx::float3 &position);
 
-	extern "C" DLL_EXPORT bool selectMesh(I32 x, I32 y);
+	extern "C" DLL_EXPORT bool selectMesh(s32 x, s32 y);
 	extern "C" DLL_EXPORT void deselectMesh();
 	extern "C" DLL_EXPORT void updateSelectedMeshInstanceTransform(const vx::float3 &translation);
 
 	extern "C" DLL_EXPORT void createLight();
-	extern "C" DLL_EXPORT bool selectLight(I32 x, I32 y);
+	extern "C" DLL_EXPORT bool selectLight(s32 x, s32 y);
 	extern "C" DLL_EXPORT void deselectLight();
 	extern "C" DLL_EXPORT void getSelectLightPosition(vx::float3* position);
 	extern "C" DLL_EXPORT void setSelectLightPosition(const vx::float3 &position);

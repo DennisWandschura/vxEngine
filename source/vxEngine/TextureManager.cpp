@@ -29,12 +29,12 @@ TextureRef::TextureRef()
 {
 }
 
-TextureRef::TextureRef(U32 textureId, U32 slice, vx::uint2 textureSize, U8 isArray)
+TextureRef::TextureRef(u32 textureId, u32 slice, vx::uint2 textureSize, u8 isArray)
 	: m_textureId(textureId), m_slice(slice), m_textureSize(textureSize)
 {
 	if (isArray != 0)
 	{
-		U32 oldSlize = m_slice;
+		u32 oldSlize = m_slice;
 		m_slice |= (1 << 31);
 		VX_ASSERT(oldSlize == getSlice());
 	}
@@ -66,12 +66,12 @@ void TextureRef::makeInvalid()
 	m_textureId = 0;
 }
 
-U32 TextureRef::getTextureId() const noexcept
+u32 TextureRef::getTextureId() const noexcept
 {
 	return m_textureId;
 }
 
-U32 TextureRef::getSlice() const noexcept
+u32 TextureRef::getSlice() const noexcept
 {
 	return (m_slice & 0x7FFFFFFF);
 }
@@ -151,12 +151,12 @@ TextureManager::TextureManager()
 {
 }
 
-void TextureManager::reserveBuckets(U32 n)
+void TextureManager::reserveBuckets(u32 n)
 {
 	m_textureBuckets.reserve(n);
 }
 
-TextureManager::TextureBucket* TextureManager::findBucket(const vx::ushort3 textureSize, U8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
+TextureManager::TextureBucket* TextureManager::findBucket(const vx::ushort3 textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
 {
 	TextureCmp cmp;
 	cmp.m_size = textureSize;
@@ -220,7 +220,7 @@ TextureRef TextureManager::createTexture2DSlice(TextureBucket *pBucket, vx::uint
 	return ref;
 }
 
-void TextureManager::createBucket(U32 bucketSize, const vx::ushort3 textureSize, U8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
+void TextureManager::createBucket(u32 bucketSize, const vx::ushort3 textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
 {
 	TextureCmp cmp;
 	cmp.m_size = textureSize;
@@ -235,7 +235,7 @@ void TextureManager::createBucket(U32 bucketSize, const vx::ushort3 textureSize,
 		// no bucket exists yet, so create it
 		TextureBucket bucket;
 		bucket.m_pTextures = std::make_unique<TextureWrapper[]>(bucketSize);
-		//	bucket.m_pUsedFlag = std::make_unique<U8[]>(bucketSize);
+		//	bucket.m_pUsedFlag = std::make_unique<u8[]>(bucketSize);
 		bucket.m_size = 0;
 		bucket.m_capacity = bucketSize;
 
@@ -244,7 +244,7 @@ void TextureManager::createBucket(U32 bucketSize, const vx::ushort3 textureSize,
 	// else do nothing
 }
 
-U64 TextureManager::createTexture(const vx::ushort3 size, U8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
+u64 TextureManager::createTexture(const vx::ushort3 size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
 {
 	// try to find bucket
 	auto pBucket = findBucket(size, miplevels, type, format);
@@ -275,16 +275,16 @@ U64 TextureManager::createTexture(const vx::ushort3 size, U8 miplevels, vx::gl::
 	{
 		newWrapper.m_firstFreeSlice = 0;
 		newWrapper.m_freeSlices = size.z;
-		newWrapper.m_pSlices = std::make_unique<U16[]>(size.z);
+		newWrapper.m_pSlices = std::make_unique<u16[]>(size.z);
 
 		for (auto i = 0u; i < size.z; ++i)
 		{
 			newWrapper.m_pSlices[i] = i + 1;
 		}
 	}
-	U64 handle = newWrapper.m_texture.getTextureHandle();
+	u64 handle = newWrapper.m_texture.getTextureHandle();
 
-	U32 index = pBucket->m_size++;
+	u32 index = pBucket->m_size++;
 	auto &wrapperRef = pBucket->m_pTextures[index];
 	wrapperRef = std::move(newWrapper);
 
@@ -292,10 +292,10 @@ U64 TextureManager::createTexture(const vx::ushort3 size, U8 miplevels, vx::gl::
 	return handle;
 }
 
-TextureRef TextureManager::load(const TextureFile &f, U8 mipLevels, U8 srgb)
+TextureRef TextureManager::load(const TextureFile &f, u8 mipLevels, u8 srgb)
 {
 	auto textureSize = f.getSize();
-	U32 channels = f.getChannels();
+	u32 channels = f.getChannels();
 
 	vx::gl::TextureFormat format = vx::gl::TextureFormat::SRGBA8;
 	if (srgb == 0)
@@ -322,7 +322,7 @@ TextureRef TextureManager::load(const TextureFile &f, U8 mipLevels, U8 srgb)
 	return result;
 }
 
-TextureRef TextureManager::load(const vx::ushort3 size, U8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format, vx::gl::DataType dataType, const void *ptr)
+TextureRef TextureManager::load(const vx::ushort3 size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format, vx::gl::DataType dataType, const void *ptr)
 {
 	TextureRef ref;
 	auto pBucket = findBucket(size, miplevels, type, format);
@@ -339,9 +339,9 @@ TextureRef TextureManager::load(const vx::ushort3 size, U8 miplevels, vx::gl::Te
 	return ref;
 }
 
-U64 TextureManager::getTextureHandle(const TextureRef &ref)
+u64 TextureManager::getTextureHandle(const TextureRef &ref)
 {
-	U64 handle = 0;
+	u64 handle = 0;
 
 	auto it = m_wrappers.find(ref.getTextureId());
 	if (it != m_wrappers.end())

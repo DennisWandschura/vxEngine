@@ -67,17 +67,17 @@ TextureFile& TextureFile::operator = (TextureFile &&rhs)
 	return *this;
 }
 
-void TextureFile::flipImage(U8 *data, U32 width, U32 height, U8 n)
+void TextureFile::flipImage(u8 *data, u32 width, u32 height, u8 n)
 {
-	U32 width_in_bytes = width * n;
-	U8 temp = 0;
-	U32 half_height = height / 2;
+	u32 width_in_bytes = width * n;
+	u8 temp = 0;
+	u32 half_height = height / 2;
 
-	for (U32 row = 0; row < half_height; row++)
+	for (u32 row = 0; row < half_height; row++)
 	{
 		auto top = data + row * width_in_bytes;
 		auto bottom = data + (height - row - 1) * width_in_bytes;
-		for (U32 col = 0; col < width_in_bytes; col++)
+		for (u32 col = 0; col < width_in_bytes; col++)
 		{
 			temp = *top;
 			*top = *bottom;
@@ -91,7 +91,7 @@ void TextureFile::flipImage(U8 *data, U32 width, U32 height, U8 n)
 bool TextureFile::loadFromFile(const char *file)
 {
 	int x, y, n;
-	auto pData = std::unique_ptr<U8[]>(stbi_load(file, &x, &y, &n, 0));
+	auto pData = std::unique_ptr<u8[]>(stbi_load(file, &x, &y, &n, 0));
 	if (!pData)
 		return false;
 
@@ -110,10 +110,10 @@ bool TextureFile::loadFromFile(const char *file)
 	return true;
 }
 
-bool TextureFile::load(const U8 *ptr, U32 size)
+bool TextureFile::load(const u8 *ptr, u32 size)
 {
 	int x, y, n;
-	std::unique_ptr<U8[]> pData(stbi_load_from_memory(ptr, size, &x, &y, &n, 0));
+	std::unique_ptr<u8[]> pData(stbi_load_from_memory(ptr, size, &x, &y, &n, 0));
 	if (!pData)
 	{
 		printf("TextureFile::load: failed to load from memory\n");

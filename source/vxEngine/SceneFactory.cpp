@@ -52,8 +52,8 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	auto meshInstanceCount = desc.pSceneFile->getNumMeshInstances();
 
 	// check if all meshes are loaded
-	U8 result = 1;
-	for (U32 i = 0; i < meshInstanceCount; ++i)
+	u8 result = 1;
+	for (u32 i = 0; i < meshInstanceCount; ++i)
 	{
 		auto meshFile = pMeshInstances[i].getMeshFile();
 		auto meshSid = vx::make_sid(meshFile);
@@ -82,7 +82,7 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 
 	auto pActors = desc.pSceneFile->getActors();
 	auto actorCount = desc.pSceneFile->getActorCount();
-	for (U32 i = 0; i < actorCount; ++i)
+	for (u32 i = 0; i < actorCount; ++i)
 	{
 		auto &actor = pActors[i];
 
@@ -112,7 +112,7 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const U8* ptr, Scene *pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, Scene *pScene)
 {
 	//auto result = loadSceneFile(loadDesc, ptr);
 
@@ -168,7 +168,7 @@ bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, F
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const U8* ptr, EditorScene* pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, EditorScene* pScene)
 {
 	SceneFile sceneFile;
 	auto result = FileFactory::load(ptr, &sceneFile);

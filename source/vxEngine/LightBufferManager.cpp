@@ -26,13 +26,13 @@ SOFTWARE.
 #include "gl/BufferBindingManager.h"
 #include "Light.h"
 
-void LightBufferManager::initialize(U32 maxLightCount)
+void LightBufferManager::initialize(u32 maxLightCount)
 {
 	createLightDataBuffer(maxLightCount);
 	m_maxLightCount = maxLightCount;
 }
 
-void LightBufferManager::createLightDataBuffer(U32 maxLightCount)
+void LightBufferManager::createLightDataBuffer(u32 maxLightCount)
 {
 	LightDataBlock lightdata;
 	lightdata.size = 0;
@@ -51,7 +51,7 @@ void LightBufferManager::bindBuffer()
 	gl::BufferBindingManager::bindBaseUniform(1, m_lightDataBuffer.getId());
 }
 
-void LightBufferManager::updateLightDataBuffer(const Light* lights, U32 count)
+void LightBufferManager::updateLightDataBuffer(const Light* lights, u32 count)
 {
 	VX_ASSERT(count <= 5);
 

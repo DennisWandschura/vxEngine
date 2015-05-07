@@ -26,7 +26,7 @@ SOFTWARE.
 
 bool NavMeshTriangle::sharesEdge(const NavMeshTriangle &other) const
 {
-	U8 sharedCount = 0;
+	u8 sharedCount = 0;
 
 	if (m_triangle[0].x == other.m_triangle.m_points[0].x &&
 		m_triangle[0].y == other.m_triangle.m_points[0].y &&

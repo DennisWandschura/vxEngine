@@ -29,7 +29,7 @@ namespace gl
 	BufferBindingManager::Binding BufferBindingManager::s_uniformBindings[s_maxBindings]{};
 	BufferBindingManager::Binding BufferBindingManager::s_shaderStorageBindings[s_maxBindings]{};
 
-	void BufferBindingManager::bindBaseUniform(U32 index, U32 bufferId)
+	void BufferBindingManager::bindBaseUniform(u32 index, u32 bufferId)
 	{
 		if (index >= s_maxBindings)
 			return;
@@ -42,7 +42,7 @@ namespace gl
 		}
 	}
 
-	void BufferBindingManager::bindBaseShaderStorage(U32 index, U32 bufferId)
+	void BufferBindingManager::bindBaseShaderStorage(u32 index, u32 bufferId)
 	{
 		if (index >= s_maxBindings)
 			return;

@@ -39,9 +39,9 @@ namespace Graphics
 
 	}
 
-	void Segment::pushCommand(const U8* ptr, U32 count)
+	void Segment::pushCommand(const u8* ptr, u32 count)
 	{
-		for (U32 i = 0; i < count; ++i)
+		for (u32 i = 0; i < count; ++i)
 		{
 			m_commmands.push_back(ptr[i]);
 		}
@@ -57,10 +57,10 @@ namespace Graphics
 		m_state.update();
 
 		auto count = m_commmands.size();
-		for (U32 i = 0; i < count;)
+		for (u32 i = 0; i < count;)
 		{
 			Command* header = (Command*)&m_commmands[i];
-			U32 offset = 0;
+			u32 offset = 0;
 
 			Command::handleCommand(header, &offset);
 			VX_ASSERT(offset != 0);

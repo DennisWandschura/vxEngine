@@ -29,19 +29,19 @@ namespace gl
 {
 	class BufferBindingManager
 	{
-		static const U8 s_maxBindings = 255;
+		static const u8 s_maxBindings = 255;
 
 		struct Binding
 		{
-			U32 index;
-			U32 bufferId;
+			u32 index;
+			u32 bufferId;
 		};
 
 		static Binding s_uniformBindings[s_maxBindings];
 		static Binding s_shaderStorageBindings[s_maxBindings];
 
 	public:
-		static void bindBaseUniform(U32 index, U32 bufferId);
-		static void bindBaseShaderStorage(U32 index, U32 bufferId);
+		static void bindBaseUniform(u32 index, u32 bufferId);
+		static void bindBaseShaderStorage(u32 index, u32 bufferId);
 	};
 }

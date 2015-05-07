@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,40 +23,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include "DrawCommand.h"
-#include <vxLib/gl/Base.h>
 #include <vxLib/math/Vector.h>
 
-namespace Graphics
+struct RenderSettings
 {
-	struct RenderPassDescription
-	{
-		DrawCommandDescription drawCmdDesc;
-		vx::uint2 resolution{ 0, 0 };
-		U32 vao{ 0 };
-		U32 fbo{ 0 };
-		U32 clearBits{ 0 };
-		U32 pipeline{ 0 };
-		U32 barrierBits{ 0 };
-	};
-
-	class RenderPass
-	{
-		DrawCommand m_drawCommand;
-		vx::uint2 m_resolution{ 0, 0 };
-		U32 m_vao{ 0 };
-		U32 m_fbo{ 0 };
-		U32 m_clearBits{ 0 };
-		U32 m_pipeline{ 0 };
-		U32 m_barrierBits{ 0 };
-
-	public:
-		void initialize(const RenderPassDescription &desc);
-
-		void draw() const;
-
-		void setDrawCount(U32 count);
-	};
-}
+	vx::uint2 m_resolution;
+	u32 m_maxActiveLights;
+	u32 m_shadowmapResolution;
+	u32 m_maxMeshInstances;
+	u32 m_maxStaticMeshInstances;
+	u32 m_maxDynamicMeshInstances;
+	u8 voxelGiQuality;
+};

@@ -28,5 +28,5 @@ SOFTWARE.
 struct Plane
 {
 	vx::float3 n;
-	F32 d;
+	f32 d;
 };

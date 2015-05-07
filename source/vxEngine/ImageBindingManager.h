@@ -27,14 +27,14 @@ SOFTWARE.
 
 class ImageBindingManager
 {
-	static const U8 s_maxBindings = 255;
+	static const u8 s_maxBindings = 255;
 
 	struct Binding
 	{
-		U32 unit{0};
-		U32 id{0};
-		U32 access{0}; 
-		U32 format{0};
+		u32 unit{0};
+		u32 id{0};
+		u32 access{0}; 
+		u32 format{0};
 	};
 
 	static Binding s_bindings[s_maxBindings];
@@ -42,5 +42,5 @@ class ImageBindingManager
 	ImageBindingManager();
 
 public:
-	static void bind(U32 unit, U32 id, U32 level, U8 layered, U32 layer, U32 access, U32 format);
+	static void bind(u32 unit, u32 id, u32 level, u8 layered, u32 layer, u32 access, u32 format);
 };

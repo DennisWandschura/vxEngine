@@ -41,5 +41,5 @@ public:
 
 	State* getTargetState() const override;
 
-	U8 isTriggered() override;
+	u8 isTriggered() override;
 };

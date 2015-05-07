@@ -33,11 +33,11 @@ struct DXT5AlphaBlock;
 
 class Surface
 {
-	U32 m_width;
-	U32 m_height;
-	U32 m_depth;
-	U32 m_size;
-	U8* m_pixels;
+	u32 m_width;
+	u32 m_height;
+	u32 m_depth;
+	u32 m_size;
+	u8* m_pixels;
 
 public:
 	Surface();
@@ -48,17 +48,17 @@ public:
 	Surface& operator=(const Surface&) = delete;
 	Surface& operator=(Surface &&rhs);
 
-	void create(U32 width, U32 height, U32 depth, U32 size, U8* pixels);
+	void create(u32 width, u32 height, u32 depth, u32 size, u8* pixels);
 
 	void clear();
 
-	U32 getWidth() const { return m_width; }
-	U32 getHeight() const { return m_height; }
-	U32 getDepth() const { return m_depth; }
-	U32 getSize() const { return m_size; }
+	u32 getWidth() const { return m_width; }
+	u32 getHeight() const { return m_height; }
+	u32 getDepth() const { return m_depth; }
+	u32 getSize() const { return m_size; }
 
-	U8* getPixels() { return m_pixels; }
-	const U8* getPixels() const { return m_pixels; }
+	u8* getPixels() { return m_pixels; }
+	const u8* getPixels() const { return m_pixels; }
 };
 
 class Texture : public Surface
@@ -73,7 +73,7 @@ public:
 	Texture& operator=(const Texture&) = delete;
 	Texture& operator=(Texture &&rhs);
 
-	void create(U32 width, U32 height, U32 depth, U32 size, U8* pixels);
+	void create(u32 width, u32 height, u32 depth, u32 size, u8* pixels);
 
 	inline void addMipmap(Surface &&mipmap)
 	{
@@ -82,9 +82,9 @@ public:
 
 	void clear();
 
-	U32 getMipmapCount() const { return m_mipmaps.size(); }
-	Surface* getMipmap(U32 i) { return &m_mipmaps[i]; }
-	const Surface* getMipmap(U32 i) const { return &m_mipmaps[i]; }
+	u32 getMipmapCount() const { return m_mipmaps.size(); }
+	Surface* getMipmap(u32 i) { return &m_mipmaps[i]; }
+	const Surface* getMipmap(u32 i) const { return &m_mipmaps[i]; }
 };
 
 class DDS_File
@@ -92,15 +92,15 @@ class DDS_File
 	enum class Type{ Flat, Cubemap, Volume };
 
 	std::vector<Texture> m_images;
-	U32 m_components;
+	u32 m_components;
 	Type m_type;
-	U32 m_format;
+	u32 m_format;
 
-	unsigned int clamp_size(unsigned int size);
+	u32 clamp_size(u32 size);
 
-	unsigned int size_dxtc(unsigned int width, unsigned int height);
-
-	unsigned int size_rgb(unsigned int width, unsigned int height);
+	u32 size_dxtc(unsigned int width, unsigned int height);
+	u32 size_rgb(unsigned int width, unsigned int height);
+	u32 size_bc(u32 width, u32 height);
 
 	inline void swap_endian(void *val);
 
@@ -122,8 +122,9 @@ public:
 	bool loadFromFile(const char* file, bool flipImage = true);
 
 	bool isCompressed() const;
+	bool isDxt() const;
 
-	const Texture& getTexture(U32 i) const { return m_images[i]; }
+	const Texture& getTexture(u32 i) const { return m_images[i]; }
 
 	void clear();
 };

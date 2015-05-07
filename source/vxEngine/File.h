@@ -27,7 +27,7 @@ SOFTWARE.
 
 #include <vxLib\types.h>
 
-enum class FileAccess : U32
+enum class FileAccess : u32
 {
 	Read = 0x80000000L,
 	Write = 0x40000000L,
@@ -46,7 +46,7 @@ public:
 	bool open(const char *file, FileAccess access);
 	bool close();
 
-	bool read(void *ptr, U32 size);
+	bool read(void *ptr, u32 size);
 
 	template<typename T>
 	bool read(T &value)
@@ -54,7 +54,7 @@ public:
 		return read(&value, sizeof(T));
 	}
 
-	bool write(const void *ptr, U32 size, U32 *pWrittenBytes);
+	bool write(const void *ptr, u32 size, u32 *pWrittenBytes);
 
 	template<typename T>
 	bool write(const T &value)
@@ -63,12 +63,11 @@ public:
 	}
 
 	template<typename T>
-	bool write(const T *ptr, U32 count)
+	bool write(const T *ptr, u32 count)
 	{
 		return write(ptr, sizeof(T) * count, nullptr);
 	}
 
-	// returns size of file, on failure it returns zero
-	U32 getSize() const;
+	u32 getSize() const;
 };
 #endif

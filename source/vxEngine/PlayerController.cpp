@@ -60,15 +60,15 @@ void PlayerController::handleKeyboard(EntityActor* pPlayer, const vx::Keyboard &
 	if (pPlayer == nullptr)
 		return;
 
-	/*U32 actionMask = (keyboard.m_keys[vx::Input::KEY_A] << Component::Input::Action_Left) |
+	/*u32 actionMask = (keyboard.m_keys[vx::Input::KEY_A] << Component::Input::Action_Left) |
 		(keyboard.m_keys[vx::Input::KEY_D] << Component::Input::Action_Right) |
 		(keyboard.m_keys[vx::Input::KEY_W] << Component::Input::Action_Forward) |
 		(keyboard.m_keys[vx::Input::KEY_S] << Component::Input::Action_Backward) |
 		(keyboard.m_keys[vx::Input::KEY_SHIFT] << Component::Input::Action_Run) |
 		(keyboard.m_keys[vx::Input::KEY_CTRL] << Component::Input::Action_Crouch);*/
 
-	F32 x_axis = ((I8)(keyboard.m_keys[vx::Input::KEY_D])) - ((I8)(keyboard.m_keys[vx::Input::KEY_A]));
-	F32 z_axis = ((I8)(keyboard.m_keys[vx::Input::KEY_S])) - ((I8)(keyboard.m_keys[vx::Input::KEY_W]));
+	f32 x_axis = ((s8)(keyboard.m_keys[vx::Input::KEY_D])) - ((s8)(keyboard.m_keys[vx::Input::KEY_A]));
+	f32 z_axis = ((s8)(keyboard.m_keys[vx::Input::KEY_S])) - ((s8)(keyboard.m_keys[vx::Input::KEY_W]));
 
 	auto &input = entityAspect.getComponentInput(pPlayer->input);
 
@@ -86,23 +86,23 @@ void PlayerController::handleKeyboard(EntityActor* pPlayer, const vx::Keyboard &
 	input.velocity.z = vVelocity.f[2];
 }
 
-void PlayerController::handleMouse(EntityActor* pPlayer, const vx::Mouse &mouse, const F32 dt, EntityAspect &entityAspect)
+void PlayerController::handleMouse(EntityActor* pPlayer, const vx::Mouse &mouse, const f32 dt, EntityAspect &entityAspect)
 {
-	const F32 angleMax = 1.4f;
-	const F32 angleMin = -1.4f;
+	const f32 angleMax = 1.4f;
+	const f32 angleMin = -1.4f;
 
 	if (pPlayer == nullptr)
 		return;
 
 	auto &input = entityAspect.getComponentInput(pPlayer->input);
-	input.orientation.x = input.orientation.x + (-(F32)mouse.m_relative.x * 0.5f * dt);
-	input.orientation.y = input.orientation.y + (-(F32)mouse.m_relative.y * 0.5f * dt);
+	input.orientation.x = input.orientation.x + (-(f32)mouse.m_relative.x * 0.5f * dt);
+	input.orientation.y = input.orientation.y + (-(f32)mouse.m_relative.y * 0.5f * dt);
 
 	input.orientation.x = vx::scalarModAngle(input.orientation.x);
 	input.orientation.y = fminf(fmaxf(input.orientation.y, angleMin), angleMax);
 }
 
-void PlayerController::keyPressed(U16 key, EntityAspect &entityAspect)
+void PlayerController::keyPressed(u16 key, EntityAspect &entityAspect)
 {
 	VX_UNREFERENCED_PARAMETER(key);
 	VX_UNREFERENCED_PARAMETER(entityAspect);

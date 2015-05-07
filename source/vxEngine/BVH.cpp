@@ -31,12 +31,12 @@ struct LinearBVHNode
 	AABB bounds;
 	union
 	{
-		U32 primOffset; // leaf
-		U32 secondChildOffset; // interior
+		u32 primOffset; // leaf
+		u32 secondChildOffset; // interior
 	};
-	U8 primCount{ 0 };
-	U8 axis;
-	U8 pad[2];
+	u8 primCount{ 0 };
+	u8 axis;
+	u8 pad[2];
 };
 
 namespace
@@ -45,20 +45,20 @@ namespace
 	{
 		AABB bounds;
 		BVHBuildNode* children[2];
-		U32 splitAxis;
-		U32 firstPrimOffset;
-		U32 primCount;
+		u32 splitAxis;
+		u32 firstPrimOffset;
+		u32 primCount;
 
 		BVHBuildNode() :primCount(0){ children[0] = children[1] = nullptr; }
 
-		void initLeaf(U32 first, U32 n, const AABB &b)
+		void initLeaf(u32 first, u32 n, const AABB &b)
 		{
 			firstPrimOffset = first;
 			primCount = n;
 			bounds = b;
 		}
 
-		void initInterior(U32 axis, BVHBuildNode* c0, BVHBuildNode* c1)
+		void initInterior(u32 axis, BVHBuildNode* c0, BVHBuildNode* c1)
 		{
 			children[0] = c0;
 			children[1] = c1;
@@ -71,11 +71,11 @@ namespace
 
 	struct BVHPrimitiveInfo
 	{
-		U32 primitiveNumber;
+		u32 primitiveNumber;
 		vx::float3 centroid;
 		AABB bounds;
 
-		BVHPrimitiveInfo(U32 pn, const AABB &b)
+		BVHPrimitiveInfo(u32 pn, const AABB &b)
 			:primitiveNumber(pn), bounds(b)
 		{
 			centroid = 0.5f * b.min + .5f * b.max;
@@ -84,9 +84,9 @@ namespace
 
 	struct ComparePoints
 	{
-		U32 dim;
+		u32 dim;
 
-		ComparePoints(U32 d) :dim(d){}
+		ComparePoints(u32 d) :dim(d){}
 
 		bool operator()(const BVHPrimitiveInfo &lhs, const BVHPrimitiveInfo &rhs) const
 		{
@@ -96,21 +96,21 @@ namespace
 
 	struct BucketInfo
 	{
-		U32 count{ 0 };
+		u32 count{ 0 };
 		AABB bounds;
 	};
 
 	struct CompareToBucket
 	{
-		U32 splitBucket, bucketCount, dim;
+		u32 splitBucket, bucketCount, dim;
 		const AABB &centroidBounds;
 
-		CompareToBucket(U32 split, U32 count, U32 d, const AABB &b)
+		CompareToBucket(u32 split, u32 count, u32 d, const AABB &b)
 			:splitBucket(split), bucketCount(count), dim(d), centroidBounds(b) {}
 
 		bool operator()(const BVHPrimitiveInfo &p) const
 		{
-			U32 b = bucketCount * ((p.centroid[dim] - centroidBounds.min[dim]) /
+			u32 b = bucketCount * ((p.centroid[dim] - centroidBounds.min[dim]) /
 				(centroidBounds.max[dim] - centroidBounds.min[dim]));
 
 			if (b == bucketCount)
@@ -120,15 +120,15 @@ namespace
 		}
 	};
 
-	BVHBuildNode* recursiveBuild(const std::vector<const Primitive*> &primitives, U32 maxPrimsInNode, std::vector<BVHPrimitiveInfo> &buildData, U32 start, U32 end, U32* totalNodes, std::vector<const Primitive*> &orderedPrims)
+	BVHBuildNode* recursiveBuild(const std::vector<const Primitive*> &primitives, u32 maxPrimsInNode, std::vector<BVHPrimitiveInfo> &buildData, u32 start, u32 end, u32* totalNodes, std::vector<const Primitive*> &orderedPrims)
 	{
-		auto createLeaf = [](std::vector<const Primitive*> &orderedPrims, U32 start, U32 end, const std::vector<BVHPrimitiveInfo> &buildData,
-			const std::vector<const Primitive*> &primitves, BVHBuildNode* node, U32 primCount, const AABB &bbox)
+		auto createLeaf = [](std::vector<const Primitive*> &orderedPrims, u32 start, u32 end, const std::vector<BVHPrimitiveInfo> &buildData,
+			const std::vector<const Primitive*> &primitves, BVHBuildNode* node, u32 primCount, const AABB &bbox)
 		{
-			U32 firstPrimOffset = orderedPrims.size();
-			for (U32 i = start; i < end; ++i)
+			u32 firstPrimOffset = orderedPrims.size();
+			for (u32 i = start; i < end; ++i)
 			{
-				U32 primNumber = buildData[i].primitiveNumber;
+				u32 primNumber = buildData[i].primitiveNumber;
 				orderedPrims.push_back(primitves[primNumber]);
 			}
 			node->initLeaf(firstPrimOffset, primCount, bbox);
@@ -138,18 +138,18 @@ namespace
 		BVHBuildNode* node = new BVHBuildNode();
 
 		AABB bbox;
-		for (U32 i = start; i < end; ++i)
+		for (u32 i = start; i < end; ++i)
 		{
 			bbox = AABB::merge(bbox, buildData[i].bounds);
 		}
 
-		U32 primCount = end - start;
+		u32 primCount = end - start;
 		if (primCount == 1)
 		{
-			/*U32 firstPrimOffset = orderedPrims.size();
-			for (U32 i = start; i < end; ++i)
+			/*u32 firstPrimOffset = orderedPrims.size();
+			for (u32 i = start; i < end; ++i)
 			{
-			U32 primNumber = buildData[i].primitiveNumber;
+			u32 primNumber = buildData[i].primitiveNumber;
 			orderedPrims.push_back(m_primitives[primNumber]);
 			}
 			node->initLeaf(firstPrimOffset, primCount, bbox);*/
@@ -158,19 +158,19 @@ namespace
 		else
 		{
 			AABB centroidBounds;
-			for (U32 i = start; i < end; ++i)
+			for (u32 i = start; i < end; ++i)
 			{
 				centroidBounds = AABB::merge(centroidBounds, buildData[i].centroid);
 			}
-			U32 dim = centroidBounds.maximumExtend();
+			u32 dim = centroidBounds.maximumExtend();
 
-			U32 mid = (start + end) / 2;
+			u32 mid = (start + end) / 2;
 			if (centroidBounds.max[dim] == centroidBounds.min[dim])
 			{
-				/*U32 firstPrimOffset = orderedPrims.size();
-				for (U32 i = start; i < end; ++i)
+				/*u32 firstPrimOffset = orderedPrims.size();
+				for (u32 i = start; i < end; ++i)
 				{
-				U32 primNumber = buildData[i].primitiveNumber;
+				u32 primNumber = buildData[i].primitiveNumber;
 				orderedPrims.push_back(m_primitives[primNumber]);
 				}
 				node->initLeaf(firstPrimOffset, primCount, bbox);*/
@@ -188,13 +188,13 @@ namespace
 			else
 			{
 				// allocate BucketInfo
-				const U32 bucketCount = 12;
+				const u32 bucketCount = 12;
 				BucketInfo buckets[bucketCount];
 
 				// initialize BucketInfo
-				for (U32 i = start; i < end; ++i)
+				for (u32 i = start; i < end; ++i)
 				{
-					U32 b = bucketCount * ((buildData[i].centroid[dim] - centroidBounds.min[dim]) /
+					u32 b = bucketCount * ((buildData[i].centroid[dim] - centroidBounds.min[dim]) /
 						(centroidBounds.max[dim] - centroidBounds.min[dim]));
 
 					if (b == bucketCount)b = bucketCount - 1;
@@ -203,17 +203,17 @@ namespace
 				}
 
 				// compute costs
-				F32 cost[bucketCount - 1];
-				for (U32 i = 0; i < bucketCount - 1; ++i)
+				f32 cost[bucketCount - 1];
+				for (u32 i = 0; i < bucketCount - 1; ++i)
 				{
 					AABB b0, b1;
-					U32 count0 = 0, count1 = 0;
-					for (U32 j = 0; j <= i; ++j)
+					u32 count0 = 0, count1 = 0;
+					for (u32 j = 0; j <= i; ++j)
 					{
 						b0 = AABB::merge(b0, buckets[j].bounds);
 						count0 += buckets[j].count;
 					}
-					for (U32 j = i + 1; j < bucketCount; ++j)
+					for (u32 j = i + 1; j < bucketCount; ++j)
 					{
 						b1 = AABB::merge(b1, buckets[j].bounds);
 						count1 += buckets[j].count;
@@ -222,9 +222,9 @@ namespace
 				}
 
 				// find bucket to split
-				F32 minCost = cost[0];
-				U32 minSplitCost = 0;
-				for (U32 i = 1; i < bucketCount - 1; ++i)
+				f32 minCost = cost[0];
+				u32 minSplitCost = 0;
+				for (u32 i = 1; i < bucketCount - 1; ++i)
 				{
 					if (cost[i] < minCost)
 					{
@@ -254,11 +254,11 @@ namespace
 		return node;
 	}
 
-	U32 flattenBVHTree(LinearBVHNode* pNodes, BVHBuildNode* node, U32* offset)
+	u32 flattenBVHTree(LinearBVHNode* pNodes, BVHBuildNode* node, u32* offset)
 	{
 		LinearBVHNode* linearNode = &pNodes[*offset];
 		linearNode->bounds = node->bounds;
-		U32 myOffset = (*offset)++;
+		u32 myOffset = (*offset)++;
 		if (node->primCount > 0)
 		{
 			linearNode->primOffset = node->firstPrimOffset;
@@ -288,14 +288,14 @@ BVH::~BVH()
 {
 }
 
-void BVH::create(const Primitive* primitives, U32 primitiveCount)
+void BVH::create(const Primitive* primitives, u32 primitiveCount)
 {
 	m_maxPrimsInNode = std::min(255u, primitiveCount);
 
 	std::vector<BVHPrimitiveInfo> buildData;
 	buildData.reserve(primitiveCount);
 	m_primitives.reserve(primitiveCount);
-	for (U32 i = 0; i < primitiveCount; ++i)
+	for (u32 i = 0; i < primitiveCount; ++i)
 	{
 		auto bounds = primitives[i].worldBound();
 
@@ -304,7 +304,7 @@ void BVH::create(const Primitive* primitives, U32 primitiveCount)
 		m_primitives.push_back(&primitives[i]);
 	}
 
-	U32 totalNodes = 0;
+	u32 totalNodes = 0;
 	std::vector<const Primitive*> orderedPrims;
 	orderedPrims.reserve(primitiveCount);
 	auto root = recursiveBuild(m_primitives, m_maxPrimsInNode, buildData, 0, primitiveCount, &totalNodes, orderedPrims);
@@ -318,7 +318,7 @@ void BVH::create(const Primitive* primitives, U32 primitiveCount)
 	m_primitives.swap(tmp);
 
 	m_pNodes = std::make_unique<LinearBVHNode[]>(totalNodes);
-	U32 offset = 0;
+	u32 offset = 0;
 	flattenBVHTree(m_pNodes.get(), root, &offset);
 }
 
@@ -330,10 +330,10 @@ bool BVH::intersect(const Ray &ray) const
 	bool hit = false;
 	//vx::float3 origin = ray(ray.mint);
 	vx::float3 invDir = 1.0f / ray.d;
-	U32 dirIsNeg[3] = { invDir.x < 0, invDir.y < 0, invDir.z < 0 };
+	u32 dirIsNeg[3] = { invDir.x < 0, invDir.y < 0, invDir.z < 0 };
 
-	U32 todoOffset = 0, nodeNum = 0;
-	U32 todo[64];
+	u32 todoOffset = 0, nodeNum = 0;
+	u32 todo[64];
 	while (true)
 	{
 		auto node = &m_pNodes[nodeNum];
@@ -343,7 +343,7 @@ bool BVH::intersect(const Ray &ray) const
 			if (node->primCount > 0)
 			{
 				// intersect ray against primitives
-				for (U32 i = 0; i < node->primCount; ++i)
+				for (u32 i = 0; i < node->primCount; ++i)
 				{
 					if (m_primitives[node->primOffset + i]->intersects(ray))
 						hit = true;
@@ -377,7 +377,7 @@ bool BVH::intersect(const Ray &ray) const
 	return hit;
 }
 
-bool BVH::intersectP(const AABB &bounds, const Ray &ray, const vx::float3 &invDir, const U32 dirIsNeg[3]) const
+bool BVH::intersectP(const AABB &bounds, const Ray &ray, const vx::float3 &invDir, const u32 dirIsNeg[3]) const
 {
 	// Check for ray intersection against $x$ and $y$ slabs
 	float tmin = (bounds[dirIsNeg[0]].x - ray.o.x) * invDir.x;

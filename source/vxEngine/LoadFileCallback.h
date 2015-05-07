@@ -28,12 +28,12 @@ SOFTWARE.
 #include <vxLib/types.h>
 #include <vxLib/Variant.h>
 
-enum class FileStatus : U8;
-enum class FileType : U8;
+enum class FileStatus : u8;
+enum class FileType : u8;
 
 struct LoadFileReturnType
 {
-	U8 result{ 0 };
+	u8 result{ 0 };
 	FileType type;
 	FileStatus status;
 };

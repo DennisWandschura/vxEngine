@@ -51,8 +51,8 @@ class InfluenceMap;
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/Allocator/PoolAllocator.h>
 
-enum class PlayerType : U32;
-enum class FileType : U8;
+enum class PlayerType : u32;
+enum class FileType : u8;
 
 class EntityAspect : public EventListener
 {
@@ -74,12 +74,12 @@ class EntityAspect : public EventListener
 	const Scene* m_pCurrentScene{ nullptr };
 	vx::PoolAllocator m_poolAllocatorPath;
 
-	Component::Actor* createComponentActor(U16 entityIndex, U16* actorIndex);
-	void createComponentPhysics(const vx::float3 &position, U16 entityIndex, F32 height);
+	Component::Actor* createComponentActor(u16 entityIndex, u16* actorIndex);
+	void createComponentPhysics(const vx::float3 &position, u16 entityIndex, f32 height);
 
 	void spawnPlayer(const vx::float3 &position, const Component::Physics &p);
 
-	void createActorEntity(const vx::float3 &position, F32 height, U32 gpuIndex);
+	void createActorEntity(const vx::float3 &position, f32 height, u32 gpuIndex);
 
 	//////////////////
 
@@ -98,10 +98,10 @@ public:
 
 	//////////////////
 
-	void updateInput(F32 dt);
+	void updateInput(f32 dt);
 
 	// after physics->fetch
-	void updatePhysics_linear(F32 dt);
+	void updatePhysics_linear(f32 dt);
 
 	// updates camera to player position and orientation
 	void updatePlayerPositionCamera();
@@ -115,8 +115,8 @@ public:
 	//////////////////
 
 	void handleKeyboard(const vx::Keyboard &keyboard);
-	void handleMouse(const vx::Mouse &mouse, const F32 dt);
-	void keyPressed(U16 key);
+	void handleMouse(const vx::Mouse &mouse, const f32 dt);
+	void keyPressed(u16 key);
 
 	//////////////////
 
@@ -126,7 +126,7 @@ public:
 
 	EntityActor* getPlayer(){ return m_pPlayer; }
 
-	Component::Input& getComponentInput(U16 i);
+	Component::Input& getComponentInput(u16 i);
 
 	const Pool<Component::Actor>& getActorPool() const { return m_poolActor; }
 	const Pool<EntityActor>& getEntityPool() const { return m_poolEntity; }

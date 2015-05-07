@@ -31,7 +31,7 @@ Sound::Sound()
 	alGenSources(1, &m_sourceId);
 }
 
-Sound::Sound(F32 x, F32 y, F32 z)
+Sound::Sound(f32 x, f32 y, f32 z)
 	:m_sourceId(0),
 	m_position(x, y, z)
 {

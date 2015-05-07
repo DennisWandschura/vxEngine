@@ -29,23 +29,23 @@ SOFTWARE.
 
 namespace detail
 {
-	void VertexWrapperIbo::create(vx::gl::VertexArray &vao, U32 &ibo, U32 indexCount)
+	void VertexWrapperIbo::create(vx::gl::VertexArray &vao, u32 &ibo, u32 indexCount)
 	{
 		glCreateBuffers(1, &ibo);
-		glNamedBufferStorage(ibo, sizeof(U32) * indexCount, nullptr, GL_MAP_WRITE_BIT);
+		glNamedBufferStorage(ibo, sizeof(u32) * indexCount, nullptr, GL_MAP_WRITE_BIT);
 
 		vao.bindIndexBuffer(ibo);
 	}
 
-	void VertexWrapperIbo::update(const U32 ibo, const U32 *pIndices, U32 indexCount)
+	void VertexWrapperIbo::update(const u32 ibo, const u32 *pIndices, u32 indexCount)
 	{
-		U32 *pIndicesGPU = (U32*)glMapNamedBuffer(ibo, GL_WRITE_ONLY);
-		memcpy(pIndicesGPU, pIndices, sizeof(U32) * indexCount);
+		u32 *pIndicesGPU = (u32*)glMapNamedBuffer(ibo, GL_WRITE_ONLY);
+		memcpy(pIndicesGPU, pIndices, sizeof(u32) * indexCount);
 		glUnmapNamedBuffer(ibo);
 	}
 }
 
-void VertexPNTUV::create(vx::gl::VertexArray* vao, vx::gl::Buffer* vbo, U32 vertexCount, U32 bindingIndex, U32 &attributeOffset)
+void VertexPNTUV::create(vx::gl::VertexArray* vao, vx::gl::Buffer* vbo, u32 vertexCount, u32 bindingIndex, u32 &attributeOffset)
 {
 	*vbo = vx::gl::BufferDescription::createImmutable(vx::gl::BufferType::Array_Buffer, sizeof(value_type) * vertexCount, vx::gl::BufferStorageFlags::Write, nullptr);
 
@@ -59,26 +59,26 @@ void VertexPNTUV::create(vx::gl::VertexArray* vao, vx::gl::Buffer* vbo, U32 vert
 
 	// normal
 	vao->enableArrayAttrib(attributeOffset);
-	vao->arrayAttribFormatF(attributeOffset, 3, 0, sizeof(F32) * 4);
+	vao->arrayAttribFormatF(attributeOffset, 3, 0, sizeof(f32) * 4);
 	vao->arrayAttribBinding(attributeOffset, bindingIndex);
 	++attributeOffset;
 
 	// tangent
 	vao->enableArrayAttrib(attributeOffset);
-	vao->arrayAttribFormatF(attributeOffset, 3, 0, sizeof(F32) * 7);
+	vao->arrayAttribFormatF(attributeOffset, 3, 0, sizeof(f32) * 7);
 	vao->arrayAttribBinding(attributeOffset, bindingIndex);
 	++attributeOffset;
 
 	// uv
 	vao->enableArrayAttrib(attributeOffset);
-	vao->arrayAttribFormatF(attributeOffset, 2, 0, sizeof(F32) * 10);
+	vao->arrayAttribFormatF(attributeOffset, 2, 0, sizeof(f32) * 10);
 	vao->arrayAttribBinding(attributeOffset, bindingIndex);
 	++attributeOffset;
 
 	vao->bindVertexBuffer(*vbo, bindingIndex, 0, sizeof(value_type));
 }
 
-void VertexPNTUV::update(const U32 vbo, const VertexPNTUV* __restrict pVertices, U32 vertexCount)
+void VertexPNTUV::update(const u32 vbo, const VertexPNTUV* __restrict pVertices, u32 vertexCount)
 {
 	VertexPNTUV *pVerticesGPU = (VertexPNTUV*)glMapNamedBuffer(vbo, GL_WRITE_ONLY);
 	memcpy(pVerticesGPU, pVertices, sizeof(VertexPNTUV) * vertexCount);
@@ -91,7 +91,7 @@ void VertexPNTUV::update(const U32 vbo, const VertexPNTUV* __restrict pVertices,
 
 */
 
-void VertexDrawId::create(vx::gl::VertexArray &vao, U32 &vbo, U32 vertexCount, U32 bindingIndex, U32 &attributeOffset)
+void VertexDrawId::create(vx::gl::VertexArray &vao, u32 &vbo, u32 vertexCount, u32 bindingIndex, u32 &attributeOffset)
 {
 	glCreateBuffers(1, &vbo);
 
@@ -107,7 +107,7 @@ void VertexDrawId::create(vx::gl::VertexArray &vao, U32 &vbo, U32 vertexCount, U
 	glVertexArrayBindingDivisor(vao.getId(), bindingIndex, 1);
 }
 
-void VertexDrawId::update(const U32 vbo, const VertexDrawId* __restrict pVertices, U32 vertexCount)
+void VertexDrawId::update(const u32 vbo, const VertexDrawId* __restrict pVertices, u32 vertexCount)
 {
 	VertexDrawId *pVerticesGPU = reinterpret_cast<VertexDrawId*>(glMapNamedBuffer(vbo, GL_WRITE_ONLY));
 	memcpy(pVerticesGPU, pVertices, sizeof(VertexDrawId) * vertexCount);

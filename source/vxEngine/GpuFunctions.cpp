@@ -32,8 +32,8 @@ vx::uint2 __vectorcall GpuFunctions::packQRotation(const __m128 qRotation)
 	qq = _mm_mul_ps(qq, maxV);
 
 	vx::uint2 packedQRotation;
-	packedQRotation.x = (U32)qq.m128_f32[0] | (U32)qq.m128_f32[1] << 16;
-	packedQRotation.y = (U32)qq.m128_f32[2] | (U32)qq.m128_f32[3] << 16;
+	packedQRotation.x = (u32)qq.m128_f32[0] | (u32)qq.m128_f32[1] << 16;
+	packedQRotation.y = (u32)qq.m128_f32[2] | (u32)qq.m128_f32[3] << 16;
 
 	return packedQRotation;
 }

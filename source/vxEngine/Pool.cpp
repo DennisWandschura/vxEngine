@@ -25,20 +25,20 @@ SOFTWARE.
 
 struct Freelist
 {
-	static const U16 s_magic = 0x1337;
+	static const u16 s_magic = 0x1337;
 
-	U16 nextFreeEntry;
-	U16 magic;
+	u16 nextFreeEntry;
+	u16 magic;
 };
 
-void PoolBase::initialize(U8* ptr, U16 capacity, U32 chunkSize)
+void PoolBase::initialize(u8* ptr, u16 capacity, u32 chunkSize)
 {
 	assert(chunkSize >= sizeof(Freelist));
 
 	m_ptr = ptr;
 	m_capacity = capacity;
 
-	U8* pCurrent = m_ptr;
+	u8* pCurrent = m_ptr;
 	for (auto i = 0u; i < m_capacity; ++i)
 	{
 		Freelist* next = reinterpret_cast<Freelist*>(pCurrent);
@@ -51,7 +51,7 @@ void PoolBase::initialize(U8* ptr, U16 capacity, U32 chunkSize)
 	m_freeEntries = m_capacity;
 }
 
-U8* PoolBase::createEntry(U16* index, U32 chunkSize)
+u8* PoolBase::createEntry(u16* index, u32 chunkSize)
 {
 	if (m_freeEntries == 0)
 		return nullptr;
@@ -66,7 +66,7 @@ U8* PoolBase::createEntry(U16* index, U32 chunkSize)
 	return ptr;
 }
 
-void PoolBase::destroyEntry(U8* ptr, U16 index)
+void PoolBase::destroyEntry(u8* ptr, u16 index)
 {
 	auto p = reinterpret_cast<Freelist*>(ptr);
 	p->nextFreeEntry = m_firstFreeEntry;
@@ -76,24 +76,24 @@ void PoolBase::destroyEntry(U8* ptr, U16 index)
 	++m_freeEntries;
 }
 
-void PoolBase::validateEmptyEntry(const U8 *ptr)
+void PoolBase::validateEmptyEntry(const u8 *ptr)
 {
 	auto p = reinterpret_cast<const Freelist*>(ptr);
 	VX_ASSERT(p->magic == Freelist::s_magic);
 }
 
-void PoolBase::validateUsedEntry(const U8 *ptr)
+void PoolBase::validateUsedEntry(const u8 *ptr)
 {
 	auto p = reinterpret_cast<const Freelist*>(ptr);
 	VX_ASSERT(p->magic != Freelist::s_magic);
 }
 
-bool PoolBase::isUsed(const U8* ptr) const
+bool PoolBase::isUsed(const u8* ptr) const
 {
 	return (reinterpret_cast<const Freelist*>(ptr)->magic != Freelist::s_magic);
 }
 
-U8* PoolBase::release()
+u8* PoolBase::release()
 {
 	auto p = m_ptr;
 
@@ -104,26 +104,26 @@ U8* PoolBase::release()
 	return p;
 }
 
-U16 PoolBase::size() const
+u16 PoolBase::size() const
 {
 	return m_capacity - m_freeEntries;
 }
 
-void* PoolBase::operator[](U16 i)
+void* PoolBase::operator[](u16 i)
 {
 	return m_ptr + i;
 }
 
-const void* PoolBase::operator[](U16 i) const
+const void* PoolBase::operator[](u16 i) const
 {
 	return m_ptr + i;
 }
 
-U8* PoolBase::first(U32 chunkSize) const
+u8* PoolBase::first(u32 chunkSize) const
 {
 	auto end = m_ptr + m_capacity * chunkSize;
-	U8* result = nullptr;
-	U8* next = m_ptr;
+	u8* result = nullptr;
+	u8* next = m_ptr;
 	// skip unused entries
 	while (next != end)
 	{
@@ -139,12 +139,12 @@ U8* PoolBase::first(U32 chunkSize) const
 	return result;
 }
 
-U8* PoolBase::next(U8* ptr, U32 chunkSize) const
+u8* PoolBase::next(u8* ptr, u32 chunkSize) const
 {
-	U8* next = ptr + chunkSize;
+	u8* next = ptr + chunkSize;
 	auto end = m_ptr + m_capacity * chunkSize;
 
-	U8* result = nullptr;
+	u8* result = nullptr;
 	// skip unused entries
 	while (next != end)
 	{

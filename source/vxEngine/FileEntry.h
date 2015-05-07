@@ -25,13 +25,13 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-enum class FileType : U8;
+enum class FileType : u8;
 
 #include <string>
 
 class FileEntry
 {
-	static const U8 s_bufferSize = 31u;
+	static const u8 s_bufferSize = 31u;
 
 	char m_file[s_bufferSize];
 	FileType m_type;
@@ -44,7 +44,7 @@ public:
 	FileEntry(const char(&file)[SIZE], FileType t)
 	{
 		static_assert(SIZE <= s_bufferSize, "Array too large !");
-		for (U32 i = 0; i < SIZE; ++i)
+		for (u32 i = 0; i < SIZE; ++i)
 		{
 			m_file[i] = tolower(file[i]);
 		}

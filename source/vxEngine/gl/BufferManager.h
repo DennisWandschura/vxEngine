@@ -47,7 +47,7 @@ namespace gl
 		BufferManager();
 		~BufferManager();
 
-		void initialize(U32 maxBufferCount, vx::StackAllocator* allocator);
+		void initialize(u32 maxBufferCount, vx::StackAllocator* allocator);
 		void shutdown();
 
 		vx::StringID createBuffer(const char* key, const vx::gl::BufferDescription &desc);

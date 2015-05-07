@@ -37,11 +37,11 @@ namespace vx
 class EngineConfig
 {
 	vx::uint2 m_resolution{1920, 1080};
-	U32 m_shadowMapResolution{2048};
-	F32 m_fov{66.0f};
-	F32 m_zNear{0.1f};
-	F32 m_zFar{1000.0f};
-	U8 m_voxelGiMode{0};
+	u32 m_shadowMapResolution{2048};
+	f32 m_fov{66.0f};
+	f32 m_zNear{0.1f};
+	f32 m_zFar{1000.0f};
+	u8 m_voxelGiMode{0};
 	bool m_vsync{false};
 	bool m_renderDebug{false};
 

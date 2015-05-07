@@ -27,7 +27,7 @@ SOFTWARE.
 
 class Memory
 {
-	U8* m_pMemory{nullptr};
+	u8* m_pMemory{nullptr};
 	size_t m_size;
 	size_t m_alignment;
 
@@ -38,7 +38,7 @@ public:
 		:m_size(size),
 		m_alignment(alignment)
 	{
-		m_pMemory = (U8*)_aligned_malloc(size, alignment);
+		m_pMemory = (u8*)_aligned_malloc(size, alignment);
 		assert(m_pMemory);
 	}
 
@@ -55,7 +55,7 @@ public:
 
 	~Memory()
 	{
-		_aligned_free(m_pMemory);
+		clear();
 	}
 
 	Memory& operator=(const Memory&) = delete;
@@ -76,12 +76,21 @@ public:
 		std::swap(m_alignment, other.m_alignment);
 	}
 
-	U8* get()
+	void clear()
+	{
+		if (m_pMemory)
+		{
+			_aligned_free(m_pMemory);
+			m_pMemory = nullptr;
+		}
+	}
+
+	u8* get()
 	{
 		return m_pMemory;
 	}
 
-	const U8* get() const
+	const u8* get() const
 	{
 		return m_pMemory;
 	}

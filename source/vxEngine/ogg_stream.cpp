@@ -84,7 +84,7 @@ void ogg_stream::close()
 
 }
 
-void ogg_stream::play(U8* pBuffer, U32 bufferSize)
+void ogg_stream::play(u8* pBuffer, u32 bufferSize)
 {
 	m_isPlaying = 1;
 
@@ -105,7 +105,7 @@ void ogg_stream::play(U8* pBuffer, U32 bufferSize)
 	alSourcePlay(m_source);
 }
 
-bool ogg_stream::update(U8* pBuffer, U32 bufferSize)
+bool ogg_stream::update(u8* pBuffer, u32 bufferSize)
 {
 	int processed;
 	bool active = true;
@@ -140,15 +140,15 @@ bool ogg_stream::update(U8* pBuffer, U32 bufferSize)
 	return active;
 }
 
-bool ogg_stream::stream(ALuint buffer, U8* pBuffer, U32 bufferSize)
+bool ogg_stream::stream(ALuint buffer, u8* pBuffer, u32 bufferSize)
 {
 	//char data[BUFFER_SIZE];
 	int size = 0;
 
-	while (size < (I32)bufferSize)
+	while (size < (s32)bufferSize)
 	{
 		int section;
-		int result = ov_read(&m_vf, (I8*)pBuffer + size, bufferSize - size, 0, 2, 1, &section);
+		int result = ov_read(&m_vf, (s8*)pBuffer + size, bufferSize - size, 0, 2, 1, &section);
 
 		if (result > 0)
 		{

@@ -46,7 +46,7 @@ public:
 	void updatePlayerHuman(EntityActor* pPlayer, EntityAspect &entityAspect);
 
 	void handleKeyboard(EntityActor* pPlayer, const vx::Keyboard &keyboard, EntityAspect &entityAspect);
-	void handleMouse(EntityActor* pPlayer, const vx::Mouse &mouse, const F32 dt, EntityAspect &entityAspect);
+	void handleMouse(EntityActor* pPlayer, const vx::Mouse &mouse, const f32 dt, EntityAspect &entityAspect);
 
-	void keyPressed(U16 key, EntityAspect &entityAspect);
+	void keyPressed(u16 key, EntityAspect &entityAspect);
 };

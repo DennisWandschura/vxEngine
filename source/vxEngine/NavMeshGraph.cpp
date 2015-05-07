@@ -28,15 +28,15 @@ SOFTWARE.
 
 struct NavMeshConnection
 {
-	U16 connections[4];
-	U32 connectionCount;
+	u16 connections[4];
+	u32 connectionCount;
 };
 
 struct BuildNode
 {
 	vx::float3 position;
-	U16 connections[4];
-	U32 connectionCount;
+	u16 connections[4];
+	u32 connectionCount;
 };
 
 NavMeshGraph::NavMeshGraph()
@@ -51,7 +51,7 @@ NavMeshGraph::~NavMeshGraph()
 
 }
 
-std::unique_ptr<NavMeshNode[]> NavMeshGraph::buildNodes(const NavMesh &navMesh, U32* finalNodeCount)
+std::unique_ptr<NavMeshNode[]> NavMeshGraph::buildNodes(const NavMesh &navMesh, u32* finalNodeCount)
 {
 	auto navMeshTriangles = navMesh.getNavMeshTriangles();
 	auto triangleCount = navMesh.getTriangleCount();
@@ -59,8 +59,8 @@ std::unique_ptr<NavMeshNode[]> NavMeshGraph::buildNodes(const NavMesh &navMesh, 
 	auto nodeCount = triangleCount * 3;
 	auto nodes = std::make_unique<BuildNode[]>(nodeCount);
 
-	U32 vertexIndex = 0;
-	for (U32 i = 0; i < triangleCount; ++i)
+	u32 vertexIndex = 0;
+	for (u32 i = 0; i < triangleCount; ++i)
 	{
 		auto &triangle = navMeshTriangles[i];
 
@@ -83,16 +83,16 @@ std::unique_ptr<NavMeshNode[]> NavMeshGraph::buildNodes(const NavMesh &navMesh, 
 	}
 
 	// search for duplicate vertices
-	U32 current = 0;
+	u32 current = 0;
 	while (current != nodeCount)
 	{
 		bool foundDuplicate = false;
-		U32 duplicateIndex = current;
+		u32 duplicateIndex = current;
 
 		auto &currentNode = nodes[current];
 		auto currentPosition = currentNode.position;
 
-		for (U32 i = current + 1; i < nodeCount; ++i)
+		for (u32 i = current + 1; i < nodeCount; ++i)
 		{
 			auto otherPosition = nodes[i].position;
 
@@ -124,7 +124,7 @@ std::unique_ptr<NavMeshNode[]> NavMeshGraph::buildNodes(const NavMesh &navMesh, 
 	}
 
 	auto result = std::make_unique <NavMeshNode[]>(nodeCount);
-	for (U32 i = 0; i < nodeCount; ++i)
+	for (u32 i = 0; i < nodeCount; ++i)
 	{
 		result[i].position = nodes[i].position;
 		result[i].connectionIndex = 0;
@@ -144,7 +144,7 @@ const NavMeshNode* NavMeshGraph::getNodes() const
 	return m_nodes.get();
 }
 
-U32 NavMeshGraph::getNodeCount() const
+u32 NavMeshGraph::getNodeCount() const
 {
 	return m_nodeCount;
 }

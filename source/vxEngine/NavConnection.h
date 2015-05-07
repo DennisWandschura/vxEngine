@@ -31,10 +31,10 @@ struct NavConnection
 	{
 		struct
 		{
-			U16 m_fromNode;
-			U16 m_toNode;
+			u16 m_fromNode;
+			u16 m_toNode;
 		};
-		U16 nodes[2];
+		u16 nodes[2];
 	};
-	F32 m_cost{0.0f};
+	f32 m_cost{0.0f};
 };

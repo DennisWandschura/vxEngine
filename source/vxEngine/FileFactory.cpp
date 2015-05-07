@@ -77,7 +77,7 @@ bool FileFactory::load(File* file, SceneFile* data, vx::StackAllocator* allocato
 		allocator->clear(marker);
 	};
 
-	U8* ptr = allocator->allocate(fileSize, 8);
+	u8* ptr = allocator->allocate(fileSize, 8);
 	if (!file->read(ptr, fileSize))
 		return false;
 
@@ -86,7 +86,7 @@ bool FileFactory::load(File* file, SceneFile* data, vx::StackAllocator* allocato
 	return load(ptr, data);
 }
 
-bool FileFactory::load(const U8* ptr, SceneFile* data)
+bool FileFactory::load(const u8* ptr, SceneFile* data)
 {
 	FileHeader header = *(FileHeader*)ptr;
 

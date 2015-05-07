@@ -71,9 +71,9 @@ SOFTWARE.
 			if (node.size() != 3)
 				return false;
 
-			v.vertexIndex[0] = node[0].as<U16>();
-			v.vertexIndex[1] = node[1].as<U16>();
-			v.vertexIndex[2] = node[2].as<U16>();
+			v.vertexIndex[0] = node[0].as<u16>();
+			v.vertexIndex[1] = node[1].as<u16>();
+			v.vertexIndex[2] = node[2].as<u16>();
 
 			return true;
 		}
@@ -195,7 +195,7 @@ void NavMesh::copyTo(NavMesh* other) const
 #if _VX_EDITOR
 	m_vertices = std::move(vertices);
 
-	for (U32 i = 0; i < m_triangleCount; ++i)
+	for (u32 i = 0; i < m_triangleCount; ++i)
 	{
 		m_triangleIndices.push_back(triangleIndices[i]);
 	}
@@ -253,7 +253,7 @@ void NavMesh::saveToFile(File *file) const
 	node["bounds"] = m_bounds;
 }*/
 
-const U8* NavMesh::load(const U8 *ptr)
+const u8* NavMesh::load(const u8 *ptr)
 {
 	ptr = vx::read(m_vertexCount, ptr);
 	ptr = vx::read(m_triangleCount, ptr);
@@ -307,7 +307,7 @@ void NavMesh::addVertex(const vx::float3 &vertex)
 #endif
 }
 
-void NavMesh::findAndEraseVertexFromIndices(U16 vertexIndex)
+void NavMesh::findAndEraseVertexFromIndices(u16 vertexIndex)
 {
 #if _VX_EDITOR
 	auto it = m_triangleIndices.begin();
@@ -333,7 +333,7 @@ void NavMesh::findAndEraseVertexFromIndices(U16 vertexIndex)
 #endif
 }
 
-void NavMesh::fixVertexIndicesAfterErasedVertex(U16 erasedVertexIndex)
+void NavMesh::fixVertexIndicesAfterErasedVertex(u16 erasedVertexIndex)
 {
 #if _VX_EDITOR
 	for (auto &it : m_triangleIndices)
@@ -361,7 +361,7 @@ void NavMesh::fixVertexIndicesAfterErasedVertex(U16 erasedVertexIndex)
 std::unique_ptr<NavMeshTriangle[]> NavMesh::createNavMeshTriangles()
 {
 	auto ptr = std::make_unique<NavMeshTriangle[]>(m_triangleCount);
-	for (U32 i = 0; i < m_triangleCount; ++i)
+	for (u32 i = 0; i < m_triangleCount; ++i)
 	{
 		auto &it = m_triangleIndices[i];
 
@@ -371,11 +371,11 @@ std::unique_ptr<NavMeshTriangle[]> NavMesh::createNavMeshTriangles()
 		ptr[i].m_count = 0;
 	}
 
-	for (U32 j = 0; j < m_triangleCount; ++j)
+	for (u32 j = 0; j < m_triangleCount; ++j)
 	{
 		auto &it = ptr[j];
 
-		for (U32 i = 0; i < m_triangleCount; ++i)
+		for (u32 i = 0; i < m_triangleCount; ++i)
 		{
 			auto &other = ptr[i];
 			if (i != j)
@@ -391,7 +391,7 @@ std::unique_ptr<NavMeshTriangle[]> NavMesh::createNavMeshTriangles()
 	return ptr;
 }
 
-void NavMesh::deleteVertex(U32 index)
+void NavMesh::deleteVertex(u32 index)
 {
 #if _VX_EDITOR
 	m_vertices.erase(m_vertices.begin() + index);
@@ -414,7 +414,7 @@ void NavMesh::deleteVertex(U32 index)
 #endif
 }
 
-void NavMesh::addTriangle(const U32(&selectedIndices)[3])
+void NavMesh::addTriangle(const u32(&selectedIndices)[3])
 {
 #if _VX_EDITOR
 	auto v0 = m_vertices[selectedIndices[0]];
@@ -443,7 +443,7 @@ void NavMesh::addTriangle(const U32(&selectedIndices)[3])
 #endif
 }
 
-void NavMesh::setVertexPosition(U32 i, const vx::float3 &position)
+void NavMesh::setVertexPosition(u32 i, const vx::float3 &position)
 {
 #if _VX_EDITOR
 	m_vertices[i] = position;
@@ -462,7 +462,7 @@ void NavMesh::setVertexPosition(U32 i, const vx::float3 &position)
 bool NavMesh::isValid() const
 {
 	bool result = true;
-	/*for (U32 i = 0; i < m_triangleCount; ++i)
+	/*for (u32 i = 0; i < m_triangleCount; ++i)
 	{
 		auto &it = m_navMeshTriangles[i];
 
@@ -476,11 +476,11 @@ bool NavMesh::isValid() const
 	return result;
 }
 
-U32 NavMesh::testRayAgainstVertices(const Ray &ray)
+u32 NavMesh::testRayAgainstVertices(const Ray &ray)
 {
-	U32 result = 0xffffffff;
+	u32 result = 0xffffffff;
 #if _VX_EDITOR
-	for (U32 i = 0; i < m_vertexCount; ++i)
+	for (u32 i = 0; i < m_vertexCount; ++i)
 	{
 		auto &it = m_vertexBounds[i];
 		if (it.intersects(ray, nullptr, nullptr))

@@ -51,10 +51,10 @@ struct VertexNavMesh
 struct InfluenceCellVertex
 {
 	vx::float3 position;
-	U32 count;
+	u32 count;
 };
 
-enum class EditorRenderAspect::EditorUpdate : U32{ Update_None, Update_Mesh, Update_Material, Editor_Added_Instance, Editor_Update_Instance, Editor_Set_Scene };
+enum class EditorRenderAspect::EditorUpdate : u32{ Update_None, Update_Mesh, Update_Material, Editor_Added_Instance, Editor_Update_Instance, Editor_Set_Scene };
 
 EditorRenderAspect::EditorRenderAspect()
 	:RenderAspect()
@@ -62,7 +62,7 @@ EditorRenderAspect::EditorRenderAspect()
 }
 
 bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND tmp, const vx::uint2 &windowResolution,
-	F32 fovDeg, F32 zNear, F32 zFar, bool vsync, bool debug, vx::StackAllocator *pAllocator)
+	f32 fovDeg, f32 zNear, f32 zFar, bool vsync, bool debug, vx::StackAllocator *pAllocator)
 {
 	if (!m_renderContext.initializeExtensions(tmp))
 	{
@@ -81,7 +81,7 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	m_editorData.initialize();
 
 	m_pEditorColdData->m_navMeshVertexVbo = Graphics::BufferFactory::createVertexBuffer(sizeof(VertexNavMesh) * 256, vx::gl::BufferStorageFlags::Write);
-	m_pEditorColdData->m_navMeshVertexIbo = Graphics::BufferFactory::createIndexBuffer(sizeof(U16) * 256 * 3, vx::gl::BufferStorageFlags::Write);
+	m_pEditorColdData->m_navMeshVertexIbo = Graphics::BufferFactory::createIndexBuffer(sizeof(u16) * 256 * 3, vx::gl::BufferStorageFlags::Write);
 	createNavMeshVertexVao();
 	createNavMeshVao();
 
@@ -172,26 +172,26 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 	memset(&arrayCmd, 0, sizeof(DrawArraysIndirectCommand));
 	arrayCmd.instanceCount = 1;
 
-	m_pEditorColdData->m_navMeshVertexCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
-	m_pEditorColdData->m_lightCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
-	m_pEditorColdData->m_influenceMapCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
-	m_pEditorColdData->m_graphNodesCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
-	m_pEditorColdData->m_spawnPointCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&arrayCmd);
+	m_pEditorColdData->m_navMeshVertexCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
+	m_pEditorColdData->m_lightCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
+	m_pEditorColdData->m_influenceMapCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
+	m_pEditorColdData->m_graphNodesCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
+	m_pEditorColdData->m_spawnPointCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
 
 	vx::gl::DrawElementsIndirectCommand elementsCmd;
 	memset(&elementsCmd, 0, sizeof(vx::gl::DrawElementsIndirectCommand));
 	elementsCmd.instanceCount = 1;
 
-	m_pEditorColdData->m_navmeshCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawElementsIndirectCommand), vx::gl::BufferStorageFlags::Write, (U8*)&elementsCmd);
+	m_pEditorColdData->m_navmeshCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawElementsIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&elementsCmd);
 
 	{
-		U32 drawCount = 0;
+		u32 drawCount = 0;
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Parameter_Buffer;
 		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
 		desc.immutable = 1;
 		desc.pData = &drawCount;
-		desc.size = sizeof(U32);
+		desc.size = sizeof(u32);
 
 		m_meshCountBuffer.create(desc);
 	}
@@ -219,13 +219,13 @@ void EditorRenderAspect::createCommandList()
 	Graphics::DrawElementsIndirectCommand drawNavmeshCmd;
 	drawNavmeshCmd.set(GL_TRIANGLES, GL_UNSIGNED_SHORT);
 
-	std::unique_ptr<U8[]> bufferDrawMesh;
-	std::unique_ptr<U8[]> bufferDrawLights;
-	std::unique_ptr<U8[]> bufferDrawNavmesh;
-	std::unique_ptr<U8[]> bufferDrawNavmeshVertices;
-	std::unique_ptr<U8[]> bufferDrawGraphVertices;
-	std::unique_ptr<U8[]> bufferDrawSpawnPoints;
-	std::unique_ptr<U8[]> bufferDrawInfluenceCells;
+	std::unique_ptr<u8[]> bufferDrawMesh;
+	std::unique_ptr<u8[]> bufferDrawLights;
+	std::unique_ptr<u8[]> bufferDrawNavmesh;
+	std::unique_ptr<u8[]> bufferDrawNavmeshVertices;
+	std::unique_ptr<u8[]> bufferDrawGraphVertices;
+	std::unique_ptr<u8[]> bufferDrawSpawnPoints;
+	std::unique_ptr<u8[]> bufferDrawInfluenceCells;
 
 	{
 		auto cmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
@@ -275,7 +275,7 @@ void EditorRenderAspect::createCommandList()
 		Graphics::DrawArraysIndirectCommand lightDrawCmd;
 		lightDrawCmd.set(GL_POINTS);
 
-		Graphics::ProgramUniformData<F32> uniformData;
+		Graphics::ProgramUniformData<f32> uniformData;
 		uniformData.set(0.0f);
 
 		Graphics::Segment segmentDrawLights;
@@ -382,7 +382,7 @@ void EditorRenderAspect::createCommandList()
 		Graphics::ProgramUniformCommand uniformCmd;
 		uniformCmd.setFloat(pPipeline->getFragmentShader(), 0, 1);
 
-		Graphics::ProgramUniformData<F32> uniformData;
+		Graphics::ProgramUniformData<f32> uniformData;
 		uniformData.set(1.0f);
 
 		Graphics::Segment segmentDrawSpawnPoint;
@@ -459,7 +459,7 @@ void EditorRenderAspect::createEditorTextures()
 	bufferDesc.flags = 0;
 	bufferDesc.immutable = 1;
 	bufferDesc.pData = &handle;
-	bufferDesc.size = sizeof(U64);
+	bufferDesc.size = sizeof(u64);
 
 	m_pEditorColdData->m_editorTextureBuffer.create(bufferDesc);
 }
@@ -569,10 +569,10 @@ void EditorRenderAspect::addMeshInstanceToBuffers()
 	if (instanceCount == 0)
 	return;
 
-	U32 batchIndexStart = 0;
-	U32 batchInstanceCount = 0;
-	U32 batchInstanceStart = 0;
-	U32 totalInstanceCount = 0;
+	u32 batchIndexStart = 0;
+	u32 batchInstanceCount = 0;
+	u32 batchInstanceStart = 0;
+	u32 totalInstanceCount = 0;
 
 	m_editorMeshInstanceIndices.clear();
 
@@ -599,8 +599,8 @@ void EditorRenderAspect::addMeshInstanceToBuffers()
 
 	auto batchMeshSid = meshInstances[0].second->getMeshSid();
 
-	U32 drawCount = 0;
-	U32 batchIndexCount = m_editorMeshEntries.find(batchMeshSid)->indexCount;
+	u32 drawCount = 0;
+	u32 batchIndexCount = m_editorMeshEntries.find(batchMeshSid)->indexCount;
 
 	for (auto i = 0u; i < instanceCount; ++i)
 	{
@@ -669,7 +669,7 @@ void EditorRenderAspect::updateInstance(const vx::StringID &sid)
 	VX_UNREFERENCED_PARAMETER(sid);
 	/*auto pInstance = m_pCurrentScene->findMeshInstance(sid);
 
-	U32 id = 0;
+	u32 id = 0;
 	auto found = m_editorData.getMeshInstanceId(sid, &id);
 	if (found && pInstance)
 	{
@@ -703,9 +703,9 @@ void EditorRenderAspect::updateEditor()
 	m_updateData.clear();
 }
 
-void EditorRenderAspect::editor_moveCamera(F32 dirX, F32 dirY, F32 dirZ)
+void EditorRenderAspect::editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ)
 {
-	const F32 speed = 0.05f;
+	const f32 speed = 0.05f;
 
 	__m128 direction = { dirX, dirY, dirZ, 0 };
 	m_camera.move(direction, speed);
@@ -721,7 +721,7 @@ void EditorRenderAspect::editor_updateMouseHit(const vx::float3 &p)
 	m_editorData.updateMouseHit(p);
 }
 
-void EditorRenderAspect::editor_updateWaypoint(U32 offset, U32 count, const Waypoint* src)
+void EditorRenderAspect::editor_updateWaypoint(u32 offset, u32 count, const Waypoint* src)
 {
 	m_editorData.updateWaypoint(offset, count, src);
 }
@@ -741,8 +741,8 @@ void EditorRenderAspect::handleLoadScene(const Event &evt)
 	updateNavMeshBuffer(navMesh);
 
 	{
-		U32 count = scene->getMeshInstanceCount();
-		m_meshCountBuffer.subData(0, sizeof(U32), &count);
+		u32 count = scene->getMeshInstanceCount();
+		m_meshCountBuffer.subData(0, sizeof(u32), &count);
 	}
 
 	{
@@ -758,7 +758,7 @@ void EditorRenderAspect::handleLoadScene(const Event &evt)
 		mappedCmdBuffer.unmap();
 
 		auto mappedVbo = m_pEditorColdData->m_spawnPointVbo.map<vx::float3>(vx::gl::Map::Write_Only);
-		for (U32 i = 0; i < spawnCount; ++i)
+		for (u32 i = 0; i < spawnCount; ++i)
 		{
 			mappedVbo[i] = spawns[i].position;
 		}
@@ -781,14 +781,14 @@ void EditorRenderAspect::updateNavMeshBuffer(const NavMesh &navMesh)
 	if (navMeshVertexCount != 0)
 	{
 		auto vertices = navMesh.getVertices();
-		U32 tmp[3];
+		u32 tmp[3];
 		updateNavMeshVertexBufferWithSelectedVertex(vertices, navMeshVertexCount, tmp, 0);
 	}
 
 	updateNavMeshIndexBuffer(navMesh);
 }
 
-void EditorRenderAspect::updateNavMeshBuffer(const NavMesh &navMesh, U32(&selectedVertexIndex)[3], U8 selectedCount)
+void EditorRenderAspect::updateNavMeshBuffer(const NavMesh &navMesh, u32(&selectedVertexIndex)[3], u8 selectedCount)
 {
 	auto navMeshVertexCount = navMesh.getVertexCount();
 	if (navMeshVertexCount != 0)
@@ -800,23 +800,23 @@ void EditorRenderAspect::updateNavMeshBuffer(const NavMesh &navMesh, U32(&select
 	updateNavMeshIndexBuffer(navMesh);
 }
 
-void EditorRenderAspect::uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, U32 count)
+void EditorRenderAspect::uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, u32 count)
 {
 	auto dst = m_pEditorColdData->m_navMeshVertexVbo.map<VertexNavMesh>(vx::gl::Map::Write_Only);
 	::memcpy(dst.get(), vertices, sizeof(VertexNavMesh) * count);
 }
 
-void EditorRenderAspect::updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, U32 count, U32(&selectedVertexIndex)[3], U8 selectedCount)
+void EditorRenderAspect::updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, u32 count, u32(&selectedVertexIndex)[3], u8 selectedCount)
 {
 	auto color = vx::float3(1, 0, 0);
 	auto src = std::make_unique<VertexNavMesh[]>(count);
-	for (U32 i = 0; i < count; ++i)
+	for (u32 i = 0; i < count; ++i)
 	{
 		src[i].position = vertices[i];
 		src[i].color = color;
 	}
 
-	for (U8 i = 0; i < selectedCount; ++i)
+	for (u8 i = 0; i < selectedCount; ++i)
 	{
 		auto index = selectedVertexIndex[i];
 		src[index].color.y = 1.0f;
@@ -845,9 +845,9 @@ void EditorRenderAspect::updateNavMeshIndexBuffer(const NavMesh &navMesh)
 	}
 }
 
-void EditorRenderAspect::updateNavMeshIndexBuffer(const TriangleIndices* indices, U32 triangleCount)
+void EditorRenderAspect::updateNavMeshIndexBuffer(const TriangleIndices* indices, u32 triangleCount)
 {
-	auto dst = m_pEditorColdData->m_navMeshVertexIbo.map<U16>(vx::gl::Map::Write_Only);
+	auto dst = m_pEditorColdData->m_navMeshVertexIbo.map<u16>(vx::gl::Map::Write_Only);
 	::memcpy(dst.get(), indices, sizeof(TriangleIndices) * triangleCount);
 }
 
@@ -904,7 +904,7 @@ void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influence
 	auto cells = influenceMap.getInfluenceCells();
 
 	auto vertices = std::make_unique<InfluenceCellVertex[]>(cellCount);
-	for (U32 i = 0; i < cellCount; ++i)
+	for (u32 i = 0; i < cellCount; ++i)
 	{
 		vertices[i].position = cells[i].m_position;
 		vertices[i].count = cells[i].m_count;
@@ -925,7 +925,7 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 	auto nodeCount = navMeshGraph.getNodeCount();
 
 	auto src = std::make_unique < vx::float3[]>(nodeCount);
-	for (U32 i = 0; i < nodeCount; ++i)
+	for (u32 i = 0; i < nodeCount; ++i)
 	{
 		src[i] = nodes[i].position;
 	}
@@ -939,7 +939,7 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 	mappedCmdBuffer->count = nodeCount;
 }
 
-void EditorRenderAspect::updateLightBuffer(const Light* lights, U32 count)
+void EditorRenderAspect::updateLightBuffer(const Light* lights, u32 count)
 {
 	m_sceneRenderer.updateLights(lights, count);
 

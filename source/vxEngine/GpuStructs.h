@@ -44,8 +44,8 @@ struct CamerablockStatic
 struct VX_ALIGN(32) VoxelBlock
 {
 	vx::mat4 projectionMatrix;
-	U32 dim;
-	U32 halfDim;
+	u32 dim;
+	u32 halfDim;
 	float gridCellSize;
 	float invGridCellSize;
 };
@@ -72,30 +72,30 @@ struct ShadowTransformBlock
 
 struct UniformTextureBufferBlock
 {
-	U64 u_albedoSlice;
-	U64 u_normalSlice;
-	U64 u_surfaceSlice;
-	U64 u_tangentSlice;
-	U64 u_depthSlice;
-	U64 u_aabbTexture;
-	U64 u_ambientSlice;
+	u64 u_albedoSlice;
+	u64 u_normalSlice;
+	u64 u_surfaceSlice;
+	u64 u_tangentSlice;
+	u64 u_depthSlice;
+	u64 u_aabbTexture;
+	u64 u_ambientSlice;
 };
 
 struct UniformShadowTextureBufferBlock
 {
-	U64 u_shadowTextures[5];
+	u64 u_shadowTextures[5];
 };
 
 struct LightDataBlock
 {
 	LightData u_lightData[5];
-	U32 size;
+	u32 size;
 };
 
 struct MaterialGPU
 {
-	U32 indexAlbedo;
-	U32 indexNormal;
-	U32 indexSurface;
-	U32 hasNormalMap;
+	u32 indexAlbedo;
+	u32 indexNormal;
+	u32 indexSurface;
+	u32 hasNormalMap;
 };

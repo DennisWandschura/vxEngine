@@ -30,7 +30,7 @@ DecisionHasDestination::DecisionHasDestination(const Component::Actor* pActor, D
 	m_testValue.ptr = (void*)pActor;
 }
 
-U8 DecisionHasDestination::getBranch() const
+u8 DecisionHasDestination::getBranch() const
 {
 	const Component::Actor* pActor = (const Component::Actor*)m_testValue.ptr;
 

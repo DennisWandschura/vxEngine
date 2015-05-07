@@ -36,7 +36,7 @@ namespace gl
 
 	}
 
-	void BufferManager::initialize(U32 maxBufferCount, vx::StackAllocator* allocator)
+	void BufferManager::initialize(u32 maxBufferCount, vx::StackAllocator* allocator)
 	{
 		m_buffers = vx::sorted_array<vx::StringID, vx::gl::Buffer>(maxBufferCount, allocator);
 	}

@@ -25,7 +25,7 @@ SOFTWARE.
 #include <vxLib/gl/gl.h>
 #include <vxLib/gl/StateManager.h>
 
-void RenderCommandFinalImage::render(U32 count)
+void RenderCommandFinalImage::render(u32 count)
 {
 	vx::gl::StateManager::bindFrameBuffer(m_frameBuffer);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);

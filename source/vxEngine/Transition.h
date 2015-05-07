@@ -36,7 +36,7 @@ protected:
 	~TransitionBase(){}
 
 public:
-	virtual U8 isTriggered() = 0;
+	virtual u8 isTriggered() = 0;
 	virtual State* getTargetState() const = 0;
 	virtual Action* getAction() const = 0;
 };
@@ -53,7 +53,7 @@ public:
 
 	~Transition(){}
 
-	U8 isTriggered() override;
+	u8 isTriggered() override;
 	State* getTargetState() const override { return m_pTargetState; }
 	Action* getAction() const override { return m_actions; }
 };

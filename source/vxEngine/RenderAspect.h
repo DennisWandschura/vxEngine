@@ -44,7 +44,6 @@ class GpuProfiler;
 #include <mutex>
 #include <vector>
 #include "RenderCommandFinalImage.h"
-#include "RenderStage.h"
 #include "RenderSettings.h"
 #include "Graphics/CommandList.h"
 
@@ -113,7 +112,7 @@ protected:
 
 	void takeScreenshot();
 
-	void writeMeshToVertexBuffer(const vx::StringID &meshSid, const vx::Mesh* pMesh, U32 *vertexOffsetGpu, U32 *indexOffsetGpu);
+	void writeMeshToVertexBuffer(const vx::StringID &meshSid, const vx::Mesh* pMesh, u32 *vertexOffsetGpu, u32 *indexOffsetGpu);
 
 	void createTextures();
 	void createFrameBuffers();
@@ -130,10 +129,10 @@ protected:
 	void clearTextures();
 	void clearBuffers();
 
-	void voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count);
+	void voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count);
 	void voxelDebug();
 
-	void createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count);
+	void createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count);
 
 	void coneTrace();
 	void blurAmbientColor();
@@ -147,8 +146,8 @@ protected:
 	void taskCreateActorGpuIndex(void* p);
 	void taskUpdateDynamicTransforms(void* p);
 
-	U16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene);
-	U16 getActorGpuIndex();
+	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene);
+	u16 getActorGpuIndex();
 
 	void createRenderPassCreateShadowMaps();
 
@@ -171,7 +170,7 @@ public:
 
 	virtual void handleEvent(const Event &evt) override;
 
-	void keyPressed(U16 key);
+	void keyPressed(u16 key);
 
 	const vx::gl::ShaderManager& getShaderManager() const { return m_shaderManager; }
 	void getProjectionMatrix(vx::mat4* m);

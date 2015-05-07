@@ -53,7 +53,7 @@ namespace vx
 		thread& operator=(const thread&) = delete;
 		thread& operator=(thread &&rhs);
 
-		static U32 hardware_concurrency() noexcept;
+		static u32 hardware_concurrency() noexcept;
 
 		bool joinable() const noexcept;
 		void detach() noexcept;

@@ -28,7 +28,7 @@ SOFTWARE.
 struct NavNode
 {
 	vx::float3 m_position;
-	U16 m_connectionOffset{ 0 };
-	U8 m_connectionCount{ 0 };
-	U8 m_padding;
+	u16 m_connectionOffset{ 0 };
+	u8 m_connectionCount{ 0 };
+	u8 m_padding;
 };

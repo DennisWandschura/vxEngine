@@ -30,7 +30,7 @@ class Ray
 public:
 	vx::float3 o;
 	vx::float3 d;
-	mutable F32 mint{ .0f }, maxt{ FLT_MAX };
-	F32 time{ .0f };
-	U32 depth{ 0 };
+	mutable f32 mint{ .0f }, maxt{ FLT_MAX };
+	f32 time{ .0f };
+	u32 depth{ 0 };
 };

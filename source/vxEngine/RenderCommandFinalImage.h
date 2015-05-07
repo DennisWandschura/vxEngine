@@ -28,5 +28,5 @@ SOFTWARE.
 class RenderCommandFinalImage : public RenderCommand
 {
 public:
-	void render(U32 count) override;
+	void render(u32 count) override;
 };

@@ -84,7 +84,7 @@ void Logfile::fTextout(const char *text, ...)
 
 void Logfile::fTextout(const char *text, char *args)
 {
-	const U32 buffersize = 511;
+	const u32 buffersize = 511;
 	static char sBuffer[buffersize + 1];
 
 	vsnprintf_s(sBuffer, buffersize, text, args);
@@ -181,7 +181,7 @@ void Logfile::fWriteEntry(const char *file, const char *function, int line, Type
 	fTextout("</function><line>%d</line></entry>\n", line);
 }
 
-void Logfile::convertTime(U64 time)
+void Logfile::convertTime(u64 time)
 {
 	const double inv = 1.0 / 60.0;
 	const double inv2 = inv * inv;
@@ -192,10 +192,10 @@ void Logfile::convertTime(U64 time)
 
 	auto elapsedSeconds = microseconds * 1.0e-6;
 	const auto hour = elapsedSeconds * inv2;
-	const auto minute = (hour - (U64)hour) * 60.0;
-	const auto seconds = (minute - (U64)minute) * 60.0;
+	const auto minute = (hour - (u64)hour) * 60.0;
+	const auto seconds = (minute - (u64)minute) * 60.0;
 
-	sprintf_s(m_timeBuffer, "%02llu:%02llu:%02u ", static_cast<U64>(hour), static_cast<U64>(minute), static_cast<U32>(seconds));
+	sprintf_s(m_timeBuffer, "%02llu:%02llu:%02u ", static_cast<u64>(hour), static_cast<u64>(minute), static_cast<u32>(seconds));
 }
 
 void Logfile::createStyleSheet(const char *stylesheet)

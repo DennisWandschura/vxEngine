@@ -30,20 +30,20 @@ namespace Graphics
 {
 	struct ProgramUniformCommand : public Command
 	{
-		U32 m_program;
+		u32 m_program;
 		vx::gl::DataType m_dataType;
-		U8 m_padding;
-		U16 m_count;
-		U32 m_location;
+		u8 m_padding;
+		u16 m_count;
+		u32 m_location;
 
-		void setUInt(U32 program, U32 location, U32 count);
-		void setFloat(U32 program, U32 location, U32 count);
+		void setUInt(u32 program, u32 location, u32 count);
+		void setFloat(u32 program, u32 location, u32 count);
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 
 	private:
-		void programUniformFloat(U32* offset);
-		void programUniformUInt(U32* offset);
+		void programUniformFloat(u32* offset);
+		void programUniformUInt(u32* offset);
 	};
 
 	template<typename T>
@@ -51,7 +51,7 @@ namespace Graphics
 	{
 		enum { Count = sizeof(T) };
 
-		U8 u[Count];
+		u8 u[Count];
 
 		ProgramUniformData() : u()
 		{
@@ -62,12 +62,12 @@ namespace Graphics
 			memcpy(u, &data, sizeof(T));
 		}
 
-		U8& operator[](U32 i)
+		u8& operator[](u32 i)
 		{
 			return u[i];
 		}
 
-		const U8& operator[](U32 i) const
+		const u8& operator[](u32 i) const
 		{
 			return u[i];
 		}

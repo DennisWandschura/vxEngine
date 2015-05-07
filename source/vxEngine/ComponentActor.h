@@ -43,7 +43,7 @@ namespace Component
 {
 	struct Actor : public Base
 	{
-		enum Flags : U16
+		enum Flags : u16
 		{
 			HasDestination = 1 << 0,
 			ReachedDestination = 1 <<1,
@@ -52,10 +52,10 @@ namespace Component
 			WaitingForOrders = 1 << 8
 		};
 
-		U16 flags;
+		u16 flags;
 		StateMachine m_sm;
 		std::unique_ptr<ActorData> data;
-		F32 halfHeight;
-		U16 evtMask;
+		f32 halfHeight;
+		u16 evtMask;
 	};
 }

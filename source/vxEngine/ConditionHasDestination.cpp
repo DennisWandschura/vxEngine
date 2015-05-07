@@ -30,7 +30,7 @@ ConditionHasDestination::ConditionHasDestination(const Component::Actor* pActor)
 
 }
 
-U8 ConditionHasDestination::test() const
+u8 ConditionHasDestination::test() const
 {
 	return ((m_pActor->flags & Component::Actor::HasDestination) == Component::Actor::HasDestination);
 }
@@ -40,7 +40,7 @@ ConditionHasNoDestination::ConditionHasNoDestination(const Component::Actor* pAc
 {
 }
 
-U8 ConditionHasNoDestination::test() const
+u8 ConditionHasNoDestination::test() const
 {
 	return ((m_pActor->flags & Component::Actor::HasDestination) != Component::Actor::HasDestination);
 }

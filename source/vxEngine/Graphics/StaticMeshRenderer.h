@@ -31,9 +31,9 @@ namespace Graphics
 {
 	class StaticMeshRenderer : public Renderer
 	{
-		static const U32 s_maxMeshInstanceCount{ 255u };
-		static const U32 s_maxVertices = 100000;
-		static const U32 s_maxIndices = 150000;
+		static const u32 s_maxMeshInstanceCount{ 255u };
+		static const u32 s_maxVertices = 100000;
+		static const u32 s_maxIndices = 150000;
 
 		vx::gl::Buffer m_indirectCmdBuffer;
 		vx::gl::Buffer m_drawCountBuffer;

@@ -30,5 +30,5 @@ class Condition : public SmallObject
 {
 public:
 	virtual ~Condition(){}
-	virtual U8 test() const = 0;
+	virtual u8 test() const = 0;
 };

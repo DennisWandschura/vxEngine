@@ -44,5 +44,5 @@ public:
 
 	static bool load(const char* file, SceneFile* data, vx::StackAllocator* allocator);
 	static bool load(File* file, SceneFile* data, vx::StackAllocator* allocator);
-	static bool load(const U8* ptr, SceneFile* data);
+	static bool load(const u8* ptr, SceneFile* data);
 };

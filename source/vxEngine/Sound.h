@@ -29,13 +29,13 @@ SOFTWARE.
 
 class Sound
 {
-	U32 m_sourceId;
+	u32 m_sourceId;
 	vx::float3 m_position;
 
 public:
 	Sound();
 
-	Sound(F32 x, F32 y, F32 z);
+	Sound(f32 x, f32 y, f32 z);
 
 	~Sound();
 

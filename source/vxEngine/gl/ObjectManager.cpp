@@ -26,7 +26,7 @@ SOFTWARE.
 
 namespace gl
 {
-	void ObjectManager::initialize(U32 maxBufferCount, U32 maxVaoCount, U32 maxFramebufferCount, U32 maxTextureCount, vx::StackAllocator* allocator)
+	void ObjectManager::initialize(u32 maxBufferCount, u32 maxVaoCount, u32 maxFramebufferCount, u32 maxTextureCount, vx::StackAllocator* allocator)
 	{
 		m_bufferManager.initialize(maxBufferCount, allocator);
 		m_vertexArrays = vx::sorted_array<vx::StringID, vx::gl::VertexArray>(maxVaoCount, allocator);

@@ -41,29 +41,29 @@ namespace Graphics
 		vx::gl::DrawElementsIndirectCommand cmd[s_maxMeshInstanceCount];
 		memset(cmd, 0, sizeInBytes);
 
-		m_indirectCmdBuffer = BufferFactory::createIndirectCmdBuffer(sizeInBytes, vx::gl::BufferStorageFlags::Write, (U8*)cmd);
+		m_indirectCmdBuffer = BufferFactory::createIndirectCmdBuffer(sizeInBytes, vx::gl::BufferStorageFlags::Write, (u8*)cmd);
 
-		sizeInBytes = sizeof(U32);
-		U32 count = 0;
-		m_drawCountBuffer = BufferFactory::createParameterBuffer(sizeInBytes, vx::gl::BufferStorageFlags::Write, (U8*)&count);
+		sizeInBytes = sizeof(u32);
+		u32 count = 0;
+		m_drawCountBuffer = BufferFactory::createParameterBuffer(sizeInBytes, vx::gl::BufferStorageFlags::Write, (u8*)&count);
 	}
 
 	void StaticMeshRenderer::createIbo()
 	{
-		auto sizeInBytes = sizeof(U32) * s_maxIndices;
+		auto sizeInBytes = sizeof(u32) * s_maxIndices;
 		
 		m_ibo = BufferFactory::createIndexBuffer(sizeInBytes, vx::gl::BufferStorageFlags::Write);
 	}
 
 	void StaticMeshRenderer::createDrawIdVbo()
 	{
-		auto sizeInBytes = sizeof(U32) * s_maxMeshInstanceCount;
+		auto sizeInBytes = sizeof(u32) * s_maxMeshInstanceCount;
 		m_idVbo = BufferFactory::createVertexBuffer(sizeInBytes, vx::gl::BufferStorageFlags::Write);
 	}
 
 	void StaticMeshRenderer::createVaoVbo()
 	{
-		U32 attributeOffset = 0;
+		u32 attributeOffset = 0;
 		VertexPNTUV::create(&m_vao, &m_vbo, s_maxVertices, 0, attributeOffset);
 	}
 
@@ -73,7 +73,7 @@ namespace Graphics
 		m_vao.arrayAttribFormatI(4, 1, vx::gl::DataType::Unsigned_Int, 0);
 		m_vao.arrayAttribBinding(4, 1);
 		m_vao.arrayBindingDivisor(1, 1);
-		m_vao.bindVertexBuffer(m_idVbo, 1, 0, sizeof(U32));
+		m_vao.bindVertexBuffer(m_idVbo, 1, 0, sizeof(u32));
 
 		m_vao.bindIndexBuffer(m_ibo);
 	}

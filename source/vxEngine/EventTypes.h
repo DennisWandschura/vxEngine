@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-enum class EventType : U8
+enum class EventType : u8
 {
 	File_Event,
 	Ingame_Event,
@@ -33,7 +33,7 @@ enum class EventType : U8
 	Editor_Event
 };
 
-enum class FileEvent : U16
+enum class FileEvent : u16
 {
 	// arg1 contains ptr to scene, arg2 contains sid of filename
 	Scene_Loaded,

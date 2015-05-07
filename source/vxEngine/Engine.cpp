@@ -29,19 +29,19 @@ SOFTWARE.
 #include "DebugRenderSettings.h"
 #include "GpuProfiler.h"
 
-const U32 g_hz = 30u;
-const F32 g_dt = 1.0f / g_hz;
+const u32 g_hz = 30u;
+const f32 g_dt = 1.0f / g_hz;
 
 Engine* g_pEngine{nullptr};
 
 namespace
 {
-	void callbackKeyPressed(U16 key)
+	void callbackKeyPressed(u16 key)
 	{
 		g_pEngine->keyPressed(key);
 	}
 
-	void handleInput(const vx::Mouse &m, const vx::Keyboard &k, F32 dt)
+	void handleInput(const vx::Mouse &m, const vx::Keyboard &k, f32 dt)
 	{
 		g_pEngine->handleInput(m, k, dt);
 	}
@@ -131,7 +131,7 @@ void Engine::renderLoop()
 	m_renderAspect.makeCurrent(true);
 
 	auto frequency = Clock::getFrequency();
-	const F64 invFrequency = 1.0 / frequency;
+	const f64 invFrequency = 1.0 / frequency;
 
 	GpuProfiler gpuProfiler;
 	m_renderAspect.initializeProfiler(&gpuProfiler, &m_allocator);
@@ -144,7 +144,7 @@ void Engine::renderLoop()
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
 
-	F32 accum = 0.0f;
+	f32 accum = 0.0f;
 	while (m_bRunRenderThread.load() != 0)
 	{
 		LARGE_INTEGER current;
@@ -152,7 +152,7 @@ void Engine::renderLoop()
 
 
 		auto frameTicks = (current.QuadPart - last.QuadPart) * 1000;
-		F32 frameTime = frameTicks * invFrequency * 0.001f;
+		f32 frameTime = frameTicks * invFrequency * 0.001f;
 		frameTime = fminf(frameTime, g_dt);
 
 		accum += frameTime;
@@ -181,19 +181,19 @@ void Engine::renderLoop()
 void Engine::mainLoop()
 {
 	auto frequency = Clock::getFrequency();
-	const F64 invFrequency = 1.0 / frequency;
+	const f64 invFrequency = 1.0 / frequency;
 
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
 
-	F32 accum = 0.0f;
+	f32 accum = 0.0f;
 	while (m_bRun != 0)
 	{
 		LARGE_INTEGER current;
 		QueryPerformanceCounter(&current);
 
 		auto frameTicks = (current.QuadPart - last.QuadPart) * 1000;
-		F32 frameTime = frameTicks * invFrequency * 0.001f;
+		f32 frameTime = frameTicks * invFrequency * 0.001f;
 		frameTime = fminf(frameTime, g_dt);
 
 		accum += frameTime;
@@ -317,6 +317,7 @@ void Engine::shutdown()
 	Locator::reset();
 
 	m_allocator.release();
+	m_memory.clear();
 }
 
 void Engine::start()
@@ -338,7 +339,7 @@ void Engine::requestLoadFile(const FileEntry &fileEntry, void* p)
 	m_fileAspect.requestLoadFile(fileEntry, p);
 }
 
-void Engine::keyPressed(U16 key)
+void Engine::keyPressed(u16 key)
 {
 	if (key == vx::Keyboard::Key_Escape)
 	{
@@ -358,7 +359,7 @@ void Engine::keyPressed(U16 key)
 	}
 }
 
-void Engine::handleInput(const vx::Mouse &m, const vx::Keyboard &k, F32 dt)
+void Engine::handleInput(const vx::Mouse &m, const vx::Keyboard &k, f32 dt)
 {
 	m_entityAspect.handleKeyboard(k);
 	m_entityAspect.handleMouse(m, dt);

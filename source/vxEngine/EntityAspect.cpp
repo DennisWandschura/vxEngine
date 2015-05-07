@@ -53,7 +53,7 @@ SOFTWARE.
 namespace
 {
 	template<typename T>
-	void createPool(U16 capacity, U8 alignment, vx::StackAllocator* pAllocator, Pool<T> *pPool)
+	void createPool(u16 capacity, u8 alignment, vx::StackAllocator* pAllocator, Pool<T> *pPool)
 	{
 		pPool->initialize(pAllocator->allocate(sizeof(T) * capacity, alignment), capacity);
 	}
@@ -91,7 +91,7 @@ void EntityAspect::shutdown()
 	m_poolInput.release();
 }
 
-void EntityAspect::createComponentPhysics(const vx::float3 &position, U16 entityIndex, F32 height)
+void EntityAspect::createComponentPhysics(const vx::float3 &position, u16 entityIndex, f32 height)
 {
 	auto pActor = m_physicsAspect.createActor(position, height);
 
@@ -99,7 +99,7 @@ void EntityAspect::createComponentPhysics(const vx::float3 &position, U16 entity
 	m_poolEntity[entityIndex].pRigidActor = pActor;
 }
 
-Component::Actor* EntityAspect::createComponentActor(U16 entityIndex, U16* actorIndex)
+Component::Actor* EntityAspect::createComponentActor(u16 entityIndex, u16* actorIndex)
 {
 	auto pActor = m_poolActor.createEntry(actorIndex);
 	pActor->entityIndex = entityIndex;
@@ -134,7 +134,7 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 
 	if (m_pPlayer == nullptr)
 	{
-		U16 entityIndex;
+		u16 entityIndex;
 		m_pPlayer = m_poolEntity.createEntry(&entityIndex);
 
 		auto pInput = m_poolInput.createEntry(&m_pPlayer->input);
@@ -145,9 +145,9 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 	}
 }
 
-void EntityAspect::createActorEntity(const vx::float3 &position, F32 height, U32 gpuIndex)
+void EntityAspect::createActorEntity(const vx::float3 &position, f32 height, u32 gpuIndex)
 {
-	U16 entityIndex;
+	u16 entityIndex;
 	auto pEntity = m_poolEntity.createEntry(&entityIndex);
 	auto pInput = m_poolInput.createEntry(&pEntity->input);
 	pInput->entityIndex = entityIndex;
@@ -178,14 +178,14 @@ void EntityAspect::createActorEntity(const vx::float3 &position, F32 height, U32
 
 	Event evt;
 	evt.type = EventType::Ingame_Event;
-	evt.code = (U32)IngameEvent::Created_Actor;
+	evt.code = (u32)IngameEvent::Created_Actor;
 	evt.arg1.ptr = pActor;
 
 	auto pEvtManager = Locator::getEventManager();
 	pEvtManager->addEvent(evt);
 }
 
-void EntityAspect::updateInput(F32 dt)
+void EntityAspect::updateInput(f32 dt)
 {
 	const __m128 vGravity = { 0, g_gravity * dt, 0, 0 };
 	//const __m128 vGravity = { 0, tmp, 0, 0 };
@@ -201,11 +201,11 @@ void EntityAspect::updateInput(F32 dt)
 		auto &entity = m_poolEntity[p->entityIndex];
 	//	auto &physics = m_poolPhysics[entity.physics];
 
-		/*F32 x_axis = ((I8)(p->action >> Component::Input::Action_Right) & 0x1) - ((I8)(p->action >> Component::Input::Action_Left) & 0x1);
-		F32 z_axis = ((I8)(p->action >> Component::Input::Action_Backward) & 0x1) - ((I8)(p->action >> Component::Input::Action_Forward) & 0x1);
-		F32 isRunning = ((U8)(p->action >> Component::Input::Action_Run) & 0x1);
-		U8 crouch = ((U8)(p->action >> Component::Input::Action_Crouch) & 0x1);
-		U8 isCrouching = ((U8)(p->state >> Component::Input::State_Crouch) & 0x1);
+		/*f32 x_axis = ((s8)(p->action >> Component::Input::Action_Right) & 0x1) - ((s8)(p->action >> Component::Input::Action_Left) & 0x1);
+		f32 z_axis = ((s8)(p->action >> Component::Input::Action_Backward) & 0x1) - ((s8)(p->action >> Component::Input::Action_Forward) & 0x1);
+		f32 isRunning = ((u8)(p->action >> Component::Input::Action_Run) & 0x1);
+		u8 crouch = ((u8)(p->action >> Component::Input::Action_Crouch) & 0x1);
+		u8 isCrouching = ((u8)(p->state >> Component::Input::State_Crouch) & 0x1);
 		// clear every input except status on jumping
 		p->action = 0;
 		//p->state = 0;
@@ -267,7 +267,7 @@ void EntityAspect::updateInput(F32 dt)
 	}
 }
 
-void EntityAspect::updatePhysics_linear(F32 dt)
+void EntityAspect::updatePhysics_linear(f32 dt)
 {
 	UNREFERENCED_PARAMETER(dt);
 
@@ -295,13 +295,13 @@ void EntityAspect::updatePlayerPositionCamera()
 
 void EntityAspect::updateActorTransforms()
 {
-	//std::vector<U16> indices;
+	//std::vector<u16> indices;
 	//indices.reserve(m_poolRender.size());
 
 	//std::vector<vx::TransformGpu> transforms;
 	//transforms.reserve(m_poolRender.size());
 
-	I32 count = m_poolRender.size();
+	s32 count = m_poolRender.size();
 
 	auto marker = m_allocator.getMarker();
 	SCOPE_EXIT
@@ -309,12 +309,12 @@ void EntityAspect::updateActorTransforms()
 		m_allocator.clear(marker);
 	};
 
-	//U16* pIndices = (U16*)m_allocator.allocate(sizeof(U16) * count, 4);
-	//std::pair<U16, U16>* pIndices_Sorted = (std::pair<U16, U16>*)m_allocator.allocate(sizeof(std::pair<U16, U16>) * count, 4);
+	//u16* pIndices = (u16*)m_allocator.allocate(sizeof(u16) * count, 4);
+	//std::pair<u16, u16>* pIndices_Sorted = (std::pair<u16, u16>*)m_allocator.allocate(sizeof(std::pair<u16, u16>) * count, 4);
 //	vx::TransformGpu* pTransforms = (vx::TransformGpu*)m_allocator.allocate(sizeof(vx::TransformGpu) * count, 16);
 	auto pTransforms = (vx::TransformGpu*)_aligned_malloc(sizeof(vx::TransformGpu) * count, 16);
-	auto indices = new U32[count];
-	U32 index = 0;
+	auto indices = new u32[count];
+	u32 index = 0;
 
 	auto p = m_poolRender.first();
 	while (p != nullptr)
@@ -340,29 +340,29 @@ void EntityAspect::updateActorTransforms()
 		p = m_poolRender.next_nocheck(p);
 	}
 
-	/*std::sort(pIndices_Sorted, pIndices_Sorted + count, [](const std::pair<U16, U16> &l, const std::pair<U16, U16> &r)
+	/*std::sort(pIndices_Sorted, pIndices_Sorted + count, [](const std::pair<u16, u16> &l, const std::pair<u16, u16> &r)
 	{
 		return l.first < r.first;
 	});
 
-	for (I32 i = 0; i < count; ++i)
+	for (s32 i = 0; i < count; ++i)
 	{
-		U32 newIndex = i;
-		U32 oldIndex = pIndices_Sorted[i].second;
+		u32 newIndex = i;
+		u32 oldIndex = pIndices_Sorted[i].second;
 
 		std::swap(pTransforms[newIndex], pTransforms[oldIndex]);
 	}
 
-	I32 offset = 0;
-	U32 start = 0;
+	s32 offset = 0;
+	u32 start = 0;
 	while (count != 0)
 	{
-		U32 batchCount = 1;
+		u32 batchCount = 1;
 		auto batchStart = pIndices_Sorted[offset].first;
 
-		U32 expected = batchStart + 1;
-		I32 remainingSize = count - offset;
-		for (I32 i = 1; i < remainingSize; ++i)
+		u32 expected = batchStart + 1;
+		s32 remainingSize = count - offset;
+		for (s32 i = 1; i < remainingSize; ++i)
 		{
 			auto nextIndex = pIndices_Sorted[offset + i].first;
 
@@ -392,7 +392,7 @@ void EntityAspect::updateActorTransforms()
 	m_renderAspect.queueUpdateTask(task);
 }
 
-Component::Input& EntityAspect::getComponentInput(U16 i)
+Component::Input& EntityAspect::getComponentInput(u16 i)
 {
 	return m_poolInput[i];
 }
@@ -402,12 +402,12 @@ void EntityAspect::handleKeyboard(const vx::Keyboard &keyboard)
 	m_playerController.handleKeyboard(m_pPlayer, keyboard, *this);
 }
 
-void EntityAspect::handleMouse(const vx::Mouse &mouse, const F32 dt)
+void EntityAspect::handleMouse(const vx::Mouse &mouse, const f32 dt)
 {
 	m_playerController.handleMouse(m_pPlayer, mouse, dt, *this);
 }
 
-void EntityAspect::keyPressed(U16 key)
+void EntityAspect::keyPressed(u16 key)
 {
 	m_playerController.keyPressed(key, *this);
 }
@@ -429,12 +429,12 @@ void EntityAspect::handleEvent(const Event &evt)
 
 void EntityAspect::handleFileEvent(const Event &evt)
 {
-	if (evt.code == (U32)FileEvent::Scene_Loaded)
+	if (evt.code == (u32)FileEvent::Scene_Loaded)
 	{
 		Event e;
 		e.arg1 = evt.arg1;
 		e.type = EventType::Ingame_Event;
-		e.code = (U32)IngameEvent::Level_Started;
+		e.code = (u32)IngameEvent::Level_Started;
 
 		auto pEvtManager = Locator::getEventManager();
 		pEvtManager->addEvent(e);
@@ -458,7 +458,7 @@ void EntityAspect::handleIngameEvent(const Event &evt)
 		auto spawns = m_pCurrentScene->getSpawns();
 		auto spawnCount = m_pCurrentScene->getSpawnCount();
 
-		for (U32 i = 0; i < spawnCount; ++i)
+		for (u32 i = 0; i < spawnCount; ++i)
 		{
 			auto &it = spawns[i];
 
@@ -491,7 +491,7 @@ void EntityAspect::handleIngameEvent(const Event &evt)
 
 				/*Event e;
 				e.type = EventType::Ingame_Event;
-				e.code = (U32)IngameEvent::Create_Actor;
+				e.code = (u32)IngameEvent::Create_Actor;
 				e.arg1 = i;
 				e.arg2 = data;
 

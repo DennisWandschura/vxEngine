@@ -45,18 +45,18 @@ namespace vx
 
 class GpuProfiler
 {
-	static const U8 s_numFramesDelay = 3;
-	static const U8 s_maxCharacters = 31u;
-	static const U8 s_markersPerFrame = 30u;
-	static const U8 s_markersPerCpuThread = s_markersPerFrame;
-	static const U8 s_markersGpu = s_markersPerFrame * s_numFramesDelay;
+	static const u8 s_numFramesDelay = 3;
+	static const u8 s_maxCharacters = 31u;
+	static const u8 s_markersPerFrame = 30u;
+	static const u8 s_markersPerCpuThread = s_markersPerFrame;
+	static const u8 s_markersGpu = s_markersPerFrame * s_numFramesDelay;
 
-	static const U8 s_maxGpuStringSize = 64;
-	static const U32 s_maxGpuCharacters = s_maxGpuStringSize * s_markersPerFrame;
-	static const U32 s_maxVertices = s_maxGpuCharacters * 4u;
-	static const U32 s_maxIndices = s_maxGpuCharacters * 6u;
+	static const u8 s_maxGpuStringSize = 64;
+	static const u32 s_maxGpuCharacters = s_maxGpuStringSize * s_markersPerFrame;
+	static const u32 s_maxVertices = s_maxGpuCharacters * 4u;
+	static const u32 s_maxIndices = s_maxGpuCharacters * 6u;
 
-	static I64 s_cpuFrequency;
+	static s64 s_cpuFrequency;
 	static vx::float2 s_position;
 
 	struct Vertex
@@ -68,10 +68,10 @@ class GpuProfiler
 
 	struct Marker
 	{
-		I64 start{ 0 };
-		I64 end{ 0 };
+		s64 start{ 0 };
+		s64 end{ 0 };
 		char name[s_maxCharacters];
-		U8 layer{ 0 };
+		u8 layer{ 0 };
 
 		Marker()
 		{
@@ -81,27 +81,27 @@ class GpuProfiler
 
 	struct GpuMarker : public Marker
 	{
-		U32 id_query_start{ 0 };
-		U32 id_query_end{ 0 };
-		I64 frame{ -1 };
+		u32 id_query_start{ 0 };
+		u32 id_query_end{ 0 };
+		s64 frame{ -1 };
 	};
 
 	struct GpuThreadInfo
 	{
 		GpuMarker markers[s_markersGpu];
-		U8 currentWriteId{ 0 };
-		U8 m_pushedMarkers{ 0 };
+		u8 currentWriteId{ 0 };
+		u8 m_pushedMarkers{ 0 };
 	};
 
 	struct EntryGpu
 	{
-		U32 time;
-		U32 timeMin{ -1 };
-		U32 timeMax{ 0 };
+		u32 time;
+		u32 timeMin{ -1 };
+		u32 timeMax{ 0 };
 		char name[s_maxCharacters];
-		U8 layer;
-		U32 queryStart{ 0 };
-		U32 queryEnd{ 0 };
+		u8 layer;
+		u32 queryStart{ 0 };
+		u32 queryEnd{ 0 };
 
 		EntryGpu()
 		{
@@ -109,32 +109,32 @@ class GpuProfiler
 		}
 	};
 
-	I64 m_currentFrame{ 0 };
+	s64 m_currentFrame{ 0 };
 	GpuThreadInfo m_gpuThreadInfo;
-	vx::sorted_array<vx::StringID, U32> m_entriesGpuByName;
-	U16 m_entryGpuCount{ 0 };
+	vx::sorted_array<vx::StringID, u32> m_entriesGpuByName;
+	u16 m_entryGpuCount{ 0 };
 	std::unique_ptr<EntryGpu[]> m_entriesGpu;
 	const vx::gl::ProgramPipeline *m_pPipeline{ nullptr };
 	vx::gl::VertexArray m_vao;
-	U32 m_indexCount{ 0 };
-	U32 m_textureIndex{ 0 };
+	u32 m_indexCount{ 0 };
+	u32 m_textureIndex{ 0 };
 	const Font* m_pFont{ nullptr };
 	std::unique_ptr<Vertex[]> m_pVertices{};
 	vx::gl::Buffer m_ibo;
 	vx::gl::Buffer m_vbo;
 
-	void updateBuffer(const U32 ascii_code, const vx::float2 &position_x_texSlice, const vx::uint2a &textureSize, const __m128 &invTextureSize, const __m128 &color, vx::uint2 *bufferIndex, vx::float2 *cursorPos);
+	void updateBuffer(const u32 ascii_code, const vx::float2 &position_x_texSlice, const vx::uint2a &textureSize, const __m128 &invTextureSize, const __m128 &color, vx::uint2 *bufferIndex, vx::float2 *cursorPos);
 
-	void writeBuffer(I32 strSize, const char* buffer, const vx::float2 &position_x_texSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, const __m128 &color, vx::uint2* bufferIndex, vx::float2* cursorPos);
-	void writeGpuMarkers(F32 textureSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos);
+	void writeBuffer(s32 strSize, const char* buffer, const vx::float2 &position_x_texSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, const __m128 &color, vx::uint2* bufferIndex, vx::float2* cursorPos);
+	void writeGpuMarkers(f32 textureSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos);
 
 public:
 	GpuProfiler();
 	~GpuProfiler();
 
-	bool initialize(const Font* pFont, const vx::gl::ProgramPipeline* pPipeline, U32 textureIndex, const vx::uint2 windowResolution, vx::StackAllocator* pAllocator);
+	bool initialize(const Font* pFont, const vx::gl::ProgramPipeline* pPipeline, u32 textureIndex, const vx::uint2 windowResolution, vx::StackAllocator* pAllocator);
 
-	void update(F32 dt);
+	void update(f32 dt);
 
 	void render();
 

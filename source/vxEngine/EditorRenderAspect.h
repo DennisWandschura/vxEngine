@@ -37,15 +37,15 @@ class NavMeshGraph;
 #include "Graphics/CommandList.h"
 
 typedef  struct {
-	U32  count;
-	U32  instanceCount;
-	U32  first;
-	U32  baseInstance;
+	u32  count;
+	u32  instanceCount;
+	u32  first;
+	u32  baseInstance;
 } DrawArraysIndirectCommand;
 
 class EditorRenderAspect : public RenderAspect
 {
-	enum class EditorUpdate : U32;
+	enum class EditorUpdate : u32;
 
 	struct SelectedMeshInstance
 	{
@@ -79,10 +79,10 @@ class EditorRenderAspect : public RenderAspect
 		vx::gl::Buffer m_lightCmdBuffer;
 		vx::gl::Buffer m_influenceMapCmdBuffer;
 
-		U32 m_influenceCellCount{ 0 };
-		U32 m_lightCount{ 0 };
-		U32 m_navMeshIndexCount{ 0 };
-		U32 m_navMeshVertexCount{ 0 };
+		u32 m_influenceCellCount{ 0 };
+		u32 m_lightCount{ 0 };
+		u32 m_navMeshIndexCount{ 0 };
+		u32 m_navMeshVertexCount{ 0 };
 		vx::gl::VertexArray m_navMeshVao;
 		vx::gl::VertexArray m_navMeshVertexVao;
 		vx::gl::VertexArray m_influenceVao;
@@ -93,7 +93,7 @@ class EditorRenderAspect : public RenderAspect
 
 	vx::gl::VertexArray m_navMeshGraphNodesVao;
 
-	U32 m_navMeshGraphNodesCount{0};
+	u32 m_navMeshGraphNodesCount{0};
 	Editor::RenderData m_editorData;
 
 	SelectedMeshInstance m_selectedInstance{};
@@ -128,25 +128,25 @@ class EditorRenderAspect : public RenderAspect
 
 	void updateCamera();
 
-	void uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, U32 count);
-	void updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, U32 count, U32(&selectedVertexIndex)[3], U8 selectedCount);
-	void updateNavMeshIndexBuffer(const TriangleIndices* indices, U32 count);
+	void uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, u32 count);
+	void updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, u32 count, u32(&selectedVertexIndex)[3], u8 selectedCount);
+	void updateNavMeshIndexBuffer(const TriangleIndices* indices, u32 count);
 	void updateNavMeshIndexBuffer(const NavMesh &navMesh);
 
 public:
 	EditorRenderAspect();
 
-	bool initialize(const std::string &dataDir, HWND panel, HWND tmp, const vx::uint2 &windowResolution, F32 fovDeg, F32 zNear, F32 zFar, bool vsync, bool debug,
+	bool initialize(const std::string &dataDir, HWND panel, HWND tmp, const vx::uint2 &windowResolution, f32 fovDeg, f32 zNear, f32 zFar, bool vsync, bool debug,
 		vx::StackAllocator *pAllocator);
 
 	void update();
 	void render();
 
-	void editor_moveCamera(F32 dirX, F32 dirY, F32 dirZ);
+	void editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ);
 	void VX_CALLCONV editor_rotateCamera(const __m128 rotation);
 
 	void editor_updateMouseHit(const vx::float3 &p);
-	void editor_updateWaypoint(U32 offset, U32 count, const Waypoint* src);
+	void editor_updateWaypoint(u32 offset, u32 count, const Waypoint* src);
 
 	void handleEvent(const Event &evt) override;
 
@@ -155,14 +155,14 @@ public:
 	bool setSelectedMeshInstance(const MeshInstance* p);
 	void updateSelectedMeshInstanceTransform(vx::Transform &transform);
 
-	void updateNavMeshBuffer(const NavMesh &navMesh, U32(&selectedVertex)[3], U8 selectedCount);
+	void updateNavMeshBuffer(const NavMesh &navMesh, u32(&selectedVertex)[3], u8 selectedCount);
 	void updateNavMeshBuffer(const NavMesh &navMesh);
 
 	void updateInfluenceCellBuffer(const InfluenceMap &influenceMap);
 
 	void updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph);
 
-	void updateLightBuffer(const Light* lights, U32 count);
+	void updateLightBuffer(const Light* lights, u32 count);
 
 	void showNavmesh(bool b);
 	void showInfluenceMap(bool b);

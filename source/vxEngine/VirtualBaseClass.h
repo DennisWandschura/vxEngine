@@ -43,17 +43,17 @@ protected:
 		return id++;
 	}
 
-	static void registerFunction(U32 classId, U32 funId, FP fun)
+	static void registerFunction(u32 classId, u32 funId, FP fun)
 	{
 		s_vtbl[classId][funId] = fun;
 	}
 
-	static void registerClass(U32 classId, const rtti::TypeData *pTypeData)
+	static void registerClass(u32 classId, const rtti::TypeData *pTypeData)
 	{
 		s_pTypeData[classId] = pTypeData;
 	}
 
-	U32 m_classId;
+	u32 m_classId;
 
 public:
 	Base(unsigned classId) :m_classId(classId){}
@@ -75,10 +75,10 @@ public:
 	}
 };
 
-template<U32 totalClasses, U32 totalVirtualMethods>
+template<u32 totalClasses, u32 totalVirtualMethods>
 typename Base<totalClasses, totalVirtualMethods>::FP Base<totalClasses, totalVirtualMethods>::s_vtbl[totalClasses][totalVirtualMethods];
 
-template<U32 totalClasses, U32 totalVirtualMethods>
+template<u32 totalClasses, u32 totalVirtualMethods>
 const rtti::TypeData* Base<totalClasses, totalVirtualMethods>::s_pTypeData[totalClasses];
 
 template<class T>

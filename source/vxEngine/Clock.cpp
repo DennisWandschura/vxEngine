@@ -25,7 +25,7 @@ SOFTWARE.
 #include <Windows.h>
 #include <future>
 
-U64 Clock::s_frequency{0};
+u64 Clock::s_frequency{0};
 
 Clock::Clock()
 {
@@ -53,7 +53,7 @@ Clock::Clock(Clock &&rhs)
 {
 }
 
-U64 Clock::getTime() const
+u64 Clock::getTime() const
 {
 	LARGE_INTEGER current;
 	QueryPerformanceCounter(&current);
@@ -61,7 +61,7 @@ U64 Clock::getTime() const
 	return current.QuadPart - m_startTime;
 }
 
-U64 Clock::getFrequency()
+u64 Clock::getFrequency()
 {
 	return s_frequency;
 }

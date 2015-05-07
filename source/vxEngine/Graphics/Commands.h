@@ -32,9 +32,9 @@ namespace Graphics
 	{
 		virtual ~Command(){}
 
-		virtual void execute(U32* offset) = 0;
+		virtual void execute(u32* offset) = 0;
 
-		static void handleCommand(Command* header, U32* offset)
+		static void handleCommand(Command* header, u32* offset)
 		{
 			header->execute(offset);
 		}
@@ -51,60 +51,60 @@ namespace Graphics
 			m_size = size;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct PointSizeCommand : public Command
 	{
-		F32 m_pointSize;
+		f32 m_pointSize;
 
-		void set(F32 pointSize)
+		void set(f32 pointSize)
 		{
 			m_pointSize = pointSize;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct DrawArraysIndirectCommand : public Command
 	{
-		U32 m_mode;
-		U32 m_offset;
+		u32 m_mode;
+		u32 m_offset;
 
-		void set(U32 mode, U32 offset = 0)
+		void set(u32 mode, u32 offset = 0)
 		{
 			m_mode = mode;
 			m_offset = offset;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct DrawElementsIndirectCommand : public Command
 	{
-		U32 m_mode;
-		U32 m_type;
-		U32 m_offset;
+		u32 m_mode;
+		u32 m_type;
+		u32 m_offset;
 
-		void set(U32 mode, U32 type, U32 offset = 0)
+		void set(u32 mode, u32 type, u32 offset = 0)
 		{
 			m_mode = mode;
 			m_type = type;
 			m_offset = offset;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct MultiDrawElementsIndirectCountCommand : public Command
 	{
-		U32 m_mode;
-		U32 m_type;
-		U32 m_indirectOffset;
-		U32 m_parameterBufferOffset;
-		U32 m_maxdrawcount;
+		u32 m_mode;
+		u32 m_type;
+		u32 m_indirectOffset;
+		u32 m_parameterBufferOffset;
+		u32 m_maxdrawcount;
 
-		void set(U32 mode, U32 type, U32 maxDrawCount, U32 indirectOffset = 0, U32 paramOffset = 0)
+		void set(u32 mode, u32 type, u32 maxDrawCount, u32 indirectOffset = 0, u32 paramOffset = 0)
 		{
 			m_mode = mode;
 			m_type = type;
@@ -113,17 +113,17 @@ namespace Graphics
 			m_maxdrawcount = maxDrawCount;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct MultiDrawArraysIndirectCountCommand : public Command
 	{
-		U32 m_mode;
-		U32 m_indirectOffset;
-		U32 m_parameterBufferOffset;
-		U32 m_maxdrawcount;
+		u32 m_mode;
+		u32 m_indirectOffset;
+		u32 m_parameterBufferOffset;
+		u32 m_maxdrawcount;
 
-		void set(U32 mode, U32 maxDrawCount, U32 indirectOffset = 0, U32 paramOffset = 0)
+		void set(u32 mode, u32 maxDrawCount, u32 indirectOffset = 0, u32 paramOffset = 0)
 		{
 			m_mode = mode;
 			m_indirectOffset = indirectOffset;
@@ -131,7 +131,7 @@ namespace Graphics
 			m_maxdrawcount = maxDrawCount;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct ClearColorCommand : public Command
@@ -143,17 +143,17 @@ namespace Graphics
 			m_clearColor = clearColor;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct FramebufferTextureCommand : public Command
 	{
-		U32 m_framebufferId;
-		U32 m_attachment;
-		U32 m_texture;
-		U32 m_level;
+		u32 m_framebufferId;
+		u32 m_attachment;
+		u32 m_texture;
+		u32 m_level;
 
-		void set(U32 framebufferId, U32 attachment, U32 texture, U32 level)
+		void set(u32 framebufferId, u32 attachment, u32 texture, u32 level)
 		{
 			m_framebufferId = framebufferId;
 			m_attachment = attachment;
@@ -161,33 +161,33 @@ namespace Graphics
 			m_level = level;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct PolygonOffsetCommand : public Command
 	{
-		F32 m_factor;
-		F32 m_units;
+		f32 m_factor;
+		f32 m_units;
 
-		void set(F32 factor, F32 units)
+		void set(f32 factor, f32 units)
 		{
 			m_factor = factor;
 			m_units = units;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct ClearCommand : public Command
 	{
-		U32 m_bits;
+		u32 m_bits;
 
-		void set(U32 bits)
+		void set(u32 bits)
 		{
 			m_bits = bits;
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 
 	struct ProfilerCommand : public Command
@@ -201,6 +201,6 @@ namespace Graphics
 			strcpy_s(m_name, name);
 		}
 
-		void execute(U32* offset) override;
+		void execute(u32* offset) override;
 	};
 }

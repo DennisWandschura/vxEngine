@@ -64,7 +64,7 @@ File::~File()
 
 bool File::create(const char* file, FileAccess access)
 {
-	auto r = CreateFileA(file, static_cast<U32>(access), 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	auto r = CreateFileA(file, static_cast<u32>(access), 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (r == INVALID_HANDLE_VALUE)
 	{
 		return false;
@@ -76,7 +76,7 @@ bool File::create(const char* file, FileAccess access)
 
 bool File::open(const char *file, FileAccess access)
 {
-	auto r = CreateFileA(file, static_cast<U32>(access), 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+	auto r = CreateFileA(file, static_cast<u32>(access), 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 	if (r == INVALID_HANDLE_VALUE)
 	{
 		return false;
@@ -98,7 +98,7 @@ bool File::close()
 	return result;
 }
 
-bool File::read(void *ptr, U32 size)
+bool File::read(void *ptr, u32 size)
 {
 	auto result = (ReadFile(m_pFile, ptr, size, nullptr, nullptr) != 0);
 	auto error = GetLastError();
@@ -110,12 +110,12 @@ bool File::read(void *ptr, U32 size)
 	return result;
 }
 
-bool File::write(const void *ptr, U32 size, U32 *pWrittenBytes)
+bool File::write(const void *ptr, u32 size, u32 *pWrittenBytes)
 {
 	return (WriteFile(m_pFile, ptr, size, (DWORD*)pWrittenBytes, nullptr) != 0);
 }
 
-U32 File::getSize() const
+u32 File::getSize() const
 {
 	LARGE_INTEGER fileSize;
 	if (GetFileSizeEx(m_pFile, &fileSize) == 0)

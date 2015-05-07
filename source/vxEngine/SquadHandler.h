@@ -57,19 +57,19 @@ namespace ai
 		static const NavGraph* s_pNavGraph;
 		static std::mt19937_64 s_gen;
 
-		U16 m_actors[4];
-		U8 m_updateMask{ 0 };
-		U8 m_size{ 0 };
-		U16 m_filterMask;
-		U32 m_currentTargetNodes[4];
+		u16 m_actors[4];
+		u8 m_updateMask{ 0 };
+		u8 m_size{ 0 };
+		u16 m_filterMask;
+		u32 m_currentTargetNodes[4];
 
-		void updateActor(U8 index, vx::StackAllocator* pAllocatorScratch);
-		void updateActor(U8 index, const InfluenceCell* pCells, U32 cellIndex, const U16* pNavNodeIndices, vx::StackAllocator* pAllocatorScratch);
+		void updateActor(u8 index, vx::StackAllocator* pAllocatorScratch);
+		void updateActor(u8 index, const InfluenceCell* pCells, u32 cellIndex, const u16* pNavNodeIndices, vx::StackAllocator* pAllocatorScratch);
 
 		void handleRequestPath(Component::Actor* p);
 
 	public:
-		explicit SquadHandler(U16 filterMask);
+		explicit SquadHandler(u16 filterMask);
 
 		static void initializeStatics(const NavGraph* pNavGrap, const Pool<Component::Actor>* pActorPool, const Pool<Component::Physics>* pPhysicsPool, const Pool<EntityActor>* pEntityPool, const InfluenceMap* pInfluenceMap);
 
@@ -77,10 +77,10 @@ namespace ai
 
 		void handleAIEvent(const Event &evt);
 
-		U8 addActor(U16 actorIndex);
+		u8 addActor(u16 actorIndex);
 
-		U16 getFilter() const { return m_filterMask; }
-		U8 size() const { return m_size; }
-		U8 hasSpace() const { return m_size < 4; }
+		u16 getFilter() const { return m_filterMask; }
+		u8 size() const { return m_size; }
+		u8 hasSpace() const { return m_size < 4; }
 	};
 }

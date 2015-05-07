@@ -28,70 +28,70 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void ViewportCommand::execute(U32* offset)
+	void ViewportCommand::execute(u32* offset)
 	{
 		vx::gl::StateManager::setViewport(m_offset.x, m_offset.y, m_size.x, m_size.y);
 
 		*offset += sizeof(ViewportCommand);
 	}
 
-	void PointSizeCommand::execute(U32* offset)
+	void PointSizeCommand::execute(u32* offset)
 	{
 		glPointSize(m_pointSize);
 
 		*offset += sizeof(PointSizeCommand);
 	}
 
-	void DrawArraysIndirectCommand::execute(U32* offset)
+	void DrawArraysIndirectCommand::execute(u32* offset)
 	{
 		glDrawArraysIndirect(m_mode, (void*)m_offset);
 
 		*offset += sizeof(DrawArraysIndirectCommand);
 	}
 
-	void DrawElementsIndirectCommand::execute(U32* offset)
+	void DrawElementsIndirectCommand::execute(u32* offset)
 	{
 		glDrawElementsIndirect(m_mode, m_type, (void*)m_offset);
 
 		*offset += sizeof(DrawElementsIndirectCommand);
 	}
 
-	void MultiDrawElementsIndirectCountCommand::execute(U32* offset)
+	void MultiDrawElementsIndirectCountCommand::execute(u32* offset)
 	{
 		glMultiDrawElementsIndirectCountARB(m_mode, m_type, m_indirectOffset, m_parameterBufferOffset, m_maxdrawcount, sizeof(vx::gl::DrawElementsIndirectCommand));
 
 		*offset += sizeof(MultiDrawElementsIndirectCountCommand);
 	}
 
-	void MultiDrawArraysIndirectCountCommand::execute(U32* offset)
+	void MultiDrawArraysIndirectCountCommand::execute(u32* offset)
 	{
 		glMultiDrawArraysIndirectCountARB(m_mode, m_indirectOffset, m_parameterBufferOffset, m_maxdrawcount, sizeof(vx::gl::DrawArraysIndirectCommand));
 
 		*offset += sizeof(MultiDrawArraysIndirectCountCommand);
 	}
 
-	void ClearColorCommand::execute(U32* offset)
+	void ClearColorCommand::execute(u32* offset)
 	{
 		vx::gl::StateManager::setClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
 
 		*offset += sizeof(ClearColorCommand);
 	}
 
-	void FramebufferTextureCommand::execute(U32* offset)
+	void FramebufferTextureCommand::execute(u32* offset)
 	{
 		glNamedFramebufferTexture(m_framebufferId, m_attachment, m_texture, m_level);
 
 		*offset += sizeof(FramebufferTextureCommand);
 	}
 
-	void PolygonOffsetCommand::execute(U32* offset)
+	void PolygonOffsetCommand::execute(u32* offset)
 	{
 		glPolygonOffset(m_factor, m_units);
 
 		*offset += sizeof(PolygonOffsetCommand);
 	}
 
-	void ClearCommand::execute(U32* offset)
+	void ClearCommand::execute(u32* offset)
 	{
 		glClear(m_bits);
 

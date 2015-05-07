@@ -31,6 +31,6 @@ namespace Component
 	struct Render : public Base
 	{
 		// index into transform buffer
-		U16 gpuIndex;
+		u16 gpuIndex;
 	};
 }

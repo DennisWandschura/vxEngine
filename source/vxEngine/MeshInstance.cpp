@@ -62,7 +62,7 @@ MeshInstanceFile::MeshInstanceFile(const char(&meshName)[32], const char(&materi
 	strcpy_s(m_material, materialName);
 }
 
-void MeshInstanceFile::load(const U8 *ptr)
+void MeshInstanceFile::load(const u8 *ptr)
 {
 	memcpy(this, ptr, sizeof(MeshInstanceFile));
 }
@@ -73,7 +73,7 @@ void MeshInstanceFile::load(const U8 *ptr)
 	auto strMaterial = node["material"].as<std::string>();
 	m_transform.m_translation = node["translation"].as<vx::float3>();
 	m_transform.m_rotation = node["rotation"].as<vx::float3>();
-	m_transform.m_scaling = node["scaling"].as<F32>();
+	m_transform.m_scaling = node["scaling"].as<f32>();
 
 	strncpy_s(m_mesh, strMesh.data(), strMesh.size());
 	strncpy_s(m_material, strMaterial.data(), strMaterial.size());

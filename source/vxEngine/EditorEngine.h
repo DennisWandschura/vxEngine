@@ -42,14 +42,14 @@ enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
 class EditorEngine : public EventListener
 {
-	static U32 s_editorTypeMesh;
-	static U32 s_editorTypeMaterial;
-	static U32 s_editorTypeScene;
+	static u32 s_editorTypeMesh;
+	static u32 s_editorTypeMaterial;
+	static u32 s_editorTypeScene;
 
 	struct SelectedNavMeshVertices
 	{
-		U32 m_vertices[3];
-		U8 m_count;
+		u32 m_vertices[3];
+		u8 m_count;
 	};
 
 	struct Selected
@@ -78,12 +78,12 @@ class EditorEngine : public EventListener
 	vx::thread m_fileAspectThread;
 	vx::StackAllocator m_allocator;
 	vx::StackAllocator m_scratchAllocator;
-	U32 m_shutdown{ 0 };
+	u32 m_shutdown{ 0 };
 	Memory m_memory;
 	vx::uint2 m_resolution;
 	HWND m_panel;
 
-	vx::sorted_vector<vx::StringID, std::pair<Editor::LoadFileCallback, U32>> m_requestedFiles;
+	vx::sorted_vector<vx::StringID, std::pair<Editor::LoadFileCallback, u32>> m_requestedFiles;
 
 	// calls the callback provided by editor_loadFile
 	void call_editorCallback(vx::StringID sid);
@@ -93,14 +93,14 @@ class EditorEngine : public EventListener
 
 	void handleFileEvent(const Event &evt);
 
-	vx::float4a getRayDir(I32 mouseX, I32 mouseY);
+	vx::float4a getRayDir(s32 mouseX, s32 mouseY);
 
-	MeshInstance* raytraceAgainstStaticMeshes(I32 mouseX, I32 mouseY, vx::float3* hitPosition);
+	MeshInstance* raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition);
 
 	void createStateMachine();
 
-	Ray getRay(I32 mouseX, I32 mouseY);
-	U32 getSelectedNavMeshVertex(I32 mouseX, I32 mouseY);
+	Ray getRay(s32 mouseX, s32 mouseY);
+	u32 getSelectedNavMeshVertex(s32 mouseX, s32 mouseY);
 
 	void buildNavGraph();
 
@@ -111,16 +111,16 @@ public:
 	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, EditorScene* pScene);
 	void shutdownEditor();
 
-	static void editor_setTypes(U32 mesh, U32 material, U32 scene);
+	static void editor_setTypes(u32 mesh, u32 material, u32 scene);
 
 	void editor_saveScene(const char* name);
 
 	void editor_start();
-	void editor_render(F32 dt);
-	void editor_loadFile(const char *filename, U32 type, Editor::LoadFileCallback f);
+	void editor_render(f32 dt);
+	void editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f);
 
-	void editor_moveCamera(F32 dirX, F32 dirY, F32 dirZ);
-	void editor_rotateCamera(F32 dirX, F32 dirY, F32 dirZ);
+	void editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ);
+	void editor_rotateCamera(f32 dirX, f32 dirY, f32 dirZ);
 
 	void stop();
 
@@ -136,18 +136,18 @@ public:
 	void setSelectedNavMeshVertexPosition(const vx::float3 &position);
 	vx::float3 getSelectedNavMeshVertexPosition() const;
 
-	bool selectMesh(I32 mouseX, I32 mouseY);
+	bool selectMesh(s32 mouseX, s32 mouseY);
 	void deselectMesh();
 
-	bool addNavMeshVertex(I32 mouseX, I32 mouseY);
+	bool addNavMeshVertex(s32 mouseX, s32 mouseY);
 	void deleteSelectedNavMeshVertex();
-	bool selectNavMeshVertex(I32 mouseX, I32 mouseY);
-	bool multiSelectNavMeshVertex(I32 mouseX, I32 mouseY);
+	bool selectNavMeshVertex(s32 mouseX, s32 mouseY);
+	bool multiSelectNavMeshVertex(s32 mouseX, s32 mouseY);
 	void deselectNavMeshVertex();
 	bool createNavMeshTriangleFromSelectedVertices();
 
 	void createLight();
-	bool selectLight(I32 mouseX, I32 mouseY);
+	bool selectLight(s32 mouseX, s32 mouseY);
 	void deselectLight();
 	void getSelectLightPosition(vx::float3* position);
 	void setSelectLightPosition(const vx::float3 &position);

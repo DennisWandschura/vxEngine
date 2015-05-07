@@ -53,10 +53,10 @@ struct SceneBaseParams
 	std::unique_ptr<Spawn[]> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	NavMesh m_navMesh;
-	U32 m_lightCount;
-	U32 m_vertexCount;
-	U32 m_indexCount;
-	U32 m_spawnCount;
+	u32 m_lightCount;
+	u32 m_vertexCount;
+	u32 m_indexCount;
+	u32 m_spawnCount;
 
 	~SceneBaseParams();
 };
@@ -74,10 +74,10 @@ protected:
 	std::unique_ptr<Spawn[]> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	NavMesh m_navMesh{};
-	U32 m_lightCount{ 0 };
-	U32 m_vertexCount{ 0 };
-	U32 m_indexCount{ 0 };
-	U32 m_spawnCount{ 0 };
+	u32 m_lightCount{ 0 };
+	u32 m_vertexCount{ 0 };
+	u32 m_indexCount{ 0 };
+	u32 m_spawnCount{ 0 };
 
 	SceneBase();
 	SceneBase(SceneBaseParams &params);
@@ -94,19 +94,19 @@ public:
 	virtual void sortMeshInstances() = 0;
 
 	virtual const MeshInstance* getMeshInstances() const = 0;
-	virtual U32 getMeshInstanceCount() const = 0;
+	virtual u32 getMeshInstanceCount() const = 0;
 
 	const Light* getLights() const;
-	U32 getLightCount() const;
+	u32 getLightCount() const;
 
 	const vx::sorted_vector<vx::StringID, Material*>& getMaterials() const;
-	U32 getMaterialCount() const;
+	u32 getMaterialCount() const;
 
 	const vx::sorted_vector<vx::StringID, const vx::Mesh*>& getMeshes() const;
-	U32 getVertexCount() const;
+	u32 getVertexCount() const;
 
 	const Spawn* getSpawns() const;
-	U32 getSpawnCount() const;
+	u32 getSpawnCount() const;
 
 	const vx::sorted_vector<vx::StringID, Actor>& getActors() const;
 

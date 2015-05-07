@@ -36,7 +36,7 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 	auto actorCount = scene.m_actors.size();
 	sceneFile->m_actorCount = actorCount;
 	sceneFile->m_pActors = std::make_unique<ActorFile[]>(actorCount);
-	for (U32 i = 0; i < actorCount; ++i)
+	for (u32 i = 0; i < actorCount; ++i)
 	{
 		auto sidActor = scene.m_actors.keys()[i];
 		auto &it = scene.m_actors[i];
@@ -55,7 +55,7 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 
 	sceneFile->m_lightCount = scene.m_lightCount;
 	sceneFile->m_pLights = std::make_unique<Light[]>(scene.m_lightCount);
-	for (U32 i = 0; i < scene.m_lightCount; ++i)
+	for (u32 i = 0; i < scene.m_lightCount; ++i)
 	{
 		sceneFile->m_pLights[i] = scene.m_pLights[i];
 	}
@@ -67,7 +67,7 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 
 	sceneFile->m_meshInstanceCount = meshInstanceCount;
 	sceneFile->m_pMeshInstances = std::make_unique<MeshInstanceFile[]>(meshInstanceCount);
-	for (U32 i = 0; i < meshInstanceCount; ++i)
+	for (u32 i = 0; i < meshInstanceCount; ++i)
 	{
 		auto &it = scene.m_meshInstances[i];
 
@@ -90,7 +90,7 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 	{
 		sceneFile->m_pSpawns = std::make_unique<SpawnFile[]>(spawnCount);
 		
-		for (U32 i = 0; i < spawnCount; ++i)
+		for (u32 i = 0; i < spawnCount; ++i)
 		{
 			auto &spawn = spawns[i];
 

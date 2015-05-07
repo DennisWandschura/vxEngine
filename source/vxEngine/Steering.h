@@ -33,11 +33,11 @@ namespace Component
 struct SteeringOutput
 {
 	vx::float3 velocity;
-	F32 angular{0.0f};
+	f32 angular{0.0f};
 };
 
 class Steering
 {
 public:
-	virtual U8 getSteering(SteeringOutput* output) = 0;
+	virtual u8 getSteering(SteeringOutput* output) = 0;
 };

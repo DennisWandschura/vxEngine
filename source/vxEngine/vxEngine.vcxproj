@@ -81,7 +81,7 @@
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;_VX_GL_45;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -194,7 +194,6 @@
     <ClInclude Include="RenderCommandFinalImage.h" />
     <ClInclude Include="RenderSettings.h" />
     <ClInclude Include="Serializable.h" />
-    <ClInclude Include="Frame.h" />
     <ClInclude Include="GpuStructs.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="EditorEngine.h" />
@@ -224,8 +223,6 @@
     <ClInclude Include="ProgramUniformBinding.h" />
     <ClInclude Include="RenderAspectDescription.h" />
     <ClInclude Include="DebugRenderSettings.h" />
-    <ClInclude Include="RenderPass.h" />
-    <ClInclude Include="RenderStage.h" />
     <ClInclude Include="RenderUpdateTask.h" />
     <ClInclude Include="SceneRenderer.h" />
     <ClInclude Include="ScreenshotFactory.h" />
@@ -370,7 +367,6 @@
     <ClCompile Include="EngineConfig.cpp" />
     <ClCompile Include="EntityFactory.cpp" />
     <ClCompile Include="FileFactory.cpp" />
-    <ClCompile Include="Frame.cpp" />
     <ClCompile Include="gl\BufferBindingManager.cpp" />
     <ClCompile Include="gl\BufferManager.cpp" />
     <ClCompile Include="gl\ObjectManager.cpp" />
@@ -398,8 +394,6 @@
     <ClCompile Include="RaycastCondition.cpp" />
     <ClCompile Include="RenderCommand.cpp" />
     <ClCompile Include="RenderCommandFinalImage.cpp" />
-    <ClCompile Include="RenderPass.cpp" />
-    <ClCompile Include="RenderStage.cpp" />
     <ClCompile Include="SceneRenderer.cpp" />
     <ClCompile Include="ScreenshotFactory.cpp" />
     <ClCompile Include="TextParserFile.cpp" />
@@ -414,7 +408,6 @@
     <ClCompile Include="SmallObjAllocator.cpp" />
     <ClCompile Include="SmallObject.cpp" />
     <ClCompile Include="Sound.cpp" />
-    <ClCompile Include="Spawn.cpp" />
     <ClCompile Include="SquadHandler.cpp" />
     <ClCompile Include="SquadManager.cpp" />
     <ClCompile Include="StateMachine.cpp" />

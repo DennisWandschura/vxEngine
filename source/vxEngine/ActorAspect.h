@@ -86,7 +86,7 @@ public:
 	// update functions
 	///////////////////
 
-	void update(F32 dt);
+	void update(f32 dt);
 
 	///////////////////
 

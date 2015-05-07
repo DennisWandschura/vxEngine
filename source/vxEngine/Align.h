@@ -34,10 +34,10 @@ struct Align
 {
 	Component::Physics* m_pCharacter;
 	Component::Physics* m_pTarget;
-	F32 m_maxAngularAcceleration;
-	F32 m_maxRotation;
-	F32 m_targetRadius;
-	F32 m_slowRadius;
+	f32 m_maxAngularAcceleration;
+	f32 m_maxRotation;
+	f32 m_targetRadius;
+	f32 m_slowRadius;
 
 	void update(vx::float2* orientation);
 };

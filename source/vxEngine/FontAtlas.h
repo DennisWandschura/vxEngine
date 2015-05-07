@@ -27,23 +27,23 @@ SOFTWARE.
 
 struct FontAtlasEntry
 {
-	F32 x;
-	F32 y;
-	F32 width;
-	F32 height;
-	F32 offsetX;
-	F32 offsetY;
-	F32 advanceX;
+	f32 x;
+	f32 y;
+	f32 width;
+	f32 height;
+	f32 offsetX;
+	f32 offsetY;
+	f32 advanceX;
 
 	FontAtlasEntry();
 };
 
 class FontAtlas
 {
-	vx::sorted_vector<U32, FontAtlasEntry> m_data;
+	vx::sorted_vector<u32, FontAtlasEntry> m_data;
 
-	FontAtlasEntry readEntry(std::ifstream &infile, U32 &id);
-	size_t readEntry(const char *ptr, FontAtlasEntry &entry, U32 &id);
+	FontAtlasEntry readEntry(std::ifstream &infile, u32 &id);
+	size_t readEntry(const char *ptr, FontAtlasEntry &entry, u32 &id);
 
 public:
 	FontAtlas();
@@ -57,5 +57,5 @@ public:
 	bool loadFromFile(const char *file);
 	bool loadFromMemory(const char *data);
 
-	const FontAtlasEntry* getEntry(U32 code) const;
+	const FontAtlasEntry* getEntry(u32 code) const;
 };

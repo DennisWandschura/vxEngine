@@ -24,25 +24,25 @@ SOFTWARE.
 #include "SmallObjAllocator.h"
 #include <algorithm>
 
-void Chunk::init(U32 blockSize, U16 blockCount)
+void Chunk::init(u32 blockSize, u16 blockCount)
 {
-	ptr = new U8[blockSize * blockCount];
+	ptr = new u8[blockSize * blockCount];
 	freeBlocks = blockCount;
 	firstFreeBlock = 0;
 
 	auto p = ptr;
-	for (U32 i = 0; i < blockCount; p += blockSize)
+	for (u32 i = 0; i < blockCount; p += blockSize)
 	{
 		*p = ++i;
 	}
 }
 
-U8* Chunk::allocate(U32 blockSize)
+u8* Chunk::allocate(u32 blockSize)
 {
 	if (freeBlocks == 0)
 		return nullptr;
 
-	U8* p = ptr + (firstFreeBlock * blockSize);
+	u8* p = ptr + (firstFreeBlock * blockSize);
 
 	firstFreeBlock = *p;
 	--freeBlocks;
@@ -50,7 +50,7 @@ U8* Chunk::allocate(U32 blockSize)
 	return p;
 }
 
-void Chunk::deallocate(U8* p, U32 blockSize)
+void Chunk::deallocate(u8* p, u32 blockSize)
 {
 	assert(p >= ptr);
 	auto toRelease = p;
@@ -62,7 +62,7 @@ void Chunk::deallocate(U8* p, U32 blockSize)
 	++freeBlocks;
 }
 
-U8 Chunk::contains(U8* p, U32 blockSize, U8 blockCount)
+u8 Chunk::contains(u8* p, u32 blockSize, u8 blockCount)
 {
 	auto cmp = (p >= ptr) & (p < (ptr + blockSize * blockCount));
 	return cmp;
@@ -101,13 +101,13 @@ ChunkAllocator::~ChunkAllocator()
 	m_pChunks = nullptr;
 }
 
-void ChunkAllocator::init(U16 blockSize, U16 blockCount)
+void ChunkAllocator::init(u16 blockSize, u16 blockCount)
 {
 	m_blockSize = blockSize;
 	m_blockCount = blockCount;
 }
 
-U8* ChunkAllocator::allocate()
+u8* ChunkAllocator::allocate()
 {
 	if (m_size == 0 ||
 		m_pChunks[m_allocChunk].freeBlocks == 0)
@@ -163,7 +163,7 @@ U8* ChunkAllocator::allocate()
 }
 
 // make sure p is not nullptr, and call contains() before calling deallocate
-void ChunkAllocator::deallocate(U8* p)
+void ChunkAllocator::deallocate(u8* p)
 {
 	VX_ASSERT(p != nullptr);
 
@@ -176,9 +176,9 @@ void ChunkAllocator::deallocate(U8* p)
 	m_pChunks[m_deallocChunk].deallocate(p, m_blockSize);
 }
 
-U8 ChunkAllocator::contains(U8* p)
+u8 ChunkAllocator::contains(u8* p)
 {
-	U8 found = 1;
+	u8 found = 1;
 
 	if (!m_pChunks[m_deallocChunk].contains(p, m_blockSize, m_blockCount))
 	{
@@ -198,7 +198,7 @@ U8 ChunkAllocator::contains(U8* p)
 	return found;
 }
 
-U32 SmallObjAllocator::createAllocator(U16 size)
+u32 SmallObjAllocator::createAllocator(u16 size)
 {
 	auto mod = m_chunkSize & size;
 	auto blockCount = (m_chunkSize / size) + mod;
@@ -222,11 +222,11 @@ void SmallObjAllocator::sortAllocators()
 }
 
 
-U8* SmallObjAllocator::allocate(U32 size)
+u8* SmallObjAllocator::allocate(u32 size)
 {
-	if (size > static_cast<U32>(s_maxObjSize))
+	if (size > static_cast<u32>(s_maxObjSize))
 	{
-		return (U8*)::operator new(size);
+		return (u8*)::operator new(size);
 	}
 
 	if (m_allocators.size() == 0 ||
@@ -257,7 +257,7 @@ U8* SmallObjAllocator::allocate(U32 size)
 	return m_allocators[m_lastAlloc].allocate();
 }
 
-void SmallObjAllocator::deallocate(U8* p, U32 size)
+void SmallObjAllocator::deallocate(u8* p, u32 size)
 {
 	if (p == nullptr)
 		return;
@@ -265,7 +265,7 @@ void SmallObjAllocator::deallocate(U8* p, U32 size)
 	if (!m_allocators[m_lastDealloc].contains(p))
 	{
 		/*auto sz = m_allocators.size();
-		for (U32 i = 0; i < sz; ++i)
+		for (u32 i = 0; i < sz; ++i)
 		{
 		if (m_allocators[i].contains(p))
 		{
@@ -274,7 +274,7 @@ void SmallObjAllocator::deallocate(U8* p, U32 size)
 		}
 		}*/
 
-		auto iter = std::lower_bound(m_allocators.begin(), m_allocators.end(), size, [](const ChunkAllocator &l, U32 val)
+		auto iter = std::lower_bound(m_allocators.begin(), m_allocators.end(), size, [](const ChunkAllocator &l, u32 val)
 		{
 			return l.getBlockSize() < val;
 		});

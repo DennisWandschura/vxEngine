@@ -29,12 +29,12 @@ SOFTWARE.
 #include <Windows.h>
 #include <vxLib/gl/ProgramPipeline.h>
 
-I64 ProfilerGraph::s_frequency{ 1 };
+s64 ProfilerGraph::s_frequency{ 1 };
 
-const F32 g_timeScale = 10.0f;
-const F32 g_graphHeight = 300.0f;
+const f32 g_timeScale = 10.0f;
+const f32 g_graphHeight = 300.0f;
 
-bool ProfilerGraph::initialize(const vx::gl::ShaderManager &shaderManager, F32 targetMs)
+bool ProfilerGraph::initialize(const vx::gl::ShaderManager &shaderManager, f32 targetMs)
 {
 	glCreateQueries(GL_TIMESTAMP, s_queryCount, m_queryGpuStart);
 	glCreateQueries(GL_TIMESTAMP, s_queryCount, m_queryGpuEnd);
@@ -48,7 +48,7 @@ bool ProfilerGraph::initialize(const vx::gl::ShaderManager &shaderManager, F32 t
 	m_position = vx::float2(-s_sampleCount / 2.0f, 10 + (-1080 / 2));
 	m_scale = g_graphHeight / (targetMs * g_timeScale * 1000.f);
 
-	const U32 vertexCount = s_sampleCount * 2 + 8;
+	const u32 vertexCount = s_sampleCount * 2 + 8;
 	vx::float2 vertices[vertexCount];
 	vx::uchar4 colors[vertexCount];
 
@@ -98,21 +98,13 @@ bool ProfilerGraph::initialize(const vx::gl::ShaderManager &shaderManager, F32 t
 
 	vx::gl::BufferDescription vboDesc;
 	vboDesc.bufferType = vx::gl::BufferType::Array_Buffer;
-#ifdef _VX_GL_45
 	vboDesc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
 	vboDesc.immutable = 1;
-#else
-	vboDesc.usage = vx::gl::BufferDataUsage::Dynamic_Draw;
-#endif
 	vboDesc.size = sizeof(vx::float2) * vertexCount;
 	vboDesc.pData = vertices;
 	m_vbo.create(vboDesc);
 
-#ifdef _VX_GL_45
 	vboDesc.flags = vx::gl::BufferStorageFlags::None;
-#else
-	vboDesc.usage = vx::gl::BufferDataUsage::Static_Draw;
-#endif
 	vboDesc.size = sizeof(vx::uchar4) * vertexCount;
 	vboDesc.pData = colors;
 	m_vboColor.create(vboDesc);
@@ -123,15 +115,15 @@ bool ProfilerGraph::initialize(const vx::gl::ShaderManager &shaderManager, F32 t
 
 	const auto indexHalfCount = (s_sampleCount - 1)* 2u;
 	const auto indexCount = indexHalfCount + indexHalfCount + 8;
-	U16 indices[indexCount];
+	u16 indices[indexCount];
 
-	for (U32 i = 0, j = 0; i < indexHalfCount; i += 2, ++j)
+	for (u32 i = 0, j = 0; i < indexHalfCount; i += 2, ++j)
 	{
 		indices[i] = j;
 		indices[i + 1] = j + 1;
 	}
 
-	for (U32 i = 0, j = 0; i < indexHalfCount; i += 2, ++j)
+	for (u32 i = 0, j = 0; i < indexHalfCount; i += 2, ++j)
 	{
 		indices[indexHalfCount + i] = s_sampleCount + j;
 		indices[indexHalfCount + i + 1] = s_sampleCount + j + 1;
@@ -150,7 +142,7 @@ bool ProfilerGraph::initialize(const vx::gl::ShaderManager &shaderManager, F32 t
 	iboDesc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
 	iboDesc.flags = vx::gl::BufferStorageFlags::None;
 	iboDesc.immutable = 1;
-	iboDesc.size = sizeof(U16) * indexCount;
+	iboDesc.size = sizeof(u16) * indexCount;
 	iboDesc.pData = indices;
 	m_ibo.create(iboDesc);
 
@@ -167,7 +159,7 @@ bool ProfilerGraph::initialize(const vx::gl::ShaderManager &shaderManager, F32 t
 	m_vao.arrayAttribBinding(1, 1);
 
 	m_vao.bindVertexBuffer(m_vbo, 0, 0, sizeof(vx::float2));
-	m_vao.bindVertexBuffer(m_vboColor, 1, 0, sizeof(U32));
+	m_vao.bindVertexBuffer(m_vboColor, 1, 0, sizeof(u32));
 
 	m_indexCount = indexCount;
 
@@ -184,8 +176,8 @@ void ProfilerGraph::endCpu()
 	LARGE_INTEGER end;
 	QueryPerformanceCounter(&end);
 
-	I64 dd = (end.QuadPart - m_currentStart) * 1000000;
-	F32 time = dd / s_frequency * 0.001f;
+	s64 dd = (end.QuadPart - m_currentStart) * 1000000;
+	f32 time = dd / s_frequency * 0.001f;
 
 	for (auto i = 0u; i < s_sampleCount - 1; ++i)
 	{
@@ -207,7 +199,7 @@ void ProfilerGraph::endGpu()
 
 }
 
-void ProfilerGraph::frame(F32 frameTime)
+void ProfilerGraph::frame(f32 frameTime)
 {
 	m_currentQuery = (m_currentQuery + 1) % s_queryCount;
 
@@ -221,13 +213,13 @@ void ProfilerGraph::frame(F32 frameTime)
 
 	if (ok)
 	{
-		U64 start, end;
+		u64 start, end;
 		glGetQueryObjectui64v(m_queryGpuStart[getIndex], GL_QUERY_RESULT, &start);
 		glGetQueryObjectui64v(m_queryGpuEnd[getIndex], GL_QUERY_RESULT, &end);
 
 		auto dtime = end - start;
 
-		F32 time = dtime * 1.0e-6;
+		f32 time = dtime * 1.0e-6;
 
 		for (auto i = 0u; i < s_sampleCount - 1; ++i)
 		{
@@ -240,17 +232,8 @@ void ProfilerGraph::frame(F32 frameTime)
 
 void ProfilerGraph::update()
 {
-#ifdef _VX_GL_45
 	glNamedBufferSubData(m_vbo.getId(), 0, sizeof(vx::float2) * s_sampleCount, m_entriesCpu);
 	glNamedBufferSubData(m_vbo.getId(), sizeof(vx::float2) * s_sampleCount, sizeof(vx::float2) * s_sampleCount, m_entriesGpu);
-#else
-	m_vbo.bind();
-
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vx::float2) * s_sampleCount, m_entriesCpu);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vx::float2) * s_sampleCount, sizeof(vx::float2) * s_sampleCount, m_entriesGpu);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-#endif
 	//auto p = (vx::float2*)m_vbo.map(vx::gl::Map::Write_Only);
 	//memcpy(p, m_entriesCpu, sizeof(vx::float2) * s_sampleCount);
 	//memcpy(p + s_sampleCount, m_entriesGpu, sizeof(vx::float2) * s_sampleCount);

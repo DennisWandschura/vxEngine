@@ -27,14 +27,14 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-enum class FileType : U8 { Invalid, Mesh, Texture, Material, Scene };
+enum class FileType : u8 { Invalid, Mesh, Texture, Material, Scene };
 
-enum class FileStatus : U8
+enum class FileStatus : u8
 {
 	Exists, Loaded
 };
 
-enum class PlayerType : U32
+enum class PlayerType : u32
 {
 	Human, AI
 };

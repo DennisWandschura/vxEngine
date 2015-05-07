@@ -125,8 +125,8 @@ namespace YAML
 			if (node.size() != 2 && !node.IsSequence())
 				return false;
 
-			v.x = node[0].as<U32>();
-			v.y = node[1].as<U32>();
+			v.x = node[0].as<u32>();
+			v.y = node[1].as<u32>();
 
 			return true;
 		}

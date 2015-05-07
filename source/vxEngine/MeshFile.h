@@ -31,9 +31,9 @@ class MeshFile : public Serializable
 	vx::Mesh m_mesh;
 
 public:
-	const U8* loadFromMemory(const U8 *ptr, U32 version);
+	const u8* loadFromMemory(const u8 *ptr, u32 version);
 
-	U64 getCrc() const;
+	u64 getCrc() const;
 
-	U32 getVersion() const;
+	u32 getVersion() const;
 };

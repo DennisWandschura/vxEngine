@@ -27,7 +27,7 @@ SOFTWARE.
 #include <vxLib/StringID.h>
 #include <vector>
 
-enum class PlayerType : U32;
+enum class PlayerType : u32;
 
 struct Spawn
 {
@@ -50,5 +50,5 @@ struct SpawnFile
 	}
 
 //	static std::vector<SpawnFile> loadFromYaml(const YAML::Node &n);
-	//static YAML::Node saveToYaml(const SpawnFile* spawns, U32 count);
+	//static YAML::Node saveToYaml(const SpawnFile* spawns, u32 count);
 };

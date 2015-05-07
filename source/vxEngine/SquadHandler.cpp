@@ -46,7 +46,7 @@ namespace ai
 	const NavGraph* SquadHandler::s_pNavGraph{ nullptr };
 	std::mt19937_64 SquadHandler::s_gen{};
 
-	SquadHandler::SquadHandler(U16 filterMask)
+	SquadHandler::SquadHandler(u16 filterMask)
 		:m_filterMask(filterMask),
 		m_currentTargetNodes()
 	{
@@ -66,13 +66,13 @@ namespace ai
 		/*if (m_updateMask == 0)
 			return;
 
-		auto checkIndex = [](U8 mask, U8 index) -> bool
+		auto checkIndex = [](u8 mask, u8 index) -> bool
 		{
 			return (mask & (1 << index)) != 0;
 		};
 
 		vx::float3 centerPosition;
-		for (U8 i = 0; i < m_size; ++i)
+		for (u8 i = 0; i < m_size; ++i)
 		{
 			auto actorIndex = m_actors[i];
 			auto &actor = (*s_pActorPool)[actorIndex];
@@ -82,9 +82,9 @@ namespace ai
 			centerPosition += physics.position;
 		}
 
-		centerPosition /= F32(m_size);
+		centerPosition /= f32(m_size);
 
-		const U32 maxCount = 5u;
+		const u32 maxCount = 5u;
 		auto marker = pAllocatorScratch->getMarker();
 		SCOPE_EXIT
 		{
@@ -94,7 +94,7 @@ namespace ai
 		auto pCells = reinterpret_cast<InfluenceCell*>(pAllocatorScratch->allocate(sizeof(InfluenceCell) * maxCount));
 
 		// get cells within certain radius
-		U32 count = 0;
+		u32 count = 0;
 		s_pInfluenceMap->getCells(centerPosition, 3.0f, 10.0f, maxCount, pCells, &count);
 
 		// sort cells by current influence
@@ -105,7 +105,7 @@ namespace ai
 
 		auto pNavNodeIndices = s_pInfluenceMap->getNavNodeIndices();
 
-		U32 cellIndex = 0;
+		u32 cellIndex = 0;
 		if (checkIndex(m_updateMask, 0))
 		{
 			updateActor(0, pCells, cellIndex, pNavNodeIndices, pAllocatorScratch);
@@ -133,7 +133,7 @@ namespace ai
 		m_updateMask = 0;
 	}
 
-	void SquadHandler::updateActor(U8 index, const InfluenceCell* pCells, U32 cellIndex, const U16* pNavNodeIndices, vx::StackAllocator* pAllocatorScratch)
+	void SquadHandler::updateActor(u8 index, const InfluenceCell* pCells, u32 cellIndex, const u16* pNavNodeIndices, vx::StackAllocator* pAllocatorScratch)
 	{
 		auto actorIndex = m_actors[index];
 		auto &actor = (*s_pActorPool)[actorIndex];
@@ -143,7 +143,7 @@ namespace ai
 		auto nodeIndex = 0u;
 		if (pCells[cellIndex].m_count > 1)
 		{
-			std::uniform_int_distribution<U32> dist(0, pCells[cellIndex].m_count);
+			std::uniform_int_distribution<u32> dist(0, pCells[cellIndex].m_count);
 
 			nodeIndex = dist(s_gen);
 		}
@@ -163,14 +163,14 @@ namespace ai
 		actor.flags |= Component::Actor::HasPath | Component::Actor::HasDestination | Component::Actor::WaitingForOrders;
 	}
 
-	void SquadHandler::updateActor(U8 index, vx::StackAllocator* pAllocatorScratch)
+	void SquadHandler::updateActor(u8 index, vx::StackAllocator* pAllocatorScratch)
 	{
 		auto actorIndex = m_actors[index];
 		auto &actor = (*s_pActorPool)[actorIndex];
 		auto &entity = (*s_pEntityPool)[actor.entityIndex];
 		//auto &physics = (*s_pPhysicsPool)[entity.physics];
 
-		const U32 maxCount = 5u;
+		const u32 maxCount = 5u;
 		auto marker = pAllocatorScratch->getMarker();
 		auto pCells = reinterpret_cast<InfluenceCell*>(pAllocatorScratch->allocate(sizeof(InfluenceCell) * maxCount));
 
@@ -180,7 +180,7 @@ namespace ai
 		};
 
 		// get cells within certain radius
-		U32 count = 0;
+		u32 count = 0;
 		s_pInfluenceMap->getCells(entity.position, 3.0f, 10.0f, maxCount, pCells, &count);
 
 		// sort cells by current influence
@@ -194,7 +194,7 @@ namespace ai
 		auto nodeIndex = 0u;
 		if (pCells[0].m_count > 1)
 		{
-			std::uniform_int_distribution<U32> dist(0, pCells[0].m_count);
+			std::uniform_int_distribution<u32> dist(0, pCells[0].m_count);
 
 			nodeIndex = dist(s_gen);
 		}
@@ -238,9 +238,9 @@ namespace ai
 		m_updateMask |= (1 << index);
 	}
 
-	U8 SquadHandler::addActor(U16 actorIndex)
+	u8 SquadHandler::addActor(u16 actorIndex)
 	{
-		U8 result = 0;
+		u8 result = 0;
 		if (m_size < 4)
 		{
 			Component::Actor &actor = (*s_pActorPool)[actorIndex];

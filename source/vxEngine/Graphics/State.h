@@ -30,11 +30,11 @@ namespace Graphics
 {
 	struct StateDescription
 	{
-		U32 fbo{0};
-		U32 vao{0};
-		U32 pipeline{0};
-		U32 indirectBuffer{0};
-		U32 paramBuffer{0};
+		u32 fbo{0};
+		u32 vao{0};
+		u32 pipeline{0};
+		u32 indirectBuffer{0};
+		u32 paramBuffer{0};
 		bool depthState{true};
 		bool blendState{false};
 		bool polygonOffsetFillState{false};
@@ -42,16 +42,16 @@ namespace Graphics
 
 	class State
 	{
-		U32 m_fbo;
-		U32 m_vao;
-		U32 m_pipeline;
-		U32 m_indirectBuffer;
-		U32 m_paramBuffer;
+		u32 m_fbo;
+		u32 m_vao;
+		u32 m_pipeline;
+		u32 m_indirectBuffer;
+		u32 m_paramBuffer;
 
-		U8 m_blendState;
-		U8 m_depthTestState;
-		U8 m_polygonOffsetFillState;
-		U8 m_padding;
+		u8 m_blendState;
+		u8 m_depthTestState;
+		u8 m_polygonOffsetFillState;
+		u8 m_padding;
 
 	public:
 		State();

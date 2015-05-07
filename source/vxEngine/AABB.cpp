@@ -50,11 +50,11 @@ AABB AABB::merge(const AABB &a, const vx::float3 &p)
 	return r;
 }
 
-U32 AABB::maximumExtend() const
+u32 AABB::maximumExtend() const
 {
 	auto d = max - min;
 
-	U32 maxExtend = 0;
+	u32 maxExtend = 0;
 	if (d.x > d.y && d.x > d.z)
 	{
 		maxExtend = 0;
@@ -71,7 +71,7 @@ U32 AABB::maximumExtend() const
 	return maxExtend;
 }
 
-F32 AABB::surfaceArea() const
+f32 AABB::surfaceArea() const
 {
 	auto d = max - min;
 	return 2.0f * (d.x * d.y + d.x * d.z + d.y*d.z);
@@ -130,9 +130,9 @@ bool AABB::contains(const __m128 &p) const
 	return (m == resultMask);
 }
 
-bool AABB::intersects(const Ray &ray, F32* hitt0, F32* hitt1) const
+bool AABB::intersects(const Ray &ray, f32* hitt0, f32* hitt1) const
 {
-	F32 t0 = ray.mint, t1 = ray.maxt;
+	f32 t0 = ray.mint, t1 = ray.maxt;
 
 	/*vx::float3 invRayDir = 1.0f / ray.d;
 
@@ -141,11 +141,11 @@ bool AABB::intersects(const Ray &ray, F32* hitt0, F32* hitt1) const
 
 	auto tmin =*/
 
-	for (U32 i = 0; i < 3; ++i)
+	for (u32 i = 0; i < 3; ++i)
 	{
-		F32 invRayDir = 1.0f / ray.d[i];
-		F32 tNear = (min[i] - ray.o[i]) * invRayDir;
-		F32 tFar = (max[i] - ray.o[i]) * invRayDir;
+		f32 invRayDir = 1.0f / ray.d[i];
+		f32 tNear = (min[i] - ray.o[i]) * invRayDir;
+		f32 tFar = (max[i] - ray.o[i]) * invRayDir;
 
 		if (tNear > tFar)
 			std::swap(tNear, tFar);
@@ -247,12 +247,12 @@ bool AABB::intersects(const Triangle &triangle)
 	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
-	auto max3 = [](F32 a, F32 b, F32 c)
+	auto max3 = [](f32 a, f32 b, f32 c)
 	{
 		return std::max(a, std::max(b, c));
 	};
 
-	auto min3 = [](F32 a, F32 b, F32 c)
+	auto min3 = [](f32 a, f32 b, f32 c)
 	{
 		return std::min(a, std::min(b, c));
 	};
@@ -279,12 +279,12 @@ bool AABB::intersects(const Plane &plane)
 	return fabsf(s) <= r;
 }
 
-vx::float3& AABB::operator[](U32 i)
+vx::float3& AABB::operator[](u32 i)
 {
 	return v[i];
 }
 
-const vx::float3& AABB::operator[](U32 i) const
+const vx::float3& AABB::operator[](u32 i) const
 {
 	return v[i];
 }

@@ -31,13 +31,13 @@ class TextureFile;
 
 class TextureRef
 {
-	U32 m_textureId;
-	U32 m_slice;
+	u32 m_textureId;
+	u32 m_slice;
 	vx::uint2a m_textureSize;
 
 public:
 	TextureRef();
-	TextureRef(U32 textureId, U32 slice, vx::uint2 textureSize, U8 isArray);
+	TextureRef(u32 textureId, u32 slice, vx::uint2 textureSize, u8 isArray);
 
 	TextureRef(const TextureRef&) = delete;
 	TextureRef(TextureRef &&rhs);
@@ -47,9 +47,9 @@ public:
 
 	void makeInvalid();
 
-	U32 getTextureId() const noexcept;
+	u32 getTextureId() const noexcept;
 
-	U32 getSlice() const noexcept;
+	u32 getSlice() const noexcept;
 	const vx::uint2a& getTextureSize() const noexcept{ return m_textureSize; }
 
 	bool isArray() const noexcept;
@@ -58,11 +58,11 @@ public:
 
 class TextureManager
 {
-	static const U16 s_invalid{ -1 };
+	static const u16 s_invalid{ -1 };
 	struct TextureCmp
 	{
 		vx::ushort3 m_size;
-		U8 miplevels;
+		u8 miplevels;
 		vx::gl::TextureType type;
 		vx::gl::TextureFormat format;
 
@@ -98,9 +98,9 @@ class TextureManager
 	struct TextureWrapper
 	{
 		vx::gl::Texture m_texture;
-		U16 m_firstFreeSlice;
-		U16 m_freeSlices;
-		std::unique_ptr<U16[]> m_pSlices;
+		u16 m_firstFreeSlice;
+		u16 m_freeSlices;
+		std::unique_ptr<u16[]> m_pSlices;
 
 		TextureWrapper();
 		TextureWrapper(TextureWrapper &&rhs);
@@ -111,8 +111,8 @@ class TextureManager
 	struct TextureBucket
 	{
 		std::unique_ptr<TextureWrapper[]> m_pTextures;
-		U32 m_size;
-		U32 m_capacity;
+		u32 m_size;
+		u32 m_capacity;
 
 		TextureBucket();
 		TextureBucket(TextureBucket &&rhs);
@@ -121,25 +121,25 @@ class TextureManager
 	};
 
 	vx::sorted_vector<TextureCmp, TextureBucket> m_textureBuckets;
-	vx::sorted_vector<U32, TextureWrapper*> m_wrappers;
+	vx::sorted_vector<u32, TextureWrapper*> m_wrappers;
 
-	TextureBucket* findBucket(const vx::ushort3 textureSize, U8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
+	TextureBucket* findBucket(const vx::ushort3 textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
 	TextureRef createTexture2DSlice(TextureBucket *pBucket, const vx::uint2 size, vx::gl::DataType dataType, const void *pData);
 
 public:
 	TextureManager();
-	void reserveBuckets(U32 n);
+	void reserveBuckets(u32 n);
 
-	void createBucket(U32 bucketSize, const vx::ushort3 textureSize, U8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
+	void createBucket(u32 bucketSize, const vx::ushort3 textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
 
-	U64 createTexture(const vx::ushort3 size, U8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
+	u64 createTexture(const vx::ushort3 size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
 
 	// texture files are always loaded into 2d arrays
-	TextureRef load(const TextureFile &f, U8 mipLevels, U8 srgb);
+	TextureRef load(const TextureFile &f, u8 mipLevels, u8 srgb);
 
-	TextureRef load(const vx::ushort3 size, U8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format, vx::gl::DataType dataType = (vx::gl::DataType)0, const void *ptr = nullptr);
+	TextureRef load(const vx::ushort3 size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format, vx::gl::DataType dataType = (vx::gl::DataType)0, const void *ptr = nullptr);
 
-	U64 getTextureHandle(const TextureRef &ref);
+	u64 getTextureHandle(const TextureRef &ref);
 
 	void release(TextureRef &&ref);
 };

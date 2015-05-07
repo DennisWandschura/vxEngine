@@ -30,22 +30,22 @@ namespace Graphics
 {
 	class TextureLayer
 	{
-		std::unique_ptr<U8> m_data;
+		std::unique_ptr<u8> m_data;
 		vx::ushort3 m_dimension;
-		U32 m_size;
+		u32 m_size;
 
 	public:
 		TextureLayer();
 		TextureLayer(const TextureLayer&) = delete;
 		TextureLayer(TextureLayer &&rhs);
 
-		void create(const vx::ushort3 &dim, U32 size, std::unique_ptr<U8> &&data);
+		void create(const vx::ushort3 &dim, u32 size, std::unique_ptr<u8> &&data);
 		void clear();
 
 		virtual ~TextureLayer();
 
 		const vx::ushort3& getDim() const;
-		U32 getSize() const;
-		const U8* getData() const;
+		u32 getSize() const;
+		const u8* getData() const;
 	};
 }

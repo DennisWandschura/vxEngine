@@ -53,7 +53,7 @@ EditorScene::EditorScene(EditorSceneParams &&params)
 	buildSelectableLights();
 
 	m_selectableSpawns.reserve(m_spawnCount);
-	for (U32 i = 0; i < m_spawnCount; ++i)
+	for (u32 i = 0; i < m_spawnCount; ++i)
 	{
 		auto &spawn = m_pSpawns[i];
 
@@ -95,7 +95,7 @@ void EditorScene::buildSelectableLights()
 {
 	m_selectableLights.clear();
 	m_selectableLights.reserve(m_lightCount);
-	for (U32 i = 0; i < m_lightCount; ++i)
+	for (u32 i = 0; i < m_lightCount; ++i)
 	{
 		auto &light = m_pLights[i];
 
@@ -133,9 +133,9 @@ Light* EditorScene::addLight(const Light &light)
 #endif
 }
 
-U8 EditorScene::addMesh(vx::StringID sid, const char* name, const vx::Mesh* pMesh)
+u8 EditorScene::addMesh(vx::StringID sid, const char* name, const vx::Mesh* pMesh)
 {
-	U8 result = 0;
+	u8 result = 0;
 	auto it = m_meshes.find(sid);
 	if (it == m_meshes.end())
 	{
@@ -151,9 +151,9 @@ U8 EditorScene::addMesh(vx::StringID sid, const char* name, const vx::Mesh* pMes
 	return result;
 }
 
-U8 EditorScene::addMaterial(vx::StringID sid, const char* name, Material* pMaterial)
+u8 EditorScene::addMaterial(vx::StringID sid, const char* name, Material* pMaterial)
 {
-	U8 result = 0;
+	u8 result = 0;
 	auto it = m_materials.find(sid);
 	if (it == m_materials.end())
 	{
@@ -167,7 +167,7 @@ U8 EditorScene::addMaterial(vx::StringID sid, const char* name, Material* pMater
 	return result;
 }
 
-U8 EditorScene::addMeshInstance(vx::StringID instanceSid, vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform)
+u8 EditorScene::addMeshInstance(vx::StringID instanceSid, vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform)
 {
 	auto itMesh = m_meshes.find(meshSid);
 	auto itMaterial = m_materials.find(materialSid);
@@ -230,7 +230,7 @@ const MeshInstance* EditorScene::getMeshInstances() const
 	return m_meshInstances.data();
 }
 
-U32 EditorScene::getMeshInstanceCount() const
+u32 EditorScene::getMeshInstanceCount() const
 {
 	return m_meshInstances.size();
 }
@@ -239,7 +239,7 @@ Spawn* EditorScene::getSpawn(const Ray &ray)
 {
 	Spawn* result = nullptr;
 
-	F32 a, b;
+	f32 a, b;
 	for (auto &it : m_selectableSpawns)
 	{
 		if (it.m_bounds.intersects(ray, &a, &b))
@@ -256,7 +256,7 @@ Light* EditorScene::getLight(const Ray &ray)
 {
 	Light* result = nullptr;
 
-	F32 a, b;
+	f32 a, b;
 	for (auto &it : m_selectableLights)
 	{
 		if (it.m_bounds.intersects(ray, &a, &b))
@@ -271,7 +271,7 @@ Light* EditorScene::getLight(const Ray &ray)
 
 void EditorScene::updateLightPositions()
 {
-	for (U32 i = 0; i < m_lightCount; ++i)
+	for (u32 i = 0; i < m_lightCount; ++i)
 	{
 		auto &light = m_pLights[i];
 

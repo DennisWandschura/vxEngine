@@ -28,7 +28,7 @@ ImageBindingManager::Binding ImageBindingManager::s_bindings[s_maxBindings]{};
 
 ImageBindingManager::ImageBindingManager(){}
 
-void ImageBindingManager::bind(U32 unit, U32 id, U32 level, U8 layered, U32 layer, U32 access, U32 format)
+void ImageBindingManager::bind(u32 unit, u32 id, u32 level, u8 layered, u32 layer, u32 access, u32 format)
 {
 	if (unit >= s_maxBindings)
 		return;

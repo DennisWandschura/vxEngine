@@ -64,7 +64,7 @@ void Material::swap(Material &rhs) noexcept
 	std::swap(m_restitution, rhs.m_restitution);
 }
 
-void Material::setPhysx(F32 staticFriction, F32 dynamicFriction, F32 restitution)
+void Material::setPhysx(f32 staticFriction, f32 dynamicFriction, f32 restitution)
 {
 	m_staticFriction = staticFriction;
 	m_dynamicFriction = dynamicFriction;
@@ -78,7 +78,7 @@ void Material::setTextures(TextureRef &&albedo, TextureRef &&normal, TextureRef 
 	m_surface = std::move(surface);
 }
 
-void MaterialFile::load(const U8 *ptr)
+void MaterialFile::load(const u8 *ptr)
 {
 	memcpy(m_pipeline.data, ptr, sizeof(Buffer) * 4);
 }
@@ -108,9 +108,9 @@ bool MaterialFile::loadFromFile(const char *file)
 		auto strAlbedo = root["albedo"].as<std::string>();
 		auto strNormals = root["normals"].as<std::string>();
 		auto strSurface = root["surface"].as<std::string>();
-		auto staticFriction = root["static friction"].as<F32>();
-		auto dynamicFriction = root["dynamic friction"].as<F32>();
-		auto restitution = root["restitution"].as<F32>();
+		auto staticFriction = root["static friction"].as<f32>();
+		auto dynamicFriction = root["dynamic friction"].as<f32>();
+		auto restitution = root["restitution"].as<f32>();
 
 		strncpy_s(m_albedo.data, strAlbedo.c_str(), strAlbedo.size());
 		strncpy_s(m_normal.data, strNormals.c_str(), strNormals.size());

@@ -81,7 +81,7 @@ const MeshInstance* Scene::getMeshInstances() const
 	return m_pMeshInstances.get(); 
 }
 
-U32 Scene::getMeshInstanceCount() const
+u32 Scene::getMeshInstanceCount() const
 { 
 	return m_meshInstanceCount; 
 }

@@ -31,7 +31,7 @@ bool EngineConfig::loadFromFile(const char* file)
 	if (!settingsFile.createFromFile(file))
 		return false;
 
-	U32 resolution[2];
+	u32 resolution[2];
 	settingsFile.getNode("resolution")->as(resolution);
 	settingsFile.getNode("shadow_map_resolution")->as(m_shadowMapResolution);
 	settingsFile.getNode("fov")->as(m_fov);
@@ -50,11 +50,11 @@ bool EngineConfig::loadFromFile(const char* file)
 	auto renderNode = settingsFile["render_settings"];
 
 	m_resolution = renderNode["resolution"].as<vx::uint2>();
-	m_shadowMapResolution = renderNode["shadow_map_resolution"].as<U32>();
-	m_fov = renderNode["fov"].as<F32>();
-	m_zNear = renderNode["z_near"].as<F32>();
-	m_zFar = renderNode["z_far"].as<F32>();
-	m_voxelGiMode = renderNode["voxel_gi_mode"].as<U32>();
+	m_shadowMapResolution = renderNode["shadow_map_resolution"].as<u32>();
+	m_fov = renderNode["fov"].as<f32>();
+	m_zNear = renderNode["z_near"].as<f32>();
+	m_zFar = renderNode["z_far"].as<f32>();
+	m_voxelGiMode = renderNode["voxel_gi_mode"].as<u32>();
 	m_vsync = renderNode["vsync"].as<bool>();
 	m_renderDebug = renderNode["debug"].as<bool>();*/
 }

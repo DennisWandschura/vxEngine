@@ -26,7 +26,7 @@ SOFTWARE.
 
 void Align::update(vx::float2* orientation)
 {
-	const F32 timeToTarget = 0.1f;
+	const f32 timeToTarget = 0.1f;
 
 	auto rotation = m_pTarget->orientation - m_pCharacter->orientation;
 
@@ -37,7 +37,7 @@ void Align::update(vx::float2* orientation)
 	if (rotSz < m_targetRadius)
 		return;
 
-	F32 targetRotation = m_maxRotation;
+	f32 targetRotation = m_maxRotation;
 	if (rotSz <= m_slowRadius)
 	{
 		targetRotation = m_maxRotation * rotSz / m_slowRadius;
@@ -45,10 +45,10 @@ void Align::update(vx::float2* orientation)
 
 	targetRotation *= rotation.x / rotSz;
 
-	F32 angular = targetRotation - m_pCharacter->orientation.x;
+	f32 angular = targetRotation - m_pCharacter->orientation.x;
 	angular /= timeToTarget;
 
-	F32 angularAccel = abs(angular);
+	f32 angularAccel = abs(angular);
 	if (angularAccel > m_maxAngularAcceleration)
 	{
 		angular /= angularAccel;

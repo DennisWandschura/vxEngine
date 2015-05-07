@@ -48,18 +48,18 @@ namespace Editor
 		static const auto s_maxWaypoints = 100u;
 
 		vx::gl::VertexArray m_waypointsVao;
-		U32 m_waypointCount{0};
+		u32 m_waypointCount{0};
 		vx::gl::VertexArray m_mouseHitVao;
 		vx::gl::Buffer m_editorWaypointsVbo;
 		vx::gl::Buffer m_editorWaypointsIbo;
 		vx::gl::Buffer m_mouseHitVertex;
 		vx::sorted_vector<vx::StringID, MeshEntry> m_editorMeshEntries;
-		vx::sorted_vector<vx::StringID, U32> m_editorMeshInstanceIndices;
-		vx::sorted_vector<const Material*, U32> m_editorMaterialIndices;
-		U32 m_editorVertexCount{ 0 };
-		U32 m_editorIndexCount{ 0 };
-		U32 m_editorMaterialCount{ 0 };
-		U32 m_editorMeshInstanceCount{ 0 };
+		vx::sorted_vector<vx::StringID, u32> m_editorMeshInstanceIndices;
+		vx::sorted_vector<const Material*, u32> m_editorMaterialIndices;
+		u32 m_editorVertexCount{ 0 };
+		u32 m_editorIndexCount{ 0 };
+		u32 m_editorMaterialCount{ 0 };
+		u32 m_editorMeshInstanceCount{ 0 };
 
 		void createWaypointBuffer();
 
@@ -73,11 +73,11 @@ namespace Editor
 		void drawWaypoints(const vx::gl::ShaderManager &shaderManager) const;
 
 		void addMesh(vx::StringID sid);
-		U32 addMaterial(vx::StringID sid, const Material* p);
+		u32 addMaterial(vx::StringID sid, const Material* p);
 
 		void updateMouseHit(const vx::float3 &p);
-		void updateWaypoint(U32 offset, U32 count, const Waypoint* src);
+		void updateWaypoint(u32 offset, u32 count, const Waypoint* src);
 
-		U8 getMeshInstanceId(vx::StringID sid, U32* id);
+		u8 getMeshInstanceId(vx::StringID sid, u32* id);
 	};
 }

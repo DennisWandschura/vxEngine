@@ -25,12 +25,12 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-template<typename T, U32 SIZE>
+template<typename T, u32 SIZE>
 class RingBuffer
 {
 	T m_data[SIZE];
-	U32 m_head;
-	U32 m_tail;
+	u32 m_head;
+	u32 m_tail;
 
 public:
 	void push(const T &value)

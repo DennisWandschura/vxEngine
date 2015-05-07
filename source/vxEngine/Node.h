@@ -73,7 +73,7 @@ public:
 	Node& operator=(const Node&) = delete;
 	Node& operator=(Node &&rhs);
 
-	void reserve(U32 n);
+	void reserve(u32 n);
 
 	template<class T, typename = typename std::enable_if_t<!std::is_pointer<T>::value>>
 	void addData(const char *id, const T &value)

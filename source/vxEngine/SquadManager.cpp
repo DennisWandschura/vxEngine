@@ -28,7 +28,7 @@ SOFTWARE.
 
 namespace ai
 {
-	U16 SquadManager::s_squadFilterMask{ 0 };
+	u16 SquadManager::s_squadFilterMask{ 0 };
 
 	SquadManager::SquadManager()
 		:m_squadHandlers()
@@ -67,12 +67,12 @@ namespace ai
 
 	void SquadManager::handleAIEvent(const Event &evt)
 	{
-		U32 index = evt.filter;
+		u32 index = evt.filter;
 
 		m_squadHandlers[index].handleAIEvent(evt);
 	}
 
-	U32 SquadManager::createSquadHandler()
+	u32 SquadManager::createSquadHandler()
 	{
 		auto filter = s_squadFilterMask++;
 
@@ -85,13 +85,13 @@ namespace ai
 		return result;
 	}
 
-	U32 SquadManager::addActor(U16 actorIndex)
+	u32 SquadManager::addActor(u16 actorIndex)
 	{
 		bool found = false;
-		U32 index = 0;
+		u32 index = 0;
 
 		auto sz = m_squadHandlers.size();
-		for (U32 i = 0; i < sz; ++i)
+		for (u32 i = 0; i < sz; ++i)
 		{
 			if (m_squadHandlers[i].hasSpace())
 			{
@@ -110,12 +110,12 @@ namespace ai
 		return index;
 	}
 
-	const SquadHandler& SquadManager::getSquadHandler(U32 i) const
+	const SquadHandler& SquadManager::getSquadHandler(u32 i) const
 	{
 		return m_squadHandlers[i];
 	}
 
-	SquadHandler& SquadManager::getSquadHandler(U32 i)
+	SquadHandler& SquadManager::getSquadHandler(u32 i)
 	{
 		return m_squadHandlers[i];
 	}

@@ -39,28 +39,28 @@ namespace vx
 
 class ProfilerGraph
 {
-	static const U16 s_sampleCount = 500u;
-	static I64 s_frequency;
-	static const U8 s_queryCount = 3;
+	static const u16 s_sampleCount = 500u;
+	static s64 s_frequency;
+	static const u8 s_queryCount = 3;
 
-	I64 m_currentStart{0};
-	U32 m_queryGpuStart[s_queryCount];
-	U32 m_queryGpuEnd[s_queryCount];
-	U32 m_currentQuery{0};
-	F32 m_scale{ 1.0f };
+	s64 m_currentStart{0};
+	u32 m_queryGpuStart[s_queryCount];
+	u32 m_queryGpuEnd[s_queryCount];
+	u32 m_currentQuery{0};
+	f32 m_scale{ 1.0f };
 	vx::float2 m_position{ 0, 0 };
 	vx::float2 m_entriesCpu[s_sampleCount];
 	vx::float2 m_entriesGpu[s_sampleCount];
 	const vx::gl::ProgramPipeline *m_pPipeline{ nullptr };
 	vx::gl::VertexArray m_vao;
-	U32 m_indexCount{0};
+	u32 m_indexCount{0};
 	vx::gl::Buffer m_vbo;
 	vx::gl::Buffer m_ibo;
 	vx::gl::Buffer m_vboColor;
 
 public:
 	ProfilerGraph() = default;
-	bool initialize(const vx::gl::ShaderManager &shaderManager, F32 targetMs);
+	bool initialize(const vx::gl::ShaderManager &shaderManager, f32 targetMs);
 
 	void startCpu();
 	void endCpu();
@@ -69,7 +69,7 @@ public:
 	void endGpu();
 
 	// call at begin of frame
-	void frame(F32 frameTime);
+	void frame(f32 frameTime);
 	// updates buffers
 	void update();
 	void render();

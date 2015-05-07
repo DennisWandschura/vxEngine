@@ -69,7 +69,7 @@ namespace Editor
 		vdesc.size = sizeof(Waypoint) * s_maxWaypoints;
 		m_editorWaypointsVbo.create(vdesc);
 
-		U8 indices[s_maxWaypoints];
+		u8 indices[s_maxWaypoints];
 		for (auto i = 0u; i < s_maxWaypoints; ++i)
 		{
 			indices[i] = i;
@@ -77,7 +77,7 @@ namespace Editor
 
 		vx::gl::BufferDescription idesc;
 		idesc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
-		idesc.size = sizeof(U8) * s_maxWaypoints;
+		idesc.size = sizeof(u8) * s_maxWaypoints;
 		idesc.pData = indices;
 		m_editorWaypointsIbo.create(idesc);
 
@@ -127,7 +127,7 @@ namespace Editor
 		VX_UNREFERENCED_PARAMETER(sid);
 	}
 
-	U32 RenderData::addMaterial(vx::StringID sid, const Material* pMaterial)
+	u32 RenderData::addMaterial(vx::StringID sid, const Material* pMaterial)
 	{
 		VX_UNREFERENCED_PARAMETER(sid);
 
@@ -148,7 +148,7 @@ namespace Editor
 		*ptr = p;
 	}
 
-	void RenderData::updateWaypoint(U32 offset, U32 count, const Waypoint* src)
+	void RenderData::updateWaypoint(u32 offset, u32 count, const Waypoint* src)
 	{
 		auto offsetBytes = offset * sizeof(Waypoint);
 		auto sizeBytes = count * sizeof(Waypoint);
@@ -159,11 +159,11 @@ namespace Editor
 		++m_waypointCount;
 	}
 
-	U8 RenderData::getMeshInstanceId(vx::StringID sid, U32* id)
+	u8 RenderData::getMeshInstanceId(vx::StringID sid, u32* id)
 	{
 		auto it = m_editorMeshInstanceIndices.find(sid);
 
-		U8 result = 0;
+		u8 result = 0;
 		if (it != m_editorMeshInstanceIndices.end())
 		{
 			result = 1;

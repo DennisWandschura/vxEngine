@@ -103,16 +103,16 @@ public:
 	void shutdown();
 
 	void fetch();
-	void update(const F32 dt);
+	void update(const f32 dt);
 
 	void handleEvent(const Event &evt);
 
-	physx::PxController* createActor(const vx::float3 &translation, F32 height);
+	physx::PxController* createActor(const vx::float3 &translation, f32 height);
 
-	void move(const vx::float4a &velocity, F32 dt, physx::PxController* pController);
+	void move(const vx::float4a &velocity, f32 dt, physx::PxController* pController);
 	void setPosition(const vx::float3 &position, physx::PxController* pController);
 
-	MeshInstance* raycast_static(const vx::float3 &origin, const vx::float3 &unitDir, F32 maxDist, vx::float3* hitPosition) const;
+	MeshInstance* raycast_static(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, vx::float3* hitPosition) const;
 
 	bool editorGetStaticMeshInstancePosition(const MeshInstance* ptr, vx::float3* p) const;
 	void editorSetStaticMeshInstancePosition(const MeshInstance* ptr, const vx::float3 &p);

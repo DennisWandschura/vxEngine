@@ -30,7 +30,7 @@ DecisionHasPath::DecisionHasPath(const Component::Actor* pActor, DecisionTreeNod
 	m_testValue.ptr = (void*)pActor;
 }
 
-U8 DecisionHasPath::getBranch() const
+u8 DecisionHasPath::getBranch() const
 {
 	const Component::Actor* pActor = (const Component::Actor*)m_testValue.ptr;
 

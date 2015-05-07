@@ -48,7 +48,7 @@ void SystemAspect::shutdown()
 	m_window.shutdown();
 }
 
-void SystemAspect::update(const F32 dt)
+void SystemAspect::update(const f32 dt)
 {
 	m_window.update();
 

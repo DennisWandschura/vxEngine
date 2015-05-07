@@ -30,7 +30,7 @@ namespace Component
 {
 	struct Input : public Base
 	{
-		enum Action : U16
+		enum Action : u16
 		{
 			Action_None = 0,
 			Action_Left = 1,
@@ -41,14 +41,14 @@ namespace Component
 			Action_Crouch = 6
 		};
 
-		enum State : U8
+		enum State : u8
 		{
 			State_None = 0,
 			State_Crouch = 1
 		};
 
-		//U16 action{ 0 };
-		//U8 state{ 0 };
+		//u16 action{ 0 };
+		//u8 state{ 0 };
 		vx::float3 velocity{ 0, 0, 0 };
 		//vx::g_halfPi
 		vx::float2 orientation{ vx::VX_PIDIV2, 0 };

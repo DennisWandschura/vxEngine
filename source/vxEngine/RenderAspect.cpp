@@ -74,7 +74,7 @@ bool RenderAspect::createBuffers()
 	{
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Pixel_Pack_Buffer;
-		desc.size = m_resolution.x * m_resolution.y * sizeof(F32) * 4;
+		desc.size = m_resolution.x * m_resolution.y * sizeof(f32) * 4;
 		desc.immutable = 1;
 		desc.flags = vx::gl::BufferStorageFlags::Read;
 		m_pColdData->m_screenshotBuffer.create(desc);
@@ -350,6 +350,7 @@ bool RenderAspect::initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocat
 
 void RenderAspect::shutdown(const HWND hwnd)
 {
+	m_tasks.clear();
 	m_objectManager.shutdown();
 	m_pColdData.reset(nullptr);
 	m_renderContext.shutdown(hwnd);
@@ -439,7 +440,7 @@ void RenderAspect::taskLoadScene(void* p)
 
 	auto count = m_sceneRenderer.getMeshInstanceCount();
 	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
-	buffer->subData(0, sizeof(U32), &count);
+	buffer->subData(0, sizeof(u32), &count);
 }
 
 void RenderAspect::taskToggleRenderMode()
@@ -476,8 +477,8 @@ void RenderAspect::taskCreateActorGpuIndex(void* p)
 
 	Event e;
 	e.arg1.u32 = data->index;
-	e.arg2.u32 = (U32)gpuIndex;
-	e.code = (U32)IngameEvent::Created_Actor_GPU;
+	e.arg2.u32 = (u32)gpuIndex;
+	e.code = (u32)IngameEvent::Created_Actor_GPU;
 	e.type = EventType::Ingame_Event;
 
 	evtManager->addEvent(e);
@@ -490,7 +491,7 @@ void RenderAspect::taskUpdateDynamicTransforms(void* p)
 	RenderUpdateDataTransforms data = *(RenderUpdateDataTransforms*)p;
 	delete(p);
 
-	for (U32 i = 0; i < data.count; ++i)
+	for (u32 i = 0; i < data.count; ++i)
 	{
 		m_sceneRenderer.updateTransform(data.transforms[i], data.indices[i]);
 	}
@@ -592,7 +593,7 @@ void RenderAspect::clearBuffers()
 {
 }
 
-void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count)
+void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count)
 {
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
@@ -611,7 +612,7 @@ void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::B
 	//glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 128, sizeof(vx::gl::DrawElementsIndirectCommand));
 }
 
-void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, U32 count)
+void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count)
 {
 	m_voxelRenderer.voxelizeScene(count, cmdBuffer, vao);
 }
@@ -651,9 +652,9 @@ void RenderAspect::blurAmbientColor()
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
 	auto fsShader = pPipeline->getFragmentShader();
 
-	U32 src = 0;
-	U32 dst = 1;
-	F32 pixelDistance = 2.0f;
+	u32 src = 0;
+	u32 dst = 1;
+	f32 pixelDistance = 2.0f;
 
 //	glProgramUniform1f(fsShader, 0, pixelDistance);
 
@@ -713,7 +714,7 @@ void RenderAspect::renderProfiler(GpuProfiler* gpuProfiler)
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 }
 
-void RenderAspect::keyPressed(U16 key)
+void RenderAspect::keyPressed(u16 key)
 {
 	if (key == vx::Keyboard::Key_Num0)
 	{
@@ -764,7 +765,7 @@ void RenderAspect::takeScreenshot()
 	glReadPixels(0, 0, m_resolution.x, m_resolution.y, GL_RGBA, GL_FLOAT, 0);
 
 	auto pScreenshotData = (vx::float4a*)_aligned_malloc(pixelBufferSizeBytes, 16);
-	auto p = m_pColdData->m_screenshotBuffer.map<U8>(vx::gl::Map::Read_Only);
+	auto p = m_pColdData->m_screenshotBuffer.map<u8>(vx::gl::Map::Read_Only);
 	memcpy(pScreenshotData, p.get(), pixelBufferSizeBytes);
 	p.unmap();
 
@@ -829,8 +830,8 @@ void RenderAspect::handleIngameEvent(const Event &evt)
 
 		Event e;
 		e.arg1 = evt.arg1;
-		e.arg2.u32 = (U32)gpuIndex;
-		e.code = (U32)IngameEvent::Created_Actor_GPU;
+		e.arg2.u32 = (u32)gpuIndex;
+		e.code = (u32)IngameEvent::Created_Actor_GPU;
 		e.type = EventType::Ingame_Event;
 
 		evtManager->addEvent(e);
@@ -842,13 +843,13 @@ void RenderAspect::getProjectionMatrix(vx::mat4* m)
 	*m = m_renderContext.getProjectionMatrix();
 }
 
-U16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene)
+u16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene)
 {
 	auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, pScene);
 
 	auto count = m_sceneRenderer.getMeshInstanceCount();
 	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
-	buffer->subData(0, sizeof(U32), &count);
+	buffer->subData(0, sizeof(u32), &count);
 
 	return gpuIndex;
 }

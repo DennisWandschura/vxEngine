@@ -57,7 +57,7 @@ Font& Font::operator=(Font &&rhs)
 	return *this;
 }
 
-const FontAtlasEntry* Font::getAtlasEntry(U32 code) const
+const FontAtlasEntry* Font::getAtlasEntry(u32 code) const
 {
 	return m_atlas.getEntry(code);
 }

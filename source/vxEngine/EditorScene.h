@@ -84,18 +84,18 @@ public:
 
 	Light* addLight(const Light &light);
 	// returns 1 on insert, 0 if already present
-	U8 addMesh(vx::StringID sid, const char* name, const vx::Mesh* pMesh);
+	u8 addMesh(vx::StringID sid, const char* name, const vx::Mesh* pMesh);
 	// returns 1 on insert, 0 if already present
-	U8 addMaterial(vx::StringID sid, const char* name, Material* pMaterial);
+	u8 addMaterial(vx::StringID sid, const char* name, Material* pMaterial);
 	// returns 1 on insert, 0 if mesh or material is missing
-	U8 addMeshInstance(vx::StringID instanceSid, vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform);
+	u8 addMeshInstance(vx::StringID instanceSid, vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform);
 	void addWaypoint(const Waypoint &wp);
 
 	MeshInstance* findMeshInstance(vx::StringID instanceSid);
 
 	const vx::sorted_vector<vx::StringID, MeshInstance>& getMeshInstancesSortedByName() const { return m_sortedMeshInstances; }
 	const MeshInstance* getMeshInstances() const override;
-	U32 getMeshInstanceCount() const override;
+	u32 getMeshInstanceCount() const override;
 
 	const char* getMaterialName(vx::StringID sid) const;
 	const char* getMeshName(vx::StringID sid) const;

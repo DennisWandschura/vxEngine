@@ -45,12 +45,12 @@ class Engine
 	ActorAspect m_actorAspect;
 	RenderAspect m_renderAspect;
 	EntityAspect m_entityAspect;
-	U32 m_bRun;
+	u32 m_bRun;
 	FileAspect m_fileAspect;
 	std::atomic_uint m_bRunFileThread;
 	std::atomic_uint m_bRunRenderThread;
 	vx::StackAllocator m_allocator;
-	U32 m_shutdown{0};
+	u32 m_shutdown{0};
 	vx::thread m_fileAspectThread;
 	vx::thread m_renderThread;
 	Memory m_memory;
@@ -74,8 +74,8 @@ public:
 	void stop();
 
 	void handleEvent(const Event &evt);
-	void keyPressed(U16 key);
-	void handleInput(const vx::Mouse &m, const vx::Keyboard &k, F32 dt);
+	void keyPressed(u16 key);
+	void handleInput(const vx::Mouse &m, const vx::Keyboard &k, f32 dt);
 
 	void requestLoadFile(const FileEntry &fileEntry, void* p);
 };

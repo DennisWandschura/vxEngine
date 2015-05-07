@@ -33,8 +33,8 @@ struct SceneParams
 	SceneBaseParams m_baseParams;
 	std::unique_ptr<MeshInstance[]> m_pMeshInstances;
 	std::unique_ptr<Waypoint[]> m_waypoints;
-	U32 m_meshInstanceCount;
-	U32 m_waypointCount;
+	u32 m_meshInstanceCount;
+	u32 m_waypointCount;
 
 	~SceneParams();
 };
@@ -43,8 +43,8 @@ class Scene : public SceneBase
 {
 	std::unique_ptr<MeshInstance[]> m_pMeshInstances;
 	std::unique_ptr<Waypoint[]> m_waypoints;
-	U32 m_meshInstanceCount{ 0 };
-	U32 m_waypointCount{ 0 };
+	u32 m_meshInstanceCount{ 0 };
+	u32 m_waypointCount{ 0 };
 
 public:
 	Scene();
@@ -61,5 +61,5 @@ public:
 	void sortMeshInstances() override;
 
 	const MeshInstance* getMeshInstances() const override;
-	U32 getMeshInstanceCount() const override;
+	u32 getMeshInstanceCount() const override;
 };

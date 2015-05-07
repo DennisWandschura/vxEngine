@@ -34,5 +34,5 @@ struct CreateActorData
 	vx::StringID mesh;
 	vx::StringID material;
 	const Scene* pScene;
-	U32 index;
+	u32 index;
 };

@@ -45,7 +45,7 @@ char FileAspect::s_meshFolder[32] = { "data/mesh/" };
 namespace
 {
 	template<typename T>
-	void createPool(U16 maxCount, Pool<T> *pool, vx::StackAllocator* allocator)
+	void createPool(u16 maxCount, Pool<T> *pool, vx::StackAllocator* allocator)
 	{
 		auto sizeInBytes = sizeof(T) * maxCount;
 
@@ -60,11 +60,21 @@ namespace
 	}
 }
 
+struct FileAspect::FileRequest
+{
+	enum OpenType : u8{ Load = 0, Save = 1 };
+
+	FileEntry m_fileEntry;
+	void* userData{ nullptr };
+	u8 m_maxRetries{ 10 };
+	OpenType m_openType{};
+};
+
 FileAspect::FileAspect(EventManager &evtManager)
 	:m_fileRequests(),
 	m_eventManager(evtManager),
 	m_logfile(m_clock),
-	m_allocReadFile(),
+	m_allocatorReadFile(),
 	m_clock(),
 	m_poolMesh(),
 	m_poolMaterial(),
@@ -83,11 +93,11 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	if (!pFileMemory)
 		return false;
 
-	m_allocReadFile = vx::StackAllocator(pFileMemory, fileMemorySize);
+	m_allocatorReadFile = vx::StackAllocator(pFileMemory, fileMemorySize);
 
 	m_logfile.create("filelog.xml");
 
-	const U32 maxCount = 255;
+	const u32 maxCount = 255;
 	m_sortedMeshes = vx::sorted_array<vx::StringID, vx::Mesh*>(maxCount, pMainAllocator);
 	m_sortedMaterials = vx::sorted_array<vx::StringID, Material*>(maxCount, pMainAllocator);
 	m_sortedTextureFiles = vx::sorted_array<vx::StringID, TextureFile*>(maxCount, pMainAllocator);
@@ -96,7 +106,7 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	createPool(maxCount, &m_poolMaterial, pMainAllocator);
 	createPool(maxCount, &m_poolTextureFile, pMainAllocator);
 
-	const U32 textureMemorySize = 10 MBYTE;
+	const u32 textureMemorySize = 10 MBYTE;
 
 	m_allocatorMeshData = vx::StackAllocator(pMainAllocator->allocate(textureMemorySize, 64), textureMemorySize);
 
@@ -119,16 +129,16 @@ void FileAspect::shutdown()
 	m_sortedMeshes.cleanup();
 
 	m_logfile.close();
-	m_allocReadFile.release();
+	m_allocatorReadFile.release();
 }
 
-bool FileAspect::loadMesh(const char *filename, const U8 *ptr, U8 *pMeshMemory, const vx::StringID &sid, FileStatus* status)
+bool FileAspect::loadMesh(const char *filename, const u8 *ptr, u8 *pMeshMemory, const vx::StringID &sid, FileStatus* status)
 {
 	bool result = true;
 	auto it = m_sortedMeshes.find(sid);
 	if (it == m_sortedMeshes.end())
 	{
-		U16 index;
+		u16 index;
 		auto meshPtr = m_poolMesh.createEntry(&index);
 		VX_ASSERT(meshPtr != nullptr);
 
@@ -148,7 +158,7 @@ bool FileAspect::loadMesh(const char *filename, const U8 *ptr, U8 *pMeshMemory, 
 	return result;
 }
 
-TextureFile* FileAspect::loadTexture(const char *filename, const U8 *ptr, U32 size, const vx::StringID &sid, FileStatus* status)
+TextureFile* FileAspect::loadTexture(const char *filename, const u8 *ptr, u32 size, const vx::StringID &sid, FileStatus* status)
 {
 	TextureFile *pResult = nullptr;
 
@@ -158,7 +168,7 @@ TextureFile* FileAspect::loadTexture(const char *filename, const U8 *ptr, U32 si
 		TextureFile textureFile;
 		if (textureFile.load(ptr, size))
 		{
-			U16 index;
+			u16 index;
 			auto textureFilePtr = m_poolTextureFile.createEntry(&index, std::move(textureFile));
 			VX_ASSERT(textureFilePtr != nullptr);
 
@@ -183,9 +193,9 @@ TextureFile* FileAspect::loadTexture(const char *filename, const U8 *ptr, U32 si
 	return pResult;
 }
 
-U8 FileAspect::loadScene(const char *filename, const U8 *ptr, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, Scene* pScene)
+u8 FileAspect::loadScene(const char *filename, const u8 *ptr, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, Scene* pScene)
 {
-	U8 result = 0;
+	u8 result = 0;
 	{
 		Factory::CreateSceneDescription desc;
 		desc.loadedFiles = &m_loadedFiles;
@@ -207,9 +217,9 @@ U8 FileAspect::loadScene(const char *filename, const U8 *ptr, const vx::StringID
 	return result;
 }
 
-U8 FileAspect::loadScene(const char *filename, const U8 *ptr, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, EditorScene* pScene)
+u8 FileAspect::loadScene(const char *filename, const u8 *ptr, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, EditorScene* pScene)
 {
-	U8 result = 0;
+	u8 result = 0;
 	{
 		Factory::CreateSceneDescription desc;
 		desc.loadedFiles = &m_loadedFiles;
@@ -249,7 +259,7 @@ Material* FileAspect::loadMaterial(const char *filename, const char *file, const
 
 		if (result)
 		{
-			U16 index;
+			u16 index;
 			auto materialPtr = m_poolMaterial.createEntry(&index, std::move(material));
 			VX_ASSERT(materialPtr != nullptr);
 			m_sortedMaterials.insert(sid, materialPtr);
@@ -293,7 +303,7 @@ void FileAspect::getFolderString(FileType fileType, const char** folder)
 	}
 }
 
-U8* FileAspect::readFile(const char *file, U32 &fileSize)
+u8* FileAspect::readFile(const char *file, u32 &fileSize)
 {
 	File f;
 	if (!f.open(file, FileAccess::Read))
@@ -306,17 +316,15 @@ U8* FileAspect::readFile(const char *file, U32 &fileSize)
 
 	VX_ASSERT(fileSize != 0);
 
-	auto pData = (U8*)m_allocReadFile.allocate(fileSize);
+	auto pData = (u8*)m_allocatorReadFile.allocate(fileSize);
 	VX_ASSERT(pData);
 
-	// read file contents into memory
 	if (!f.read(pData, fileSize))
 	{
 		LOG_ERROR_ARGS(m_logfile, "Error reading file '%s'\n", false, file);
 		return nullptr;
 	}
 
-	// close file after reading its contents into memory
 	f.close();
 
 	return pData;
@@ -328,11 +336,11 @@ void FileAspect::pushFileEvent(FileEvent code, vx::Variant arg1, vx::Variant arg
 	e.arg1 = arg1;
 	e.arg2 = arg2;
 	e.type = EventType::File_Event;
-	e.code = (U32)code;
+	e.code = (u32)code;
 	m_eventManager.addEvent(e);
 }
 
-void FileAspect::loadFileMesh(const char* fileName, U32 fileSize, const vx::StringID &sid, U8* pData, LoadFileReturnType* result, void* pUserData)
+void FileAspect::loadFileMesh(const char* fileName, u32 fileSize, const vx::StringID &sid, u8* pData, LoadFileReturnType* result, void* pUserData)
 {
 	auto pMeshMemory = m_allocatorMeshData.allocate(fileSize, 8);
 	VX_ASSERT(pMeshMemory);
@@ -350,7 +358,7 @@ void FileAspect::loadFileMesh(const char* fileName, U32 fileSize, const vx::Stri
 	pushFileEvent(FileEvent::Mesh_Loaded, arg1, arg2);
 }
 
-void FileAspect::loadFileTexture(const char* fileName, U32 fileSize, const vx::StringID &sid, U8* pData, LoadFileReturnType* result)
+void FileAspect::loadFileTexture(const char* fileName, u32 fileSize, const vx::StringID &sid, u8* pData, LoadFileReturnType* result)
 {
 	void* p = loadTexture(fileName, pData, fileSize, sid, &result->status);
 	if (p)
@@ -386,7 +394,7 @@ void FileAspect::loadFileMaterial(const char* fileName, const char* file, const 
 	}
 }
 
-void FileAspect::loadFileOfType(FileType fileType, const char *fileName, const char* file, U32 fileSize, U8* pData, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles)
+void FileAspect::loadFileOfType(FileType fileType, const char *fileName, const char* file, u32 fileSize, u8* pData, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles)
 {
 	auto sid = vx::make_sid(fileName);
 
@@ -442,14 +450,14 @@ LoadFileReturnType FileAspect::loadFile(const FileEntry &fileEntry, std::vector<
 	sprintf_s(file, "%s%s", folder, fileName);
 
 	LoadFileReturnType result;
-	U32 fileSize = 0;
+	u32 fileSize = 0;
 
 	SCOPE_EXIT
 	{
-		m_allocReadFile.clear();
+		m_allocatorReadFile.clear();
 	};
 
-	U8* pData = readFile(file, fileSize);
+	u8* pData = readFile(file, fileSize);
 	if (pData == nullptr)
 		return result;
 
@@ -498,7 +506,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 		f.close();
 	};
 
-	U8 saveResult = 0;
+	u8 saveResult = 0;
 	switch (fileType)
 	{
 	case FileType::Scene:

@@ -32,7 +32,7 @@ class MultiDrawIndirect
 {
 
 	vx::gl::Buffer m_drawIndirectBuffer;
-	U32 m_indirectCount;
+	u32 m_indirectCount;
 
 public:
 	MultiDrawIndirect();
@@ -43,7 +43,7 @@ public:
 	void draw();
 };
 
-template<U32 Count, typename ...Args>
+template<u32 Count, typename ...Args>
 class VertexContainer;
 
 template< typename VertexType>
@@ -52,15 +52,15 @@ class VertexContainer < 1, VertexType >
 	using MyWrapper = VertexWrapper < 1, VertexType > ;
 	using value_type1 = typename MyWrapper::value_type1;
 
-	U32 m_vertexBuffer[1];
-	U32 m_indexBuffer;
-	U32 m_indexCount;
-	U32 m_vertexCount[1];
+	u32 m_vertexBuffer[1];
+	u32 m_indexBuffer;
+	u32 m_indexCount;
+	u32 m_vertexCount[1];
 	std::unique_ptr<value_type1[]> m_pVertices1;
-	std::unique_ptr<U32[]> m_pIndices;
+	std::unique_ptr<u32[]> m_pIndices;
 
 public:
-	void create(vx::gl::VertexArray &vao, std::unique_ptr<value_type1[]> &&vertices1, U32 vertexCount1, std::unique_ptr<U32[]>&&indices, U32 indexCount)
+	void create(vx::gl::VertexArray &vao, std::unique_ptr<value_type1[]> &&vertices1, u32 vertexCount1, std::unique_ptr<u32[]>&&indices, u32 indexCount)
 	{
 		m_vertexCount[0] = vertexCount1;
 
@@ -88,17 +88,17 @@ class VertexContainer < 2, VertexType1, VertexType2 >
 	using value_type1 = typename MyWrapper::value_type1;
 	using value_type2 = typename MyWrapper::value_type2;
 
-	U32 m_vertexBuffer[2];
-	U32 m_indexBuffer;
-	U32 m_indexCount;
-	U32 m_vertexCount[2];
+	u32 m_vertexBuffer[2];
+	u32 m_indexBuffer;
+	u32 m_indexCount;
+	u32 m_vertexCount[2];
 	std::unique_ptr<value_type1[]> m_pVertices1;
 	std::unique_ptr<value_type2[]> m_pVertices2;
-	std::unique_ptr<U32[]> m_pIndices;
+	std::unique_ptr<u32[]> m_pIndices;
 
 public:
-	void create(vx::gl::VertexArray &vao, std::unique_ptr<value_type1[]> &&vertices1, U32 vertexCount1,
-		std::unique_ptr<value_type2[]> &&vertices2, U32 vertexCount2, std::unique_ptr<U32[]>&&indices, U32 indexCount)
+	void create(vx::gl::VertexArray &vao, std::unique_ptr<value_type1[]> &&vertices1, u32 vertexCount1,
+		std::unique_ptr<value_type2[]> &&vertices2, u32 vertexCount2, std::unique_ptr<u32[]>&&indices, u32 indexCount)
 	{
 		m_vertexCount[0] = vertexCount1;
 		m_vertexCount[1] = vertexCount2;
@@ -122,7 +122,7 @@ public:
 	}
 };
 
-template<U32 VBO_count, typename ...VertexTypes>
+template<u32 VBO_count, typename ...VertexTypes>
 class VertexBatch;
 
 template<typename VertexType>
@@ -138,7 +138,7 @@ class VertexBatch<1, VertexType> : public MultiDrawIndirect
 	}
 
 public:
-	void create(U32 vertexCount, U32 indexCount)
+	void create(u32 vertexCount, u32 indexCount)
 	{
 		m_vao.create();
 	//	m_vertexContainer.create(m_vao, vertexCount, indexCount);

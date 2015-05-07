@@ -68,7 +68,7 @@ bool ActionFollowPath::isComplete() const
 		Event evt;
 		evt.type = EventType::AI_Event;
 		evt.filter = m_pActor->evtMask;
-		evt.code = (U32)AIEvent::Reached_Destination;
+		evt.code = (u32)AIEvent::Reached_Destination;
 		evt.arg1.ptr = m_pActor;
 
 		auto pEvtManager = Locator::getEventManager();

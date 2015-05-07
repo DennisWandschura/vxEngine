@@ -72,7 +72,7 @@ void ActorAspect::handleRequestPath(Component::Actor* pActor)
 	/*auto &entity = (*m_pEntityPool)[pActor->entityIndex];
 	auto &physics = (*m_pPhysicsPool)[entity.physics];
 
-	const U32 maxCount = 5u;
+	const u32 maxCount = 5u;
 	auto marker = m_allocatorScratch.getMarker();
 	auto pCells = reinterpret_cast<InfluenceCell*>(m_allocatorScratch.allocate(sizeof(InfluenceCell) * maxCount));
 	SCOPE_EXIT
@@ -81,7 +81,7 @@ void ActorAspect::handleRequestPath(Component::Actor* pActor)
 	};
 
 	// get cells within certain radius
-	U32 count = 0;
+	u32 count = 0;
 	m_influenceMap.getCells(physics.position, 3.0f, 10.0f, maxCount, pCells, &count);
 
 	// sort cells by current influence
@@ -95,7 +95,7 @@ void ActorAspect::handleRequestPath(Component::Actor* pActor)
 	auto nodeIndex = 0u;
 	if (pCells[0].count > 1)
 	{
-		std::uniform_int_distribution<U32> dist(0, pCells[0].count);
+		std::uniform_int_distribution<u32> dist(0, pCells[0].count);
 
 		nodeIndex = dist(m_gen);
 	}
@@ -134,7 +134,7 @@ void ActorAspect::handleAIEvent(const Event &evt)
 
 void ActorAspect::handleFileEvent(const Event &evt)
 {
-	if (evt.code == (U32)FileEvent::Scene_Loaded)
+	if (evt.code == (u32)FileEvent::Scene_Loaded)
 	{
 		auto pCurrentScene = reinterpret_cast<const Scene*>(evt.arg1.ptr);
 		auto &pNavMesh = pCurrentScene->getNavMesh();
@@ -144,7 +144,7 @@ void ActorAspect::handleFileEvent(const Event &evt)
 		Event evt;
 		evt.arg1.ptr = &m_navGraph;
 		evt.type = EventType::Ingame_Event;
-		evt.code = (U32)IngameEvent::Created_NavGraph;
+		evt.code = (u32)IngameEvent::Created_NavGraph;
 
 		auto pEvtManager = Locator::getEventManager();
 		pEvtManager->addEvent(evt);
@@ -160,7 +160,7 @@ void ActorAspect::handleFileEvent(const Event &evt)
 		Event evtInfluence;
 		evtInfluence.arg1.ptr = &m_influenceMap;
 		evtInfluence.type = EventType::Ingame_Event;
-		evtInfluence.code = (U32)IngameEvent::Created_InfluenceMap;
+		evtInfluence.code = (u32)IngameEvent::Created_InfluenceMap;
 
 		pEvtManager->addEvent(evtInfluence);
 	}
@@ -197,7 +197,7 @@ void ActorAspect::handleEvent(const Event &evt)
 	}
 }
 
-void ActorAspect::update(F32 dt)
+void ActorAspect::update(f32 dt)
 {
 	m_influenceMap.update(dt);
 

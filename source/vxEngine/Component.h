@@ -29,6 +29,6 @@ namespace Component
 {
 	struct Base
 	{
-		U16 entityIndex;
+		u16 entityIndex;
 	};
 }

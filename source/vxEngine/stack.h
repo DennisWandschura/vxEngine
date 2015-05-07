@@ -26,11 +26,11 @@ SOFTWARE.
 #include <vxLib\types.h>
 #include <mutex>
 
-template<class T, U32 N>
+template<class T, u32 N>
 class stack
 {
 	T m_data[N];
-	U32 m_size;
+	u32 m_size;
 	std::mutex m_mutex;
 
 public:

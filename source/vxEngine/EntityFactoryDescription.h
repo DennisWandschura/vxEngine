@@ -36,5 +36,5 @@ class NavGraph;
 
 struct EntityFactoryDescription
 {
-	const NavGraph* navGraph; EntityActor* entity; Component::Actor *p; Component::Input *pInput; F32 halfHeight;
+	const NavGraph* navGraph; EntityActor* entity; Component::Actor *p; Component::Input *pInput; f32 halfHeight;
 };

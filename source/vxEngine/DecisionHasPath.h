@@ -34,7 +34,7 @@ namespace Component
 
 class DecisionHasPath : public Decision
 {
-	U8 getBranch() const;
+	u8 getBranch() const;
 
 public:
 	DecisionHasPath(const Component::Actor* pActor, DecisionTreeNode* trueNode, DecisionTreeNode* falseNode);

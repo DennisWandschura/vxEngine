@@ -71,7 +71,7 @@ FontAtlas& FontAtlas::operator = (FontAtlas &&rhs)
 	return *this;
 }
 
-FontAtlasEntry FontAtlas::readEntry(std::ifstream &infile, U32 &id)
+FontAtlasEntry FontAtlas::readEntry(std::ifstream &infile, u32 &id)
 {
 	FontAtlasEntry entry;
 	char input;
@@ -147,7 +147,7 @@ FontAtlasEntry FontAtlas::readEntry(std::ifstream &infile, U32 &id)
 	return entry;
 }
 
-size_t FontAtlas::readEntry(const char *ptr, FontAtlasEntry &entry, U32 &id)
+size_t FontAtlas::readEntry(const char *ptr, FontAtlasEntry &entry, u32 &id)
 {
 	auto p = ptr;
 
@@ -205,15 +205,15 @@ bool FontAtlas::loadFromFile(const char *file)
 		infile.get(input);
 	}
 
-	U32 entryCount = 0;
+	u32 entryCount = 0;
 	infile >> entryCount;
 
 	assert(entryCount != 0);
 	m_data.reserve(entryCount);
 
-	for (U32 i = 0; i < entryCount; ++i)
+	for (u32 i = 0; i < entryCount; ++i)
 	{
-		U32 id = 0;
+		u32 id = 0;
 		auto entry = readEntry(infile, id);
 
 		m_data.insert(id, entry);
@@ -243,19 +243,19 @@ bool FontAtlas::loadFromMemory(const char *data)
 		++ptr;
 	}
 
-	U32 entryCount = 0;
+	u32 entryCount = 0;
 	sscanf(ptr, "%u", &entryCount);
 
 	assert(entryCount != 0);
 
 	//ptr += r;
-	ptr += sizeof(U32);
+	ptr += sizeof(u32);
 
 	m_data.reserve(entryCount);
 
-	for (U32 i = 0; i < entryCount; ++i)
+	for (u32 i = 0; i < entryCount; ++i)
 	{
-		U32 id = 0;
+		u32 id = 0;
 		FontAtlasEntry entry;
 		auto n = readEntry(ptr, entry, id);
 
@@ -267,7 +267,7 @@ bool FontAtlas::loadFromMemory(const char *data)
 	return true;
 }
 
-const FontAtlasEntry* FontAtlas::getEntry(U32 code) const
+const FontAtlasEntry* FontAtlas::getEntry(u32 code) const
 {
 	const FontAtlasEntry *pEntry = nullptr;
 

@@ -39,7 +39,7 @@ namespace gl
 		vx::sorted_array<vx::StringID, vx::gl::Texture> m_textures;
 
 	public:
-		void initialize(U32 maxBufferCount, U32 maxVaoCount, U32 maxFramebufferCount, U32 maxTextureCount, vx::StackAllocator* allocator);
+		void initialize(u32 maxBufferCount, u32 maxVaoCount, u32 maxFramebufferCount, u32 maxTextureCount, vx::StackAllocator* allocator);
 		void shutdown();
 
 		vx::StringID createVertexArray(const char* id);

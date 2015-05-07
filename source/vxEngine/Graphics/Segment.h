@@ -36,10 +36,10 @@ namespace Graphics
 
 	class Segment
 	{
-		std::vector<U8> m_commmands;
+		std::vector<u8> m_commmands;
 		State m_state;
 
-		void pushCommand(const U8*, U32 count);
+		void pushCommand(const u8*, u32 count);
 
 	public:
 		Segment();
@@ -51,7 +51,7 @@ namespace Graphics
 		std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
 		 pushCommand(const T &command)
 		{
-			U8* ptr = (U8*)&command;
+			u8* ptr = (u8*)&command;
 
 			pushCommand(ptr, sizeof(T));
 		}
@@ -59,7 +59,7 @@ namespace Graphics
 		template < typename T >
 		void pushCommand(const ProgramUniformCommand &command, const ProgramUniformData<T> &data)
 		{
-			U8* ptr = (U8*)&command;
+			u8* ptr = (u8*)&command;
 			pushCommand(ptr, sizeof(ProgramUniformCommand));
 			pushCommand(data.u, sizeof(T));
 		}

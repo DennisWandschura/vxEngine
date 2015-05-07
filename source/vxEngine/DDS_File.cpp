@@ -25,6 +25,24 @@ SOFTWARE.
 #include <cstdio>
 #include <vxLib/gl/gl.h>
 #include <assert.h>
+#include <Mmsystem.h>
+
+typedef enum D3D10_RESOURCE_DIMENSION {
+	D3D10_RESOURCE_DIMENSION_UNKNOWN = 0,
+	D3D10_RESOURCE_DIMENSION_BUFFER = 1,
+	D3D10_RESOURCE_DIMENSION_TEXTURE1D = 2,
+	D3D10_RESOURCE_DIMENSION_TEXTURE2D = 3,
+	D3D10_RESOURCE_DIMENSION_TEXTURE3D = 4
+} D3D10_RESOURCE_DIMENSION;
+
+enum DXGI_FORMAT : unsigned int
+{
+	DXGI_FORMAT_BC6H_UF16 = 95,
+	DXGI_FORMAT_BC6H_SF16 = 96,
+
+	DXGI_FORMAT_BC7_UNORM = 98,
+	DXGI_FORMAT_BC7_UNORM_SRGB = 99,
+};
 
 struct DXTColBlock
 {
@@ -84,7 +102,7 @@ Surface& Surface::operator = (Surface &&rhs)
 	return *this;
 }
 
-void Surface::create(U32 width, U32 height, U32 depth, U32 imgsize, U8* pixels)
+void Surface::create(u32 width, u32 height, u32 depth, u32 imgsize, u8* pixels)
 {
 	assert(width != 0);
 	assert(height != 0);
@@ -98,7 +116,7 @@ void Surface::create(U32 width, U32 height, U32 depth, U32 imgsize, U8* pixels)
 	m_height = height;
 	m_depth = depth;
 	m_size = imgsize;
-	m_pixels = new U8[imgsize];
+	m_pixels = new u8[imgsize];
 	memcpy(m_pixels, pixels, imgsize);
 }
 
@@ -133,7 +151,7 @@ Texture& Texture::operator = (Texture &&rhs)
 	return *this;
 }
 
-void Texture::create(U32 width, U32 height, U32 depth, U32 size, U8* pixels)
+void Texture::create(u32 width, u32 height, u32 depth, u32 size, u8* pixels)
 {
 	Surface::create(width, height, depth, size, pixels);
 
@@ -175,6 +193,14 @@ typedef struct {
 	DWORD           dwReserved2;
 } DDS_HEADER;
 
+typedef struct {
+	DXGI_FORMAT              dxgiFormat;
+	D3D10_RESOURCE_DIMENSION resourceDimension;
+	UINT                     miscFlag;
+	UINT                     arraySize;
+	UINT                     miscFlags2;
+} DDS_HEADER_DXT10;
+
 #define DDS_FOURCC      0x00000004  // DDPF_FOURCC
 #define DDS_RGB         0x00000040  // DDPF_RGB
 #define DDS_RGBA        0x00000041  // DDPF_RGB | DDPF_ALPHAPIXELS
@@ -192,6 +218,7 @@ const unsigned long DDSF_RGBA = 0x00000041l;
 const unsigned long FOURCC_DXT1 = 0x31545844l; //(MAKEFOURCC('D','X','T','1'))
 const unsigned long FOURCC_DXT3 = 0x33545844l; //(MAKEFOURCC('D','X','T','3'))
 const unsigned long FOURCC_DXT5 = 0x35545844l; //(MAKEFOURCC('D','X','T','5'))
+const unsigned long FOURCC_DX10 = MAKEFOURCC('D', 'X', '1', '0');
 
 #define DDSCAPS2_CUBEMAP 0x200
 #define DDSCAPS2_VOLUME 0x200000
@@ -217,6 +244,11 @@ unsigned int DDS_File::size_dxtc(unsigned int width, unsigned int height)
 unsigned int DDS_File::size_rgb(unsigned int width, unsigned int height)
 {
 	return width*height*m_components;
+}
+
+u32 DDS_File::size_bc(u32 width, u32 height)
+{
+	return ((width + 3) / 4)*((height + 3) / 4)*16;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -265,9 +297,9 @@ void DDS_File::flip(Surface* surface)
 	else
 	{
 		void (DDS_File::*flipblocks)(DXTColBlock*, unsigned int);
-		U32 xblocks = surface->getWidth() / 4;
-		U32 yblocks = surface->getHeight() / 4;
-		U32 blocksize;
+		u32 xblocks = surface->getWidth() / 4;
+		u32 yblocks = surface->getHeight() / 4;
+		u32 blocksize;
 
 		switch (m_format)
 		{
@@ -523,6 +555,41 @@ bool DDS_File::loadFromFile(const char* file, bool flipImage)
 			m_format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 			m_components = 4;
 			break;
+		case FOURCC_DX10:
+		{
+			DDS_HEADER_DXT10 dxtHeader;
+			fread(&dxtHeader, sizeof(DDS_HEADER_DXT10), 1, inFile);
+
+			switch (dxtHeader.dxgiFormat)
+			{
+			case DXGI_FORMAT_BC7_UNORM_SRGB:
+			{
+				m_components = 4;
+				m_format = GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM;
+			}break;
+			case DXGI_FORMAT_BC7_UNORM:
+			{
+				m_components = 4;
+				m_format = GL_COMPRESSED_RGBA_BPTC_UNORM;
+			}break;
+
+			case DXGI_FORMAT_BC6H_UF16:
+			{
+				m_components = 3;
+				m_format = GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT;
+			}break;
+
+			case DXGI_FORMAT_BC6H_SF16:
+			{
+				m_components = 3;
+				m_format = GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
+			}break;
+			default:
+				fclose(inFile);
+				return false;
+				break;
+			}
+		}break;
 		default:
 			fclose(inFile);
 			return false;
@@ -563,7 +630,18 @@ bool DDS_File::loadFromFile(const char* file, bool flipImage)
 	// use correct size calculation function depending on whether image is 
 	// compressed
 	unsigned int (DDS_File::*sizefunc)(unsigned int, unsigned int);
-	sizefunc = (isCompressed() ? &DDS_File::size_dxtc : &DDS_File::size_rgb);
+	sizefunc = &DDS_File::size_rgb;
+	if (isCompressed())
+	{
+		if (isDxt())
+		{
+			sizefunc = &DDS_File::size_dxtc;
+		}
+		else
+		{
+			sizefunc = &DDS_File::size_bc;
+		}
+	}
 
 	// load all surfaces for the image (6 surfaces for cubemaps)
 	for (unsigned int n = 0; n < (unsigned int)(m_type == Type::Cubemap ? 6 : 1); ++n)
@@ -645,10 +723,21 @@ inline bool DDS_File::isCompressed() const
 {
 	if ((m_format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ||
 		(m_format == GL_COMPRESSED_RGBA_S3TC_DXT3_EXT) ||
-		(m_format == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT))
+		(m_format == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT) ||
+		(m_format == GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM) ||
+		(m_format == GL_COMPRESSED_RGBA_BPTC_UNORM) ||
+		(m_format == GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT) ||
+		(m_format == GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT))
 		return true;
 	else
 		return false;
+}
+
+bool DDS_File::isDxt() const
+{
+	return ((m_format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ||
+		(m_format == GL_COMPRESSED_RGBA_S3TC_DXT3_EXT) ||
+		(m_format == GL_COMPRESSED_RGBA_S3TC_DXT5_EXT));
 }
 
 void DDS_File::clear()

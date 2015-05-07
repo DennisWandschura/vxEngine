@@ -97,8 +97,8 @@ class SceneFile : public Serializable
 		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 		vx::sorted_vector<vx::StringID, Actor>* sceneActors;
 		Spawn* sceneSpawns;
-		U32* vertexCount;
-		U32* indexCount;
+		u32* vertexCount;
+		u32* indexCount;
 	};
 
 	std::unique_ptr<MeshInstanceFile[]> m_pMeshInstances;
@@ -106,10 +106,10 @@ class SceneFile : public Serializable
 	std::unique_ptr<SpawnFile[]> m_pSpawns;
 	std::unique_ptr<ActorFile[]> m_pActors;
 	NavMesh m_navMesh;
-	U32 m_meshInstanceCount;
-	U32 m_lightCount;
-	U32 m_spawnCount;
-	U32 m_actorCount;
+	u32 m_meshInstanceCount;
+	u32 m_lightCount;
+	u32 m_spawnCount;
+	u32 m_actorCount;
 
 	bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc);
 	bool createSceneActors(const CreateSceneActorsDesc &desc);
@@ -120,7 +120,7 @@ public:
 	SceneFile();
 	~SceneFile();
 
-	const U8* loadFromMemory(const U8 *ptr, U32 version);
+	const u8* loadFromMemory(const u8 *ptr, u32 version);
 	//void loadFromYAML(const char *file);
 
 	bool saveToFile(const char *file) const;
@@ -128,15 +128,15 @@ public:
 	//void saveToYAML(const char *file) const;
 
 	const std::unique_ptr<MeshInstanceFile[]>& getMeshInstances() const noexcept;
-	U32 getNumMeshInstances() const noexcept;
+	u32 getNumMeshInstances() const noexcept;
 
-	U8 createScene(const CreateSceneDescription &desc);
-	U8 createScene(const CreateEditorSceneDescription &desc);
+	u8 createScene(const CreateSceneDescription &desc);
+	u8 createScene(const CreateEditorSceneDescription &desc);
 
-	U32 getActorCount() const { return m_actorCount; }
+	u32 getActorCount() const { return m_actorCount; }
 	const ActorFile* getActors() const { return m_pActors.get(); }
 
-	U64 getCrc() const;
+	u64 getCrc() const;
 
-	U32 getVersion() const;
+	u32 getVersion() const;
 };

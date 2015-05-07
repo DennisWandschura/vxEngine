@@ -37,11 +37,11 @@ struct mat3
 		c[2] = c2;
 	}
 
-	F32 det()
+	f32 det()
 	{
-		F32 tmp0 = c[0].x * (c[1].y * c[2].z - c[1].z * c[2].y);
-		F32 tmp1 = c[1].x * (c[0].y * c[2].z - c[0].z * c[2].y);
-		F32 tmp2 = c[2].x * (c[0].y * c[1].z - c[0].z * c[1].y);
+		f32 tmp0 = c[0].x * (c[1].y * c[2].z - c[1].z * c[2].y);
+		f32 tmp1 = c[1].x * (c[0].y * c[2].z - c[0].z * c[2].y);
+		f32 tmp2 = c[2].x * (c[0].y * c[1].z - c[0].z * c[1].y);
 
 		return tmp0 + tmp1 + tmp2;
 	}

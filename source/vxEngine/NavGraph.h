@@ -39,7 +39,7 @@ namespace vx
 
 class NavGraph
 {
-	static const U8 s_cellSize{3};
+	static const u8 s_cellSize{3};
 
 #if _VX_EDITOR
 	std::vector<NavConnection> m_connections;
@@ -48,8 +48,8 @@ class NavGraph
 	NavConnection* m_connections;
 	NavNode* m_nodes;
 #endif
-	U32 m_connectionCount;
-	U32 m_nodeCount;
+	u32 m_connectionCount;
+	u32 m_nodeCount;
 
 public:
 	NavGraph();
@@ -65,11 +65,11 @@ public:
 	const NavConnection* getConnections() const { return m_connections; }
 	const NavNode* getNodes() const { return m_nodes; }
 #endif
-	const NavNode& getNode(U32 i) const;
+	const NavNode& getNode(u32 i) const;
 
-	U32 getConnectionCount() const { return m_connectionCount; }
-	U32 getNodeCount() const { return m_nodeCount; }
+	u32 getConnectionCount() const { return m_connectionCount; }
+	u32 getNodeCount() const { return m_nodeCount; }
 
-	U32 getClosestNode(const vx::float3 &position) const;
-	U32 getFarestNode(const vx::float3 &position) const;
+	u32 getClosestNode(const vx::float3 &position) const;
+	u32 getFarestNode(const vx::float3 &position) const;
 };

@@ -166,12 +166,12 @@ namespace
 		r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 		if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
-		auto max3 = [](F32 a, F32 b, F32 c)
+		auto max3 = [](f32 a, f32 b, f32 c)
 		{
 			return std::max(a, std::max(b, c));
 		};
 
-		auto min3 = [](F32 a, F32 b, F32 c)
+		auto min3 = [](f32 a, f32 b, f32 c)
 		{
 			return std::min(a, std::min(b, c));
 		};
@@ -195,9 +195,9 @@ namespace
 	}
 }
 
-void InfluenceMap::createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uint3 &cellPosition, U32 index)
+void InfluenceMap::createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uint3 &cellPosition, u32 index)
 {
-	__m128 vOffset = { (F32)cellPosition.x, (F32)cellPosition.y, (F32)cellPosition.z, 0.0f };
+	__m128 vOffset = { (f32)cellPosition.x, (f32)cellPosition.y, (f32)cellPosition.z, 0.0f };
 
 	auto vmin = _mm_fmadd_ps(vOffset, vCellSize, vBoundsMin);
 	auto vmax = _mm_add_ps(vmin, vCellSize);
@@ -218,7 +218,7 @@ void InfluenceMap::createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uin
 	m_cells[index] = c;
 }
 
-void InfluenceMap::createCells(const vx::uint3 &cellCount, U32 cellTotalCount, const vx::float3 &cellDim, const AABB &navBounds)
+void InfluenceMap::createCells(const vx::uint3 &cellCount, u32 cellTotalCount, const vx::float3 &cellDim, const AABB &navBounds)
 {
 	__m128 vCellSize = { cellDim.x, cellDim.y, cellDim.z, 0 };
 	auto vBoundsMin = vx::loadFloat(navBounds.min);
@@ -226,7 +226,7 @@ void InfluenceMap::createCells(const vx::uint3 &cellCount, U32 cellTotalCount, c
 	m_cells = std::make_unique<InfluenceCell[]>(cellTotalCount);
 	m_cellBounds = std::make_unique<AABB_SIMD[]>(cellTotalCount);
 
-	U32 index = 0;
+	u32 index = 0;
 	vx::uint3 cellPosition;
 	for (cellPosition.z = 0; cellPosition.z < cellCount.z; ++cellPosition.z)
 	{
@@ -241,14 +241,14 @@ void InfluenceMap::createCells(const vx::uint3 &cellCount, U32 cellTotalCount, c
 	}
 }
 
-void InfluenceMap::createNodeIndicesAndSetCellData(const NavMesh &navMesh, U32 cellTotalCount)
+void InfluenceMap::createNodeIndicesAndSetCellData(const NavMesh &navMesh, u32 cellTotalCount)
 {
 	auto triangleCount = navMesh.getTriangleCount();
 	auto navMeshTriangles = navMesh.getNavMeshTriangles();
 
-	m_navNodeIndices = std::make_unique<U16[]>(triangleCount);
-	U32 offset = 0;
-	for (U32 i = 0; i < cellTotalCount; ++i)
+	m_navNodeIndices = std::make_unique<u16[]>(triangleCount);
+	u32 offset = 0;
+	for (u32 i = 0; i < cellTotalCount; ++i)
 	{
 		auto &cellBounds = m_cellBounds[i];
 		auto &cell = m_cells[i];
@@ -257,8 +257,8 @@ void InfluenceMap::createNodeIndicesAndSetCellData(const NavMesh &navMesh, U32 c
 		vx::storeFloat(&bounds.min, cellBounds.vmin);
 		vx::storeFloat(&bounds.max, cellBounds.vmax);
 
-		U32 count = 0;
-		for (U32 j = 0; j < triangleCount; ++j)
+		u32 count = 0;
+		for (u32 j = 0; j < triangleCount; ++j)
 		{
 			auto &navMeshTriangle = navMeshTriangles[j];
 
@@ -278,7 +278,7 @@ void InfluenceMap::createNodeIndicesAndSetCellData(const NavMesh &navMesh, U32 c
 	}
 }
 
-void InfluenceMap::initialize(const NavMesh &navMesh, F32 cellSize, F32 cellHeight)
+void InfluenceMap::initialize(const NavMesh &navMesh, f32 cellSize, f32 cellHeight)
 {
 	auto navBounds = navMesh.getBounds();
 	auto size = navBounds.max - navBounds.min;
@@ -289,7 +289,7 @@ void InfluenceMap::initialize(const NavMesh &navMesh, F32 cellSize, F32 cellHeig
 	cellCount.z = (size.z + cellSize) / cellSize;
 
 	auto cellDim = vx::float3(cellSize, cellHeight, cellSize);
-	U32 cellTotalCount = cellCount.x * cellCount.y * cellCount.z;
+	u32 cellTotalCount = cellCount.x * cellCount.y * cellCount.z;
 	createCells(cellCount, cellTotalCount, cellDim, navBounds);
 
 	createNodeIndicesAndSetCellData(navMesh, cellTotalCount);
@@ -308,32 +308,32 @@ void InfluenceMap::initialize(const NavMesh &navMesh, F32 cellSize, F32 cellHeig
 	m_invGridCellSize = 1.0f / gridCellSize;
 }
 
-void InfluenceMap::update(F32 dt)
+void InfluenceMap::update(f32 dt)
 {
-	U32 cellCount = m_cellCount.x * m_cellCount.y * m_cellCount.z;
+	u32 cellCount = m_cellCount.x * m_cellCount.y * m_cellCount.z;
 
 	// decrease influence by certain amount each second
-	const F32 influenceDecrease = 0.75f;
+	const f32 influenceDecrease = 0.75f;
 
-	for (U32 i = 0; i < cellCount; ++i)
+	for (u32 i = 0; i < cellCount; ++i)
 	{
-		F32 newInfluence = m_cells[i].m_influence - (influenceDecrease * dt);
+		f32 newInfluence = m_cells[i].m_influence - (influenceDecrease * dt);
 
 		m_cells[i].m_influence = vx::max(newInfluence, 0.0f);
 	}
 }
 
-void InfluenceMap::updateActor(F32 dt, const vx::float3 &position)
+void InfluenceMap::updateActor(f32 dt, const vx::float3 &position)
 {
-	//const F32 maxRadius = 1.0f;
-	const F32 actorInfluence = 2.0f;
+	//const f32 maxRadius = 1.0f;
+	const f32 actorInfluence = 2.0f;
 
 	auto vPosition = vx::loadFloat(position);
 
 	auto influence = dt * actorInfluence;
 
-	U32 cellCount = m_cellCount.x * m_cellCount.y * m_cellCount.z;
-	for (U32 i = 0; i < cellCount; ++i)
+	u32 cellCount = m_cellCount.x * m_cellCount.y * m_cellCount.z;
+	for (u32 i = 0; i < cellCount; ++i)
 	{
 		auto &bounds = m_cellBounds[i];
 
@@ -344,7 +344,7 @@ void InfluenceMap::updateActor(F32 dt, const vx::float3 &position)
 		}
 	}
 
-	U8 nullbuffer[16];
+	u8 nullbuffer[16];
 	memset(nullbuffer, 0, 16);
 
 	/*m_file.write(position);
@@ -352,16 +352,16 @@ void InfluenceMap::updateActor(F32 dt, const vx::float3 &position)
 	m_file.write(nullbuffer);*/
 }
 
-const InfluenceCell& InfluenceMap::getCell(U16 x, U16 y, U16 z) const
+const InfluenceCell& InfluenceMap::getCell(u16 x, u16 y, u16 z) const
 {
-	U32 index = x + m_cellCount.x * (y + m_cellCount.y * z);
+	u32 index = x + m_cellCount.x * (y + m_cellCount.y * z);
 
 	return getCell(index);
 }
 
-const InfluenceCell& InfluenceMap::getCell(U32 index) const
+const InfluenceCell& InfluenceMap::getCell(u32 index) const
 {
-	//U32 maxIndex = m_cellCount.x * m_cellCount.y * m_cellCount.z;
+	//u32 maxIndex = m_cellCount.x * m_cellCount.y * m_cellCount.z;
 	//index = std::min(index, maxIndex);
 
 	return m_cells[index];
@@ -372,12 +372,12 @@ const InfluenceCell* InfluenceMap::getInfluenceCells() const
 	return m_cells.get();
 }
 
-U32 InfluenceMap::getCellCount() const
+u32 InfluenceMap::getCellCount() const
 {
 	return m_cellCount.x * m_cellCount.y * m_cellCount.z;
 }
 
-I32 InfluenceMap::getClosestCellIndex_nocheck(const vx::float3 &position) const
+s32 InfluenceMap::getClosestCellIndex_nocheck(const vx::float3 &position) const
 {
 	auto tmp = (position - m_center);
 	vx::int3 cellPos = tmp * m_invGridCellSize + m_voxelHalfDim;
@@ -385,10 +385,10 @@ I32 InfluenceMap::getClosestCellIndex_nocheck(const vx::float3 &position) const
 	return cellPos.x + m_cellCount.x * (cellPos.y + m_cellCount.y * cellPos.z);
 }
 
-U32 InfluenceMap::getClosestCellIndex(const vx::float3 &position) const
+u32 InfluenceMap::getClosestCellIndex(const vx::float3 &position) const
 {
-	I32 maxIndex = m_cellCount.x * m_cellCount.y * m_cellCount.z;
-	I32 index = getClosestCellIndex_nocheck(position);
+	s32 maxIndex = m_cellCount.x * m_cellCount.y * m_cellCount.z;
+	s32 index = getClosestCellIndex_nocheck(position);
 
 	index = std::max(index, 0);
 	index = std::min(index, maxIndex);
@@ -403,17 +403,17 @@ const vx::float3& InfluenceMap::getClosestCellPosition(const vx::float3 &positio
 	return m_cells[index].m_position;
 }
 
-const U16* InfluenceMap::getNavNodeIndices() const
+const u16* InfluenceMap::getNavNodeIndices() const
 {
 	return m_navNodeIndices.get();
 }
 
-U8 InfluenceMap::isEmpty(U32 cellIndex) const
+u8 InfluenceMap::isEmpty(u32 cellIndex) const
 {
 	return (m_cells[cellIndex].m_count == 0);
 }
 
-U8 InfluenceMap::contains(U32 cellIndex, const vx::float3 &position) const
+u8 InfluenceMap::contains(u32 cellIndex, const vx::float3 &position) const
 {
 	auto vPosition = vx::loadFloat(position);
 	auto &bounds = m_cellBounds[cellIndex];
@@ -421,15 +421,15 @@ U8 InfluenceMap::contains(U32 cellIndex, const vx::float3 &position) const
 	return AABB_POINT::contains(bounds.vmin, bounds.vmax, vPosition);
 }
 
-void InfluenceMap::getCells(const vx::float3 &p, F32 minRadius, F32 maxRadius, U32 maxCount, InfluenceCell* pCell, U32* count) const
+void InfluenceMap::getCells(const vx::float3 &p, f32 minRadius, f32 maxRadius, u32 maxCount, InfluenceCell* pCell, u32* count) const
 {
 	auto minRadius2 = minRadius * minRadius;
-	F32 maxRadius2 = maxRadius * maxRadius;
+	f32 maxRadius2 = maxRadius * maxRadius;
 
 	(*count) = 0;
 
-	U32 cellCount = m_cellCount.x * m_cellCount.y * m_cellCount.z;
-	for (U32 i = 0; i < cellCount; ++i)
+	u32 cellCount = m_cellCount.x * m_cellCount.y * m_cellCount.z;
+	for (u32 i = 0; i < cellCount; ++i)
 	{
 		auto &cell = m_cells[i];
 

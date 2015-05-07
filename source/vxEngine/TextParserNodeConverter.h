@@ -28,9 +28,9 @@ namespace TextParser
 	};
 
 	template<>
-	struct StringConverter < U32 >
+	struct StringConverter < u32 >
 	{
-		static U32 decode(const std::string &str)
+		static u32 decode(const std::string &str)
 		{
 			return strtoul(str.c_str(), nullptr, 10);
 		}
@@ -39,7 +39,7 @@ namespace TextParser
 	template<>
 	struct NodeConverter < float >
 	{
-		static float decode(const Node &node, F32 &data)
+		static float decode(const Node &node, f32 &data)
 		{
 			data = StringConverter<float>::decode(node.getData());
 			return true;
@@ -61,40 +61,40 @@ namespace TextParser
 	{
 		static int decode(const Node &node, bool &data)
 		{
-			data = StringConverter<U32>::decode(node.getData());
+			data = StringConverter<u32>::decode(node.getData());
 
 			return true;
 		}
 	};
 
 	template<>
-	struct NodeConverter < U8 >
+	struct NodeConverter < u8 >
 	{
-		static int decode(const Node &node, U8 &data)
+		static int decode(const Node &node, u8 &data)
 		{
-			data = StringConverter<U32>::decode(node.getData());
+			data = StringConverter<u32>::decode(node.getData());
 
 			return true;
 		}
 	};
 
 	template<>
-	struct NodeConverter < U16 >
+	struct NodeConverter < u16 >
 	{
-		static int decode(const Node &node, U16 &data)
+		static int decode(const Node &node, u16 &data)
 		{
-			data = StringConverter<U32>::decode(node.getData());
+			data = StringConverter<u32>::decode(node.getData());
 
 			return true;
 		}
 	};
 
 	template<>
-	struct NodeConverter < U32 >
+	struct NodeConverter < u32 >
 	{
-		static int decode(const Node &node, U32 &data)
+		static int decode(const Node &node, u32 &data)
 		{
-			data = StringConverter<U32>::decode(node.getData());
+			data = StringConverter<u32>::decode(node.getData());
 
 			return true;
 		}

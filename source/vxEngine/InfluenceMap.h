@@ -34,11 +34,11 @@ class NavGraph;
 struct InfluenceCell
 {
 	vx::float3 m_position;
-	F32 m_influence;
-	U16 m_offset;
-	U16 m_count;
-	F32 m_area;
-	F32 m_priority;
+	f32 m_influence;
+	u16 m_offset;
+	u16 m_count;
+	f32 m_area;
+	f32 m_priority;
 };
 
 class InfluenceMap
@@ -51,35 +51,35 @@ class InfluenceMap
 	std::unique_ptr<AABB_SIMD[]> m_cellBounds;
 	std::unique_ptr<InfluenceCell[]> m_cells; // 8
 	// influence cell data
-	std::unique_ptr<U16[]> m_navNodeIndices;
+	std::unique_ptr<u16[]> m_navNodeIndices;
 	vx::float3 m_center; // 12
 	vx::float3 m_invGridCellSize; // 12
 	vx::float3 m_voxelHalfDim; // 12
 	vx::ushort3 m_cellCount; // 6
 
-	void createCells(const vx::uint3 &cellCount, U32 cellTotalCount, const vx::float3 &cellDim, const AABB &navBounds);
-	void createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uint3 &cellPosition, U32 index);
-	void createNodeIndicesAndSetCellData(const NavMesh &navMesh, U32 cellTotalCount);
+	void createCells(const vx::uint3 &cellCount, u32 cellTotalCount, const vx::float3 &cellDim, const AABB &navBounds);
+	void createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uint3 &cellPosition, u32 index);
+	void createNodeIndicesAndSetCellData(const NavMesh &navMesh, u32 cellTotalCount);
 
 public:
-	void initialize(const NavMesh &navMesh, F32 cellSize, F32 cellHeight);
+	void initialize(const NavMesh &navMesh, f32 cellSize, f32 cellHeight);
 
-	void update(F32 dt);
-	void updateActor(F32 dt, const vx::float3 &position);
+	void update(f32 dt);
+	void updateActor(f32 dt, const vx::float3 &position);
 
-	const InfluenceCell& getCell(U16 x, U16 y, U16 z) const;
-	const InfluenceCell& getCell(U32 index) const;
+	const InfluenceCell& getCell(u16 x, u16 y, u16 z) const;
+	const InfluenceCell& getCell(u32 index) const;
 	const InfluenceCell* getInfluenceCells() const;
 
-	U32 getCellCount() const;
+	u32 getCellCount() const;
 
-	I32 getClosestCellIndex_nocheck(const vx::float3 &position) const;
-	U32 getClosestCellIndex(const vx::float3 &position) const;
+	s32 getClosestCellIndex_nocheck(const vx::float3 &position) const;
+	u32 getClosestCellIndex(const vx::float3 &position) const;
 	const vx::float3& getClosestCellPosition(const vx::float3 &position) const;
-	const U16* getNavNodeIndices() const;
+	const u16* getNavNodeIndices() const;
 
-	U8 isEmpty(U32 cellIndex) const;
-	U8 contains(U32 cellIndex, const vx::float3 &position) const;
+	u8 isEmpty(u32 cellIndex) const;
+	u8 contains(u32 cellIndex, const vx::float3 &position) const;
 
-	void getCells(const vx::float3 &p, F32 minRadius, F32 maxRadius, U32 maxCount, InfluenceCell* pCells, U32* count) const;
+	void getCells(const vx::float3 &p, f32 minRadius, f32 maxRadius, u32 maxCount, InfluenceCell* pCells, u32* count) const;
 };

@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-enum class AIEvent : U16
+enum class AIEvent : u16
 {
 	No_Orders,
 	Request_Path,

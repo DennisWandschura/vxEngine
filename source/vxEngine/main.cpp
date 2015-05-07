@@ -24,6 +24,10 @@ SOFTWARE.
 #include "libraries.h"
 #if _VX_EDITOR
 #else
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #include <vxLib/ScopeGuard.h>
 #include "Engine.h"
 #include "Logfile.h"
@@ -81,6 +85,17 @@ int main()
 		return 1;
 	}
 
+	HANDLE hLogFile = nullptr;;
+	hLogFile = CreateFileA("log.txt", GENERIC_WRITE,
+		FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL, NULL);
+
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ERROR, hLogFile);
+
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_WARN, hLogFile);
+
 	SmallObjAllocator alloc(1 KBYTE);
 	SmallObject::setAllocator(&alloc);
 
@@ -93,6 +108,10 @@ int main()
 		g_logfile = nullptr;
 		return 1;
 	}
+
+	_CrtMemState state;
+	// create a checkpoint to for current memory state
+	_CrtMemCheckpoint(&state);
 
 	Scene scene;
 	Engine engine;
@@ -109,6 +128,10 @@ int main()
 		engine.shutdown();
 		LOG(mainLogfile, "Shutting down Engine", false);
 		mainLogfile.close();
+
+		_CrtMemDumpAllObjectsSince(&state);
+
+		CloseHandle(hLogFile);
 
 		g_logfile = nullptr;
 	};

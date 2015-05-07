@@ -38,9 +38,9 @@ namespace Graphics
 	class BufferFactory
 	{
 	public:
-		static vx::gl::Buffer createVertexBuffer(U64 size, vx::gl::BufferStorageFlags::Flags flags, const U8* ptr = nullptr);
-		static vx::gl::Buffer createIndexBuffer(U64 size, vx::gl::BufferStorageFlags::Flags flags, const U8* ptr = nullptr);
-		static vx::gl::Buffer createIndirectCmdBuffer(U64 size, vx::gl::BufferStorageFlags::Flags flags, const U8* ptr);
-		static vx::gl::Buffer createParameterBuffer(U64 size, vx::gl::BufferStorageFlags::Flags flags, const U8* ptr);
+		static vx::gl::Buffer createVertexBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr = nullptr);
+		static vx::gl::Buffer createIndexBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr = nullptr);
+		static vx::gl::Buffer createIndirectCmdBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr);
+		static vx::gl::Buffer createParameterBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr);
 	};
 }

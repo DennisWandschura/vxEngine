@@ -32,12 +32,12 @@ class Logfile
 {
 	std::ofstream m_file;
 	const Clock &m_clock;
-	U64 m_lastTime;
-	U32 m_record;
+	u64 m_lastTime;
+	u32 m_record;
 	char m_timeBuffer[16];
-	U8 m_created;
+	u8 m_created;
 
-	void convertTime(U64 time);
+	void convertTime(u64 time);
 	void createStyleSheet(const char *stylesheet);
 
 	void textout(const char *text);
@@ -45,7 +45,7 @@ class Logfile
 	void fTextout(const char *text, char *args);
 
 public:
-	enum Type:U8{Normal, Warning, Error};
+	enum Type:u8{Normal, Warning, Error};
 
 	explicit Logfile(Clock &clock);
 	~Logfile();

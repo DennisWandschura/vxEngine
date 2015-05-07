@@ -31,11 +31,11 @@ Arrive::Arrive(EntityActor* entity, Component::Input* pInput)
 {
 }
 
-U8 Arrive::getSteering(SteeringOutput* output)
+u8 Arrive::getSteering(SteeringOutput* output)
 {
-	const F32 targetRadius = 0.25f;
-//	const F32 slowRadius = 1.0f;
-	//const F32 timeToTarget = 0.1f;
+	const f32 targetRadius = 0.25f;
+//	const f32 slowRadius = 1.0f;
+	//const f32 timeToTarget = 0.1f;
 
 	auto direction = m_targetPosition - m_pEntity->position;
 	auto distance = vx::length(direction);
@@ -48,7 +48,7 @@ U8 Arrive::getSteering(SteeringOutput* output)
 	auto velocity = direction / distance * m_maxSpeed;
 	output->velocity = velocity;
 
-	/*F32 targetSpeed = m_maxSpeed;
+	/*f32 targetSpeed = m_maxSpeed;
 
 	if (distance <= slowRadius)
 	{

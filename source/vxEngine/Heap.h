@@ -79,7 +79,7 @@ namespace vx
 			return m_container.front();
 		}
 
-		void reserve(U32 n)
+		void reserve(u32 n)
 		{
 			m_container.reserve(n);
 		}

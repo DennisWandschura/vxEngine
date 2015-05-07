@@ -30,11 +30,11 @@ namespace
 	void writeScreenshotToFile(const vx::uint2 &resolution, vx::float4a *pData)
 	{
 		auto size = resolution.x * resolution.y * 3;
-		std::unique_ptr<U8[]> pngData = std::make_unique<U8[]>(size);
+		std::unique_ptr<u8[]> pngData = std::make_unique<u8[]>(size);
 
 		const __m128 vToUINT8 = { 255.0f, 255.0f, 255.0f, 255.0f };
 
-		for (U32 i = 0, j = 0; i < size; i += 3, ++j)
+		for (u32 i = 0, j = 0; i < size; i += 3, ++j)
 		{
 			__m128 vTmp = _mm_load_ps(&pData[j].x);
 			vTmp = _mm_mul_ps(vTmp, vToUINT8);
@@ -48,7 +48,7 @@ namespace
 
 		_aligned_free(pData);
 
-		U8 *last_row = pngData.get() + (resolution.x * 3 * (resolution.y - 1));
+		u8 *last_row = pngData.get() + (resolution.x * 3 * (resolution.y - 1));
 
 		__time64_t long_time;
 		_time64(&long_time);

@@ -33,7 +33,7 @@ struct NavMeshConnection;
 struct NavMeshNode
 {
 	vx::float3 position;
-	U32 connectionIndex;
+	u32 connectionIndex;
 };
 
 class NavMeshGraph
@@ -43,9 +43,9 @@ class NavMeshGraph
 
 	std::unique_ptr<NavMeshNode[]> m_nodes;
 	const NavMesh* m_pNavMesh;
-	U32 m_nodeCount;
+	u32 m_nodeCount;
 
-	std::unique_ptr<NavMeshNode[]> buildNodes(const NavMesh &navMesh, U32* finalNodeCount);
+	std::unique_ptr<NavMeshNode[]> buildNodes(const NavMesh &navMesh, u32* finalNodeCount);
 
 public:
 	NavMeshGraph();
@@ -54,5 +54,5 @@ public:
 	void initialize(const NavMesh &navMesh);
 
 	const NavMeshNode* getNodes() const;
-	U32 getNodeCount() const;
+	u32 getNodeCount() const;
 };

@@ -31,16 +31,16 @@ namespace physx
 #include <vxLib/types.h>
 #include <vxLib/math/Vector.h>
 
-const U32 g_maxEntities = 100u;
+const u32 g_maxEntities = 100u;
 
 struct EntityActor
 {
 	physx::PxController* pRigidActor{ nullptr };
 	vx::float3 position;
-	F32 footPositionY;
+	f32 footPositionY;
 	vx::float2 orientation;
 
-	U16 input{ 0 };
-	U16 render{ 0 };
-	U16 actor{ 0 };
+	u16 input{ 0 };
+	u16 render{ 0 };
+	u16 actor{ 0 };
 };

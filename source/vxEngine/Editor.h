@@ -27,5 +27,5 @@ SOFTWARE.
 
 namespace Editor
 {
-	typedef void(*LoadFileCallback)(U64, unsigned int);
+	typedef void(*LoadFileCallback)(u64, unsigned int);
 }

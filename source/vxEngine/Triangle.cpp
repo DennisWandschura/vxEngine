@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "Triangle.h"
 
-F32 Triangle::getArea() const
+f32 Triangle::getArea() const
 {
 	auto ab = m_points[1] - m_points[0];
 	auto ac = m_points[2] - m_points[0];

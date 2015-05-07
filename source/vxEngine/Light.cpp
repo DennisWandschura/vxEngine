@@ -45,9 +45,9 @@ SOFTWARE.
 		{
 			data.m_position = node["position"].as<vx::float3>();
 			data.m_direction = node["direction"].as<vx::float3>();
-			data.m_falloff = node["falloff"].as<F32>();
-			data.m_lumen = node["lumen"].as<F32>();
-			data.m_angle = node["angle"].as<F32>();
+			data.m_falloff = node["falloff"].as<f32>();
+			data.m_lumen = node["lumen"].as<f32>();
+			data.m_angle = node["angle"].as<f32>();
 
 			return true;
 		}
@@ -72,7 +72,7 @@ std::vector<Light> Light::loadFromYaml(const YAML::Node &n)
 	return lights;
 }
 
-YAML::Node Light::saveToYaml(const Light* lights, U32 count)
+YAML::Node Light::saveToYaml(const Light* lights, u32 count)
 {
 	YAML::Node n;
 	for (auto i = 0u; i < count; ++i)
@@ -137,7 +137,7 @@ void Light::getShadowTransform(PointLightShadowTransform* shadowTransform) const
 	viewMatrices[5] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
 
 	shadowTransform->projectionMatrix = projectionMatrix;
-	for (U32 i = 0; i < 6; ++i)
+	for (u32 i = 0; i < 6; ++i)
 	{
 		shadowTransform->viewMatrix[i] = viewMatrices[i];
 		shadowTransform->pvMatrices[i] = projectionMatrix * viewMatrices[i];

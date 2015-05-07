@@ -35,8 +35,8 @@ class EventManager
 {
 	std::mutex m_evtMutex;
 	std::vector<Event> m_events[2];
-	std::vector<std::pair<U64, EventListener*>> m_eventListeners;
-	U32 m_currentReadQueue{0};
+	std::vector<std::pair<u64, EventListener*>> m_eventListeners;
+	u32 m_currentReadQueue{0};
 
 public:
 	EventManager();
@@ -44,7 +44,7 @@ public:
 
 	void initialize();
 
-	void registerListener(EventListener* ptr, U64 priority);
+	void registerListener(EventListener* ptr, u64 priority);
 
 	void update();
 

@@ -31,7 +31,7 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include <vxLib/Container/array.h>
 
-F32 heuristicDistance(const NavNode &fromNode, const NavNode &goalNode)
+f32 heuristicDistance(const NavNode &fromNode, const NavNode &goalNode)
 {
 	auto x = goalNode.m_position.x - fromNode.m_position.x;
 	auto y = goalNode.m_position.y - fromNode.m_position.y;
@@ -39,7 +39,7 @@ F32 heuristicDistance(const NavNode &fromNode, const NavNode &goalNode)
 	return sqrtf(x * x + y * y);
 }
 
-F32 heuristicDistance2(const NavNode &fromNode, const NavNode &goalNode)
+f32 heuristicDistance2(const NavNode &fromNode, const NavNode &goalNode)
 {
 	auto x = goalNode.m_position.x - fromNode.m_position.x;
 	auto y = goalNode.m_position.y - fromNode.m_position.y;
@@ -47,7 +47,7 @@ F32 heuristicDistance2(const NavNode &fromNode, const NavNode &goalNode)
 	return (x * x + y * y);
 }
 
-U8 pathfindAStar(const NavGraph &graph, U16 start, U16 goal, HeuristicFp heuristicFp, vx::StackAllocator* pAllocatorScratch, vx::array<vx::float3>* out, const PhysicsAspect* pPhysicsAspect)
+u8 pathfindAStar(const NavGraph &graph, u16 start, u16 goal, HeuristicFp heuristicFp, vx::StackAllocator* pAllocatorScratch, vx::array<vx::float3>* out, const PhysicsAspect* pPhysicsAspect)
 {
 	out->clear();
 
@@ -62,15 +62,15 @@ U8 pathfindAStar(const NavGraph &graph, U16 start, U16 goal, HeuristicFp heurist
 	struct NodeRecord
 	{
 		enum NODE_CATEGORY{ OPEN, CLOSED, UNVISITED };
-		U32 nodeId;
+		u32 nodeId;
 		NavConnection connection;
 		float costSoFar;
 		float estaminatedTotalCost;
-		U8 category{ UNVISITED };
+		u8 category{ UNVISITED };
 	};
 
-	//typedef dw::PriorityHeap<F32, NodeRecord> NodeRecordList;
-	//	typedef std::map<U32, NodeRecord> NodeRecordList;
+	//typedef dw::PriorityHeap<f32, NodeRecord> NodeRecordList;
+	//	typedef std::map<u32, NodeRecord> NodeRecordList;
 
 	auto graphNodes = graph.getNodes();
 	auto &startNode = graphNodes[start];
@@ -89,16 +89,16 @@ U8 pathfindAStar(const NavGraph &graph, U16 start, U16 goal, HeuristicFp heurist
 	auto records = (NodeRecord*)pAllocatorScratch->allocate(sizeof(NodeRecord) * graphConnectionCount);
 	pAllocatorScratch->rangeConstruct(records, records + graphConnectionCount);
 
-	vx::HeapArray<F32, U32, std::greater<F32>> heap(graphConnectionCount, pAllocatorScratch);
+	vx::HeapArray<f32, u32, std::greater<f32>> heap(graphConnectionCount, pAllocatorScratch);
 
 	records[startRecord.nodeId] = startRecord;
 
-	U32 current = startRecord.nodeId;
+	u32 current = startRecord.nodeId;
 	heap.push(std::make_pair(startRecord.estaminatedTotalCost, startRecord.nodeId));
 
 	auto graphConnections = graph.getConnections();
 
-	U32 openSize = 1;
+	u32 openSize = 1;
 	while (openSize > 0)
 	{
 		// find smallest element in open list
@@ -124,7 +124,7 @@ U8 pathfindAStar(const NavGraph &graph, U16 start, U16 goal, HeuristicFp heurist
 			auto endNodeCost = records[current].costSoFar + connection.m_cost;
 
 			NodeRecord *pEndNodeRecord = nullptr;
-			F32 endNodeHeuristic;
+			f32 endNodeHeuristic;
 			// if the node is closed we may have to skip
 			// or remove it from the closed list
 			if (records[endNode].category == NodeRecord::CLOSED)
@@ -197,7 +197,7 @@ U8 pathfindAStar(const NavGraph &graph, U16 start, U16 goal, HeuristicFp heurist
 	}
 
 	// we're here if we've either found the goal, or not
-	U8 result = 0;
+	u8 result = 0;
 	if (current == goal)
 	{
 		result = 1;
@@ -226,18 +226,18 @@ U8 pathfindAStar(const NavGraph &graph, U16 start, U16 goal, HeuristicFp heurist
 		if (pPhysicsAspect && out->size() > 2)
 		{
 			auto pNewOutput = (vx::float3*)pAllocatorScratch->allocate(sizeof(vx::float3) * out->size());
-			U32 newOutSize = 0;
+			u32 newOutSize = 0;
 			pNewOutput[newOutSize] = out->front();
 			++newOutSize;
 			//std::vector<vx::float3> newOutput;
 			//newOutput.reserve(out->size());
 
 			//newOutput.push_back(out->front());
-			//U32 newOutSize = 1;
+			//u32 newOutSize = 1;
 
 
 			vx::float3 hitPos;
-			U32 inputIndex = 2;
+			u32 inputIndex = 2;
 
 			auto tmpSz = out->size() - 1;
 			while (inputIndex < tmpSz)
@@ -263,7 +263,7 @@ U8 pathfindAStar(const NavGraph &graph, U16 start, U16 goal, HeuristicFp heurist
 			++newOutSize;
 
 			out->clear();
-			for (U32 i = 0; i < newOutSize; ++i)
+			for (u32 i = 0; i < newOutSize; ++i)
 			{
 				out->push_back(pNewOutput[i]);
 			}

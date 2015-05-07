@@ -31,7 +31,7 @@ SOFTWARE.
 #include "gl/BufferBindingManager.h"
 #include "gl/ObjectManager.h"
 
-void VoxelRenderer::initialize(U16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager)
+void VoxelRenderer::initialize(u16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager)
 {
 	m_voxelTextureSize = voxelTextureSize;
 	m_mipcount = std::log2(m_voxelTextureSize);
@@ -53,11 +53,11 @@ void VoxelRenderer::createVoxelBuffer(gl::ObjectManager* objectManager)
 	const __m128 axisX = { 1, 0, 0, 0 };
 	const __m128 axisY = { 0, 1, 0, 0 };
 
-	const U32 halfDim = m_voxelTextureSize / 2;
+	const u32 halfDim = m_voxelTextureSize / 2;
 
-	const F32 gridSize = 10.0f;
+	const f32 gridSize = 10.0f;
 
-	const F32 gridHalfSize = gridSize / 2.0f;
+	const f32 gridHalfSize = gridSize / 2.0f;
 	auto gridCellSize = gridHalfSize / halfDim;
 	auto invGridCellSize = 1.0f / gridCellSize;
 
@@ -85,10 +85,10 @@ void VoxelRenderer::createVoxelTextureBuffer(gl::ObjectManager* objectManager)
 {
 	struct VoxelHandles
 	{
-		U64 u_voxelEmmitanceImage[6];
-		U64 u_voxelEmmitanceTexture[6];
-		U64 u_voxelOpacityImage;
-		U64 u_voxelOpacityTexture;
+		u64 u_voxelEmmitanceImage[6];
+		u64 u_voxelEmmitanceTexture[6];
+		u64 u_voxelOpacityImage;
+		u64 u_voxelOpacityTexture;
 	};
 
 	VoxelHandles voxelHandles;
@@ -118,9 +118,9 @@ void VoxelRenderer::createVoxelTextures()
 	desc.format = vx::gl::TextureFormat::RGBA8;
 	desc.type = vx::gl::TextureType::Texture_3D;
 	desc.size = vx::ushort3(m_voxelTextureSize, m_voxelTextureSize, m_voxelTextureSize);
-	desc.miplevels = std::max((U8)1, m_mipcount);
+	desc.miplevels = std::max((u8)1, m_mipcount);
 
-	for (U32 i = 0; i < 6; ++i)
+	for (u32 i = 0; i < 6; ++i)
 	{
 		m_pColdData->m_voxelEmmitanceTextures[i].create(desc);
 		m_pColdData->m_voxelEmmitanceTextures[i].setFilter(vx::gl::TextureFilter::LINEAR_MIPMAP_LINEAR, vx::gl::TextureFilter::LINEAR);
@@ -163,7 +163,7 @@ void VoxelRenderer::bindBuffers(const gl::ObjectManager &objectManager)
 
 void VoxelRenderer::clearTextures()
 {
-	for (U32 miplevel = 0; miplevel < m_mipcount; ++miplevel)
+	for (u32 miplevel = 0; miplevel < m_mipcount; ++miplevel)
 	{
 		for (int j = 0; j < 6; ++j)
 		{
@@ -174,7 +174,7 @@ void VoxelRenderer::clearTextures()
 	}
 }
 
-void VoxelRenderer::voxelizeScene(U32 count, const vx::gl::Buffer &indirectCmdBuffer, const vx::gl::VertexArray &vao)
+void VoxelRenderer::voxelizeScene(u32 count, const vx::gl::Buffer &indirectCmdBuffer, const vx::gl::VertexArray &vao)
 {
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::setViewport(0, 0, m_voxelTextureSize, m_voxelTextureSize);
@@ -206,7 +206,7 @@ void VoxelRenderer::createMipmaps()
 	int dstLevel = 1;
 	auto dstResolution = m_voxelTextureSize / 2;
 
-	for (U8 i = 1; i <= m_mipcount; ++i)
+	for (u8 i = 1; i <= m_mipcount; ++i)
 	{
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
 

@@ -51,7 +51,7 @@ namespace ai
 
 	class SquadManager : public EventListener
 	{
-		static U16 s_squadFilterMask;
+		static u16 s_squadFilterMask;
 
 		std::vector<SquadHandler> m_squadHandlers;
 		const NavGraph* m_pNavGraph{ nullptr };
@@ -69,12 +69,12 @@ namespace ai
 
 		void handleEvent(const Event &evt) override;
 
-		U32 createSquadHandler();
+		u32 createSquadHandler();
 
 		// returns index of squad handler
-		U32 addActor(U16 actorIndex);
+		u32 addActor(u16 actorIndex);
 
-		const SquadHandler& getSquadHandler(U32 i) const;
-		SquadHandler& getSquadHandler(U32 i);
+		const SquadHandler& getSquadHandler(u32 i) const;
+		SquadHandler& getSquadHandler(u32 i);
 	};
 }

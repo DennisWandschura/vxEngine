@@ -32,7 +32,7 @@ namespace Component
 
 class DecisionHasDestination : public Decision
 {
-	U8 getBranch() const;
+	u8 getBranch() const;
 
 public:
 	DecisionHasDestination(const Component::Actor* pActor, DecisionTreeNode* trueNode, DecisionTreeNode* falseNode);

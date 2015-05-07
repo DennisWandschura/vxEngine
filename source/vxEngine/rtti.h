@@ -36,13 +36,13 @@ namespace rtti
 	namespace detail
 	{
 		template<class T>
-		inline void setDataImpl(void *p, const void *pSrc, U32 offset)
+		inline void setDataImpl(void *p, const void *pSrc, u32 offset)
 		{
 			*(T*)((ptrdiff_t)p + offset) = *(T*)pSrc;
 		}
 
 		template<class T, typename std::enable_if_t<std::is_copy_assignable<T>::value>>
-		inline void setDataImpl(void *p, const T &value, U32 offset)
+		inline void setDataImpl(void *p, const T &value, u32 offset)
 		{
 			*(T*)((ptrdiff_t)p + offset) = value;
 		}
@@ -78,15 +78,15 @@ namespace rtti
 	{
 		typedef void(*ConstructObjectFunc)(void*);
 		typedef void(*DestructObjectFunc)(void*);
-		typedef void(*SetDataFun)(void*, const void*, U32);
+		typedef void(*SetDataFun)(void*, const void*, u32);
 
 		std::string m_name;
 		size_t m_size{0};
-		U64 m_sid;
-		vx::sorted_vector<U64, Member> m_members;
+		u64 m_sid;
+		vx::sorted_vector<u64, Member> m_members;
 		ConstructObjectFunc m_constructFun{ nullptr };
 		DestructObjectFunc m_destructFun{nullptr};
-		U32 m_alignment;
+		u32 m_alignment;
 
 		TypeData(){}
 
@@ -116,7 +116,7 @@ namespace rtti
 
 	class Manager
 	{
-		vx::sorted_vector<U64, const TypeData*>  m_data;
+		vx::sorted_vector<u64, const TypeData*>  m_data;
 
 		Manager(const Manager&) = delete;
 		Manager(Manager&&) = delete;
@@ -141,10 +141,10 @@ namespace rtti
 			return TypeCreator<U>::getTypeData();
 		}
 
-		void setData(const char *type, void *pDest, void *pSrc, U32 offset);
+		void setData(const char *type, void *pDest, void *pSrc, u32 offset);
 
 		template<class U>
-		void setData(const char *type, void *pDest, U value, U32 offset)
+		void setData(const char *type, void *pDest, U value, u32 offset)
 		{
 			setData(type, pDest, &value, offset);
 		}

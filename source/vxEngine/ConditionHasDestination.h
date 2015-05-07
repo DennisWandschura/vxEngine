@@ -37,7 +37,7 @@ class ConditionHasDestination : public Condition
 public:
 	explicit ConditionHasDestination(const Component::Actor* pActor);
 
-	U8 test() const override;
+	u8 test() const override;
 };
 
 class ConditionHasNoDestination : public Condition
@@ -47,5 +47,5 @@ class ConditionHasNoDestination : public Condition
 public:
 	explicit ConditionHasNoDestination(const Component::Actor* pActor);
 
-	U8 test() const override;
+	u8 test() const override;
 };

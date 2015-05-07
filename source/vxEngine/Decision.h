@@ -33,7 +33,7 @@ protected:
 	DecisionTreeNode* m_nodes[2];
 	vx::Variant m_testValue;
 
-	virtual U8 getBranch() const = 0;
+	virtual u8 getBranch() const = 0;
 
 public:
 	Decision(DecisionTreeNode* trueNode, DecisionTreeNode* falseNode);

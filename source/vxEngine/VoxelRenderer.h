@@ -53,14 +53,14 @@ class VoxelRenderer
 		vx::gl::Texture m_voxelOpacityTexture;
 	};
 
-	U32 m_pipelineVoxelize{0};
-	U32 m_pipelineDebug{0};
-	U32 m_pipelineMipmap{ 0 };
+	u32 m_pipelineVoxelize{0};
+	u32 m_pipelineDebug{0};
+	u32 m_pipelineMipmap{ 0 };
 	vx::gl::Framebuffer m_voxelFB;
-	U16 m_voxelTextureSize{0};
-	U8 m_mipcount{ 1 };
-	U32 m_voxelEmmitanceTexturesId[6];
-	U32 m_voxelOpacityTextureId;
+	u16 m_voxelTextureSize{0};
+	u8 m_mipcount{ 1 };
+	u32 m_voxelEmmitanceTexturesId[6];
+	u32 m_voxelOpacityTextureId;
 
 	std::unique_ptr<ColdData> m_pColdData;
 
@@ -72,12 +72,12 @@ class VoxelRenderer
 public:
 	VoxelRenderer() = default;
 
-	void initialize(U16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager);
+	void initialize(u16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager);
 
 	void bindBuffers(const gl::ObjectManager &objectManager);
 
 	void clearTextures();
-	void voxelizeScene(U32 count, const vx::gl::Buffer &indirectCmdBuffer, const vx::gl::VertexArray &vao);
+	void voxelizeScene(u32 count, const vx::gl::Buffer &indirectCmdBuffer, const vx::gl::VertexArray &vao);
 	void createMipmaps();
 
 	void debug(const vx::gl::VertexArray &vao, vx::uint2 &resolution);

@@ -38,20 +38,20 @@ namespace
 	{
 		vx::float3 v[3];
 		vx::float3 c;
-		U16 sharedEdges[3];
-		U8 sharedEdgesCount{ 0 };
+		u16 sharedEdges[3];
+		u8 sharedEdgesCount{ 0 };
 
 		bool sharesEdge(const NavGraphTriangle &other)
 		{
 			if (this == &other)
 				return false;
 
-			U8 count = 0;
+			u8 count = 0;
 
-			for (U32 i = 0; i < 3; ++i)
+			for (u32 i = 0; i < 3; ++i)
 			{
 				auto &vertex = v[i];
-				for (U32 j = 0; j < 3; ++j)
+				for (u32 j = 0; j < 3; ++j)
 				{
 					auto &otherVertex = other.v[j];
 
@@ -67,7 +67,7 @@ namespace
 
 	struct BuildCell
 	{
-		std::vector<U32> indices;
+		std::vector<u32> indices;
 	};
 }
 
@@ -109,7 +109,7 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 	// bounds of centroids
 	AABB bounds;
 	// create triangles
-	for (U32 i = 0; i < triangleCount; ++i)
+	for (u32 i = 0; i < triangleCount; ++i)
 	{
 		auto i0 = triangleIndices[i].vertexIndex[0];
 		auto i1 = triangleIndices[i].vertexIndex[1];
@@ -136,14 +136,14 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 			);
 	});
 
-	U32 connectionCount = 0;
+	u32 connectionCount = 0;
 	// find triangles that share edges
-	for (U32 j = 0; j < triangleCount; ++j)
+	for (u32 j = 0; j < triangleCount; ++j)
 	{
 		auto &it = triangles[j];
 
-		U8 sharedCount = 0;
-		for (U32 i = 0; i < triangleCount; ++i)
+		u8 sharedCount = 0;
+		for (u32 i = 0; i < triangleCount; ++i)
 		{
 			if (it.sharesEdge(triangles[i]))
 			{
@@ -158,7 +158,7 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 	}
 
 	auto connections = (NavConnection*)pAllocatorScratch->allocate(sizeof(NavConnection) * connectionCount, __alignof(NavConnection));
-	U32 connectionOffset = 0;
+	u32 connectionOffset = 0;
 
 	m_nodeCount = triangleCount;
 #if _VX_EDITOR
@@ -168,7 +168,7 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 	m_nodes = (NavNode*)pAllocator->allocate(sizeof(NavNode) * m_nodeCount, __alignof(NavNode));
 #endif
 
-	for (U32 i = 0; i < triangleCount; ++i)
+	for (u32 i = 0; i < triangleCount; ++i)
 	{
 		auto &triangle = triangles[i];
 
@@ -183,7 +183,7 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 		m_nodes[i] = node;
 #endif
 
-		for (U32 j = 0; j < triangle.sharedEdgesCount; ++j)
+		for (u32 j = 0; j < triangle.sharedEdgesCount; ++j)
 		{
 			auto it = triangle.sharedEdges[j];
 
@@ -203,7 +203,7 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 
 #if _VX_EDITOR
 	m_connections.reserve(connectionCount);
-	for(U32 i = 0;i < connectionCount; ++i)
+	for(u32 i = 0;i < connectionCount; ++i)
 	{
 		m_connections.push_back(connections[i]);
 	}
@@ -226,11 +226,11 @@ void NavGraph::shutdown(vx::StackAllocator* pAllocator)
 #endif
 }
 
-U32 NavGraph::getClosestNode(const vx::float3 &position) const
+u32 NavGraph::getClosestNode(const vx::float3 &position) const
 {
-	F32 distance = FLT_MAX;
-	U32 nodeIndex = -1;
-	for (U32 i = 0; i < m_nodeCount; ++i)
+	f32 distance = FLT_MAX;
+	u32 nodeIndex = -1;
+	for (u32 i = 0; i < m_nodeCount; ++i)
 	{
 		auto &node = m_nodes[i];
 
@@ -246,11 +246,11 @@ U32 NavGraph::getClosestNode(const vx::float3 &position) const
 	return nodeIndex;
 }
 
-U32 NavGraph::getFarestNode(const vx::float3 &position) const
+u32 NavGraph::getFarestNode(const vx::float3 &position) const
 {
-	F32 distance = -FLT_MAX;
-	U32 nodeIndex = -1;
-	for (U32 i = 0; i < m_nodeCount; ++i)
+	f32 distance = -FLT_MAX;
+	u32 nodeIndex = -1;
+	for (u32 i = 0; i < m_nodeCount; ++i)
 	{
 		auto &node = m_nodes[i];
 
@@ -266,7 +266,7 @@ U32 NavGraph::getFarestNode(const vx::float3 &position) const
 	return nodeIndex;
 }
 
-const NavNode& NavGraph::getNode(U32 i) const
+const NavNode& NavGraph::getNode(u32 i) const
 {
 	return m_nodes[i];
 }

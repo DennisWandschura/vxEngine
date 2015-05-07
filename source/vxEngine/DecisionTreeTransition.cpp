@@ -41,7 +41,7 @@ State* DecisionTreeTransition::getTargetState() const
 	return state;
 }
 
-U8 DecisionTreeTransition::isTriggered()
+u8 DecisionTreeTransition::isTriggered()
 {
 	m_pTargetState = m_pRoot->makeDecision();
 

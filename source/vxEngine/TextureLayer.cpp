@@ -46,7 +46,7 @@ namespace Graphics
 
 	}
 
-	void TextureLayer::create(const vx::ushort3 &dim, U32 size, std::unique_ptr<U8> &&data)
+	void TextureLayer::create(const vx::ushort3 &dim, u32 size, std::unique_ptr<u8> &&data)
 	{
 		m_data = std::move(data);
 		m_dimension = dim;
@@ -60,7 +60,7 @@ namespace Graphics
 		m_size = 0;
 	}
 
-	const U8* TextureLayer::getData() const
+	const u8* TextureLayer::getData() const
 	{
 		return m_data.get();
 	}
@@ -70,7 +70,7 @@ namespace Graphics
 		return m_dimension;
 	}
 
-	U32 TextureLayer::getSize() const
+	u32 TextureLayer::getSize() const
 	{
 		return m_size;
 	}

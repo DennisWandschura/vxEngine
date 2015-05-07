@@ -30,7 +30,7 @@ Text::Text()
 
 }
 
-Text::Text(const std::string &str, const vx::float2 &position, const vx::float2 &scale, const vx::float4 &color, F32 layer)
+Text::Text(const std::string &str, const vx::float2 &position, const vx::float2 &scale, const vx::float4 &color, f32 layer)
 	:m_string(str),
 	m_position(position),
 	m_layer(layer),
@@ -45,7 +45,7 @@ void Text::setString(const char *str)
 	m_string = str;
 }
 
-void Text::setPosition(F32 x, F32 y)
+void Text::setPosition(f32 x, f32 y)
 {
 	m_position.x = x;
 	m_position.y = y;
@@ -56,7 +56,7 @@ void Text::setPosition(const vx::float2 &position)
 	m_position = position;
 }
 
-void Text::setColor(F32 r, F32 g, F32 b, F32 a)
+void Text::setColor(f32 r, f32 g, f32 b, f32 a)
 {
 	m_color.x = r;
 	m_color.y = g;
@@ -69,7 +69,7 @@ void Text::setColor(const vx::float4 &color)
 	m_color = color;
 }
 
-void Text::setScale(F32 x, F32 y)
+void Text::setScale(f32 x, f32 y)
 {
 	m_scale.x = x;
 	m_scale.y = y;

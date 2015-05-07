@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-enum class EditorEvent : U16
+enum class EditorEvent : u16
 {
 	Add_Mesh,
 	Add_MeshInstance,

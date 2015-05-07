@@ -41,7 +41,7 @@ namespace rtti
 
 	void TypeData::registerMember(const char *name, size_t offset, const TypeData *pTypeData)
 	{
-		U64 sid = pTypeData->m_sid;
+		u64 sid = pTypeData->m_sid;
 		auto it = m_members.find(sid);
 		if (it == m_members.end())
 		{
@@ -51,7 +51,7 @@ namespace rtti
 
 	const Member* TypeData::getMember(const char *name) const
 	{
-		U64 sid = CITYHASH64(name);
+		u64 sid = CITYHASH64(name);
 		auto it = m_members.find(sid);
 		if (it == m_members.end())
 			return nullptr;
@@ -99,7 +99,7 @@ namespace rtti
 
 	const TypeData* Manager::getTypeData(const char *type)
 	{
-		U64 sid = CITYHASH64(type);
+		u64 sid = CITYHASH64(type);
 		auto it = m_data.find(sid);
 		if (it == m_data.end())
 			return nullptr;
@@ -107,9 +107,9 @@ namespace rtti
 		return *it;
 	}
 
-	void Manager::setData(const char *type, void *pDest, void *pSrc, U32 offset)
+	void Manager::setData(const char *type, void *pDest, void *pSrc, u32 offset)
 	{
-		/*U64 sid = CITYHASH64(type);
+		/*u64 sid = CITYHASH64(type);
 		auto it = m_creators.find(sid);
 		if (it == m_creators.end())
 			return;
@@ -119,7 +119,7 @@ namespace rtti
 
 	void Manager::setMemberData(const char *type, const char *memberName, void *pDest, const void *pSrc)
 	{
-	/*	U64 sid = CITYHASH64(type);
+	/*	u64 sid = CITYHASH64(type);
 		auto it = m_creators.find(sid);
 		if (it == m_creators.end())
 			return;

@@ -41,7 +41,7 @@ class ActionFollowPath : public Action
 	Arrive m_arrive;
 	ActorData* m_pData{ nullptr };
 	Component::Actor* m_pActor{ nullptr };
-	U8 m_update{1};
+	u8 m_update{1};
 
 public:
 	ActionFollowPath(Component::Input* pInput, EntityActor* entity, Component::Actor* pActor);

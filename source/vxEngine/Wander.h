@@ -27,6 +27,6 @@ SOFTWARE.
 
 struct Wander
 {
-	F32 wanderOffset;
-	F32 wanderRadius;
+	f32 wanderOffset;
+	f32 wanderRadius;
 };

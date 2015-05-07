@@ -33,7 +33,7 @@ namespace Graphics
 
 	}
 
-	void Texture::create(const vx::ushort3 &dim, U32 size, std::unique_ptr<U8> &&data, U32 mipmapCount)
+	void Texture::create(const vx::ushort3 &dim, u32 size, std::unique_ptr<u8> &&data, u32 mipmapCount)
 	{
 		TextureLayer::create(dim, size, std::move(data));
 
@@ -44,12 +44,12 @@ namespace Graphics
 		}
 	}
 
-	TextureLayer& Texture::getMipmap(U32 i)
+	TextureLayer& Texture::getMipmap(u32 i)
 	{
 		return m_mipmaps[i];
 	}
 
-	const TextureLayer& Texture::getMipmap(U32 i) const
+	const TextureLayer& Texture::getMipmap(u32 i) const
 	{
 		return m_mipmaps[i];
 	}

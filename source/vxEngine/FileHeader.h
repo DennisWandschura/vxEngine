@@ -27,9 +27,9 @@ SOFTWARE.
 
 struct FileHeader
 {
-	static const U32 s_magic = 0x1337b0b;
+	static const u32 s_magic = 0x1337b0b;
 
-	U32 magic;
-	U32 version;
-	U64 crc;
+	u32 magic;
+	u32 version;
+	u64 crc;
 };

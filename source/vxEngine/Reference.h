@@ -33,17 +33,17 @@ class ReferenceCounted
 	std::atomic_uint32_t m_refCount{ 0 };
 
 public:
-	U32 increment()
+	u32 increment()
 	{
 		return ++m_refCount;
 	}
 
-	U32 decrement()
+	u32 decrement()
 	{
 		return --m_refCount;
 	}
 
-	U32 getRefCount() const
+	u32 getRefCount() const
 	{
 		return m_refCount.load();
 	}

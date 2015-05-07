@@ -41,7 +41,7 @@ public:
 	Font& operator=(const Font&) = delete;
 	Font& operator=(Font &&rhs);
 
-	const FontAtlasEntry* getAtlasEntry(U32 code) const;
+	const FontAtlasEntry* getAtlasEntry(u32 code) const;
 	const TextureRef& getTextureEntry() const
 	{
 		return m_texture;

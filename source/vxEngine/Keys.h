@@ -30,7 +30,7 @@ namespace vx
 {
 	namespace Input
 	{
-		enum Key : U8
+		enum Key : u8
 		{
 			KEY_SHIFT = VK_SHIFT,
 			KEY_ESC = VK_ESCAPE,

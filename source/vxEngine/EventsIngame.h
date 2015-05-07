@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-enum class IngameEvent : U16
+enum class IngameEvent : u16
 {
 	Level_Started,
 	Created_NavGraph,

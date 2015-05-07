@@ -41,9 +41,9 @@ public:
 	{
 	}
 
-	U8 try_push_back(const value_type &val)
+	u8 try_push_back(const value_type &val)
 	{
-		U8 result = 0;
+		u8 result = 0;
 		std::unique_lock<std::mutex> lck(m_mutex, std::defer_lock);
 
 		if (lck.try_lock())
@@ -55,11 +55,11 @@ public:
 		return result;
 	}
 
-	U8 try_pop_back(value_type &value)
+	u8 try_pop_back(value_type &value)
 	{
 		std::unique_lock<std::mutex> lck(m_mutex, std::defer_lock);
 
-		U8 result = 0;
+		u8 result = 0;
 		if (lck.try_lock() &&
 			m_data.size() != 0)
 		{
@@ -71,7 +71,7 @@ public:
 		return result;
 	}
 
-	void reserve(U32 n)
+	void reserve(u32 n)
 	{
 		std::lock_guard<std::mutex> lck(m_mutex);
 		m_data.reserve(n);

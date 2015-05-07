@@ -31,8 +31,8 @@ class EngineConfig;
 #include <vxLib\Window.h>
 #include <vxLib\RawInput.h>
 
-typedef void(*CallbackKeyPressedFp)(U16 key);
-typedef void(*HandleInputFp)(const vx::Mouse &m, const vx::Keyboard &k, F32 dt);
+typedef void(*CallbackKeyPressedFp)(u16 key);
+typedef void(*HandleInputFp)(const vx::Mouse &m, const vx::Keyboard &k, f32 dt);
 
 class SystemAspect
 {
@@ -45,7 +45,7 @@ public:
 	bool initialize(const EngineConfig &config, CallbackKeyPressedFp fp, HandleInputFp inputFp);
 	void shutdown();
 
-	void update(const F32 dt);
+	void update(const f32 dt);
 
 	const vx::Window& getWindow() const;
 };

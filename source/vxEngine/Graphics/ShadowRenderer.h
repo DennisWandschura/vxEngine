@@ -31,8 +31,8 @@ namespace Graphics
 {
 	class ShadowRenderer : public Renderer
 	{
-		std::unique_ptr<U32[]> m_shadowTextureIds;
-		U32 m_textureCount;
+		std::unique_ptr<u32[]> m_shadowTextureIds;
+		u32 m_textureCount;
 
 		void createShadowTextureBuffer();
 		void createShadowTextures();
@@ -51,6 +51,6 @@ namespace Graphics
 		void clearData() override;
 		void bindBuffers() override;
 
-		const U32* getTextureIds() const;
+		const u32* getTextureIds() const;
 	};
 }

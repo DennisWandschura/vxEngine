@@ -72,7 +72,7 @@ namespace Graphics
 
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
 
-		m_shadowTextureIds = std::make_unique<U32[]>(m_textureCount);
+		m_shadowTextureIds = std::make_unique<u32[]>(m_textureCount);
 
 		vx::gl::TextureDescription desc;
 		desc.format = vx::gl::TextureFormat::DEPTH32F;
@@ -88,7 +88,7 @@ namespace Graphics
 
 		auto mappedBuffer = shadowTexBuffer->map<UniformShadowTextureBufferBlock>(vx::gl::Map::Write_Only);
 
-		for (U32 i = 0; i < m_textureCount; ++i)
+		for (u32 i = 0; i < m_textureCount; ++i)
 		{
 			sprintf(nameBuffer + textureNameSize - 1, "%u", i);
 
@@ -177,10 +177,10 @@ namespace Graphics
 		uniformCmd.setUInt(gsShader, 0, 1);
 
 		auto maxLightCount = s_settings->m_maxActiveLights;
-		for (U32 i = 0; i < maxLightCount; ++i)
+		for (u32 i = 0; i < maxLightCount; ++i)
 		{
 
-			Graphics::ProgramUniformData<U32> uniformData;
+			Graphics::ProgramUniformData<u32> uniformData;
 			uniformData.set(i);
 
 			Graphics::FramebufferTextureCommand fbTexCmd;
@@ -208,7 +208,7 @@ namespace Graphics
 		gl::BufferBindingManager::bindBaseUniform(9, shadowTexBuffer->getId());
 	}
 
-	const U32* ShadowRenderer::getTextureIds() const
+	const u32* ShadowRenderer::getTextureIds() const
 	{
 		return m_shadowTextureIds.get();
 	}

@@ -110,10 +110,29 @@ bool PhysicsAspect::initialize()
 
 void PhysicsAspect::shutdown()
 {
-	m_pControllerManager->release();
-	m_pCooking->release();
-	m_pPhysics->release();
-	m_pFoundation->release();
+	if (m_pControllerManager)
+	{
+		m_pControllerManager->release();
+		m_pControllerManager = nullptr;
+	}
+
+	if (m_pCooking)
+	{
+		m_pCooking->release();
+		m_pCooking = nullptr;
+	}
+
+	if (m_pPhysics)
+	{
+		m_pPhysics->release();
+		m_pPhysics = nullptr;
+	}
+
+	if (m_pFoundation)
+	{
+		m_pFoundation->release();
+		m_pFoundation = nullptr;
+	}
 }
 
 void PhysicsAspect::fetch()
@@ -121,7 +140,7 @@ void PhysicsAspect::fetch()
 	m_pScene->fetchResults(true);
 }
 
-void PhysicsAspect::update(const F32 dt)
+void PhysicsAspect::update(const f32 dt)
 {
 	m_pScene->simulate(dt);
 }
@@ -151,7 +170,7 @@ void PhysicsAspect::handleFileEvent(const Event &evt)
 	}
 }
 
-MeshInstance* PhysicsAspect::raycast_static(const vx::float3 &o, const vx::float3 &dir, F32 maxDistance, vx::float3* hitPosition) const
+MeshInstance* PhysicsAspect::raycast_static(const vx::float3 &o, const vx::float3 &dir, f32 maxDistance, vx::float3* hitPosition) const
 {
 	physx::PxVec3 origin(o.x, o.y,o.z);                 // [in] Ray origin
 	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
@@ -164,7 +183,7 @@ MeshInstance* PhysicsAspect::raycast_static(const vx::float3 &o, const vx::float
 
 	m_pScene->raycast((physx::PxVec3)origin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData);
 
-	U8 result = hit.hasBlock;
+	u8 result = hit.hasBlock;
 	MeshInstance* ptr = nullptr;
 	if (result != 0)
 	{
@@ -304,7 +323,7 @@ physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::Mesh* pMesh)
 	auto indexCount = pMesh->getIndexCount();
 
 	auto pVertices = std::make_unique<vx::float3[]>(vertexCount);
-	for (U32 i = 0; i < vertexCount; ++i)
+	for (u32 i = 0; i < vertexCount; ++i)
 	{
 		pVertices[i] = pMeshVertices[i].position;
 	}
@@ -315,7 +334,7 @@ physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::Mesh* pMesh)
 	meshDesc.points.data = pVertices.get();
 
 	meshDesc.triangles.count = indexCount / 3;
-	meshDesc.triangles.stride = 3 * sizeof(U32);
+	meshDesc.triangles.stride = 3 * sizeof(u32);
 	meshDesc.triangles.data = pIndices;
 
 	physx::PxDefaultMemoryOutputStream writeBuffer;
@@ -330,7 +349,7 @@ physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::Mesh* pMesh)
 	return m_pPhysics->createTriangleMesh(readBuffer);
 }
 
-physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, F32 height)
+physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f32 height)
 {
 	physx::PxCapsuleControllerDesc desc;
 	desc.height = height;
@@ -355,7 +374,7 @@ physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, F
 	return p;
 }
 
-void PhysicsAspect::move(const vx::float4a &velocity, F32 dt, physx::PxController* pController)
+void PhysicsAspect::move(const vx::float4a &velocity, f32 dt, physx::PxController* pController)
 {
 	physx::PxControllerFilters filters;
 	//filters.

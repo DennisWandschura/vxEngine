@@ -27,7 +27,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void ProgramUniformCommand::setUInt(U32 program, U32 location, U32 count)
+	void ProgramUniformCommand::setUInt(u32 program, u32 location, u32 count)
 	{
 		m_program = program;
 		m_dataType = vx::gl::DataType::Unsigned_Int;
@@ -35,7 +35,7 @@ namespace Graphics
 		m_location = location;
 	}
 
-	void ProgramUniformCommand::setFloat(U32 program, U32 location, U32 count)
+	void ProgramUniformCommand::setFloat(u32 program, u32 location, u32 count)
 	{
 		m_program = program;
 		m_dataType = vx::gl::DataType::Float;
@@ -43,7 +43,7 @@ namespace Graphics
 		m_location = location;
 	}
 
-	void ProgramUniformCommand::execute(U32* offset)
+	void ProgramUniformCommand::execute(u32* offset)
 	{
 		switch (m_dataType)
 		{
@@ -61,9 +61,9 @@ namespace Graphics
 		*offset += sizeof(ProgramUniformCommand);
 	}
 
-	void ProgramUniformCommand::programUniformFloat(U32* offset)
+	void ProgramUniformCommand::programUniformFloat(u32* offset)
 	{
-		const F32* dataPtr = (F32*)(this + 1);
+		const f32* dataPtr = (f32*)(this + 1);
 		switch (m_count)
 		{
 		case 1:
@@ -77,12 +77,12 @@ namespace Graphics
 			break;
 		}
 
-		*offset += (m_count * sizeof(F32));
+		*offset += (m_count * sizeof(f32));
 	}
 
-	void ProgramUniformCommand::programUniformUInt(U32* offset)
+	void ProgramUniformCommand::programUniformUInt(u32* offset)
 	{
-		const U32* dataPtr = (U32*)(this + 1);
+		const u32* dataPtr = (u32*)(this + 1);
 		switch (m_count)
 		{
 		case 1:
@@ -93,6 +93,6 @@ namespace Graphics
 			break;
 		}
 
-		*offset += (m_count * sizeof(U32));
+		*offset += (m_count * sizeof(u32));
 	}
 }

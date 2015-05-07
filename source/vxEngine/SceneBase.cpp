@@ -99,7 +99,7 @@ const Light* SceneBase::getLights() const
 #endif
 }
 
-U32 SceneBase::getLightCount() const
+u32 SceneBase::getLightCount() const
 {
 	return m_lightCount;
 }
@@ -109,7 +109,7 @@ const vx::sorted_vector<vx::StringID, Material*>& SceneBase::getMaterials() cons
 	return m_materials;
 }
 
-U32 SceneBase::getMaterialCount() const
+u32 SceneBase::getMaterialCount() const
 {
 	return m_materials.size();
 }
@@ -119,7 +119,7 @@ const vx::sorted_vector<vx::StringID, const vx::Mesh*>& SceneBase::getMeshes() c
 	return m_meshes;
 }
 
-U32 SceneBase::getVertexCount() const
+u32 SceneBase::getVertexCount() const
 {
 	return m_vertexCount;
 }
@@ -129,7 +129,7 @@ const Spawn* SceneBase::getSpawns() const
 	return m_pSpawns.get();
 }
 
-U32 SceneBase::getSpawnCount() const
+u32 SceneBase::getSpawnCount() const
 {
 	return m_spawnCount;
 }

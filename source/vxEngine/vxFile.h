@@ -36,7 +36,7 @@ shader
 */
 class vxFile
 {
-	U32 type;
-	U32 version;
-	U32 size;
+	u32 type;
+	u32 version;
+	u32 size;
 };

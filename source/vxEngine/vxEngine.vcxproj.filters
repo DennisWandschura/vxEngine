@@ -549,15 +549,6 @@
     <ClInclude Include="DrawCommand.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Frame.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPass.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderStage.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="ProgramUniformBinding.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
@@ -911,9 +902,6 @@
     <ClCompile Include="Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Spawn.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VoxelRenderer.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
@@ -955,15 +943,6 @@
     </ClCompile>
     <ClCompile Include="ProfilerGraph.cpp">
       <Filter>Source Files\Render\Graphics\Profiler</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderPass.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderStage.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Frame.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="DDS_File.cpp">
       <Filter>Source Files\Render\Graphics</Filter>

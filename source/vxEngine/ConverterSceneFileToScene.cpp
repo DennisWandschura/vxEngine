@@ -136,7 +136,7 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 		spawns[i].sid = vx::make_sid(sceneFile.m_pSpawns[i].actor);
 	}
 
-	U32 vertexCount = 0;
+	u32 vertexCount = 0;
 	auto indexCount = 0u;
 	for (auto &it : sceneMeshes)
 	{
@@ -152,7 +152,7 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 #else
 	auto pLights = std::make_unique<Light[]>(sceneFile.m_lightCount);
 #endif
-	for (U32 i = 0; i < sceneFile.m_lightCount; ++i)
+	for (u32 i = 0; i < sceneFile.m_lightCount; ++i)
 	{
 		pLights[i] = sceneFile.m_pLights[i];
 	}

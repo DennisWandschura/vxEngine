@@ -34,7 +34,7 @@ FileEntry::FileEntry(const char *file, FileType t)
 	m_type(t)
 {
 	auto size = strlen(file);
-	for (U32 i = 0; i < size; ++i)
+	for (u32 i = 0; i < size; ++i)
 	{
 		m_file[i] = tolower(file[i]);
 	}

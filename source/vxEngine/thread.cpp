@@ -64,7 +64,7 @@ namespace vx
 		return *this;
 	}
 
-	U32 thread::hardware_concurrency() noexcept
+	u32 thread::hardware_concurrency() noexcept
 	{
 		return std::thread::hardware_concurrency();
 	}

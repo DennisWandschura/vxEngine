@@ -40,7 +40,7 @@ void ActionRequestPath::run()
 	Event evt;
 	evt.type = EventType::AI_Event;
 	evt.filter = m_pActor->evtMask;
-	evt.code = (U32)AIEvent::Request_Path;
+	evt.code = (u32)AIEvent::Request_Path;
 	evt.arg1.ptr = m_pActor;
 
 	auto pEventManager = Locator::getEventManager();

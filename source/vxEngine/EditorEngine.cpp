@@ -34,9 +34,9 @@ SOFTWARE.
 #include "NavMeshGraph.h"
 #include "Light.h"
 
-U32 EditorEngine::s_editorTypeMesh{ -1 };
-U32 EditorEngine::s_editorTypeMaterial{ -1 };
-U32 EditorEngine::s_editorTypeScene{ -1 };
+u32 EditorEngine::s_editorTypeMesh{ -1 };
+u32 EditorEngine::s_editorTypeMaterial{ -1 };
+u32 EditorEngine::s_editorTypeScene{ -1 };
 
 EditorEngine::EditorEngine()
 	:m_eventManager(),
@@ -104,7 +104,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	if (!initializeImpl(dataDir))
 		return false;
 
-	const F32 fov = 66.0f;
+	const f32 fov = 66.0f;
 	const auto z_near = 0.1f;
 	const auto z_far = 1000.0f;
 	const auto vsync = false;
@@ -244,7 +244,7 @@ void EditorEngine::editor_saveScene(const char* name)
 	m_fileAspect.requestSaveFile(FileEntry(name, FileType::Scene), m_pEditorScene);
 }
 
-void EditorEngine::editor_setTypes(U32 mesh, U32 material, U32 scene)
+void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene)
 {
 	s_editorTypeMesh = mesh;
 	s_editorTypeMaterial = material;
@@ -256,7 +256,7 @@ void EditorEngine::editor_start()
 	m_fileAspectThread = vx::thread(&EditorEngine::loopFileThread, this);
 }
 
-void EditorEngine::editor_render(F32 dt)
+void EditorEngine::editor_render(f32 dt)
 {
 	m_eventManager.update();
 
@@ -265,7 +265,7 @@ void EditorEngine::editor_render(F32 dt)
 	m_renderAspect.render();
 }
 
-void EditorEngine::editor_loadFile(const char *filename, U32 type, Editor::LoadFileCallback f)
+void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f)
 {
 	assert(s_editorTypeMesh != s_editorTypeMaterial);
 
@@ -273,13 +273,15 @@ void EditorEngine::editor_loadFile(const char *filename, U32 type, Editor::LoadF
 	FileEntry fileEntry;
 	if (type == s_editorTypeMesh)
 	{
-		fileEntry = FileEntry(filename, FileType::Mesh);
-		p = new std::string(filename);
+		//fileEntry = FileEntry(filename, FileType::Mesh);
+		//p = new std::string(filename);
+		assert(false);
 	}
 	else if (type == s_editorTypeMaterial)
 	{
-		fileEntry = FileEntry(filename, FileType::Material);
-		p = new std::string(filename);
+		//fileEntry = FileEntry(filename, FileType::Material);
+	//	p = new std::string(filename);
+		assert(false);
 	}
 	else if (type == s_editorTypeScene)
 	{
@@ -297,15 +299,15 @@ void EditorEngine::editor_loadFile(const char *filename, U32 type, Editor::LoadF
 	m_fileAspect.requestLoadFile(fileEntry, p);
 }
 
-void EditorEngine::editor_moveCamera(F32 dirX, F32 dirY, F32 dirZ)
+void EditorEngine::editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ)
 {
 	m_renderAspect.editor_moveCamera(dirX, dirY, dirZ);
 }
 
-void EditorEngine::editor_rotateCamera(F32 dirX, F32 dirY, F32 dirZ)
+void EditorEngine::editor_rotateCamera(f32 dirX, f32 dirY, f32 dirZ)
 {
-	static F32 x = 0.0f;
-	static F32 y = 0.0f;
+	static f32 x = 0.0f;
+	static f32 y = 0.0f;
 
 	x += dirX * 0.01f;
 	y += dirY * 0.01f;
@@ -327,10 +329,10 @@ void EditorEngine::call_editorCallback(vx::StringID sid)
 	}
 }
 
-vx::float4a EditorEngine::getRayDir(I32 mouseX, I32 mouseY)
+vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY)
 {
-	F32 ndc_x = F32(mouseX) / m_resolution.x;
-	F32 ndc_y = F32(mouseY) / m_resolution.y;
+	f32 ndc_x = f32(mouseX) / m_resolution.x;
+	f32 ndc_y = f32(mouseY) / m_resolution.y;
 
 	ndc_x = ndc_x * 2.0f - 1.0f;
 	ndc_y = 1.0f - ndc_y * 2.0f;
@@ -353,7 +355,7 @@ vx::float4a EditorEngine::getRayDir(I32 mouseX, I32 mouseY)
 	return ray_world;
 }
 
-MeshInstance* EditorEngine::raytraceAgainstStaticMeshes(I32 mouseX, I32 mouseY, vx::float3* hitPosition)
+MeshInstance* EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition)
 {
 	auto ray_world = getRayDir(mouseX, mouseY);
 
@@ -362,7 +364,7 @@ MeshInstance* EditorEngine::raytraceAgainstStaticMeshes(I32 mouseX, I32 mouseY, 
 	return m_physicsAspect.raycast_static(vx::float3(cameraPosition.f[0], cameraPosition.f[1], cameraPosition.f[2]), vx::float3(ray_world.x, ray_world.y, ray_world.z), 50.0f, hitPosition);
 }
 
-bool EditorEngine::selectMesh(I32 x, I32 y)
+bool EditorEngine::selectMesh(s32 x, s32 y)
 {
 	bool result = false;
 	if (m_pEditorScene)
@@ -406,7 +408,7 @@ void EditorEngine::addWaypoint(const vx::float3 &p)
 	m_waypointManager.addWaypoint(p, &m_renderAspect);
 }
 
-bool EditorEngine::addNavMeshVertex(I32 mouseX, I32 mouseY)
+bool EditorEngine::addNavMeshVertex(s32 mouseX, s32 mouseY)
 {
 	vx::float3 hitPos;
 	auto ptr = raytraceAgainstStaticMeshes(mouseX, mouseY, &hitPos);
@@ -432,7 +434,7 @@ void EditorEngine::deleteSelectedNavMeshVertex()
 	}
 }
 
-Ray EditorEngine::getRay(I32 mouseX, I32 mouseY)
+Ray EditorEngine::getRay(s32 mouseX, s32 mouseY)
 {
 	auto rayDir = getRayDir(mouseX, mouseY);
 	auto cameraPosition = m_renderAspect.getCamera().getPosition();
@@ -445,7 +447,7 @@ Ray EditorEngine::getRay(I32 mouseX, I32 mouseY)
 	return ray;
 }
 
-U32 EditorEngine::getSelectedNavMeshVertex(I32 mouseX, I32 mouseY)
+u32 EditorEngine::getSelectedNavMeshVertex(s32 mouseX, s32 mouseY)
 {
 	auto ray = getRay(mouseX, mouseY);
 
@@ -454,7 +456,7 @@ U32 EditorEngine::getSelectedNavMeshVertex(I32 mouseX, I32 mouseY)
 	return navMesh.testRayAgainstVertices(ray);
 }
 
-bool EditorEngine::selectNavMeshVertex(I32 mouseX, I32 mouseY)
+bool EditorEngine::selectNavMeshVertex(s32 mouseX, s32 mouseY)
 {
 	bool result = false;
 	if (m_pEditorScene)
@@ -476,7 +478,7 @@ bool EditorEngine::selectNavMeshVertex(I32 mouseX, I32 mouseY)
 	return result;
 }
 
-bool EditorEngine::multiSelectNavMeshVertex(I32 mouseX, I32 mouseY)
+bool EditorEngine::multiSelectNavMeshVertex(s32 mouseX, s32 mouseY)
 {
 	bool result = false;
 	if (m_pEditorScene)
@@ -490,7 +492,7 @@ bool EditorEngine::multiSelectNavMeshVertex(I32 mouseX, I32 mouseY)
 
 			m_selected.m_navMeshVertices.m_vertices[index] = selectedIndex;
 			++m_selected.m_navMeshVertices.m_count;
-			m_selected.m_navMeshVertices.m_count = std::min(m_selected.m_navMeshVertices.m_count, (U8)3u);
+			m_selected.m_navMeshVertices.m_count = std::min(m_selected.m_navMeshVertices.m_count, (u8)3u);
 
 			m_selected.m_type = SelectedType::NavMeshVertex;
 			m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
@@ -578,7 +580,7 @@ void EditorEngine::createLight()
 	}
 }
 
-bool EditorEngine::selectLight(I32 mouseX, I32 mouseY)
+bool EditorEngine::selectLight(s32 mouseX, s32 mouseY)
 {
 	bool result = false;
 	if (m_pEditorScene)
