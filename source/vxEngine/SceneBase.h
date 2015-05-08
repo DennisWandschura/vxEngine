@@ -33,7 +33,7 @@ class SceneFile;
 
 namespace vx
 {
-	class Mesh;
+	class MeshFile;
 }
 
 #include <vxLib/Container/sorted_vector.h>
@@ -49,7 +49,7 @@ struct SceneBaseParams
 	std::unique_ptr<Light[]> m_pLights;
 #endif
 	vx::sorted_vector<vx::StringID, Material*> m_materials;
-	vx::sorted_vector<vx::StringID, const vx::Mesh*> m_meshes;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	std::unique_ptr<Spawn[]> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	NavMesh m_navMesh;
@@ -70,7 +70,7 @@ protected:
 	std::unique_ptr<Light[]> m_pLights;
 #endif
 	vx::sorted_vector<vx::StringID, Material*> m_materials{};
-	vx::sorted_vector<vx::StringID, const vx::Mesh*> m_meshes{};
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes{};
 	std::unique_ptr<Spawn[]> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	NavMesh m_navMesh{};
@@ -102,7 +102,7 @@ public:
 	const vx::sorted_vector<vx::StringID, Material*>& getMaterials() const;
 	u32 getMaterialCount() const;
 
-	const vx::sorted_vector<vx::StringID, const vx::Mesh*>& getMeshes() const;
+	const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& getMeshes() const;
 	u32 getVertexCount() const;
 
 	const Spawn* getSpawns() const;

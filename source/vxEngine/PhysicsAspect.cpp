@@ -239,8 +239,8 @@ void PhysicsAspect::processScene(const Scene* pScene)
 
 	for (auto i = 0u; i < meshes.size(); ++i)
 	{
-		auto pMesh = meshes[i];
-		auto pResult = processMesh(pMesh);
+		auto pMeshFile = meshes[i];
+		auto pResult = processMesh(pMeshFile);
 		if (!pResult)
 		{
 			puts("error processing mesh");
@@ -309,9 +309,9 @@ void PhysicsAspect::processScene(const Scene* pScene)
 	m_pScene->unlockWrite();
 }
 
-physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::Mesh* pMesh)
+physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::MeshFile* pMesh)
 {
-	auto pMeshVertices = pMesh->getVertices();
+	/*auto pMeshVertices = pMesh->getVertices();
 	auto pIndices = pMesh->getIndices();
 
 	auto vertexCount = pMesh->getVertexCount();
@@ -337,9 +337,9 @@ physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::Mesh* pMesh)
 	if (!status)
 	{
 		return nullptr;
-	}
+	}*/
 
-	physx::PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
+	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)pMesh->getPhysxData(), pMesh->getPhysxDataSize());
 
 	return m_pPhysics->createTriangleMesh(readBuffer);
 }

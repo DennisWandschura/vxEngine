@@ -1,3 +1,6 @@
+#ifndef __VX_MESHFILE_H
+#define __VX_MESHFILE_H
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,18 +24,39 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/types.h>
+#include <vxLib/Graphics/Mesh.h>
+#include "Serializable.h"
 
-class Serializable
+namespace vx
 {
-public:
-	virtual ~Serializable(){}
+	class MeshFile : public Serializable
+	{
+		vx::Mesh m_mesh;
+		const u8* m_physxData;
+		u32 m_physxDataSize;
 
-	virtual const u8* loadFromMemory(const u8 *ptr, u32 version) = 0;
+	public:
+		MeshFile();
+		MeshFile(const MeshFile&) = delete;
+		MeshFile(MeshFile &&rhs);
+		MeshFile(vx::Mesh &&mesh, const u8* physxData, u32 physxDataSize);
+		~MeshFile();
 
-	virtual u64 getCrc() const = 0;
+		MeshFile& operator=(const MeshFile&) = delete;
+		MeshFile& operator=(MeshFile &&rhs);
 
-	virtual u32 getVersion() const = 0;
-};
+		const u8* loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* allocator) override;
+
+		bool saveToFile(vx::File* file) const;
+
+		u64 getCrc() const override;
+
+		u32 getVersion() const override;
+
+		const vx::Mesh& getMesh() const { return m_mesh; }
+		u32 getPhysxDataSize() const { return m_physxDataSize; }
+		const u8* getPhysxData() const { return m_physxData; }
+	};
+}
+#endif

@@ -57,7 +57,7 @@
     <OutDir>..\..\game\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxAudioAspect;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxAudioAspect;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
     <LibraryPath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\lib;E:\dev\libraries\openal-soft-1.16.0-bin\libs\Win64;E:\dev\libraries\libogg\bin\x64\intel;E:\dev\libraries\libvorbis-1.3.3\bin\x64\intel;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc11win64;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLL Debug|x64'">
@@ -174,7 +174,6 @@
     <ClInclude Include="DrawCommand.h" />
     <ClInclude Include="EngineConfig.h" />
     <ClInclude Include="FileFactory.h" />
-    <ClInclude Include="FileHeader.h" />
     <ClInclude Include="gl\BufferBindingManager.h" />
     <ClInclude Include="gl\BufferManager.h" />
     <ClInclude Include="gl\ObjectManager.h" />
@@ -188,12 +187,10 @@
     <ClInclude Include="Graphics\ShadowRenderer.h" />
     <ClInclude Include="Graphics\State.h" />
     <ClInclude Include="Graphics\StaticMeshRenderer.h" />
-    <ClInclude Include="MeshFile.h" />
     <ClInclude Include="Reference.h" />
     <ClInclude Include="RenderCommand.h" />
     <ClInclude Include="RenderCommandFinalImage.h" />
     <ClInclude Include="RenderSettings.h" />
-    <ClInclude Include="Serializable.h" />
     <ClInclude Include="GpuStructs.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="EditorEngine.h" />
@@ -262,7 +259,6 @@
     <ClInclude Include="EventTypes.h" />
     <ClInclude Include="EventTypesFwd.h" />
     <ClInclude Include="Face.h" />
-    <ClInclude Include="File.h" />
     <ClInclude Include="FileEntry.h" />
     <ClInclude Include="FileAspect.h" />
     <ClInclude Include="Font.h" />
@@ -328,12 +324,10 @@
     <ClInclude Include="utility.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexArray.h" />
-    <ClInclude Include="VertexBatch.h" />
     <ClInclude Include="VirtualBaseClass.h" />
     <ClInclude Include="vxFile.h" />
     <ClInclude Include="Wander.h" />
     <ClInclude Include="Waypoint.h" />
-    <ClInclude Include="yamlHelper1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AABB.cpp" />
@@ -444,7 +438,6 @@
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="Vertex.cpp" />
-    <ClCompile Include="VertexBatch.cpp" />
     <None Include="..\..\game\data\shaders\blurpass.pipe" />
     <None Include="..\..\game\data\shaders\blurpass2.pipe" />
     <None Include="..\..\game\data\shaders\blurShadowY.pipe" />

@@ -31,7 +31,7 @@ namespace vx
 	template<typename K, typename T>
 	class sorted_vector;
 
-	class Mesh;
+	class MeshFile;
 	
 	struct StringID;
 }
@@ -45,7 +45,7 @@ namespace Factory
 {
 	struct CreateSceneDescription
 	{
-		const vx::sorted_array<vx::StringID, vx::Mesh*>* meshes;
+		const vx::sorted_array<vx::StringID, vx::MeshFile*>* meshes;
 		const vx::sorted_array<vx::StringID, Material*>* materials;
 		const vx::sorted_vector<vx::StringID, std::string>* loadedFiles;
 		std::vector<FileEntry>* pMissingFiles;

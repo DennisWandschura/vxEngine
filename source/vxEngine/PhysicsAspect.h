@@ -40,7 +40,7 @@ namespace physx
 
 namespace vx
 {
-	class Mesh;
+	class MeshFile;
 
 	namespace gl
 	{
@@ -89,7 +89,7 @@ class PhysicsAspect : public EventListener
 	physx::PxDefaultCpuDispatcher* m_pCpuDispatcher;
 	physx::PxCooking* m_pCooking;
 
-	physx::PxTriangleMesh* processMesh(const vx::Mesh* pMesh);
+	physx::PxTriangleMesh* processMesh(const vx::MeshFile* pMesh);
 	void processScene(const Scene* pScene);
 
 	//////////////// handle Events

@@ -28,6 +28,7 @@ class EditorScene;
 
 namespace vx
 {
+	class Allocator;
 	class StackAllocator;
 	class File;
 }
@@ -42,7 +43,7 @@ public:
 	static bool save(const char* file, const SceneFile &data);
 	static bool save(vx::File* file, const SceneFile &data);
 
-	static bool load(const char* file, SceneFile* data, vx::StackAllocator* allocator);
-	static bool load(vx::File* file, SceneFile* data, vx::StackAllocator* allocator);
-	static bool load(const u8* ptr, SceneFile* data);
+	static bool load(const char* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocato);
+	static bool load(vx::File* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
+	static bool load(const u8* ptr, SceneFile* data, vx::Allocator* allocator);
 };

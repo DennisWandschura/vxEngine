@@ -1,3 +1,6 @@
+#ifndef __VX_SERIALIZABLE_H
+#define __VX_SERIALIZABLE_H
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,19 +24,26 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/Graphics/Mesh.h>
-#include "Serializable.h"
-
-class MeshFile : public Serializable
+namespace vx
 {
-	vx::Mesh m_mesh;
+	class Allocator;
+}
 
-public:
-	const u8* loadFromMemory(const u8 *ptr, u32 version);
+#include <vxLib/types.h>
 
-	u64 getCrc() const;
+namespace vx
+{
+	class Serializable
+	{
+	public:
+		virtual ~Serializable(){}
 
-	u32 getVersion() const;
-};
+		virtual const u8* loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* allocator) = 0;
+
+		virtual u64 getCrc() const = 0;
+
+		virtual u32 getVersion() const = 0;
+	};
+}
+#endif

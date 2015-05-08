@@ -156,17 +156,11 @@
     <ClInclude Include="Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VertexBatch.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Vertex.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="VertexArray.h">
       <Filter>Header Files\Render\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="FileAspect.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libraries.h">
       <Filter>Header Files</Filter>
@@ -585,18 +579,6 @@
     <ClInclude Include="FileFactory.h">
       <Filter>Header Files\File</Filter>
     </ClInclude>
-    <ClInclude Include="FileHeader.h">
-      <Filter>Header Files\File</Filter>
-    </ClInclude>
-    <ClInclude Include="File.h">
-      <Filter>Header Files\File</Filter>
-    </ClInclude>
-    <ClInclude Include="Serializable.h">
-      <Filter>Header Files\File</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshFile.h">
-      <Filter>Header Files\File</Filter>
-    </ClInclude>
     <ClInclude Include="NavMesh.h">
       <Filter>Header Files\Navigation</Filter>
     </ClInclude>
@@ -645,9 +627,6 @@
     <ClInclude Include="TextParserFile.h">
       <Filter>Header Files\Text Parser</Filter>
     </ClInclude>
-    <ClInclude Include="yamlHelper1.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="gl\ObjectManager.h">
       <Filter>Header Files\Render\gl</Filter>
     </ClInclude>
@@ -672,6 +651,9 @@
     <ClInclude Include="Graphics\Commands\ProgramUniformCommand.h">
       <Filter>Header Files\Render\Graphics\Commands</Filter>
     </ClInclude>
+    <ClInclude Include="FileAspect.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -690,9 +672,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Node.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexBatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vertex.cpp">

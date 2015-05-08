@@ -27,6 +27,7 @@ SOFTWARE.
 
 #ifdef _DEBUG
 #pragma comment(lib, "vxLib_d.lib")
+#pragma comment(lib, "vxEngineLib_d.lib")
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
 
 #ifdef _VX_NOAUDIO

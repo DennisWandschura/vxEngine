@@ -28,10 +28,30 @@ SOFTWARE.
 #include "SceneFile.h"
 #include "Actor.h"
 #include "Spawn.h"
-#include <vxLib/Graphics/Mesh.h>
+#include <vxEngineLib/MeshFile.h>
 #include "Light.h"
 #include "Waypoint.h"
 #include "Material.h"
+
+struct ConverterSceneFileToScene::CreateSceneMeshInstancesDesc
+{
+	const SceneFile *sceneFile;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	MeshInstance* pMeshInstances;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+};
+
+struct ConverterSceneFileToScene::CreateSceneActorsDesc
+{
+	const SceneFile *sceneFile;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+};
 
 bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc)
 {
@@ -96,12 +116,12 @@ bool ConverterSceneFileToScene::createSceneActors(const CreateSceneActorsDesc &d
 	return true;
 }
 
-bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx::Mesh*> *sortedMeshes, const vx::sorted_array<vx::StringID, Material*> *sortedMaterials, const SceneFile &sceneFile, Scene* scene)
+bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes, const vx::sorted_array<vx::StringID, Material*> *sortedMaterials, const SceneFile &sceneFile, Scene* scene)
 {
 	vx::sorted_vector<vx::StringID, Material*> sceneMaterials;
 	sceneMaterials.reserve(5);
 
-	vx::sorted_vector<vx::StringID, const vx::Mesh*> sceneMeshes;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 
 	auto pMeshInstances = std::make_unique<MeshInstance[]>(sceneFile.m_meshInstanceCount);
 
@@ -140,8 +160,9 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 	auto indexCount = 0u;
 	for (auto &it : sceneMeshes)
 	{
-		vertexCount += it->getVertexCount();
-		indexCount += it->getIndexCount();
+		auto &mesh = it->getMesh();
+		vertexCount += mesh.getVertexCount();
+		indexCount += mesh.getIndexCount();
 	}
 
 	NavMesh navMesh;

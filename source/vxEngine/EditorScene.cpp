@@ -133,7 +133,7 @@ Light* EditorScene::addLight(const Light &light)
 #endif
 }
 
-u8 EditorScene::addMesh(vx::StringID sid, const char* name, const vx::Mesh* pMesh)
+u8 EditorScene::addMesh(vx::StringID sid, const char* name, const vx::MeshFile* pMesh)
 {
 	u8 result = 0;
 	auto it = m_meshes.find(sid);

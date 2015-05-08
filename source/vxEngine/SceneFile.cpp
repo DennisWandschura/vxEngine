@@ -23,67 +23,50 @@ SOFTWARE.
 */
 #include "SceneFile.h"
 #include "utility.h"
-#include <vxLib/File.h>
+#include <vxLib/File/File.h>
 #include "MeshInstance.h"
 #include "Material.h"
 #include <fstream>
 #include <vxLib/Container/sorted_array.h>
 #include "Actor.h"
 #include "Spawn.h"
-#include <vxLib/Graphics/Mesh.h>
+#include <vxEngineLib/MeshFile.h>
 #include "EditorScene.h"
 #include "Light.h"
 #include "Scene.h"
 #include "Waypoint.h"
 #include <vxLib/util/CityHash.h>
 
-/*namespace YAML
+struct SceneFile::CreateSceneMeshInstancesDesc
 {
-	template<>
-	struct convert < MeshInstanceFile >
-	{
-		static bool decode(const YAML::Node &node, MeshInstanceFile &data)
-		{
-			data.load(node);
-			return true;
-		}
+	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	MeshInstance* pMeshInstances;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+};
 
-		static Node encode(const MeshInstanceFile &rhs)
-		{
-			Node n;
-			rhs.save(n);
-			return n;
-		}
-	};
+struct SceneFile::CreateSceneActorsDesc
+{
+	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+};
 
-	template<>
-	struct convert < ActorFile >
-	{
-		static bool decode(const YAML::Node &node, ActorFile &data)
-		{
-			std::string strMesh = node["mesh"].as<std::string>();
-			std::string strMaterial = node["material"].as<std::string>();
-			std::string strName = node["name"].as<std::string>();
-
-			strncpy_s(data.m_mesh, strMesh.data(), strMesh.size());
-			strncpy_s(data.m_material, strMaterial.data(), strMaterial.size());
-			strncpy_s(data.m_name, strName.data(), strName.size());
-
-			return true;
-		}
-
-		static Node encode(const ActorFile &rhs)
-		{
-			Node n;
-
-			n["mesh"] = std::string(rhs.m_mesh);
-			n["material"] = std::string(rhs.m_material);
-			n["name"] = std::string(rhs.m_name);
-
-			return n;
-		}
-	};
-}*/
+struct SceneFile::CreateSceneShared
+{
+	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	MeshInstance* pMeshInstances;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
+	Spawn* sceneSpawns;
+	u32* vertexCount;
+	u32* indexCount;
+};
 
 SceneFile::SceneFile()
 	:m_meshInstanceCount(0),
@@ -97,7 +80,7 @@ SceneFile::~SceneFile()
 {
 }
 
-const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 version)
+const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* allocator)
 {
 	ptr = vx::read(m_meshInstanceCount, ptr);
 	ptr = vx::read(m_lightCount, ptr);
@@ -331,8 +314,9 @@ bool SceneFile::createSceneShared(const CreateSceneShared &desc)
 	*desc.indexCount = 0u;
 	for (auto &it : *desc.sceneMeshes)
 	{
-		*desc.vertexCount += it->getVertexCount();
-		*desc.indexCount += it->getIndexCount();
+		auto &mesh = it->getMesh();
+		*desc.vertexCount += mesh.getVertexCount();
+		*desc.indexCount += mesh.getIndexCount();
 	}
 
 	return true;
@@ -343,7 +327,7 @@ u8 SceneFile::createScene(const CreateSceneDescription &desc)
 	vx::sorted_vector<vx::StringID, Material*> sceneMaterials;
 	sceneMaterials.reserve(5);
 
-	vx::sorted_vector<vx::StringID, const vx::Mesh*> sceneMeshes;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 	vx::sorted_vector<vx::StringID, Actor> sceneActors;
 
 	auto sceneSpawns = std::make_unique<Spawn[]>(m_spawnCount);
@@ -401,7 +385,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	vx::sorted_vector<vx::StringID, Material*> sceneMaterials;
 	sceneMaterials.reserve(5);
 
-	vx::sorted_vector<vx::StringID, const vx::Mesh*> sceneMeshes;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 	vx::sorted_vector<vx::StringID, Actor> sceneActors;
 	std::vector<MeshInstance> meshInstances(m_meshInstanceCount);
 	auto sceneSpawns = std::make_unique<Spawn[]>(m_spawnCount);

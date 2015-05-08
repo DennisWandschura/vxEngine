@@ -40,7 +40,7 @@ SOFTWARE.
 
 struct SceneFactory::LoadSceneFileDescription
 {
-	const vx::sorted_array<vx::StringID, vx::Mesh*>* sortedMeshes;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes;
 	const vx::sorted_array<vx::StringID, Material*>* sortedMaterials;
 	std::vector<FileEntry> *pMissingFiles;
 	SceneFile *pSceneFile;
@@ -114,10 +114,8 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 
 bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, Scene *pScene)
 {
-	//auto result = loadSceneFile(loadDesc, ptr);
-
 	SceneFile sceneFile;
-	auto result = FileFactory::load(ptr, &sceneFile);
+	auto result = FileFactory::load(ptr, &sceneFile, nullptr);
 
 	if (result)
 	{
@@ -142,7 +140,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, EditorScene *pScene)
 {
 	SceneFile sceneFile;
-	auto result = FileFactory::load(file, &sceneFile, allocator);
+	auto result = FileFactory::load(file, &sceneFile, allocator, nullptr);
 
 	if (result)
 	{
@@ -171,7 +169,7 @@ bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, v
 bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, EditorScene* pScene)
 {
 	SceneFile sceneFile;
-	auto result = FileFactory::load(ptr, &sceneFile);
+	auto result = FileFactory::load(ptr, &sceneFile, nullptr);
 
 	if (result)
 	{

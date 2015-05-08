@@ -112,7 +112,7 @@ protected:
 
 	void takeScreenshot();
 
-	void writeMeshToVertexBuffer(const vx::StringID &meshSid, const vx::Mesh* pMesh, u32 *vertexOffsetGpu, u32 *indexOffsetGpu);
+	void writeMeshToVertexBuffer(const vx::StringID &meshSid, const vx::MeshFile* pMesh, u32 *vertexOffsetGpu, u32 *indexOffsetGpu);
 
 	void createTextures();
 	void createFrameBuffers();

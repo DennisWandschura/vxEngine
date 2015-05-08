@@ -40,6 +40,7 @@ SOFTWARE.
 #include "TextureFile.h"
 #include "GpuProfiler.h"
 #include <vxLib/gl/ShaderManager.h>
+#include <vxEngineLib/MeshFile.h>
 
 SceneRenderer::SceneRenderer()
 	:m_pObjectManager(nullptr)
@@ -235,24 +236,26 @@ void SceneRenderer::createMaterial(Material* pMaterial)
 	pMaterial->setTextures(std::move(albedoRef), std::move(normalRef), std::move(surfaceRef));
 }
 
-u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene)
+u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &material, const Scene* pScene)
 {
-	auto itMesh = m_coldData->m_meshEntries.find(mesh);
+	auto itMesh = m_coldData->m_meshEntries.find(meshSid);
 	if (itMesh == m_coldData->m_meshEntries.end())
 	{
 		auto &sceneMeshes = pScene->getMeshes();
-		auto itSceneMesh = sceneMeshes.find(mesh);
+		auto itSceneMesh = sceneMeshes.find(meshSid);
 
 		u32 vertexOffset = m_coldData->m_meshVertexCountDynamic + s_maxVerticesStatic;
 		u32 indexOffset = m_coldData->m_meshIndexCountDynamic + s_maxIndicesStatic;
 
-		writeMeshesToVertexBuffer(&mesh, &(*itSceneMesh), 1, &vertexOffset, &indexOffset);
+		writeMeshesToVertexBuffer(&meshSid, &(*itSceneMesh), 1, &vertexOffset, &indexOffset);
 		//writeMeshToVertexBuffer(mesh, (*itSceneMesh), );
 
-		m_coldData->m_meshVertexCountDynamic += (*itSceneMesh)->getVertexCount();
-		m_coldData->m_meshIndexCountDynamic += (*itSceneMesh)->getIndexCount();
+		auto &mesh = (*itSceneMesh)->getMesh();
 
-		itMesh = m_coldData->m_meshEntries.find(mesh);
+		m_coldData->m_meshVertexCountDynamic += mesh.getVertexCount();
+		m_coldData->m_meshIndexCountDynamic += mesh.getIndexCount();
+
+		itMesh = m_coldData->m_meshEntries.find(meshSid);
 	}
 
 	auto fileAspect = Locator::getFileAspect();
@@ -348,10 +351,11 @@ void SceneRenderer::writeMaterialToBuffer(const Material *pMaterial, u32 offset)
 	pMaterialGPU.unmap();
 }
 
-void SceneRenderer::writeMeshToBuffer(const vx::StringID &meshSid, const vx::Mesh* pMesh, VertexPNTUV* pVertices, u32* pIndices, u32* vertexOffset, u32* indexOffset, u32 *vertexOffsetGpu, u32 *indexOffsetGpu)
+void SceneRenderer::writeMeshToBuffer(const vx::StringID &meshSid, const vx::MeshFile* pMeshFile, VertexPNTUV* pVertices, u32* pIndices, u32* vertexOffset, u32* indexOffset, u32 *vertexOffsetGpu, u32 *indexOffsetGpu)
 {
-	auto pMeshVertices = pMesh->getVertices();
-	auto vertexCount = pMesh->getVertexCount();
+	auto &mesh = pMeshFile->getMesh();
+	auto pMeshVertices = mesh.getVertices();
+	auto vertexCount = mesh.getVertexCount();
 
 	//////////////////////////////
 	const __m128 rotation = { vx::VX_PI, vx::VX_PI, vx::VX_PI, 0 };
@@ -404,8 +408,8 @@ void SceneRenderer::writeMeshToBuffer(const vx::StringID &meshSid, const vx::Mes
 
 	//////////////////////////////
 
-	auto meshIndices = pMesh->getIndices();
-	auto indexCount = pMesh->getIndexCount();
+	auto meshIndices = mesh.getIndices();
+	auto indexCount = mesh.getIndexCount();
 
 	for (auto j = 0u; j < indexCount; ++j)
 	{
@@ -426,14 +430,15 @@ void SceneRenderer::writeMeshToBuffer(const vx::StringID &meshSid, const vx::Mes
 	*indexOffset += indexCount;
 }
 
-void SceneRenderer::writeMeshesToVertexBuffer(const vx::StringID* meshSid, const vx::Mesh** pMesh, u32 count, u32 *vertexOffsetGpu, u32 *indexOffsetGpu)
+void SceneRenderer::writeMeshesToVertexBuffer(const vx::StringID* meshSid, const vx::MeshFile** pMeshFiles, u32 count, u32 *vertexOffsetGpu, u32 *indexOffsetGpu)
 {
 	// get total vertex and indexcount
 	u32 vertexCount = 0, indexCount = 0;
 	for (u32 i = 0; i < count; ++i)
 	{
-		vertexCount += pMesh[i]->getVertexCount();
-		indexCount += pMesh[i]->getIndexCount();
+		auto &mesh = pMeshFiles[i]->getMesh();
+		vertexCount += mesh.getVertexCount();
+		indexCount += mesh.getIndexCount();
 	}
 
 	u32 offsetBytes = *vertexOffsetGpu * sizeof(VertexPNTUV);
@@ -454,7 +459,7 @@ void SceneRenderer::writeMeshesToVertexBuffer(const vx::StringID* meshSid, const
 	u32 vertexOffset = 0, indexOffset = 0;
 	for (u32 i = 0; i < count; ++i)
 	{
-		writeMeshToBuffer(meshSid[i], pMesh[i], pVertices, pIndices, &vertexOffset, &indexOffset, vertexOffsetGpu, indexOffsetGpu);
+		writeMeshToBuffer(meshSid[i], pMeshFiles[i], pVertices, pIndices, &vertexOffset, &indexOffset, vertexOffsetGpu, indexOffsetGpu);
 	}
 
 	// upload to gpu
@@ -466,7 +471,7 @@ void SceneRenderer::writeMeshesToVertexBuffer(const vx::StringID* meshSid, const
 	memcpy(pGpuIndices.get(), pIndices, indexSizeBytes);
 }
 
-void SceneRenderer::updateMeshBuffer(const vx::sorted_vector<vx::StringID, const vx::Mesh*> &meshes)
+void SceneRenderer::updateMeshBuffer(const vx::sorted_vector<vx::StringID, const vx::MeshFile*> &meshes)
 {
 	u32 totalVertexCount = 0;
 	u32 totalIndexCount = 0;

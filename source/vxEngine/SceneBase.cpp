@@ -114,7 +114,7 @@ u32 SceneBase::getMaterialCount() const
 	return m_materials.size();
 }
 
-const vx::sorted_vector<vx::StringID, const vx::Mesh*>& SceneBase::getMeshes() const
+const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& SceneBase::getMeshes() const
 {
 	return m_meshes;
 }

@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "FileFactory.h"
-#include <vxLib/File.h>
+#include <vxLib/File/File.h>
 #include "SceneFile.h"
-#include "FileHeader.h"
+#include <vxLib/File/FileHeader.h>
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/ScopeGuard.h>
 #include "SceneFactory.h"
@@ -48,8 +48,8 @@ bool FileFactory::save(const char* file, const SceneFile &data)
 
 bool FileFactory::save(vx::File* file, const SceneFile &data)
 {
-	FileHeader header;
-	header.magic = FileHeader::s_magic;
+	vx::FileHeader header;
+	header.magic = vx::FileHeader::s_magic;
 	header.version = data.getVersion();
 	header.crc = data.getCrc();
 
@@ -57,24 +57,24 @@ bool FileFactory::save(vx::File* file, const SceneFile &data)
 	return data.saveToFile(file);
 }
 
-bool FileFactory::load(const char* file, SceneFile* data, vx::StackAllocator* allocator)
+bool FileFactory::load(const char* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator)
 {
 	vx::File f;
 	if (!f.open(file, vx::FileAccess::Read))
 		return false;
 
-	return load(&f, data, allocator);
+	return load(&f, data, scratchAllocator, allocator);
 }
 
-bool FileFactory::load(vx::File* file, SceneFile* data, vx::StackAllocator* allocator)
+bool FileFactory::load(vx::File* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator)
 {
 	auto fileSize = file->getSize();
 
-	auto marker = allocator->getMarker();
+	auto marker = scratchAllocator->getMarker();
 
 	SCOPE_EXIT
 	{
-		allocator->clear(marker);
+		scratchAllocator->clear(marker);
 	};
 
 	u8* ptr = allocator->allocate(fileSize, 8);
@@ -83,18 +83,18 @@ bool FileFactory::load(vx::File* file, SceneFile* data, vx::StackAllocator* allo
 
 	file->close();
 	
-	return load(ptr, data);
+	return load(ptr, data, allocator);
 }
 
-bool FileFactory::load(const u8* ptr, SceneFile* data)
+bool FileFactory::load(const u8* ptr, SceneFile* data, vx::Allocator* allocator)
 {
-	FileHeader header = *(FileHeader*)ptr;
+	vx::FileHeader header = *(vx::FileHeader*)ptr;
 
-	if (header.magic != FileHeader::s_magic)
+	if (header.magic != vx::FileHeader::s_magic)
 		return false;
 
-	auto dataPtr = ptr + sizeof(FileHeader);
-	data->loadFromMemory(dataPtr, header.version);
+	auto dataPtr = ptr + sizeof(vx::FileHeader);
+	data->loadFromMemory(dataPtr, header.version, allocator);
 
 	auto currentCrc = data->getCrc();
 

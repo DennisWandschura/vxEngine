@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "NavMesh.h"
 #include "utility.h"
-#include <vxLib/File.h>
+#include <vxLib/File/File.h>
 #include "NavMeshTriangle.h"
 #include <algorithm>
 

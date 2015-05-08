@@ -44,7 +44,7 @@ namespace vx
 
 	struct Transform;
 	struct TransformGpu;
-	class Mesh;
+	class MeshFile;
 }
 
 #include <vxLib/gl/Buffer.h>
@@ -117,12 +117,12 @@ class SceneRenderer
 	void createMaterial(Material* pMaterial);
 
 	void writeMaterialToBuffer(const Material *pMaterial, u32 offset);
-	void writeMeshToBuffer(const vx::StringID &meshSid, const vx::Mesh* pMesh, VertexPNTUV* pVertices, u32* pIndices, u32* vertexOffset, u32* indexOffset, u32 *vertexOffsetGpu, u32 *indexOffsetGpu);
-	void writeMeshesToVertexBuffer(const vx::StringID* meshSid, const vx::Mesh** pMesh, u32 count, u32 *vertexOffsetGpu, u32 *indexOffsetGpu);
+	void writeMeshToBuffer(const vx::StringID &meshSid, const vx::MeshFile* pMesh, VertexPNTUV* pVertices, u32* pIndices, u32* vertexOffset, u32* indexOffset, u32 *vertexOffsetGpu, u32 *indexOffsetGpu);
+	void writeMeshesToVertexBuffer(const vx::StringID* meshSid, const vx::MeshFile** pMesh, u32 count, u32 *vertexOffsetGpu, u32 *indexOffsetGpu);
 	void writeMeshInstanceIdBuffer(u32 elementId, u32 materialIndex);
 	void writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, u32 index, u32 elementId, vx::gl::DrawElementsIndirectCommand* cmd);
 
-	void updateMeshBuffer(const vx::sorted_vector<vx::StringID, const vx::Mesh*> &meshes);
+	void updateMeshBuffer(const vx::sorted_vector<vx::StringID, const vx::MeshFile*> &meshes);
 	void updateLightBuffer(const Light *pLights, u32 numLights, const gl::ObjectManager &objectManager);
 	void updateBuffers(const MeshInstance *pInstances, u32 instanceCount, const vx::sorted_vector<const Material*, u32> &materialIndices, const vx::sorted_vector<vx::StringID, MeshEntry> &meshEntries);
 
