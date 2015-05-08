@@ -416,7 +416,6 @@
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="EntityAspect.cpp" />
     <ClCompile Include="EventManager.cpp" />
-    <ClCompile Include="File.cpp" />
     <ClCompile Include="FileEntry.cpp" />
     <ClCompile Include="FileAspect.cpp" />
     <ClCompile Include="Font.cpp" />

@@ -24,7 +24,7 @@ SOFTWARE.
 #include "FileAspect.h"
 #include "MaterialFactory.h"
 #include "SceneFactory.h"
-#include "File.h"
+#include <vxLib/File.h>
 #include <vxLib/ScopeGuard.h>
 #include "MeshInstance.h"
 #include "Light.h"
@@ -142,7 +142,7 @@ bool FileAspect::loadMesh(const char *filename, const u8 *ptr, u8 *pMeshMemory, 
 		auto meshPtr = m_poolMesh.createEntry(&index);
 		VX_ASSERT(meshPtr != nullptr);
 
-		meshPtr->load(ptr, pMeshMemory);
+		meshPtr->loadFromMemory(ptr, pMeshMemory);
 
 		it = m_sortedMeshes.insert(sid, meshPtr);
 
@@ -305,8 +305,8 @@ void FileAspect::getFolderString(FileType fileType, const char** folder)
 
 u8* FileAspect::readFile(const char *file, u32 &fileSize)
 {
-	File f;
-	if (!f.open(file, FileAccess::Read))
+	vx::File f;
+	if (!f.open(file, vx::FileAccess::Read))
 	{
 		LOG_ERROR_ARGS(m_logfile, "Error opening file '%s'\n", false, file);
 		return nullptr;
@@ -494,8 +494,8 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	char file[64];
 	sprintf_s(file, "%s%s", folder, fileName);
 
-	File f;
-	if (!f.create(file, FileAccess::Write))
+	vx::File f;
+	if (!f.create(file, vx::FileAccess::Write))
 	{
 		LOG_ERROR_ARGS(m_logfile, "Error opening file '%s'\n", false, file);
 		return result;

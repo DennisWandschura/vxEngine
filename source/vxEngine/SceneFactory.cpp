@@ -139,7 +139,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 	return result;
 }
 
-bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, File* file, vx::StackAllocator* allocator, EditorScene *pScene)
+bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, EditorScene *pScene)
 {
 	SceneFile sceneFile;
 	auto result = FileFactory::load(file, &sceneFile, allocator);
@@ -197,7 +197,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 	return result;
 }
 
-bool SceneFactory::save(const EditorScene &scene, File* file)
+bool SceneFactory::save(const EditorScene &scene, vx::File* file)
 {
 	SceneFile sceneFile;
 	convert(scene, &sceneFile);

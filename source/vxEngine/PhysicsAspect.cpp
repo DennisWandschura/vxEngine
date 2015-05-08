@@ -235,11 +235,6 @@ void PhysicsAspect::processScene(const Scene* pScene)
 {
 	m_pScene->lockWrite();
 
-	//auto playerSpawn = pScene->getPlayerSpawn();
-
-	auto pPlaneMaterial = m_pPhysics->createMaterial(1, 1, 0);
-	physx::PxRigidStatic* plane = physx::PxCreatePlane(*m_pPhysics, physx::PxPlane(physx::PxVec3(0, 1, 0), 0), *pPlaneMaterial);
-
 	auto &meshes = pScene->getMeshes();
 
 	for (auto i = 0u; i < meshes.size(); ++i)

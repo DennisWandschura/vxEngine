@@ -34,9 +34,6 @@
     <Filter Include="Source Files\Allocator">
       <UniqueIdentifier>{94952b57-80de-4a53-8e7b-4d065c4bb0d5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\util">
-      <UniqueIdentifier>{893f9784-a52e-43dd-97fd-4eb37d9531ae}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{ceeaaffb-74a6-42aa-8583-5da089a98721}</UniqueIdentifier>
     </Filter>
@@ -724,9 +721,6 @@
     </ClCompile>
     <ClCompile Include="FileEntry.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="File.cpp">
-      <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="SceneFactory.cpp">
       <Filter>Source Files</Filter>

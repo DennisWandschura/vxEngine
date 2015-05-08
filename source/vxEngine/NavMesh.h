@@ -23,13 +23,11 @@ SOFTWARE.
 */
 #pragma once
 
-class File;
-struct NavMeshTriangle;
-
-namespace YAML
+namespace vx
 {
-	class Node;
+	class File;
 }
+struct NavMeshTriangle;
 
 #include <vxLib/math/Vector.h>
 #if _VX_EDITOR
@@ -86,7 +84,7 @@ public:
 	/////////////// loading
 
 	/////////////// saving
-	void saveToFile(File *file) const;
+	void saveToFile(vx::File *file) const;
 	//void saveToYAML(YAML::Node &node) const;
 	/////////////// saving
 

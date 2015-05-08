@@ -31,7 +31,6 @@ struct Actor;
 struct Spawn;
 
 class MeshInstance;
-class File;
 class Material;
 class Scene;
 class EditorScene;
@@ -42,6 +41,7 @@ namespace vx
 	class sorted_array;
 
 	class Mesh;
+	class File;
 }
 
 #include "NavMesh.h"
@@ -124,7 +124,7 @@ public:
 	//void loadFromYAML(const char *file);
 
 	bool saveToFile(const char *file) const;
-	bool saveToFile(File *file) const;
+	bool saveToFile(vx::File *file) const;
 	//void saveToYAML(const char *file) const;
 
 	const std::unique_ptr<MeshInstanceFile[]>& getMeshInstances() const noexcept;

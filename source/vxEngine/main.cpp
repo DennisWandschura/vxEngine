@@ -36,7 +36,6 @@ SOFTWARE.
 #include <csignal>
 
 #include "Scene.h"
-#include "File.h"
 
 #include "SmallObjAllocator.h"
 #include "SmallObject.h"

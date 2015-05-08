@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "NavMesh.h"
 #include "utility.h"
-#include "File.h"
+#include <vxLib/File.h>
 #include "NavMeshTriangle.h"
 #include <algorithm>
 
@@ -220,7 +220,7 @@ void NavMesh::copyTo(NavMesh* other) const
 	m_navMeshTriangles = createNavMeshTriangles();
 }*/
 
-void NavMesh::saveToFile(File *file) const
+void NavMesh::saveToFile(vx::File *file) const
 {
 	file->write(m_vertexCount);
 	file->write(m_triangleCount);

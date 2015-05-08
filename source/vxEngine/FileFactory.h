@@ -23,13 +23,13 @@ SOFTWARE.
 */
 #pragma once
 
-class File;
 class SceneFile;
 class EditorScene;
 
 namespace vx
 {
 	class StackAllocator;
+	class File;
 }
 
 #include <vxLib/types.h>
@@ -37,12 +37,12 @@ namespace vx
 class FileFactory
 {
 public:
-	static bool save(File* file, const EditorScene &data);
+	static bool save(vx::File* file, const EditorScene &data);
 
 	static bool save(const char* file, const SceneFile &data);
-	static bool save(File* file, const SceneFile &data);
+	static bool save(vx::File* file, const SceneFile &data);
 
 	static bool load(const char* file, SceneFile* data, vx::StackAllocator* allocator);
-	static bool load(File* file, SceneFile* data, vx::StackAllocator* allocator);
+	static bool load(vx::File* file, SceneFile* data, vx::StackAllocator* allocator);
 	static bool load(const u8* ptr, SceneFile* data);
 };

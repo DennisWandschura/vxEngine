@@ -43,11 +43,15 @@ class EditorScene;
 class SceneFile;
 class FileEntry;
 class Material;
-class File;
 
 namespace Factory
 {
 	struct CreateSceneDescription;
+}
+
+namespace vx
+{
+	class File;
 }
 
 #include <vxLib/types.h>
@@ -62,10 +66,10 @@ class SceneFactory
 public:
 	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, Scene *pScene);
 
-	static bool createFromFile(const Factory::CreateSceneDescription &desc, File* file, vx::StackAllocator* allocator, EditorScene *pScene);
+	static bool createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, EditorScene *pScene);
 	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, EditorScene *pScene);
 
-	static bool save(const EditorScene &scene, File* file);
+	static bool save(const EditorScene &scene, vx::File* file);
 
 	static void convert(const EditorScene &scene, SceneFile* sceneFile);
 };

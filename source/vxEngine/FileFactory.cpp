@@ -22,14 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "FileFactory.h"
-#include "File.h"
+#include <vxLib/File.h>
 #include "SceneFile.h"
 #include "FileHeader.h"
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/ScopeGuard.h>
 #include "SceneFactory.h"
 
-bool FileFactory::save(File* file, const EditorScene &data)
+bool FileFactory::save(vx::File* file, const EditorScene &data)
 {
 	SceneFile sceneFile;
 	SceneFactory::convert(data, &sceneFile);
@@ -39,14 +39,14 @@ bool FileFactory::save(File* file, const EditorScene &data)
 
 bool FileFactory::save(const char* file, const SceneFile &data)
 {
-	File f;
-	if (!f.create(file, FileAccess::Write))
+	vx::File f;
+	if (!f.create(file, vx::FileAccess::Write))
 		return false;
 
 	return save(&f, data);
 }
 
-bool FileFactory::save(File* file, const SceneFile &data)
+bool FileFactory::save(vx::File* file, const SceneFile &data)
 {
 	FileHeader header;
 	header.magic = FileHeader::s_magic;
@@ -59,14 +59,14 @@ bool FileFactory::save(File* file, const SceneFile &data)
 
 bool FileFactory::load(const char* file, SceneFile* data, vx::StackAllocator* allocator)
 {
-	File f;
-	if (!f.open(file, FileAccess::Read))
+	vx::File f;
+	if (!f.open(file, vx::FileAccess::Read))
 		return false;
 
 	return load(&f, data, allocator);
 }
 
-bool FileFactory::load(File* file, SceneFile* data, vx::StackAllocator* allocator)
+bool FileFactory::load(vx::File* file, SceneFile* data, vx::StackAllocator* allocator)
 {
 	auto fileSize = file->getSize();
 

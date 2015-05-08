@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "SceneFile.h"
 #include "utility.h"
-#include "File.h"
+#include <vxLib/File.h>
 #include "MeshInstance.h"
 #include "Material.h"
 #include <fstream>
@@ -156,8 +156,8 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 version)
 bool SceneFile::saveToFile(const char *file) const
 {
 	bool result = false;
-	File f;
-	if (f.create(file, FileAccess::Write))
+	vx::File f;
+	if (f.create(file, vx::FileAccess::Write))
 	{
 		saveToFile(&f);
 	}
@@ -170,7 +170,7 @@ bool SceneFile::saveToFile(const char *file) const
 	return result;
 }
 
-bool SceneFile::saveToFile(File *file) const
+bool SceneFile::saveToFile(vx::File *file) const
 {
 	if (!m_navMesh.isValid())
 	{
