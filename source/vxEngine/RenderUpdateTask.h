@@ -29,7 +29,6 @@ struct RenderUpdateTask
 {
 	enum class Type{ LoadScene, UpdateCamera, UpdateDynamicTransforms, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex };
 
-	void* ptr;
 	Type type;
 };
 
@@ -39,9 +38,8 @@ struct RenderUpdateCameraData
 	__m128 quaternionRotation;
 };
 
-struct RenderUpdateDataTransforms
+struct VX_ALIGN(16) RenderUpdateDataTransforms
 {
-	vx::TransformGpu* transforms;
-	u32* indices;
 	u32 count;
+	u32 padding[3];
 };

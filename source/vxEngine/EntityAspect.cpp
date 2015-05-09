@@ -284,11 +284,15 @@ void EntityAspect::updateActorTransforms()
 		m_allocator.clear(marker);
 	};
 
+
+	auto totalSizeInBytes = sizeof(RenderUpdateDataTransforms) + (sizeof(vx::TransformGpu) + sizeof(u32)) * count;
+	auto dataPtr = m_allocator.allocate(totalSizeInBytes, 16);
+
 	//u16* pIndices = (u16*)m_allocator.allocate(sizeof(u16) * count, 4);
 	//std::pair<u16, u16>* pIndices_Sorted = (std::pair<u16, u16>*)m_allocator.allocate(sizeof(std::pair<u16, u16>) * count, 4);
 //	vx::TransformGpu* pTransforms = (vx::TransformGpu*)m_allocator.allocate(sizeof(vx::TransformGpu) * count, 16);
-	auto pTransforms = (vx::TransformGpu*)_aligned_malloc(sizeof(vx::TransformGpu) * count, 16);
-	auto indices = new u32[count];
+	vx::TransformGpu* pTransforms = (vx::TransformGpu*)(dataPtr + sizeof(RenderUpdateDataTransforms));
+	u32* indices = (u32*)(pTransforms + count);
 	u32 index = 0;
 
 	auto p = m_poolRender.first();
@@ -315,56 +319,12 @@ void EntityAspect::updateActorTransforms()
 		p = m_poolRender.next_nocheck(p);
 	}
 
-	/*std::sort(pIndices_Sorted, pIndices_Sorted + count, [](const std::pair<u16, u16> &l, const std::pair<u16, u16> &r)
-	{
-		return l.first < r.first;
-	});
-
-	for (s32 i = 0; i < count; ++i)
-	{
-		u32 newIndex = i;
-		u32 oldIndex = pIndices_Sorted[i].second;
-
-		std::swap(pTransforms[newIndex], pTransforms[oldIndex]);
-	}
-
-	s32 offset = 0;
-	u32 start = 0;
-	while (count != 0)
-	{
-		u32 batchCount = 1;
-		auto batchStart = pIndices_Sorted[offset].first;
-
-		u32 expected = batchStart + 1;
-		s32 remainingSize = count - offset;
-		for (s32 i = 1; i < remainingSize; ++i)
-		{
-			auto nextIndex = pIndices_Sorted[offset + i].first;
-
-			if (nextIndex != expected)
-			{
-				break;
-			}
-
-			++expected;
-			++batchCount;
-		}
-
-		//m_renderAspect.updateTransforms(pTransforms + offset, batchStart, batchCount);
-
-		count -= batchCount;
-		offset += batchCount;
-	}*/
-
-	auto data = new RenderUpdateDataTransforms();
-	data->transforms = pTransforms;
-	data->indices = indices;
+	RenderUpdateDataTransforms* data = (RenderUpdateDataTransforms*)dataPtr;
 	data->count = count;
 
 	RenderUpdateTask task;
 	task.type = RenderUpdateTask::Type::UpdateDynamicTransforms;
-	task.ptr = data;
-	m_renderAspect.queueUpdateTask(task);
+	m_renderAspect.queueUpdateTask(task, dataPtr, totalSizeInBytes);
 }
 
 Component::Input& EntityAspect::getComponentInput(u16 i)
@@ -447,19 +407,18 @@ void EntityAspect::handleIngameEvent(const Event &evt)
 				auto &actors = m_pCurrentScene->getActors();
 				auto itActor = actors.find(it.sid);
 
-				CreateActorData* data = new CreateActorData();
-				data->material = itActor->m_material;
-				data->mesh = itActor->m_mesh;
-				data->pScene = m_pCurrentScene;
-				data->transform.m_rotation = vx::float3(0);
-				data->transform.m_scaling = 1.0f;
-				data->transform.m_translation = it.position;
-				data->index = i;
+				CreateActorData data;
+				data.material = itActor->m_material;
+				data.mesh = itActor->m_mesh;
+				data.pScene = m_pCurrentScene;
+				data.transform.m_rotation = vx::float3(0);
+				data.transform.m_scaling = 1.0f;
+				data.transform.m_translation = it.position;
+				data.index = i;
 
 				RenderUpdateTask task;
-				task.ptr = data;
 				task.type = RenderUpdateTask::Type::CreateActorGpuIndex;
-				m_renderAspect.queueUpdateTask(task);
+				m_renderAspect.queueUpdateTask(task, (u8*)&data, sizeof(CreateActorData));
 
 				/*Event e;
 				e.type = EventType::Ingame_Event;

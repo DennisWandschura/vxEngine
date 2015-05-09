@@ -52,27 +52,26 @@ class VX_ALIGN(64) RenderAspect : public EventListener
 	static const auto s_shadowMapResolution = 2048;
 
 protected:
-	struct ColdData
+	struct ColdData;
+
+	class DoubleBufferRaw
 	{
-		RenderSettings m_settings;
-		vx::gl::Texture m_gbufferDepthTexture;
-		// albedoSlice : rgb8
-		vx::gl::Texture m_gbufferAlbedoSlice;
-		// normalSlice : rgb10a2
-		vx::gl::Texture m_gbufferNormalSlice;
-		// surface : rgba8
-		vx::gl::Texture m_gbufferSurfaceSlice;
-		// surface : rgbaf16
-		vx::gl::Texture m_gbufferTangentSlice;
-		vx::gl::Texture m_aabbTexture;
-		vx::gl::Buffer m_screenshotBuffer;
+		u8* m_frontBuffer;
+		u8* m_backBuffer;
+		u32 m_frontSize;
+		u32 m_backSize;
+		u32 m_capacity;
 
-		vx::gl::Texture m_ambientColorTexture;
-		vx::gl::Texture m_ambientColorBlurTexture[2];
-		// contains index into texture array sorted by texture handle
+	public:
+		DoubleBufferRaw();
+		DoubleBufferRaw(vx::StackAllocator* allocator, u32 capacity);
 
-		Font m_font;
-	//	std::vector<std::unique_ptr<Graphics::Renderer>> m_renderers;
+		bool memcpy(const u8* data, u32 size);
+
+		void swapBuffers();
+
+		u8* getBackBuffer();
+		u32 getBackBufferSize() const;
 	};
 
 	Graphics::CommandList m_commandList;
@@ -84,6 +83,7 @@ protected:
 	std::mutex m_updateMutex;
 	std::vector<RenderUpdateTask> m_tasks;
 	RenderUpdateCameraData m_updateCameraData;
+	DoubleBufferRaw m_doubleBuffer;
 
 	vx::gl::Buffer m_cameraBuffer;
 	
@@ -141,10 +141,10 @@ protected:
 
 	void taskUpdateCamera();
 	void taskTakeScreenshot();
-	void taskLoadScene(void* p);
+	void taskLoadScene(u8* p, u32* offset);
 	void taskToggleRenderMode();
-	void taskCreateActorGpuIndex(void* p);
-	void taskUpdateDynamicTransforms(void* p);
+	void taskCreateActorGpuIndex(u8* p, u32* offset);
+	void taskUpdateDynamicTransforms(u8* p, u32* offset);
 
 	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene);
 	u16 getActorGpuIndex();
@@ -163,6 +163,7 @@ public:
 	void makeCurrent(bool b);
 
 	void queueUpdateTask(const RenderUpdateTask &task);
+	void queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize);
 	void queueUpdateCamera(const RenderUpdateCameraData &data);
 	void update();
 

@@ -54,6 +54,92 @@ namespace
 	}
 }
 
+struct RenderAspect::ColdData
+{
+	RenderSettings m_settings;
+	vx::gl::Texture m_gbufferDepthTexture;
+	// albedoSlice : rgb8
+	vx::gl::Texture m_gbufferAlbedoSlice;
+	// normalSlice : rgb10a2
+	vx::gl::Texture m_gbufferNormalSlice;
+	// surface : rgba8
+	vx::gl::Texture m_gbufferSurfaceSlice;
+	// surface : rgbaf16
+	vx::gl::Texture m_gbufferTangentSlice;
+	vx::gl::Texture m_aabbTexture;
+	vx::gl::Buffer m_screenshotBuffer;
+
+	vx::gl::Texture m_ambientColorTexture;
+	vx::gl::Texture m_ambientColorBlurTexture[2];
+	// contains index into texture array sorted by texture handle
+
+	Font m_font;
+	//	std::vector<std::unique_ptr<Graphics::Renderer>> m_renderers;
+};
+
+/*class DoubleBufferRaw
+{
+	u8* m_buffers[2];
+	u32 m_currentBuffer;
+	u32 m_frontSize;
+	u32 m_backSize;
+	u32 m_capacity;
+
+	*/
+RenderAspect::DoubleBufferRaw::DoubleBufferRaw()
+	:m_frontBuffer(nullptr),
+	m_backBuffer(nullptr),
+	m_frontSize(0),
+	m_backSize(0),
+	m_capacity(0)
+{
+}
+
+RenderAspect::DoubleBufferRaw::DoubleBufferRaw(vx::StackAllocator* allocator, u32 capacity)
+	:m_frontBuffer(nullptr),
+	m_backBuffer(nullptr),
+	m_frontSize(0),
+	m_backSize(0),
+	m_capacity(0)
+{
+	auto front = allocator->allocate(capacity, 64);
+	auto back = allocator->allocate(capacity, 64);
+
+	m_frontBuffer = front;
+	m_backBuffer = back;
+
+	m_capacity = capacity;
+}
+
+bool RenderAspect::DoubleBufferRaw::memcpy(const u8* data, u32 size)
+{
+	auto newSize = m_frontSize + size;
+	if (newSize >= m_capacity)
+		return false;
+
+	::memcpy(m_frontBuffer + m_frontSize, data, size);
+	m_frontSize = newSize;
+
+	return true;
+}
+
+void RenderAspect::DoubleBufferRaw::swapBuffers()
+{
+	std::swap(m_frontBuffer, m_backBuffer);
+	std::swap(m_frontSize, m_backSize);
+	m_frontSize = 0;
+}
+
+u8* RenderAspect::DoubleBufferRaw::getBackBuffer()
+{
+	return m_backBuffer;
+}
+
+u32 RenderAspect::DoubleBufferRaw::getBackBufferSize() const
+{
+	return m_backSize;
+}
+
 RenderAspect::RenderAspect()
 	:m_shaderManager(),
 	m_renderContext(),
@@ -289,6 +375,9 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 		return false;
 	}
 
+	const auto doubleBufferSizeInBytes = 5 KBYTE;
+	m_doubleBuffer = DoubleBufferRaw(&m_allocator, doubleBufferSizeInBytes);
+
 	createTextures();
 	createFrameBuffers();
 
@@ -367,6 +456,21 @@ void RenderAspect::queueUpdateTask(const RenderUpdateTask &task)
 	m_tasks.push_back(task);
 }
 
+void RenderAspect::queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize)
+{
+	std::lock_guard<std::mutex> lck(m_updateMutex);
+
+	if (m_doubleBuffer.memcpy(data, dataSize))
+	{
+		m_tasks.push_back(task);
+	}
+	else
+	{
+		puts("RenderAspect::queueUpdateTask out of memory");
+		std::exit(1);
+	}
+}
+
 void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 {
 	RenderUpdateTask task;
@@ -381,6 +485,12 @@ void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 void RenderAspect::update()
 {
 	std::lock_guard<std::mutex> lck(m_updateMutex);
+	m_doubleBuffer.swapBuffers();
+
+	auto backBuffer = m_doubleBuffer.getBackBuffer();
+	auto backBufferSize = m_doubleBuffer.getBackBufferSize();
+	u32 offset = 0;
+
 	for (auto &it : m_tasks)
 	{
 		switch (it.type)
@@ -389,16 +499,16 @@ void RenderAspect::update()
 			taskUpdateCamera();
 			break;
 		case RenderUpdateTask::Type::UpdateDynamicTransforms:
-			taskUpdateDynamicTransforms(it.ptr);
+			taskUpdateDynamicTransforms(backBuffer + offset, &offset);
 			break;
 		case RenderUpdateTask::Type::CreateActorGpuIndex:
-			taskCreateActorGpuIndex(it.ptr);
+			taskCreateActorGpuIndex(backBuffer + offset, &offset);
 			break;
 		case RenderUpdateTask::Type::TakeScreenshot:
 			taskTakeScreenshot();
 			break;
 		case RenderUpdateTask::Type::LoadScene:
-			taskLoadScene(it.ptr);
+			taskLoadScene(backBuffer + offset, &offset);
 			break;
 		case RenderUpdateTask::Type::ToggleRenderMode:
 			taskToggleRenderMode();
@@ -408,6 +518,8 @@ void RenderAspect::update()
 		}
 	}
 	m_tasks.clear();
+
+	VX_ASSERT(offset == backBufferSize);
 }
 
 void RenderAspect::taskUpdateCamera()
@@ -431,9 +543,12 @@ void RenderAspect::taskTakeScreenshot()
 	takeScreenshot();
 }
 
-void RenderAspect::taskLoadScene(void* p)
+void RenderAspect::taskLoadScene(u8* p, u32* offset)
 {
-	Scene* pScene = (Scene*)p;
+	u64 address;
+	::memcpy(&address, p, 8);
+
+	Scene* pScene = (Scene*)address;
 	vx::verboseChannelPrintF(0, dev::Channel_Render, "Loading Scene into Render");
 	m_sceneRenderer.loadScene(*pScene, m_objectManager);
 	m_pScene = pScene;
@@ -441,6 +556,8 @@ void RenderAspect::taskLoadScene(void* p)
 	auto count = m_sceneRenderer.getMeshInstanceCount();
 	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
 	buffer->subData(0, sizeof(u32), &count);
+
+	*offset += sizeof(Scene*);
 }
 
 void RenderAspect::taskToggleRenderMode()
@@ -468,7 +585,7 @@ void RenderAspect::taskToggleRenderMode()
 	}
 }
 
-void RenderAspect::taskCreateActorGpuIndex(void* p)
+void RenderAspect::taskCreateActorGpuIndex(u8* p, u32* offset)
 {
 	auto evtManager = Locator::getEventManager();
 
@@ -483,21 +600,23 @@ void RenderAspect::taskCreateActorGpuIndex(void* p)
 
 	evtManager->addEvent(e);
 
-	delete(data);
+	*offset += sizeof(CreateActorData);
 }
 
-void RenderAspect::taskUpdateDynamicTransforms(void* p)
+void RenderAspect::taskUpdateDynamicTransforms(u8* ptr, u32* offset)
 {
-	RenderUpdateDataTransforms data = *(RenderUpdateDataTransforms*)p;
-	delete(p);
+	auto data = (RenderUpdateDataTransforms*)ptr;
+	u32 count = data->count;
 
-	for (u32 i = 0; i < data.count; ++i)
+	auto transforms = (vx::TransformGpu*)(data + 1);
+	auto indices = (u32*)(transforms + count);
+
+	for (u32 i = 0; i < count; ++i)
 	{
-		m_sceneRenderer.updateTransform(data.transforms[i], data.indices[i]);
+		m_sceneRenderer.updateTransform(transforms[i], indices[i]);
 	}
 
-	delete[]data.indices;
-	_aligned_free(data.transforms);
+	*offset += sizeof(RenderUpdateDataTransforms) + (sizeof(vx::TransformGpu) + sizeof(u32)) * count;
 }
 
 void RenderAspect::render(GpuProfiler* gpuProfiler)
@@ -800,9 +919,9 @@ void RenderAspect::handleFileEvent(const Event &evt)
 		
 		RenderUpdateTask task;
 		task.type = RenderUpdateTask::Type::LoadScene;
-		task.ptr = pScene;
 
-		queueUpdateTask(task);
+		u64 address = (u64)pScene;
+		queueUpdateTask(task, (u8*)&address, sizeof(u64));
 	}break;
 	default:
 		break;

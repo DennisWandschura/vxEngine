@@ -56,6 +56,7 @@ namespace
 
 		if (g_engine)
 		{
+			g_engine->stop();
 			g_engine->shutdown();
 			g_engine = nullptr;
 		}
