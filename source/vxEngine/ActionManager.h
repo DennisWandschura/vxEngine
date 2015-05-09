@@ -26,16 +26,19 @@ SOFTWARE.
 class Action;
 
 #include <vector>
+#include <vxLib/types.h>
 
 class ActionManager
 {
-	std::vector<Action*> m_queue{};
-	std::vector<Action*>* m_active{};
+	std::vector<Action*> m_queue;
+	std::vector<Action*>* m_active;
 
 public:
-	ActionManager() = default;
+	ActionManager();
+	~ActionManager();
 
 	void scheduleAction(Action* p);
+	void scheduleActions(Action* p, u32 count);
 
 	void update();
 };

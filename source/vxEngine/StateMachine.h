@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,12 +22,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 class State;
 class Action;
 
+namespace vx
+{
+	class StackAllocator;
+}
+
 #include <vector>
+#include <vxLib/types.h>
 
 class StateMachine
 {
@@ -38,7 +44,7 @@ public:
 	StateMachine();
 	StateMachine(State* pInitialState, std::vector<State*> &&states);
 
-	void update(std::vector<Action*>* actions);
+	void update(Action** actions, u32* count, vx::StackAllocator* allocator);
 
 	void setInitialState(State* pState);
 	void addState(State* pState);

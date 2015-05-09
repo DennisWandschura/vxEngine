@@ -208,13 +208,15 @@ void ActorAspect::update(f32 dt)
 		auto status = p->flags & Component::Actor::WaitingForOrders;
 		if (status == Component::Actor::WaitingForOrders)
 		{
-			std::vector<Action*> actions;
-			p->m_stateMachine.update(&actions);
+			auto marker = m_allocatorScratch.getMarker();
+
+			Action* actionsPtr = nullptr;
+			u32 count = 0;
+			p->m_stateMachine.update(&actionsPtr, &count, &m_allocatorScratch);
 		
-			for (auto &action : actions)
-			{
-				m_actionManager.scheduleAction(action);
-			}
+			m_actionManager.scheduleActions(actionsPtr, count);
+
+			m_allocatorScratch.clear(marker);
 
 			p->flags ^= Component::Actor::WaitingForOrders;
 		}

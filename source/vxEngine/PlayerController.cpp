@@ -47,8 +47,15 @@ PlayerController::~PlayerController()
 
 }
 
-void PlayerController::initialize(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspect* renderAspect)
+void PlayerController::initialize(vx::StackAllocator* allocator)
 {
+	const auto allocSize = 1 KBYTE;
+	m_scratchAllocator = vx::StackAllocator(allocator->allocate(allocSize, 8), allocSize);
+}
+
+void PlayerController::initializePlayer(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspect* renderAspect)
+{
+
 	m_actions.push_back(std::make_unique<ActionPlayerLookAround>(pPlayerInputComponent, dt));
 	m_actions.push_back(std::make_unique<ActionPlayerMove>(pPlayerInputComponent, 0.1f));
 	m_actions.push_back(std::make_unique<ActionUpdateGpuTransform>(playerEntity, renderAspect));
@@ -70,11 +77,16 @@ void PlayerController::initialize(Component::Input* pPlayerInputComponent, f32 d
 
 void PlayerController::update()
 {
-	std::vector<Action*> actions;
-	m_stateMachine.update(&actions);
+	Action* actions = nullptr;
+	u32 count = 0;
+	m_stateMachine.update(&actions, &count, &m_scratchAllocator);
 
-	for (auto &action : actions)
+	Action* it = actions;
+	for (u32 i = 0; i < count; ++i)
 	{
-		action->run();
+		it->run();
+		++it;
 	}
+
+	m_scratchAllocator.clear();
 }

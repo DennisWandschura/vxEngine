@@ -24,9 +24,30 @@ SOFTWARE.
 #include "ActionManager.h"
 #include "Action.h"
 
+ActionManager::ActionManager()
+	:m_queue(),
+	m_active()
+{
+
+}
+
+ActionManager::~ActionManager()
+{
+
+}
+
 void ActionManager::scheduleAction(Action* p)
 {
 	m_queue.push_back(p);
+}
+
+void ActionManager::scheduleActions(Action* p, u32 count)
+{
+	for (u32 i = 0; i < count; ++i)
+	{
+		m_queue.push_back(p);
+		++p;
+	}
 }
 
 void ActionManager::update()

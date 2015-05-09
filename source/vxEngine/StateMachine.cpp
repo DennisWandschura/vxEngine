@@ -24,6 +24,7 @@ SOFTWARE.
 #include "StateMachine.h"
 #include "Transition.h"
 #include "State.h"
+#include <vxLib/Allocator/StackAllocator.h>
 
 StateMachine::StateMachine()
 	:m_states(),
@@ -40,8 +41,10 @@ StateMachine::StateMachine(State* pInitialState, std::vector<State*> &&states)
 
 }
 
-void StateMachine::update(std::vector<Action*>* actions)
+void StateMachine::update(Action** actions, u32* count, vx::StackAllocator* allocator)
 {
+	*count = 0;
+
 	if (m_pCurrentState == nullptr)
 		return;
 
@@ -71,26 +74,33 @@ void StateMachine::update(std::vector<Action*>* actions)
 		actionCount += transitionActions.size();
 		actionCount += entryActions.size();
 		actionCount += targetStateActions.size();
-		actions->reserve(actionCount);
 
+		*actions = (Action*)allocator->allocate(sizeof(Action*) * actionCount, 8);
+		*count = actionCount;
+
+		u32 index = 0;
 		for (auto &it : exitActions)
 		{
-			actions->push_back(it);
+			actions[index++] = it;
+			//actions->push_back(it);
 		}
 
 		for (auto &it : transitionActions)
 		{
-			actions->push_back(it);
+			actions[index++] = it;
+			//actions->push_back(it);
 		}
 
 		for (auto &it : entryActions)
 		{
-			actions->push_back(it);
+			actions[index++] = it;
+			//actions->push_back(it);
 		}
 
 		for (auto &it : targetStateActions)
 		{
-			actions->push_back(it);
+			actions[index++] = it;
+			//actions->push_back(it);
 		}
 
 		m_pCurrentState = targetState;
@@ -98,13 +108,18 @@ void StateMachine::update(std::vector<Action*>* actions)
 	else
 	{
 		auto &currentActions = m_pCurrentState->getActions();
-		actions->reserve(currentActions.size());
+		auto actionCount = currentActions.size();
+		printf("%llu\n", actionCount);
+		*actions = (Action*)allocator->allocate(sizeof(Action*) * actionCount, 8);
+		*count = actionCount;
 
+		u32 index = 0;
 		for (auto &it : currentActions)
 		{
-			actions->push_back(it);
+			actions[index++] = it;
 		}
 	}
+
 }
 
 void StateMachine::setInitialState(State* pState)

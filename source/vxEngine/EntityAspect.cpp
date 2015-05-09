@@ -80,6 +80,8 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator)
 
 	m_allocator = vx::StackAllocator(pAllocator->allocate(1 KBYTE, 16), 1 KBYTE);
 
+	m_playerController.initialize(pAllocator);
+
 	return true;
 }
 
@@ -128,7 +130,7 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 
 		createComponentPhysics(position, entityIndex, g_heightStanding);
 
-		m_playerController.initialize(pInput,g_dt , m_pPlayer, &m_renderAspect);
+		m_playerController.initializePlayer(pInput,g_dt , m_pPlayer, &m_renderAspect);
 	}
 }
 

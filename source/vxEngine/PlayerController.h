@@ -42,10 +42,12 @@ class RenderAspect;
 #include <vxLib/types.h>
 #include "StateMachine.h"
 #include <memory>
+#include <vxLib/Allocator/StackAllocator.h>
 
 class PlayerController
 {
 	StateMachine m_stateMachine;
+	vx::StackAllocator m_scratchAllocator;
 
 	std::vector<std::unique_ptr<Action>> m_actions;
 	std::vector<State> m_states;
@@ -54,7 +56,8 @@ public:
 	PlayerController();
 	~PlayerController();
 
-	void initialize(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspect* renderAspect);
+	void initialize( vx::StackAllocator* allocator);
+	void initializePlayer(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspect* renderAspect);
 
 	void update();
 };

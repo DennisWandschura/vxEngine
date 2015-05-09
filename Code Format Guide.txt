@@ -27,7 +27,9 @@
 -only use inheritance, virtual funtions, etc. when neccesseray
 -inheritance, only 1 level
 
--use namespace for code in source file that does not belong to the class
+-use empty namespace for code in source file that does not belong to the class (namespace { your code })
 
 -Function input Description
 Used for functions that have more than 2 input parameters
+
+-raw pointers do not have ownership over the object
