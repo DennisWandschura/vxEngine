@@ -34,7 +34,6 @@ SOFTWARE.
 #include "Transform.h"
 #include "RenderAspect.h"
 #include "ComponentRender.h"
-#include "EntityFactory.h"
 #include "Actor.h"
 #include "Event.h"
 #include "EventTypes.h"
@@ -48,7 +47,8 @@ SOFTWARE.
 #include "Spawn.h"
 #include "GpuFunctions.h"
 #include "CreateActorData.h"
-#include "EntityFactoryDescription.h"
+#include "State.h"
+#include "EngineGlobals.h"
 
 namespace
 {
@@ -60,7 +60,7 @@ namespace
 }
 
 EntityAspect::EntityAspect(PhysicsAspect &physicsAspect, FileAspect &fileAspect, RenderAspect &renderAspect)
-	:m_playerController(&renderAspect),
+	:m_playerController(),
 	m_physicsAspect(physicsAspect),
 	m_fileAspect(fileAspect),
 	m_renderAspect(renderAspect)
@@ -104,18 +104,8 @@ Component::Actor* EntityAspect::createComponentActor(u16 entityIndex, u16* actor
 	auto pActor = m_poolActor.createEntry(actorIndex);
 	pActor->entityIndex = entityIndex;
 
-	/*Action* pEmptyAction = new Action();
-	// trigger if distance to object is greater than 1.0f
-	RaycastGreaterCondition* pRaycastCondition = new RaycastGreaterCondition(m_physicsAspect, pPhys, 3.0f, 1.0f);
-	Transition *pTransition = new Transition(pRaycastCondition, );
-
 	State* pInitialState = new State();
-	pInitialState->addTransition(pTransition);
-	pInitialState->setAction(pEmptyAction);
-
-	pActor->stateMachine.setInitialState(pInitialState);
-
-	pActor->stateMachine.addState();*/
+	pActor->m_stateMachine.setInitialState(pInitialState);
 
 	return pActor;
 }
@@ -127,11 +117,6 @@ void EntityAspect::spawnPlayer(const vx::float3 &position, const Component::Phys
 
 void EntityAspect::createPlayerEntity(const vx::float3 &position)
 {
-	//assert(!m_pPlayer);
-
-	//
-	//
-
 	if (m_pPlayer == nullptr)
 	{
 		u16 entityIndex;
@@ -142,6 +127,8 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 		pInput->orientation.x = 0.0f;
 
 		createComponentPhysics(position, entityIndex, g_heightStanding);
+
+		m_playerController.initialize(pInput,g_dt , m_pPlayer, &m_renderAspect);
 	}
 }
 
@@ -154,27 +141,12 @@ void EntityAspect::createActorEntity(const vx::float3 &position, f32 height, u32
 
 	createComponentPhysics(position, entityIndex, height);
 
-	//auto &actors = m_pCurrentScene->getActors();
-	//auto itActor = actors.find(actor);
-
-	//vx::Transform transform;
-	//transform.m_translation = position;
-
-	//auto gpuIndex = m_renderAspect.addActorToBuffer(transform, itActor->mesh, itActor->material, m_pCurrentScene);
 	auto pRender = m_poolRender.createEntry(&pEntity->render);
 	pRender->entityIndex = entityIndex;
 	pRender->gpuIndex = gpuIndex;
 
 	auto pActor = createComponentActor(entityIndex, &pEntity->actor);
-
-	EntityFactoryDescription desc;
-	desc.entity = pEntity;
-	desc.halfHeight = height * 0.5f;
-	desc.navGraph = m_pNavGraph;
-	desc.p = pActor;
-	desc.pInput = pInput;
-
-	EntityFactory::create(desc, &m_poolAllocatorPath);
+	pActor->halfHeight = height * 0.5f;
 
 	Event evt;
 	evt.type = EventType::Ingame_Event;
@@ -290,7 +262,8 @@ void EntityAspect::updatePhysics_linear(f32 dt)
 
 void EntityAspect::updatePlayerPositionCamera()
 {
-	m_playerController.updatePlayerHuman(m_pPlayer, *this);
+	m_playerController.update();
+	//m_playerController.updatePlayerHuman(m_pPlayer, *this);
 }
 
 void EntityAspect::updateActorTransforms()
@@ -399,17 +372,14 @@ Component::Input& EntityAspect::getComponentInput(u16 i)
 
 void EntityAspect::handleKeyboard(const vx::Keyboard &keyboard)
 {
-	m_playerController.handleKeyboard(m_pPlayer, keyboard, *this);
 }
 
 void EntityAspect::handleMouse(const vx::Mouse &mouse, const f32 dt)
 {
-	m_playerController.handleMouse(m_pPlayer, mouse, dt, *this);
 }
 
 void EntityAspect::keyPressed(u16 key)
 {
-	m_playerController.keyPressed(key, *this);
 }
 
 void EntityAspect::handleEvent(const Event &evt)

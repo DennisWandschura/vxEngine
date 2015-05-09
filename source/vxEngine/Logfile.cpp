@@ -37,8 +37,7 @@ Logfile::Logfile(Clock &clock)
 
 Logfile::~Logfile()
 {
-	if (m_created != 0)
-		close();
+	close();
 }
 
 bool Logfile::create(const char *filename)
@@ -62,9 +61,13 @@ bool Logfile::create(const char *filename)
 
 void Logfile::close()
 {
-	textout("</log>");
-	m_file.flush();
-	m_file.close();
+	if(m_created != 0)
+	{
+		textout("</log>");
+		m_file.flush();
+		m_file.close();
+		m_created = 0;
+	}
 }
 
 void Logfile::textout(const char *text)

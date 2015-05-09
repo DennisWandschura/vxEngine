@@ -30,14 +30,15 @@ class DecisionTreeNode;
 
 class DecisionTreeTransition : public TransitionBase
 {
-	TargetState* m_pTargetState{ nullptr };
+	TargetState* m_pTargetState;
 	DecisionTreeNode* m_pRoot;
+	std::vector<Action*> m_empty;
 
 public:
 	DecisionTreeTransition(DecisionTreeNode* pRoot, TargetState* state = nullptr)
 		:m_pTargetState(state), m_pRoot(pRoot){}
 
-	Action* getAction() const override;
+	const std::vector<Action*>& getActions() const override;
 
 	State* getTargetState() const override;
 

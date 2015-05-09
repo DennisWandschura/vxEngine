@@ -40,8 +40,11 @@ StateMachine::StateMachine(State* pInitialState, std::vector<State*> &&states)
 
 }
 
-Action* StateMachine::update()
+void StateMachine::update(std::vector<Action*>* actions)
 {
+	if (m_pCurrentState == nullptr)
+		return;
+
 	TransitionBase* pTriggeredTransition = nullptr;
 
 	auto &transitions = m_pCurrentState->getTransitions();
@@ -56,18 +59,51 @@ Action* StateMachine::update()
 
 	if (pTriggeredTransition)
 	{
+		auto &exitActions = m_pCurrentState->getExitActions();
+
 		auto targetState = pTriggeredTransition->getTargetState();
 
-		//std::vector<Action*> actions;
-		//actions.push_back(m_pCurrentState->getAction());
+		auto &transitionActions = pTriggeredTransition->getActions();
+		auto &entryActions = targetState->getEntryActions();
+		auto targetStateActions = targetState->getActions();
+
+		auto actionCount = exitActions.size();
+		actionCount += transitionActions.size();
+		actionCount += entryActions.size();
+		actionCount += targetStateActions.size();
+		actions->reserve(actionCount);
+
+		for (auto &it : exitActions)
+		{
+			actions->push_back(it);
+		}
+
+		for (auto &it : transitionActions)
+		{
+			actions->push_back(it);
+		}
+
+		for (auto &it : entryActions)
+		{
+			actions->push_back(it);
+		}
+
+		for (auto &it : targetStateActions)
+		{
+			actions->push_back(it);
+		}
 
 		m_pCurrentState = targetState;
-
-		return m_pCurrentState->getAction();
 	}
 	else
 	{
-		return m_pCurrentState->getAction();
+		auto &currentActions = m_pCurrentState->getActions();
+		actions->reserve(currentActions.size());
+
+		for (auto &it : currentActions)
+		{
+			actions->push_back(it);
+		}
 	}
 }
 

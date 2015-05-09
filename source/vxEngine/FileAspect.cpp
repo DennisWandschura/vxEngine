@@ -71,14 +71,39 @@ struct FileAspect::FileRequest
 	OpenType m_openType{};
 };
 
-struct FileAspect::LoadFileMeshDescription
+struct LoadFileSharedDescription
 {
 	const char* fileName;
 	vx::StringID sid;
-	u8* fileData;
 	LoadFileReturnType* result;
 	void* pUserData;
+};
+
+struct FileAspect::LoadFileOfTypeDescription
+{
+	LoadFileSharedDescription shared;
+
+	FileType fileType;
+	const char* fileNameWithPath;
 	u32 fileSize;
+	const u8* fileData;
+	std::vector<FileEntry>* missingFiles;
+};
+
+struct FileAspect::LoadFileMeshDescription
+{
+	LoadFileSharedDescription shared;
+
+	const u8* fileData;
+	u32 fileSize;
+};
+
+struct FileAspect::LoadFileMaterialDescription
+{
+	LoadFileSharedDescription shared;
+
+	const char* fileNameWithPath;
+	std::vector<FileEntry>* missingFiles;
 };
 
 FileAspect::FileAspect(EventManager &evtManager)
@@ -258,7 +283,7 @@ u8 FileAspect::loadScene(const char *filename, const u8 *ptr, const vx::StringID
 	return result;
 }
 
-Material* FileAspect::loadMaterial(const char *filename, const char *file, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status)
+Material* FileAspect::loadMaterial(const char *filename, const char *fileNameWithPath, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status)
 {
 	Material *pResult = nullptr;
 
@@ -268,7 +293,7 @@ Material* FileAspect::loadMaterial(const char *filename, const char *file, const
 		Material material;
 
 		MaterialFactoryLoadDescription desc;
-		desc.file = file;
+		desc.fileNameWithPath = fileNameWithPath;
 		desc.textureFiles = &m_sortedTextureFiles;
 		desc.missingFiles = missingFiles;
 		desc.material = &material;
@@ -320,7 +345,7 @@ void FileAspect::getFolderString(FileType fileType, const char** folder)
 	}
 }
 
-u8* FileAspect::readFile(const char *file, u32 &fileSize)
+const u8* FileAspect::readFile(const char *file, u32 &fileSize)
 {
 	vx::File f;
 	if (!f.open(file, vx::FileAccess::Read))
@@ -365,26 +390,26 @@ bool FileAspect::loadFileMesh(const LoadFileMeshDescription &desc)
 
 	if (header.magic != header.s_magic)
 	{
-		desc.result->result = 0;
+		desc.shared.result->result = 0;
 		return false;
 	}
 
-	loadMesh(header, desc.fileName, meshFileDataBegin, desc.sid, &desc.result->status);
-	desc.result->result = 1;
-	desc.result->type = FileType::Mesh;
+	loadMesh(header, desc.shared.fileName, meshFileDataBegin, desc.shared.sid, &desc.shared.result->status);
+	desc.shared.result->result = 1;
+	desc.shared.result->type = FileType::Mesh;
 
 	vx::Variant arg1;
-	arg1.u64 = desc.sid.value;
+	arg1.u64 = desc.shared.sid.value;
 
 	vx::Variant arg2;
-	arg2.ptr = desc.pUserData;
+	arg2.ptr = desc.shared.pUserData;
 
 	pushFileEvent(FileEvent::Mesh_Loaded, arg1, arg2);
 
 	return true;
 }
 
-void FileAspect::loadFileTexture(const char* fileName, u32 fileSize, const vx::StringID &sid, u8* pData, LoadFileReturnType* result)
+void FileAspect::loadFileTexture(const char* fileName, u32 fileSize, const vx::StringID &sid, const u8* pData, LoadFileReturnType* result)
 {
 	void* p = loadTexture(fileName, pData, fileSize, sid, &result->status);
 	if (p)
@@ -402,49 +427,49 @@ void FileAspect::loadFileTexture(const char* fileName, u32 fileSize, const vx::S
 	}
 }
 
-void FileAspect::loadFileMaterial(const char* fileName, const char* file, const vx::StringID &sid, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles)
+void FileAspect::loadFileMaterial(const LoadFileMaterialDescription &desc)
 {
-	Material *pMaterial = loadMaterial(fileName, file, sid, missingFiles, &result->status);
+	Material *pMaterial = loadMaterial(desc.shared.fileName, desc.fileNameWithPath, desc.shared.sid, desc.missingFiles, &desc.shared.result->status);
 	if (pMaterial)
 	{
-		result->result = 1;
-		result->type = FileType::Material;
+		desc.shared.result->result = 1;
+		desc.shared.result->type = FileType::Material;
 
 		vx::Variant arg1;
-		arg1.u64 = sid.value;
+		arg1.u64 = desc.shared.sid.value;
 
 		vx::Variant arg2;
-		arg2.ptr = pUserData;
+		arg2.ptr = desc.shared.pUserData;
 
 		pushFileEvent(FileEvent::Material_Loaded, arg1, arg2);
 	}
 }
 
-void FileAspect::loadFileOfType(FileType fileType, const char *fileName, const char* file, u32 fileSize, u8* fileData, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles)
+void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 {
-	auto sid = vx::make_sid(fileName);
-
-	switch (fileType)
+	switch (desc.fileType)
 	{
 	case FileType::Mesh:
 	{
-		LoadFileMeshDescription desc;
-		desc.fileName = fileName;
-		desc.fileSize = fileSize;
-		desc.sid = sid;
-		desc.fileData = fileData;
-		desc.result = result;
-		desc.pUserData = pUserData;
+		LoadFileMeshDescription loadDesc;
+		loadDesc.shared = desc.shared;
+		loadDesc.fileSize = desc.fileSize;
+		loadDesc.fileData = desc.fileData;
 
-		loadFileMesh(desc);
+		loadFileMesh(loadDesc);
 	}break;
 	case FileType::Texture:
 	{
-		loadFileTexture(fileName, fileSize, sid, fileData, result);
+		loadFileTexture(desc.shared.fileName, desc.fileSize, desc.shared.sid, desc.fileData, desc.shared.result);
 	}break;
 	case FileType::Material:
 	{
-		loadFileMaterial(fileName, file, sid, result, pUserData, missingFiles);
+		LoadFileMaterialDescription loadDesc;
+		loadDesc.shared = desc.shared;
+		loadDesc.fileNameWithPath = desc.fileNameWithPath;
+		loadDesc.missingFiles = desc.missingFiles;
+
+		loadFileMaterial(loadDesc);
 	}
 	break;
 	case FileType::Scene:
@@ -452,19 +477,19 @@ void FileAspect::loadFileOfType(FileType fileType, const char *fileName, const c
 #if _VX_EDITOR
 		if (loadScene(fileName, pData, sid, missingFiles, &result->status, (EditorScene*)pUserData) != 0)
 #else
-		if (loadScene(fileName, fileData, sid, missingFiles, &result->status, (Scene*)pUserData) != 0)
+		if (loadScene(desc.shared.fileName, desc.fileData, desc.shared.sid, desc.missingFiles, &desc.shared.result->status, (Scene*)desc.shared.pUserData) != 0)
 #endif
 		{
 			vx::Variant arg1;
-			arg1.ptr = pUserData;
+			arg1.ptr = desc.shared.pUserData;
 
 			vx::Variant arg2;
-			arg2.u64 = sid.value;
+			arg2.u64 = desc.shared.sid.value;
 
 			pushFileEvent(FileEvent::Scene_Loaded, arg1, arg2);
 
-			result->result = 1;
-			result->type = FileType::Scene;
+			desc.shared.result->result = 1;
+			desc.shared.result->type = FileType::Scene;
 		}
 	}break;
 	default:
@@ -480,10 +505,13 @@ LoadFileReturnType FileAspect::loadFile(const FileEntry &fileEntry, std::vector<
 	const char *folder = "";
 	getFolderString(fileType, &folder);
 
-	char file[64];
-	sprintf_s(file, "%s%s", folder, fileName);
-
 	LoadFileReturnType result;
+
+	char fileNameWithPath[64];
+	auto returnCode = sprintf_s(fileNameWithPath, "%s%s", folder, fileName);
+	if (returnCode == -1)
+		return result;
+
 	u32 fileSize = 0;
 
 	SCOPE_EXIT
@@ -491,11 +519,22 @@ LoadFileReturnType FileAspect::loadFile(const FileEntry &fileEntry, std::vector<
 		m_allocatorReadFile.clear();
 	};
 
-	u8* fileData = readFile(file, fileSize);
+	const u8* fileData = readFile(fileNameWithPath, fileSize);
 	if (fileData == nullptr)
 		return result;
 
-	loadFileOfType(fileType, fileName, file, fileSize, fileData, &result, pUserData, missingFiles);
+	LoadFileOfTypeDescription desc;
+	desc.shared.fileName = fileName;
+	desc.shared.pUserData = pUserData;
+	desc.shared.result = &result;
+	desc.shared.sid = vx::make_sid(fileName);
+	desc.fileData = fileData;
+	desc.fileNameWithPath = fileNameWithPath;
+	desc.fileSize = fileSize;
+	desc.fileType = fileType;
+	desc.missingFiles = missingFiles;
+
+	loadFileOfType(desc);
 
 	return result;
 }

@@ -37,10 +37,10 @@ class ActorData;
 
 class ActionFollowPath : public Action
 {
-	Component::Input* m_pInput{ nullptr };
+	Component::Input* m_pInput;
 	Arrive m_arrive;
-	ActorData* m_pData{ nullptr };
-	Component::Actor* m_pActor{ nullptr };
+	ActorData* m_pData;
+	Component::Actor* m_pActor;
 	u8 m_update{1};
 
 public:

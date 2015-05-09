@@ -41,6 +41,8 @@ SOFTWARE.
 #else
 
 #pragma comment(lib, "vxLib.lib")
+#pragma comment(lib, "vxEngineLib.lib")
+#pragma comment(lib, "PhysX3Extensions.lib")
 
 #ifdef _VX_NOAUDIO
 #else

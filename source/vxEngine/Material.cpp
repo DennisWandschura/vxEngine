@@ -41,7 +41,7 @@ Material::Material(Material &&rhs) noexcept
 	m_dynamicFriction(rhs.m_dynamicFriction),
 	m_restitution(rhs.m_restitution)
 {
-	memcpy(m_textureSid, rhs.m_textureSid, sizeof(m_textureSid));
+	::memcpy(m_textureSid, rhs.m_textureSid, sizeof(m_textureSid));
 }
 
 Material& Material::operator=(Material &&rhs) noexcept

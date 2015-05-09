@@ -38,7 +38,7 @@ public:
 	StateMachine();
 	StateMachine(State* pInitialState, std::vector<State*> &&states);
 
-	Action* update();
+	void update(std::vector<Action*>* actions);
 
 	void setInitialState(State* pState);
 	void addState(State* pState);

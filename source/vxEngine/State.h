@@ -30,23 +30,36 @@ class Action;
 
 class State
 {
-	Action* m_actions{ nullptr };
+	std::vector<Action*> m_actions;
 	std::vector<TransitionBase*> m_transitions;
+	std::vector<Action*> m_entryActions;
+	std::vector<Action*> m_exitActions;
 
 public:
-	State() = default;
-	State(Action* actions, std::vector<TransitionBase*> &&transitions) :m_actions(actions), m_transitions(transitions){}
+	State() :m_actions(), m_transitions(), m_entryActions(), m_exitActions(){}
 
 	void addTransition(TransitionBase* p)
 	{
 		return m_transitions.push_back(p);
 	}
 
-	void setAction(Action *p)
+	void addAction(Action *p)
 	{
-		m_actions = p;
+		m_actions.push_back(p);
+	}
+
+	void addEntryAction(Action *p)
+	{
+		m_entryActions.push_back(p);
+	}
+
+	void addExitAction(Action *p)
+	{
+		m_exitActions.push_back(p);
 	}
 
 	const std::vector<TransitionBase*>& getTransitions() const { return m_transitions; }
-	Action* getAction() const { return m_actions; }
+	const std::vector<Action*>& getActions() const { return m_actions; }
+	const std::vector<Action*>& getEntryActions() const { return m_entryActions; }
+	const std::vector<Action*>& getExitActions() const { return m_exitActions; }
 };

@@ -21,20 +21,38 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-namespace Component
+#include "ActionUpdateGpuTransform.h"
+#include "Entity.h"
+#include "RenderAspect.h"
+
+ActionUpdateGpuTransform::ActionUpdateGpuTransform()
+	:m_playerEntity(nullptr),
+	m_pRenderAspect(nullptr)
 {
-	struct Actor;
-	struct Input;
+
 }
 
-struct EntityActor;
-class NavGraph;
-
-#include <vxLib/types.h>
-
-struct EntityFactoryDescription
+ActionUpdateGpuTransform::ActionUpdateGpuTransform(EntityActor* playerEntity, RenderAspect* pRenderAspect)
+	:m_playerEntity(playerEntity),
+	m_pRenderAspect(pRenderAspect)
 {
-	const NavGraph* navGraph; EntityActor* entity; Component::Actor *p; Component::Input *pInput; f32 halfHeight;
-};
+
+}
+
+ActionUpdateGpuTransform::~ActionUpdateGpuTransform()
+{
+
+}
+
+void ActionUpdateGpuTransform::run()
+{
+	__m128 quaternionRotation = { m_playerEntity->orientation.y, m_playerEntity->orientation.x, 0, 0 };
+	quaternionRotation = vx::quaternionRotationRollPitchYawFromVector(quaternionRotation);
+
+	RenderUpdateCameraData data;
+	data.position = vx::loadFloat(m_playerEntity->position);
+	data.quaternionRotation = quaternionRotation;
+
+	m_pRenderAspect->queueUpdateCamera(data);
+}

@@ -28,9 +28,7 @@ SOFTWARE.
 #include "developer.h"
 #include "DebugRenderSettings.h"
 #include "GpuProfiler.h"
-
-const u32 g_hz = 30u;
-const f32 g_dt = 1.0f / g_hz;
+#include "EngineGlobals.h"
 
 Engine* g_pEngine{nullptr};
 

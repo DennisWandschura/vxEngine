@@ -24,15 +24,14 @@ SOFTWARE.
 #include "DecisionTreeTransition.h"
 #include "TargetState.h"
 
-Action* DecisionTreeTransition::getAction() const
+const std::vector<Action*>& DecisionTreeTransition::getActions() const
 {
-	Action* action = nullptr;
 	if (m_pTargetState)
 	{
-		action = m_pTargetState->getAction();
+		return m_pTargetState->getActions();
 	}
 
-	return action;
+	return m_empty;
 }
 
 State* DecisionTreeTransition::getTargetState() const

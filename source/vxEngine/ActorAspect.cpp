@@ -38,8 +38,6 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include "EventsIngame.h"
 
-//#include <PhysX/characterkinematic/PxController.h>
-
 ActorAspect::ActorAspect(const PhysicsAspect &physicsAspect)
 	:m_actionManager(),
 	m_physicsAspect(physicsAspect)
@@ -56,7 +54,6 @@ void ActorAspect::initialize(const EntityAspect &entityAspect, EventManager &evt
 	m_allocatorScratch = vx::StackAllocator(pAllocator->allocate(szSratch, 64), szSratch);
 
 	m_pActorPool = &entityAspect.getActorPool();
-	//m_pPhysicsPool = &entityAspect.getPhysicsPool();
 	m_pEntityPool = &entityAspect.getEntityPool();
 
 	evtManager.registerListener(&m_squadManager, 2);
@@ -137,9 +134,9 @@ void ActorAspect::handleFileEvent(const Event &evt)
 	if (evt.code == (u32)FileEvent::Scene_Loaded)
 	{
 		auto pCurrentScene = reinterpret_cast<const Scene*>(evt.arg1.ptr);
-		auto &pNavMesh = pCurrentScene->getNavMesh();
+		auto &navmesh = pCurrentScene->getNavMesh();
 
-		m_navGraph.initialize(pNavMesh, &m_allocator, &m_allocatorScratch);
+		m_navGraph.initialize(navmesh, &m_allocator, &m_allocatorScratch);
 
 		Event evt;
 		evt.arg1.ptr = &m_navGraph;
@@ -151,11 +148,11 @@ void ActorAspect::handleFileEvent(const Event &evt)
 
 
 		// create influence map
-		m_influenceMap.initialize(pNavMesh, 3.0f, 2.1f);
+		f32 cellHeight = 2.1f;
+		f32 cellWidthDepth = 3.0f;
+		m_influenceMap.initialize(navmesh, cellWidthDepth, cellHeight);
 
 		m_squadManager.initialize(m_pActorPool ,&m_navGraph, &m_influenceMap, nullptr, m_pEntityPool);
-
-
 
 		Event evtInfluence;
 		evtInfluence.arg1.ptr = &m_influenceMap;
@@ -211,9 +208,13 @@ void ActorAspect::update(f32 dt)
 		auto status = p->flags & Component::Actor::WaitingForOrders;
 		if (status == Component::Actor::WaitingForOrders)
 		{
-			auto pAction = p->m_sm.update();
-			if (pAction)
-				m_actionManager.scheduleAction(pAction);
+			std::vector<Action*> actions;
+			p->m_stateMachine.update(&actions);
+		
+			for (auto &action : actions)
+			{
+				m_actionManager.scheduleAction(action);
+			}
 
 			p->flags ^= Component::Actor::WaitingForOrders;
 		}

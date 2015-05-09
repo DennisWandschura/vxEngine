@@ -21,18 +21,44 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-namespace vx
+#include "ActionPlayerLookAround.h"
+#include <vxLib/RawInput.h>
+#include "ComponentInput.h"
+
+ActionPlayerLookAround::ActionPlayerLookAround()
+	:m_inputComponent(nullptr),
+	m_halfDt(0.0f)
 {
-	class PoolAllocator;
 }
 
-struct EntityFactoryDescription;
-
-#include <vxLib/types.h>
-
-struct ActorFactory
+ActionPlayerLookAround::ActionPlayerLookAround(Component::Input* inputComponent, f32 dt)
+	: m_inputComponent(inputComponent),
+	m_halfDt(dt / 2.0f)
 {
-	static void create(const EntityFactoryDescription &description, vx::PoolAllocator* pAllocator);
-};
+
+}
+
+ActionPlayerLookAround::~ActionPlayerLookAround()
+{
+}
+
+void ActionPlayerLookAround::run()
+{
+	const f32 angleMax = 1.4f;
+	const f32 angleMin = -1.4f;
+
+	auto mouse = vx::RawInput::getMouse();
+	auto mouseRelativePos = mouse.m_relative;
+	auto mouseRelativePosFloat = static_cast<vx::float2>(mouseRelativePos);
+
+	auto orientation = m_inputComponent->orientation;
+
+	//const f32 halfDt = 0.5f * m_dt;
+
+	orientation.x = orientation.x - mouseRelativePosFloat.x * m_halfDt;
+	orientation.y = orientation.y - mouseRelativePosFloat.y * m_halfDt;
+
+	m_inputComponent->orientation.x = vx::scalarModAngle(orientation.x);
+	m_inputComponent->orientation.y = fminf(fmaxf(orientation.y, angleMin), angleMax);
+}

@@ -30,23 +30,31 @@ namespace vx
 	class Camera;
 }
 
+namespace Component
+{
+	struct Input;
+}
+
 struct EntityActor;
 class EntityAspect;
 class RenderAspect;
 
 #include <vxLib/types.h>
+#include "StateMachine.h"
+#include <memory>
 
 class PlayerController
 {
-	RenderAspect* m_pRenderAspect;
+	StateMachine m_stateMachine;
+
+	std::vector<std::unique_ptr<Action>> m_actions;
+	std::vector<State> m_states;
 
 public:
-	explicit PlayerController(RenderAspect* renderAspect);
+	PlayerController();
+	~PlayerController();
 
-	void updatePlayerHuman(EntityActor* pPlayer, EntityAspect &entityAspect);
+	void initialize(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspect* renderAspect);
 
-	void handleKeyboard(EntityActor* pPlayer, const vx::Keyboard &keyboard, EntityAspect &entityAspect);
-	void handleMouse(EntityActor* pPlayer, const vx::Mouse &mouse, const f32 dt, EntityAspect &entityAspect);
-
-	void keyPressed(u16 key, EntityAspect &entityAspect);
+	void update();
 };

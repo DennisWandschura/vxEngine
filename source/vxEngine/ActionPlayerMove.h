@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,44 +23,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-class Condition;
-class Action;
-class State;
+namespace Component
+{
+	struct Input;
+}
 
+#include "Action.h"
 #include <vxLib/types.h>
-#include <vector>
 
-class TransitionBase
+class ActionPlayerMove : public Action
 {
-protected:
-	~TransitionBase(){}
+	Component::Input* m_inputComponent;
+	f32 m_moveVelocity;
 
 public:
-	virtual u8 isTriggered() = 0;
-	virtual State* getTargetState() const = 0;
-	virtual const std::vector<Action*>& getActions() const = 0;
-};
+	ActionPlayerMove();
+	ActionPlayerMove(Component::Input* inputComponent, f32 moveVelocity);
+	~ActionPlayerMove();
 
-class Transition : public TransitionBase
-{
-	std::vector<Action*> m_actions;
-	Condition* m_pCondition;
-	State* m_pTargetState;
-
-public:
-	Transition(Condition* pCondition, State* pTargetState) :
-		m_actions(), m_pCondition(pCondition), m_pTargetState(pTargetState){}
-
-	~Transition(){}
-
-	void addAction(Action* action)
-	{
-		m_actions.push_back(action);
-	}
-
-	u8 isTriggered() override;
-	State* getTargetState() const override { return m_pTargetState; }
-	const std::vector<Action*>& getActions() const override { return m_actions; }
+	void run() override;
 };

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,10 +23,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "EntityFactory.h"
-#include "ActorFactory.h"
 
-void EntityFactory::create(const EntityFactoryDescription &description, vx::PoolAllocator* pAllocator)
+namespace Component
 {
-	ActorFactory::create(description, pAllocator);
+	struct Input;
 }
+
+#include "Action.h"
+#include <vxLib/types.h>
+
+class ActionPlayerLookAround : public Action
+{
+	Component::Input* m_inputComponent;
+	f32 m_halfDt;
+
+public:
+	ActionPlayerLookAround();
+	ActionPlayerLookAround(Component::Input* inputComponent, f32 dt);
+	~ActionPlayerLookAround();
+
+	void run() override;
+};

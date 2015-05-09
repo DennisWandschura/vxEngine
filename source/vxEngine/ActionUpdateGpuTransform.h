@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,17 +23,21 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-namespace vx
+struct EntityActor;
+class RenderAspect;
+
+#include "Action.h"
+
+class ActionUpdateGpuTransform : public Action
 {
-	class PoolAllocator;
-}
+	EntityActor* m_playerEntity;
+	RenderAspect* m_pRenderAspect;
 
-struct EntityFactoryDescription;
-
-class EntityFactory
-{
 public:
-	static void create(const EntityFactoryDescription &desc, vx::PoolAllocator* pAllocator);
+	ActionUpdateGpuTransform();
+	ActionUpdateGpuTransform(EntityActor* playerEntity,RenderAspect* pRenderAspect);
+	~ActionUpdateGpuTransform();
+
+	void run() override;
 };

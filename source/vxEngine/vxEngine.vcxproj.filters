@@ -76,9 +76,6 @@
     <Filter Include="Header Files\AI\Steering">
       <UniqueIdentifier>{8ca0b2ba-77f7-4149-911a-ec4c67bb56e3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\AI\Actions">
-      <UniqueIdentifier>{ba5ccc37-65e2-4838-9d22-92814ea2c01b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\AI\Navigation">
       <UniqueIdentifier>{184e5c93-2bc5-48b1-94fd-89236205ad1b}</UniqueIdentifier>
     </Filter>
@@ -87,9 +84,6 @@
     </Filter>
     <Filter Include="Source Files\AI\Steering">
       <UniqueIdentifier>{bf203482-a532-4ec1-a349-de98c103366b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\AI\Actions">
-      <UniqueIdentifier>{2a3ae0c1-ca63-4342-988b-896e88b3f493}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\AI\Decisions">
       <UniqueIdentifier>{9722b3d2-e3c7-42f2-88d4-69994f1fecc4}</UniqueIdentifier>
@@ -138,6 +132,21 @@
     </Filter>
     <Filter Include="Header Files\Render\Graphics\Commands">
       <UniqueIdentifier>{1d0a9662-c3ff-48c0-a84f-1d210a2f147a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\File">
+      <UniqueIdentifier>{9d79818b-63e6-42ee-b9b4-8b478a36f85e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Input">
+      <UniqueIdentifier>{30930ff3-e05e-497c-9e5f-a16b9dd1588c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{83f4dcc4-cbdd-424d-ac0c-4de6d30948e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Actions">
+      <UniqueIdentifier>{a3c44381-709b-4051-b455-8b68eca39437}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Actions">
+      <UniqueIdentifier>{2a3ae0c1-ca63-4342-988b-896e88b3f493}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -246,13 +255,7 @@
     <ClInclude Include="ComponentPhysics.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="EntityAspect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Pool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Keys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PlayerController.h">
@@ -354,26 +357,17 @@
     <ClInclude Include="Decision.h">
       <Filter>Header Files\AI\Decision Tree</Filter>
     </ClInclude>
-    <ClInclude Include="Action.h">
-      <Filter>Header Files\AI\Actions</Filter>
-    </ClInclude>
     <ClInclude Include="Steering.h">
       <Filter>Header Files\AI\Steering</Filter>
     </ClInclude>
     <ClInclude Include="Arrive.h">
       <Filter>Header Files\AI\Steering</Filter>
     </ClInclude>
-    <ClInclude Include="ActionGoToPosition.h">
-      <Filter>Header Files\AI\Actions</Filter>
-    </ClInclude>
     <ClInclude Include="Locator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DecisionHasDestination.h">
       <Filter>Header Files\AI\Decision Tree</Filter>
-    </ClInclude>
-    <ClInclude Include="ActorFactory.h">
-      <Filter>Header Files\Entity</Filter>
     </ClInclude>
     <ClInclude Include="AABB.h">
       <Filter>Header Files</Filter>
@@ -384,9 +378,6 @@
     <ClInclude Include="DecisionHasPath.h">
       <Filter>Header Files\AI\Decision Tree</Filter>
     </ClInclude>
-    <ClInclude Include="ActionFollowPath.h">
-      <Filter>Header Files\AI\Actions</Filter>
-    </ClInclude>
     <ClInclude Include="Heap.h">
       <Filter>Header Files\Container</Filter>
     </ClInclude>
@@ -395,9 +386,6 @@
     </ClInclude>
     <ClInclude Include="TargetState.h">
       <Filter>Header Files\AI\Decision Tree</Filter>
-    </ClInclude>
-    <ClInclude Include="EntityFactory.h">
-      <Filter>Header Files\Entity</Filter>
     </ClInclude>
     <ClInclude Include="PhysicsFactory.h">
       <Filter>Header Files\Entity</Filter>
@@ -431,9 +419,6 @@
     </ClInclude>
     <ClInclude Include="ConditionHasPath.h">
       <Filter>Header Files\AI\Conditions</Filter>
-    </ClInclude>
-    <ClInclude Include="ActionRequestPath.h">
-      <Filter>Header Files\AI\Actions</Filter>
     </ClInclude>
     <ClInclude Include="developer.h">
       <Filter>Header Files</Filter>
@@ -498,9 +483,6 @@
     <ClInclude Include="ProfilerGraph.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Profiler2.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="VoxelRenderer.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
@@ -563,9 +545,6 @@
     </ClInclude>
     <ClInclude Include="CreateActorData.h">
       <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="EntityFactoryDescription.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Primitive.h">
       <Filter>Header Files</Filter>
@@ -654,6 +633,36 @@
     <ClInclude Include="FileAspect.h">
       <Filter>Header Files\File</Filter>
     </ClInclude>
+    <ClInclude Include="EntityAspect.h">
+      <Filter>Header Files\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="input\Keys.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineGlobals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionPlayerLookAround.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionPlayerMove.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionUpdateGpuTransform.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="Action.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionFollowPath.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionGoToPosition.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionRequestPath.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -680,9 +689,6 @@
     <ClCompile Include="thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileAspect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MeshFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -697,9 +703,6 @@
     </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="FileEntry.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SceneFactory.cpp">
       <Filter>Source Files</Filter>
@@ -771,7 +774,7 @@
       <Filter>Source Files\AI\Steering</Filter>
     </ClCompile>
     <ClCompile Include="ActionGoToPosition.cpp">
-      <Filter>Source Files\AI\Actions</Filter>
+      <Filter>Source Files\Actions</Filter>
     </ClCompile>
     <ClCompile Include="Locator.cpp">
       <Filter>Source Files</Filter>
@@ -786,13 +789,7 @@
       <Filter>Source Files\AI\Decisions</Filter>
     </ClCompile>
     <ClCompile Include="ActionFollowPath.cpp">
-      <Filter>Source Files\AI\Actions</Filter>
-    </ClCompile>
-    <ClCompile Include="EntityFactory.cpp">
-      <Filter>Source Files\Entity</Filter>
-    </ClCompile>
-    <ClCompile Include="ActorFactory.cpp">
-      <Filter>Source Files\Entity</Filter>
+      <Filter>Source Files\Actions</Filter>
     </ClCompile>
     <ClCompile Include="ogg_stream.cpp">
       <Filter>Source Files\Audio</Filter>
@@ -822,7 +819,7 @@
       <Filter>Source Files\AI\Conditions</Filter>
     </ClCompile>
     <ClCompile Include="ActionRequestPath.cpp">
-      <Filter>Source Files\AI\Actions</Filter>
+      <Filter>Source Files\Actions</Filter>
     </ClCompile>
     <ClCompile Include="developer.cpp">
       <Filter>Source Files</Filter>
@@ -911,9 +908,6 @@
     <ClCompile Include="GpuProfiler.cpp">
       <Filter>Source Files\Render\Graphics\Profiler</Filter>
     </ClCompile>
-    <ClCompile Include="Profiler2.cpp">
-      <Filter>Source Files\Render\Graphics\Profiler</Filter>
-    </ClCompile>
     <ClCompile Include="ProfilerGraph.cpp">
       <Filter>Source Files\Render\Graphics\Profiler</Filter>
     </ClCompile>
@@ -934,9 +928,6 @@
     </ClCompile>
     <ClCompile Include="NavMeshGraph.cpp">
       <Filter>Source Files\AI</Filter>
-    </ClCompile>
-    <ClCompile Include="FileFactory.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\State.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
@@ -979,6 +970,24 @@
     </ClCompile>
     <ClCompile Include="Graphics\Commands\ProgramUniformCommand.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="FileEntry.cpp">
+      <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="FileFactory.cpp">
+      <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="FileAspect.cpp">
+      <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionUpdateGpuTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionPlayerLookAround.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionPlayerMove.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

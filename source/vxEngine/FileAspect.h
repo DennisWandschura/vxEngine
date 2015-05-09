@@ -61,7 +61,9 @@ class VX_ALIGN(64) FileAspect
 
 	struct FileRequest;
 
+	struct LoadFileOfTypeDescription;
 	struct LoadFileMeshDescription;
+	struct LoadFileMaterialDescription;
 
 	VX_ALIGN(64) struct
 	{
@@ -83,7 +85,7 @@ class VX_ALIGN(64) FileAspect
 	vx::sorted_vector<vx::StringID, std::string> m_loadedFiles;
 
 	void getFolderString(FileType fileType, const char** folder);
-	u8* readFile(const char *file, u32 &fileSize);
+	const u8* readFile(const char *file, u32 &fileSize);
 
 	void pushFileEvent(FileEvent code,vx::Variant arg1, vx::Variant arg2);
 
@@ -92,14 +94,14 @@ class VX_ALIGN(64) FileAspect
 	TextureFile* loadTexture(const char *filename, const u8 *ptr, u32 size, const vx::StringID &sid, FileStatus* status);
 	u8 loadScene(const char *filename, const u8 *ptr, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, Scene* pScene);
 	u8 loadScene(const char *filename, const u8 *ptr, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, EditorScene* pScene);
-	Material* loadMaterial(const char *filename, const char *file, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status);
+	Material* loadMaterial(const char *filename, const char *fileNameWithPath, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status);
 
 	LoadFileReturnType saveFile(const FileRequest &request, vx::Variant* p);
 
 	bool loadFileMesh(const LoadFileMeshDescription &desc);
-	void loadFileTexture(const char* fileName, u32 fileSize, const vx::StringID &sid, u8* pData, LoadFileReturnType* result);
-	void loadFileMaterial(const char* fileName, const char* file, const vx::StringID &sid, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles);
-	void loadFileOfType(FileType fileType, const char *fileName, const char* file, u32 fileSize, u8* fileData, LoadFileReturnType* result, void* pUserData, std::vector<FileEntry>* missingFiles);
+	void loadFileTexture(const char* fileName, u32 fileSize, const vx::StringID &sid, const u8* pData, LoadFileReturnType* result);
+	void loadFileMaterial(const LoadFileMaterialDescription &desc);
+	void loadFileOfType(const LoadFileOfTypeDescription &desc);
 
 	void handleLoadRequest(FileRequest* request, std::vector<FileEntry>* missingFiles);
 	void handleSaveRequest(FileRequest* request);

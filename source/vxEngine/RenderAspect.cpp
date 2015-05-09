@@ -274,7 +274,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 		vx::gl::Debug::enableCallback(true);
 	}
 
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Framebuffer_sRGB);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Framebuffer_sRGB);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Texture_Cube_Map_Seamless);
 	vx::gl::StateManager::setClearColor(0, 0, 0, 1);
 	vx::gl::StateManager::setViewport(0, 0, windowResolution.x, windowResolution.y);

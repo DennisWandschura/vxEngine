@@ -58,7 +58,7 @@ bool MaterialFactory::load(const MaterialFactoryLoadDescription &desc)
 
 	vx::StringID texSid[3];
 	MaterialFile materialFile;
-	if (materialFile.loadFromFile(desc.file))
+	if (materialFile.loadFromFile(desc.fileNameWithPath))
 	{
 		result = true;
 		// make sure all texture files are loaded

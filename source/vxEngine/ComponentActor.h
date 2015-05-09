@@ -53,7 +53,7 @@ namespace Component
 		};
 
 		u16 flags;
-		StateMachine m_sm;
+		StateMachine m_stateMachine;
 		std::unique_ptr<ActorData> data;
 		f32 halfHeight;
 		u16 evtMask;

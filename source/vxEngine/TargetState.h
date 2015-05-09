@@ -30,13 +30,18 @@ class State;
 
 class TargetState : public DecisionTreeNode
 {
-	Action* m_pAction{ nullptr };
-	State* m_pTargetState{ nullptr };
+	std::vector<Action*> m_actions;
+	State* m_pTargetState;
 
 public:
-	TargetState(Action* pAction, State* pState)
-		:m_pAction(pAction), m_pTargetState(pState)
+	explicit TargetState(State* pState)
+		:m_actions(), m_pTargetState(pState)
 	{
+	}
+
+	void addAction(Action* action)
+	{
+		m_actions.push_back(action);
 	}
 
 	TargetState* makeDecision() override
@@ -46,5 +51,5 @@ public:
 
 	State* getTargetState() const { return m_pTargetState; }
 
-	Action* getAction() { return m_pAction; }
+	const std::vector<Action*>& getActions() { return m_actions; }
 };
