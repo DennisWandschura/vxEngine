@@ -41,12 +41,11 @@ void ActionManager::scheduleAction(Action* p)
 	m_queue.push_back(p);
 }
 
-void ActionManager::scheduleActions(Action* p, u32 count)
+void ActionManager::scheduleActions(Action** p, u32 count)
 {
 	for (u32 i = 0; i < count; ++i)
 	{
-		m_queue.push_back(p);
-		++p;
+		m_queue.push_back(p[i]);
 	}
 }
 

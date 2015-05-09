@@ -38,7 +38,7 @@ public:
 	~ActionManager();
 
 	void scheduleAction(Action* p);
-	void scheduleActions(Action* p, u32 count);
+	void scheduleActions(Action** p, u32 count);
 
 	void update();
 };

@@ -44,7 +44,7 @@ public:
 	StateMachine();
 	StateMachine(State* pInitialState, std::vector<State*> &&states);
 
-	void update(Action** actions, u32* count, vx::StackAllocator* allocator);
+	void update(Action*** actions, u32* count, vx::StackAllocator* allocator);
 
 	void setInitialState(State* pState);
 	void addState(State* pState);

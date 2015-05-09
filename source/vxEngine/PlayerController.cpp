@@ -77,15 +77,13 @@ void PlayerController::initializePlayer(Component::Input* pPlayerInputComponent,
 
 void PlayerController::update()
 {
-	Action* actions = nullptr;
+	Action** actions = nullptr;
 	u32 count = 0;
 	m_stateMachine.update(&actions, &count, &m_scratchAllocator);
 
-	Action* it = actions;
 	for (u32 i = 0; i < count; ++i)
 	{
-		it->run();
-		++it;
+		actions[i]->run();
 	}
 
 	m_scratchAllocator.clear();

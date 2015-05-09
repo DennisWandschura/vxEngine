@@ -41,7 +41,7 @@ StateMachine::StateMachine(State* pInitialState, std::vector<State*> &&states)
 
 }
 
-void StateMachine::update(Action** actions, u32* count, vx::StackAllocator* allocator)
+void StateMachine::update(Action*** returnedActions, u32* count, vx::StackAllocator* allocator)
 {
 	*count = 0;
 
@@ -60,6 +60,8 @@ void StateMachine::update(Action** actions, u32* count, vx::StackAllocator* allo
 		}
 	}
 
+	u32 actionCount = 0;
+	Action** actions = nullptr;
 	if (pTriggeredTransition)
 	{
 		auto &exitActions = m_pCurrentState->getExitActions();
@@ -70,13 +72,12 @@ void StateMachine::update(Action** actions, u32* count, vx::StackAllocator* allo
 		auto &entryActions = targetState->getEntryActions();
 		auto targetStateActions = targetState->getActions();
 
-		auto actionCount = exitActions.size();
+		actionCount = exitActions.size();
 		actionCount += transitionActions.size();
 		actionCount += entryActions.size();
 		actionCount += targetStateActions.size();
 
-		*actions = (Action*)allocator->allocate(sizeof(Action*) * actionCount, 8);
-		*count = actionCount;
+		actions = (Action**)allocator->allocate(sizeof(Action*) * actionCount, 8);
 
 		u32 index = 0;
 		for (auto &it : exitActions)
@@ -108,11 +109,9 @@ void StateMachine::update(Action** actions, u32* count, vx::StackAllocator* allo
 	else
 	{
 		auto &currentActions = m_pCurrentState->getActions();
-		auto actionCount = currentActions.size();
-		printf("%llu\n", actionCount);
-		*actions = (Action*)allocator->allocate(sizeof(Action*) * actionCount, 8);
-		*count = actionCount;
-
+		actionCount = currentActions.size();
+		actions = (Action**)allocator->allocate(sizeof(Action*) * actionCount, 8);
+		
 		u32 index = 0;
 		for (auto &it : currentActions)
 		{
@@ -120,6 +119,8 @@ void StateMachine::update(Action** actions, u32* count, vx::StackAllocator* allo
 		}
 	}
 
+	*returnedActions = actions;
+	*count = actionCount;
 }
 
 void StateMachine::setInitialState(State* pState)

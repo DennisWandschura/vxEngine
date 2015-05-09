@@ -280,7 +280,6 @@ void InfluenceMap::createNodeIndicesAndSetCellData(const NavMesh &navMesh, u32 c
 
 void InfluenceMap::initialize(const NavMesh &navMesh, f32 cellSize, f32 cellHeight)
 {
-	puts("m_influenceMap.initialize() start");
 	auto navBounds = navMesh.getBounds();
 	auto size = navBounds.max - navBounds.min;
 
@@ -291,10 +290,9 @@ void InfluenceMap::initialize(const NavMesh &navMesh, f32 cellSize, f32 cellHeig
 
 	auto cellDim = vx::float3(cellSize, cellHeight, cellSize);
 	u32 cellTotalCount = cellCount.x * cellCount.y * cellCount.z;
-	puts("createCells()");
+
 	createCells(cellCount, cellTotalCount, cellDim, navBounds);
 
-	puts("createNodeIndicesAndSetCellData()");
 	createNodeIndicesAndSetCellData(navMesh, cellTotalCount);
 
 	vx::float3 gridBoundsMin = navBounds.min;

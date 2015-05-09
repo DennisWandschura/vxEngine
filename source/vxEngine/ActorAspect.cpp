@@ -66,47 +66,6 @@ void ActorAspect::shutdown()
 
 void ActorAspect::handleRequestPath(Component::Actor* pActor)
 {
-	/*auto &entity = (*m_pEntityPool)[pActor->entityIndex];
-	auto &physics = (*m_pPhysicsPool)[entity.physics];
-
-	const u32 maxCount = 5u;
-	auto marker = m_allocatorScratch.getMarker();
-	auto pCells = reinterpret_cast<InfluenceCell*>(m_allocatorScratch.allocate(sizeof(InfluenceCell) * maxCount));
-	SCOPE_EXIT
-	{
-		m_allocatorScratch.clear(marker);
-	};
-
-	// get cells within certain radius
-	u32 count = 0;
-	m_influenceMap.getCells(physics.position, 3.0f, 10.0f, maxCount, pCells, &count);
-
-	// sort cells by current influence
-	std::sort(pCells, pCells + count, [](const InfluenceCell &l, const InfluenceCell &r)
-	{
-		return l.influence < r.influence;
-	});
-
-	auto pNavNodeIndices = m_influenceMap.getNavNodeIndices();
-	// select random nav node from cell 
-	auto nodeIndex = 0u;
-	if (pCells[0].count > 1)
-	{
-		std::uniform_int_distribution<u32> dist(0, pCells[0].count);
-
-		nodeIndex = dist(m_gen);
-	}
-
-	// get path from navgraph
-	auto destNode = pNavNodeIndices[nodeIndex + pCells[0].offset];
-	auto startNode = m_navGraph.getClosestNode(physics.position);
-
-	auto result = pathfindAStar(m_navGraph, startNode, destNode, heuristicDistance, &m_allocatorScratch, &pActor->data->path, &m_physicsAspect);
-	VX_ASSERT(result != 0, "no path");
-
-	// set data and state
-	//pActor->data->path.swap(nodes);
-	pActor->flags |= Component::Actor::HasPath | Component::Actor::HasDestination | Component::Actor::WaitingForOrders;*/
 }
 
 void ActorAspect::handleAIEvent(const Event &evt)
@@ -210,11 +169,11 @@ void ActorAspect::update(f32 dt)
 		{
 			auto marker = m_allocatorScratch.getMarker();
 
-			Action* actionsPtr = nullptr;
+			Action** actions = 0;
 			u32 count = 0;
-			p->m_stateMachine.update(&actionsPtr, &count, &m_allocatorScratch);
+			p->m_stateMachine.update(&actions, &count, &m_allocatorScratch);
 		
-			m_actionManager.scheduleActions(actionsPtr, count);
+			m_actionManager.scheduleActions(actions, count);
 
 			m_allocatorScratch.clear(marker);
 
