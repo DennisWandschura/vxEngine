@@ -25,24 +25,41 @@ SOFTWARE.
 #include "NavMesh.h"
 #include "NavMeshTriangle.h"
 #include "utility.h"
+#include <vector>
+#include <vxLib/Container/sorted_vector.h>
 
-struct NavMeshConnection
-{
-	u16 connections[4];
-	u32 connectionCount;
-};
-
-struct BuildNode
+struct NavMeshGraph::BuildNode
 {
 	vx::float3 position;
 	u16 connections[4];
 	u32 connectionCount;
+	u16 hasDuplicate;
+	u16 duplicateIndex;
+	u16 newIndex;
+	u16 oldIndex;
+};
+
+struct NavMeshGraph::CompareFloat3
+{
+	bool operator()(const vx::float3 &a, const vx::float3 &b)
+	{
+		if (a.x < b.x)
+			return true;
+		else if (a.x == b.x && a.y < b.y)
+			return true;
+		else if (a.x == b.x && a.y == b.y && a.z < b.z)
+			return true;
+
+		return false;
+	}
 };
 
 NavMeshGraph::NavMeshGraph()
 	:m_nodes(),
+	m_connections(),
 	m_pNavMesh(nullptr),
-	m_nodeCount(0)
+	m_nodeCount(0),
+	m_connectionCount(0)
 {
 }
 
@@ -51,85 +68,138 @@ NavMeshGraph::~NavMeshGraph()
 
 }
 
+void NavMeshGraph::insertTriangles(const NavMeshTriangle* navMeshTriangles, u32 triangleCount, vx::sorted_vector<vx::float3, BuildNode, CompareFloat3>* sortedBuildNodes)
+{
+	u32 vertexIndex = 0;
+	for (u32 i = 0; i < triangleCount; ++i)
+	{
+		auto &triangle = navMeshTriangles[i];
+
+		BuildNode node;
+		node.position = (triangle.m_triangle[1] + triangle.m_triangle[0]) * 0.5f;
+		node.connections[0] = vertexIndex + 1;
+		node.connections[1] = vertexIndex + 2;
+		node.connectionCount = 2;
+		node.hasDuplicate = 0;
+		node.oldIndex = vertexIndex + 0;
+
+		insertOrMergeBuildNode(node, sortedBuildNodes);
+
+		node.position = (triangle.m_triangle[2] + triangle.m_triangle[1]) * 0.5f;
+		node.connections[0] = vertexIndex + 0;
+		node.connections[1] = vertexIndex + 2;
+		node.connectionCount = 2;
+		node.hasDuplicate = 0;
+		node.oldIndex = vertexIndex + 1;
+
+		insertOrMergeBuildNode(node, sortedBuildNodes);
+
+		node.position = (triangle.m_triangle[0] + triangle.m_triangle[2]) * 0.5f;
+		node.connections[0] = vertexIndex + 0;
+		node.connections[1] = vertexIndex + 1;
+		node.connectionCount = 2;
+		node.hasDuplicate = 0;
+		node.oldIndex = vertexIndex + 2;
+
+		insertOrMergeBuildNode(node, sortedBuildNodes);
+
+		vertexIndex += 3;
+	}
+}
+
+void NavMeshGraph::insertOrMergeBuildNode(const BuildNode &node, vx::sorted_vector<vx::float3, BuildNode, CompareFloat3>* sortedBuildNodes)
+{
+	auto it = sortedBuildNodes->find(node.position);
+	if (it == sortedBuildNodes->end())
+	{
+		sortedBuildNodes->insert(node.position, node);
+	}
+	else
+	{
+		it->connectionCount += 2;
+		it->connections[2] = node.connections[0];
+		it->connections[3] = node.connections[1];
+		it->hasDuplicate = 1;
+		it->duplicateIndex = node.oldIndex;
+
+		VX_ASSERT(it->connectionCount <= 4);
+	}
+};
+
+void NavMeshGraph::fixConnectionIndices(u32 nodeCount, vx::sorted_vector<vx::float3, BuildNode, CompareFloat3> *sortedBuildNodes, u32* connectionCount)
+{
+	for (u32 i = 0; i < nodeCount; ++i)
+	{
+		auto &buildNode = (*sortedBuildNodes)[i];
+
+		*connectionCount += buildNode.connectionCount;
+
+		for (u32 j = 0; j < nodeCount; ++j)
+		{
+			auto &otherbuildNode = (*sortedBuildNodes)[j];
+
+			for (u32 k = 0; k < otherbuildNode.connectionCount; ++k)
+			{
+				if (otherbuildNode.connections[k] == buildNode.oldIndex)
+				{
+					otherbuildNode.connections[k] = i;
+				}
+
+				if (buildNode.hasDuplicate != 0)
+				{
+					if (otherbuildNode.connections[k] == buildNode.duplicateIndex)
+					{
+						otherbuildNode.connections[k] = i;
+					}
+				}
+			}
+		}
+	}
+}
+
 std::unique_ptr<NavMeshNode[]> NavMeshGraph::buildNodes(const NavMesh &navMesh, u32* finalNodeCount)
 {
 	auto navMeshTriangles = navMesh.getNavMeshTriangles();
 	auto triangleCount = navMesh.getTriangleCount();
 
 	auto nodeCount = triangleCount * 3;
-	auto nodes = std::make_unique<BuildNode[]>(nodeCount);
 
-	u32 vertexIndex = 0;
-	for (u32 i = 0; i < triangleCount; ++i)
-	{
-		auto &triangle = navMeshTriangles[i];
+	vx::sorted_vector<vx::float3, BuildNode, CompareFloat3> sortedBuildNodes;
+	sortedBuildNodes.reserve(nodeCount);
 
-		nodes[vertexIndex + 0].position = (triangle.m_triangle[1] + triangle.m_triangle[0]) * 0.5f;
-		nodes[vertexIndex + 0].connections[0] = vertexIndex + 1;
-		nodes[vertexIndex + 0].connections[1] = vertexIndex + 2;
-		nodes[vertexIndex + 0].connectionCount = 2;
+	insertTriangles(navMeshTriangles, triangleCount, &sortedBuildNodes);
 
-		nodes[vertexIndex + 1].position = (triangle.m_triangle[2] + triangle.m_triangle[1]) * 0.5f;
-		nodes[vertexIndex + 1].connections[0] = vertexIndex + 0;
-		nodes[vertexIndex + 1].connections[1] = vertexIndex + 2;
-		nodes[vertexIndex + 1].connectionCount = 2;
+	nodeCount = sortedBuildNodes.size();
+	fixConnectionIndices(nodeCount, &sortedBuildNodes, &m_connectionCount);
 
-		nodes[vertexIndex + 2].position = (triangle.m_triangle[0] + triangle.m_triangle[2]) * 0.5f;
-		nodes[vertexIndex + 2].connections[0] = vertexIndex + 0;
-		nodes[vertexIndex + 2].connections[1] = vertexIndex + 1;
-		nodes[vertexIndex + 2].connectionCount = 2;
+	m_connections = std::make_unique<u16[]>(m_connectionCount);
 
-		vertexIndex += 3;
-	}
-
-	// search for duplicate vertices
-	u32 current = 0;
-	while (current != nodeCount)
-	{
-		bool foundDuplicate = false;
-		u32 duplicateIndex = current;
-
-		auto &currentNode = nodes[current];
-		auto currentPosition = currentNode.position;
-
-		for (u32 i = current + 1; i < nodeCount; ++i)
-		{
-			auto otherPosition = nodes[i].position;
-
-			if (currentPosition.x == otherPosition.x &&
-				currentPosition.y == otherPosition.y &&
-				currentPosition.z == otherPosition.z)
-			{
-				foundDuplicate = true;
-				duplicateIndex = i;
-				break;
-			}
-		}
-
-		if (foundDuplicate)
-		{
-			auto &duplicateNode = nodes[duplicateIndex];
-
-			currentNode.connections[2] = duplicateNode.connections[0];
-			currentNode.connections[3] = duplicateNode.connections[1];
-
-			currentNode.connectionCount += 2;
-			VX_ASSERT(currentNode.connectionCount <= 4);
-
-			std::move(nodes.get() + duplicateIndex + 1, nodes.get() + nodeCount, nodes.get() + duplicateIndex);
-			--nodeCount;
-		}
-
-		++current;
-	}
-
-	auto result = std::make_unique <NavMeshNode[]>(nodeCount);
+	u32 connectionOffset = 0;
+	auto result = std::make_unique<NavMeshNode[]>(nodeCount);
 	for (u32 i = 0; i < nodeCount; ++i)
 	{
-		result[i].position = nodes[i].position;
-		result[i].connectionIndex = 0;
+		auto &buildNode = sortedBuildNodes[i];
+		result[i].position = buildNode.position;
+		result[i].connectionIndex = connectionOffset;
+		result[i].connectionCount = buildNode.connectionCount;
+
+		for (u32 j = 0; j < buildNode.connectionCount; ++j)
+		{
+			m_connections[connectionOffset++] = buildNode.connections[j];
+		}
 	}
 	*finalNodeCount = nodeCount;
+
+	VX_ASSERT(connectionOffset == m_connectionCount);
+
+	for (u32 i = 0; i < m_connectionCount; ++i)
+	{
+		auto connection = m_connections[i];
+		if (connection >= m_nodeCount)
+		{
+			VX_ASSERT(false);
+		}
+	}
 
 	return result;
 }
@@ -147,4 +217,34 @@ const NavMeshNode* NavMeshGraph::getNodes() const
 u32 NavMeshGraph::getNodeCount() const
 {
 	return m_nodeCount;
+}
+
+u32 NavMeshGraph::getConnectionCount() const
+{
+	return m_connectionCount;
+}
+
+const u16* NavMeshGraph::getConnections() const
+{
+	return m_connections.get();
+}
+
+u32 NavMeshGraph::getClosestNodeInex(const vx::float3 &position) const
+{
+	f32 distance = FLT_MAX;
+	u32 index = 0;
+
+	for (u32 i = 0; i < m_nodeCount; ++i)
+	{
+		auto &node = m_nodes[i];
+
+		auto currentDistance = vx::distance(node.position, position);
+		if (currentDistance < distance)
+		{
+			distance = currentDistance;
+			index = i;
+		}
+	}
+
+	return index;
 }

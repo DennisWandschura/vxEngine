@@ -67,7 +67,7 @@ public:
 	void update(f32 dt);
 	void updateActor(f32 dt, const vx::float3 &position);
 
-	const InfluenceCell& getCell(u16 x, u16 y, u16 z) const;
+	const InfluenceCell& getCell(u32 x, u32 y, u32 z) const;
 	const InfluenceCell& getCell(u32 index) const;
 	const InfluenceCell* getInfluenceCells() const;
 
@@ -75,11 +75,11 @@ public:
 
 	s32 getClosestCellIndex_nocheck(const vx::float3 &position) const;
 	u32 getClosestCellIndex(const vx::float3 &position) const;
-	const vx::float3& getClosestCellPosition(const vx::float3 &position) const;
+	vx::int3 getClosestCellPosition(const vx::float3 &position) const;
 	const u16* getNavNodeIndices() const;
 
-	u8 isEmpty(u32 cellIndex) const;
-	u8 contains(u32 cellIndex, const vx::float3 &position) const;
+	bool isEmpty(u32 cellIndex) const;
+	bool contains(u32 cellIndex, const vx::float3 &position) const;
 
 	void getCells(const vx::float3 &p, f32 minRadius, f32 maxRadius, u32 maxCount, InfluenceCell* pCells, u32* count) const;
 };

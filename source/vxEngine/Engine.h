@@ -75,7 +75,6 @@ public:
 
 	void handleEvent(const Event &evt);
 	void keyPressed(u16 key);
-	void handleInput(const vx::Mouse &m, const vx::Keyboard &k, f32 dt);
 
 	void requestLoadFile(const FileEntry &fileEntry, void* p);
 };

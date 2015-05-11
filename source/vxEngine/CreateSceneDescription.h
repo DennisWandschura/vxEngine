@@ -28,7 +28,7 @@ namespace vx
 	template<typename K, typename T>
 	class sorted_array;
 
-	template<typename K, typename T>
+	template<typename K, typename T, typename Cmp>
 	class sorted_vector;
 
 	class MeshFile;

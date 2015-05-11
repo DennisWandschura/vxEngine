@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Seek.h"
-#include "ComponentPhysics.h"
+#include "Entity.h"
 
-Seek::Seek(Component::Physics* pPhysicsComponent, const vx::float3 &target, f32 maxAccel)
-	:m_pPhysics(pPhysicsComponent),
+Seek::Seek(EntityActor* entity, const vx::float3 &target, f32 maxAccel)
+	:m_entity(entity),
 	m_targetPosition(target),
 	m_maxAcceleration(maxAccel)
 {
@@ -38,7 +38,7 @@ void Seek::setTarget(const vx::float3 &target)
 
 u8 Seek::getSteering(SteeringOutput* output)
 {
-	auto dir = m_targetPosition - m_pPhysics->position;
+	auto dir = m_targetPosition - m_entity->position;
 	dir = vx::normalize(dir);
 
 	dir *= m_maxAcceleration;

@@ -23,39 +23,14 @@ SOFTWARE.
 */
 #pragma once
 
-class DecisionTreeNode;
-class NavGraph;
-
 #include "Component.h"
 #include "StateMachine.h"
-#include <vxLib/math/Vector.h>
-#include <memory>
-#include <vxLib/Container/array.h>
-
-struct ActorData
-{
-	// capacity is count of nav nodes
-	vx::array<vx::float3> path;
-	vx::float3 destination;
-};
 
 namespace Component
 {
 	struct Actor : public Base
 	{
-		enum Flags : u16
-		{
-			HasDestination = 1 << 0,
-			ReachedDestination = 1 <<1,
-			HasPath = 1 << 2,
-
-			WaitingForOrders = 1 << 8
-		};
-
-		u16 flags;
+		u16 busy;
 		StateMachine m_stateMachine;
-		std::unique_ptr<ActorData> data;
-		f32 halfHeight;
-		u16 evtMask;
 	};
 }

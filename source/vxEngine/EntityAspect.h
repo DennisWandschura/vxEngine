@@ -32,52 +32,41 @@ namespace vx
 }
 
 class PhysicsAspect;
-class FileAspect;
 class RenderAspect;
-struct Spawn;
 struct EntityActor;
 class Scene;
-class NavGraph;
-class InfluenceMap;
 
 #include "EventListener.h"
 #include "Pool.h"
-#include "LoadFileCallback.h"
 #include "PlayerController.h"
-#include <atomic>
-#include <vector>
 #include "ComponentsForward.h"
 #include <vxLib/math/Vector.h>
 #include <vxLib/Allocator/StackAllocator.h>
-#include <vxLib/Allocator/PoolAllocator.h>
 
 enum class PlayerType : u32;
 enum class FileType : u8;
 
 class EntityAspect : public EventListener
 {
-	static const  auto s_maxNavNodes = 50u;
+	struct ColdData
+	{
+		const Scene* m_pCurrentScene{ nullptr };
+		EntityActor* m_pPlayer{ nullptr };
+
+		Pool<Component::Actor> m_poolActor;
+	};
 
 	PlayerController m_playerController;
-	PhysicsAspect &m_physicsAspect;
-	//Pool<Component::Physics> m_poolPhysics;
-	Pool<Component::Input> m_poolInput;
 	Pool<Component::Render> m_poolRender;
-	Pool<Component::Actor> m_poolActor;
+	Pool<Component::Input> m_poolInput;
+	PhysicsAspect &m_physicsAspect;
 	Pool<EntityActor> m_poolEntity;
-	const NavGraph* m_pNavGraph{ nullptr };
-	InfluenceMap* m_pInfluenceMap{nullptr};
-	EntityActor* m_pPlayer{ nullptr };
-	FileAspect &m_fileAspect;
 	RenderAspect &m_renderAspect;
 	vx::StackAllocator m_allocator;
-	const Scene* m_pCurrentScene{ nullptr };
-	vx::PoolAllocator m_poolAllocatorPath;
+	std::unique_ptr<ColdData> m_coldData;
 
 	Component::Actor* createComponentActor(u16 entityIndex, u16* actorIndex);
 	void createComponentPhysics(const vx::float3 &position, u16 entityIndex, f32 height);
-
-	void spawnPlayer(const vx::float3 &position, const Component::Physics &p);
 
 	void createActorEntity(const vx::float3 &position, f32 height, u32 gpuIndex);
 
@@ -89,7 +78,7 @@ class EntityAspect : public EventListener
 	//////////////////
 
 public:
-	EntityAspect(PhysicsAspect &physicsAspect, FileAspect &fileAspect, RenderAspect &renderAspect);
+	EntityAspect(PhysicsAspect &physicsAspect, RenderAspect &renderAspect);
 
 	//////////////////
 
@@ -112,22 +101,14 @@ public:
 
 	void createPlayerEntity(const vx::float3 &position);
 
-	//////////////////
-
-	void handleKeyboard(const vx::Keyboard &keyboard);
-	void handleMouse(const vx::Mouse &mouse, const f32 dt);
-	void keyPressed(u16 key);
-
-	//////////////////
-
 	void handleEvent(const Event &evt);
 
 	//////////////////
 
-	EntityActor* getPlayer(){ return m_pPlayer; }
+	EntityActor* getPlayer(){ return m_coldData->m_pPlayer; }
 
 	Component::Input& getComponentInput(u16 i);
 
-	const Pool<Component::Actor>& getActorPool() const { return m_poolActor; }
+	const Pool<Component::Actor>& getActorPool() const { return m_coldData->m_poolActor; }
 	const Pool<EntityActor>& getEntityPool() const { return m_poolEntity; }
 };

@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,21 +22,46 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "DecisionHasDestination.h"
-#include "ComponentActor.h"
 
-DecisionHasDestination::DecisionHasDestination(const Component::Actor* pActor, DecisionTreeNode* trueNode, DecisionTreeNode* falseNode)
-	:Decision(trueNode, falseNode)
+struct EntityActor;
+class InfluenceMap;
+class NavMeshGraph;
+
+namespace Component
 {
-	m_testValue.ptr = (void*)pActor;
+	struct Actor;
 }
 
-u8 DecisionHasDestination::getBranch() const
+#include <vxLib/types.h>
+#include <vector>
+#include <vxLib/Allocator/StackAllocator.h>
+
+namespace ai
 {
-	const Component::Actor* pActor = (const Component::Actor*)m_testValue.ptr;
+	class Squad
+	{
+		static InfluenceMap* s_influenceMap;
+		static NavMeshGraph* s_navmeshGraph;
 
-	if ((pActor->flags & Component::Actor::HasDestination) == Component::Actor::HasDestination)
-		return 1;
+		struct Data
+		{
+			EntityActor* entity;
+			Component::Actor* actorComponent;
+		};
 
-	return 0;
+		std::vector<Data> m_entities;
+		vx::StackAllocator m_allocator;
+
+	public:
+		Squad();
+		~Squad();
+
+		void initialize(vx::StackAllocator* allocator);
+
+		void addEntity(EntityActor* entity, Component::Actor* actorComponent);
+
+		void update();
+
+		static void provide(InfluenceMap* influenceMap, NavMeshGraph* graph);
+	};
 }

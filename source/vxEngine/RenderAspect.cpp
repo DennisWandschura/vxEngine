@@ -323,9 +323,14 @@ void RenderAspect::createFrameBuffers()
 	}
 }
 
-bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc)
+void RenderAspect::createColdData()
 {
 	m_pColdData = std::make_unique<ColdData>();
+}
+
+bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc)
+{
+	createColdData();
 
 	vx::gl::ContextDescription contextDesc = vx::gl::ContextDescription::create(*desc.window, desc.resolution, desc.fovRad, desc.z_near, desc.z_far, 4, 5, desc.vsync, desc.debug);
 	if (!m_renderContext.initialize(contextDesc))

@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Align.h"
-#include "ComponentPhysics.h"
+#include "Entity.h"
 
 void Align::update(vx::float2* orientation)
 {

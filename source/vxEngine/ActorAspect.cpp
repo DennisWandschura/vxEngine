@@ -31,7 +31,6 @@ SOFTWARE.
 #include "ComponentActor.h"
 #include "EntityAspect.h"
 #include "Entity.h"
-#include "ComponentPhysics.h"
 #include "EventsAI.h"
 #include "AStar.h"
 #include "NavNode.h"
@@ -45,7 +44,7 @@ ActorAspect::ActorAspect(const PhysicsAspect &physicsAspect)
 
 }
 
-void ActorAspect::initialize(const EntityAspect &entityAspect, EventManager &evtManager, vx::StackAllocator* pAllocator)
+void ActorAspect::initialize(const EntityAspect &entityAspect, vx::StackAllocator* pAllocator)
 {
 	const auto sz = 10 KBYTE;
 	m_allocator = vx::StackAllocator(pAllocator->allocate(sz, 64), sz);
@@ -56,36 +55,20 @@ void ActorAspect::initialize(const EntityAspect &entityAspect, EventManager &evt
 	m_pActorPool = &entityAspect.getActorPool();
 	m_pEntityPool = &entityAspect.getEntityPool();
 
-	evtManager.registerListener(&m_squadManager, 2);
+	m_squad.initialize(pAllocator);
 }
 
 void ActorAspect::shutdown()
 {
-	m_navGraph.shutdown(&m_allocator);
 }
 
-void ActorAspect::handleRequestPath(Component::Actor* pActor)
+void ActorAspect::createInfluenceMap(const Scene* scene)
 {
-}
+	auto &navmesh = scene->getNavMesh();
 
-void ActorAspect::handleAIEvent(const Event &evt)
-{
-	AIEvent e = (AIEvent)evt.code;
-
-	Component::Actor* pActor = (Component::Actor*)evt.arg1.ptr;
-
-	switch (e)
-	{
-	case AIEvent::No_Orders:
-		break;
-	case AIEvent::Request_Path:
-		handleRequestPath(pActor);
-		break;
-	case AIEvent::Reached_Destination:
-		break;
-	default:
-		break;
-	}
+	f32 cellHeight = 2.1f;
+	f32 cellWidthDepth = 3.0f;
+	m_influenceMap.initialize(navmesh, cellWidthDepth, cellHeight);
 }
 
 void ActorAspect::handleFileEvent(const Event &evt)
@@ -95,10 +78,10 @@ void ActorAspect::handleFileEvent(const Event &evt)
 		auto pCurrentScene = reinterpret_cast<const Scene*>(evt.arg1.ptr);
 		auto &navmesh = pCurrentScene->getNavMesh();
 
-		m_navGraph.initialize(navmesh, &m_allocator, &m_allocatorScratch);
+		m_navmeshGraph.initialize(navmesh);
 
 		Event evt;
-		evt.arg1.ptr = &m_navGraph;
+		evt.arg1.ptr = &m_navmeshGraph;
 		evt.type = EventType::Ingame_Event;
 		evt.code = (u32)IngameEvent::Created_NavGraph;
 
@@ -106,19 +89,15 @@ void ActorAspect::handleFileEvent(const Event &evt)
 		pEvtManager->addEvent(evt);
 
 
-		// create influence map
-		f32 cellHeight = 2.1f;
-		f32 cellWidthDepth = 3.0f;
-		m_influenceMap.initialize(navmesh, cellWidthDepth, cellHeight);
-
-		m_squadManager.initialize(m_pActorPool ,&m_navGraph, &m_influenceMap, nullptr, m_pEntityPool);
-
+		createInfluenceMap(pCurrentScene);
 		Event evtInfluence;
 		evtInfluence.arg1.ptr = &m_influenceMap;
 		evtInfluence.type = EventType::Ingame_Event;
 		evtInfluence.code = (u32)IngameEvent::Created_InfluenceMap;
 
 		pEvtManager->addEvent(evtInfluence);
+
+		ai::Squad::provide(&m_influenceMap, &m_navmeshGraph);
 	}
 }
 
@@ -128,10 +107,10 @@ void ActorAspect::handleIngameEvent(const Event &evt)
 
 	if (ingameEvt == IngameEvent::Created_Actor)
 	{
-		auto pActor = (Component::Actor*)evt.arg1.ptr;
+		auto entity = (EntityActor*)evt.arg1.ptr;
+		auto actorComponent = (Component::Actor*)evt.arg2.ptr;
 
-		auto index = m_pActorPool->getIndex_nocheck(pActor);
-		m_squadManager.addActor(index);
+		m_squad.addEntity(entity, actorComponent);
 	}
 }
 
@@ -140,7 +119,7 @@ void ActorAspect::handleEvent(const Event &evt)
 	switch (evt.type)
 	{
 	case EventType::AI_Event:
-		handleAIEvent(evt);
+		//handleAIEvent(evt);
 		break;
 	case EventType::Ingame_Event:
 		handleIngameEvent(evt);
@@ -157,29 +136,23 @@ void ActorAspect::update(f32 dt)
 {
 	m_influenceMap.update(dt);
 
-	m_actionManager.update();
-
-	m_squadManager.update(&m_allocatorScratch);
+	m_squad.update();
 
 	auto p = m_pActorPool->first();
 	while (p != nullptr)
 	{
-		auto status = p->flags & Component::Actor::WaitingForOrders;
-		if (status == Component::Actor::WaitingForOrders)
-		{
-			auto marker = m_allocatorScratch.getMarker();
+		auto marker = m_allocatorScratch.getMarker();
 
-			Action** actions = 0;
-			u32 count = 0;
-			p->m_stateMachine.update(&actions, &count, &m_allocatorScratch);
-		
-			m_actionManager.scheduleActions(actions, count);
+		Action** actions = 0;
+		u32 count = 0;
+		p->m_stateMachine.update(&actions, &count, &m_allocatorScratch);
 
-			m_allocatorScratch.clear(marker);
+		m_actionManager.scheduleActions(actions, count);
 
-			p->flags ^= Component::Actor::WaitingForOrders;
-		}
+		m_allocatorScratch.clear(marker);
 
 		p = m_pActorPool->next_nocheck(p);
 	}
+
+	m_actionManager.update();
 }

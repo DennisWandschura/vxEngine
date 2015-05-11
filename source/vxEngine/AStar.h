@@ -27,6 +27,7 @@ struct NavConnection;
 class NavGraph;
 struct NavNode;
 class PhysicsAspect;
+class NavMeshGraph;
 
 namespace vx
 {
@@ -39,10 +40,11 @@ namespace vx
 #include <vector>
 #include <vxLib/math/Vector.h>
 
-typedef f32(*HeuristicFp)(const NavNode &fromNode, const NavNode &goalNode);
+typedef f32(*HeuristicFp)(const vx::float3 &fromNode, const vx::float3 &goalNode);
 
-extern f32 heuristicDistance(const NavNode &fromNode, const NavNode &goalNode);
-extern f32 heuristicDistance2(const NavNode &fromNode, const NavNode &goalNode);
+extern f32 heuristicDistance(const vx::float3 &fromNode, const vx::float3 &goalNode);
+extern f32 heuristicDistance2(const vx::float3 &fromNode, const vx::float3 &goalNode);
 
 // returns list of node ids in reverse order (start node is at the back and goal at the front)
 extern u8 pathfindAStar(const NavGraph &graph, u16 start, u16 goal, HeuristicFp fp, vx::StackAllocator* pAllocatorScratch, vx::array<vx::float3>* out, const PhysicsAspect* pPhysicsAspect = nullptr);
+extern bool pathfindAStar(const NavMeshGraph &graph, u16 start, u16 goal, HeuristicFp fp, vx::StackAllocator* pAllocatorScratch, vx::array<vx::float3>* out);

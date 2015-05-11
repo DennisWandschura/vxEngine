@@ -42,7 +42,7 @@ EditorEngine::EditorEngine()
 	:m_eventManager(),
 	m_physicsAspect(m_fileAspect),
 	m_renderAspect(),
-	m_fileAspect(m_eventManager),
+	m_fileAspect(),
 	m_bRunFileThread(),
 	m_fileAspectThread()
 {

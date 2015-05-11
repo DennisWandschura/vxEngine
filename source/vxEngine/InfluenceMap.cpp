@@ -55,9 +55,9 @@ namespace
 		}
 	};
 
-	bool VX_CALLCONV intersects(const __m128 vmin, const __m128 vmax, const Triangle_SIMD &triangle)
+	/*bool VX_CALLCONV intersects(const __m128 vmin, const __m128 vmax, const Triangle_SIMD &triangle)
 	{
-		/*auto c = _mm_mul_ps(_mm_add_ps(vmin, vmax), vx::g_VXOneHalf);
+		auto c = _mm_mul_ps(_mm_add_ps(vmin, vmax), vx::g_VXOneHalf);
 		auto e = _mm_mul_ps(_mm_sub_ps(vmax, vmin), vx::g_VXOneHalf);
 
 		auto v0 = _mm_sub_ps(triangle.v[0], c);
@@ -190,9 +190,9 @@ namespace
 		auto r = e.x * abs(p.n.x) + e.y * abs(p.n.y) + e.z * abs(p.n.z);
 		auto s = vx::dot(p.n, c) - p.d;
 
-		return fabsf(s) <= r;*/
+		return fabsf(s) <= r;
 		return false;
-	}
+	}*/
 }
 
 void InfluenceMap::createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uint3 &cellPosition, u32 index)
@@ -353,9 +353,11 @@ void InfluenceMap::updateActor(f32 dt, const vx::float3 &position)
 	m_file.write(nullbuffer);*/
 }
 
-const InfluenceCell& InfluenceMap::getCell(u16 x, u16 y, u16 z) const
+const InfluenceCell& InfluenceMap::getCell(u32 x, u32 y, u32 z) const
 {
 	u32 index = x + m_cellCount.x * (y + m_cellCount.y * z);
+	u32 maxIndex = m_cellCount.x * m_cellCount.y * m_cellCount.z;
+	index = std::min(index, maxIndex);
 
 	return getCell(index);
 }
@@ -397,11 +399,15 @@ u32 InfluenceMap::getClosestCellIndex(const vx::float3 &position) const
 	return index;
 }
 
-const vx::float3& InfluenceMap::getClosestCellPosition(const vx::float3 &position) const
+vx::int3 InfluenceMap::getClosestCellPosition(const vx::float3 &position) const
 {
-	auto index = getClosestCellIndex(position);
+	auto tmp = (position - m_center);
+	vx::int3 cellPos = tmp * m_invGridCellSize + m_voxelHalfDim;
 
-	return m_cells[index].m_position;
+	//cellPos = vx::max(cellPos, vx::int3(0));
+	cellPos = vx::clamp(cellPos, vx::int3(0), vx::int3(m_cellCount));
+
+	return cellPos;
 }
 
 const u16* InfluenceMap::getNavNodeIndices() const
@@ -409,12 +415,12 @@ const u16* InfluenceMap::getNavNodeIndices() const
 	return m_navNodeIndices.get();
 }
 
-u8 InfluenceMap::isEmpty(u32 cellIndex) const
+bool InfluenceMap::isEmpty(u32 cellIndex) const
 {
 	return (m_cells[cellIndex].m_count == 0);
 }
 
-u8 InfluenceMap::contains(u32 cellIndex, const vx::float3 &position) const
+bool InfluenceMap::contains(u32 cellIndex, const vx::float3 &position) const
 {
 	auto vPosition = vx::loadFloat(position);
 	auto &bounds = m_cellBounds[cellIndex];

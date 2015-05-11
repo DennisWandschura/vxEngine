@@ -49,8 +49,6 @@ class GpuProfiler;
 
 class VX_ALIGN(64) RenderAspect : public EventListener
 {
-	static const auto s_shadowMapResolution = 2048;
-
 protected:
 	struct ColdData;
 
@@ -150,6 +148,8 @@ protected:
 	u16 getActorGpuIndex();
 
 	void createRenderPassCreateShadowMaps();
+
+	void createColdData();
 
 public:
 	RenderAspect();

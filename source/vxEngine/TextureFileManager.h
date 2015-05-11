@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,19 +23,43 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-namespace Component
+#include <vxLib/types.h>
+
+class TextureFile;
+class Logfile;
+enum class FileStatus : u8;
+
+#include "Pool.h"
+#include <vxLib/Container/sorted_array.h>
+#include <vxLib/StringID.h>
+
+namespace desc
 {
-	struct Actor;
+	struct LoadTextureDescription
+	{
+		const char *filename;
+		vx::StringID sid;
+		FileStatus* status;
+		const u8 *fileData;
+		u32 fileSize;
+	};
 }
 
-#include "Decision.h"
-
-class DecisionHasDestination : public Decision
+class TextureFileManager
 {
-	u8 getBranch() const;
+	vx::sorted_array<vx::StringID, TextureFile*> m_sortedTextureFiles;
+	Pool<TextureFile> m_poolTextureFile;
 
 public:
-	DecisionHasDestination(const Component::Actor* pActor, DecisionTreeNode* trueNode, DecisionTreeNode* falseNode);
+	TextureFileManager();
+	~TextureFileManager();
+
+	void initialize(u32 maxCount, vx::StackAllocator *pMainAllocator);
+	void shutdown();
+
+	TextureFile* loadTexture(const desc::LoadTextureDescription &desc, Logfile* logfile);
+
+	const TextureFile* getTextureFile(vx::StringID sid) const noexcept;
+	const vx::sorted_array<vx::StringID, TextureFile*>& getSortedTextureFiles() const;
 };

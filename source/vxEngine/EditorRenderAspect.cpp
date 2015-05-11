@@ -64,6 +64,8 @@ EditorRenderAspect::EditorRenderAspect()
 bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND tmp, const vx::uint2 &windowResolution,
 	f32 fovDeg, f32 zNear, f32 zFar, bool vsync, bool debug, vx::StackAllocator *pAllocator)
 {
+	RenderAspect::createColdData();
+
 	if (!m_renderContext.initializeExtensions(tmp))
 	{
 		puts("Error initializing Extensions");
@@ -79,6 +81,8 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 
 	m_pEditorColdData = std::make_unique<EditorColdData>();
 	m_editorData.initialize();
+
+	//Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, &m_pColdData->m_settings);
 
 	m_pEditorColdData->m_navMeshVertexVbo = Graphics::BufferFactory::createVertexBuffer(sizeof(VertexNavMesh) * 256, vx::gl::BufferStorageFlags::Write);
 	m_pEditorColdData->m_navMeshVertexIbo = Graphics::BufferFactory::createIndexBuffer(sizeof(u16) * 256 * 3, vx::gl::BufferStorageFlags::Write);

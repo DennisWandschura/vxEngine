@@ -33,7 +33,6 @@ SOFTWARE.
 #include "Entity.h"
 #include "input/Keys.h"
 #include "EntityAspect.h"
-#include "ComponentPhysics.h"
 #include "ComponentInput.h"
 #include "PhysicsDefines.h"
 #include "RenderAspect.h"

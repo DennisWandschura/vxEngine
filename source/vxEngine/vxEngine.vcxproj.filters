@@ -148,6 +148,9 @@
     <Filter Include="Source Files\Actions">
       <UniqueIdentifier>{2a3ae0c1-ca63-4342-988b-896e88b3f493}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\AI\State Machine">
+      <UniqueIdentifier>{85ddcee5-bd26-4a3d-9e96-90c3d50bd6ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -252,9 +255,6 @@
     <ClInclude Include="Entity.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentPhysics.h">
-      <Filter>Header Files\Entity</Filter>
-    </ClInclude>
     <ClInclude Include="Pool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -300,9 +300,6 @@
     <ClInclude Include="PhysicsDefines.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="StateMachine.h">
-      <Filter>Header Files\AI</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentActor.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
@@ -311,12 +308,6 @@
     </ClInclude>
     <ClInclude Include="DistanceCondition.h">
       <Filter>Header Files\AI\Conditions</Filter>
-    </ClInclude>
-    <ClInclude Include="State.h">
-      <Filter>Header Files\AI</Filter>
-    </ClInclude>
-    <ClInclude Include="Transition.h">
-      <Filter>Header Files\AI</Filter>
     </ClInclude>
     <ClInclude Include="Face.h">
       <Filter>Header Files\AI\Steering</Filter>
@@ -335,9 +326,6 @@
     </ClInclude>
     <ClInclude Include="ActionManager.h">
       <Filter>Header Files\AI</Filter>
-    </ClInclude>
-    <ClInclude Include="RaycastCondition.h">
-      <Filter>Header Files\AI\Conditions</Filter>
     </ClInclude>
     <ClInclude Include="NavGraph.h">
       <Filter>Header Files\Navigation</Filter>
@@ -366,32 +354,20 @@
     <ClInclude Include="Locator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DecisionHasDestination.h">
-      <Filter>Header Files\AI\Decision Tree</Filter>
-    </ClInclude>
     <ClInclude Include="AABB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Ray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DecisionHasPath.h">
-      <Filter>Header Files\AI\Decision Tree</Filter>
-    </ClInclude>
     <ClInclude Include="Heap.h">
       <Filter>Header Files\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="DecisionTreeTransition.h">
-      <Filter>Header Files\AI</Filter>
     </ClInclude>
     <ClInclude Include="TargetState.h">
       <Filter>Header Files\AI\Decision Tree</Filter>
     </ClInclude>
     <ClInclude Include="PhysicsFactory.h">
       <Filter>Header Files\Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="ConditionHasDestination.h">
-      <Filter>Header Files\AI\Conditions</Filter>
     </ClInclude>
     <ClInclude Include="Sound.h">
       <Filter>Header Files\Audio</Filter>
@@ -408,26 +384,14 @@
     <ClInclude Include="Waypoint.h">
       <Filter>Header Files\AI</Filter>
     </ClInclude>
-    <ClInclude Include="Grid.h">
-      <Filter>Header Files\AI\Conditions</Filter>
-    </ClInclude>
     <ClInclude Include="InfluenceMap.h">
       <Filter>Header Files\AI</Filter>
     </ClInclude>
     <ClInclude Include="ActorAspect.h">
       <Filter>Header Files\AI</Filter>
     </ClInclude>
-    <ClInclude Include="ConditionHasPath.h">
-      <Filter>Header Files\AI\Conditions</Filter>
-    </ClInclude>
     <ClInclude Include="developer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SquadManager.h">
-      <Filter>Header Files\AI</Filter>
-    </ClInclude>
-    <ClInclude Include="SquadHandler.h">
-      <Filter>Header Files\AI</Filter>
     </ClInclude>
     <ClInclude Include="Event.h">
       <Filter>Header Files\Events</Filter>
@@ -654,14 +618,23 @@
     <ClInclude Include="Action.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
-    <ClInclude Include="ActionFollowPath.h">
-      <Filter>Header Files\Actions</Filter>
+    <ClInclude Include="ai\Squad.h">
+      <Filter>Header Files\AI</Filter>
     </ClInclude>
-    <ClInclude Include="ActionGoToPosition.h">
-      <Filter>Header Files\Actions</Filter>
+    <ClInclude Include="TextureFileManager.h">
+      <Filter>Header Files\File</Filter>
     </ClInclude>
-    <ClInclude Include="ActionRequestPath.h">
-      <Filter>Header Files\Actions</Filter>
+    <ClInclude Include="State.h">
+      <Filter>Header Files\AI\State Machine</Filter>
+    </ClInclude>
+    <ClInclude Include="StateMachine.h">
+      <Filter>Header Files\AI\State Machine</Filter>
+    </ClInclude>
+    <ClInclude Include="Transition.h">
+      <Filter>Header Files\AI\State Machine</Filter>
+    </ClInclude>
+    <ClInclude Include="DecisionTreeTransition.h">
+      <Filter>Header Files\AI\State Machine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -752,9 +725,6 @@
     <ClCompile Include="ActionManager.cpp">
       <Filter>Source Files\AI</Filter>
     </ClCompile>
-    <ClCompile Include="RaycastCondition.cpp">
-      <Filter>Source Files\AI</Filter>
-    </ClCompile>
     <ClCompile Include="NavMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -773,23 +743,11 @@
     <ClCompile Include="Arrive.cpp">
       <Filter>Source Files\AI\Steering</Filter>
     </ClCompile>
-    <ClCompile Include="ActionGoToPosition.cpp">
-      <Filter>Source Files\Actions</Filter>
-    </ClCompile>
     <ClCompile Include="Locator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AABB.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DecisionHasPath.cpp">
-      <Filter>Source Files\AI\Decisions</Filter>
-    </ClCompile>
-    <ClCompile Include="DecisionHasDestination.cpp">
-      <Filter>Source Files\AI\Decisions</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionFollowPath.cpp">
-      <Filter>Source Files\Actions</Filter>
     </ClCompile>
     <ClCompile Include="ogg_stream.cpp">
       <Filter>Source Files\Audio</Filter>
@@ -806,20 +764,11 @@
     <ClCompile Include="InfluenceMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConditionHasDestination.cpp">
-      <Filter>Source Files\AI\Conditions</Filter>
-    </ClCompile>
     <ClCompile Include="Decision.cpp">
       <Filter>Source Files\AI\Decisions</Filter>
     </ClCompile>
     <ClCompile Include="DecisionTreeTransition.cpp">
       <Filter>Source Files\AI\Decisions</Filter>
-    </ClCompile>
-    <ClCompile Include="ConditionHasPath.cpp">
-      <Filter>Source Files\AI\Conditions</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionRequestPath.cpp">
-      <Filter>Source Files\Actions</Filter>
     </ClCompile>
     <ClCompile Include="developer.cpp">
       <Filter>Source Files</Filter>
@@ -827,13 +776,7 @@
     <ClCompile Include="EntityAspect.cpp">
       <Filter>Source Files\Entity</Filter>
     </ClCompile>
-    <ClCompile Include="SquadManager.cpp">
-      <Filter>Source Files\AI</Filter>
-    </ClCompile>
     <ClCompile Include="ActorAspect.cpp">
-      <Filter>Source Files\AI</Filter>
-    </ClCompile>
-    <ClCompile Include="SquadHandler.cpp">
       <Filter>Source Files\AI</Filter>
     </ClCompile>
     <ClCompile Include="EditorWaypointManager.cpp">
@@ -981,13 +924,19 @@
       <Filter>Source Files\File</Filter>
     </ClCompile>
     <ClCompile Include="ActionUpdateGpuTransform.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Actions</Filter>
     </ClCompile>
     <ClCompile Include="ActionPlayerLookAround.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Actions</Filter>
     </ClCompile>
     <ClCompile Include="ActionPlayerMove.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="ai\Squad.cpp">
+      <Filter>Source Files\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureFileManager.cpp">
+      <Filter>Source Files\File</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

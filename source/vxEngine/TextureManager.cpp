@@ -239,7 +239,7 @@ void TextureManager::createBucket(u32 bucketSize, const vx::ushort3 textureSize,
 		bucket.m_size = 0;
 		bucket.m_capacity = bucketSize;
 
-		m_textureBuckets.insert(cmp, std::move(bucket));
+		m_textureBuckets.insert(std::move(cmp), std::move(bucket));
 	}
 	// else do nothing
 }

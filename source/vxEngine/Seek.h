@@ -23,20 +23,17 @@ SOFTWARE.
 */
 #pragma once
 
-namespace Component
-{
-	struct Physics;
-}
+struct EntityActor;
 
 #include "Steering.h"
 
 struct Seek : public Steering
 {
-	Component::Physics* m_pPhysics;
+	EntityActor* m_entity;
 	vx::float3 m_targetPosition;
 	f32 m_maxAcceleration;
 
-	Seek(Component::Physics* pPhysicsComponent, const vx::float3 &target, f32 maxAccel);
+	Seek(EntityActor* entity, const vx::float3 &target, f32 maxAccel);
 
 	void setTarget(const vx::float3 &target);
 

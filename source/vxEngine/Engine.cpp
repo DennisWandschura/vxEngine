@@ -41,7 +41,7 @@ namespace
 
 	void handleInput(const vx::Mouse &m, const vx::Keyboard &k, f32 dt)
 	{
-		g_pEngine->handleInput(m, k, dt);
+		//g_pEngine->handleInput(m, k, dt);
 	}
 }
 
@@ -51,9 +51,9 @@ Engine::Engine()
 	m_physicsAspect(m_fileAspect),
 	m_actorAspect(m_physicsAspect),
 	m_renderAspect(),
-	m_entityAspect(m_physicsAspect, m_fileAspect, m_renderAspect),
+	m_entityAspect(m_physicsAspect, m_renderAspect),
 	m_bRun(0),
-	m_fileAspect(m_eventManager),
+	m_fileAspect(),
 	m_bRunFileThread(),
 	m_fileAspectThread()
 {
@@ -279,7 +279,7 @@ bool Engine::initialize()
 	if (!m_entityAspect.initialize(&m_allocator))
 		return false;
 
-	m_actorAspect.initialize(m_entityAspect, m_eventManager, &m_allocator);
+	m_actorAspect.initialize(m_entityAspect, &m_allocator);
 
 	Locator::provide(&m_physicsAspect);
 
@@ -355,10 +355,4 @@ void Engine::keyPressed(u16 key)
 	{
 		m_renderAspect.keyPressed(key);
 	}
-}
-
-void Engine::handleInput(const vx::Mouse &m, const vx::Keyboard &k, f32 dt)
-{
-	m_entityAspect.handleKeyboard(k);
-	m_entityAspect.handleMouse(m, dt);
 }

@@ -51,6 +51,7 @@ namespace vx
 #include "EventTypesFwd.h"
 #include "Pool.h"
 #include <vxEngineLib/MeshFile.h>
+#include "TextureFileManager.h"
 
 class VX_ALIGN(64) FileAspect
 {
@@ -62,45 +63,44 @@ class VX_ALIGN(64) FileAspect
 	struct FileRequest;
 
 	struct LoadFileOfTypeDescription;
-	struct LoadFileMeshDescription;
-	struct LoadFileMaterialDescription;
+
+	struct LoadDescriptionShared;
+	struct LoadMeshDescription;
+	struct LoadMaterialDescription;
+	struct LoadTextureDescription;
 
 	VX_ALIGN(64) struct
 	{
 		std::vector<FileRequest> m_fileRequests;
 		std::mutex m_mutex;
 	};
-	EventManager &m_eventManager;
 	Logfile m_logfile;
 	vx::StackAllocator m_allocatorReadFile;
 	vx::StackAllocator m_allocatorMeshData;
 	Clock m_clock;
 	vx::sorted_array<vx::StringID, vx::MeshFile*> m_sortedMeshes;
 	vx::sorted_array<vx::StringID, Material*> m_sortedMaterials;
-	vx::sorted_array<vx::StringID, TextureFile*> m_sortedTextureFiles;
 	Pool<vx::MeshFile> m_poolMesh;
 	Pool<Material> m_poolMaterial;
-	Pool<TextureFile> m_poolTextureFile;
+	TextureFileManager m_textureFileManager;
 
 	vx::sorted_vector<vx::StringID, std::string> m_loadedFiles;
 
 	void getFolderString(FileType fileType, const char** folder);
-	const u8* readFile(const char *file, u32 &fileSize);
+	const u8* readFile(const char *file, u32* fileSize);
 
 	void pushFileEvent(FileEvent code,vx::Variant arg1, vx::Variant arg2);
 
 	LoadFileReturnType loadFile(const FileEntry &file, std::vector<FileEntry>* missingFiles, void* pUserData);
-	bool loadMesh(const vx::FileHeader &fileHeader, const char *filename, const u8 *fileData, const vx::StringID &sid, FileStatus* status);
-	TextureFile* loadTexture(const char *filename, const u8 *ptr, u32 size, const vx::StringID &sid, FileStatus* status);
-	u8 loadScene(const char *filename, const u8 *ptr, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, Scene* pScene);
-	u8 loadScene(const char *filename, const u8 *ptr, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status, EditorScene* pScene);
-	Material* loadMaterial(const char *filename, const char *fileNameWithPath, const vx::StringID &sid, std::vector<FileEntry>* missingFiles, FileStatus* status);
+	bool loadMesh(const LoadMeshDescription &desc);
+	Material* loadMaterial(const LoadMaterialDescription &desc);
 
 	LoadFileReturnType saveFile(const FileRequest &request, vx::Variant* p);
 
-	bool loadFileMesh(const LoadFileMeshDescription &desc);
-	void loadFileTexture(const char* fileName, u32 fileSize, const vx::StringID &sid, const u8* pData, LoadFileReturnType* result);
-	void loadFileMaterial(const LoadFileMaterialDescription &desc);
+	bool loadFileScene(const LoadFileOfTypeDescription &desc, bool editor);
+	bool loadFileMesh(const LoadFileOfTypeDescription &desc);
+	void loadFileTexture(const LoadFileOfTypeDescription &desc);
+	void loadFileMaterial(const LoadFileOfTypeDescription &desc);
 	void loadFileOfType(const LoadFileOfTypeDescription &desc);
 
 	void handleLoadRequest(FileRequest* request, std::vector<FileEntry>* missingFiles);
@@ -110,7 +110,7 @@ class VX_ALIGN(64) FileAspect
 	void retryLoadFile(const FileRequest &request, const std::vector<FileEntry> &missingFiles);
 
 public:
-	explicit FileAspect(EventManager &evtManager);
+	FileAspect();
 	~FileAspect();
 
 	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir);

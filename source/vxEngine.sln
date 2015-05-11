@@ -114,8 +114,8 @@ Global
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Editor Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Editor Debug|Win32.ActiveCfg = Debug|Win32
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Editor Debug|Win32.Build.0 = Debug|Win32
-		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Editor Debug|x64.ActiveCfg = Debug|Win32
-		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Editor Debug|x64.Build.0 = Debug|Win32
+		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Editor Debug|x64.ActiveCfg = Debug|x64
+		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Editor Debug|x64.Build.0 = Debug|x64
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Release|Any CPU.ActiveCfg = Release|Win32
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Release|Mixed Platforms.ActiveCfg = Release|Win32
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Release|Mixed Platforms.Build.0 = Release|Win32

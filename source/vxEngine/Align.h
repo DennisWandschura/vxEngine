@@ -23,17 +23,14 @@ SOFTWARE.
 */
 #pragma once
 
-namespace Component
-{
-	struct Physics;
-}
+struct EntityActor;
 
 #include <vxLib/math/Vector.h>
 
 struct Align
 {
-	Component::Physics* m_pCharacter;
-	Component::Physics* m_pTarget;
+	EntityActor* m_pCharacter;
+	EntityActor* m_pTarget;
 	f32 m_maxAngularAcceleration;
 	f32 m_maxRotation;
 	f32 m_targetRadius;
