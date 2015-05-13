@@ -237,7 +237,7 @@ void Logfile::createStyleSheet(const char *stylesheet)
 
 	FILE *pFile;
 	fopen_s(&pFile, stylesheet, "w");
-	fprintf(pFile, text);
+	fprintf(pFile, "%s", text);
 	fflush(pFile);
 	fclose(pFile);
 }

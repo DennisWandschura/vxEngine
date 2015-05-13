@@ -1,3 +1,6 @@
+#ifndef __LIBRARIES_H
+#define __LIBRARIES_H
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,12 +24,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#ifndef __LIBRARIES_H
-#define __LIBRARIES_H
-#pragma once
 
-#ifdef _DEBUG
-#pragma comment(lib, "vxLib_d.lib")
+#if defined(_DEBUG_STATIC_BUILD)
+#pragma comment(lib, "vxLib_sd")
 #pragma comment(lib, "vxEngineLib_d.lib")
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
 
@@ -38,11 +38,10 @@ SOFTWARE.
 #pragma comment(lib, "OpenAL32.lib")
 #pragma comment(lib, "vxAudio_d.lib")
 #endif
-#else
 
-#pragma comment(lib, "vxLib.lib")
+#elif defined(_RELEASE_STATIC_BUILD)
+#pragma comment(lib, "vxLib_s.lib")
 #pragma comment(lib, "vxEngineLib.lib")
-#pragma comment(lib, "PhysX3Extensions.lib")
 
 #ifdef _VX_NOAUDIO
 #else
@@ -53,7 +52,12 @@ SOFTWARE.
 #pragma comment(lib, "vxAudio.lib")
 #endif
 
-#endif // _DEBUG
+#ifdef _PHYSX_CHECKED
+#pragma comment(lib, "PhysX3ExtensionsCHECKED.lib")
+#else
+#endif
+
+#endif
 
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "Shlwapi.lib")
@@ -70,4 +74,4 @@ SOFTWARE.
 #pragma comment(lib, "PhysX3Cooking_x64.lib")
 #endif
 
-#endif
+#endif // __LIBRARIES_H

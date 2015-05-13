@@ -37,7 +37,7 @@ class EditorScene;
 
 namespace vx
 {
-	template<typename T, typename U>
+	template<typename T, typename U, typename C>
 	class sorted_array;
 
 	class MeshFile;
@@ -52,15 +52,15 @@ namespace vx
 
 struct CreateSceneDescription
 {
-	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<>> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*, std::less<>> *sortedMaterials;
 	Scene *pScene;
 };
 
 struct CreateEditorSceneDescription
 {
-	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<>> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*, std::less<>> *sortedMaterials;
 	const vx::sorted_vector<vx::StringID, std::string> *loadedFiles;
 	EditorScene *pScene;
 };
@@ -109,7 +109,7 @@ public:
 	u32 getActorCount() const { return m_actorCount; }
 	const ActorFile* getActors() const { return m_pActors.get(); }
 
-	u64 getCrc() const;
+	u64 getCrc() const override;
 
-	u32 getVersion() const;
+	u32 getVersion() const override;
 };

@@ -75,7 +75,7 @@ class Pool : public PoolBase
 {
 	using value_type = T;
 	using reference = T&;
-	using const_reference = const reference;
+	using const_reference = const T&;
 	using pointer = value_type*;
 
 public:

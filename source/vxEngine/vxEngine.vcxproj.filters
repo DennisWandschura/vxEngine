@@ -492,12 +492,6 @@
     <ClInclude Include="DDS_File.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureLayer.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Triangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -635,6 +629,15 @@
     </ClInclude>
     <ClInclude Include="DecisionTreeTransition.h">
       <Filter>Header Files\AI\State Machine</Filter>
+    </ClInclude>
+    <ClInclude Include="dds.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Surface.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionFollowPath.h">
+      <Filter>Header Files\Actions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -857,12 +860,6 @@
     <ClCompile Include="DDS_File.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureLayer.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="NavMeshTriangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -937,6 +934,12 @@
     </ClCompile>
     <ClCompile Include="TextureFileManager.cpp">
       <Filter>Source Files\File</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Surface.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionFollowPath.cpp">
+      <Filter>Source Files\Actions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

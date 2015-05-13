@@ -209,7 +209,7 @@ void GpuProfiler::updateBuffer(const u32 ascii_code, const vx::float2 &position_
 
 		__m128 vCurrentPosition = _mm_div_ps(vEntrySize, vx::g_VXTwo);
 		vCurrentPosition = _mm_add_ps(vCurrentPosition, vAtlasPos);
-		vCurrentPosition = _mm_fmadd_ps(vCurrentPosition, vScale, vCursorPos);
+		vCurrentPosition = vx::fma(vCurrentPosition, vScale, vCursorPos);
 		vCurrentPosition = _mm_movelh_ps(vCurrentPosition, tmp);
 
 		__m128 vSource = _mm_mul_ps(texRect, invTextureSize);
@@ -238,10 +238,10 @@ void GpuProfiler::updateBuffer(const u32 ascii_code, const vx::float2 &position_
 			u32 index = bufferIndex->x + k;
 
 			auto pos = _mm_mul_ps(posOffsets[k], vEntrySize);
-			pos = _mm_fmadd_ps(pos, vScale, vCurrentPosition);
+			pos = vx::fma(pos, vScale, vCurrentPosition);
 			_mm_storeu_ps(&m_pVertices[index].inputPosition.x, pos);
 
-			__m128 uv = _mm_fmadd_ps(texOffsets[k], vSourceSize, vSource);
+			__m128 uv = vx::fma(texOffsets[k], vSourceSize, vSource);
 			_mm_storeu_ps(&m_pVertices[index].inputTexCoords.x, uv);
 			m_pVertices[index].inputTexCoords.z = position_x_texSlice.y;
 

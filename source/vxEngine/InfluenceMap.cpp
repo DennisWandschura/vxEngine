@@ -199,7 +199,7 @@ void InfluenceMap::createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uin
 {
 	__m128 vOffset = { (f32)cellPosition.x, (f32)cellPosition.y, (f32)cellPosition.z, 0.0f };
 
-	auto vmin = _mm_fmadd_ps(vOffset, vCellSize, vBoundsMin);
+	auto vmin = vx::fma(vOffset, vCellSize, vBoundsMin);
 	auto vmax = _mm_add_ps(vmin, vCellSize);
 
 	auto vPosition = _mm_add_ps(vmax, vmin);

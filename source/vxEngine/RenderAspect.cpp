@@ -535,7 +535,7 @@ void RenderAspect::taskUpdateCamera()
 	auto projectionMatrix = m_renderContext.getProjectionMatrix();
 
 	Camerablock block;
-	m_camera.getViewMatrix(block.viewMatrix);
+	m_camera.getViewMatrix(&block.viewMatrix);
 	block.pvMatrix = projectionMatrix * block.viewMatrix;
 	block.inversePVMatrix = vx::MatrixInverse(block.pvMatrix);
 	block.cameraPosition = m_camera.getPosition();

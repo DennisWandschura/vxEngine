@@ -28,12 +28,14 @@ vx::uint2 __vectorcall GpuFunctions::packQRotation(const __m128 qRotation)
 {
 	const __m128 maxV = { 0xffff, 0xffff, 0xffff, 0xffff };
 
-	auto qq = _mm_fmadd_ps(qRotation, vx::g_VXOneHalf, vx::g_VXOneHalf);
+	auto qq = vx::fma(qRotation, vx::g_VXOneHalf, vx::g_VXOneHalf);
 	qq = _mm_mul_ps(qq, maxV);
 
+	vx::float4a tmp = qq;
+
 	vx::uint2 packedQRotation;
-	packedQRotation.x = (u32)qq.m128_f32[0] | (u32)qq.m128_f32[1] << 16;
-	packedQRotation.y = (u32)qq.m128_f32[2] | (u32)qq.m128_f32[3] << 16;
+	packedQRotation.x = (u32)tmp.x | (u32)tmp.y << 16;
+	packedQRotation.y = (u32)tmp.z | (u32)tmp.w << 16;
 
 	return packedQRotation;
 }

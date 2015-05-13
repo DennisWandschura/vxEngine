@@ -31,7 +31,7 @@ class TextureFile;
 
 namespace vx
 {
-	template<typename K, typename T>
+	template<typename K, typename T,typename C>
 	class sorted_array;
 
 	struct StringID;
@@ -42,7 +42,7 @@ namespace vx
 struct MaterialFactoryLoadDescription
 {
 	const char *fileNameWithPath;
-	const vx::sorted_array<vx::StringID, TextureFile*>* textureFiles;
+	const vx::sorted_array<vx::StringID, TextureFile*, std::less<>>* textureFiles;
 	std::vector<FileEntry>* missingFiles;
 	Material* material;
 };

@@ -40,12 +40,12 @@ struct AABB
 		vx::float3 v[2];
 		struct
 		{
-			vx::float3 min{ FLT_MAX, FLT_MAX, FLT_MAX };
-			vx::float3 max{ -FLT_MAX, -FLT_MAX, -FLT_MAX };
+			vx::float3 min;
+			vx::float3 max;
 		};
 	};
 
-	AABB() = default;
+	AABB();
 	AABB(const vx::float3 &p);
 
 	static AABB merge(const AABB &a, const AABB &b);

@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,9 +22,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
+
 #include <vxLib/types.h>
 #include <vector>
+#include "Graphics/Surface.h"
 
 struct DXTColBlock;
 
@@ -31,39 +33,9 @@ struct DXT3AlphaBlock;
 
 struct DXT5AlphaBlock;
 
-class Surface
+class Texture : public Graphics::Surface
 {
-	u32 m_width;
-	u32 m_height;
-	u32 m_depth;
-	u32 m_size;
-	u8* m_pixels;
-
-public:
-	Surface();
-	Surface(const Surface&) = delete;
-	Surface(Surface &&rhs);
-	~Surface();
-
-	Surface& operator=(const Surface&) = delete;
-	Surface& operator=(Surface &&rhs);
-
-	void create(u32 width, u32 height, u32 depth, u32 size, u8* pixels);
-
-	void clear();
-
-	u32 getWidth() const { return m_width; }
-	u32 getHeight() const { return m_height; }
-	u32 getDepth() const { return m_depth; }
-	u32 getSize() const { return m_size; }
-
-	u8* getPixels() { return m_pixels; }
-	const u8* getPixels() const { return m_pixels; }
-};
-
-class Texture : public Surface
-{
-	std::vector<Surface> m_mipmaps;
+	std::vector<Graphics::Surface> m_mipmaps;
 
 public:
 	Texture();
@@ -73,7 +45,7 @@ public:
 	Texture& operator=(const Texture&) = delete;
 	Texture& operator=(Texture &&rhs);
 
-	void create(u32 width, u32 height, u32 depth, u32 size, u8* pixels);
+	void create(const vx::uint3 &dimension, u32 size, u8* pixels);
 
 	inline void addMipmap(Surface &&mipmap)
 	{
@@ -83,8 +55,8 @@ public:
 	void clear();
 
 	u32 getMipmapCount() const { return m_mipmaps.size(); }
-	Surface* getMipmap(u32 i) { return &m_mipmaps[i]; }
-	const Surface* getMipmap(u32 i) const { return &m_mipmaps[i]; }
+	Graphics::Surface* getMipmap(u32 i) { return &m_mipmaps[i]; }
+	const Graphics::Surface* getMipmap(u32 i) const { return &m_mipmaps[i]; }
 };
 
 class DDS_File
@@ -104,7 +76,7 @@ class DDS_File
 
 	inline void swap_endian(void *val);
 
-	void flip(Surface* surface);
+	void flip(Graphics::Surface* surface);
 
 	void flip_texture(Texture* texture);
 

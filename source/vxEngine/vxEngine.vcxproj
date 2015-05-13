@@ -73,6 +73,7 @@
     <OutDir>..\..\game\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <ExtensionsToDeleteOnClean>$(ExtensionsToDeleteOnClean)</ExtensionsToDeleteOnClean>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -81,13 +82,13 @@
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;_DEBUG_STATIC_BUILD;_VX_NOAUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <Cpp0xSupport>true</Cpp0xSupport>
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StringPooling>true</StringPooling>
     </ClCompile>
     <Link>
@@ -110,13 +111,13 @@
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_EDITOR;_PHYSX_CHECKED;_VX_GL_45;_VX_NOAUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_EDITOR;_PHYSX_CHECKED;_VX_NOAUDIO;_DEBUG_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <Cpp0xSupport>true</Cpp0xSupport>
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StringPooling>true</StringPooling>
     </ClCompile>
     <Link>
@@ -131,12 +132,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;NDEBUG;_VX_NOAUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;NDEBUG;_VX_NOAUDIO;_RELEASE_STATIC_BUILD;_PHYSX_CHECKED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <Cpp0xSupport>true</Cpp0xSupport>
@@ -144,6 +145,7 @@
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -158,6 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h" />
+    <ClInclude Include="ActionFollowPath.h" />
     <ClInclude Include="ActionPlayerLookAround.h" />
     <ClInclude Include="ActionManager.h" />
     <ClInclude Include="ActionPlayerMove.h" />
@@ -169,6 +172,7 @@
     <ClInclude Include="ConverterEditorSceneToSceneFile.h" />
     <ClInclude Include="ConverterSceneFileToScene.h" />
     <ClInclude Include="CreateActorData.h" />
+    <ClInclude Include="dds.h" />
     <ClInclude Include="DDS_File.h" />
     <ClInclude Include="DrawCommand.h" />
     <ClInclude Include="EngineConfig.h" />
@@ -187,6 +191,7 @@
     <ClInclude Include="Graphics\ShadowRenderer.h" />
     <ClInclude Include="Graphics\State.h" />
     <ClInclude Include="Graphics\StaticMeshRenderer.h" />
+    <ClInclude Include="Graphics\Surface.h" />
     <ClInclude Include="input\Keys.h" />
     <ClInclude Include="Reference.h" />
     <ClInclude Include="RenderCommand.h" />
@@ -226,9 +231,7 @@
     <ClInclude Include="TextParserFile.h" />
     <ClInclude Include="TextParserNode.h" />
     <ClInclude Include="TextParserNodeConverter.h" />
-    <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureFileManager.h" />
-    <ClInclude Include="TextureLayer.h" />
     <ClInclude Include="VoxelRenderer.h" />
     <ClInclude Include="SceneBase.h" />
     <ClInclude Include="SceneFile.h" />
@@ -321,6 +324,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AABB.cpp" />
+    <ClCompile Include="ActionFollowPath.cpp" />
     <ClCompile Include="ActionPlayerLookAround.cpp" />
     <ClCompile Include="ActionManager.cpp" />
     <ClCompile Include="ActionPlayerMove.cpp" />
@@ -360,6 +364,7 @@
     <ClCompile Include="Graphics\ShadowRenderer.cpp" />
     <ClCompile Include="Graphics\State.cpp" />
     <ClCompile Include="Graphics\StaticMeshRenderer.cpp" />
+    <ClCompile Include="Graphics\Surface.cpp" />
     <ClCompile Include="ImageBindingManager.cpp" />
     <ClCompile Include="InfluenceMap.cpp" />
     <ClCompile Include="Light.cpp" />
@@ -376,9 +381,7 @@
     <ClCompile Include="ScreenshotFactory.cpp" />
     <ClCompile Include="TextParserFile.cpp" />
     <ClCompile Include="TextParserNode.cpp" />
-    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureFileManager.cpp" />
-    <ClCompile Include="TextureLayer.cpp" />
     <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="VoxelRenderer.cpp" />
     <ClCompile Include="Scene.cpp" />

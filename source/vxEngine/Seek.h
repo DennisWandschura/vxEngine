@@ -37,5 +37,5 @@ struct Seek : public Steering
 
 	void setTarget(const vx::float3 &target);
 
-	u8 getSteering(SteeringOutput* output) override;
+	bool getSteering(SteeringOutput* output) override;
 };

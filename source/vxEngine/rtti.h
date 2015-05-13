@@ -253,7 +253,7 @@ namespace rtti
 
 #define RTTI_TYPE(TYPE) \
 	rtti::TypeCreator<TYPE> _NAME_GENERATOR() {#TYPE};\
-	void rtti::TypeCreator<TYPE>::registerMembers()
+	template<> void rtti::TypeCreator<TYPE>::registerMembers()
 
 #define RTTI_MEMBER(MEMBER) \
 	addMember(#MEMBER, (size_t)(&nullcast()->MEMBER), rtti::SingletonRTTI::get().getTypeData<std::decay_t<decltype(nullcast()->MEMBER)>>() )

@@ -347,7 +347,7 @@ vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY)
 	ray_eye.w = 0.0f;
 
 	vx::mat4 viewMatrix;
-	m_renderAspect.getCamera().getViewMatrix(viewMatrix);
+	m_renderAspect.getCamera().getViewMatrix(&viewMatrix);
 	auto inverseViewMatrix = vx::MatrixInverse(viewMatrix);
 	vx::float4a ray_world = vx::Vector4Transform(inverseViewMatrix, ray_eye);
 	ray_world = vx::normalize3(ray_world);
@@ -361,7 +361,9 @@ MeshInstance* EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, 
 
 	auto cameraPosition = m_renderAspect.getCamera().getPosition();
 
-	return m_physicsAspect.raycast_static(vx::float3(cameraPosition.f[0], cameraPosition.f[1], cameraPosition.f[2]), vx::float3(ray_world.x, ray_world.y, ray_world.z), 50.0f, hitPosition);
+	vx::float4a tmp = cameraPosition;
+
+	return m_physicsAspect.raycast_static(tmp, ray_world, 50.0f, hitPosition);
 }
 
 bool EditorEngine::selectMesh(s32 x, s32 y)

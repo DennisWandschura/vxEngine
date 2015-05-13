@@ -30,7 +30,7 @@ namespace Component
 {
 	struct Input : public Base
 	{
-		vx::float3 velocity{ 0, 0, 0 };
+		vx::float4 velocity{ 0, 0, 0, 0 };
 		vx::float2 orientation{ vx::VX_PIDIV2, 0 };
 	};
 }

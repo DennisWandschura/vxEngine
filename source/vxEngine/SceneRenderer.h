@@ -107,7 +107,7 @@ class SceneRenderer
 	void createTextures();
 	void createMeshDrawIdVbo();
 	void createMeshIbo();
-	void bindMeshDrawIdVboToVao(vx::gl::VertexArray* vao);
+	void bindMeshDrawIdVboToVao(const vx::gl::VertexArray* vao);
 	void createMeshBuffers();
 
 	void createMeshCmdBuffer();

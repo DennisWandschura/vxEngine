@@ -52,7 +52,10 @@ namespace gl
 
 		vx::StringID createBuffer(const char* key, const vx::gl::BufferDescription &desc);
 
-		vx::gl::Buffer* getBuffer(const vx::StringID &sid) const;
-		vx::gl::Buffer* getBuffer(const char* buffer) const;
+		const vx::gl::Buffer* getBuffer(const vx::StringID &sid) const;
+		const vx::gl::Buffer* getBuffer(const char* buffer) const;
+
+		vx::gl::Buffer* getBuffer(const vx::StringID &sid);
+		vx::gl::Buffer* getBuffer(const char* buffer);
 	};
 }

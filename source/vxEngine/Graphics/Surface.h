@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,31 +22,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 #include <vxLib/math/Vector.h>
 #include <memory>
 
 namespace Graphics
 {
-	class TextureLayer
+	class Surface
 	{
-		std::unique_ptr<u8> m_data;
-		vx::ushort3 m_dimension;
+		vx::uint3 m_dimension;
 		u32 m_size;
+		std::unique_ptr<u8[]> m_pixels;
 
 	public:
-		TextureLayer();
-		TextureLayer(const TextureLayer&) = delete;
-		TextureLayer(TextureLayer &&rhs);
+		Surface();
+		Surface(const Surface&) = delete;
+		Surface(Surface &&rhs);
+		~Surface();
 
-		void create(const vx::ushort3 &dim, u32 size, std::unique_ptr<u8> &&data);
+		Surface& operator=(const Surface&) = delete;
+		Surface& operator=(Surface &&rhs);
+
+		void create(const vx::uint3 &dimension, u32 size, u8* pixels);
+
 		void clear();
 
-		virtual ~TextureLayer();
+		const vx::uint3& getDimension() const { return m_dimension; }
+		u32 getSize() const { return m_size; }
 
-		const vx::ushort3& getDim() const;
-		u32 getSize() const;
-		const u8* getData() const;
+		u8* getPixels() { return m_pixels.get(); }
+		const u8* getPixels() const { return m_pixels.get(); }
 	};
 }

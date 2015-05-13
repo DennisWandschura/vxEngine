@@ -36,7 +36,7 @@ void Seek::setTarget(const vx::float3 &target)
 	m_targetPosition = target;
 }
 
-u8 Seek::getSteering(SteeringOutput* output)
+bool Seek::getSteering(SteeringOutput* output)
 {
 	auto dir = m_targetPosition - m_entity->position;
 	dir = vx::normalize(dir);
@@ -46,5 +46,5 @@ u8 Seek::getSteering(SteeringOutput* output)
 	output->velocity = dir;
 	output->angular = 0.0f;
 
-	return 1;
+	return true;
 }

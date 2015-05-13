@@ -112,7 +112,7 @@ public:
 	void move(const vx::float4a &velocity, f32 dt, physx::PxController* pController);
 	void setPosition(const vx::float3 &position, physx::PxController* pController);
 
-	MeshInstance* raycast_static(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, vx::float3* hitPosition) const;
+	MeshInstance* raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition) const;
 
 	bool editorGetStaticMeshInstancePosition(const MeshInstance* ptr, vx::float3* p) const;
 	void editorSetStaticMeshInstancePosition(const MeshInstance* ptr, const vx::float3 &p);

@@ -39,5 +39,5 @@ struct SteeringOutput
 class Steering
 {
 public:
-	virtual u8 getSteering(SteeringOutput* output) = 0;
+	virtual bool getSteering(SteeringOutput* output) = 0;
 };

@@ -27,6 +27,12 @@ SOFTWARE.
 #include "Triangle.h"
 #include "Plane.h"
 
+AABB::AABB()
+	:min(FLT_MAX, FLT_MAX, FLT_MAX),
+	max(-FLT_MAX, -FLT_MAX, -FLT_MAX)
+{
+}
+
 AABB::AABB(const vx::float3 &p)
 	:min(p),
 	max(p)

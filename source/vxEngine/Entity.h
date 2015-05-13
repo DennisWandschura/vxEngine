@@ -38,6 +38,7 @@ struct EntityActor
 	physx::PxController* pRigidActor{ nullptr };
 	vx::float3 position;
 	f32 footPositionY;
+	vx::float3 velocity;
 	vx::float2 orientation;
 
 	u16 input{ 0 };

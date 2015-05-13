@@ -87,7 +87,11 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator)
 
 void EntityAspect::shutdown()
 {
-	m_coldData->m_poolActor.release();
+	if (m_coldData)
+	{
+		m_coldData->m_poolActor.release();
+		m_coldData.reset();
+	}
 	m_poolEntity.release();
 	m_poolRender.release();
 	m_poolInput.release();
@@ -156,6 +160,8 @@ void EntityAspect::createActorEntity(const vx::float3 &position, f32 height, u32
 
 void EntityAspect::updateInput(f32 dt)
 {
+	const vx::ivec4 mask = { 0xffffffff, 0, 0xffffffff, 0};
+
 	const __m128 vGravity = { 0, g_gravity * dt, 0, 0 };
 	auto p = m_poolInput.first();
 	while (p != nullptr)
@@ -164,7 +170,9 @@ void EntityAspect::updateInput(f32 dt)
 
 		entity.orientation = p->orientation;
 
-		__m128 vVelocity = { p->velocity.x, 0, p->velocity.z, 0.0f };
+		//__m128 vVelocity = { p->velocity.x, 0, p->velocity.z, 0.0f };
+		__m128 vVelocity = vx::loadFloat(p->velocity);
+		vVelocity = _mm_and_ps(vVelocity, mask);
 		vVelocity = _mm_add_ps(vVelocity, vGravity);
 
 		m_physicsAspect.move(vVelocity, dt, entity.pRigidActor);

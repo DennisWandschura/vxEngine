@@ -32,20 +32,16 @@ struct EntityActor;
 
 #include "Steering.h"
 
-class Arrive : public Steering
+class Arrive
 {
-	EntityActor* m_pEntity{ nullptr };
-	Component::Input* m_pInput{ nullptr };
 	vx::float3 m_targetPosition;
 	//f32 m_maxAcceleration{ 0.5f };
-	f32 m_maxSpeed{0.2f};
+	f32 m_maxSpeed;
 
 public:
-	explicit Arrive(EntityActor* actor, Component::Input* pInput);
+	Arrive();
 
-	u8 getSteering(SteeringOutput* output) override;
+	bool getSteering(const vx::float3 &currentPosition, SteeringOutput * output);
 
 	void setTarget(const vx::float3 &targetPos);
-
-	Component::Input* getInputComponent() const;
 };

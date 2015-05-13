@@ -35,7 +35,7 @@ namespace vx
 	{
 		typedef std::pair<T, U> value_type;
 		typedef value_type& reference;
-		typedef const reference const_reference;
+		typedef const T& const_reference;
 
 		std::vector<value_type> m_container;
 

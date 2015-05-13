@@ -43,19 +43,21 @@ namespace gl
 		void shutdown();
 
 		vx::StringID createVertexArray(const char* id);
-		vx::gl::VertexArray* getVertexArray(const vx::StringID &sid) const;
-		vx::gl::VertexArray* getVertexArray(const char* id) const;
+		const vx::gl::VertexArray* getVertexArray(const vx::StringID &sid) const;
+		const vx::gl::VertexArray* getVertexArray(const char* id) const;
+		vx::gl::VertexArray* getVertexArray(const vx::StringID &sid);
+		vx::gl::VertexArray* getVertexArray(const char* id);
 
 		vx::StringID createFramebuffer(const char* id);
-		vx::gl::Framebuffer* getFramebuffer(const vx::StringID &sid) const;
-		vx::gl::Framebuffer* getFramebuffer(const char* id) const;
+		const vx::gl::Framebuffer* getFramebuffer(const vx::StringID &sid) const;
+		const vx::gl::Framebuffer* getFramebuffer(const char* id) const;
 
 		vx::StringID createBuffer(const char* id, const vx::gl::BufferDescription &desc);
-		vx::gl::Buffer* getBuffer(const vx::StringID &sid) const;
-		vx::gl::Buffer* getBuffer(const char* id) const;
+		const vx::gl::Buffer* getBuffer(const vx::StringID &sid) const;
+		const vx::gl::Buffer* getBuffer(const char* id) const;
 
 		vx::StringID createTexture(const char* id, const vx::gl::TextureDescription &desc);
-		vx::gl::Texture* getTexture(const vx::StringID &sid) const;
-		vx::gl::Texture* getTexture(const char* id) const;
+		const vx::gl::Texture* getTexture(const vx::StringID &sid) const;
+		const vx::gl::Texture* getTexture(const char* id) const;
 	};
 }

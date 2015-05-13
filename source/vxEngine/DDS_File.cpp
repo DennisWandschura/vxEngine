@@ -25,109 +25,30 @@ SOFTWARE.
 #include <cstdio>
 #include <vxLib/gl/gl.h>
 #include <assert.h>
-#include <Mmsystem.h>
-
-typedef enum D3D10_RESOURCE_DIMENSION {
-	D3D10_RESOURCE_DIMENSION_UNKNOWN = 0,
-	D3D10_RESOURCE_DIMENSION_BUFFER = 1,
-	D3D10_RESOURCE_DIMENSION_TEXTURE1D = 2,
-	D3D10_RESOURCE_DIMENSION_TEXTURE2D = 3,
-	D3D10_RESOURCE_DIMENSION_TEXTURE3D = 4
-} D3D10_RESOURCE_DIMENSION;
-
-enum DXGI_FORMAT : unsigned int
-{
-	DXGI_FORMAT_BC6H_UF16 = 95,
-	DXGI_FORMAT_BC6H_SF16 = 96,
-
-	DXGI_FORMAT_BC7_UNORM = 98,
-	DXGI_FORMAT_BC7_UNORM_SRGB = 99,
-};
+#include "dds.h"
 
 struct DXTColBlock
 {
-	unsigned short col0;
-	unsigned short col1;
+	u16 col0;
+	u16 col1;
 
-	unsigned char row[4];
+	u8 row[4];
 };
 
 struct DXT3AlphaBlock
 {
-	unsigned short row[4];
+	u16 row[4];
 };
 
 struct DXT5AlphaBlock
 {
-	unsigned char alpha0;
-	unsigned char alpha1;
+	u8 alpha0;
+	u8 alpha1;
 
-	unsigned char row[6];
+	u8 row[6];
 };
 
-Surface::Surface()
-	: m_width(0),
-	m_height(0),
-	m_depth(0),
-	m_size(0),
-	m_pixels(nullptr)
-{
-}
 
-Surface::Surface(Surface &&rhs)
-	:m_width(rhs.m_width),
-	m_height(rhs.m_height),
-	m_depth(rhs.m_depth),
-	m_size(rhs.m_size),
-	m_pixels(rhs.m_pixels)
-{
-	rhs.m_pixels = nullptr;
-}
-
-Surface::~Surface()
-{
-	clear();
-}
-
-Surface& Surface::operator = (Surface &&rhs)
-{
-	if (this != &rhs)
-	{
-		std::swap(m_width, rhs.m_width);
-		std::swap(m_height, rhs.m_height);
-		std::swap(m_depth, rhs.m_depth);
-		std::swap(m_size, rhs.m_size);
-		std::swap(m_pixels, rhs.m_pixels);
-	}
-	return *this;
-}
-
-void Surface::create(u32 width, u32 height, u32 depth, u32 imgsize, u8* pixels)
-{
-	assert(width != 0);
-	assert(height != 0);
-	assert(depth != 0);
-	assert(imgsize != 0);
-	assert(pixels);
-
-	clear();
-
-	m_width = width;
-	m_height = height;
-	m_depth = depth;
-	m_size = imgsize;
-	m_pixels = new u8[imgsize];
-	memcpy(m_pixels, pixels, imgsize);
-}
-
-void Surface::clear()
-{
-	if (m_pixels != nullptr)
-	{
-		delete[] m_pixels;
-		m_pixels = nullptr;
-	}
-}
 
 Texture::Texture()
 	:Surface(),
@@ -136,14 +57,14 @@ Texture::Texture()
 }
 
 Texture::Texture(Texture &&rhs)
-	: Surface(std::move(rhs)),
+	: Graphics::Surface(std::move(rhs)),
 	m_mipmaps(std::move(rhs.m_mipmaps))
 {
 }
 
 Texture& Texture::operator = (Texture &&rhs)
 {
-	Surface::operator=(std::move(rhs));
+	Graphics::Surface::operator=(std::move(rhs));
 	if (this != &rhs)
 	{
 		std::swap(m_mipmaps, rhs.m_mipmaps);
@@ -151,79 +72,21 @@ Texture& Texture::operator = (Texture &&rhs)
 	return *this;
 }
 
-void Texture::create(u32 width, u32 height, u32 depth, u32 size, u8* pixels)
+void Texture::create(const vx::uint3 &dimension, u32 size, u8* pixels)
 {
-	Surface::create(width, height, depth, size, pixels);
+	Graphics::Surface::create(dimension, size, pixels);
 
 	m_mipmaps.clear();
 }
 
 void Texture::clear()
 {
-	Surface::clear();
+	Graphics::Surface::clear();
 
 	m_mipmaps.clear();
 }
 
-struct DDS_PIXELFORMAT {
-	DWORD dwSize;
-	DWORD dwFlags;
-	DWORD dwFourCC;
-	DWORD dwRGBBitCount;
-	DWORD dwRBitMask;
-	DWORD dwGBitMask;
-	DWORD dwBBitMask;
-	DWORD dwABitMask;
-};
-
-typedef struct {
-	DWORD           dwSize;
-	DWORD           dwFlags;
-	DWORD           dwHeight;
-	DWORD           dwWidth;
-	DWORD           dwPitchOrLinearSize;
-	DWORD           dwDepth;
-	DWORD           dwMipMapCount;
-	DWORD           dwReserved1[11];
-	DDS_PIXELFORMAT ddspf;
-	DWORD           dwCaps;
-	DWORD           dwCaps2;
-	DWORD           dwCaps3;
-	DWORD           dwCaps4;
-	DWORD           dwReserved2;
-} DDS_HEADER;
-
-typedef struct {
-	DXGI_FORMAT              dxgiFormat;
-	D3D10_RESOURCE_DIMENSION resourceDimension;
-	UINT                     miscFlag;
-	UINT                     arraySize;
-	UINT                     miscFlags2;
-} DDS_HEADER_DXT10;
-
-#define DDS_FOURCC      0x00000004  // DDPF_FOURCC
-#define DDS_RGB         0x00000040  // DDPF_RGB
-#define DDS_RGBA        0x00000041  // DDPF_RGB | DDPF_ALPHAPIXELS
-#define DDS_LUMINANCE   0x00020000  // DDPF_LUMINANCE
-#define DDS_LUMINANCEA  0x00020001  // DDPF_LUMINANCE | DDPF_ALPHAPIXELS
-#define DDS_ALPHA       0x00000002  // DDPF_ALPHA
-#define DDS_PAL8        0x00000020  // DDPF_PALETTEINDEXED8
-
-// pixel format flags
-const unsigned long DDSF_ALPHAPIXELS = 0x00000001l;
-const unsigned long DDSF_FOURCC = 0x00000004l;
-const unsigned long DDSF_RGB = 0x00000040l;
-const unsigned long DDSF_RGBA = 0x00000041l;
-
-const unsigned long FOURCC_DXT1 = 0x31545844l; //(MAKEFOURCC('D','X','T','1'))
-const unsigned long FOURCC_DXT3 = 0x33545844l; //(MAKEFOURCC('D','X','T','3'))
-const unsigned long FOURCC_DXT5 = 0x35545844l; //(MAKEFOURCC('D','X','T','5'))
-const unsigned long FOURCC_DX10 = MAKEFOURCC('D', 'X', '1', '0');
-
-#define DDSCAPS2_CUBEMAP 0x200
-#define DDSCAPS2_VOLUME 0x200000
-
-unsigned int DDS_File::clamp_size(unsigned int size)
+u32 DDS_File::clamp_size(u32 size)
 {
 	if (size <= 0)
 		size = 1;
@@ -233,7 +96,7 @@ unsigned int DDS_File::clamp_size(unsigned int size)
 
 ///////////////////////////////////////////////////////////////////////////////
 // calculates size of DXTC texture in bytes
-unsigned int DDS_File::size_dxtc(unsigned int width, unsigned int height)
+u32 DDS_File::size_dxtc(u32 width, u32 height)
 {
 	return ((width + 3) / 4)*((height + 3) / 4)*
 		(m_format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT ? 8 : 16);
@@ -241,7 +104,7 @@ unsigned int DDS_File::size_dxtc(unsigned int width, unsigned int height)
 
 ///////////////////////////////////////////////////////////////////////////////
 // calculates size of uncompressed RGB texture in bytes
-unsigned int DDS_File::size_rgb(unsigned int width, unsigned int height)
+u32 DDS_File::size_rgb(u32 width, u32 height)
 {
 	return width*height*m_components;
 }
@@ -256,7 +119,7 @@ u32 DDS_File::size_bc(u32 width, u32 height)
 void DDS_File::swap_endian(void *val)
 {
 #ifdef MACOS
-	unsigned int *ival = (unsigned int *)val;
+	u32 *ival = (u32 *)val;
 
 	*ival = ((*ival >> 24) & 0x000000ff) |
 		((*ival >> 8) & 0x0000ff00) |
@@ -267,25 +130,24 @@ void DDS_File::swap_endian(void *val)
 
 ///////////////////////////////////////////////////////////////////////////////
 // flip image around X axis
-void DDS_File::flip(Surface* surface)
+void DDS_File::flip(Graphics::Surface* surface)
 {
-	unsigned int linesize;
-	unsigned int offset;
+	auto dim = surface->getDimension();
 
 	if (!isCompressed())
 	{
-		assert(surface->getDepth() > 0);
+		assert(dim.z > 0);
 
-		unsigned int imagesize = surface->getSize() / surface->getDepth();
-		linesize = imagesize / surface->getHeight();
+		u32 imagesize = surface->getSize() / dim.z;
+		auto linesize = imagesize / dim.y;
 
-		for (unsigned int n = 0; n < surface->getDepth(); n++)
+		for (u32 n = 0; n < dim.z; n++)
 		{
-			offset = imagesize*n;
-			unsigned char *top = (unsigned char*)surface + offset;
-			unsigned char *bottom = top + (imagesize - linesize);
+			auto offset = imagesize*n;
+			u8 *top = (u8*)surface + offset;
+			u8 *bottom = top + (imagesize - linesize);
 
-			for (unsigned int i = 0; i < (surface->getHeight() >> 1); i++)
+			for (u32 i = 0; i < (dim.y >> 1); i++)
 			{
 				swap(bottom, top, linesize);
 
@@ -296,9 +158,9 @@ void DDS_File::flip(Surface* surface)
 	}
 	else
 	{
-		void (DDS_File::*flipblocks)(DXTColBlock*, unsigned int);
-		u32 xblocks = surface->getWidth() / 4;
-		u32 yblocks = surface->getHeight() / 4;
+		void (DDS_File::*flipblocks)(DXTColBlock*, u32);
+		u32 xblocks = dim.x / 4;
+		u32 yblocks = dim.y / 4;
 		u32 blocksize;
 
 		switch (m_format)
@@ -319,12 +181,12 @@ void DDS_File::flip(Surface* surface)
 			return;
 		}
 
-		linesize = xblocks * blocksize;
+		auto linesize = xblocks * blocksize;
 
 		DXTColBlock *top;
 		DXTColBlock *bottom;
 
-		for (unsigned int j = 0; j < (yblocks >> 1); j++)
+		for (u32 j = 0; j < (yblocks >> 1); j++)
 		{
 			top = (DXTColBlock*)(surface->getPixels() + j * linesize);
 			bottom = (DXTColBlock*)(surface->getPixels() + (((yblocks - j) - 1) * linesize));
@@ -341,7 +203,7 @@ void DDS_File::flip_texture(Texture *texture)
 {
 	flip(texture);
 
-	for (unsigned int i = 0; i < texture->getMipmapCount(); i++)
+	for (u32 i = 0; i < texture->getMipmapCount(); i++)
 	{
 		flip(texture->getMipmap(i));
 	}
@@ -349,9 +211,9 @@ void DDS_File::flip_texture(Texture *texture)
 
 ///////////////////////////////////////////////////////////////////////////////
 // swap to sections of memory
-void DDS_File::swap(void *byte1, void *byte2, unsigned int size)
+void DDS_File::swap(void *byte1, void *byte2, u32 size)
 {
-	unsigned char *tmp = new unsigned char[size];
+	u8 *tmp = new u8[size];
 
 	memcpy(tmp, byte1, size);
 	memcpy(byte1, byte2, size);
@@ -362,14 +224,14 @@ void DDS_File::swap(void *byte1, void *byte2, unsigned int size)
 
 ///////////////////////////////////////////////////////////////////////////////
 // flip a DXT1 color block
-void DDS_File::flip_blocks_dxtc1(DXTColBlock *line, unsigned int numBlocks)
+void DDS_File::flip_blocks_dxtc1(DXTColBlock *line, u32 numBlocks)
 {
 	DXTColBlock *curblock = line;
 
-	for (unsigned int i = 0; i < numBlocks; i++)
+	for (u32 i = 0; i < numBlocks; i++)
 	{
-		swap(&curblock->row[0], &curblock->row[3], sizeof(unsigned char));
-		swap(&curblock->row[1], &curblock->row[2], sizeof(unsigned char));
+		swap(&curblock->row[0], &curblock->row[3], sizeof(u8));
+		swap(&curblock->row[1], &curblock->row[2], sizeof(u8));
 
 		curblock++;
 	}
@@ -377,22 +239,22 @@ void DDS_File::flip_blocks_dxtc1(DXTColBlock *line, unsigned int numBlocks)
 
 ///////////////////////////////////////////////////////////////////////////////
 // flip a DXT3 color block
-void DDS_File::flip_blocks_dxtc3(DXTColBlock *line, unsigned int numBlocks)
+void DDS_File::flip_blocks_dxtc3(DXTColBlock *line, u32 numBlocks)
 {
 	DXTColBlock *curblock = line;
 	DXT3AlphaBlock *alphablock;
 
-	for (unsigned int i = 0; i < numBlocks; i++)
+	for (u32 i = 0; i < numBlocks; i++)
 	{
 		alphablock = (DXT3AlphaBlock*)curblock;
 
-		swap(&alphablock->row[0], &alphablock->row[3], sizeof(unsigned short));
-		swap(&alphablock->row[1], &alphablock->row[2], sizeof(unsigned short));
+		swap(&alphablock->row[0], &alphablock->row[3], sizeof(u16));
+		swap(&alphablock->row[1], &alphablock->row[2], sizeof(u16));
 
 		curblock++;
 
-		swap(&curblock->row[0], &curblock->row[3], sizeof(unsigned char));
-		swap(&curblock->row[1], &curblock->row[2], sizeof(unsigned char));
+		swap(&curblock->row[0], &curblock->row[3], sizeof(u8));
+		swap(&curblock->row[1], &curblock->row[2], sizeof(u8));
 
 		curblock++;
 	}
@@ -402,46 +264,46 @@ void DDS_File::flip_blocks_dxtc3(DXTColBlock *line, unsigned int numBlocks)
 // flip a DXT5 alpha block
 void DDS_File::flip_dxt5_alpha(DXT5AlphaBlock *block)
 {
-	unsigned char gBits[4][4];
+	u8 gBits[4][4];
 
 	const unsigned long mask = 0x00000007;          // bits = 00 00 01 11
 	unsigned long bits = 0;
-	memcpy(&bits, &block->row[0], sizeof(unsigned char) * 3);
+	memcpy(&bits, &block->row[0], sizeof(u8) * 3);
 
-	gBits[0][0] = (unsigned char)(bits & mask);
+	gBits[0][0] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[0][1] = (unsigned char)(bits & mask);
+	gBits[0][1] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[0][2] = (unsigned char)(bits & mask);
+	gBits[0][2] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[0][3] = (unsigned char)(bits & mask);
+	gBits[0][3] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[1][0] = (unsigned char)(bits & mask);
+	gBits[1][0] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[1][1] = (unsigned char)(bits & mask);
+	gBits[1][1] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[1][2] = (unsigned char)(bits & mask);
+	gBits[1][2] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[1][3] = (unsigned char)(bits & mask);
+	gBits[1][3] = (u8)(bits & mask);
 
 	bits = 0;
-	memcpy(&bits, &block->row[3], sizeof(unsigned char) * 3);
+	memcpy(&bits, &block->row[3], sizeof(u8) * 3);
 
-	gBits[2][0] = (unsigned char)(bits & mask);
+	gBits[2][0] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[2][1] = (unsigned char)(bits & mask);
+	gBits[2][1] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[2][2] = (unsigned char)(bits & mask);
+	gBits[2][2] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[2][3] = (unsigned char)(bits & mask);
+	gBits[2][3] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[3][0] = (unsigned char)(bits & mask);
+	gBits[3][0] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[3][1] = (unsigned char)(bits & mask);
+	gBits[3][1] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[3][2] = (unsigned char)(bits & mask);
+	gBits[3][2] = (u8)(bits & mask);
 	bits >>= 3;
-	gBits[3][3] = (unsigned char)(bits & mask);
+	gBits[3][3] = (u8)(bits & mask);
 
 	unsigned long *pBits = ((unsigned long*)&(block->row[0]));
 
@@ -476,12 +338,12 @@ void DDS_File::flip_dxt5_alpha(DXT5AlphaBlock *block)
 
 ///////////////////////////////////////////////////////////////////////////////
 // flip a DXT5 color block
-void DDS_File::flip_blocks_dxtc5(DXTColBlock *line, unsigned int numBlocks)
+void DDS_File::flip_blocks_dxtc5(DXTColBlock *line, u32 numBlocks)
 {
 	DXTColBlock *curblock = line;
 	DXT5AlphaBlock *alphablock;
 
-	for (unsigned int i = 0; i < numBlocks; i++)
+	for (u32 i = 0; i < numBlocks; i++)
 	{
 		alphablock = (DXT5AlphaBlock*)curblock;
 
@@ -489,8 +351,8 @@ void DDS_File::flip_blocks_dxtc5(DXTColBlock *line, unsigned int numBlocks)
 
 		curblock++;
 
-		swap(&curblock->row[0], &curblock->row[3], sizeof(unsigned char));
-		swap(&curblock->row[1], &curblock->row[2], sizeof(unsigned char));
+		swap(&curblock->row[0], &curblock->row[3], sizeof(u8));
+		swap(&curblock->row[1], &curblock->row[2], sizeof(u8));
 
 		curblock++;
 	}
@@ -622,14 +484,14 @@ bool DDS_File::loadFromFile(const char* file, bool flipImage)
 	}
 
 	// store primary surface width/height/depth
-	unsigned int width, height, depth;
-	width = header.dwWidth;
-	height = header.dwHeight;
-	depth = clamp_size(header.dwDepth);   // set to 1 if 0
+	vx::uint3 dimension;
+	dimension.x = header.dwWidth;
+	dimension.y = header.dwHeight;
+	dimension.z = clamp_size(header.dwDepth);   // set to 1 if 0
 
 	// use correct size calculation function depending on whether image is 
 	// compressed
-	unsigned int (DDS_File::*sizefunc)(unsigned int, unsigned int);
+	u32 (DDS_File::*sizefunc)(u32, u32);
 	sizefunc = &DDS_File::size_rgb;
 	if (isCompressed())
 	{
@@ -644,7 +506,7 @@ bool DDS_File::loadFromFile(const char* file, bool flipImage)
 	}
 
 	// load all surfaces for the image (6 surfaces for cubemaps)
-	for (unsigned int n = 0; n < (unsigned int)(m_type == Type::Cubemap ? 6 : 1); ++n)
+	for (u32 n = 0; n < (u32)(m_type == Type::Cubemap ? 6 : 1); ++n)
 	{
 		// add empty texture object
 		m_images.push_back(Texture());
@@ -653,25 +515,25 @@ bool DDS_File::loadFromFile(const char* file, bool flipImage)
 		auto &img = m_images[n];
 
 		// calculate surface size
-		unsigned int size = (this->*sizefunc)(width, height)*depth;
+		u32  size = (this->*sizefunc)(dimension.x, dimension.y)*dimension.z;
 
 		// load surface
-		unsigned char *pixels = new unsigned char[size];
+		u8 *pixels = new u8[size];
 		fread(pixels, 1, size, inFile);
 
-		img.create(width, height, depth, size, pixels);
+		img.create(dimension, size, pixels);
 
 		delete[] pixels;
 
 		if (flipImage)
 			flip(&img);
 
-		unsigned int w = clamp_size(width >> 1);
-		unsigned int h = clamp_size(height >> 1);
-		unsigned int d = clamp_size(depth >> 1);
+		u32 w = clamp_size(dimension.x >> 1);
+		u32 h = clamp_size(dimension.y >> 1);
+		u32 d = clamp_size(dimension.z >> 1);
 
 		// store number of mipmaps
-		unsigned int numMipmaps = header.dwMipMapCount;
+		u32 numMipmaps = header.dwMipMapCount;
 
 		// number of mipmaps in file includes main surface so decrease count 
 		// by one
@@ -679,21 +541,21 @@ bool DDS_File::loadFromFile(const char* file, bool flipImage)
 			numMipmaps--;
 
 		// load all mipmaps for current surface
-		for (unsigned int i = 0; i < numMipmaps && (w || h); i++)
+		for (u32 i = 0; i < numMipmaps && (w || h); i++)
 		{
 			// add empty surface
-			img.addMipmap(Surface());
+			img.addMipmap(Graphics::Surface());
 
 			// get reference to newly added mipmap
-			Surface* mipmap = img.getMipmap(i);
+			Graphics::Surface* mipmap = img.getMipmap(i);
 
 			// calculate mipmap size
 			size = (this->*sizefunc)(w, h)*d;
 
-			unsigned char *pixels = new unsigned char[size];
+			u8 *pixels = new u8[size];
 			fread(pixels, 1, size, inFile);
 
-			mipmap->create(w, h, d, size, pixels);
+			mipmap->create(dimension, size, pixels);
 
 			delete[] pixels;
 

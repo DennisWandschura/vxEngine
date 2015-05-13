@@ -65,6 +65,11 @@ void ActionPlayerMove::run()
 	__m128 vMoveVelocity = { m_moveVelocity, 0.0f, m_moveVelocity, 0 };
 	vVelocity = _mm_mul_ps(vVelocity, vMoveVelocity);
 
-	_mm_store_ss(&m_inputComponent->velocity.x, vVelocity);
-	m_inputComponent->velocity.z = vVelocity.f[2];
+
+	auto vy = m_inputComponent->velocity.y;
+	vx::storeFloat(&m_inputComponent->velocity, vVelocity);
+	m_inputComponent->velocity.y = vy;
+
+	//_mm_store_ss(&m_inputComponent->velocity.x, vVelocity);
+	//m_inputComponent->velocity.z = vVelocity.f[2];
 }

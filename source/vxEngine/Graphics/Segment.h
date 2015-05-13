@@ -48,7 +48,7 @@ namespace Graphics
 		void setState(const State &state);
 
 		template < typename T >
-		std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
+		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
 		 pushCommand(const T &command)
 		{
 			u8* ptr = (u8*)&command;

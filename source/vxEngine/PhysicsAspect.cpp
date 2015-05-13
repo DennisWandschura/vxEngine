@@ -47,7 +47,19 @@ void UserErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* m
 }
 
 PhysicsAspect::PhysicsAspect(FileAspect &fileAspect)
-	:m_fileAspect(fileAspect)
+	:m_pScene(nullptr),
+	m_pControllerManager(nullptr),
+	m_fileAspect(fileAspect),
+	m_pActorMaterial(nullptr),
+	m_pPhysics(nullptr),
+	m_mutex(),
+	m_triangleMeshInstances(),
+	m_physxMeshes(),
+	m_physxMaterials(),
+	m_staticMeshInstances(),
+	m_pFoundation(nullptr),
+	m_pCpuDispatcher(nullptr),
+	m_pCooking(nullptr)
 {
 }
 
@@ -170,9 +182,9 @@ void PhysicsAspect::handleFileEvent(const Event &evt)
 	}
 }
 
-MeshInstance* PhysicsAspect::raycast_static(const vx::float3 &o, const vx::float3 &dir, f32 maxDistance, vx::float3* hitPosition) const
+MeshInstance* PhysicsAspect::raycast_static(const vx::float4a &origin, const vx::float4a &dir, f32 maxDistance, vx::float3* hitPosition) const
 {
-	physx::PxVec3 origin(o.x, o.y,o.z);                 // [in] Ray origin
+	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
 	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
 	physx::PxRaycastBuffer hit;                 // [out] Raycast results
 
@@ -181,7 +193,7 @@ MeshInstance* PhysicsAspect::raycast_static(const vx::float3 &o, const vx::float
 
 	//unitDir.normalize();
 
-	m_pScene->raycast((physx::PxVec3)origin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData);
+	m_pScene->raycast(rayOrigin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData);
 
 	u8 result = hit.hasBlock;
 	MeshInstance* ptr = nullptr;
@@ -277,10 +289,11 @@ void PhysicsAspect::processScene(const Scene* pScene)
 		transform.p.x = instanceTransform.m_translation.x;
 		transform.p.y = instanceTransform.m_translation.y;
 		transform.p.z = instanceTransform.m_translation.z;
-		transform.q.x = qRotation.m128_f32[0];
+		_mm_storeu_ps(&transform.q.x, qRotation);
+		/*transform.q.x = qRotation.m128_f32[0];
 		transform.q.y = qRotation.m128_f32[1];
 		transform.q.z = qRotation.m128_f32[2];
-		transform.q.w = qRotation.m128_f32[3];
+		transform.q.w = qRotation.m128_f32[3];*/
 
 		assert(transform.isValid());
 
@@ -320,7 +333,7 @@ physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::MeshFile* pMesh)
 	auto pVertices = std::make_unique<vx::float3[]>(vertexCount);
 	for (u32 i = 0; i < vertexCount; ++i)
 	{
-		pVertices[i] = pMeshVertices[i].position;
+	pVertices[i] = pMeshVertices[i].position;
 	}
 
 	physx::PxTriangleMeshDesc meshDesc;
@@ -336,7 +349,7 @@ physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::MeshFile* pMesh)
 	bool status = m_pCooking->cookTriangleMesh(meshDesc, writeBuffer);
 	if (!status)
 	{
-		return nullptr;
+	return nullptr;
 	}*/
 
 	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)pMesh->getPhysxData(), pMesh->getPhysxDataSize());

@@ -49,14 +49,31 @@ namespace gl
 		vx::gl::VertexArray vao;
 		vao.create();
 
-		auto it = m_vertexArrays.insert(sid, std::move(vao));
+		auto it = m_vertexArrays.insert(std::move(sid), std::move(vao));
 		if (it == m_vertexArrays.end())
 			sid = 0;
 
 		return sid;
 	}
 
-	vx::gl::VertexArray* ObjectManager::getVertexArray(const vx::StringID &sid) const
+	const vx::gl::VertexArray* ObjectManager::getVertexArray(const vx::StringID &sid) const
+	{
+		const vx::gl::VertexArray* result = nullptr;
+
+		auto it = m_vertexArrays.find(sid);
+		if (it != m_vertexArrays.end())
+			result = &*it;
+
+		return result;
+	}
+
+	const vx::gl::VertexArray* ObjectManager::getVertexArray(const char* id) const
+	{
+		auto sid = vx::make_sid(id);
+		return getVertexArray(sid);
+	}
+
+	vx::gl::VertexArray* ObjectManager::getVertexArray(const vx::StringID &sid)
 	{
 		vx::gl::VertexArray* result = nullptr;
 
@@ -67,7 +84,7 @@ namespace gl
 		return result;
 	}
 
-	vx::gl::VertexArray* ObjectManager::getVertexArray(const char* id) const
+	vx::gl::VertexArray* ObjectManager::getVertexArray(const char* id)
 	{
 		auto sid = vx::make_sid(id);
 		return getVertexArray(sid);
@@ -80,25 +97,27 @@ namespace gl
 		vx::gl::Framebuffer fb;
 		fb.create();
 
-		auto it = m_frameBuffers.insert(sid, std::move(fb));
+		auto it = m_frameBuffers.insert(std::move(sid), std::move(fb));
 		if (it == m_frameBuffers.end())
 			sid = 0;
 
 		return sid;
 	}
 
-	vx::gl::Framebuffer* ObjectManager::getFramebuffer(const vx::StringID &sid) const
+	const vx::gl::Framebuffer* ObjectManager::getFramebuffer(const vx::StringID &sid) const
 	{
-		vx::gl::Framebuffer* result = nullptr;
+		const vx::gl::Framebuffer* result = nullptr;
 
 		auto it = m_frameBuffers.find(sid);
 		if (it != m_frameBuffers.end())
+		{
 			result = &*it;
+		}
 
 		return result;
 	}
 
-	vx::gl::Framebuffer* ObjectManager::getFramebuffer(const char* id) const
+	const vx::gl::Framebuffer* ObjectManager::getFramebuffer(const char* id) const
 	{
 		auto sid = vx::make_sid(id);
 		return getFramebuffer(sid);
@@ -109,12 +128,12 @@ namespace gl
 		return m_bufferManager.createBuffer(key, desc);
 	}
 
-	vx::gl::Buffer* ObjectManager::getBuffer(const vx::StringID &sid) const
+	const vx::gl::Buffer* ObjectManager::getBuffer(const vx::StringID &sid) const
 	{
 		return m_bufferManager.getBuffer(sid);
 	}
 
-	vx::gl::Buffer* ObjectManager::getBuffer(const char* id) const
+	const vx::gl::Buffer* ObjectManager::getBuffer(const char* id) const
 	{
 		return m_bufferManager.getBuffer(id);
 	}
@@ -126,16 +145,16 @@ namespace gl
 
 		vx::StringID sid = vx::make_sid(id);
 
-		auto it = m_textures.insert(sid, std::move(texture));
+		auto it = m_textures.insert(std::move(sid), std::move(texture));
 		if (it == m_textures.end())
 			sid = 0;
 
 		return sid;
 	}
 
-	vx::gl::Texture* ObjectManager::getTexture(const vx::StringID &sid) const
+	const vx::gl::Texture* ObjectManager::getTexture(const vx::StringID &sid) const
 	{
-		vx::gl::Texture* result = nullptr;
+		const vx::gl::Texture* result = nullptr;
 
 		auto it = m_textures.find(sid);
 		if (it != m_textures.end())
@@ -144,7 +163,7 @@ namespace gl
 		return result;
 	}
 
-	vx::gl::Texture* ObjectManager::getTexture(const char* id) const
+	const vx::gl::Texture* ObjectManager::getTexture(const char* id) const
 	{
 		auto sid = vx::make_sid(id);
 		return getTexture(sid);

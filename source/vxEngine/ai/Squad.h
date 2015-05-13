@@ -50,7 +50,7 @@ namespace ai
 		};
 
 		std::vector<Data> m_entities;
-		vx::StackAllocator m_allocator;
+		vx::StackAllocator m_scratchAllocator;
 
 	public:
 		Squad();

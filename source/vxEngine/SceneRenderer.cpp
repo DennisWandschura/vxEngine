@@ -99,7 +99,7 @@ void SceneRenderer::createMeshIbo()
 	m_coldData->m_meshIbo.create(iboDesc);
 }
 
-void SceneRenderer::bindMeshDrawIdVboToVao(vx::gl::VertexArray* vao)
+void SceneRenderer::bindMeshDrawIdVboToVao(const vx::gl::VertexArray* vao)
 {
 	vao->enableArrayAttrib(4);
 	vao->arrayAttribFormatI(4, 1, vx::gl::DataType::Unsigned_Int, 0);
@@ -238,6 +238,7 @@ void SceneRenderer::createMaterial(Material* pMaterial)
 
 u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &material, const Scene* pScene)
 {
+	std::vector<int> v;
 	auto itMesh = m_coldData->m_meshEntries.find(meshSid);
 	if (itMesh == m_coldData->m_meshEntries.end())
 	{
@@ -247,10 +248,12 @@ u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::St
 		u32 vertexOffset = m_coldData->m_meshVertexCountDynamic + s_maxVerticesStatic;
 		u32 indexOffset = m_coldData->m_meshIndexCountDynamic + s_maxIndicesStatic;
 
-		writeMeshesToVertexBuffer(&meshSid, &(*itSceneMesh), 1, &vertexOffset, &indexOffset);
+		auto meshFile = (*itSceneMesh);
+
+		writeMeshesToVertexBuffer(&meshSid, &meshFile, 1, &vertexOffset, &indexOffset);
 		//writeMeshToVertexBuffer(mesh, (*itSceneMesh), );
 
-		auto &mesh = (*itSceneMesh)->getMesh();
+		auto &mesh = meshFile->getMesh();
 
 		m_coldData->m_meshVertexCountDynamic += mesh.getVertexCount();
 		m_coldData->m_meshIndexCountDynamic += mesh.getIndexCount();
@@ -354,6 +357,8 @@ void SceneRenderer::writeMaterialToBuffer(const Material *pMaterial, u32 offset)
 	pMaterialGPU.unmap();
 }
 
+#include <exception>
+
 void SceneRenderer::writeMeshToBuffer(const vx::StringID &meshSid, const vx::MeshFile* pMeshFile, VertexPNTUV* pVertices, u32* pIndices, u32* vertexOffset, u32* indexOffset, u32 *vertexOffsetGpu, u32 *indexOffsetGpu)
 {
 	auto &mesh = pMeshFile->getMesh();
@@ -362,22 +367,6 @@ void SceneRenderer::writeMeshToBuffer(const vx::StringID &meshSid, const vx::Mes
 
 	//////////////////////////////
 	const __m128 rotation = { vx::VX_PI, vx::VX_PI, vx::VX_PI, 0 };
-
-	auto getRotationQuat = [](const __m128 &from, const __m128 &to)
-	{
-		__m128 H = _mm_add_ps(from, to);
-		H = vx::normalize3(H);
-		auto dot = vx::dot3(from, H);
-
-		__m128 result;
-		result.f[3] = dot.f[0];
-
-		result.f[0] = from.f[1] * H.f[2] - from.f[2] * H.f[1];
-		result.f[1] = from.f[2] * H.f[0] - from.f[0] * H.f[2];
-		result.f[2] = from.f[0] * H.f[1] - from.f[1] * H.f[0];
-
-		return result;
-	};
 
 	for (auto j = 0u; j < vertexCount; ++j)
 	{
