@@ -29,7 +29,7 @@ class NavGraph;
 #include <vxLib/math/Vector.h>
 #include <vector>
 #include "AABB.h"
-#include <memory>
+#include <vxLib/memory.h>
 
 struct InfluenceCell
 {

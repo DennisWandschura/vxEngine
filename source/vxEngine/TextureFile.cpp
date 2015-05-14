@@ -103,7 +103,7 @@ bool TextureFile::loadFromFile(const char *file)
 	m_channels = n;
 	m_mipmapLevels = 1;
 
-	m_pData = std::make_unique<Level[]>(1);
+	m_pData = vx::make_unique<Level[]>(1);
 	m_pData[0].ptr = m_pMemory.get();
 	m_pData[0].sizeInBytes = x * y * n;
 
@@ -130,7 +130,7 @@ bool TextureFile::load(const u8 *ptr, u32 size)
 	m_settings.set<s_srgb>();
 	m_mipmapLevels = 1;
 
-	m_pData = std::make_unique<Level[]>(1);
+	m_pData = vx::make_unique<Level[]>(1);
 	m_pData[0].ptr = m_pMemory.get();
 	m_pData[0].sizeInBytes = x * y * n;
 

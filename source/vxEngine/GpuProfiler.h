@@ -96,7 +96,7 @@ class GpuProfiler
 	struct EntryGpu
 	{
 		u32 time;
-		u32 timeMin{ -1 };
+		u32 timeMin{ 0xffffffff };
 		u32 timeMax{ 0 };
 		char name[s_maxCharacters];
 		u8 layer;

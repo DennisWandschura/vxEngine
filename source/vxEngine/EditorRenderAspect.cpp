@@ -65,6 +65,8 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	f32 fovDeg, f32 zNear, f32 zFar, bool vsync, bool debug, vx::StackAllocator *pAllocator)
 {
 	RenderAspect::createColdData();
+	RenderAspect::setSettings(windowResolution);
+	RenderAspect::provideRenderData();
 
 	if (!m_renderContext.initializeExtensions(tmp))
 	{
@@ -79,7 +81,7 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 		return false;
 	}
 
-	m_pEditorColdData = std::make_unique<EditorColdData>();
+	m_pEditorColdData = vx::make_unique<EditorColdData>();
 	m_editorData.initialize();
 
 	//Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, &m_pColdData->m_settings);
@@ -234,7 +236,7 @@ void EditorRenderAspect::createCommandList()
 	{
 		auto cmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
 		auto meshVao = m_objectManager.getVertexArray("meshVao");
-		auto pipe = m_shaderManager.getPipeline("editor.pipe");
+		auto pipe = m_shaderManager.getPipeline("editorDrawMesh.pipe");
 
 		Graphics::StateDescription desc;
 		desc.fbo = 0;
@@ -369,6 +371,69 @@ void EditorRenderAspect::createCommandList()
 	}
 
 	{
+		vx::gl::BufferDescription bufferDesc;
+		bufferDesc.bufferType = vx::gl::BufferType::Array_Buffer;
+		bufferDesc.flags = vx::gl::BufferStorageFlags::Write;
+		bufferDesc.immutable = 1;
+		bufferDesc.size = sizeof(vx::float3) * 2 * 1024;
+
+		auto bufferSid = m_objectManager.createBuffer("editorDrawNavmeshConnectionVbo", bufferDesc);
+
+		vx::gl::DrawArraysIndirectCommand cmd;
+		cmd.baseInstance = 0;
+		cmd.count = 0;
+		cmd.first = 0;
+		cmd.instanceCount = 1;
+
+		bufferDesc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+		bufferDesc.size = sizeof(vx::gl::DrawArraysIndirectCommand);
+		bufferDesc.pData = &cmd;
+		bufferDesc.flags = vx::gl::BufferStorageFlags::Write;
+		auto cmdSid = m_objectManager.createBuffer("editorDrawNavmeshConnectionCmd", bufferDesc);
+		auto vaoSid = m_objectManager.createVertexArray("editorDrawNavmeshConnectionVao");
+
+		auto vao = m_objectManager.getVertexArray(vaoSid);
+		auto vbo = m_objectManager.getBuffer(bufferSid);
+		auto cmdBuffer = m_objectManager.getBuffer(cmdSid);
+
+		vao->enableArrayAttrib(0);
+		vao->arrayAttribFormatF(0, 3, 0, 0);
+		vao->arrayAttribBinding(0, 0);
+		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(vx::float3));
+
+		auto pipe = m_shaderManager.getPipeline("editorDrawNavmeshConnection.pipe");
+		auto fsShader = pipe->getFragmentShader();
+
+		Graphics::StateDescription desc;
+		desc.fbo = 0;
+		desc.vao = vao->getId();
+		desc.pipeline = pipe->getId();
+		desc.indirectBuffer = cmdBuffer->getId();
+		desc.paramBuffer = 0;
+		desc.depthState = false;
+		desc.blendState = true;
+
+		Graphics::State state;
+		state.set(desc);
+
+		Graphics::DrawArraysIndirectCommand drawCmd;
+		drawCmd.set(GL_LINES);
+
+		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
+		editorDrawPointUniformCmd.setFloat(fsShader, 0, 4);
+
+		vx::float4 color(0, 1, 0, 1);
+		Graphics::ProgramUniformData<vx::float4> editorDrawPointUniformData;
+		editorDrawPointUniformData.set(color);
+
+		Graphics::Segment segmentDrawNavmeshConnections;
+		segmentDrawNavmeshConnections.setState(state);
+		segmentDrawNavmeshConnections.pushCommand(editorDrawPointUniformCmd, editorDrawPointUniformData);
+		segmentDrawNavmeshConnections.pushCommand(drawCmd);
+		m_commandList.pushSegment(segmentDrawNavmeshConnections, "editorDrawNavmeshConnection", 5);
+	}
+
+	{
 		auto pPipeline = m_shaderManager.getPipeline("editorDrawSpawn.pipe");
 
 		Graphics::StateDescription desc;
@@ -394,7 +459,7 @@ void EditorRenderAspect::createCommandList()
 		segmentDrawSpawnPoint.pushCommand(uniformCmd, uniformData);
 		segmentDrawSpawnPoint.pushCommand(drawArraysPointsCmd);
 
-		m_commandList.pushSegment(segmentDrawSpawnPoint, "drawSpawnPoints", 5);
+		m_commandList.pushSegment(segmentDrawSpawnPoint, "drawSpawnPoints", 6);
 	}
 
 	{
@@ -415,7 +480,7 @@ void EditorRenderAspect::createCommandList()
 		Graphics::Segment segmentDrawInfluenceCells;
 		segmentDrawInfluenceCells.setState(state);
 		segmentDrawInfluenceCells.pushCommand(drawArraysPointsCmd);
-		m_commandList.pushSegment(segmentDrawInfluenceCells, "drawInfluenceMap", 6);
+		m_commandList.pushSegment(segmentDrawInfluenceCells, "drawInfluenceMap", 7);
 	}
 }
 
@@ -813,7 +878,7 @@ void EditorRenderAspect::uploadToNavMeshVertexBuffer(const VertexNavMesh* vertic
 void EditorRenderAspect::updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, u32 count, u32(&selectedVertexIndex)[3], u8 selectedCount)
 {
 	auto color = vx::float3(1, 0, 0);
-	auto src = std::make_unique<VertexNavMesh[]>(count);
+	auto src = vx::make_unique<VertexNavMesh[]>(count);
 	for (u32 i = 0; i < count; ++i)
 	{
 		src[i].position = vertices[i];
@@ -907,7 +972,7 @@ void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influence
 	auto cellCount = influenceMap.getCellCount();
 	auto cells = influenceMap.getInfluenceCells();
 
-	auto vertices = std::make_unique<InfluenceCellVertex[]>(cellCount);
+	auto vertices = vx::make_unique<InfluenceCellVertex[]>(cellCount);
 	for (u32 i = 0; i < cellCount; ++i)
 	{
 		vertices[i].position = cells[i].m_position;
@@ -928,7 +993,7 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 	auto nodes = navMeshGraph.getNodes();
 	auto nodeCount = navMeshGraph.getNodeCount();
 
-	auto src = std::make_unique < vx::float3[]>(nodeCount);
+	auto src = vx::make_unique < vx::float3[]>(nodeCount);
 	for (u32 i = 0; i < nodeCount; ++i)
 	{
 		src[i] = nodes[i].position;
@@ -941,6 +1006,35 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 
 	auto mappedCmdBuffer = m_pEditorColdData->m_graphNodesCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer->count = nodeCount;
+
+	{
+		auto connections = navMeshGraph.getConnections();
+		auto connectionCount = navMeshGraph.getConnectionCount();
+		VX_ASSERT(connectionCount < 1024);
+
+		u32 index = 0;
+		auto vbo = m_objectManager.getBuffer("editorDrawNavmeshConnectionVbo");
+		auto cmd = m_objectManager.getBuffer("editorDrawNavmeshConnectionCmd");
+
+		auto mappedVbo = vbo->map<vx::float3>(vx::gl::Map::Write_Only);
+
+		for (u32 i = 0; i < nodeCount; ++i)
+		{
+			auto &currentNode = nodes[i];
+			for (u32 j = 0; j < currentNode.connectionCount; ++j)
+			{
+				auto otherIndex = connections[currentNode.connectionIndex + j];
+				VX_ASSERT(otherIndex < nodeCount);
+				auto &otherNode = nodes[otherIndex];
+
+				mappedVbo[index++] = currentNode.position;
+				mappedVbo[index++] = otherNode.position;
+			}
+		}
+
+		auto mappedCmd = cmd->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		mappedCmd->count = index;
+	}
 }
 
 void EditorRenderAspect::updateLightBuffer(const Light* lights, u32 count)

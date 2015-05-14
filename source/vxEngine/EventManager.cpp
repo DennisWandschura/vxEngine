@@ -45,7 +45,7 @@ void EventManager::registerListener(EventListener* ptr, u64 priority)
 {
 	m_eventListeners.push_back(std::make_pair(priority, ptr));
 
-	std::sort(m_eventListeners.begin(), m_eventListeners.end(), std::greater<>());
+	std::sort(m_eventListeners.begin(), m_eventListeners.end(), std::greater<std::pair<u64, EventListener*>>());
 }
 
 void EventManager::update()

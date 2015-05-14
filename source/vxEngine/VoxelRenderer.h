@@ -42,7 +42,7 @@ namespace gl
 #include <vxLib/gl/Framebuffer.h>
 #include <vxLib/gl/Texture.h>
 #include <vxLib/gl/Buffer.h>
-#include <memory>
+#include <vxLib/memory.h>
 
 class VoxelRenderer
 {

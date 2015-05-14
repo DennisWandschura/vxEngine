@@ -24,13 +24,14 @@ SOFTWARE.
 #include "ScreenshotFactory.h"
 #include <future>
 #include <vxLib/stb_image_write.h>
+#include <vxLib/memory.h>
 
 namespace
 {
 	void writeScreenshotToFile(const vx::uint2 &resolution, vx::float4a *pData)
 	{
 		auto size = resolution.x * resolution.y * 3;
-		std::unique_ptr<u8[]> pngData = std::make_unique<u8[]>(size);
+		std::unique_ptr<u8[]> pngData = vx::make_unique<u8[]>(size);
 
 		const __m128 vToUINT8 = { 255.0f, 255.0f, 255.0f, 255.0f };
 

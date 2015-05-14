@@ -88,10 +88,9 @@ namespace vx
 	template<typename T, typename U, typename Cmp = std::less<T>>
 	class HeapArray
 	{
-
 		typedef std::pair<T, U> value_type;
 		typedef value_type& reference;
-		typedef const reference const_reference;
+		typedef const value_type& const_reference;
 
 		typedef vx::array<value_type> MyContainer;
 		typedef typename MyContainer::size_type size_type;

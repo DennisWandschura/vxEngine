@@ -24,65 +24,6 @@ SOFTWARE.
 #include "Light.h"
 #include "GpuStructs.h"
 
-/*namespace YAML
-{
-	template<>
-	struct convert < AABB >
-	{
-		static bool decode(const YAML::Node &node, AABB &data)
-		{
-			data.min = node["min"].as<vx::float3>();
-			data.max = node["max"].as<vx::float3>();
-
-			return true;
-		}
-	};
-
-	template<>
-	struct convert < Light >
-	{
-		static bool decode(const YAML::Node &node, Light &data)
-		{
-			data.m_position = node["position"].as<vx::float3>();
-			data.m_direction = node["direction"].as<vx::float3>();
-			data.m_falloff = node["falloff"].as<f32>();
-			data.m_lumen = node["lumen"].as<f32>();
-			data.m_angle = node["angle"].as<f32>();
-
-			return true;
-		}
-
-		static Node encode(const Light &rhs)
-		{
-			Node node;
-			node["position"] = rhs.m_position;
-			node["direction"] = rhs.m_direction;
-			node["falloff"] = rhs.m_falloff;
-			node["lumen"] = rhs.m_lumen;
-			node["angle"] = rhs.m_angle;
-
-			return node;
-		}
-	};
-}
-
-std::vector<Light> Light::loadFromYaml(const YAML::Node &n)
-{
-	auto lights = n.as<std::vector<Light>>();
-	return lights;
-}
-
-YAML::Node Light::saveToYaml(const Light* lights, u32 count)
-{
-	YAML::Node n;
-	for (auto i = 0u; i < count; ++i)
-	{
-		n[i] = lights[i];
-	}
-
-	return n;
-}*/
-
 void Light::getTransformationMatrix(vx::mat4* m) const
 {
 	const __m128 x_axis = { 1, 0, 0, 0 };

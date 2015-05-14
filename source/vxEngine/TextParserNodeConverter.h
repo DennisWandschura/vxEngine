@@ -236,7 +236,7 @@ namespace TextParser
 					if (isValue(current))
 					{
 						auto value = StringConverter<T>::decode(current);
-						data.push_back(value);
+						data->push_back(value);
 					}
 
 					current = next;

@@ -33,7 +33,7 @@ struct NavMeshTriangle;
 #if _VX_EDITOR
 #include <vector>
 #endif
-#include <memory>
+#include <vxLib/memory.h>
 #include "AABB.h"
 
 struct TriangleIndices

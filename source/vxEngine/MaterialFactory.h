@@ -42,7 +42,7 @@ namespace vx
 struct MaterialFactoryLoadDescription
 {
 	const char *fileNameWithPath;
-	const vx::sorted_array<vx::StringID, TextureFile*, std::less<>>* textureFiles;
+	const vx::sorted_array<vx::StringID, TextureFile*, std::less<vx::StringID>>* textureFiles;
 	std::vector<FileEntry>* missingFiles;
 	Material* material;
 };

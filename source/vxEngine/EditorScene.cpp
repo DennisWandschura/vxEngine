@@ -204,7 +204,7 @@ const char* EditorScene::getMaterialName(vx::StringID sid) const
 	if (it == m_materialNames.end())
 		return nullptr;
 
-	return (*it);
+	return it->c_str();
 }
 
 const char* EditorScene::getMeshName(vx::StringID sid) const
@@ -213,7 +213,7 @@ const char* EditorScene::getMeshName(vx::StringID sid) const
 	if (it == m_meshNames.end())
 		return nullptr;
 
-	return (*it);
+	return it->c_str();
 }
 
 const char* EditorScene::getActorName(vx::StringID sid) const
@@ -222,7 +222,7 @@ const char* EditorScene::getActorName(vx::StringID sid) const
 	if (it == m_actorNames.end())
 		return nullptr;
 
-	return (*it);
+	return it->c_str();
 }
 
 const MeshInstance* EditorScene::getMeshInstances() const

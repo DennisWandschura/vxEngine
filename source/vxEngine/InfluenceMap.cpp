@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #include "InfluenceMap.h"
 #include "NavMesh.h"
-#include <random>
 #include <algorithm>
 #include "NavGraph.h"
 #include "NavNode.h"
@@ -223,8 +222,8 @@ void InfluenceMap::createCells(const vx::uint3 &cellCount, u32 cellTotalCount, c
 	__m128 vCellSize = { cellDim.x, cellDim.y, cellDim.z, 0 };
 	auto vBoundsMin = vx::loadFloat(navBounds.min);
 
-	m_cells = std::make_unique<InfluenceCell[]>(cellTotalCount);
-	m_cellBounds = std::make_unique<AABB_SIMD[]>(cellTotalCount);
+	m_cells = vx::make_unique<InfluenceCell[]>(cellTotalCount);
+	m_cellBounds = vx::make_unique<AABB_SIMD[]>(cellTotalCount);
 
 	u32 index = 0;
 	vx::uint3 cellPosition;
@@ -246,7 +245,7 @@ void InfluenceMap::createNodeIndicesAndSetCellData(const NavMesh &navMesh, u32 c
 	auto triangleCount = navMesh.getTriangleCount();
 	auto navMeshTriangles = navMesh.getNavMeshTriangles();
 
-	m_navNodeIndices = std::make_unique<u16[]>(triangleCount);
+	m_navNodeIndices = vx::make_unique<u16[]>(triangleCount);
 	u32 offset = 0;
 	for (u32 i = 0; i < cellTotalCount; ++i)
 	{

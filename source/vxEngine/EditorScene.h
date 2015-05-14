@@ -40,9 +40,9 @@ struct EditorSceneParams
 	SceneBaseParams m_baseParams;
 	std::vector<MeshInstance> m_meshInstances;
 	std::vector<Waypoint> m_waypoints;
-	vx::sorted_vector<vx::StringID, char[32]> m_materialNames;
-	vx::sorted_vector<vx::StringID, char[32]> m_meshNames;
-	vx::sorted_vector<vx::StringID, char[32]> m_actorNames;
+	vx::sorted_vector<vx::StringID, std::string> m_materialNames;
+	vx::sorted_vector<vx::StringID, std::string> m_meshNames;
+	vx::sorted_vector<vx::StringID, std::string> m_actorNames;
 
 	~EditorSceneParams();
 };
@@ -66,9 +66,9 @@ class EditorScene : public SceneBase
 	std::vector<SelectableWrapper<Spawn>> m_selectableSpawns;
 
 	vx::sorted_vector<vx::StringID, MeshInstance> m_sortedMeshInstances;
-	vx::sorted_vector<vx::StringID, char[32]> m_materialNames{};
-	vx::sorted_vector<vx::StringID, char[32]> m_meshNames{};
-	vx::sorted_vector<vx::StringID, char[32]> m_actorNames{};
+	vx::sorted_vector<vx::StringID, std::string> m_materialNames{};
+	vx::sorted_vector<vx::StringID, std::string> m_meshNames{};
+	vx::sorted_vector<vx::StringID, std::string> m_actorNames{};
 
 	void buildSelectableLights();
 

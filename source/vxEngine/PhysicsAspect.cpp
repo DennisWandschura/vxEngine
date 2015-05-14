@@ -22,13 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "PhysicsAspect.h"
-#include <PhysX/PxPhysicsAPI.h>
+#include <PxPhysicsAPI.h>
 #include <vxLib/Graphics/Mesh.h>
 #include "Scene.h"
 #include "MeshInstance.h"
 #include <Windows.h>
 #include "Material.h"
-#include <PhysX/extensions/PxDefaultSimulationFilterShader.h>
+#include <extensions/PxDefaultSimulationFilterShader.h>
 #include "FileAspect.h"
 #include "PhysicsDefines.h"
 #include "enums.h"
@@ -330,7 +330,7 @@ physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::MeshFile* pMesh)
 	auto vertexCount = pMesh->getVertexCount();
 	auto indexCount = pMesh->getIndexCount();
 
-	auto pVertices = std::make_unique<vx::float3[]>(vertexCount);
+	auto pVertices = vx::make_unique<vx::float3[]>(vertexCount);
 	for (u32 i = 0; i < vertexCount; ++i)
 	{
 	pVertices[i] = pMeshVertices[i].position;

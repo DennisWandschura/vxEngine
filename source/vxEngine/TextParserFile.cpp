@@ -1,6 +1,6 @@
 #include "TextParserFile.h"
 #include <fstream>
-#include <memory>
+#include <vxLib/memory.h>
 #include <vxLib/StringID.h>
 
 namespace TextParser
@@ -123,7 +123,7 @@ namespace TextParser
 		auto count = infile.tellg();
 		infile.seekg(0, infile.beg);
 
-		auto buffer = std::make_unique<char[]>(count);
+		auto buffer = vx::make_unique<char[]>(count);
 		infile.read(buffer.get(), count);
 		infile.close();
 

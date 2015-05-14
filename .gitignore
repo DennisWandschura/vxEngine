@@ -11,6 +11,8 @@
 *.frag
 *.pipe
 
+game/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

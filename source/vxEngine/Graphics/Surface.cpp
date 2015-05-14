@@ -35,9 +35,9 @@ namespace Graphics
 
 	void Surface::create(const vx::uint3 &dimension, u32 imgsize, u8* pixels)
 	{
-		VX_ASSERT(m_dimension.x != 0);
-		VX_ASSERT(m_dimension.y != 0);
-		VX_ASSERT(m_dimension.z != 0);
+		VX_ASSERT(dimension.x != 0);
+		VX_ASSERT(dimension.y != 0);
+		VX_ASSERT(dimension.z != 0);
 		VX_ASSERT(imgsize != 0);
 		VX_ASSERT(pixels);
 
@@ -45,7 +45,7 @@ namespace Graphics
 
 		m_dimension = dimension;
 		m_size = imgsize;
-		m_pixels = std::make_unique<u8[]>(imgsize);
+		m_pixels = vx::make_unique<u8[]>(imgsize);
 		::memcpy(m_pixels.get(), pixels, imgsize);
 	}
 

@@ -145,7 +145,7 @@ void NavMesh::copyTo(NavMesh* other) const
 	other->m_triangleIndices.clear();
 	if (other->m_triangleCount < m_triangleCount)
 	{
-		other->m_navMeshTriangles = std::make_unique<NavMeshTriangle[]>(m_triangleCount);
+		other->m_navMeshTriangles = vx::make_unique<NavMeshTriangle[]>(m_triangleCount);
 		other->m_triangleIndices.reserve(m_triangleCount);
 	}
 
@@ -163,14 +163,14 @@ void NavMesh::copyTo(NavMesh* other) const
 #else
 	if (other->m_vertexCount < m_vertexCount)
 	{
-		other->m_vertices = std::make_unique<vx::float3[]>(m_vertexCount);
+		other->m_vertices = vx::make_unique<vx::float3[]>(m_vertexCount);
 	}
 	vx::memcpy(other->m_vertices.get(), m_vertices.get(), m_vertexCount);
 
 	if (other->m_triangleCount < m_triangleCount)
 	{
-		other->m_navMeshTriangles = std::make_unique<NavMeshTriangle[]>(m_triangleCount);
-		other->m_triangleIndices = std::make_unique<TriangleIndices[]>(m_triangleCount);
+		other->m_navMeshTriangles = vx::make_unique<NavMeshTriangle[]>(m_triangleCount);
+		other->m_triangleIndices = vx::make_unique<TriangleIndices[]>(m_triangleCount);
 	}
 	vx::memcpy(other->m_triangleIndices.get(), m_triangleIndices.get(), m_triangleCount);
 #endif
@@ -210,8 +210,8 @@ void NavMesh::copyTo(NavMesh* other) const
 		m_vertexBounds.push_back(bounds);
 	}
 #else
-	m_vertices = std::make_unique<vx::float3[]>(m_vertexCount);
-	m_triangleIndices = std::make_unique<TriangleIndices[]>(m_triangleCount);
+	m_vertices = vx::make_unique<vx::float3[]>(m_vertexCount);
+	m_triangleIndices = vx::make_unique<TriangleIndices[]>(m_triangleCount);
 
 	vx::memcpy(m_vertices.get(), vertices.data(), m_vertexCount);
 	vx::memcpy(m_triangleIndices.get(), triangleIndices.data(), m_triangleCount);
@@ -278,8 +278,8 @@ const u8* NavMesh::load(const u8 *ptr)
 		m_vertexBounds.push_back(bounds);
 	}
 #else
-	m_vertices = std::make_unique<vx::float3[]>(m_vertexCount);
-	m_triangleIndices = std::make_unique<TriangleIndices[]>(m_triangleCount);
+	m_vertices = vx::make_unique<vx::float3[]>(m_vertexCount);
+	m_triangleIndices = vx::make_unique<TriangleIndices[]>(m_triangleCount);
 
 	ptr = vx::read(m_vertices.get(), ptr, m_vertexCount);
 	ptr = vx::read(m_triangleIndices.get(), ptr, m_triangleCount);
@@ -360,7 +360,7 @@ void NavMesh::fixVertexIndicesAfterErasedVertex(u16 erasedVertexIndex)
 
 std::unique_ptr<NavMeshTriangle[]> NavMesh::createNavMeshTriangles()
 {
-	auto ptr = std::make_unique<NavMeshTriangle[]>(m_triangleCount);
+	auto ptr = vx::make_unique<NavMeshTriangle[]>(m_triangleCount);
 	for (u32 i = 0; i < m_triangleCount; ++i)
 	{
 		auto &it = m_triangleIndices[i];

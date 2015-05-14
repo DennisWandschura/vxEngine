@@ -72,7 +72,7 @@ namespace Graphics
 
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
 
-		m_shadowTextureIds = std::make_unique<u32[]>(m_textureCount);
+		m_shadowTextureIds = vx::make_unique<u32[]>(m_textureCount);
 
 		vx::gl::TextureDescription desc;
 		desc.format = vx::gl::TextureFormat::DEPTH32F;

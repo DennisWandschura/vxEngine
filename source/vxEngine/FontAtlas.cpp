@@ -152,28 +152,28 @@ size_t FontAtlas::readEntry(const char *ptr, FontAtlasEntry &entry, u32 &id)
 	auto p = ptr;
 
 	p = getCharacter(p, '=');
-	sscanf_s(p, "%u", &id);
+	sscanf(p, "%u", &id);
 
 	p = getCharacter(p, '=');
-	sscanf_s(p, "%f", &entry.x);
+	sscanf(p, "%f", &entry.x);
 
 	p = getCharacter(p, '=');
-	sscanf_s(p, "%f", &entry.y);
+	sscanf(p, "%f", &entry.y);
 
 	p = getCharacter(p, '=');
-	sscanf_s(p, "%f", &entry.width);
+	sscanf(p, "%f", &entry.width);
 
 	p = getCharacter(p, '=');
-	sscanf_s(p, "%f", &entry.height);
+	sscanf(p, "%f", &entry.height);
 
 	p = getCharacter(p, '=');
-	sscanf_s(p, "%f", &entry.offsetX);
+	sscanf(p, "%f", &entry.offsetX);
 
 	p = getCharacter(p, '=');
-	sscanf_s(p, "%f", &entry.offsetY);
+	sscanf(p, "%f", &entry.offsetY);
 
 	p = getCharacter(p, '=');
-	sscanf_s(p, "%f", &entry.advanceX);
+	sscanf(p, "%f", &entry.advanceX);
 
 	p = getCharacter(p, '=');
 

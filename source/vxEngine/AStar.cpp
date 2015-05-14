@@ -276,11 +276,16 @@ namespace astar
 		auto &startNode = graphNodes[desc.startIndex];
 		auto &goalNode = graphNodes[goalIndex];
 
-		auto tmpConnections = (Connection*)desc.scratchAllocator->allocate(sizeof(Connection) * graphConnectionCount, 4);
+		//auto tmpConnections = (Connection*)desc.scratchAllocator->allocate(sizeof(Connection) * graphConnectionCount, 4);
+		std::vector<Connection> tmpConnections;
+		tmpConnections.reserve(graphConnectionCount);
 		for (u32 i = 0; i < graphConnectionCount; ++i)
 		{
-			tmpConnections[i].cost = 0.0f;
-			tmpConnections[i].toNode = graphConnections[i];
+			Connection connection;
+			connection.cost = 0.0f;
+			connection.toNode = graphConnections[i];
+
+			tmpConnections.push_back(connection);
 		}
 
 		for (u32 i = 0; i < graphNodeCount; ++i)
@@ -298,7 +303,7 @@ namespace astar
 		// initialize the record for the start node
 		NodeRecord startRecord;
 		startRecord.nodeId = desc.startIndex;
-		//startRecord.connection;
+		startRecord.connection;
 		startRecord.costSoFar = 0;
 		startRecord.estaminatedTotalCost = desc.heuristicFp(startNode.position, goalNode.position);
 		startRecord.category = NodeRecord::NODE_CATEGORY::OPEN;

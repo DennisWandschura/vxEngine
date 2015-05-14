@@ -75,29 +75,29 @@ public:
 
 	void reserve(u32 n);
 
-	template<class T, typename = typename std::enable_if_t<!std::is_pointer<T>::value>>
+	template<class T, typename = typename std::enable_if<!std::is_pointer<T>::value>::type>
 	void addData(const char *id, const T &value)
 	{
 		T *ptr = new T(value);
 		auto pTypeData = rtti::SingletonRTTI::get().getTypeData<T>();
 
-		addData(ptr, pTypeData, vx::StringID(id));
+		addData(ptr, pTypeData, vx::make_sid(id));
 	}
 
-	template<class T, typename = typename std::enable_if_t<!std::is_pointer<T>::value>>
+	template<class T, typename = typename std::enable_if<!std::is_pointer<T>::value>::type>
 	void addData(const char *id, T &&value)
 	{
-		typedef typename std::decay_t<T> value_type;
+		typedef typename std::decay<T>::type value_type;
 
 		value_type *ptr = new value_type(std::forward<value_type>(value));
 		auto pTypeData = rtti::SingletonRTTI::get().getTypeData<value_type>();
 
-		addData(ptr, pTypeData, vx::StringID(id));
+		addData(ptr, pTypeData, vx::make_sid(id));
 	}
 
 	template<class T> T* get(const char *id)
 	{
-		return get<T>(vx::StringID(id));
+		return get<T>(vx::make_sid(id));
 	}
 
 	template<class T> T* get(const vx::StringID sid)
@@ -111,7 +111,7 @@ public:
 
 	template<class T> const T* get(const char *id) const
 	{
-		return get<T>(vx::StringID(id));
+		return get<T>(vx::make_sid(id));
 	}
 
 	template<class T> const T* get(const vx::StringID sid) const

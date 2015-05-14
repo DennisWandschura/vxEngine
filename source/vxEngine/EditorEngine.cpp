@@ -34,9 +34,9 @@ SOFTWARE.
 #include "NavMeshGraph.h"
 #include "Light.h"
 
-u32 EditorEngine::s_editorTypeMesh{ -1 };
-u32 EditorEngine::s_editorTypeMaterial{ -1 };
-u32 EditorEngine::s_editorTypeScene{ -1 };
+u32 EditorEngine::s_editorTypeMesh{ 0xffffffff };
+u32 EditorEngine::s_editorTypeMaterial{ 0xffffffff };
+u32 EditorEngine::s_editorTypeScene{ 0xffffffff };
 
 EditorEngine::EditorEngine()
 	:m_eventManager(),

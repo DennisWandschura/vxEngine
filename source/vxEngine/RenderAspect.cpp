@@ -325,7 +325,21 @@ void RenderAspect::createFrameBuffers()
 
 void RenderAspect::createColdData()
 {
-	m_pColdData = std::make_unique<ColdData>();
+	m_pColdData = vx::make_unique<ColdData>();
+}
+
+void RenderAspect::setSettings(const vx::uint2 &resolution)
+{
+	m_pColdData->m_settings.m_resolution = resolution;
+	m_pColdData->m_settings.m_maxActiveLights = 5;
+	m_pColdData->m_settings.m_shadowmapResolution = 2048;
+	m_pColdData->m_settings.voxelGiQuality = 0;
+	m_pColdData->m_settings.m_maxMeshInstances = 150;
+}
+
+void RenderAspect::provideRenderData()
+{
+	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, &m_pColdData->m_settings);
 }
 
 bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc)
@@ -336,13 +350,8 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	if (!m_renderContext.initialize(contextDesc))
 		return false;
 
-	m_pColdData->m_settings.m_resolution = desc.resolution;
-	m_pColdData->m_settings.m_maxActiveLights = 5;
-	m_pColdData->m_settings.m_shadowmapResolution = 2048;
-	m_pColdData->m_settings.voxelGiQuality = 0;
-	m_pColdData->m_settings.m_maxMeshInstances = 150;
-
-	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, &m_pColdData->m_settings);
+	setSettings(desc.resolution);
+	provideRenderData();
 
 	auto result = initializeImpl(dataDir, desc.resolution, desc.debug, desc.pAllocator);
 
@@ -395,7 +404,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	m_voxelRenderer.initialize(128, m_shaderManager, &m_objectManager);
 
 	{
-		auto pShadowRenderer = std::make_unique<Graphics::ShadowRenderer>();
+		auto pShadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
 		pShadowRenderer->initialize();
 
 		std::vector<Graphics::Segment> segments;

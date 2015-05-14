@@ -45,22 +45,22 @@ namespace vx
 }
 
 #include "NavMesh.h"
-#include <memory>
+#include <vxLib/memory.h>
 #include <vxLib/Container/sorted_vector.h>
 #include <vxEngineLib/Serializable.h>
 #include <vxLib/StringID.h>
 
 struct CreateSceneDescription
 {
-	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<>> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*, std::less<>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*, std::less<vx::StringID>> *sortedMaterials;
 	Scene *pScene;
 };
 
 struct CreateEditorSceneDescription
 {
-	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<>> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*, std::less<>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*, std::less<vx::StringID>> *sortedMaterials;
 	const vx::sorted_vector<vx::StringID, std::string> *loadedFiles;
 	EditorScene *pScene;
 };

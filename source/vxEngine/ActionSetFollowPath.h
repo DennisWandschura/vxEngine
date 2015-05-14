@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,42 +22,26 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/types.h>
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vxLib/memory.h>
+class ActionFollowPath;
 
-namespace Graphics
+namespace Component
 {
-	class Segment;
-
-	class CommandList
-	{
-		struct ColdData
-		{
-			vx::sorted_vector<u32, Segment> m_inactiveSegments;
-			vx::sorted_vector<vx::StringID, u32> m_inactiveSegmentIndices;
-		};
-
-		vx::sorted_vector<u32, Segment> m_sortedSegments;
-		vx::sorted_vector<vx::StringID, u32> m_segmentIndices;
-		std::unique_ptr<ColdData> m_coldData;
-	
-		void swapSegmentsImpl(u32 a, u32 b);
-
-	public:
-		CommandList();
-		~CommandList();
-
-		void initialize();
-
-		void pushSegment(const Segment &segment, const char* id, u32 slot);
-
-		void enableSegment(const char* id);
-		void disableSegment(const char* id);
-
-		void draw();
-	};
+	struct ActorData;
 }
+
+#include "Action.h"
+#include <vxLib/math/Vector.h>
+
+class ActionSetFollowPath : public Action
+{
+	ActionFollowPath* m_actionFollowPath;
+	Component::ActorData* m_actorData;
+
+public:
+	ActionSetFollowPath(ActionFollowPath* actionFollowPath, Component::ActorData* actorData);
+
+	void run() override;
+
+	bool isComplete() const override;
+};

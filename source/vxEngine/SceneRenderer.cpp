@@ -185,7 +185,7 @@ void SceneRenderer::createMeshMaterialBuffer()
 void SceneRenderer::initialize(u32 maxLightCount, gl::ObjectManager* objectManager, vx::StackAllocator *pAllocator)
 {
 	m_pObjectManager = objectManager;
-	m_coldData = std::make_unique<ColdData>();
+	m_coldData = vx::make_unique<ColdData>();
 	m_coldData->m_scratchAllocator = vx::StackAllocator(pAllocator->allocate(1 MBYTE, 64), 1 MBYTE);
 
 	createTextures();

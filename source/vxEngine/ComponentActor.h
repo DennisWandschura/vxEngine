@@ -25,12 +25,22 @@ SOFTWARE.
 
 #include "Component.h"
 #include "StateMachine.h"
+#include <vector>
+#include <vxLib/math/Vector.h>
+#include <memory>
 
 namespace Component
 {
+	struct ActorData
+	{
+		std::vector<vx::float3> path;
+	};
+
 	struct Actor : public Base
 	{
-		u16 busy;
+		u8 m_busy;
+		u8 m_followingPath;
 		StateMachine m_stateMachine;
+		std::unique_ptr<ActorData> m_data;
 	};
 }

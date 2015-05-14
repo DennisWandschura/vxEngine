@@ -36,7 +36,7 @@ void VoxelRenderer::initialize(u16 voxelTextureSize, const vx::gl::ShaderManager
 	m_voxelTextureSize = voxelTextureSize;
 	m_mipcount = std::log2(m_voxelTextureSize);
 
-	m_pColdData = std::make_unique<ColdData>();
+	m_pColdData = vx::make_unique<ColdData>();
 	m_pipelineVoxelize = shaderManager.getPipeline("voxelize.pipe")->getId();
 	m_pipelineDebug = shaderManager.getPipeline("voxel_debug.pipe")->getId();
 	m_pipelineMipmap = shaderManager.getPipeline("voxelMipmap.pipe")->getId();

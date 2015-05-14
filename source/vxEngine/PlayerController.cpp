@@ -55,9 +55,9 @@ void PlayerController::initialize(vx::StackAllocator* allocator)
 void PlayerController::initializePlayer(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspect* renderAspect)
 {
 
-	m_actions.push_back(std::make_unique<ActionPlayerLookAround>(pPlayerInputComponent, dt));
-	m_actions.push_back(std::make_unique<ActionPlayerMove>(pPlayerInputComponent, 0.1f));
-	m_actions.push_back(std::make_unique<ActionUpdateGpuTransform>(playerEntity, renderAspect));
+	m_actions.push_back(vx::make_unique<ActionPlayerLookAround>(pPlayerInputComponent, dt));
+	m_actions.push_back(vx::make_unique<ActionPlayerMove>(pPlayerInputComponent, 0.1f));
+	m_actions.push_back(vx::make_unique<ActionUpdateGpuTransform>(playerEntity, renderAspect));
 
 	auto &actionLookAround = m_actions[0];
 	auto &actionMoveStanding = m_actions[1];

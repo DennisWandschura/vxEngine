@@ -25,7 +25,7 @@ SOFTWARE.
 
 Arrive::Arrive()
 	:m_targetPosition(),
-	m_maxSpeed(0.2f)
+	m_maxSpeed(0.1f)
 {
 }
 

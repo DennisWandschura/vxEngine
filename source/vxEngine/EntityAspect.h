@@ -65,7 +65,7 @@ class EntityAspect : public EventListener
 	vx::StackAllocator m_allocator;
 	std::unique_ptr<ColdData> m_coldData;
 
-	Component::Actor* createComponentActor(u16 entityIndex, u16* actorIndex);
+	Component::Actor* createComponentActor(u16 entityIndex, EntityActor* entity, Component::Input* componentInput, u16* actorIndex);
 	void createComponentPhysics(const vx::float3 &position, u16 entityIndex, f32 height);
 
 	void createActorEntity(const vx::float3 &position, f32 height, u32 gpuIndex);

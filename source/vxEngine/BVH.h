@@ -30,7 +30,7 @@ struct LinearBVHNode;
 
 #include <vxLib/math/Vector.h>
 #include <vector>
-#include <memory>
+#include <vxLib/memory.h>
 
 class BVH
 {

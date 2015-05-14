@@ -26,7 +26,7 @@ SOFTWARE.
 class TextureFile;
 
 #include <vxLib\gl\Texture.h>
-#include <memory>
+#include <vxLib/memory.h>
 #include <vxLib\Container\sorted_vector.h>
 
 class TextureRef
@@ -58,7 +58,7 @@ public:
 
 class TextureManager
 {
-	static const u16 s_invalid{ -1 };
+	static const u16 s_invalid{ 0xffff };
 	struct TextureCmp
 	{
 		vx::ushort3 m_size;

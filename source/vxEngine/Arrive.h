@@ -23,13 +23,6 @@ SOFTWARE.
 */
 #pragma once
 
-namespace Component
-{
-	struct Input;
-}
-
-struct EntityActor;
-
 #include "Steering.h"
 
 class Arrive

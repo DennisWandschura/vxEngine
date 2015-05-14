@@ -54,8 +54,8 @@ class FileAspect;
 class MeshInstance;
 
 #include "EventListener.h"
-#include <PhysX/foundation/PxErrorCallback.h>
-#include <PhysX/extensions/PxDefaultAllocator.h>
+#include <foundation/PxErrorCallback.h>
+#include <extensions/PxDefaultAllocator.h>
 #include "LoadFileCallback.h"
 #include <mutex>
 #include <vxLib/Container/sorted_vector.h>

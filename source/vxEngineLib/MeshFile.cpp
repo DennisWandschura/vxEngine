@@ -25,7 +25,7 @@ SOFTWARE.
 #include "include/vxEngineLib/MeshFile.h"
 #include <vxLib/Allocator/Allocator.h>
 #include <vxLib/util/CityHash.h>
-#include <memory>
+#include <vxLib/memory.h>
 #include <vxLib/File/File.h>
 
 namespace vx
@@ -127,7 +127,7 @@ namespace vx
 		auto meshSize = sizeof(u32) * 2 + meshVertexSize + meshIndexSize;
 		auto totalSize = meshSize + sizeof(u32) + m_physxDataSize;
 
-		auto ptr = std::make_unique<u8[]>(totalSize);
+		auto ptr = vx::make_unique<u8[]>(totalSize);
 		auto p = ptr.get();
 
 		memcpy(p, &vertexCount, sizeof(u32));

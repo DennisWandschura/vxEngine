@@ -639,6 +639,15 @@
     <ClInclude Include="ActionFollowPath.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
+    <ClInclude Include="ConditionActorHasPath.h">
+      <Filter>Header Files\AI\Conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="ConditionActorFollowingPath.h">
+      <Filter>Header Files\AI\Conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionSetFollowPath.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -941,6 +950,15 @@
     <ClCompile Include="ActionFollowPath.cpp">
       <Filter>Source Files\Actions</Filter>
     </ClCompile>
+    <ClCompile Include="ConditionActorHasPath.cpp">
+      <Filter>Source Files\AI\Conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionActorFollowingPath.cpp">
+      <Filter>Source Files\AI\Conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionSetFollowPath.cpp">
+      <Filter>Source Files\Actions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">
@@ -1162,9 +1180,6 @@
     <None Include="..\..\game\data\shaders\programs\editorDrawPointColor.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\editor.pipe">
-      <Filter>Shader Pipelines</Filter>
-    </None>
     <None Include="..\..\game\data\shaders\programs\editor.frag">
       <Filter>Shaders</Filter>
     </None>
@@ -1187,6 +1202,18 @@
       <Filter>Shader Pipelines</Filter>
     </None>
     <None Include="..\..\game\data\shaders\editorDrawPointColor.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawMesh.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawMesh.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorDrawMesh.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorDrawNavmeshConnection.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
   </ItemGroup>

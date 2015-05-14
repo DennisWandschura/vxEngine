@@ -34,6 +34,7 @@ namespace vx
 }
 
 #include <vxLib/math/Vector.h>
+#include <vector>
 #include <memory>
 
 struct NavMeshNode
@@ -56,7 +57,7 @@ class NavMeshGraph
 	u32 m_nodeCount;
 	u32 m_connectionCount;
 
-	void insertTriangles(const NavMeshTriangle* navMeshTriangles, u32 triangleCount, vx::sorted_vector<vx::float3, BuildNode, CompareFloat3>* sortedBuildNodes);
+	void insertTriangles(const NavMeshTriangle* navMeshTriangles, u32 triangleCount, std::vector<BuildNode>* sortedBuildNodes);
 	void insertOrMergeBuildNode(const BuildNode &node, vx::sorted_vector<vx::float3, BuildNode, CompareFloat3>* sortedBuildNodes);
 	void fixConnectionIndices(u32 nodeCount, vx::sorted_vector<vx::float3, BuildNode, CompareFloat3>* sortedBuildNodes, u32* connectionCount);
 	std::unique_ptr<NavMeshNode[]> buildNodes(const NavMesh &navMesh, u32* finalNodeCount);

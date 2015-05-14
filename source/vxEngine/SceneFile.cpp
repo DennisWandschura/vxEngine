@@ -87,9 +87,9 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* a
 	ptr = vx::read(m_spawnCount, ptr);
 	ptr = vx::read(m_actorCount, ptr);
 
-	m_pMeshInstances = std::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
-	m_pLights = std::make_unique<Light[]>(m_lightCount);
-	m_pSpawns = std::make_unique<SpawnFile[]>(m_spawnCount);
+	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
+	m_pLights = vx::make_unique<Light[]>(m_lightCount);
+	m_pSpawns = vx::make_unique<SpawnFile[]>(m_spawnCount);
 
 	ptr = vx::read(m_pMeshInstances.get(), ptr, m_meshInstanceCount);
 	ptr = vx::read(m_pLights.get(), ptr, m_lightCount);
@@ -97,7 +97,7 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* a
 
 	if (m_actorCount != 0)
 	{
-		m_pActors = std::make_unique<ActorFile[]>(m_actorCount);
+		m_pActors = vx::make_unique<ActorFile[]>(m_actorCount);
 
 		ptr = vx::read(m_pActors.get(), ptr, m_actorCount);
 	}
@@ -115,18 +115,18 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* a
 	auto actors = root["actors"].as<std::vector<ActorFile>>();
 	m_navMesh.loadFromYAML(root["navmesh"]);
 
-	m_pMeshInstances = std::make_unique<MeshInstanceFile[]>(meshInstances.size());
+	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(meshInstances.size());
 	vx::read(m_pMeshInstances.get(), (u8*)meshInstances.data(), meshInstances.size());
 
-	m_pLights = std::make_unique<Light[]>(lights.size());
+	m_pLights = vx::make_unique<Light[]>(lights.size());
 	vx::read(m_pLights.get(), (u8*)lights.data(), lights.size());
 
-	m_pSpawns = std::make_unique<SpawnFile[]>(spawns.size());
+	m_pSpawns = vx::make_unique<SpawnFile[]>(spawns.size());
 	vx::read(m_pSpawns.get(), (u8*)spawns.data(), spawns.size());
 
 	if (actors.size() != 0)
 	{
-		m_pActors = std::make_unique<ActorFile[]>(actors.size());
+		m_pActors = vx::make_unique<ActorFile[]>(actors.size());
 		vx::read(m_pActors.get(), (u8*)actors.data(), actors.size());
 	}
 
@@ -250,7 +250,7 @@ bool SceneFile::createSceneActors(const CreateSceneActorsDesc &desc)
 {
 	if (m_actorCount != 0)
 	{
-		//pActors = std::make_unique<Actor[]>(m_actorCount);
+		//pActors = vx::make_unique<Actor[]>(m_actorCount);
 		desc.sceneActors->reserve(m_actorCount);
 		for (auto i = 0u; i < m_actorCount; ++i)
 		{
@@ -330,8 +330,8 @@ u8 SceneFile::createScene(const CreateSceneDescription &desc)
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 	vx::sorted_vector<vx::StringID, Actor> sceneActors;
 
-	auto sceneSpawns = std::make_unique<Spawn[]>(m_spawnCount);
-	auto pMeshInstances = std::make_unique<MeshInstance[]>(m_meshInstanceCount);
+	auto sceneSpawns = vx::make_unique<Spawn[]>(m_spawnCount);
+	auto pMeshInstances = vx::make_unique<MeshInstance[]>(m_meshInstanceCount);
 
 	u32 vertexCount = 0;
 	u32 indexCount = 0;
@@ -388,7 +388,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 	vx::sorted_vector<vx::StringID, Actor> sceneActors;
 	std::vector<MeshInstance> meshInstances(m_meshInstanceCount);
-	auto sceneSpawns = std::make_unique<Spawn[]>(m_spawnCount);
+	auto sceneSpawns = vx::make_unique<Spawn[]>(m_spawnCount);
 
 	u32 vertexCount = 0;
 	u32 indexCount = 0;
@@ -399,7 +399,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sharedDesc.sceneMeshes = &sceneMeshes;
 	sharedDesc.sceneActors = &sceneActors;
 	sharedDesc.sceneSpawns = sceneSpawns.get();
-	sharedDesc.sortedMaterials = desc.sortedMaterials;;
+	sharedDesc.sortedMaterials = desc.sortedMaterials;
 	sharedDesc.sortedMeshes = desc.sortedMeshes;
 	sharedDesc.vertexCount = &vertexCount;
 	sharedDesc.indexCount = &indexCount;
@@ -407,7 +407,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 		return 0;
 
 	auto materialCount = sceneMaterials.size();
-	vx::sorted_vector<vx::StringID, char[32]> materialNames;
+	vx::sorted_vector<vx::StringID, std::string> materialNames;
 	materialNames.reserve(materialCount);
 	for (u32 i = 0; i < materialCount; ++i)
 	{
@@ -415,14 +415,14 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 
 		auto it = desc.loadedFiles->find(sid);
 
-		char str[32];
-		strncpy_s(str, it->c_str(), 32);
+		//char str[32];
+		//strncpy(str, it->c_str(), 32);
 
-		materialNames.insert(sid, str);
+		materialNames.insert(sid, *it);
 	}
 
 	auto meshCount = sceneMeshes.size();
-	vx::sorted_vector<vx::StringID, char[32]> meshNames;
+	vx::sorted_vector<vx::StringID, std::string> meshNames;
 	meshNames.reserve(meshCount);
 	for (u32 i = 0; i < meshCount; ++i)
 	{
@@ -430,13 +430,13 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 
 		auto it = desc.loadedFiles->find(sid);
 
-		char str[32];
-		strncpy_s(str, it->c_str(), 32);
+		//char str[32];
+		//strncpy(str, it->c_str(), 32);
 
-		meshNames.insert(sid, str);
+		meshNames.insert(sid, *it);
 	}
 
-	vx::sorted_vector<vx::StringID, char[32]> actorNames;
+	vx::sorted_vector<vx::StringID, std::string> actorNames;
 	actorNames.reserve(m_actorCount);
 	for (u32 i = 0; i < m_actorCount; ++i)
 	{
@@ -444,10 +444,10 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 		
 		auto sid = vx::make_sid(actorFile.m_name);
 
-		char str[32];
-		strncpy_s(str, actorFile.m_name, 32);
+		//char str[32];
+	//	strncpy(str, actorFile.m_name, 32);
 
-		actorNames.insert(sid, str);
+		actorNames.insert(sid, actorFile.m_name);
 	}
 
 	EditorSceneParams sceneParams;
@@ -496,7 +496,7 @@ u64 SceneFile::getCrc() const
 	auto actorSize = sizeof(ActorFile) * m_actorCount;
 
 	auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize;
-	auto ptr = std::make_unique<u8[]>(totalSize);
+	auto ptr = vx::make_unique<u8[]>(totalSize);
 
 	auto offset = 0;
 	::memcpy(ptr.get() + offset, m_pMeshInstances.get(), meshInstanceSize);

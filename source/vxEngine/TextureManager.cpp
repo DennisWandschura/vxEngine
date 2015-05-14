@@ -234,8 +234,8 @@ void TextureManager::createBucket(u32 bucketSize, const vx::ushort3 textureSize,
 	{
 		// no bucket exists yet, so create it
 		TextureBucket bucket;
-		bucket.m_pTextures = std::make_unique<TextureWrapper[]>(bucketSize);
-		//	bucket.m_pUsedFlag = std::make_unique<u8[]>(bucketSize);
+		bucket.m_pTextures = vx::make_unique<TextureWrapper[]>(bucketSize);
+		//	bucket.m_pUsedFlag = vx::make_unique<u8[]>(bucketSize);
 		bucket.m_size = 0;
 		bucket.m_capacity = bucketSize;
 
@@ -275,7 +275,7 @@ u64 TextureManager::createTexture(const vx::ushort3 size, u8 miplevels, vx::gl::
 	{
 		newWrapper.m_firstFreeSlice = 0;
 		newWrapper.m_freeSlices = size.z;
-		newWrapper.m_pSlices = std::make_unique<u16[]>(size.z);
+		newWrapper.m_pSlices = vx::make_unique<u16[]>(size.z);
 
 		for (auto i = 0u; i < size.z; ++i)
 		{

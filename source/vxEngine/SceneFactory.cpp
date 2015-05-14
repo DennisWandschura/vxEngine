@@ -127,11 +127,24 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 
 		result = checkIfAssetsAreLoaded(loadDesc);
 	}
+	else
+	{
+		printf("Failed loading scene file (wrong header/crc)\n");
+	}
 
 	if (result)
 	{
 		//result = sceneFile.createScene(meshes, materials, pScene);
 		result = ConverterSceneFileToScene::convert(desc.meshes, desc.materials, sceneFile, pScene);
+	}
+	else
+	{
+		printf("Scene missing dependencies\n");
+	}
+
+	if (!result)
+	{
+		printf("Error converting SceneFile to Scene\n");
 	}
 
 	return result;

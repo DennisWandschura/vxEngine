@@ -41,7 +41,7 @@ namespace rtti
 			*(T*)((ptrdiff_t)p + offset) = *(T*)pSrc;
 		}
 
-		template<class T, typename std::enable_if_t<std::is_copy_assignable<T>::value>>
+		template<class T, typename std::enable_if<std::is_copy_assignable<T>::value>::type>
 		inline void setDataImpl(void *p, const T &value, u32 offset)
 		{
 			*(T*)((ptrdiff_t)p + offset) = value;
@@ -62,7 +62,7 @@ namespace rtti
 		}
 	}
 
-	class TypeData;
+	struct TypeData;
 
 	struct Member
 	{
@@ -113,6 +113,9 @@ namespace rtti
 		virtual void setData(void *pDest, const void *pSrc, size_t offset);
 		virtual void setMemberData(void *pDest, const void *pSrc, const char *memberName);
 	};
+
+	template<class T>
+	struct TypeCreator;
 
 	class Manager
 	{
@@ -232,7 +235,7 @@ namespace rtti
 
 		static const char* getName()
 		{
-			return getTypeData()->m_name;
+			return getTypeData()->m_name.c_str();
 		}
 
 		template<class U>
@@ -256,6 +259,6 @@ namespace rtti
 	template<> void rtti::TypeCreator<TYPE>::registerMembers()
 
 #define RTTI_MEMBER(MEMBER) \
-	addMember(#MEMBER, (size_t)(&nullcast()->MEMBER), rtti::SingletonRTTI::get().getTypeData<std::decay_t<decltype(nullcast()->MEMBER)>>() )
+	addMember(#MEMBER, (size_t)(&nullcast()->MEMBER), rtti::SingletonRTTI::get().getTypeData<std::decay<decltype(nullcast()->MEMBER)>::type>() )
 
 #endif

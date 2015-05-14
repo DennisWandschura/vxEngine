@@ -24,7 +24,7 @@ SOFTWARE.
 */
 
 #include <vxLib/math/Vector.h>
-#include <memory>
+#include <vxLib/memory.h>
 
 namespace Graphics
 {

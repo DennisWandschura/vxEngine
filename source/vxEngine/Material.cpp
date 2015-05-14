@@ -112,9 +112,9 @@ bool MaterialFile::loadFromFile(const char *file)
 		auto dynamicFriction = root["dynamic friction"].as<f32>();
 		auto restitution = root["restitution"].as<f32>();
 
-		strncpy_s(m_albedo.data, strAlbedo.c_str(), strAlbedo.size());
-		strncpy_s(m_normal.data, strNormals.c_str(), strNormals.size());
-		strncpy_s(m_surface.data, strSurface.c_str(), strSurface.size());
+		strncpy(m_albedo.data, strAlbedo.c_str(), strAlbedo.size());
+		strncpy(m_normal.data, strNormals.c_str(), strNormals.size());
+		strncpy(m_surface.data, strSurface.c_str(), strSurface.size());
 		m_staticFriction = staticFriction;
 		m_dynamicFriction = dynamicFriction;
 		m_restitution = restitution;
@@ -127,9 +127,9 @@ bool MaterialFile::loadFromFile(const char *file)
 	}
 	*/
 
-	strncpy_s(m_albedo.data, albedoTextureFile.c_str(), albedoTextureFile.size());
-	strncpy_s(m_normal.data, normalTextureFile.c_str(), normalTextureFile.size());
-	strncpy_s(m_surface.data, surfaceTextureFile.c_str(), surfaceTextureFile.size());
+	strncpy(m_albedo.data, albedoTextureFile.c_str(), 32);
+	strncpy(m_normal.data, normalTextureFile.c_str(), 32);
+	strncpy(m_surface.data, surfaceTextureFile.c_str(), 32);
 
 	return true;
 }

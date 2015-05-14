@@ -75,8 +75,8 @@ void MeshInstanceFile::load(const u8 *ptr)
 	m_transform.m_rotation = node["rotation"].as<vx::float3>();
 	m_transform.m_scaling = node["scaling"].as<f32>();
 
-	strncpy_s(m_mesh, strMesh.data(), strMesh.size());
-	strncpy_s(m_material, strMaterial.data(), strMaterial.size());
+	strncpy(m_mesh, strMesh.data(), strMesh.size());
+	strncpy(m_material, strMaterial.data(), strMaterial.size());
 }
 
 void MeshInstanceFile::save(YAML::Node &node) const

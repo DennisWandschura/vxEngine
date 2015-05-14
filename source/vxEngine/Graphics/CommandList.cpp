@@ -40,7 +40,7 @@ namespace Graphics
 
 	void CommandList::initialize()
 	{
-		m_coldData = std::make_unique<ColdData>();
+		m_coldData = vx::make_unique<ColdData>();
 	}
 
 	void CommandList::pushSegment(const Segment &segment, const char* id, u32 slot)

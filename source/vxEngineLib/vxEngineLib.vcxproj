@@ -126,7 +126,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <InterproceduralOptimization>SingleFile</InterproceduralOptimization>
+      <InterproceduralOptimization>MultiFile</InterproceduralOptimization>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>

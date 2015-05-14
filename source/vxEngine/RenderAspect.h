@@ -150,6 +150,8 @@ protected:
 	void createRenderPassCreateShadowMaps();
 
 	void createColdData();
+	void setSettings(const vx::uint2 &resolution);
+	void provideRenderData();
 
 public:
 	RenderAspect();

@@ -27,6 +27,7 @@ SOFTWARE.
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
 #include <Windows.h>
+#include <vxLib/memory.h>
 
 s64 GpuProfiler::s_cpuFrequency{ 1 };
 vx::float2 GpuProfiler::s_position{};
@@ -122,10 +123,10 @@ bool GpuProfiler::initialize(const Font* pFont, const vx::gl::ProgramPipeline* p
 	s_position.x = -s_position.x + 10.0f;
 	s_position.y -= 20.0f;
 
-	m_pVertices = std::make_unique<Vertex[]>(s_maxVertices);
+	m_pVertices = vx::make_unique<Vertex[]>(s_maxVertices);
 
 	m_entriesGpuByName = vx::sorted_array<vx::StringID, u32>(s_markersGpu, pAllocator);
-	m_entriesGpu = std::make_unique<EntryGpu[]>(s_markersGpu);
+	m_entriesGpu = vx::make_unique<EntryGpu[]>(s_markersGpu);
 
 	for (auto i = 0u; i < s_markersGpu; ++i)
 	{
@@ -140,7 +141,7 @@ bool GpuProfiler::initialize(const Font* pFont, const vx::gl::ProgramPipeline* p
 	vboDesc.size = sizeof(Vertex) * s_maxVertices;
 	m_vbo.create(vboDesc);
 
-	std::unique_ptr<u32[]> pIndices = std::make_unique<u32[]>(s_maxIndices);
+	std::unique_ptr<u32[]> pIndices = vx::make_unique<u32[]>(s_maxIndices);
 	for (u32 i = 0, j = 0; i < s_maxIndices; i += 6, j += 4)
 	{
 		pIndices[i] = j;
@@ -374,7 +375,7 @@ void GpuProfiler::frame()
 				if (it == m_entriesGpuByName.end())
 				{
 					EntryGpu entry;
-					strncpy_s(entry.name, marker.name, s_maxCharacters);
+					strncpy(entry.name, marker.name, s_maxCharacters);
 					entry.layer = marker.layer;
 
 					m_entriesGpu[m_entryGpuCount] = entry;
@@ -406,7 +407,7 @@ void GpuProfiler::pushGpuMarker(const char *name)
 	marker.start = 0;
 	marker.end = 0;
 	marker.layer = ti.m_pushedMarkers;
-	strncpy_s(marker.name, name, s_maxCharacters);
+	strncpy(marker.name, name, s_maxCharacters);
 	marker.frame = m_currentFrame;
 	incrementCycle(&ti.currentWriteId, s_markersGpu);
 	++ti.m_pushedMarkers;

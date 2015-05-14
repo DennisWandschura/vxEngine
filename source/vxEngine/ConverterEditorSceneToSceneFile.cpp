@@ -35,7 +35,7 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 {
 	auto actorCount = scene.m_actors.size();
 	sceneFile->m_actorCount = actorCount;
-	sceneFile->m_pActors = std::make_unique<ActorFile[]>(actorCount);
+	sceneFile->m_pActors = vx::make_unique<ActorFile[]>(actorCount);
 	for (u32 i = 0; i < actorCount; ++i)
 	{
 		auto sidActor = scene.m_actors.keys()[i];
@@ -48,13 +48,13 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 		auto meshNameIt = scene.m_meshNames.find(sidMesh);
 		auto materialNameIt = scene.m_materialNames.find(sidMaterial);
 
-		strncpy_s(sceneFile->m_pActors[i].m_material, *materialNameIt, 32);
-		strncpy_s(sceneFile->m_pActors[i].m_mesh, *meshNameIt, 32);
-		strncpy_s(sceneFile->m_pActors[i].m_name, *actorNameIt, 32);
+		strncpy(sceneFile->m_pActors[i].m_material, materialNameIt->c_str(), 32);
+		strncpy(sceneFile->m_pActors[i].m_mesh, meshNameIt->c_str(), 32);
+		strncpy(sceneFile->m_pActors[i].m_name, actorNameIt->c_str(), 32);
 	}
 
 	sceneFile->m_lightCount = scene.m_lightCount;
-	sceneFile->m_pLights = std::make_unique<Light[]>(scene.m_lightCount);
+	sceneFile->m_pLights = vx::make_unique<Light[]>(scene.m_lightCount);
 	for (u32 i = 0; i < scene.m_lightCount; ++i)
 	{
 		sceneFile->m_pLights[i] = scene.m_pLights[i];
@@ -66,7 +66,7 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 	auto meshInstanceCount = scene.m_meshInstances.size();
 
 	sceneFile->m_meshInstanceCount = meshInstanceCount;
-	sceneFile->m_pMeshInstances = std::make_unique<MeshInstanceFile[]>(meshInstanceCount);
+	sceneFile->m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(meshInstanceCount);
 	for (u32 i = 0; i < meshInstanceCount; ++i)
 	{
 		auto &it = scene.m_meshInstances[i];
@@ -75,10 +75,10 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 		auto instanceMaterialName = scene.getMaterialName(it.getMaterialSid());
 
 		char meshName[32];
-		strcpy_s(meshName, instanceMeshName);
+		strcpy(meshName, instanceMeshName);
 
 		char materialName[32];
-		strcpy_s(materialName, instanceMaterialName);
+		strcpy(materialName, instanceMaterialName);
 
 		sceneFile->m_pMeshInstances[i] = MeshInstanceFile(meshName, materialName,it.getTransform());
 	}
@@ -88,7 +88,7 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 	sceneFile->m_spawnCount = spawnCount;
 	if (spawnCount != 0)
 	{
-		sceneFile->m_pSpawns = std::make_unique<SpawnFile[]>(spawnCount);
+		sceneFile->m_pSpawns = vx::make_unique<SpawnFile[]>(spawnCount);
 		
 		for (u32 i = 0; i < spawnCount; ++i)
 		{
@@ -97,7 +97,7 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 			if (spawn.type != PlayerType::Human)
 			{
 				auto actorName = scene.getActorName(spawn.sid);
-				strcpy_s(sceneFile->m_pSpawns[i].actor, actorName);
+				strcpy(sceneFile->m_pSpawns[i].actor, actorName);
 			}
 			else
 			{

@@ -317,7 +317,7 @@ void BVH::create(const Primitive* primitives, u32 primitiveCount)
 	}
 	m_primitives.swap(tmp);
 
-	m_pNodes = std::make_unique<LinearBVHNode[]>(totalNodes);
+	m_pNodes = vx::make_unique<LinearBVHNode[]>(totalNodes);
 	u32 offset = 0;
 	flattenBVHTree(m_pNodes.get(), root, &offset);
 }

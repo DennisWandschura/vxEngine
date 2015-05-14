@@ -228,6 +228,7 @@ bool FileAspect::loadFileScene(const LoadFileOfTypeDescription &desc, bool edito
 		}
 		else
 		{
+			printf("Error loading scene '%s'\n", desc.fileName);
 			LOG_ERROR_ARGS(m_logfile, "Error loading scene '%s'\n", false, desc.fileName);
 		}
 	}

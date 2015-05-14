@@ -37,7 +37,7 @@
     <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <InterproceduralOptimization>false</InterproceduralOptimization>
+    <InterproceduralOptimization>true</InterproceduralOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -82,7 +82,7 @@
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;_DEBUG_STATIC_BUILD;_VX_NOAUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;_DEBUG_STATIC_BUILD;_VX_NOAUDIO;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -111,7 +111,7 @@
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_EDITOR;_PHYSX_CHECKED;_VX_NOAUDIO;_DEBUG_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_EDITOR;_PHYSX_CHECKED;_VX_NOAUDIO;_DEBUG_STATIC_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -146,6 +146,8 @@
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <Optimization>MaxSpeedHighLevel</Optimization>
+      <GenerateAlternateCodePaths>AVX</GenerateAlternateCodePaths>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -164,10 +166,13 @@
     <ClInclude Include="ActionPlayerLookAround.h" />
     <ClInclude Include="ActionManager.h" />
     <ClInclude Include="ActionPlayerMove.h" />
+    <ClInclude Include="ActionSetFollowPath.h" />
     <ClInclude Include="ActionUpdateGpuTransform.h" />
     <ClInclude Include="Actor.h" />
     <ClInclude Include="ActorAspect.h" />
     <ClInclude Include="ai\Squad.h" />
+    <ClInclude Include="ConditionActorFollowingPath.h" />
+    <ClInclude Include="ConditionActorHasPath.h" />
     <ClInclude Include="CreateSceneDescription.h" />
     <ClInclude Include="ConverterEditorSceneToSceneFile.h" />
     <ClInclude Include="ConverterSceneFileToScene.h" />
@@ -328,6 +333,7 @@
     <ClCompile Include="ActionPlayerLookAround.cpp" />
     <ClCompile Include="ActionManager.cpp" />
     <ClCompile Include="ActionPlayerMove.cpp" />
+    <ClCompile Include="ActionSetFollowPath.cpp" />
     <ClCompile Include="ActionUpdateGpuTransform.cpp" />
     <ClCompile Include="ActorAspect.cpp" />
     <ClCompile Include="ai\Squad.cpp" />
@@ -336,6 +342,8 @@
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="BVH.cpp" />
     <ClCompile Include="Clock.cpp" />
+    <ClCompile Include="ConditionActorFollowingPath.cpp" />
+    <ClCompile Include="ConditionActorHasPath.cpp" />
     <ClCompile Include="ConverterEditorSceneToSceneFile.cpp" />
     <ClCompile Include="ConverterSceneFileToScene.cpp" />
     <ClCompile Include="DDS_File.cpp" />
@@ -432,7 +440,8 @@
     <None Include="..\..\game\data\shaders\drawFinalImageNormals.pipe" />
     <None Include="..\..\game\data\shaders\draw_aabb.pipe" />
     <None Include="..\..\game\data\shaders\draw_final_image.pipe" />
-    <None Include="..\..\game\data\shaders\editor.pipe" />
+    <None Include="..\..\game\data\shaders\editorDrawMesh.pipe" />
+    <None Include="..\..\game\data\shaders\editorDrawNavmeshConnection.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawPointColor.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawLights.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawSpawn.pipe" />
@@ -461,6 +470,8 @@
     <None Include="..\..\game\data\shaders\programs\draw_aabb.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\draw_final_image.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\editor.frag" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawMesh.frag" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawMesh.vert" />
     <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.frag" />
     <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.geom" />
     <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.vert" />

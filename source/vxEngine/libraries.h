@@ -26,8 +26,13 @@ SOFTWARE.
 */
 
 #if defined(_DEBUG_STATIC_BUILD)
-#pragma comment(lib, "vxLib_sd")
+
+#ifdef _VX_CLANG
+
+#else
+#pragma comment(lib, "vxLib_sd.lib")
 #pragma comment(lib, "vxEngineLib_d.lib")
+#endif
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
 
 #ifdef _VX_NOAUDIO

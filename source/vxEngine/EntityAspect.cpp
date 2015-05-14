@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "EntityAspect.h"
-#include <PhysX/characterkinematic/PxController.h>
+#include <characterkinematic/PxController.h>
 #include "PhysicsAspect.h"
 #include "Entity.h"
 #include "ComponentActor.h"
@@ -47,6 +47,12 @@ SOFTWARE.
 #include "CreateActorData.h"
 #include "State.h"
 #include "EngineGlobals.h"
+#include "Transition.h"
+
+#include "ConditionActorFollowingPath.h"
+#include "ConditionActorHasPath.h"
+#include "ActionFollowPath.h"
+#include "ActionSetFollowPath.h"
 
 namespace
 {
@@ -67,7 +73,7 @@ EntityAspect::EntityAspect(PhysicsAspect &physicsAspect, RenderAspect &renderAsp
 
 bool EntityAspect::initialize(vx::StackAllocator* pAllocator)
 {
-	m_coldData = std::make_unique<ColdData>();
+	m_coldData = vx::make_unique<ColdData>();
 
 	createPool(g_maxEntities, 16, pAllocator, &m_poolInput);
 	createPool(g_maxEntities, 16, pAllocator, &m_poolRender);
@@ -105,13 +111,36 @@ void EntityAspect::createComponentPhysics(const vx::float3 &position, u16 entity
 	m_poolEntity[entityIndex].pRigidActor = pActor;
 }
 
-Component::Actor* EntityAspect::createComponentActor(u16 entityIndex, u16* actorIndex)
+Component::Actor* EntityAspect::createComponentActor(u16 entityIndex, EntityActor* entity, Component::Input* componentInput, u16* actorIndex)
 {
 	auto pActor = m_coldData->m_poolActor.createEntry(actorIndex);
 	pActor->entityIndex = entityIndex;
 
-	State* emptyState = new State();
-	pActor->m_stateMachine.setInitialState(emptyState);
+	pActor->m_data = vx::make_unique<Component::ActorData>();
+	pActor->m_busy = 0;
+	pActor->m_followingPath = 0;
+
+	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, componentInput, pActor->m_data.get());
+	ActionSetFollowPath* actionSetFollowPath = new ActionSetFollowPath(actionFollowPath, pActor->m_data.get());
+
+	State* waitingState = new State();
+	State* movingState = new State();
+
+	ConditionActorHasPath* conditionActorHasPath = new ConditionActorHasPath(pActor->m_data.get());
+	ConditionActorNotFollowingPath* conditionActorNotFollowingPath = new ConditionActorNotFollowingPath(pActor);
+
+	Transition* transitionWaitingToMoving = new Transition(conditionActorHasPath, movingState);
+	waitingState->addTransition(transitionWaitingToMoving);
+	transitionWaitingToMoving->addAction(actionSetFollowPath);
+	transitionWaitingToMoving->addAction(actionFollowPath);
+
+	Transition* transitionMovingToWaiting = new Transition(conditionActorNotFollowingPath, waitingState);
+	movingState->addTransition(transitionMovingToWaiting);
+
+	pActor->m_stateMachine.addState(waitingState);
+	pActor->m_stateMachine.addState(movingState);
+
+	pActor->m_stateMachine.setInitialState(waitingState);
 
 	return pActor;
 }
@@ -146,7 +175,7 @@ void EntityAspect::createActorEntity(const vx::float3 &position, f32 height, u32
 	pRender->entityIndex = entityIndex;
 	pRender->gpuIndex = gpuIndex;
 
-	auto pActor = createComponentActor(entityIndex, &pEntity->actor);
+	auto pActor = createComponentActor(entityIndex, pEntity, pInput, &pEntity->actor);
 
 	Event evt;
 	evt.type = EventType::Ingame_Event;
@@ -160,7 +189,7 @@ void EntityAspect::createActorEntity(const vx::float3 &position, f32 height, u32
 
 void EntityAspect::updateInput(f32 dt)
 {
-	const vx::ivec4 mask = { 0xffffffff, 0, 0xffffffff, 0};
+	const vx::ivec4 velocityMask = { (s32)0xffffffff, 0, (s32)0xffffffff, 0};
 
 	const __m128 vGravity = { 0, g_gravity * dt, 0, 0 };
 	auto p = m_poolInput.first();
@@ -172,7 +201,11 @@ void EntityAspect::updateInput(f32 dt)
 
 		//__m128 vVelocity = { p->velocity.x, 0, p->velocity.z, 0.0f };
 		__m128 vVelocity = vx::loadFloat(p->velocity);
-		vVelocity = _mm_and_ps(vVelocity, mask);
+		p->velocity.x = 0.0f;
+		p->velocity.y = 0.0f;
+		p->velocity.z = 0.0f;
+
+		vVelocity = _mm_and_ps(vVelocity, velocityMask);
 		vVelocity = _mm_add_ps(vVelocity, vGravity);
 
 		m_physicsAspect.move(vVelocity, dt, entity.pRigidActor);

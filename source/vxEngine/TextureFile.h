@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #pragma once
 
-#include <memory>
+#include <vxLib/memory.h>
 #include <vxLib\math\Vector.h>
 #include <vxLib/Container/bitset.h>
 

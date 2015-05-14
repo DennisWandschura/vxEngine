@@ -123,7 +123,7 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 
-	auto pMeshInstances = std::make_unique<MeshInstance[]>(sceneFile.m_meshInstanceCount);
+	auto pMeshInstances = vx::make_unique<MeshInstance[]>(sceneFile.m_meshInstanceCount);
 
 	CreateSceneMeshInstancesDesc desc;
 	desc.pMeshInstances = pMeshInstances.get();
@@ -148,7 +148,7 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 	if (!createSceneActors(createSceneActorsDesc))
 		return 0;
 
-	auto spawns = std::make_unique<Spawn[]>(sceneFile.m_spawnCount);
+	auto spawns = vx::make_unique<Spawn[]>(sceneFile.m_spawnCount);
 	for (auto i = 0u; i < sceneFile.m_spawnCount; ++i)
 	{
 		spawns[i].type = sceneFile.m_pSpawns[i].type;
@@ -171,7 +171,7 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 #if _VX_EDITOR
 	auto pLights = std::vector<Light>(sceneFile.m_lightCount);
 #else
-	auto pLights = std::make_unique<Light[]>(sceneFile.m_lightCount);
+	auto pLights = vx::make_unique<Light[]>(sceneFile.m_lightCount);
 #endif
 	for (u32 i = 0; i < sceneFile.m_lightCount; ++i)
 	{
