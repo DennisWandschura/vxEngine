@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,9 +23,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
-
-class Clock;
+class Timer;
 
 #include <fstream>
 #include <vxLib/types.h>
@@ -31,7 +31,7 @@ class Clock;
 class Logfile
 {
 	std::ofstream m_file;
-	const Clock &m_clock;
+	const Timer &m_timer;
 	u64 m_lastTime;
 	u32 m_record;
 	char m_timeBuffer[16];
@@ -47,7 +47,7 @@ class Logfile
 public:
 	enum Type:u8{Normal, Warning, Error};
 
-	explicit Logfile(Clock &clock);
+	explicit Logfile(Timer &clock);
 	~Logfile();
 
 	bool create(const char *filename);

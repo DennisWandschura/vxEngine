@@ -37,30 +37,18 @@ namespace vx
 #include <vector>
 #include <memory>
 
-struct NavMeshNode
-{
-	vx::float3 position;
-	u32 connectionIndex;
-	u32 connectionCount;
-};
+#include "NavConnection.h"
+#include "NavNode.h"
 
 class NavMeshGraph
 {
-	struct Node;
-	struct Connection;
-	struct BuildNode;
-	struct CompareFloat3;
-
-	std::unique_ptr<NavMeshNode[]> m_nodes;
-	std::unique_ptr<u16[]> m_connections;
+	std::unique_ptr<NavNode[]> m_nodes;
+	std::unique_ptr<NavConnection[]> m_connections;
 	const NavMesh* m_pNavMesh;
 	u32 m_nodeCount;
 	u32 m_connectionCount;
 
-	void insertTriangles(const NavMeshTriangle* navMeshTriangles, u32 triangleCount, std::vector<BuildNode>* sortedBuildNodes);
-	void insertOrMergeBuildNode(const BuildNode &node, vx::sorted_vector<vx::float3, BuildNode, CompareFloat3>* sortedBuildNodes);
-	void fixConnectionIndices(u32 nodeCount, vx::sorted_vector<vx::float3, BuildNode, CompareFloat3>* sortedBuildNodes, u32* connectionCount);
-	std::unique_ptr<NavMeshNode[]> buildNodes(const NavMesh &navMesh, u32* finalNodeCount);
+	std::unique_ptr<NavNode[]> buildNodes(const NavMesh &navMesh);
 
 public:
 	NavMeshGraph();
@@ -68,11 +56,11 @@ public:
 
 	void initialize(const NavMesh &navMesh);
 
-	const NavMeshNode* getNodes() const;
+	const NavNode* getNodes() const;
 	u32 getNodeCount() const;
 
 	u32 getConnectionCount() const;
-	const u16* getConnections() const;
+	const NavConnection* getConnections() const;
 
 	u32 getClosestNodeInex(const vx::float3 &position) const;
 };

@@ -996,7 +996,7 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 	auto src = vx::make_unique < vx::float3[]>(nodeCount);
 	for (u32 i = 0; i < nodeCount; ++i)
 	{
-		src[i] = nodes[i].position;
+		src[i] = nodes[i].m_position;
 	}
 
 	m_navMeshGraphNodesCount = nodeCount;
@@ -1021,14 +1021,14 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 		for (u32 i = 0; i < nodeCount; ++i)
 		{
 			auto &currentNode = nodes[i];
-			for (u32 j = 0; j < currentNode.connectionCount; ++j)
+			for (u32 j = 0; j < currentNode.m_connectionCount; ++j)
 			{
-				auto otherIndex = connections[currentNode.connectionIndex + j];
-				VX_ASSERT(otherIndex < nodeCount);
-				auto &otherNode = nodes[otherIndex];
+				auto &connection = connections[currentNode.m_connectionOffset + j];
+				//VX_ASSERT(otherIndex < nodeCount);
+				auto &otherNode = nodes[connection.m_toNode];
 
-				mappedVbo[index++] = currentNode.position;
-				mappedVbo[index++] = otherNode.position;
+				mappedVbo[index++] = currentNode.m_position;
+				mappedVbo[index++] = otherNode.m_position;
 			}
 		}
 

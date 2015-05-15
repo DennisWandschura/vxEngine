@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Engine.h"
-#include "Clock.h"
+#include "Timer.h"
 #include "EngineConfig.h"
 #include "Locator.h"
 #include "developer.h"
@@ -128,7 +128,7 @@ void Engine::renderLoop()
 {
 	m_renderAspect.makeCurrent(true);
 
-	auto frequency = Clock::getFrequency();
+	auto frequency = Timer::getFrequency();
 	const f64 invFrequency = 1.0 / frequency;
 
 	GpuProfiler gpuProfiler;
@@ -178,7 +178,7 @@ void Engine::renderLoop()
 
 void Engine::mainLoop()
 {
-	auto frequency = Clock::getFrequency();
+	auto frequency = Timer::getFrequency();
 	const f64 invFrequency = 1.0 / frequency;
 
 	LARGE_INTEGER last;

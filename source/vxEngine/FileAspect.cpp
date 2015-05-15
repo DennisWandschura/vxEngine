@@ -108,9 +108,9 @@ struct FileAspect::LoadMaterialDescription
 
 FileAspect::FileAspect()
 	:m_fileRequests(),
-	m_logfile(m_clock),
+	m_logfile(m_timer),
 	m_allocatorReadFile(),
-	m_clock(),
+	m_timer(),
 	m_poolMesh(),
 	m_poolMaterial(),
 	m_textureFileManager()

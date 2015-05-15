@@ -31,7 +31,7 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include "Engine.h"
 #include "Logfile.h"
-#include "Clock.h"
+#include "Timer.h"
 #include "enums.h"
 #include <csignal>
 
@@ -99,8 +99,8 @@ int main()
 	SmallObjAllocator alloc(1 KBYTE);
 	SmallObject::setAllocator(&alloc);
 
-	Clock mainClock;
-	Logfile mainLogfile(mainClock);
+	Timer mainTimer;
+	Logfile mainLogfile(mainTimer);
 	g_logfile = &mainLogfile;
 
 	if (!mainLogfile.create("logfile.xml"))

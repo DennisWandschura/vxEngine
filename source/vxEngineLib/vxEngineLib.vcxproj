@@ -48,6 +48,7 @@
     <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <InterproceduralOptimization>true</InterproceduralOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -129,6 +130,9 @@
       <InterproceduralOptimization>MultiFile</InterproceduralOptimization>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

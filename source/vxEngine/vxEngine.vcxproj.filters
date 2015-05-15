@@ -151,6 +151,9 @@
     <Filter Include="Header Files\AI\State Machine">
       <UniqueIdentifier>{85ddcee5-bd26-4a3d-9e96-90c3d50bd6ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\unity">
+      <UniqueIdentifier>{7250a31e-9de9-4e53-99b2-f1ad7b3aa74b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -160,9 +163,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rtti.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
@@ -187,9 +187,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Logfile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MeshInstance.h">
@@ -498,9 +495,6 @@
     <ClInclude Include="Plane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NavMeshGraph.h">
-      <Filter>Header Files\AI</Filter>
-    </ClInclude>
     <ClInclude Include="CreateActorData.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
@@ -648,6 +642,12 @@
     <ClInclude Include="ActionSetFollowPath.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
+    <ClInclude Include="NavMeshGraph.h">
+      <Filter>Header Files\Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -665,9 +665,6 @@
     <ClCompile Include="rtti_defines.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Node.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vertex.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
@@ -678,9 +675,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Logfile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Clock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MeshInstance.cpp">
@@ -958,6 +952,12 @@
     </ClCompile>
     <ClCompile Include="ActionSetFollowPath.cpp">
       <Filter>Source Files\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="unity\Unity_vxEngine1.cpp">
+      <Filter>Source Files\unity</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

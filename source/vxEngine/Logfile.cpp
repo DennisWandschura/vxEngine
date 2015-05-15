@@ -22,12 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Logfile.h"
-#include "Clock.h"
+#include "Timer.h"
 #include <cstdarg>
 
-Logfile::Logfile(Clock &clock)
+Logfile::Logfile(Timer &timer)
 	:m_file(),
-	m_clock(clock),
+	m_timer(timer),
 	m_lastTime(0),
 	m_record(0),
 	m_timeBuffer(),
@@ -97,7 +97,7 @@ void Logfile::fTextout(const char *text, char *args)
 
 void Logfile::writeEntry(const char *text, const char *file, const char *function, int line, Type type, bool bold)
 {
-	auto currentTime = m_clock.getTime();
+	auto currentTime = m_timer.getTime();
 
 	if ((currentTime - m_lastTime) > 1000000)
 	{
@@ -140,7 +140,7 @@ void Logfile::writeEntry(const char *text, const char *file, const char *functio
 
 void Logfile::fWriteEntry(const char *file, const char *function, int line, Type type, bool bold,const char *text , ...)
 {
-	auto currentTime = m_clock.getTime();
+	auto currentTime = m_timer.getTime();
 
 	if ((currentTime - m_lastTime) > 1000000)
 	{
@@ -189,7 +189,7 @@ void Logfile::convertTime(u64 time)
 	const double inv = 1.0 / 60.0;
 	const double inv2 = inv * inv;
 
-	const auto frequency = Clock::getFrequency();
+	const auto frequency = Timer::getFrequency();
 
 	auto microseconds = (time * 1000000) / frequency;
 

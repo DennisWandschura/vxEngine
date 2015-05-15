@@ -70,7 +70,7 @@ namespace ai
 				auto entityPosition = it.entity->position;
 				entityPosition.y = it.entity->footPositionY;
 
-				auto endPosition = vx::float3(0, 0, -8);
+				auto endPosition = vx::float3(0, 0, -5);
 				endPosition.y = entityPosition.y;
 
 				auto startNodeIndex = s_navmeshGraph->getClosestNodeInex(entityPosition);
@@ -91,6 +91,7 @@ namespace ai
 				desc.outArray = &outNodes;
 				desc.scratchAllocator = &m_scratchAllocator;
 				desc.startIndex = startNodeIndex;
+				desc.destinationPosition = endPosition;
 
 				if (astar::pathfind(desc))
 				{

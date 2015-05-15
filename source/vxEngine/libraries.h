@@ -1,5 +1,3 @@
-#ifndef __LIBRARIES_H
-#define __LIBRARIES_H
 #pragma once
 /*
 The MIT License (MIT)
@@ -27,12 +25,8 @@ SOFTWARE.
 
 #if defined(_DEBUG_STATIC_BUILD)
 
-#ifdef _VX_CLANG
-
-#else
 #pragma comment(lib, "vxLib_sd.lib")
 #pragma comment(lib, "vxEngineLib_d.lib")
-#endif
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
 
 #ifdef _VX_NOAUDIO
@@ -78,5 +72,3 @@ SOFTWARE.
 #pragma comment(lib, "PhysX3Common_x64.lib")
 #pragma comment(lib, "PhysX3Cooking_x64.lib")
 #endif
-
-#endif // __LIBRARIES_H

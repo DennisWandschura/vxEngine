@@ -41,7 +41,7 @@ namespace vx
 #include "LoadFileCallback.h"
 #include <vector>
 #include "Logfile.h"
-#include "Clock.h"
+#include "Timer.h"
 #include <vxLib/Container/sorted_array.h>
 #include <mutex>
 #include <vxLib/StringID.h>
@@ -77,7 +77,7 @@ class VX_ALIGN(64) FileAspect
 	Logfile m_logfile;
 	vx::StackAllocator m_allocatorReadFile;
 	vx::StackAllocator m_allocatorMeshData;
-	Clock m_clock;
+	Timer m_timer;
 	vx::sorted_array<vx::StringID, vx::MeshFile*> m_sortedMeshes;
 	vx::sorted_array<vx::StringID, Material*> m_sortedMaterials;
 	Pool<vx::MeshFile> m_poolMesh;

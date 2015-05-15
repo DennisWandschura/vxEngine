@@ -21,13 +21,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "Clock.h"
+#include "Timer.h"
 #include <Windows.h>
 #include <future>
 
-u64 Clock::s_frequency{0};
+u64 Timer::s_frequency{ 0 };
 
-Clock::Clock()
+Timer::Timer()
 {
 	if (s_frequency == 0)
 	{
@@ -43,17 +43,25 @@ Clock::Clock()
 	m_startTime = start.QuadPart;
 }
 
-Clock::Clock(const Clock &rhs)
+Timer::Timer(const Timer &rhs)
 	:m_startTime(rhs.m_startTime)
 {
 }
 
-Clock::Clock(Clock &&rhs)
+Timer::Timer(Timer &&rhs)
 	: m_startTime(rhs.m_startTime)
 {
 }
 
-u64 Clock::getTime() const
+void Timer::reset()
+{
+	LARGE_INTEGER start;
+	QueryPerformanceCounter(&start);
+
+	m_startTime = start.QuadPart;
+}
+
+u64 Timer::getTime() const
 {
 	LARGE_INTEGER current;
 	QueryPerformanceCounter(&current);
@@ -61,7 +69,17 @@ u64 Clock::getTime() const
 	return current.QuadPart - m_startTime;
 }
 
-u64 Clock::getFrequency()
+f32 Timer::getTimeInMs() const
+{
+	auto timeInMicroseconds = getTime();
+
+	timeInMicroseconds *= 1000000;
+	timeInMicroseconds /= s_frequency;
+
+	return (f32)((f64)timeInMicroseconds * 0.001f);
+}
+
+u64 Timer::getFrequency()
 {
 	return s_frequency;
 }

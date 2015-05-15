@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,9 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#ifndef __EVENTLISTENER_H
-#define __EVENTLISTENER_H
-#pragma once
 
 struct Event;
 
@@ -35,5 +33,3 @@ protected:
 public:
 	virtual void handleEvent(const Event &evt) = 0;
 };
-
-#endif

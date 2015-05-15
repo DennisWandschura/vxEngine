@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,9 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
-#ifndef __VX_RTTI_H
-#define __VX_RTTI_H
 
 #include <vxLib\types.h>
 #include <vxLib\util\CityHash.h>
@@ -260,5 +258,3 @@ namespace rtti
 
 #define RTTI_MEMBER(MEMBER) \
 	addMember(#MEMBER, (size_t)(&nullcast()->MEMBER), rtti::SingletonRTTI::get().getTypeData<std::decay<decltype(nullcast()->MEMBER)>::type>() )
-
-#endif

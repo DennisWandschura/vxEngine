@@ -31,6 +31,7 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include <vxLib/Container/array.h>
 #include "NavMeshGraph.h"
+#include "Timer.h"
 
 namespace astar
 {
@@ -236,6 +237,8 @@ namespace astar
 
 	bool pathfind(const PathFindDescription &desc)
 	{
+		Timer timer;
+
 		desc.outArray->clear();
 		VX_ASSERT(desc.outArray->capacity() != 0);
 
@@ -245,30 +248,21 @@ namespace astar
 			desc.scratchAllocator->clear(marker);
 		};
 
-		struct Connection
-		{
-			f32 cost;
-			u16 toNode;
-			u16 fromNode;
-		};
-
 		// this structure is used to keep track of the
 		// information we need for each node
 		struct NodeRecord
 		{
-			enum class NODE_CATEGORY : u8{ OPEN, CLOSED, UNVISITED };
-
+			enum NODE_CATEGORY{ OPEN, CLOSED, UNVISITED };
 			u32 nodeId;
-			Connection connection;
+			NavConnection connection;
 			float costSoFar;
 			float estaminatedTotalCost;
-			NODE_CATEGORY category{ NODE_CATEGORY::UNVISITED };
+			u8 category{ UNVISITED };
 		};
 
 		auto goalIndex = desc.goalIndex;
 
 		auto graphNodes = desc.graph->getNodes();
-		auto graphNodeCount = desc.graph->getNodeCount();
 
 		auto graphConnectionCount = desc.graph->getConnectionCount();
 		auto graphConnections = desc.graph->getConnections();
@@ -276,37 +270,13 @@ namespace astar
 		auto &startNode = graphNodes[desc.startIndex];
 		auto &goalNode = graphNodes[goalIndex];
 
-		//auto tmpConnections = (Connection*)desc.scratchAllocator->allocate(sizeof(Connection) * graphConnectionCount, 4);
-		std::vector<Connection> tmpConnections;
-		tmpConnections.reserve(graphConnectionCount);
-		for (u32 i = 0; i < graphConnectionCount; ++i)
-		{
-			Connection connection;
-			connection.cost = 0.0f;
-			connection.toNode = graphConnections[i];
-
-			tmpConnections.push_back(connection);
-		}
-
-		for (u32 i = 0; i < graphNodeCount; ++i)
-		{
-			auto &currentNode = graphNodes[i];
-			auto nodeConnectionCount = currentNode.connectionCount;
-			auto connectionOffset = currentNode.connectionIndex;
-
-			for (u32 j = 0; j < nodeConnectionCount; ++j)
-			{
-				tmpConnections[connectionOffset + j].fromNode = i;
-			}
-		}
-
 		// initialize the record for the start node
 		NodeRecord startRecord;
 		startRecord.nodeId = desc.startIndex;
 		startRecord.connection;
 		startRecord.costSoFar = 0;
-		startRecord.estaminatedTotalCost = desc.heuristicFp(startNode.position, goalNode.position);
-		startRecord.category = NodeRecord::NODE_CATEGORY::OPEN;
+		startRecord.estaminatedTotalCost = desc.heuristicFp(startNode.m_position, goalNode.m_position);
+		startRecord.category = NodeRecord::OPEN;
 
 		// initialize the open and closed lists
 		auto records = (NodeRecord*)desc.scratchAllocator->allocate(sizeof(NodeRecord) * graphConnectionCount);
@@ -316,7 +286,7 @@ namespace astar
 
 		records[startRecord.nodeId] = startRecord;
 
-		u32 currentIndex = startRecord.nodeId;
+		u32 current = startRecord.nodeId;
 		heap.push(std::make_pair(startRecord.estaminatedTotalCost, startRecord.nodeId));
 
 		u32 openSize = 1;
@@ -324,49 +294,40 @@ namespace astar
 		{
 			// find smallest element in open list
 			// using the estimatedTotalCost
-			currentIndex = heap.top().second;
+			current = heap.top().second;
 
-			VX_ASSERT(currentIndex <= graphNodeCount);
-
-			auto &currentNode = graphNodes[currentIndex];
+			auto &currentNode = graphNodes[current];
 
 			// if it is the goal node, then terminate
-			if (currentIndex == goalIndex)
+			if (current == goalIndex)
 				break;
 
 			// otherwise get its outgoing connections
-			auto connectionCount = currentNode.connectionCount;
+			auto connectionCount = currentNode.m_connectionCount;
 
 			//for (auto &connection : connections)
 			for (auto i = 0u; i < connectionCount; ++i)
 			{
-				auto &connection = tmpConnections[currentNode.connectionIndex + i];
+				auto &connection = graphConnections[currentNode.m_connectionOffset + i];
 
 				// get the cost estimated for the end node
-				auto endNodeIndex = connection.toNode;
-				auto &otherNode = graphNodes[endNodeIndex];
-
-				if (connection.cost == 0.0f)
-				{
-					connection.cost = desc.heuristicFp(otherNode.position, currentNode.position);
-				}
-
-				auto endNodeCost = records[currentIndex].costSoFar + connection.cost;
+				auto endNode = connection.m_toNode;
+				auto endNodeCost = records[current].costSoFar + connection.m_cost;
 
 				NodeRecord *pEndNodeRecord = nullptr;
 				f32 endNodeHeuristic;
 				// if the node is closed we may have to skip
 				// or remove it from the closed list
-				if (records[endNodeIndex].category == NodeRecord::NODE_CATEGORY::CLOSED)
+				if (records[endNode].category == NodeRecord::CLOSED)
 				{
-					pEndNodeRecord = &records[endNodeIndex];
+					pEndNodeRecord = &records[endNode];
 
 					// if we didn't  find a shorter route, skip
 					if (pEndNodeRecord->costSoFar <= endNodeCost)
 						continue;
 
 					// otherwise remove it from the closed list
-					pEndNodeRecord->category = NodeRecord::NODE_CATEGORY::UNVISITED;
+					pEndNodeRecord->category = NodeRecord::UNVISITED;
 
 					// we can use the node's old cost values
 					// to calculate its heuristic without calling
@@ -375,9 +336,9 @@ namespace astar
 				}
 
 				// skip if the node is open and we've not found a better route
-				else if (records[endNodeIndex].category == NodeRecord::NODE_CATEGORY::OPEN)
+				else if (records[endNode].category == NodeRecord::OPEN)
 				{
-					pEndNodeRecord = &records[endNodeIndex];
+					pEndNodeRecord = &records[endNode];
 
 					// if our route is no better, then skip
 					if (pEndNodeRecord->costSoFar <= endNodeCost)
@@ -393,12 +354,12 @@ namespace astar
 				// node, so make a record for it
 				else
 				{
-					pEndNodeRecord = &records[endNodeIndex];
-					pEndNodeRecord->nodeId = endNodeIndex;
+					pEndNodeRecord = &records[endNode];
+					pEndNodeRecord->nodeId = endNode;
 
 					// we'll need to calculate the heuristic value using the function,
 					// since we don't have an existing record to use
-					endNodeHeuristic = desc.heuristicFp(currentNode.position, goalNode.position);
+					endNodeHeuristic = desc.heuristicFp(graphNodes[endNode].m_position, goalNode.m_position);
 				}
 
 				// we're here if we need to update the node
@@ -408,11 +369,11 @@ namespace astar
 				pEndNodeRecord->estaminatedTotalCost = endNodeCost + endNodeHeuristic;
 
 				// and add it to the open list
-				if (records[endNodeIndex].category != NodeRecord::NODE_CATEGORY::OPEN)
+				if (records[endNode].category != NodeRecord::OPEN)
 				{
-					NodeRecord *pNode = &records[endNodeIndex];
+					auto *pNode = &records[endNode];
 					//records[endNode] = *pEndNodeRecord;
-					pNode->category = NodeRecord::NODE_CATEGORY::OPEN;
+					pNode->category = NodeRecord::OPEN;
 					heap.push(std::make_pair(pNode->estaminatedTotalCost, pNode->nodeId));
 
 					++openSize;
@@ -423,31 +384,36 @@ namespace astar
 			// so add it to the closed list
 			--openSize;
 			heap.pop();
-			records[currentIndex].category = NodeRecord::NODE_CATEGORY::CLOSED;
+			records[current].category = NodeRecord::CLOSED;
 		}
 
 		// we're here if we've either found the goal, or not
 		bool result = false;
-		if (currentIndex == goalIndex)
+		if (current == goalIndex)
 		{
 			result = true;
 			// compile the list of connections in the path
 
+			desc.outArray->push_back(desc.destinationPosition);
+
 		//	current = goalIndex;
 			// work back along the path, accumulating connections
-			while (currentIndex != desc.startIndex)
+			while (current != desc.startIndex)
 			{
-				auto connection = records[currentIndex].connection;
+				auto connection = records[current].connection;
 
-				auto &node = graphNodes[connection.toNode];
-				desc.outArray->push_back(node.position);
+				auto &node = graphNodes[connection.m_toNode];
+				desc.outArray->push_back(node.m_position);
 
-				currentIndex = connection.fromNode;
+				current = connection.m_fromNode;
 			}
 
 			// add start node to list
-			desc.outArray->push_back(startNode.position);
+			desc.outArray->push_back(startNode.m_position);
 		}
+
+		auto time = timer.getTimeInMs();
+		printf("Astar time: %f ms\n", time);
 
 		return result;
 	}

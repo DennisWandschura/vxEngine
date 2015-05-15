@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,22 +22,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 #include <vxLib/types.h>
 
-class Clock
+class Timer
 {
 	static u64 s_frequency;
 
 	u64 m_startTime;
 
 public:
-	Clock();
-	Clock(const Clock &rhs);
-	Clock(Clock &&rhs);
+	Timer();
+	Timer(const Timer &rhs);
+	Timer(Timer &&rhs);
+
+	void reset();
 
 	u64 getTime() const;
+	f32 getTimeInMs() const;
 
 	static u64 getFrequency();
 };

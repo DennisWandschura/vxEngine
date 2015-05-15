@@ -55,6 +55,7 @@ namespace astar
 		vx::array<vx::float3>* outArray;
 		u16 startIndex;
 		u16 goalIndex;
+		vx::float3 destinationPosition;
 	};
 
 	// returns list of node ids in reverse order (start node is at the back and goal at the front)
