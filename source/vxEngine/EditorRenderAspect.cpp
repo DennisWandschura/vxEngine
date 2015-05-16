@@ -504,7 +504,7 @@ void EditorRenderAspect::createCommandList()
 	}
 
 	{
-		auto pPipeline = m_shaderManager.getPipeline("editorInfluenceCellNew.pipe");
+		auto pPipeline = m_shaderManager.getPipeline("editorDrawInfluenceCell.pipe");
 		auto vao = m_objectManager.getVertexArray("drawInfluenceCellNewVao");
 		auto cmd = m_objectManager.getBuffer("drawInfluenceCellNewCmd");
 

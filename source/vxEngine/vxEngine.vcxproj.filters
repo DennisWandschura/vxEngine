@@ -1138,9 +1138,6 @@
     <None Include="..\..\game\data\shaders\blurShadowY.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\blurpass.frag">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\..\game\data\shaders\blurpass.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
@@ -1189,15 +1186,6 @@
     <None Include="..\..\game\data\shaders\editorDrawLights.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.geom">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.vert">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\..\game\data\shaders\editorDrawSpawn.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
@@ -1216,13 +1204,25 @@
     <None Include="..\..\game\data\shaders\editorDrawNavmeshConnection.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\editorInfluenceCellNew.frag">
+    <None Include="..\..\game\data\shaders\programs\blurpass.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\editorInfluenceCellNew.vert">
+    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\editorInfluenceCellNew.pipe">
+    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorDrawInfluenceCell.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
   </ItemGroup>
