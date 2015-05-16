@@ -411,7 +411,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 		pShadowRenderer->getSegments(&segments);
 		pShadowRenderer->bindBuffers();
 
-		m_commandList.pushSegment(segments.front(), "segmentCreateShadows", 0);
+		m_commandList.pushSegment(segments.front(), "segmentCreateShadows");
 
 		m_shadowRenderer = std::move(pShadowRenderer);
 		//m_pColdData->m_renderers.push_back(std::move(pShadowRenderer));

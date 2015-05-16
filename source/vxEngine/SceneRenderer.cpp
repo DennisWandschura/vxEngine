@@ -27,7 +27,6 @@ SOFTWARE.
 #include "GpuStructs.h"
 #include "Transform.h"
 #include "GpuFunctions.h"
-#include "utility.h"
 #include "Locator.h"
 #include "FileAspect.h"
 #include <vxLib/ScopeGuard.h>
@@ -41,6 +40,7 @@ SOFTWARE.
 #include "GpuProfiler.h"
 #include <vxLib/gl/ShaderManager.h>
 #include <vxEngineLib/MeshFile.h>
+#include <vxLib/algorithm.h>
 
 SceneRenderer::SceneRenderer()
 	:m_pObjectManager(nullptr)

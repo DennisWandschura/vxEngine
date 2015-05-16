@@ -36,21 +36,16 @@ struct NavMeshTriangle;
 #include <vxLib/memory.h>
 #include "AABB.h"
 
-struct TriangleIndices
-{
-	u16 vertexIndex[3];
-};
-
 class NavMesh
 {
 	std::unique_ptr<NavMeshTriangle[]> m_navMeshTriangles;
 #if _VX_EDITOR
 	std::vector<vx::float3> m_vertices;
-	std::vector<TriangleIndices> m_triangleIndices;
+	std::vector<u16> m_triangleIndices;
 	std::vector<AABB> m_vertexBounds;
 #else
 	std::unique_ptr<vx::float3[]> m_vertices;
-	std::unique_ptr<TriangleIndices[]> m_triangleIndices;
+	std::unique_ptr<u16[]> m_triangleIndices;
 #endif
 	AABB m_bounds;
 	u32 m_vertexCount;
@@ -90,7 +85,7 @@ public:
 
 	/////////////// getters
 	const vx::float3* getVertices() const;
-	const TriangleIndices* getTriangleIndices() const;
+	const u16* getTriangleIndices() const;
 	const NavMeshTriangle* getNavMeshTriangles() const;
 
 	u32 getVertexCount() const { return m_vertexCount; }

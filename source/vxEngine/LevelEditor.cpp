@@ -32,7 +32,7 @@ namespace Editor
 {
 	struct Editor
 	{
-		Clock clock;
+		Timer clock;
 		Logfile logfile;
 		EditorEngine engine;
 		EditorScene scene;
@@ -77,7 +77,7 @@ namespace Editor
 
 		g_pEditor->engine.editor_start();
 
-		auto frequency = Clock::getFrequency();
+		auto frequency = Timer::getFrequency();
 		g_invFrequency = 1.0 / frequency;
 		QueryPerformanceCounter(&g_last);
 

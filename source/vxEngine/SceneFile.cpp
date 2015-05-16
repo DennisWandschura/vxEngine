@@ -487,7 +487,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 u64 SceneFile::getCrc() const
 {
 	auto navMeshVertexSize = sizeof(vx::float3) * m_navMesh.getVertexCount();
-	auto navMeshTriangleSize = sizeof(TriangleIndices) * m_navMesh.getTriangleCount();
+	auto navMeshTriangleSize = sizeof(u16) * m_navMesh.getTriangleCount() * 3;
 	auto navMeshSize = navMeshVertexSize + navMeshTriangleSize;
 
 	auto meshInstanceSize = sizeof(MeshInstanceFile) * m_meshInstanceCount;

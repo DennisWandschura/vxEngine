@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #include "Segment.h"
 #include "Commands.h"
-#include "CommandCompiler.h"
 
 namespace Graphics
 {

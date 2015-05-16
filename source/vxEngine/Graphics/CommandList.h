@@ -52,7 +52,7 @@ namespace Graphics
 
 		void initialize();
 
-		void pushSegment(const Segment &segment, const char* id, u32 slot);
+		void pushSegment(const Segment &segment, const char* id);
 
 		void enableSegment(const char* id);
 		void disableSegment(const char* id);

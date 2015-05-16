@@ -28,36 +28,6 @@ SOFTWARE.
 
 namespace vx
 {
-	///////////////////////////////// memcpy
-
-	template<typename T>
-	inline void memcpy(u8* dst, const T &src)
-	{
-		::memcpy(dst, (u8*)&src, sizeof(T));
-	}
-
-	template<typename T>
-	inline void memcpy(T* dst, const T &src)
-	{
-		::memcpy((u8*)dst, (u8*)&src, sizeof(T));
-	}
-
-	template<typename T>
-	inline void memcpy(u8* dst, const T* src, u32 count)
-	{
-		const auto size = sizeof(T) * count;
-		::memcpy(dst, (u8*)src, size);
-	}
-
-	template<typename T>
-	inline void memcpy(T* dst, const T* src, u32 count)
-	{
-		const auto size = sizeof(T) * count;
-		::memcpy((u8*)dst, (u8*)src, size);
-	}
-
-	///////////////////////////////// memcpy
-
 	///////////////////////////////// write
 
 	template<typename T>

@@ -90,6 +90,7 @@
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StringPooling>true</StringPooling>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -663,6 +664,7 @@
     <None Include="..\..\game\data\shaders\editorDrawLights.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawSpawn.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawPoint.pipe" />
+    <None Include="..\..\game\data\shaders\editorInfluenceCellNew.pipe" />
     <None Include="..\..\game\data\shaders\forward_render.pipe" />
     <None Include="..\..\game\data\shaders\graph.pipe" />
     <None Include="..\..\game\data\shaders\include\atomic_counters.glsl" />
@@ -699,6 +701,8 @@
     <None Include="..\..\game\data\shaders\programs\editorDrawPointColor.vert" />
     <None Include="..\..\game\data\shaders\programs\editorDrawPoint.frag" />
     <None Include="..\..\game\data\shaders\programs\editorDrawPoint.vert" />
+    <None Include="..\..\game\data\shaders\programs\editorInfluenceCellNew.frag" />
+    <None Include="..\..\game\data\shaders\programs\editorInfluenceCellNew.vert" />
     <None Include="..\..\game\data\shaders\programs\forward_render.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\forward_render.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\graph.fs.glsl" />

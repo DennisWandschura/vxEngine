@@ -49,9 +49,10 @@ namespace Graphics
 
 		template < typename T >
 		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		 pushCommand(const T &command)
+		pushCommand(const T &command)
 		{
-			u8* ptr = (u8*)&command;
+			static_assert(__alignof(T) == 8, "");
+			const u8* ptr = (u8*)&command;
 
 			pushCommand(ptr, sizeof(T));
 		}
@@ -59,6 +60,9 @@ namespace Graphics
 		template < typename T >
 		void pushCommand(const ProgramUniformCommand &command, const ProgramUniformData<T> &data)
 		{
+			static_assert(__alignof(ProgramUniformCommand) == 8, "");
+			static_assert(__alignof(ProgramUniformData<T>) == 8, "");
+
 			u8* ptr = (u8*)&command;
 			pushCommand(ptr, sizeof(ProgramUniformCommand));
 			pushCommand(data.u, sizeof(T));

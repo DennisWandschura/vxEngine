@@ -43,8 +43,10 @@ namespace Graphics
 		m_coldData = vx::make_unique<ColdData>();
 	}
 
-	void CommandList::pushSegment(const Segment &segment, const char* id, u32 slot)
+	void CommandList::pushSegment(const Segment &segment, const char* id)
 	{
+		u32 slot = m_sortedSegments.size();
+
 		m_sortedSegments.insert(slot, segment);
 		m_segmentIndices.insert(vx::make_sid(id), slot);
 	}

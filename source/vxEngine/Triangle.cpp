@@ -34,6 +34,11 @@ f32 Triangle::getArea() const
 	return area;
 }
 
+vx::float3 Triangle::getCentroid() const
+{
+	return (m_points[0] + m_points[1] + m_points[2]) / 3.0f;
+}
+
 bool Triangle::contains(const vx::float3 &point) const
 {
 	auto a = vx::loadFloat(m_points[0]);

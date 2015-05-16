@@ -22,63 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "NavMesh.h"
-#include "utility.h"
 #include <vxLib/File/File.h>
 #include "NavMeshTriangle.h"
-#include <algorithm>
-
-/*namespace YAML
-{
-	template<>
-	struct convert < AABB >
-	{
-		static Node encode(const AABB &rhs)
-		{
-			Node n;
-			n["min"] = rhs.min;
-			n["max"] = rhs.max;
-
-			return n;
-		}
-
-		static bool decode(const Node &node, AABB &v)
-		{
-			if (node.size() != 2 && !node.IsSequence())
-				return false;
-
-			v.min = node["min"].as<vx::float3>();
-			v.max = node["max"].as<vx::float3>();
-
-			return true;
-		}
-	};
-
-	template<>
-	struct convert < TriangleIndices >
-	{
-		static Node encode(const TriangleIndices &rhs)
-		{
-			Node n;
-			n.push_back(rhs.vertexIndex[0]);
-			n.push_back(rhs.vertexIndex[1]);
-			n.push_back(rhs.vertexIndex[2]);
-
-			return n;
-		}
-
-		static bool decode(const Node &node, TriangleIndices &v)
-		{
-			if (node.size() != 3)
-				return false;
-
-			v.vertexIndex[0] = node[0].as<u16>();
-			v.vertexIndex[1] = node[1].as<u16>();
-			v.vertexIndex[2] = node[2].as<u16>();
-
-			return true;
-		}
-	};
-}*/
+#include <vxLib/algorithm.h>
+#include "utility.h"
 
 NavMesh::NavMesh()
 	:m_navMeshTriangles(),
@@ -146,7 +93,7 @@ void NavMesh::copyTo(NavMesh* other) const
 	if (other->m_triangleCount < m_triangleCount)
 	{
 		other->m_navMeshTriangles = vx::make_unique<NavMeshTriangle[]>(m_triangleCount);
-		other->m_triangleIndices.reserve(m_triangleCount);
+		other->m_triangleIndices.reserve(m_triangleCount * 3);
 	}
 
 	for (auto &it : m_triangleIndices)
@@ -167,12 +114,13 @@ void NavMesh::copyTo(NavMesh* other) const
 	}
 	vx::memcpy(other->m_vertices.get(), m_vertices.get(), m_vertexCount);
 
+	auto indexCount = m_triangleCount * 3;
 	if (other->m_triangleCount < m_triangleCount)
 	{
 		other->m_navMeshTriangles = vx::make_unique<NavMeshTriangle[]>(m_triangleCount);
-		other->m_triangleIndices = vx::make_unique<TriangleIndices[]>(m_triangleCount);
+		other->m_triangleIndices = vx::make_unique<u16[]>(indexCount);
 	}
-	vx::memcpy(other->m_triangleIndices.get(), m_triangleIndices.get(), m_triangleCount);
+	vx::memcpy(other->m_triangleIndices.get(), m_triangleIndices.get(), indexCount);
 #endif
 
 	vx::memcpy(other->m_navMeshTriangles.get(), m_navMeshTriangles.get(), m_triangleCount);
@@ -182,44 +130,6 @@ void NavMesh::copyTo(NavMesh* other) const
 	other->m_triangleCount = m_triangleCount;
 }
 
-/*void NavMesh::loadFromYAML(const YAML::Node &node)
-{
-	auto vertices = node["vertices"].as<std::vector<vx::float3>>();
-	auto triangleIndices = node["indices"].as<std::vector<TriangleIndices>>();
-
-	m_vertexCount = vertices.size();
-	m_triangleCount = triangleIndices.size();
-
-	m_bounds = node["bounds"].as<AABB>();
-
-#if _VX_EDITOR
-	m_vertices = std::move(vertices);
-
-	for (u32 i = 0; i < m_triangleCount; ++i)
-	{
-		m_triangleIndices.push_back(triangleIndices[i]);
-	}
-
-	m_vertexBounds.reserve(m_vertexCount);
-	for (auto &it : m_vertices)
-	{
-		AABB bounds;
-		bounds.min = it - vx::float3(0.1f);
-		bounds.max = it + vx::float3(0.1f);
-
-		m_vertexBounds.push_back(bounds);
-	}
-#else
-	m_vertices = vx::make_unique<vx::float3[]>(m_vertexCount);
-	m_triangleIndices = vx::make_unique<TriangleIndices[]>(m_triangleCount);
-
-	vx::memcpy(m_vertices.get(), vertices.data(), m_vertexCount);
-	vx::memcpy(m_triangleIndices.get(), triangleIndices.data(), m_triangleCount);
-#endif
-
-	m_navMeshTriangles = createNavMeshTriangles();
-}*/
-
 void NavMesh::saveToFile(vx::File *file) const
 {
 	file->write(m_vertexCount);
@@ -228,30 +138,12 @@ void NavMesh::saveToFile(vx::File *file) const
 
 #if _VX_EDITOR
 	file->write(m_vertices.data(), m_vertexCount);
-	file->write(m_triangleIndices.data(), m_triangleCount);
+	file->write(m_triangleIndices.data(), m_triangleCount * 3);
 #else
 	file->write(m_vertices.get(), m_vertexCount);
-	file->write(m_triangleIndices.get(), m_triangleCount);
+	file->write(m_triangleIndices.get(), m_triangleCount * 3);
 #endif
 }
-
-/*void NavMesh::saveToYAML(YAML::Node &node) const
-{
-#if _VX_EDITOR
-	node["vertices"] = m_vertices;
-	node["indices"] = m_triangleIndices;
-#else
-	auto vertices = std::vector<vx::float3>(m_vertexCount);
-	vx::memcpy(vertices.data(), m_vertices.get(), m_vertexCount);
-
-	auto triangles = std::vector<TriangleIndices>(m_triangleCount);
-	vx::memcpy(triangles.data(), m_triangleIndices.get(), m_triangleCount);
-
-	node["vertices"] = vertices;
-	node["indices"] = triangles;
-#endif
-	node["bounds"] = m_bounds;
-}*/
 
 const u8* NavMesh::load(const u8 *ptr)
 {
@@ -261,12 +153,14 @@ const u8* NavMesh::load(const u8 *ptr)
 
 	#warning Please use a custom allocator !
 
+	auto indexCount = m_triangleCount * 3;
+
 #if _VX_EDITOR
 	m_vertices = std::vector<vx::float3>(m_vertexCount);
-	m_triangleIndices = std::vector<TriangleIndices>(m_triangleCount);
+	m_triangleIndices = std::vector<u16>(indexCount);
 
 	ptr = vx::read(m_vertices.data(), ptr, m_vertexCount);
-	ptr = vx::read(m_triangleIndices.data(), ptr, m_triangleCount);
+	ptr = vx::read(m_triangleIndices.data(), ptr, indexCount);
 
 	m_vertexBounds.reserve(m_vertexCount);
 	for (auto &it : m_vertices)
@@ -279,10 +173,10 @@ const u8* NavMesh::load(const u8 *ptr)
 	}
 #else
 	m_vertices = vx::make_unique<vx::float3[]>(m_vertexCount);
-	m_triangleIndices = vx::make_unique<TriangleIndices[]>(m_triangleCount);
+	m_triangleIndices = vx::make_unique<u16[]>(indexCount);
 
 	ptr = vx::read(m_vertices.get(), ptr, m_vertexCount);
-	ptr = vx::read(m_triangleIndices.get(), ptr, m_triangleCount);
+	ptr = vx::read(m_triangleIndices.get(), ptr, indexCount);
 #endif
 
 	m_navMeshTriangles = createNavMeshTriangles();
@@ -313,18 +207,23 @@ void NavMesh::findAndEraseVertexFromIndices(u16 vertexIndex)
 	auto it = m_triangleIndices.begin();
 	while (it != m_triangleIndices.end())
 	{
-		it = std::find_if(m_triangleIndices.begin(), m_triangleIndices.end(), [vertexIndex](const TriangleIndices &o)
+		auto iter = m_triangleIndices.begin();
+		while (iter != m_triangleIndices.end())
 		{
-			bool result = o.vertexIndex[0] == vertexIndex ||
-				o.vertexIndex[1] == vertexIndex ||
-				o.vertexIndex[2] == vertexIndex;
+			if (*iter == vertexIndex || 
+				*(iter + 1) == vertexIndex || 
+				*(iter+2) == vertexIndex)
+			{
+				break;
+			}
 
-			return result;
-		});
+			iter += 3;
+		}
+		it = iter;
 
 		if (it != m_triangleIndices.end())
 		{
-			it = m_triangleIndices.erase(it);
+			it = m_triangleIndices.erase(it, it + 3);
 			--m_triangleCount;
 		}
 	}
@@ -338,19 +237,9 @@ void NavMesh::fixVertexIndicesAfterErasedVertex(u16 erasedVertexIndex)
 #if _VX_EDITOR
 	for (auto &it : m_triangleIndices)
 	{
-		if (it.vertexIndex[0] >= erasedVertexIndex)
+		if (it >= erasedVertexIndex)
 		{
-			--it.vertexIndex[0];
-		}
-
-		if (it.vertexIndex[1] >= erasedVertexIndex)
-		{
-			--it.vertexIndex[1];
-		}
-
-		if (it.vertexIndex[2] >= erasedVertexIndex)
-		{
-			--it.vertexIndex[2];
+			--it;
 		}
 	}
 #else
@@ -361,15 +250,19 @@ void NavMesh::fixVertexIndicesAfterErasedVertex(u16 erasedVertexIndex)
 std::unique_ptr<NavMeshTriangle[]> NavMesh::createNavMeshTriangles()
 {
 	auto ptr = vx::make_unique<NavMeshTriangle[]>(m_triangleCount);
+
+	auto indexCount = m_triangleCount * 3;
+
+	u32 index = 0;
 	for (u32 i = 0; i < m_triangleCount; ++i)
 	{
-		auto &it = m_triangleIndices[i];
-
-		ptr[i].m_triangle[0] = m_vertices[it.vertexIndex[0]];
-		ptr[i].m_triangle[1] = m_vertices[it.vertexIndex[1]];
-		ptr[i].m_triangle[2] = m_vertices[it.vertexIndex[2]];
+		ptr[i].m_triangle[0] = m_vertices[m_triangleIndices[index++]];
+		ptr[i].m_triangle[1] = m_vertices[m_triangleIndices[index++]];
+		ptr[i].m_triangle[2] = m_vertices[m_triangleIndices[index++]];
 		ptr[i].m_count = 0;
 	}
+
+	VX_ASSERT(indexCount == index);
 
 	for (u32 j = 0; j < m_triangleCount; ++j)
 	{
@@ -421,14 +314,11 @@ void NavMesh::addTriangle(const u32(&selectedIndices)[3])
 	auto v1 = m_vertices[selectedIndices[1]];
 	auto v2 = m_vertices[selectedIndices[2]];
 
-	TriangleIndices triangleIndices;
-	triangleIndices.vertexIndex[0] = selectedIndices[0];
-	triangleIndices.vertexIndex[1] = selectedIndices[1];
-	triangleIndices.vertexIndex[2] = selectedIndices[2];
-
 	if (isCCW(v0, v1, v2))
 	{
-		m_triangleIndices.push_back(triangleIndices);
+		m_triangleIndices.push_back(selectedIndices[0]);
+		m_triangleIndices.push_back(selectedIndices[1]);
+		m_triangleIndices.push_back(selectedIndices[2]);
 
 		++m_triangleCount;
 
@@ -511,7 +401,7 @@ const vx::float3* NavMesh::getVertices() const
 #endif
 }
 
-const TriangleIndices* NavMesh::getTriangleIndices() const
+const u16* NavMesh::getTriangleIndices() const
 { 
 #if _VX_EDITOR
 	return m_triangleIndices.data();

@@ -28,7 +28,7 @@ SOFTWARE.
 #include <vector>
 #include "utility.h"
 #include <vxLib/Allocator/StackAllocator.h>
-#include <algorithm>
+#include <vxLib/algorithm.h>
 #include "AABB.h"
 #include <vxLib/ScopeGuard.h>
 
@@ -109,16 +109,14 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 	// bounds of centroids
 	AABB bounds;
 	// create triangles
+
+	u32 index=0;
 	for (u32 i = 0; i < triangleCount; ++i)
 	{
-		auto i0 = triangleIndices[i].vertexIndex[0];
-		auto i1 = triangleIndices[i].vertexIndex[1];
-		auto i2 = triangleIndices[i].vertexIndex[2];
-
 		NavGraphTriangle t;
-		t.v[0] = vertices[i0];
-		t.v[1] = vertices[i1];
-		t.v[2] = vertices[i2];
+		t.v[0] = vertices[triangleIndices[index++]];
+		t.v[1] = vertices[triangleIndices[index++]];
+		t.v[2] = vertices[triangleIndices[index++]];
 		t.c = (t.v[0] + t.v[1] + t.v[2]) / 3.0f;
 
 		bounds = AABB::merge(bounds, t.c);

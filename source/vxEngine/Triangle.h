@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 #include <vxLib/math/Vector.h>
 
@@ -41,11 +41,7 @@ struct Triangle
 
 	f32 getArea() const;
 
-	bool contains(const vx::float3 &point) const;
-};
+	vx::float3 getCentroid() const;
 
-struct VX_ALIGN(8) TriangleA
-{
-	vx::float3 m_points[3];
-	f32 padding;
+	bool contains(const vx::float3 &point) const;
 };

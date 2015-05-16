@@ -27,7 +27,6 @@ class MeshInstance;
 class NavMesh;
 struct VertexNavMesh;
 class InfluenceMap;
-struct TriangleIndices;
 class NavMeshGraph;
 
 #include "RenderAspect.h"
@@ -66,26 +65,18 @@ class EditorRenderAspect : public RenderAspect
 		vx::gl::VertexArray m_spawnPointVao;
 		vx::gl::Buffer m_spawnPointCmdBuffer;
 
-		vx::gl::Buffer m_navMeshVertexVbo;
-		vx::gl::Buffer m_navMeshVertexIbo;
-
-		vx::gl::Buffer m_influenceCellVbo;
-
 		vx::gl::Buffer m_navMeshGraphNodesVbo;
 
 		vx::gl::Buffer m_navMeshVertexCmdBuffer;
 		vx::gl::Buffer m_graphNodesCmdBuffer;
 		vx::gl::Buffer m_navmeshCmdBuffer;
 		vx::gl::Buffer m_lightCmdBuffer;
-		vx::gl::Buffer m_influenceMapCmdBuffer;
 
-		u32 m_influenceCellCount{ 0 };
 		u32 m_lightCount{ 0 };
 		u32 m_navMeshIndexCount{ 0 };
 		u32 m_navMeshVertexCount{ 0 };
 		vx::gl::VertexArray m_navMeshVao;
 		vx::gl::VertexArray m_navMeshVertexVao;
-		vx::gl::VertexArray m_influenceVao;
 	};
 
 	vx::gl::Buffer m_meshCountBuffer;
@@ -104,8 +95,6 @@ class EditorRenderAspect : public RenderAspect
 
 	void createNavMeshVao();
 	void createNavMeshVertexVao();
-
-	void createInfluenceCellVao();
 
 	void createNavMeshNodesVao();
 
@@ -130,7 +119,7 @@ class EditorRenderAspect : public RenderAspect
 
 	void uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, u32 count);
 	void updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, u32 count, u32(&selectedVertexIndex)[3], u8 selectedCount);
-	void updateNavMeshIndexBuffer(const TriangleIndices* indices, u32 count);
+	void updateNavMeshIndexBuffer(const u16* indices, u32 count);
 	void updateNavMeshIndexBuffer(const NavMesh &navMesh);
 
 public:

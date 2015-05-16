@@ -24,7 +24,7 @@ SOFTWARE.
 #include "NavMeshGraph.h"
 #include "NavMesh.h"
 #include "NavMeshTriangle.h"
-#include "utility.h"
+#include <vxLib/algorithm.h>
 #include <vector>
 #include <vxLib/Container/sorted_vector.h>
 

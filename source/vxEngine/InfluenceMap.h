@@ -24,62 +24,30 @@ SOFTWARE.
 #pragma once
 
 class NavMesh;
-class NavGraph;
 
-#include <vxLib/math/Vector.h>
-#include <vector>
-#include "AABB.h"
 #include <vxLib/memory.h>
+#include "Triangle.h"
 
 struct InfluenceCell
 {
-	vx::float3 m_position;
-	f32 m_influence;
-	u16 m_offset;
-	u16 m_count;
-	f32 m_area;
-	f32 m_priority;
+	u32 triangleCount;
+	u32 triangleOffset;
+	f32 totalArea;
 };
 
 class InfluenceMap
 {
-	struct AABB_SIMD
-	{
-		__m128 vmin, vmax;
-	};
-
-	std::unique_ptr<AABB_SIMD[]> m_cellBounds;
-	std::unique_ptr<InfluenceCell[]> m_cells; // 8
-	// influence cell data
-	std::unique_ptr<u16[]> m_navNodeIndices;
-	vx::float3 m_center; // 12
-	vx::float3 m_invGridCellSize; // 12
-	vx::float3 m_voxelHalfDim; // 12
-	vx::ushort3 m_cellCount; // 6
-
-	void createCells(const vx::uint3 &cellCount, u32 cellTotalCount, const vx::float3 &cellDim, const AABB &navBounds);
-	void createCell(__m128 vBoundsMin, __m128 vCellSize, const vx::uint3 &cellPosition, u32 index);
-	void createNodeIndicesAndSetCellData(const NavMesh &navMesh, u32 cellTotalCount);
+	std::unique_ptr<InfluenceCell[]> m_cells;
+	std::unique_ptr<Triangle[]> m_triangles;
+	u32 m_cellCount;
 
 public:
-	void initialize(const NavMesh &navMesh, f32 cellSize, f32 cellHeight);
+	InfluenceMap();
+	~InfluenceMap();
 
-	void update(f32 dt);
-	void updateActor(f32 dt, const vx::float3 &position);
+	void initialize(const NavMesh &navMesh);
 
-	const InfluenceCell& getCell(u32 x, u32 y, u32 z) const;
-	const InfluenceCell& getCell(u32 index) const;
-	const InfluenceCell* getInfluenceCells() const;
-
-	u32 getCellCount() const;
-
-	s32 getClosestCellIndex_nocheck(const vx::float3 &position) const;
-	u32 getClosestCellIndex(const vx::float3 &position) const;
-	vx::int3 getClosestCellPosition(const vx::float3 &position) const;
-	const u16* getNavNodeIndices() const;
-
-	bool isEmpty(u32 cellIndex) const;
-	bool contains(u32 cellIndex, const vx::float3 &position) const;
-
-	void getCells(const vx::float3 &p, f32 minRadius, f32 maxRadius, u32 maxCount, InfluenceCell* pCells, u32* count) const;
+	const InfluenceCell* getCellsNew() const;
+	const Triangle* getTriangles() const;
+	u32 getCellsNewCount() const;
 };

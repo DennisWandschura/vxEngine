@@ -51,7 +51,11 @@ namespace Graphics
 	{
 		enum { Count = sizeof(T) };
 
-		u8 u[Count];
+		union
+		{
+			u8 u[Count];
+			u64 padding;
+		};
 
 		ProgramUniformData() : u()
 		{

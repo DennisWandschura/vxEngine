@@ -168,7 +168,7 @@ void EditorEngine::buildNavGraph()
 {
 	auto &navMesh = m_pEditorScene->getNavMesh();
 
-	m_influenceMap.initialize(navMesh, 5, 3.0f);
+	m_influenceMap.initialize(navMesh);
 
 	NavMeshGraph graph;
 	graph.initialize(navMesh);

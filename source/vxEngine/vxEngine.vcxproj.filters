@@ -1216,5 +1216,14 @@
     <None Include="..\..\game\data\shaders\editorDrawNavmeshConnection.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
+    <None Include="..\..\game\data\shaders\programs\editorInfluenceCellNew.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorInfluenceCellNew.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorInfluenceCellNew.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
   </ItemGroup>
 </Project>

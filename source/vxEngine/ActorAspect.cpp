@@ -66,9 +66,7 @@ void ActorAspect::createInfluenceMap(const Scene* scene)
 {
 	auto &navmesh = scene->getNavMesh();
 
-	f32 cellHeight = 2.1f;
-	f32 cellWidthDepth = 3.0f;
-	m_influenceMap.initialize(navmesh, cellWidthDepth, cellHeight);
+	m_influenceMap.initialize(navmesh);
 }
 
 void ActorAspect::handleFileEvent(const Event &evt)
@@ -134,8 +132,6 @@ void ActorAspect::handleEvent(const Event &evt)
 
 void ActorAspect::update(f32 dt)
 {
-	m_influenceMap.update(dt);
-
 	m_squad.update();
 
 	auto p = m_pActorPool->first();
