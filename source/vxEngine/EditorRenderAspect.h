@@ -30,17 +30,9 @@ class InfluenceMap;
 class NavMeshGraph;
 
 #include "RenderAspect.h"
-#include "EditorRenderData.h"
 #include <vxLib/Variant.h>
 #include <atomic>
 #include "Graphics/CommandList.h"
-
-typedef  struct {
-	u32  count;
-	u32  instanceCount;
-	u32  first;
-	u32  baseInstance;
-} DrawArraysIndirectCommand;
 
 class EditorRenderAspect : public RenderAspect
 {
@@ -85,7 +77,6 @@ class EditorRenderAspect : public RenderAspect
 	vx::gl::VertexArray m_navMeshGraphNodesVao;
 
 	u32 m_navMeshGraphNodesCount{0};
-	Editor::RenderData m_editorData;
 
 	SelectedMeshInstance m_selectedInstance{};
 	std::mutex m_updateDataMutex{};
@@ -133,9 +124,6 @@ public:
 
 	void editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ);
 	void VX_CALLCONV editor_rotateCamera(const __m128 rotation);
-
-	void editor_updateMouseHit(const vx::float3 &p);
-	void editor_updateWaypoint(u32 offset, u32 count, const Waypoint* src);
 
 	void handleEvent(const Event &evt) override;
 

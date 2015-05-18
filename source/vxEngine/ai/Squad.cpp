@@ -30,6 +30,11 @@ SOFTWARE.
 #include "../AStar.h"
 #include <vxLib/Container/array.h>
 #include <vxLib/ScopeGuard.h>
+#include <random>
+
+namespace SquadCpp
+{
+}
 
 namespace ai
 {
@@ -37,7 +42,9 @@ namespace ai
 	NavMeshGraph* Squad::s_navmeshGraph{ nullptr };
 
 	Squad::Squad()
-		:m_entities()
+		:m_entities(),
+		m_pseudoRandom(),
+		m_avgCoverageArea(30.0f)
 	{
 
 	}
@@ -49,63 +56,153 @@ namespace ai
 
 	void Squad::initialize(vx::StackAllocator* allocator)
 	{
-		m_scratchAllocator = vx::StackAllocator(allocator->allocate(100 KBYTE, 8), 100 KBYTE);
+		const auto memorySize = 100 KBYTE;
+		m_scratchAllocator = vx::StackAllocator(allocator->allocate(memorySize, 8), memorySize);
+
+		std::mt19937_64 gen((u64)allocator);
+		std::uniform_int_distribution<u32> dist(2, 0xffffffff / 2);
+		auto gen1 = dist(gen);
+
+		std::uniform_int_distribution<u32> seedDist(1, gen1 - 1);
+		auto seed = seedDist(gen);
+
+		m_pseudoRandom = PseudoRandom(gen1, seed, 1);
 	}
 
-	void Squad::addEntity(EntityActor* entity, Component::Actor* actorComponent)
+	bool Squad::addEntity(EntityActor* entity, Component::Actor* actorComponent)
 	{
+		if (m_availableCells.empty())
+			return false;
+
 		Data data;
-		data.entity = entity;
-		data.actorComponent = actorComponent;
+		data.m_entity = entity;
+		data.m_actorComponent = actorComponent;
 
-		m_entities.push_back(data);
-	}
+		auto influenceCells = s_influenceMap->getCells();
 
-	void Squad::update()
-	{
-		for (auto &it : m_entities)
+		u8 cellCount = 0;
+
+		if (!m_availableCells.empty())
 		{
-			if (it.actorComponent->m_busy == 0)
+			auto it = m_availableCells.begin();
+
+			auto firstCellIndex = *it;
+			data.m_cells[0] = firstCellIndex;
+			++cellCount;
+
+			it = m_availableCells.erase(it);
+
+			while (it != m_availableCells.end())
 			{
-				auto entityPosition = it.entity->position;
-				entityPosition.y = it.entity->footPositionY;
-
-				auto endPosition = vx::float3(0, 0, -5);
-				endPosition.y = entityPosition.y;
-
-				auto startNodeIndex = s_navmeshGraph->getClosestNodeInex(entityPosition);
-				auto endNodeIndex = s_navmeshGraph->getClosestNodeInex(endPosition);
-
-				auto allocatorMarker = m_scratchAllocator.getMarker();
-				SCOPE_EXIT
+				if (s_influenceMap->sharesEdge(influenceCells[firstCellIndex], influenceCells[*it]))
 				{
-					m_scratchAllocator.clear(allocatorMarker);
-				};
+					data.m_cells[1] = *it;
+					++cellCount;
 
-				vx::array<vx::float3> outNodes = vx::array<vx::float3>(50, &m_scratchAllocator);
-
-				astar::PathFindDescription desc;
-				desc.goalIndex = endNodeIndex;
-				desc.graph = s_navmeshGraph;
-				desc.heuristicFp = astar::heuristicDistance;
-				desc.outArray = &outNodes;
-				desc.scratchAllocator = &m_scratchAllocator;
-				desc.startIndex = startNodeIndex;
-				desc.destinationPosition = endPosition;
-
-				if (astar::pathfind(desc))
-				{
-					auto &path = it.actorComponent->m_data->path;
-					path.reserve(outNodes.size());
-					for (u32 i = 0; i < outNodes.size(); ++i)
-					{
-						path.push_back(outNodes[i]);
-					}
-
-					it.actorComponent->m_busy = 1;
-					it.actorComponent->m_followingPath = 1;
+					m_availableCells.erase(it);
+					break;
 				}
 			}
+		}
+
+		data.m_cellCount = cellCount;
+		actorComponent->m_data->squad = this;
+
+		m_entities.push_back(data);
+
+		return true;
+	}
+
+	void Squad::createPath(Component::Actor* componentActor)
+	{
+		Data* targetData = nullptr;
+		for (auto &it : m_entities)
+		{
+			if (it.m_actorComponent == componentActor)
+			{
+				targetData = &it;
+			}
+		}
+
+		if (targetData == nullptr)
+			return;
+
+		auto entityPosition = targetData->m_entity->position;
+		entityPosition.y = targetData->m_entity->footPositionY;
+
+		auto influenceCells = s_influenceMap->getCells();
+		auto influenceCellBounds = s_influenceMap->getBounds();
+
+		const InfluenceCell* currentCell = nullptr;
+		auto actorCellCount = targetData->m_cellCount;
+		u8 actorCellIndex = 0;
+		for (u32 i = 0; i < actorCellCount; ++i)
+		{
+			auto cellIndex = targetData->m_cells[i];
+			if (influenceCellBounds[cellIndex].contains(entityPosition))
+			{
+				actorCellIndex = i;
+				currentCell = &influenceCells[cellIndex];
+				break;
+			}
+		}
+
+		if (currentCell == nullptr)
+		{
+			return;
+		}
+
+		const InfluenceCell* targetCell = currentCell;
+		if (actorCellCount == 2)
+		{
+			auto otherActorCellIndex = (actorCellIndex + 1) % 2;
+			auto cellIndex = targetData->m_cells[otherActorCellIndex];
+
+			targetCell = &influenceCells[cellIndex];
+		}
+
+		if (targetCell == currentCell)
+			printf("Squad::createPath: Something went wrong\n");
+
+		m_pseudoRandom.setMaxValue(targetCell->triangleCount - 1);
+
+		auto targetTriangleIndex = m_pseudoRandom.getValue();
+		auto influenceMapTriangles = s_influenceMap->getTriangles();
+		auto targetTriangle = influenceMapTriangles[targetTriangleIndex];
+
+		auto endPosition = targetTriangle.getCentroid();
+
+		auto startNodeIndex = s_navmeshGraph->getClosestNodeInex(entityPosition);
+		auto endNodeIndex = s_navmeshGraph->getClosestNodeInex(endPosition);
+
+		auto allocatorMarker = m_scratchAllocator.getMarker();
+		SCOPE_EXIT
+		{
+			m_scratchAllocator.clear(allocatorMarker);
+		};
+
+		vx::array<vx::float3> outNodes = vx::array<vx::float3>(50, &m_scratchAllocator);
+
+		AStar::PathFindDescription desc;
+		desc.goalIndex = endNodeIndex;
+		desc.graph = s_navmeshGraph;
+		desc.heuristicFp = AStar::heuristicDistance;
+		desc.outArray = &outNodes;
+		desc.scratchAllocator = &m_scratchAllocator;
+		desc.startIndex = startNodeIndex;
+		desc.destinationPosition = endPosition;
+
+		if (AStar::pathfind(desc))
+		{
+			auto &path = targetData->m_actorComponent->m_data->path;
+			path.reserve(outNodes.size());
+			for (u32 i = 0; i < outNodes.size(); ++i)
+			{
+				path.push_back(outNodes[i]);
+			}
+
+			printf("cell, node: %llu %u\n", targetCell - influenceCells, targetTriangleIndex);
+			targetData->m_actorComponent->m_followingPath = 1;
 		}
 	}
 
@@ -113,5 +210,13 @@ namespace ai
 	{
 		s_influenceMap = influenceMap;
 		s_navmeshGraph = graph;
+	}
+
+	void Squad::updateAfterProvide()
+	{
+		auto cellCount = s_influenceMap->getCellCount();
+
+		for (u32 i = 0; i < cellCount; ++i)
+			m_availableCells.push_back(i);
 	}
 }

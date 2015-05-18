@@ -405,11 +405,6 @@ void EditorEngine::updateSelectedMeshInstanceTransform(const vx::float3 &p)
 	m_renderAspect.updateSelectedMeshInstanceTransform(transform);
 }
 
-void EditorEngine::addWaypoint(const vx::float3 &p)
-{
-	m_waypointManager.addWaypoint(p, &m_renderAspect);
-}
-
 bool EditorEngine::addNavMeshVertex(s32 mouseX, s32 mouseY)
 {
 	vx::float3 hitPos;

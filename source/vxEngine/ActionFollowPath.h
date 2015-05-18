@@ -26,7 +26,7 @@ SOFTWARE.
 namespace Component
 {
 	struct Input;
-	struct ActorData;
+	struct Actor;
 }
 
 struct EntityActor;
@@ -41,11 +41,12 @@ class ActionFollowPath : public Action
 	Component::Input* m_componentInput;
 	EntityActor* m_entity;
 	Arrive m_arrive;
-	Component::ActorData* m_actorData;
+	Component::Actor* m_actor;
+
 	bool m_arrived;
 
 public:
-	ActionFollowPath(EntityActor*entity, Component::Input* componentInput, Component::ActorData* actorData);
+	ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actorData);
 
 	void run() override;
 

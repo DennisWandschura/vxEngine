@@ -31,5 +31,8 @@ struct NavMeshTriangle
 	u16 m_sharedEdges[3];
 	u16 m_count;
 
-	bool sharesEdge(const NavMeshTriangle &other) const;
+	bool sharesEdge(const NavMeshTriangle &other) const
+	{
+		return m_triangle.sharesEdge(other.m_triangle);
+	}
 };

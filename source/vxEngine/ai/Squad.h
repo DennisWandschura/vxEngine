@@ -35,6 +35,7 @@ namespace Component
 #include <vxLib/types.h>
 #include <vector>
 #include <vxLib/Allocator/StackAllocator.h>
+#include "../PseudoRandom.h"
 
 namespace ai
 {
@@ -45,12 +46,17 @@ namespace ai
 
 		struct Data
 		{
-			EntityActor* entity;
-			Component::Actor* actorComponent;
+			EntityActor* m_entity;
+			Component::Actor* m_actorComponent;
+			u16 m_cells[2];
+			u8 m_cellCount;
 		};
 
 		std::vector<Data> m_entities;
+		PseudoRandom m_pseudoRandom;
 		vx::StackAllocator m_scratchAllocator;
+		f32 m_avgCoverageArea;
+		std::vector<u32> m_availableCells;
 
 	public:
 		Squad();
@@ -58,10 +64,11 @@ namespace ai
 
 		void initialize(vx::StackAllocator* allocator);
 
-		void addEntity(EntityActor* entity, Component::Actor* actorComponent);
+		bool addEntity(EntityActor* entity, Component::Actor* actorComponent);
 
-		void update();
+		void createPath(Component::Actor* componentActor);
 
 		static void provide(InfluenceMap* influenceMap, NavMeshGraph* graph);
+		void updateAfterProvide();
 	};
 }

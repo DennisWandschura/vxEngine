@@ -65,3 +65,28 @@ bool Triangle::contains(const vx::float3 &point) const
 
 	return true;
 }
+
+bool Triangle::sharesEdge(const Triangle &other) const
+{
+	u8 sharedCount = 0;
+
+	for (int i = 0; i < 3; ++i)
+	{
+		auto otherPoint = other.m_points[i];
+
+		if (m_points[0].x == otherPoint.x &&
+			m_points[0].y == otherPoint.y &&
+			m_points[0].z == otherPoint.z)
+			++sharedCount;
+		else if (m_points[1].x == otherPoint.x &&
+			m_points[1].y == otherPoint.y &&
+			m_points[1].z == otherPoint.z)
+			++sharedCount;
+		else if (m_points[2].x == otherPoint.x &&
+			m_points[2].y == otherPoint.y &&
+			m_points[2].z == otherPoint.z)
+			++sharedCount;
+	}
+
+	return sharedCount > 1;
+}

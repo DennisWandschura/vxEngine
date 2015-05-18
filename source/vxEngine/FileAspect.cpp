@@ -495,7 +495,7 @@ LoadFileReturnType FileAspect::loadFile(const FileEntry &fileEntry, std::vector<
 	desc.fileName = fileName;
 	desc.pUserData = pUserData;
 	desc.result = &result;
-	desc.sid = vx::make_sid(fileName);
+	desc.sid = fileEntry.getSid();
 	desc.fileData = fileData;
 	desc.fileNameWithPath = fileNameWithPath;
 	desc.fileSize = fileSize;
@@ -514,7 +514,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 
 	vx::verboseChannelPrintF(0, dev::Channel_FileAspect, "Trying to save file %s\n", fileName);
 
-	p->u64 = vx::make_sid(fileName).value;
+	p->u64 = request.m_fileEntry.getSid().value;
 
 	LoadFileReturnType result;
 	result.result = 0;

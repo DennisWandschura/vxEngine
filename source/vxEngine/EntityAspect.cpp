@@ -53,6 +53,8 @@ SOFTWARE.
 #include "ConditionActorHasPath.h"
 #include "ActionFollowPath.h"
 #include "ActionSetFollowPath.h"
+#include "ActionPrintText.h"
+#include "ActionActorCreatePath.h"
 
 namespace
 {
@@ -120,11 +122,15 @@ Component::Actor* EntityAspect::createComponentActor(u16 entityIndex, EntityActo
 	pActor->m_busy = 0;
 	pActor->m_followingPath = 0;
 
-	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, componentInput, pActor->m_data.get());
+	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, componentInput, pActor);
 	ActionSetFollowPath* actionSetFollowPath = new ActionSetFollowPath(actionFollowPath, pActor->m_data.get());
+
+	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(pActor);
 
 	State* waitingState = new State();
 	State* movingState = new State();
+
+	waitingState->addAction(actionActorCreatePath);
 
 	ConditionActorHasPath* conditionActorHasPath = new ConditionActorHasPath(pActor->m_data.get());
 	ConditionActorNotFollowingPath* conditionActorNotFollowingPath = new ConditionActorNotFollowingPath(pActor);
@@ -221,6 +227,7 @@ void EntityAspect::updatePhysics_linear(f32 dt)
 	auto p = m_poolEntity.first();
 	while (p != nullptr)
 	{
+		auto contactOffset = p->pRigidActor->getContactOffset();
 		auto footPosition = p->pRigidActor->getFootPosition();
 
 		auto position = p->pRigidActor->getPosition();

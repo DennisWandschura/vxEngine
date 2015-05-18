@@ -27,13 +27,11 @@ SOFTWARE.
 
 enum class FileType : u8;
 
-#include <string>
+#include <vxLib/File/FileHandle.h>
 
 class FileEntry
 {
-	static const u8 s_bufferSize = 31u;
-
-	char m_file[s_bufferSize];
+	vx::FileHandle m_fileHandle;
 	FileType m_type;
 
 public:
@@ -42,12 +40,9 @@ public:
 
 	template<size_t SIZE>
 	FileEntry(const char(&file)[SIZE], FileType t)
+		:m_fileHandle(file),
+		m_type(t)
 	{
-		static_assert(SIZE <= s_bufferSize, "Array too large !");
-		for (u32 i = 0; i < SIZE; ++i)
-		{
-			m_file[i] = tolower(file[i]);
-		}
 	}
 
 	FileEntry(const FileEntry &rhs);
@@ -57,5 +52,6 @@ public:
 	FileEntry& operator=(FileEntry &&rhs);
 
 	FileType getType() const noexcept{ return m_type; }
-	const char* getString() const noexcept { return m_file; }
+	const char* getString() const noexcept{ return m_fileHandle.m_string; }
+	const vx::StringID& getSid() const { return m_fileHandle.m_sid; }
 };

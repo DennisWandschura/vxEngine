@@ -33,7 +33,6 @@ class EditorScene;
 #include "thread.h"
 #include "memory.h"
 #include "LevelEditor.h"
-#include "EditorWaypointManager.h"
 #include "Editor.h"
 #include "EventListener.h"
 #include "InfluenceMap.h"
@@ -75,7 +74,6 @@ class EditorEngine : public EventListener
 		std::atomic_uint m_bRunFileThread;
 	};
 	Selected m_selected;
-	Editor::WaypointManager m_waypointManager;
 	vx::thread m_fileAspectThread;
 	vx::StackAllocator m_allocator;
 	vx::StackAllocator m_scratchAllocator;
@@ -130,9 +128,6 @@ public:
 	void requestLoadFile(const FileEntry &fileEntry, void* p);
 
 	void updateSelectedMeshInstanceTransform(const vx::float3 &p);
-
-	void addWaypoint(const vx::float3 &p);
-
 
 	void setSelectedNavMeshVertexPosition(const vx::float3 &position);
 	vx::float3 getSelectedNavMeshVertexPosition() const;

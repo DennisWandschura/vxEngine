@@ -86,7 +86,6 @@ void ActorAspect::handleFileEvent(const Event &evt)
 		auto pEvtManager = Locator::getEventManager();
 		pEvtManager->addEvent(evt);
 
-
 		createInfluenceMap(pCurrentScene);
 		Event evtInfluence;
 		evtInfluence.arg1.ptr = &m_influenceMap;
@@ -96,6 +95,7 @@ void ActorAspect::handleFileEvent(const Event &evt)
 		pEvtManager->addEvent(evtInfluence);
 
 		ai::Squad::provide(&m_influenceMap, &m_navmeshGraph);
+		m_squad.updateAfterProvide();
 	}
 }
 
@@ -132,8 +132,6 @@ void ActorAspect::handleEvent(const Event &evt)
 
 void ActorAspect::update(f32 dt)
 {
-	m_squad.update();
-
 	auto p = m_pActorPool->first();
 	while (p != nullptr)
 	{

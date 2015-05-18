@@ -167,10 +167,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h" />
+    <ClInclude Include="ActionActorCreatePath.h" />
     <ClInclude Include="ActionFollowPath.h" />
     <ClInclude Include="ActionPlayerLookAround.h" />
     <ClInclude Include="ActionManager.h" />
     <ClInclude Include="ActionPlayerMove.h" />
+    <ClInclude Include="ActionPrintText.h" />
     <ClInclude Include="ActionSetFollowPath.h" />
     <ClInclude Include="ActionUpdateGpuTransform.h" />
     <ClInclude Include="Actor.h" />
@@ -203,6 +205,7 @@
     <ClInclude Include="Graphics\StaticMeshRenderer.h" />
     <ClInclude Include="Graphics\Surface.h" />
     <ClInclude Include="input\Keys.h" />
+    <ClInclude Include="PseudoRandom.h" />
     <ClInclude Include="Reference.h" />
     <ClInclude Include="RenderCommand.h" />
     <ClInclude Include="RenderCommandFinalImage.h" />
@@ -213,8 +216,6 @@
     <ClInclude Include="EditorRenderAspect.h" />
     <ClInclude Include="EditorScene.h" />
     <ClInclude Include="EventEditor.h" />
-    <ClInclude Include="EditorRenderData.h" />
-    <ClInclude Include="EditorWaypointManager.h" />
     <ClInclude Include="EventsAI.h" />
     <ClInclude Include="Align.h" />
     <ClInclude Include="Arrive.h" />
@@ -336,6 +337,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ActionActorCreatePath.cpp" />
     <ClCompile Include="ActionFollowPath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -348,6 +350,7 @@
     <ClCompile Include="ActionPlayerMove.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ActionPrintText.cpp" />
     <ClCompile Include="ActionSetFollowPath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -410,13 +413,7 @@
     <ClCompile Include="EditorRenderAspect.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="EditorRenderData.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="EditorScene.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="EditorWaypointManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="EngineConfig.cpp">
@@ -493,9 +490,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="NavMeshGraph.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="NavMeshTriangle.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ogg_stream.cpp">

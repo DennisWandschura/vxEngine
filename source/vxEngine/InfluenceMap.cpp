@@ -30,39 +30,15 @@ SOFTWARE.
 #include <vxLib/algorithm.h>
 #include <vector>
 
-namespace
+namespace InfluenceMapCpp
 {
-	struct Triangle_SIMD
-	{
-		__m128 v[3];
-	};
-
-	struct AABB_POINT
-	{
-		static bool VX_CALLCONV contains(const __m128 vmin, const __m128 vmax, const __m128 p)
-		{
-			// only need to consider the first three values
-			const int resultMask = 1 << 0 | 1 << 1 | 1 << 2;
-
-			auto cmp1 = _mm_cmpge_ps(p, vmin);
-			auto cmp2 = _mm_cmple_ps(p, vmax);
-
-			auto m1 = _mm_movemask_ps(cmp1);
-			auto m2 = _mm_movemask_ps(cmp2);
-
-			auto m = (m1 & m2) & resultMask;
-
-			return (m == resultMask);
-		}
-	};
-
-	struct BuildInfluenceCell
+	struct BuildCell
 	{
 		std::vector<u32> indices;
 		f32 totalArea;
 	};
 
-	struct CompareFloat3
+	struct InfluenceMapCompareFloat3
 	{
 		bool operator()(const vx::float3 &a, const vx::float3 &b)
 		{
@@ -77,7 +53,7 @@ namespace
 		}
 	};
 
-	void addTrianglesThatShareEdgesToCell(f32 minArea, const NavMeshTriangle* triangles, vx::sorted_vector<vx::float3, u32, CompareFloat3>* sortedTriangles, BuildInfluenceCell* currentCell)
+	void addTrianglesThatShareEdgesToCell(f32 minArea, const NavMeshTriangle* triangles, vx::sorted_vector<vx::float3, u32, InfluenceMapCompareFloat3>* sortedTriangles, BuildCell* currentCell)
 	{
 		for (u32 k = 0; k < currentCell->indices.size(); ++k)
 		{
@@ -104,9 +80,9 @@ namespace
 		}
 	}
 
-	void createCellsNew(const NavMeshTriangle* triangles, u32 triangleCount, f32 minArea, std::vector<BuildInfluenceCell>* buildCells)
+	void createCellsNew(const NavMeshTriangle* triangles, u32 triangleCount, f32 minArea, std::vector<BuildCell>* buildCells)
 	{
-		vx::sorted_vector<vx::float3, u32, CompareFloat3> sortedTriangles;
+		vx::sorted_vector<vx::float3, u32, InfluenceMapCompareFloat3> sortedTriangles;
 		sortedTriangles.reserve(triangleCount);
 
 		for (u32 i = 0; i < triangleCount; ++i)
@@ -115,7 +91,7 @@ namespace
 			sortedTriangles.insert(centroid, i);
 		}
 
-		BuildInfluenceCell currentCell;
+		BuildCell currentCell;
 		currentCell.totalArea = 0.0f;
 
 		auto currentIndex = sortedTriangles.back();
@@ -146,7 +122,7 @@ namespace
 		}
 	}
 
-	bool cellsShareEdge(const BuildInfluenceCell &currentCell, const BuildInfluenceCell &otherCell, const NavMeshTriangle* triangles)
+	bool cellsShareEdge(const BuildCell &currentCell, const BuildCell &otherCell, const NavMeshTriangle* triangles)
 	{
 		for (auto &currentIndex : currentCell.indices)
 		{
@@ -164,9 +140,9 @@ namespace
 		return false;
 	}
 
-	BuildInfluenceCell* findCellThatSharesEdge(const BuildInfluenceCell &currentCell, const NavMeshTriangle* triangles, std::vector<BuildInfluenceCell>* cells)
+	BuildCell* findCellThatSharesEdge(const BuildCell &currentCell, const NavMeshTriangle* triangles, std::vector<BuildCell>* cells)
 	{
-		BuildInfluenceCell* sharedCell = nullptr;
+		BuildCell* sharedCell = nullptr;
 
 		for (auto &otherCell : *cells)
 		{
@@ -179,7 +155,7 @@ namespace
 		return sharedCell;
 	}
 
-	void mergCellWithExistingOrAdd(const BuildInfluenceCell &currentCell, const NavMeshTriangle* triangles, std::vector<BuildInfluenceCell>* cells)
+	void mergCellWithExistingOrAdd(const BuildCell &currentCell, const NavMeshTriangle* triangles, std::vector<BuildCell>* cells)
 	{
 		auto sharedCell = findCellThatSharesEdge(currentCell, triangles, cells);
 
@@ -198,7 +174,7 @@ namespace
 		}
 	}
 
-	void addOrMergeCells(f32 minArea, const std::vector<BuildInfluenceCell> &buildCells, const NavMeshTriangle* triangles, std::vector<BuildInfluenceCell>* finalCells)
+	void addOrMergeCells(f32 minArea, const std::vector<BuildCell> &buildCells, const NavMeshTriangle* triangles, std::vector<BuildCell>* finalCells)
 	{
 		for (auto &currentCell : buildCells)
 		{
@@ -213,19 +189,31 @@ namespace
 		}
 	}
 
-	void buildCellsNew(const NavMeshTriangle* triangles, u32 triangleCount, std::vector<BuildInfluenceCell>* finalCells)
+	void buildCellsNew(const NavMeshTriangle* triangles, u32 triangleCount, std::vector<BuildCell>* finalCells)
 	{
 		const f32 minArea = 20.0f;
 
-		std::vector<BuildInfluenceCell> buildCells;
+		std::vector<BuildCell> buildCells;
 		createCellsNew(triangles, triangleCount, minArea, &buildCells);
 
 		addOrMergeCells(minArea, buildCells, triangles, finalCells);
 	}
+
+	void createInfluenceCellBounds(const BuildCell &cell, const NavMeshTriangle* triangles, AABB* bounds)
+	{
+		for (auto &it : cell.indices)
+		{
+			auto &triangle = triangles[it];
+
+			*bounds = AABB::merge(*bounds, triangle.m_triangle[0]);
+			*bounds = AABB::merge(*bounds, triangle.m_triangle[1]);
+			*bounds = AABB::merge(*bounds, triangle.m_triangle[2]);
+		}
+	}
 }
 
 InfluenceMap::InfluenceMap()
-	:m_cellCount()
+	:m_cellCount(0)
 {
 
 }
@@ -240,18 +228,24 @@ void InfluenceMap::initialize(const NavMesh &navMesh)
 	auto triangles = navMesh.getNavMeshTriangles();
 	auto triangleCount = navMesh.getTriangleCount();
 
-	std::vector<BuildInfluenceCell> finalCells;
-	buildCellsNew(triangles, triangleCount, &finalCells);
+	std::vector<InfluenceMapCpp::BuildCell> finalCells;
+	InfluenceMapCpp::buildCellsNew(triangles, triangleCount, &finalCells);
 
 	m_triangles = vx::make_unique<Triangle[]>(triangleCount);
-	m_cells = vx::make_unique<InfluenceCell[]>(finalCells.size());
+
 	m_cellCount = finalCells.size();
+	m_cells = vx::make_unique<InfluenceCell[]>(m_cellCount);
+	m_bounds = vx::make_unique<AABB[]>(m_cellCount);
 
 	u32 triangleIndex = 0;
 	u32 cellIndex = 0;
 	u32 triangleOffset = 0;
 	for (auto &buildCell : finalCells)
 	{
+		InfluenceMapCpp::createInfluenceCellBounds(buildCell, triangles, &m_bounds[cellIndex]);
+		m_bounds[cellIndex].min.y -= 0.1f;
+		m_bounds[cellIndex].max.y += 0.1f;
+
 		m_cells[cellIndex].triangleCount = buildCell.indices.size();
 		m_cells[cellIndex].triangleOffset = triangleOffset;
 		m_cells[cellIndex].totalArea = buildCell.totalArea;
@@ -265,7 +259,7 @@ void InfluenceMap::initialize(const NavMesh &navMesh)
 	}
 }
 
-const InfluenceCell* InfluenceMap::getCellsNew() const
+const InfluenceCell* InfluenceMap::getCells() const
 {
 	return m_cells.get();
 }
@@ -275,7 +269,33 @@ const Triangle* InfluenceMap::getTriangles() const
 	return m_triangles.get();
 }
 
-u32 InfluenceMap::getCellsNewCount() const
+const AABB* InfluenceMap::getBounds() const
+{
+	return m_bounds.get();
+}
+
+u32 InfluenceMap::getCellCount() const
 {
 	return m_cellCount;
+}
+
+bool InfluenceMap::sharesEdge(const InfluenceCell &a, const InfluenceCell &b) const
+{
+	u32 offsetA = a.triangleOffset;
+	u32 offsetB = b.triangleOffset;
+
+	for (u32 i = 0; i < a.triangleCount; ++i)
+	{
+		auto &triangleA = m_triangles[i + offsetA];
+
+		for (u32 j = 0; j < b.triangleCount; ++j)
+		{
+			auto &triangleB = m_triangles[j + offsetB];
+
+			if (triangleA.sharesEdge(triangleB))
+				return true;
+		}
+	}
+
+	return false;
 }

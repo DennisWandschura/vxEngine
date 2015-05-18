@@ -23,6 +23,11 @@ SOFTWARE.
 */
 #pragma once
 
+namespace ai
+{
+	class Squad;
+}
+
 #include "Component.h"
 #include "StateMachine.h"
 #include <vector>
@@ -34,6 +39,7 @@ namespace Component
 	struct ActorData
 	{
 		std::vector<vx::float3> path;
+		ai::Squad* squad;
 	};
 
 	struct Actor : public Base

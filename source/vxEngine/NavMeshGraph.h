@@ -48,8 +48,6 @@ class NavMeshGraph
 	u32 m_nodeCount;
 	u32 m_connectionCount;
 
-	std::unique_ptr<NavNode[]> buildNodes(const NavMesh &navMesh);
-
 public:
 	NavMeshGraph();
 	~NavMeshGraph();

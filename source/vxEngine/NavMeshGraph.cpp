@@ -28,7 +28,7 @@ SOFTWARE.
 #include <vector>
 #include <vxLib/Container/sorted_vector.h>
 
-namespace
+namespace NavMeshGraphCpp
 {
 	struct Node;
 	struct Connection;
@@ -131,6 +131,84 @@ namespace
 			insertNode(node2, sortedBuildNodes, connections, connectionCount);
 		}
 	}
+
+	struct BuildNodesDesc
+	{
+		const NavMesh* navMesh;
+		std::unique_ptr<NavConnection[]>* navConnections;
+		std::unique_ptr<NavNode[]>* nodes;
+		u32* __restrict nodeCount; 
+		u32* __restrict connectionCount;
+	};
+
+	void buildNodes(const BuildNodesDesc &desc)
+	{
+		auto navMeshTriangles = desc.navMesh->getNavMeshTriangles();
+		auto triangleCount = desc.navMesh->getTriangleCount();
+
+		auto nodeCount = triangleCount * 3;
+
+		vx::sorted_vector<vx::float3, BuildConnection, CompareFloat3> connections;
+		connections.reserve(nodeCount);
+
+		vx::sorted_vector<vx::float3, BuildNode, CompareFloat3> sortedBuildNodes;
+		sortedBuildNodes.reserve(nodeCount);
+
+		u32 connectionCount = 0;
+		insertTriangles(navMeshTriangles, triangleCount, &sortedBuildNodes, &connections, &connectionCount);
+
+		nodeCount = sortedBuildNodes.size();
+
+		std::vector<NavConnection> flatConnections;
+		flatConnections.reserve(connectionCount);
+		u32 offset = 0;
+		for (u32 i = 0; i < nodeCount; ++i)
+		{
+			auto &it = connections[i];
+			auto position = connections.keys()[i];
+
+			auto fromNode = sortedBuildNodes.find(position);
+			fromNode->connectionOffset = offset;
+
+			auto fromIndex = fromNode - sortedBuildNodes.begin();;
+
+			for (auto &connection : it.connections)
+			{
+				auto toNode = sortedBuildNodes.find(connection);
+				VX_ASSERT(toNode != sortedBuildNodes.end());
+
+				auto toIndex = toNode - sortedBuildNodes.begin();
+
+				NavConnection connection;
+				connection.m_cost = vx::distance(fromNode->position, toNode->position);
+				connection.m_fromNode = fromIndex;
+				connection.m_toNode = toIndex;
+
+				flatConnections.push_back(connection);
+
+				++offset;
+			}
+		}
+
+		auto nodes = vx::make_unique<NavNode[]>(nodeCount);
+		for (u32 i = 0; i < nodeCount; ++i)
+		{
+			auto &buildNode = sortedBuildNodes[i];
+
+			auto itConnection = connections.find(buildNode.position);
+
+			nodes[i].m_position = buildNode.position;
+			nodes[i].m_connectionCount = itConnection->connections.size();
+			nodes[i].m_connectionOffset = buildNode.connectionOffset;
+		}
+
+		desc.nodes->swap(nodes);
+		*desc.navConnections = vx::make_unique<NavConnection[]>(connectionCount);
+		vx::memcpy(desc.navConnections->get(), flatConnections.data(), connectionCount);
+
+		*desc.nodeCount = nodeCount;
+		*desc.connectionCount = connectionCount;
+	}
 }
 
 NavMeshGraph::NavMeshGraph()
@@ -147,79 +225,16 @@ NavMeshGraph::~NavMeshGraph()
 
 }
 
-std::unique_ptr<NavNode[]> NavMeshGraph::buildNodes(const NavMesh &navMesh)
-{
-	auto navMeshTriangles = navMesh.getNavMeshTriangles();
-	auto triangleCount = navMesh.getTriangleCount();
-
-	auto nodeCount = triangleCount * 3;
-
-	vx::sorted_vector<vx::float3, BuildConnection, CompareFloat3> connections;
-	vx::sorted_vector<vx::float3, BuildNode, CompareFloat3> sortedBuildNodes;
-	sortedBuildNodes.reserve(nodeCount);
-
-	u32 connectionCount = 0;
-	insertTriangles(navMeshTriangles, triangleCount, &sortedBuildNodes, &connections, &connectionCount);
-
-	nodeCount = sortedBuildNodes.size();
-
-	std::vector<NavConnection> flatConnections;
-	flatConnections.reserve(connectionCount);
-	u32 offset = 0;
-	for (u32 i = 0; i < nodeCount; ++i)
-	{
-		auto &it = connections[i];
-		auto position = connections.keys()[i];
-
-		auto fromNode = sortedBuildNodes.find(position);
-		fromNode->connectionOffset = offset;
-
-		auto fromIndex = fromNode - sortedBuildNodes.begin();;
-
-		for (auto &connection : it.connections)
-		{
-			auto toNode = sortedBuildNodes.find(connection);
-			VX_ASSERT(toNode != sortedBuildNodes.end());
-
-			auto toIndex = toNode - sortedBuildNodes.begin();
-
-			NavConnection connection;
-			connection.m_cost = vx::distance(fromNode->position, toNode->position);
-			connection.m_fromNode = fromIndex;
-			connection.m_toNode = toIndex;
-
-			flatConnections.push_back(connection);
-
-			++offset;
-		}
-	}
-
-	auto nodes = vx::make_unique<NavNode[]>(nodeCount);
-	for (u32 i = 0; i < nodeCount; ++i)
-	{
-		auto &buildNode = sortedBuildNodes[i];
-
-		auto itConnection = connections.find(buildNode.position);
-
-		nodes[i].m_position = buildNode.position;
-		nodes[i].m_connectionCount = itConnection->connections.size();
-		nodes[i].m_connectionOffset = buildNode.connectionOffset;
-	}
-
-	m_connections = vx::make_unique<NavConnection[]>(connectionCount);
-	vx::memcpy(m_connections.get(), flatConnections.data(), connectionCount);
-
-	m_nodeCount = nodeCount;
-	m_connectionCount = connectionCount;
-
-	return nodes;
-}
-
 void NavMeshGraph::initialize(const NavMesh &navMesh)
 {
-	m_nodes = buildNodes(navMesh);
+	NavMeshGraphCpp::BuildNodesDesc desc;
+	desc.connectionCount = &m_connectionCount;
+	desc.navConnections = &m_connections;
+	desc.navMesh = &navMesh;
+	desc.nodeCount = &m_nodeCount;
+	desc.nodes = &m_nodes;
 
-	printf("m_nodeCount: %u, m_connectionCount: %u\n", m_nodeCount, m_connectionCount);
+	NavMeshGraphCpp::buildNodes(desc);
 }
 
 const NavNode* NavMeshGraph::getNodes() const

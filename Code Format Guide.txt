@@ -33,3 +33,6 @@
 Used for functions that have more than 2 input parameters
 
 -raw pointers do not have ownership over the object
+
+-move as much code as possible into cpp file (this includes private member functions, see next point)
+-private member functions can be removed from the class/struct and replaced by normal "global functions" in the cpp file within the namespace "namespace FilenameCpp" (the namespace is neccessary because unity builds)

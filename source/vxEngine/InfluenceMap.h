@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,12 +22,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 class NavMesh;
 
 #include <vxLib/memory.h>
 #include "Triangle.h"
+#include "AABB.h"
 
 struct InfluenceCell
 {
@@ -38,6 +39,7 @@ struct InfluenceCell
 class InfluenceMap
 {
 	std::unique_ptr<InfluenceCell[]> m_cells;
+	std::unique_ptr<AABB[]> m_bounds;
 	std::unique_ptr<Triangle[]> m_triangles;
 	u32 m_cellCount;
 
@@ -47,7 +49,10 @@ public:
 
 	void initialize(const NavMesh &navMesh);
 
-	const InfluenceCell* getCellsNew() const;
+	const InfluenceCell* getCells() const;
 	const Triangle* getTriangles() const;
-	u32 getCellsNewCount() const;
+	const AABB* getBounds() const;
+	u32 getCellCount() const;
+
+	bool sharesEdge(const InfluenceCell &a, const InfluenceCell &b) const;
 };

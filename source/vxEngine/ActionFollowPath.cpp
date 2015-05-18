@@ -26,11 +26,11 @@ SOFTWARE.
 #include "ComponentInput.h"
 #include "ComponentActor.h"
 
-ActionFollowPath::ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::ActorData* actorData)
+ActionFollowPath::ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actor)
 	:m_componentInput(componentInput),
 	m_entity(entity),
 	m_arrive(),
-	m_actorData(actorData),
+	m_actor(actor),
 	m_arrived(false)
 {
 }
@@ -44,14 +44,15 @@ void ActionFollowPath::run()
 		currentPosition.y = m_entity->footPositionY;
 		if (!m_arrive.getSteering(currentPosition, &steering))
 		{
-			if (m_actorData->path.empty())
+			if (m_actor->m_data->path.empty())
 			{
+				m_actor->m_followingPath = 0;
 				m_arrived = true;
 			}
 			else
 			{
-				auto nextTarget = m_actorData->path.back();
-				m_actorData->path.pop_back();
+				auto nextTarget = m_actor->m_data->path.back();
+				m_actor->m_data->path.pop_back();
 				m_arrive.setTarget(nextTarget);
 			}
 		}
@@ -72,5 +73,6 @@ bool ActionFollowPath::isComplete() const
 
 void ActionFollowPath::setTarget(const vx::float3 &target)
 {
+	m_arrived = false;
 	m_arrive.setTarget(target);
 }

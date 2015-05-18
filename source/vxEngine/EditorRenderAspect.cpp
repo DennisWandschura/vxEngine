@@ -83,7 +83,6 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	}
 
 	m_pEditorColdData = vx::make_unique<EditorColdData>();
-	m_editorData.initialize();
 
 	auto result = initializeImpl(dataDir, windowResolution, debug, pAllocator);
 
@@ -216,14 +215,14 @@ void EditorRenderAspect::createNavMeshNodesVao()
 
 void EditorRenderAspect::createIndirectCmdBuffers()
 {
-	DrawArraysIndirectCommand arrayCmd;
-	memset(&arrayCmd, 0, sizeof(DrawArraysIndirectCommand));
+	vx::gl::DrawArraysIndirectCommand arrayCmd;
+	memset(&arrayCmd, 0, sizeof(vx::gl::DrawArraysIndirectCommand));
 	arrayCmd.instanceCount = 1;
 
-	m_pEditorColdData->m_navMeshVertexCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
-	m_pEditorColdData->m_lightCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
-	m_pEditorColdData->m_graphNodesCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
-	m_pEditorColdData->m_spawnPointCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
+	m_pEditorColdData->m_navMeshVertexCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
+	m_pEditorColdData->m_lightCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
+	m_pEditorColdData->m_graphNodesCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
+	m_pEditorColdData->m_spawnPointCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
 
 	vx::gl::DrawElementsIndirectCommand elementsCmd;
 	memset(&elementsCmd, 0, sizeof(vx::gl::DrawElementsIndirectCommand));
@@ -783,14 +782,6 @@ void EditorRenderAspect::addMeshInstanceToBuffers()
 void EditorRenderAspect::updateInstance(const vx::StringID &sid)
 {
 	VX_UNREFERENCED_PARAMETER(sid);
-	/*auto pInstance = m_pCurrentScene->findMeshInstance(sid);
-
-	u32 id = 0;
-	auto found = m_editorData.getMeshInstanceId(sid, &id);
-	if (found && pInstance)
-	{
-	//writeMeshInstanceTransform(pInstance, *it);
-	}*/
 }
 
 void EditorRenderAspect::updateEditor()
@@ -832,16 +823,6 @@ void VX_CALLCONV EditorRenderAspect::editor_rotateCamera(const __m128 rotation)
 	m_camera.setRotation(rotation);
 }
 
-void EditorRenderAspect::editor_updateMouseHit(const vx::float3 &p)
-{
-	m_editorData.updateMouseHit(p);
-}
-
-void EditorRenderAspect::editor_updateWaypoint(u32 offset, u32 count, const Waypoint* src)
-{
-	m_editorData.updateWaypoint(offset, count, src);
-}
-
 void EditorRenderAspect::handleEditorEvent(const Event &evt)
 {
 	VX_UNREFERENCED_PARAMETER(evt);
@@ -862,14 +843,14 @@ void EditorRenderAspect::handleLoadScene(const Event &evt)
 	}
 
 	{
-		auto mappedCmdBuffer = m_pEditorColdData->m_lightCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		auto mappedCmdBuffer = m_pEditorColdData->m_lightCmdBuffer.map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 		mappedCmdBuffer->count = lightCount;
 	}
 
 	auto spawnCount = scene->getSpawnCount();
 	auto spawns = scene->getSpawns();
 	{
-		auto mappedCmdBuffer = m_pEditorColdData->m_spawnPointCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		auto mappedCmdBuffer = m_pEditorColdData->m_spawnPointCmdBuffer.map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 		mappedCmdBuffer->count = spawnCount;
 		mappedCmdBuffer.unmap();
 
@@ -943,7 +924,7 @@ void EditorRenderAspect::updateNavMeshVertexBufferWithSelectedVertex(const vx::f
 	m_pEditorColdData->m_navMeshVertexCount = count;
 	uploadToNavMeshVertexBuffer(src.get(), count);
 
-	auto mappedCmdBuffer = m_pEditorColdData->m_navMeshVertexCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	auto mappedCmdBuffer = m_pEditorColdData->m_navMeshVertexCmdBuffer.map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer->count = count;
 }
 
@@ -1020,8 +1001,8 @@ void EditorRenderAspect::updateSelectedMeshInstanceTransform(vx::Transform &tran
 
 void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influenceMap)
 {
-	auto influenceCells = influenceMap.getCellsNew();
-	auto cellCount = influenceMap.getCellsNewCount();
+	auto influenceCells = influenceMap.getCells();
+	auto cellCount = influenceMap.getCellCount();
 	auto triangles = influenceMap.getTriangles();
 	printf("InfluenceCellsNew: %u\n", cellCount);
 
@@ -1094,7 +1075,7 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 	auto mappedBuffer = m_pEditorColdData->m_navMeshGraphNodesVbo.map<vx::float3>(vx::gl::Map::Write_Only);
 	vx::memcpy(mappedBuffer.get(), src.get(), nodeCount);
 
-	auto mappedCmdBuffer = m_pEditorColdData->m_graphNodesCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	auto mappedCmdBuffer = m_pEditorColdData->m_graphNodesCmdBuffer.map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer->count = nodeCount;
 
 	{
@@ -1132,7 +1113,7 @@ void EditorRenderAspect::updateLightBuffer(const Light* lights, u32 count)
 	m_sceneRenderer.updateLights(lights, count);
 
 	{
-		auto mappedCmdBuffer = m_pEditorColdData->m_lightCmdBuffer.map<DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		auto mappedCmdBuffer = m_pEditorColdData->m_lightCmdBuffer.map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 		mappedCmdBuffer->count = count;
 	}
 }

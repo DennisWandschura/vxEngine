@@ -112,9 +112,14 @@ bool AABB::contains(const vx::float3 &p) const
 
 	// 4 * 6 = 24
 
-	auto c = (p.x >= min.x) & (p.x <= max.x) & (p.y >= min.y) & (p.y <= max.y) & (p.z >= min.z) & (p.z <= max.z);
+	if (p.x >= min.x && p.x <= max.x &&
+		p.y >= min.y && p.y <= max.y &&
+		p.z >= min.z && p.z <= max.z)
+	{
+		return true;
+	}
 
-	return c;
+	return false;
 }
 
 bool AABB::contains(const __m128 &p) const

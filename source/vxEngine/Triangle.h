@@ -44,4 +44,5 @@ struct Triangle
 	vx::float3 getCentroid() const;
 
 	bool contains(const vx::float3 &point) const;
+	bool Triangle::sharesEdge(const Triangle &other) const;
 };

@@ -21,20 +21,21 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "EditorWaypointManager.h"
-#include "EditorRenderAspect.h"
 
-namespace Editor
+#include "ActionPrintText.h"
+
+ActionPrintText::ActionPrintText(const char* text)
+	:m_text(text)
 {
-	void WaypointManager::addWaypoint(const vx::float3 &p, EditorRenderAspect* r)
-	{
-		Waypoint newWaypoint;
-		newWaypoint.position = p;
 
-		auto offset = m_waypoints.size();
+}
 
-		m_waypoints.push_back(newWaypoint);
+void ActionPrintText::run()
+{
+	printf("%s\n", m_text.c_str());
+}
 
-		r->editor_updateWaypoint(offset, 1, m_waypoints.data());
-	}
+bool ActionPrintText::isComplete() const
+{
+	return true;
 }

@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,20 +22,22 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include "Waypoint.h"
-#include <vector>
-
-class EditorRenderAspect;
-
-namespace Editor
+namespace Component
 {
-	class WaypointManager
-	{
-		std::vector<Waypoint> m_waypoints;
-
-	public:
-		void addWaypoint(const vx::float3 &p, EditorRenderAspect* r);
-	};
+	struct Actor;
 }
+
+#include "Action.h"
+
+class ActionActorCreatePath : public Action
+{
+	Component::Actor* m_actor;
+
+public:
+	explicit ActionActorCreatePath::ActionActorCreatePath(Component::Actor* actor);
+
+	void run() override;
+
+	bool isComplete() const override;
+};

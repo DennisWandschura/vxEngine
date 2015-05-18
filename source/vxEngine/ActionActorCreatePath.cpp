@@ -21,27 +21,27 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "NavMeshTriangle.h"
+#include "ActionActorCreatePath.h"
+#include "ai/Squad.h"
+#include "ComponentActor.h"
 
-bool NavMeshTriangle::sharesEdge(const NavMeshTriangle &other) const
+ActionActorCreatePath::ActionActorCreatePath(Component::Actor* actor)
+	:m_actor(actor)
 {
-	u8 sharedCount = 0;
 
-	for (int i = 0; i < 3; ++i)
+}
+
+void ActionActorCreatePath::run()
+{
+	auto squad = m_actor->m_data->squad;
+
+	if (squad && m_actor->m_data->path.empty())
 	{
-		if (m_triangle[0].x == other.m_triangle.m_points[i].x &&
-			m_triangle[0].y == other.m_triangle.m_points[i].y &&
-			m_triangle[0].z == other.m_triangle.m_points[i].z)
-			++sharedCount;
-		else if (m_triangle[1].x == other.m_triangle.m_points[i].x &&
-			m_triangle[1].y == other.m_triangle.m_points[i].y &&
-			m_triangle[1].z == other.m_triangle.m_points[i].z)
-			++sharedCount;
-		else if (m_triangle[2].x == other.m_triangle.m_points[i].x &&
-			m_triangle[2].y == other.m_triangle.m_points[i].y &&
-			m_triangle[2].z == other.m_triangle.m_points[i].z)
-			++sharedCount;
+		squad->createPath(m_actor);
 	}
+}
 
-	return sharedCount > 1;
+bool ActionActorCreatePath::isComplete() const
+{
+	return true;
 }
