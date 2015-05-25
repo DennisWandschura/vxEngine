@@ -123,7 +123,9 @@ void VoxelRenderer::createVoxelTextures()
 	for (u32 i = 0; i < 6; ++i)
 	{
 		m_pColdData->m_voxelEmmitanceTextures[i].create(desc);
+		m_pColdData->m_voxelEmmitanceTextures[i].setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
 		m_pColdData->m_voxelEmmitanceTextures[i].setFilter(vx::gl::TextureFilter::LINEAR_MIPMAP_LINEAR, vx::gl::TextureFilter::LINEAR);
+
 		m_pColdData->m_voxelEmmitanceTextures[i].makeTextureResident();
 		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(0, 1, 0), GL_READ_WRITE);
 
