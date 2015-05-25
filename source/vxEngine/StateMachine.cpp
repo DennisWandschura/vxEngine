@@ -27,15 +27,13 @@ SOFTWARE.
 #include <vxLib/Allocator/StackAllocator.h>
 
 StateMachine::StateMachine()
-	:m_states(),
-	m_pInitialState(nullptr),
+	:m_pInitialState(nullptr),
 	m_pCurrentState(nullptr)
 {
 }
 
-StateMachine::StateMachine(State* pInitialState, std::vector<State*> &&states)
-	:m_states(std::move(states)),
-	m_pInitialState(pInitialState),
+StateMachine::StateMachine(State* pInitialState)
+	:m_pInitialState(pInitialState),
 	m_pCurrentState(pInitialState)
 {
 
@@ -127,9 +125,4 @@ void StateMachine::setInitialState(State* pState)
 {
 	m_pInitialState = pState;
 	m_pCurrentState = pState;
-}
-
-void StateMachine::addState(State* pState)
-{
-	m_states.push_back(pState);
 }

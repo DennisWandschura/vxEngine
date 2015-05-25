@@ -97,4 +97,10 @@ namespace Graphics
 
 		*offset += sizeof(ClearCommand);
 	}
+
+	void BarrierCommand::execute(u32* offset)
+	{
+		glMemoryBarrier(m_barrierBits);
+		*offset += sizeof(BarrierCommand);
+	}
 }

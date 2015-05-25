@@ -203,4 +203,16 @@ namespace Graphics
 
 		void execute(u32* offset) override;
 	};
+
+	struct BarrierCommand : public Command
+	{
+		u32 m_barrierBits;
+
+		void set(u32 barrierBits)
+		{
+			m_barrierBits = barrierBits;
+		}
+
+		void execute(u32* offset) override;
+	};
 }

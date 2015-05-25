@@ -29,8 +29,9 @@ SOFTWARE.
 #include "DebugRenderSettings.h"
 #include "GpuProfiler.h"
 #include "EngineGlobals.h"
+#include "CpuProfiler.h"
 
-Engine* g_pEngine{nullptr};
+Engine* g_pEngine{ nullptr };
 
 namespace
 {
@@ -90,16 +91,19 @@ void Engine::update()
 
 	//////////////
 
-	m_actorAspect.update(g_dt);
+	{
+		m_actorAspect.update();
+
+	}
 
 	//////////////
 
 	//////////////
 	//m_profiler.pushCpuMarker("update.physics()");
-
-	m_entityAspect.updatePhysics_linear(g_dt);
-
-	m_physicsAspect.update(g_dt);
+	{
+		m_entityAspect.updatePhysics_linear(g_dt);
+		m_physicsAspect.update(g_dt);
+	}
 
 	//m_profiler.popCpuMarker();
 	//////////////
@@ -107,8 +111,11 @@ void Engine::update()
 	//////////////
 	//m_profiler.pushCpuMarker("update.position()");
 
-	m_entityAspect.updatePlayerPositionCamera();
-	m_entityAspect.updateActorTransforms();
+	{
+
+		m_entityAspect.updatePlayerPositionCamera();
+		m_entityAspect.updateActorTransforms();
+	}
 
 	//m_profiler.popCpuMarker();
 	//////////////
@@ -137,7 +144,7 @@ void Engine::renderLoop()
 	//Video video;
 	//video.initialize("test.video");
 
-	
+
 
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
@@ -147,7 +154,6 @@ void Engine::renderLoop()
 	{
 		LARGE_INTEGER current;
 		QueryPerformanceCounter(&current);
-
 
 		auto frameTicks = (current.QuadPart - last.QuadPart) * 1000;
 		f32 frameTime = frameTicks * invFrequency * 0.001f;
@@ -196,6 +202,7 @@ void Engine::mainLoop()
 
 		accum += frameTime;
 
+		CpuProfiler::frame();
 		//m_profileGraph.frame(frameTime);
 		//m_profiler.frame();
 
@@ -205,13 +212,16 @@ void Engine::mainLoop()
 
 		while (accum >= g_dt)
 		{
+			CpuProfiler::pushMarker("update");
 			//m_profiler.pushCpuMarker("update()");
 			update();
 			//m_profiler.popCpuMarker();
 
 			accum -= g_dt;
 
-		//	m_profiler.update(g_dt);
+			CpuProfiler::popMarker();
+
+			//	m_profiler.update(g_dt);
 			//m_profileGraph.update();
 		}
 
@@ -259,6 +269,8 @@ bool Engine::initialize()
 
 	if (!initializeImpl(dataDir))
 		return false;
+
+	CpuProfiler::initialize();
 
 	EngineConfig config;
 	config.loadFromFile("settings.txt");
@@ -314,6 +326,8 @@ void Engine::shutdown()
 
 	Locator::reset();
 
+	CpuProfiler::shutdown();
+
 	m_allocator.release();
 	m_memory.clear();
 }
@@ -345,11 +359,11 @@ void Engine::keyPressed(u16 key)
 	}
 	/*else if (key == vx::Keyboard::Key_Num0)
 	{
-		dev::g_showNavGraph = dev::g_showNavGraph ^ 1;
+	dev::g_showNavGraph = dev::g_showNavGraph ^ 1;
 	}
 	else if(key == vx::Keyboard::Key_Num1)
 	{
-		dev::g_toggleRender = dev::g_toggleRender ^ 1;
+	dev::g_toggleRender = dev::g_toggleRender ^ 1;
 	}*/
 	else
 	{

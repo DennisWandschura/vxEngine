@@ -79,6 +79,7 @@ struct UniformTextureBufferBlock
 	u64 u_depthSlice;
 	u64 u_aabbTexture;
 	u64 u_ambientSlice;
+	u64 u_ambientImage;
 };
 
 struct UniformShadowTextureBufferBlock

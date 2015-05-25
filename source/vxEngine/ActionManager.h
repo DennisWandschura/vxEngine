@@ -31,6 +31,7 @@ class Action;
 class ActionManager
 {
 	std::vector<Action*> m_queue;
+	std::vector<Action*> m_temp;
 	std::vector<Action*>* m_active;
 
 public:

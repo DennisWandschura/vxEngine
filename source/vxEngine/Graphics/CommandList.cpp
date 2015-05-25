@@ -26,9 +26,27 @@ SOFTWARE.
 
 namespace Graphics
 {
+	void swapSegment(const char* id, 
+		vx::sorted_vector<u32, Segment>* segmentSrc, vx::sorted_vector<vx::StringID, u32>* segmentIndicesSrc,
+		vx::sorted_vector<u32, Segment>* segmentDst, vx::sorted_vector<vx::StringID, u32>* segmentIndicesDst)
+	{
+		auto sid = vx::make_sid(id);
+		auto it = segmentIndicesSrc->find(sid);
+		if (it != segmentIndicesSrc->end())
+		{
+			auto segmentIndex = *it;
+			auto itSegment = segmentSrc->find(segmentIndex);
+
+			segmentDst->insert(segmentIndex, std::move(*itSegment));
+			segmentIndicesDst->insert(sid, segmentIndex);
+
+			segmentSrc->erase(itSegment);
+			segmentIndicesSrc->erase(it);
+		}
+	}
+
 	CommandList::CommandList()
 		:m_sortedSegments(),
-		m_segmentIndices(),
 		m_coldData()
 	{
 	}
@@ -48,12 +66,12 @@ namespace Graphics
 		u32 slot = m_sortedSegments.size();
 
 		m_sortedSegments.insert(slot, segment);
-		m_segmentIndices.insert(vx::make_sid(id), slot);
+		m_coldData->m_segmentIndices.insert(vx::make_sid(id), slot);
 	}
 
 	void CommandList::enableSegment(const char* id)
 	{
-		auto sid = vx::make_sid(id);
+		/*auto sid = vx::make_sid(id);
 		auto it = m_coldData->m_inactiveSegmentIndices.find(sid);
 		if (it != m_coldData->m_inactiveSegmentIndices.end())
 		{
@@ -61,18 +79,19 @@ namespace Graphics
 			auto itSegment = m_coldData->m_inactiveSegments.find(segmentIndex);
 
 			m_sortedSegments.insert(segmentIndex, std::move(*itSegment));
-			m_segmentIndices.insert(sid, segmentIndex);
+			m_coldData->m_segmentIndices.insert(sid, segmentIndex);
 
 			m_coldData->m_inactiveSegments.erase(itSegment);
 			m_coldData->m_inactiveSegmentIndices.erase(it);
-		}
+		}*/
+		swapSegment(id, &m_coldData->m_inactiveSegments, &m_coldData->m_inactiveSegmentIndices, &m_sortedSegments, &m_coldData->m_segmentIndices);
 	}
 
 	void CommandList::disableSegment(const char* id)
 	{
-		auto sid = vx::make_sid(id);
-		auto it = m_segmentIndices.find(sid);
-		if (it != m_segmentIndices.end())
+		/*auto sid = vx::make_sid(id);
+		auto it = m_coldData->m_segmentIndices.find(sid);
+		if (it != m_coldData->m_segmentIndices.end())
 		{
 			auto segmentIndex = *it;
 			auto itSegment = m_sortedSegments.find(segmentIndex);
@@ -81,8 +100,17 @@ namespace Graphics
 			m_coldData->m_inactiveSegmentIndices.insert(sid, segmentIndex);
 
 			m_sortedSegments.erase(itSegment);
-			m_segmentIndices.erase(it);
-		}
+			m_coldData->m_segmentIndices.erase(it);
+		}*/
+		swapSegment(id, &m_sortedSegments, &m_coldData->m_segmentIndices, &m_coldData->m_inactiveSegments, &m_coldData->m_inactiveSegmentIndices);
+	}
+
+	void CommandList::clear()
+	{
+		m_sortedSegments.clear();
+		m_coldData->m_segmentIndices.clear();
+		m_coldData->m_inactiveSegments.clear();
+		m_coldData->m_inactiveSegmentIndices.clear();
 	}
 
 	void CommandList::draw()

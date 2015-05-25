@@ -50,6 +50,9 @@ namespace gl
 		void initialize(u32 maxBufferCount, vx::StackAllocator* allocator);
 		void shutdown();
 
+		template<size_t SIZE>
+		vx::StringID createBuffer(const char(&key)[SIZE], const vx::gl::BufferDescription &desc);
+
 		vx::StringID createBuffer(const char* key, const vx::gl::BufferDescription &desc);
 
 		const vx::gl::Buffer* getBuffer(const vx::StringID &sid) const;

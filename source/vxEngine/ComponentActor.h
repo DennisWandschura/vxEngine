@@ -40,6 +40,7 @@ namespace Component
 	{
 		std::vector<vx::float3> path;
 		ai::Squad* squad;
+		s8 targetCell;
 	};
 
 	struct Actor : public Base

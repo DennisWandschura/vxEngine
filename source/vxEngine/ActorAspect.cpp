@@ -130,7 +130,7 @@ void ActorAspect::handleEvent(const Event &evt)
 	}
 }
 
-void ActorAspect::update(f32 dt)
+void ActorAspect::update()
 {
 	auto p = m_pActorPool->first();
 	while (p != nullptr)

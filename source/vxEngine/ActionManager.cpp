@@ -26,6 +26,7 @@ SOFTWARE.
 
 ActionManager::ActionManager()
 	:m_queue(),
+	m_temp(),
 	m_active()
 {
 
@@ -51,8 +52,7 @@ void ActionManager::scheduleActions(Action** p, u32 count)
 
 void ActionManager::update()
 {
-	std::vector<Action*> tmp;
-	tmp.reserve(m_queue.size());
+	m_temp.reserve(m_queue.size());
 
 	for (auto &it : m_queue)
 	{
@@ -61,9 +61,10 @@ void ActionManager::update()
 
 		if (!it->isComplete())
 		{
-			tmp.push_back(it);
+			m_temp.push_back(it);
 		}
 	}
 
-	m_queue.swap(tmp);
+	m_queue.clear();
+	m_queue.swap(m_temp);
 }

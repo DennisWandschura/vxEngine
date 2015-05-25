@@ -85,6 +85,10 @@ int main()
 		return 1;
 	}
 
+	vx::float3 a = { 1, 2, 3 };
+
+	vx::distance(a, a);
+
 	HANDLE hLogFile = nullptr;;
 	hLogFile = CreateFileA("log.txt", GENERIC_WRITE,
 		FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,

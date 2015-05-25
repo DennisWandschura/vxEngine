@@ -31,6 +31,7 @@ SOFTWARE.
 #include <vxLib/Container/array.h>
 #include <vxLib/ScopeGuard.h>
 #include <random>
+#include <vxLib/Container/sorted_vector.h>
 
 namespace SquadCpp
 {
@@ -107,6 +108,7 @@ namespace ai
 
 		data.m_cellCount = cellCount;
 		actorComponent->m_data->squad = this;
+		actorComponent->m_data->targetCell = -1;
 
 		m_entities.push_back(data);
 
@@ -121,6 +123,7 @@ namespace ai
 			if (it.m_actorComponent == componentActor)
 			{
 				targetData = &it;
+				break;
 			}
 		}
 
@@ -133,44 +136,69 @@ namespace ai
 		auto influenceCells = s_influenceMap->getCells();
 		auto influenceCellBounds = s_influenceMap->getBounds();
 
-		const InfluenceCell* currentCell = nullptr;
+		auto currentActorCellIndex = targetData->m_actorComponent->m_data->targetCell;
 		auto actorCellCount = targetData->m_cellCount;
-		u8 actorCellIndex = 0;
-		for (u32 i = 0; i < actorCellCount; ++i)
+
+		if (currentActorCellIndex == -1)
 		{
-			auto cellIndex = targetData->m_cells[i];
-			if (influenceCellBounds[cellIndex].contains(entityPosition))
+			for (u32 i = 0; i < actorCellCount; ++i)
 			{
-				actorCellIndex = i;
-				currentCell = &influenceCells[cellIndex];
-				break;
+				auto cellIndex = targetData->m_cells[i];
+				if (influenceCellBounds[cellIndex].contains(entityPosition))
+				{
+					currentActorCellIndex = i;
+					
+					break;
+				}
 			}
 		}
-
-		if (currentCell == nullptr)
-		{
-			return;
-		}
+		
+		auto cellIndex = targetData->m_cells[currentActorCellIndex];
+		const InfluenceCell* currentCell = &influenceCells[cellIndex];
+		auto targetActorCellIndex = currentActorCellIndex;
 
 		const InfluenceCell* targetCell = currentCell;
 		if (actorCellCount == 2)
 		{
-			auto otherActorCellIndex = (actorCellIndex + 1) % 2;
+			auto otherActorCellIndex = (currentActorCellIndex + 1) % 2;
 			auto cellIndex = targetData->m_cells[otherActorCellIndex];
 
 			targetCell = &influenceCells[cellIndex];
+			targetActorCellIndex = otherActorCellIndex;
 		}
 
 		if (targetCell == currentCell)
 			printf("Squad::createPath: Something went wrong\n");
 
-		m_pseudoRandom.setMaxValue(targetCell->triangleCount - 1);
-
-		auto targetTriangleIndex = m_pseudoRandom.getValue();
 		auto influenceMapTriangles = s_influenceMap->getTriangles();
-		auto targetTriangle = influenceMapTriangles[targetTriangleIndex];
 
-		auto endPosition = targetTriangle.getCentroid();
+		vx::sorted_vector<f32, vx::float3> sortedCentroids;
+		for (u32 i = 0; i < targetCell->triangleCount; ++i)
+		{
+			auto &currentTriangle = influenceMapTriangles[targetCell->triangleOffset + i];
+
+			auto centroid = currentTriangle.getCentroid();
+
+			auto distance = vx::distance(centroid, entityPosition);
+
+			sortedCentroids.insert(distance, centroid);
+		}
+
+		auto keysEnd = sortedCentroids.keys() + sortedCentroids.size();
+		auto it = std::lower_bound(sortedCentroids.keys(), sortedCentroids.keys() + sortedCentroids.size(), 5.0f);
+		u32 triangleCount = sortedCentroids.size();
+		u32 offset = 0;
+		if (it != keysEnd)
+		{
+			triangleCount = keysEnd - it;
+			offset = it - sortedCentroids.keys();
+		}
+
+		std::uniform_int_distribution<u32> dist(0, triangleCount - 1);
+
+		auto targetTriangleIndex = dist(m_gen) + offset;
+
+		auto endPosition = sortedCentroids[targetTriangleIndex];
 
 		auto startNodeIndex = s_navmeshGraph->getClosestNodeInex(entityPosition);
 		auto endNodeIndex = s_navmeshGraph->getClosestNodeInex(endPosition);
@@ -201,8 +229,9 @@ namespace ai
 				path.push_back(outNodes[i]);
 			}
 
-			printf("cell, node: %llu %u\n", targetCell - influenceCells, targetTriangleIndex);
+			//printf("cell, node: %u %u\n", targetActorCellIndex, targetTriangleIndex);
 			targetData->m_actorComponent->m_followingPath = 1;
+			targetData->m_actorComponent->m_data->targetCell = targetActorCellIndex;
 		}
 	}
 

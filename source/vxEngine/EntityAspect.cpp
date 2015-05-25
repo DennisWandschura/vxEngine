@@ -143,9 +143,6 @@ Component::Actor* EntityAspect::createComponentActor(u16 entityIndex, EntityActo
 	Transition* transitionMovingToWaiting = new Transition(conditionActorNotFollowingPath, waitingState);
 	movingState->addTransition(transitionMovingToWaiting);
 
-	pActor->m_stateMachine.addState(waitingState);
-	pActor->m_stateMachine.addState(movingState);
-
 	pActor->m_stateMachine.setInitialState(waitingState);
 
 	return pActor;
@@ -255,12 +252,11 @@ void EntityAspect::updateActorTransforms()
 		m_allocator.clear(marker);
 	};
 
-
-	auto totalSizeInBytes = sizeof(RenderUpdateDataTransforms) + (sizeof(vx::TransformGpu) + sizeof(u32)) * count;
+	auto totalSizeInBytes = sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count + sizeof(u32) * count;
 	auto dataPtr = m_allocator.allocate(totalSizeInBytes, 16);
 
 	vx::TransformGpu* pTransforms = (vx::TransformGpu*)(dataPtr + sizeof(RenderUpdateDataTransforms));
-	u32* indices = (u32*)(pTransforms + count);
+	u32* indices = (u32*)(dataPtr + sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count);
 	u32 index = 0;
 
 	auto p = m_poolRender.first();
@@ -284,11 +280,12 @@ void EntityAspect::updateActorTransforms()
 		p = m_poolRender.next_nocheck(p);
 	}
 
-	RenderUpdateDataTransforms* data = (RenderUpdateDataTransforms*)dataPtr;
-	data->count = count;
+	RenderUpdateDataTransforms* renderUpdateData = (RenderUpdateDataTransforms*)dataPtr;
+	renderUpdateData->count = count;
 
 	RenderUpdateTask task;
 	task.type = RenderUpdateTask::Type::UpdateDynamicTransforms;
+
 	m_renderAspect.queueUpdateTask(task, dataPtr, totalSizeInBytes);
 }
 
@@ -371,15 +368,8 @@ void EntityAspect::handleIngameEvent(const Event &evt)
 
 				RenderUpdateTask task;
 				task.type = RenderUpdateTask::Type::CreateActorGpuIndex;
+
 				m_renderAspect.queueUpdateTask(task, (u8*)&data, sizeof(CreateActorData));
-
-				/*Event e;
-				e.type = EventType::Ingame_Event;
-				e.code = (u32)IngameEvent::Create_Actor;
-				e.arg1 = i;
-				e.arg2 = data;
-
-				evtManager->addEvent(e);*/
 			}
 		}
 

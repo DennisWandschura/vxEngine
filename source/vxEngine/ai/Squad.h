@@ -36,6 +36,7 @@ namespace Component
 #include <vector>
 #include <vxLib/Allocator/StackAllocator.h>
 #include "../PseudoRandom.h"
+#include <random>
 
 namespace ai
 {
@@ -57,6 +58,7 @@ namespace ai
 		vx::StackAllocator m_scratchAllocator;
 		f32 m_avgCoverageArea;
 		std::vector<u32> m_availableCells;
+		std::mt19937_64 m_gen;
 
 	public:
 		Squad();

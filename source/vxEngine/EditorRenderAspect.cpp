@@ -75,8 +75,19 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 		return false;
 	}
 
-	vx::gl::OpenGLDescription glDesc = vx::gl::OpenGLDescription::create(panel, windowResolution, vx::degToRad(fovDeg), zNear, zFar, 4, 5, vsync, debug);
-	if (!m_renderContext.initializeOpenGl(glDesc))
+	vx::gl::OpenGLDescription glDescription;
+	glDescription.bDebugMode = debug;
+	glDescription.bVsync = vsync;
+	glDescription.farZ = zFar;
+	glDescription.fovRad = vx::degToRad(fovDeg);
+	glDescription.hwnd = panel;
+	glDescription.majVersion = 4;
+	glDescription.minVersion = 5;
+	glDescription.nearZ = zNear;
+	glDescription.resolution = windowResolution;
+
+	//vx::gl::OpenGLDescription glDesc = vx::gl::OpenGLDescription::create(panel, windowResolution, , zNear, zFar, 4, 5, vsync, debug);
+	if (!m_renderContext.initializeOpenGl(glDescription))
 	{
 		puts("Error initializing Context");
 		return false;
@@ -85,8 +96,6 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	m_pEditorColdData = vx::make_unique<EditorColdData>();
 
 	auto result = initializeImpl(dataDir, windowResolution, debug, pAllocator);
-
-	//Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, &m_pColdData->m_settings);
 
 	vx::gl::BufferDescription navmeshVertexVboDesc;
 	navmeshVertexVboDesc.bufferType = vx::gl::BufferType::Array_Buffer;

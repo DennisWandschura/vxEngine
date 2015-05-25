@@ -36,12 +36,12 @@ namespace Graphics
 	{
 		struct ColdData
 		{
+			vx::sorted_vector<vx::StringID, u32> m_segmentIndices;
 			vx::sorted_vector<u32, Segment> m_inactiveSegments;
 			vx::sorted_vector<vx::StringID, u32> m_inactiveSegmentIndices;
 		};
 
 		vx::sorted_vector<u32, Segment> m_sortedSegments;
-		vx::sorted_vector<vx::StringID, u32> m_segmentIndices;
 		std::unique_ptr<ColdData> m_coldData;
 	
 		void swapSegmentsImpl(u32 a, u32 b);
@@ -56,6 +56,8 @@ namespace Graphics
 
 		void enableSegment(const char* id);
 		void disableSegment(const char* id);
+
+		void clear();
 
 		void draw();
 	};

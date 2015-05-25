@@ -169,8 +169,8 @@
     <ClInclude Include="AABB.h" />
     <ClInclude Include="ActionActorCreatePath.h" />
     <ClInclude Include="ActionFollowPath.h" />
-    <ClInclude Include="ActionPlayerLookAround.h" />
     <ClInclude Include="ActionManager.h" />
+    <ClInclude Include="ActionPlayerLookAround.h" />
     <ClInclude Include="ActionPlayerMove.h" />
     <ClInclude Include="ActionPrintText.h" />
     <ClInclude Include="ActionSetFollowPath.h" />
@@ -180,6 +180,7 @@
     <ClInclude Include="ai\Squad.h" />
     <ClInclude Include="ConditionActorFollowingPath.h" />
     <ClInclude Include="ConditionActorHasPath.h" />
+    <ClInclude Include="CpuProfiler.h" />
     <ClInclude Include="CreateSceneDescription.h" />
     <ClInclude Include="ConverterEditorSceneToSceneFile.h" />
     <ClInclude Include="ConverterSceneFileToScene.h" />
@@ -375,6 +376,7 @@
     <ClCompile Include="BVH.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="CpuProfiler.cpp" />
     <ClCompile Include="Timer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -647,6 +649,7 @@
     <None Include="..\..\game\data\shaders\blurpass2.pipe" />
     <None Include="..\..\game\data\shaders\blurShadowY.pipe" />
     <None Include="..\..\game\data\shaders\coneTrace.pipe" />
+    <None Include="..\..\game\data\shaders\createConeTraceList.pipe" />
     <None Include="..\..\game\data\shaders\create_gbuffer.pipe" />
     <None Include="..\..\game\data\shaders\drawFinalImageAlbedo.pipe" />
     <None Include="..\..\game\data\shaders\drawFinalImageNormals.pipe" />
@@ -661,7 +664,7 @@
     <None Include="..\..\game\data\shaders\editorDrawInfluenceCell.pipe" />
     <None Include="..\..\game\data\shaders\forward_render.pipe" />
     <None Include="..\..\game\data\shaders\graph.pipe" />
-    <None Include="..\..\game\data\shaders\include\atomic_counters.glsl" />
+    <None Include="..\..\game\data\shaders\include\atomicCounters.glsl" />
     <None Include="..\..\game\data\shaders\include\math.glsl" />
     <None Include="..\..\game\data\shaders\include\mesh.glsl" />
     <None Include="..\..\game\data\shaders\include\structs.glsl" />
@@ -670,8 +673,9 @@
     <None Include="..\..\game\data\shaders\navmesh.pipe" />
     <None Include="..\..\game\data\shaders\programs\blurpass.frag" />
     <None Include="..\..\game\data\shaders\programs\blurpass2.frag" />
-    <None Include="..\..\game\data\shaders\programs\coneTrace.frag" />
-    <None Include="..\..\game\data\shaders\programs\coneTrace.geom" />
+    <None Include="..\..\game\data\shaders\programs\coneTrace.vert" />
+    <None Include="..\..\game\data\shaders\programs\createConeTraceList.frag" />
+    <None Include="..\..\game\data\shaders\programs\createConeTraceList.geom" />
     <None Include="..\..\game\data\shaders\programs\create_gbuffer.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\create_aabb.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\create_aabb.gs.glsl" />

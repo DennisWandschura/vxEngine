@@ -70,7 +70,6 @@ void PlayerController::initializePlayer(Component::Input* pPlayerInputComponent,
 	stateStanding->addAction(actionMoveStanding.get());
 	stateStanding->addAction(actionUpdateGpuTransform.get());
 
-	m_stateMachine.addState(stateStanding);
 	m_stateMachine.setInitialState(stateStanding);
 }
 

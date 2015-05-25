@@ -311,12 +311,12 @@ void SceneRenderer::updateTransform(const vx::Transform &transform, u32 elementI
 
 void SceneRenderer::updateTransform(const vx::TransformGpu &transform, u32 elementId)
 {
-	auto offset = sizeof(vx::TransformGpu) * elementId;
-	m_coldData->m_transformBlock.subData(offset, sizeof(vx::TransformGpu), &transform);
+	//auto offset = sizeof(vx::TransformGpu) * elementId;
+	//m_coldData->m_transformBlock.subData(offset, sizeof(vx::TransformGpu), &transform);
 
-	//auto pTransforms = m_coldData->m_transformBlock.map<vx::TransformGpu>(vx::gl::Map::Write_Only);
-	//vx::memcpy(pTransforms.get() + elementId, transform);
-	//pTransforms.unmap();
+	auto pTransforms = m_coldData->m_transformBlock.map<vx::TransformGpu>(vx::gl::Map::Write_Only);
+	vx::memcpy(pTransforms.get() + elementId, transform);
+	pTransforms.unmap();
 }
 
 void SceneRenderer::updateLights(const Light* lights, u32 count)

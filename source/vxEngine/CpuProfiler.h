@@ -23,26 +23,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class State;
-class Action;
+#include <vxLib/math/Vector.h>
+#include <vector>
 
-namespace vx
+class Font;
+
+class CpuProfiler
 {
-	class StackAllocator;
-}
+	class Profiler;
 
-#include <vxLib/types.h>
+	struct Vertex
+	{
+		vx::float3 inputPosition;
+		vx::float3 inputTexCoords;
+		vx::float4 inputColor;
+	};
 
-class StateMachine
-{
-	State* m_pInitialState;
-	State* m_pCurrentState;
+	static thread_local CpuProfiler::Profiler* s_profiler;
 
 public:
-	StateMachine();
-	StateMachine(State* pInitialState);
+	static void initialize();
+	static void shutdown();
 
-	void update(Action*** actions, u32* count, vx::StackAllocator* allocator);
+	static void frame();
 
-	void setInitialState(State* pState);
+	static void pushMarker(const char* id);
+	static void popMarker();
 };

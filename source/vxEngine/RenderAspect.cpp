@@ -43,6 +43,7 @@ SOFTWARE.
 #include "Graphics/Renderer.h"
 #include "Graphics/ShadowRenderer.h"
 #include "Graphics/Segment.h"
+#include <vxLib/Window.h>
 
 RenderAspect* g_renderAspect{ nullptr };
 
@@ -166,6 +167,33 @@ bool RenderAspect::createBuffers()
 		m_pColdData->m_screenshotBuffer.create(desc);
 	}
 
+	{
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+		desc.size = sizeof(u32) * m_resolution.x * m_resolution.y / 4;
+		desc.immutable = 1;
+
+		m_objectManager.createBuffer("ShaderStorageConetracePixelListBuffer", desc);
+	}
+
+	{
+		vx::gl::DrawArraysIndirectCommand cmd;
+		cmd.baseInstance = 0;
+		cmd.count = 0;
+		cmd.first = 0;
+		cmd.instanceCount = 1;
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+		desc.size = sizeof(vx::gl::DrawArraysIndirectCommand);
+		desc.immutable = 1;
+		desc.pData = &cmd;
+		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
+
+		m_objectManager.createBuffer("ShaderStoragePixelListCmdBuffer", desc);
+	}
+
 	return true;
 }
 
@@ -215,6 +243,7 @@ void RenderAspect::createUniformBuffers()
 		data.u_depthSlice = m_pColdData->m_gbufferDepthTexture.getTextureHandle();
 		data.u_aabbTexture = m_pColdData->m_aabbTexture.getTextureHandle();
 		data.u_ambientSlice = m_pColdData->m_ambientColorTexture.getTextureHandle();
+		data.u_ambientImage = m_pColdData->m_ambientColorTexture.getImageHandle(0, 0, 0);
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -266,6 +295,8 @@ void RenderAspect::createTextures()
 		desc.miplevels = 1;
 		m_pColdData->m_ambientColorTexture.create(desc);
 		m_pColdData->m_ambientColorTexture.makeTextureResident();
+
+		glMakeImageHandleResidentARB(m_pColdData->m_ambientColorTexture.getImageHandle(0, 0, 0), GL_WRITE_ONLY);
 
 		for (int i = 0; i < 2; ++i)
 		{
@@ -346,7 +377,22 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 {
 	createColdData();
 
-	vx::gl::ContextDescription contextDesc = vx::gl::ContextDescription::create(*desc.window, desc.resolution, desc.fovRad, desc.z_near, desc.z_far, 4, 5, desc.vsync, desc.debug);
+	vx::gl::OpenGLDescription glDescription;
+	glDescription.bDebugMode = desc.debug;
+	glDescription.bVsync = desc.vsync;
+	glDescription.farZ = desc.z_far;
+	glDescription.fovRad = desc.fovRad;
+	glDescription.hwnd = desc.window->getHwnd();
+	glDescription.majVersion = 4;
+	glDescription.minVersion = 5;
+	glDescription.nearZ = desc.z_near;
+	glDescription.resolution = desc.resolution;
+
+	vx::gl::ContextDescription contextDesc;
+	contextDesc.glParams = glDescription;
+	contextDesc.hInstance = desc.window->getHinstance();
+	contextDesc.windowClass = desc.window->getClassName();
+
 	if (!m_renderContext.initialize(contextDesc))
 		return false;
 
@@ -507,22 +553,24 @@ void RenderAspect::update()
 
 	for (auto &it : m_tasks)
 	{
+		auto p = backBuffer + offset;
+
 		switch (it.type)
 		{
 		case RenderUpdateTask::Type::UpdateCamera:
 			taskUpdateCamera();
 			break;
 		case RenderUpdateTask::Type::UpdateDynamicTransforms:
-			taskUpdateDynamicTransforms(backBuffer + offset, &offset);
+			taskUpdateDynamicTransforms(p, &offset);
 			break;
 		case RenderUpdateTask::Type::CreateActorGpuIndex:
-			taskCreateActorGpuIndex(backBuffer + offset, &offset);
+			taskCreateActorGpuIndex(p, &offset);
 			break;
 		case RenderUpdateTask::Type::TakeScreenshot:
 			taskTakeScreenshot();
 			break;
 		case RenderUpdateTask::Type::LoadScene:
-			taskLoadScene(backBuffer + offset, &offset);
+			taskLoadScene(p, &offset);
 			break;
 		case RenderUpdateTask::Type::ToggleRenderMode:
 			taskToggleRenderMode();
@@ -617,13 +665,13 @@ void RenderAspect::taskCreateActorGpuIndex(u8* p, u32* offset)
 	*offset += sizeof(CreateActorData);
 }
 
-void RenderAspect::taskUpdateDynamicTransforms(u8* ptr, u32* offset)
+void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
 {
-	auto data = (RenderUpdateDataTransforms*)ptr;
+	auto data = (RenderUpdateDataTransforms*)p;
 	u32 count = data->count;
 
 	auto transforms = (vx::TransformGpu*)(data + 1);
-	auto indices = (u32*)(transforms + count);
+	auto indices = (u32*)(p + sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count);
 
 	for (u32 i = 0; i < count; ++i)
 	{
@@ -665,6 +713,10 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	m_voxelRenderer.createMipmaps();
 	gpuProfiler->popGpuMarker();
 
+	gpuProfiler->pushGpuMarker("pixel list");
+	createConeTracePixelList();
+	gpuProfiler->popGpuMarker();
+
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	gpuProfiler->pushGpuMarker("cone trace");
 	coneTrace();
@@ -701,6 +753,8 @@ void RenderAspect::bindBuffers()
 	auto pTextureBuffer = m_objectManager.getBuffer("TextureBuffer");
 	auto pUniformTextureBuffer = m_objectManager.getBuffer("UniformTextureBuffer");
 	auto pCameraBufferStatic = m_objectManager.getBuffer("CameraBufferStatic");
+	auto shaderStoragePixelListCmdBuffer = m_objectManager.getBuffer("ShaderStoragePixelListCmdBuffer");
+	auto shaderStorageConetracePixelListBuffer = m_objectManager.getBuffer("ShaderStorageConetracePixelListBuffer");
 
 	gl::BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
 	gl::BufferBindingManager::bindBaseUniform(2, pCameraBufferStatic->getId());
@@ -708,6 +762,8 @@ void RenderAspect::bindBuffers()
 	gl::BufferBindingManager::bindBaseUniform(5, pShadowTransformBuffer->getId());
 
 	gl::BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
+	gl::BufferBindingManager::bindBaseShaderStorage(3, shaderStorageConetracePixelListBuffer->getId());
+	gl::BufferBindingManager::bindBaseShaderStorage(4, shaderStoragePixelListCmdBuffer->getId());
 
 	m_sceneRenderer.bindBuffers();
 	m_voxelRenderer.bindBuffers(m_objectManager);
@@ -724,6 +780,13 @@ void RenderAspect::clearTextures()
 
 void RenderAspect::clearBuffers()
 {
+	auto shaderStoragePixelListCmdBuffer = m_objectManager.getBuffer("ShaderStoragePixelListCmdBuffer");
+
+	auto mapped = shaderStoragePixelListCmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	mapped->count = 0;
+	
+	//u32 data = 0;
+	//shaderStoragePixelListCmdBuffer->subData(0, sizeof(u32), &data);
 }
 
 void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count)
@@ -755,21 +818,33 @@ void RenderAspect::voxelDebug()
 	m_voxelRenderer.debug(m_emptyVao, m_resolution);
 }
 
-void RenderAspect::coneTrace()
+void RenderAspect::createConeTracePixelList()
 {
-	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-	vx::gl::StateManager::bindFrameBuffer(m_coneTraceFB);
-	glClear(GL_COLOR_BUFFER_BIT);
+	vx::gl::StateManager::bindFrameBuffer(0);
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 
-	auto pPipeline = m_shaderManager.getPipeline("coneTrace.pipe");
-	auto fs = pPipeline->getFragmentShader();
+	auto pPipeline = m_shaderManager.getPipeline("createConeTraceList.pipe");
 
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
 
 	glDrawArrays(GL_POINTS, 0, 1);
+}
+
+void RenderAspect::coneTrace()
+{
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
+
+	auto shaderStoragePixelListCmdBuffer = m_objectManager.getBuffer("ShaderStoragePixelListCmdBuffer");
+	auto pPipeline = m_shaderManager.getPipeline("coneTrace.pipe");
+
+	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, shaderStoragePixelListCmdBuffer->getId());
+
+	vx::gl::StateManager::bindPipeline(pPipeline->getId());
+	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
+
+	glDrawArraysIndirect(GL_POINTS, 0);
 }
 
 void RenderAspect::blurAmbientColor()
@@ -778,8 +853,6 @@ void RenderAspect::blurAmbientColor()
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
-
-
 
 	auto pPipeline = m_shaderManager.getPipeline("blurpass.pipe");
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());

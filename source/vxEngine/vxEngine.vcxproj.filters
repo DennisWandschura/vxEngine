@@ -321,9 +321,6 @@
     <ClInclude Include="ComponentsForward.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="ActionManager.h">
-      <Filter>Header Files\AI</Filter>
-    </ClInclude>
     <ClInclude Include="NavGraph.h">
       <Filter>Header Files\Navigation</Filter>
     </ClInclude>
@@ -651,6 +648,12 @@
     <ClInclude Include="ActionActorCreatePath.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
+    <ClInclude Include="ActionManager.h">
+      <Filter>Header Files\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="CpuProfiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -959,6 +962,9 @@
     <ClCompile Include="ActionActorCreatePath.cpp">
       <Filter>Source Files\Actions</Filter>
     </ClCompile>
+    <ClCompile Include="CpuProfiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">
@@ -971,9 +977,6 @@
       <Filter>Shaders\include</Filter>
     </None>
     <None Include="..\..\game\data\shaders\include\structs.glsl">
-      <Filter>Shaders\include</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\include\atomic_counters.glsl">
       <Filter>Shaders\include</Filter>
     </None>
     <None Include="..\..\game\data\shaders\create_gbuffer.pipe">
@@ -1090,9 +1093,6 @@
     <None Include="..\..\game\data\shaders\shadow.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\coneTrace.frag">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\..\game\data\shaders\coneTrace.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
@@ -1103,9 +1103,6 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\screenquadRay.gs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\programs\coneTrace.geom">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\include\quaternion.glsl">
@@ -1224,6 +1221,21 @@
     </None>
     <None Include="..\..\game\data\shaders\editorDrawInfluenceCell.pipe">
       <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\createConeTraceList.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\createConeTraceList.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\atomicCounters.glsl">
+      <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\coneTrace.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\createConeTraceList.geom">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

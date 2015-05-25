@@ -43,6 +43,7 @@ class RenderAspect;
 #include "StateMachine.h"
 #include <memory>
 #include <vxLib/Allocator/StackAllocator.h>
+#include <vector>
 
 class PlayerController
 {

@@ -52,6 +52,12 @@ namespace gl
 		const vx::gl::Framebuffer* getFramebuffer(const vx::StringID &sid) const;
 		const vx::gl::Framebuffer* getFramebuffer(const char* id) const;
 
+		template<size_t SIZE>
+		vx::StringID createBuffer(const char(&key)[SIZE], const vx::gl::BufferDescription &desc)
+		{
+			m_bufferManager.createBuffer(key, desc);
+		}
+
 		vx::StringID createBuffer(const char* id, const vx::gl::BufferDescription &desc);
 		const vx::gl::Buffer* getBuffer(const vx::StringID &sid) const;
 		const vx::gl::Buffer* getBuffer(const char* id) const;
