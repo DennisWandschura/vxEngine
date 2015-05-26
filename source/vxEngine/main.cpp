@@ -77,6 +77,38 @@ namespace
 	}
 }
 
+vx::float2 encodeNormal(const vx::float3 &n)
+{
+	vx::float2 enc;
+	enc.x = atan2(n.y, n.x) / vx::VX_PI;
+	enc.y = n.z;
+
+	return (enc + 1.0) * 0.5;
+}
+
+vx::float3 decodeNormal(const vx::float2 &enc)
+{
+	vx::float3 n;
+
+	vx::float2 ang = enc * 2.0f - 1.0f;
+
+	float tmp = ang.x * vx::VX_PI;
+
+	vx::float2 scth;
+	scth.x = sin(tmp);
+	scth.y = cos(tmp);
+
+	vx::float2 scphi;
+	scphi.x = (1.0 - ang.y*ang.y);
+	scphi.y = ang.y;
+
+	n.x = scth.y * scphi.x;
+	n.y = scth.x * scphi.x;
+	n.z = scphi.y;
+
+	return n;
+}
+
 int main()
 {
 	auto previousHandler = std::signal(SIGABRT, signalHandler);
@@ -85,9 +117,25 @@ int main()
 		return 1;
 	}
 
-	vx::float3 a = { 1, 2, 3 };
+	const __m128 qRotations_normal[6] =
+	{
+		{ 0.382683426, 0.000000000, 0.000000000, 0.923879504 },
+		{ -0.382683426, 0.000000000, 0.000000000, 0.923879504 },
+		{ 0.000000000, 0.382683426, 0.000000000, 0.923879504 },
+		{ 0.000000000, -0.382683426, 0.000000000, 0.923879504 },
+		{ 0.000000000, 0.000000000, 0.382683426, 0.923879504 },
+		{ 0.000000000, 0.000000000, -0.382683426, 0.923879504 }
+	};
 
-	vx::distance(a, a);
+	__m128 normal = {1, 0, 0, 0};
+
+	auto n1 = vx::quaternionRotation(normal, qRotations_normal[0]);
+	auto n2 = vx::quaternionRotation(normal, qRotations_normal[1]);
+	auto n3 = vx::quaternionRotation(normal, qRotations_normal[2]);
+
+	auto n4 = vx::quaternionRotation(normal, qRotations_normal[3]);
+	auto n5 = vx::quaternionRotation(normal, qRotations_normal[4]);
+	auto n6 = vx::quaternionRotation(normal, qRotations_normal[5]);
 
 	HANDLE hLogFile = nullptr;;
 	hLogFile = CreateFileA("log.txt", GENERIC_WRITE,

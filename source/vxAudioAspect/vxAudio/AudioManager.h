@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,15 +22,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 typedef struct ALCdevice_struct ALCdevice;
 typedef struct ALCcontext_struct ALCcontext;
 
-class __declspec(dllexport) AudioManager
+class AudioManager
 {
-	ALCdevice* m_pDevice{ nullptr };
-	ALCcontext* m_pContext{ nullptr };
+	ALCdevice* m_pDevice;
+	ALCcontext* m_pContext;
 
 public:
 	AudioManager();

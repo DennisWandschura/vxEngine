@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,60 +22,25 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/types.h>
-#include "thread.h"
-#include <atomic>
 #include <vxLib/Allocator/StackAllocator.h>
-#include "SystemAspect.h"
-#include "RenderAspect.h"
-#include "PhysicsAspect.h"
-#include "FileAspect.h"
-#include "memory.h"
-#include "LevelEditor.h"
-#include "EntityAspect.h"
-#include "EventManager.h"
-#include "ActorAspect.h"
 
-class Engine
+class DoubleBufferRaw
 {
-	EventManager m_eventManager;
-	SystemAspect m_systemAspect;
-	PhysicsAspect m_physicsAspect;
-	ActorAspect m_actorAspect;
-	RenderAspect m_renderAspect;
-	EntityAspect m_entityAspect;
-	u32 m_bRun;
-	FileAspect m_fileAspect;
-	std::atomic_uint m_bRunFileThread;
-	std::atomic_uint m_bRunRenderThread;
-	vx::StackAllocator m_allocator;
-	u32 m_shutdown{0};
-	vx::thread m_fileAspectThread;
-	vx::thread m_renderThread;
-	Memory m_memory;
-
-	void loopFileThread();
-	bool initializeImpl(const std::string &dataDir);
-
-	void update();
-	void mainLoop();
-	void renderLoop();
+	u8* m_frontBuffer;
+	u8* m_backBuffer;
+	u32 m_frontSize;
+	u32 m_backSize;
+	u32 m_capacity;
 
 public:
-	Engine();
-	~Engine();
+	DoubleBufferRaw();
+	DoubleBufferRaw(vx::StackAllocator* allocator, u32 capacity);
 
-	bool initialize();
-	void shutdown();
+	bool memcpy(const u8* data, u32 size);
 
-	void start();
+	void swapBuffers();
 
-	void stop();
-
-	void handleEvent(const vx::Event &evt);
-	void keyPressed(u16 key);
-
-	void requestLoadFile(const FileEntry &fileEntry, void* p);
+	u8* getBackBuffer();
+	u32 getBackBufferSize() const;
 };

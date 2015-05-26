@@ -31,13 +31,20 @@ SOFTWARE.
 #include "gl/BufferBindingManager.h"
 #include "gl/ObjectManager.h"
 
+const u32 voxelLodCount = 4;
+
 void VoxelRenderer::initialize(u16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager)
 {
-	m_voxelTextureSize = voxelTextureSize;
-	m_mipcount = std::log2(m_voxelTextureSize);
+	//m_voxelTextureSize = voxelTextureSize;
+	m_voxelTextureSize = 128;
+
+	//m_mipcount = std::log2(m_voxelTextureSize);
+	m_mipcount = voxelLodCount;
 
 	m_pColdData = vx::make_unique<ColdData>();
-	m_pipelineVoxelize = shaderManager.getPipeline("voxelize.pipe")->getId();
+	auto pipe = shaderManager.getPipeline("voxelize.pipe");
+	m_pipelineVoxelize = pipe->getId();
+	m_pipelineGs = pipe->getGeometryShader();
 	m_pipelineDebug = shaderManager.getPipeline("voxel_debug.pipe")->getId();
 	m_pipelineMipmap = shaderManager.getPipeline("voxelMipmap.pipe")->getId();
 
@@ -53,23 +60,25 @@ void VoxelRenderer::createVoxelBuffer(gl::ObjectManager* objectManager)
 	const __m128 axisX = { 1, 0, 0, 0 };
 	const __m128 axisY = { 0, 1, 0, 0 };
 
-	const u32 halfDim = m_voxelTextureSize / 2;
-
-	const f32 gridSize = 10.0f;
-
-	const f32 gridHalfSize = gridSize / 2.0f;
-	auto gridCellSize = gridHalfSize / halfDim;
-	auto invGridCellSize = 1.0f / gridCellSize;
-
-	auto projectionMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, gridHalfSize, -gridHalfSize, gridHalfSize, 0.0f, -gridSize);
-	auto voxelPvMatrix = projectionMatrix * vx::MatrixTranslation(0, 0, gridHalfSize);
+	const u32 sizeLod[voxelLodCount] = { 128, 64, 32, 16 };
+	const f32 gridsizeLod[voxelLodCount] = { 10, 10, 10, 10 };
 
 	VoxelBlock voxelBlock;
-	voxelBlock.projectionMatrix = voxelPvMatrix;
-	voxelBlock.dim = m_voxelTextureSize;
-	voxelBlock.halfDim = halfDim;
-	voxelBlock.gridCellSize = gridCellSize;
-	voxelBlock.invGridCellSize = invGridCellSize;
+	for (u32 i = 0; i < voxelLodCount; ++i)
+	{
+		auto halfDim = sizeLod[i] / 2;
+		auto gridHalfSize = gridsizeLod[i] / 2.0f;
+
+		auto gridCellSize = gridHalfSize / halfDim;
+		auto invGridCellSize = 1.0f / gridCellSize;
+
+		auto projectionMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, gridHalfSize, -gridHalfSize, gridHalfSize, 0.0f, -gridsizeLod[i]);
+		voxelBlock.data[i].projectionMatrix = projectionMatrix * vx::MatrixTranslation(0, 0, gridHalfSize);
+		voxelBlock.data[i].dim = sizeLod[i];
+		voxelBlock.data[i].halfDim = halfDim;
+		voxelBlock.data[i].gridCellSize = gridCellSize;
+		voxelBlock.data[i].invGridCellSize = invGridCellSize;
+	}
 
 	vx::gl::BufferDescription desc;
 	desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -83,9 +92,14 @@ void VoxelRenderer::createVoxelBuffer(gl::ObjectManager* objectManager)
 
 void VoxelRenderer::createVoxelTextureBuffer(gl::ObjectManager* objectManager)
 {
-	struct VoxelHandles
+	struct LodHandles
 	{
 		u64 u_voxelEmmitanceImage[6];
+	};
+
+	struct VoxelHandles
+	{
+		LodHandles lod[4];
 		u64 u_voxelEmmitanceTexture[6];
 		u64 u_voxelOpacityImage;
 		u64 u_voxelOpacityTexture;
@@ -95,7 +109,11 @@ void VoxelRenderer::createVoxelTextureBuffer(gl::ObjectManager* objectManager)
 
 	for (int i = 0; i < 6; ++i)
 	{
-		voxelHandles.u_voxelEmmitanceImage[i] = m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(0, 1, 0);
+		for (int lod = 0; lod < voxelLodCount; ++lod)
+		{
+			voxelHandles.lod[lod].u_voxelEmmitanceImage[i] = m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(lod, 1, 0);
+		}
+
 		voxelHandles.u_voxelEmmitanceTexture[i] = m_pColdData->m_voxelEmmitanceTextures[i].getTextureHandle();
 	}
 
@@ -127,7 +145,10 @@ void VoxelRenderer::createVoxelTextures()
 		m_pColdData->m_voxelEmmitanceTextures[i].setFilter(vx::gl::TextureFilter::LINEAR_MIPMAP_LINEAR, vx::gl::TextureFilter::LINEAR);
 
 		m_pColdData->m_voxelEmmitanceTextures[i].makeTextureResident();
-		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(0, 1, 0), GL_READ_WRITE);
+		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(0, 1, 0), GL_WRITE_ONLY);
+		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(1, 1, 0), GL_WRITE_ONLY);
+		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(2, 1, 0), GL_WRITE_ONLY);
+		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(3, 1, 0), GL_WRITE_ONLY);
 
 		m_voxelEmmitanceTexturesId[i] = m_pColdData->m_voxelEmmitanceTextures[i].getId();
 	}
@@ -179,7 +200,6 @@ void VoxelRenderer::clearTextures()
 void VoxelRenderer::voxelizeScene(u32 count, const vx::gl::Buffer &indirectCmdBuffer, const vx::gl::VertexArray &vao)
 {
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-	vx::gl::StateManager::setViewport(0, 0, m_voxelTextureSize, m_voxelTextureSize);
 	vx::gl::StateManager::bindFrameBuffer(m_voxelFB);
 
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -194,6 +214,20 @@ void VoxelRenderer::voxelizeScene(u32 count, const vx::gl::Buffer &indirectCmdBu
 	vx::gl::StateManager::bindVertexArray(vao);
 	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, indirectCmdBuffer.getId());
 
+	glProgramUniform1i(m_pipelineGs, 0, 0);
+	vx::gl::StateManager::setViewport(0, 0, 128, 128);
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glProgramUniform1i(m_pipelineGs, 0, 1);
+	vx::gl::StateManager::setViewport(0, 0, 64, 64);
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glProgramUniform1i(m_pipelineGs, 0, 2);
+	vx::gl::StateManager::setViewport(0, 0, 32, 32);
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glProgramUniform1i(m_pipelineGs, 0, 3);
+	vx::gl::StateManager::setViewport(0, 0, 16, 16);
 	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -204,33 +238,33 @@ void VoxelRenderer::voxelizeScene(u32 count, const vx::gl::Buffer &indirectCmdBu
 
 void VoxelRenderer::createMipmaps()
 {
-	int srcLevel = 0;
+	/*int srcLevel = 0;
 	int dstLevel = 1;
 	auto dstResolution = m_voxelTextureSize / 2;
 
 	for (u8 i = 1; i <= m_mipcount; ++i)
 	{
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
 
-		vx::gl::StateManager::bindPipeline(m_pipelineMipmap);
+	vx::gl::StateManager::bindPipeline(m_pipelineMipmap);
 
-		for (int j = 0; j < 6; ++j)
-		{
-			glBindImageTexture(0, m_voxelEmmitanceTexturesId[j], srcLevel, 1, 0, GL_READ_ONLY, GL_RGBA8);
-			glBindImageTexture(1, m_voxelEmmitanceTexturesId[j], dstLevel, 1, 0, GL_WRITE_ONLY, GL_RGBA8);
+	for (int j = 0; j < 6; ++j)
+	{
+	glBindImageTexture(0, m_voxelEmmitanceTexturesId[j], srcLevel, 1, 0, GL_READ_ONLY, GL_RGBA8);
+	glBindImageTexture(1, m_voxelEmmitanceTexturesId[j], dstLevel, 1, 0, GL_WRITE_ONLY, GL_RGBA8);
 
-			glDrawArraysInstanced(GL_POINTS, 0, dstResolution, dstResolution * dstResolution);
-		}
-
-		glBindImageTexture(0, m_voxelOpacityTextureId, srcLevel, 1, 0, GL_READ_ONLY, GL_RGBA8);
-		glBindImageTexture(1, m_voxelOpacityTextureId, dstLevel, 1, 0, GL_WRITE_ONLY, GL_RGBA8);
-
-		glDrawArraysInstanced(GL_POINTS, 0, dstResolution, dstResolution * dstResolution);
-
-		++srcLevel;
-		++dstLevel;
-		dstResolution /= 2;
+	glDrawArraysInstanced(GL_POINTS, 0, dstResolution, dstResolution * dstResolution);
 	}
+
+	glBindImageTexture(0, m_voxelOpacityTextureId, srcLevel, 1, 0, GL_READ_ONLY, GL_RGBA8);
+	glBindImageTexture(1, m_voxelOpacityTextureId, dstLevel, 1, 0, GL_WRITE_ONLY, GL_RGBA8);
+
+	glDrawArraysInstanced(GL_POINTS, 0, dstResolution, dstResolution * dstResolution);
+
+	++srcLevel;
+	++dstLevel;
+	dstResolution /= 2;
+	}*/
 }
 
 void VoxelRenderer::debug(const vx::gl::VertexArray &vao, vx::uint2 &resolution)

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,26 +23,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 #include <vxLib/types.h>
 
-enum class EventType : u8
+class Sound
 {
-	File_Event,
-	Ingame_Event,
-	AI_Event,
-	Editor_Event
-};
+	u32 m_source;
 
-enum class FileEvent : u16
-{
-	// arg1 contains ptr to scene, arg2 contains sid of filename
-	Scene_Loaded,
-	// arg1 contains sid to file, arg2 contains ptr
-	Texture_Loaded,
-	// arg1 contains sid to file, arg2 userdata
-	Material_Loaded,
-	// arg1 contains sid to file, arg2 userdata
-	Mesh_Loaded
+public:
+	Sound() :m_source(0){}
+
+	virtual ~Sound() {}
+
+	virtual bool start() = 0;
+	virtual void stop() = 0;
+
+	virtual void reset() = 0;
+
+	virtual void setVolume(f32 volume) = 0;
+
+	virtual bool isFinished() = 0;
 };

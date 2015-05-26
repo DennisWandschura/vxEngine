@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "EditorRenderAspect.h"
-#include "Event.h"
-#include "EventTypes.h"
+#include <vxEngineLib/Event.h>
+#include <vxEngineLib/EventTypes.h>
 #include "Scene.h"
 #include <vxLib/gl/gl.h>
 #include <vxLib/gl/StateManager.h>
@@ -635,17 +635,17 @@ void EditorRenderAspect::render()
 	m_renderContext.swapBuffers();
 }
 
-void EditorRenderAspect::handleEvent(const Event &evt)
+void EditorRenderAspect::handleEvent(const vx::Event &evt)
 {
 	switch (evt.type)
 	{
-	case(EventType::File_Event) :
+	case(vx::EventType::File_Event) :
 		handleFileEvent(evt);
 		break;
-	case(EventType::Ingame_Event) :
+	case(vx::EventType::Ingame_Event) :
 		handleIngameEvent(evt);
 		break;
-	case(EventType::Editor_Event) :
+	case(vx::EventType::Editor_Event) :
 		handleEditorEvent(evt);
 		break;
 	default:
@@ -832,12 +832,12 @@ void VX_CALLCONV EditorRenderAspect::editor_rotateCamera(const __m128 rotation)
 	m_camera.setRotation(rotation);
 }
 
-void EditorRenderAspect::handleEditorEvent(const Event &evt)
+void EditorRenderAspect::handleEditorEvent(const vx::Event &evt)
 {
 	VX_UNREFERENCED_PARAMETER(evt);
 }
 
-void EditorRenderAspect::handleLoadScene(const Event &evt)
+void EditorRenderAspect::handleLoadScene(const vx::Event &evt)
 {
 	auto scene = (Scene*)evt.arg1.ptr;
 	auto lightCount = scene->getLightCount();
@@ -871,11 +871,11 @@ void EditorRenderAspect::handleLoadScene(const Event &evt)
 	}
 }
 
-void EditorRenderAspect::handleFileEvent(const Event &evt)
+void EditorRenderAspect::handleFileEvent(const vx::Event &evt)
 {
 	RenderAspect::handleFileEvent(evt);
 
-	if ((FileEvent)evt.code == FileEvent::Scene_Loaded)
+	if ((vx::FileEvent)evt.code == vx::FileEvent::Scene_Loaded)
 	{
 		handleLoadScene(evt);
 	}

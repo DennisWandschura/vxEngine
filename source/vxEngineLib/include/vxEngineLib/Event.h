@@ -23,13 +23,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct Event;
+#include <vxLib/Variant.h>
 
-class EventListener
+namespace vx
 {
-protected:
-	~EventListener(){}
 
-public:
-	virtual void handleEvent(const Event &evt) = 0;
-};
+	enum class EventType : u8;
+
+	struct Event
+	{
+		// type of event
+		EventType type;
+		// additional filter
+		u16 filter;
+		// specific event code of type
+		u32 code;
+		vx::Variant arg1;
+		vx::Variant arg2;
+	};
+
+}

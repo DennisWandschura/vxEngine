@@ -95,7 +95,7 @@ class EditorRenderAspect : public RenderAspect
 
 	void createEditorTextures();
 
-	void handleFileEvent(const Event &evt);
+	void handleFileEvent(const vx::Event &evt);
 
 	void addMesh(const vx::StringID &sid);
 	void addMaterial(const vx::StringID &sid);
@@ -103,8 +103,8 @@ class EditorRenderAspect : public RenderAspect
 	void updateInstance(const vx::StringID &sid);
 	void updateEditor();
 
-	void handleEditorEvent(const Event &evt);
-	void handleLoadScene(const Event &evt);
+	void handleEditorEvent(const vx::Event &evt);
+	void handleLoadScene(const vx::Event &evt);
 
 	void updateCamera();
 
@@ -125,7 +125,7 @@ public:
 	void editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ);
 	void VX_CALLCONV editor_rotateCamera(const __m128 rotation);
 
-	void handleEvent(const Event &evt) override;
+	void handleEvent(const vx::Event &evt) override;
 
 	const vx::Camera& getCamera() const;
 

@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "ActorAspect.h"
-#include "EventTypes.h"
-#include "Event.h"
+#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/Event.h>
 #include "Locator.h"
 #include "Scene.h"
 #include "EventManager.h"
@@ -69,27 +69,27 @@ void ActorAspect::createInfluenceMap(const Scene* scene)
 	m_influenceMap.initialize(navmesh);
 }
 
-void ActorAspect::handleFileEvent(const Event &evt)
+void ActorAspect::handleFileEvent(const vx::Event &evt)
 {
-	if (evt.code == (u32)FileEvent::Scene_Loaded)
+	if (evt.code == (u32)vx::FileEvent::Scene_Loaded)
 	{
 		auto pCurrentScene = reinterpret_cast<const Scene*>(evt.arg1.ptr);
 		auto &navmesh = pCurrentScene->getNavMesh();
 
 		m_navmeshGraph.initialize(navmesh);
 
-		Event evt;
+		vx::Event evt;
 		evt.arg1.ptr = &m_navmeshGraph;
-		evt.type = EventType::Ingame_Event;
+		evt.type = vx::EventType::Ingame_Event;
 		evt.code = (u32)IngameEvent::Created_NavGraph;
 
 		auto pEvtManager = Locator::getEventManager();
 		pEvtManager->addEvent(evt);
 
 		createInfluenceMap(pCurrentScene);
-		Event evtInfluence;
+		vx::Event evtInfluence;
 		evtInfluence.arg1.ptr = &m_influenceMap;
-		evtInfluence.type = EventType::Ingame_Event;
+		evtInfluence.type = vx::EventType::Ingame_Event;
 		evtInfluence.code = (u32)IngameEvent::Created_InfluenceMap;
 
 		pEvtManager->addEvent(evtInfluence);
@@ -99,7 +99,7 @@ void ActorAspect::handleFileEvent(const Event &evt)
 	}
 }
 
-void ActorAspect::handleIngameEvent(const Event &evt)
+void ActorAspect::handleIngameEvent(const vx::Event &evt)
 {
 	auto ingameEvt = (IngameEvent)evt.code;
 
@@ -112,17 +112,17 @@ void ActorAspect::handleIngameEvent(const Event &evt)
 	}
 }
 
-void ActorAspect::handleEvent(const Event &evt)
+void ActorAspect::handleEvent(const vx::Event &evt)
 {
 	switch (evt.type)
 	{
-	case EventType::AI_Event:
+	case vx::EventType::AI_Event:
 		//handleAIEvent(evt);
 		break;
-	case EventType::Ingame_Event:
+	case vx::EventType::Ingame_Event:
 		handleIngameEvent(evt);
 		break;
-	case EventType::File_Event:
+	case vx::EventType::File_Event:
 		handleFileEvent(evt);
 		break;
 	default:

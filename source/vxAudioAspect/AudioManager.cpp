@@ -28,6 +28,8 @@ SOFTWARE.
 #pragma comment(lib, "OpenAL32.lib")
 
 AudioManager::AudioManager()
+	:m_pDevice(nullptr),
+	m_pContext(nullptr)
 {
 }
 

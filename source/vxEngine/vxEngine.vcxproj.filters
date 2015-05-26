@@ -387,19 +387,7 @@
     <ClInclude Include="developer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Event.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
     <ClInclude Include="EventManager.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="EventTypesFwd.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="EventTypes.h">
-      <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="EventListener.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
     <ClInclude Include="EventsIngame.h">
@@ -653,6 +641,9 @@
     </ClInclude>
     <ClInclude Include="CpuProfiler.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DoubleBufferRaw.h">
+      <Filter>Header Files\Container</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -965,6 +956,9 @@
     <ClCompile Include="CpuProfiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DoubleBufferRaw.cpp">
+      <Filter>Source Files\Container</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">
@@ -1016,12 +1010,6 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\draw_final_image.fs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\programs\forward_render.fs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\programs\forward_render.gs.glsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\graph.fs.glsl">

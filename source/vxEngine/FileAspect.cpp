@@ -30,8 +30,8 @@ SOFTWARE.
 #include "Light.h"
 #include "enums.h"
 #include "EventManager.h"
-#include "Event.h"
-#include "EventTypes.h"
+#include <vxEngineLib/Event.h>
+#include <vxEngineLib/EventTypes.h>
 #include <vxLib/util/DebugPrint.h>
 #include "developer.h"
 #include "FileFactory.h"
@@ -323,12 +323,12 @@ const u8* FileAspect::readFile(const char *file, u32* fileSize)
 	return pData;
 }
 
-void FileAspect::pushFileEvent(FileEvent code, vx::Variant arg1, vx::Variant arg2)
+void FileAspect::pushFileEvent(vx::FileEvent code, vx::Variant arg1, vx::Variant arg2)
 {
-	Event e;
+	vx::Event e;
 	e.arg1 = arg1;
 	e.arg2 = arg2;
-	e.type = EventType::File_Event;
+	e.type = vx::EventType::File_Event;
 	e.code = (u32)code;
 
 	auto evtManager = Locator::getEventManager();
@@ -366,7 +366,7 @@ bool FileAspect::loadFileMesh(const LoadFileOfTypeDescription &desc)
 		vx::Variant arg2;
 		arg2.ptr = desc.pUserData;
 
-		pushFileEvent(FileEvent::Mesh_Loaded, arg1, arg2);
+		pushFileEvent(vx::FileEvent::Mesh_Loaded, arg1, arg2);
 		result = true;
 	}
 
@@ -394,7 +394,7 @@ void FileAspect::loadFileTexture(const LoadFileOfTypeDescription &desc)
 		vx::Variant arg2;
 		arg2.ptr = p;
 
-		pushFileEvent(FileEvent::Texture_Loaded, arg1, arg2);
+		pushFileEvent(vx::FileEvent::Texture_Loaded, arg1, arg2);
 	}
 }
 
@@ -419,7 +419,7 @@ void FileAspect::loadFileMaterial(const LoadFileOfTypeDescription &desc)
 		vx::Variant arg2;
 		arg2.ptr = desc.pUserData;
 
-		pushFileEvent(FileEvent::Material_Loaded, arg1, arg2);
+		pushFileEvent(vx::FileEvent::Material_Loaded, arg1, arg2);
 	}
 }
 
@@ -454,7 +454,7 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 			vx::Variant arg2;
 			arg2.u64 = desc.sid.value;
 
-			pushFileEvent(FileEvent::Scene_Loaded, arg1, arg2);
+			pushFileEvent(vx::FileEvent::Scene_Loaded, arg1, arg2);
 
 			desc.result->result = 1;
 			desc.result->type = FileType::Scene;

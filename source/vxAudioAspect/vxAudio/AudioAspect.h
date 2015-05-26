@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,11 +23,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/types.h>
+#include <vxEngineLib/EventListener.h>
+#include "AudioManager.h"
 
-enum class EventType : u8;
-enum class FileEvent : u16;
-enum class IngameEvent : u16;
-enum class AIEvent : u16;
+class AudioAspect : public vx::EventListener
+{
+	AudioManager m_audioManager;
+
+public:
+	bool initialize();
+	void shutdown();
+
+	void handleEvent(const vx::Event &evt) override;
+
+	void update();
+};

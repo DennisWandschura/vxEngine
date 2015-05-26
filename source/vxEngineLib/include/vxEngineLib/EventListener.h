@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,35 +22,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 namespace vx
 {
 	struct Event;
-	class EventListener;
+
+	class EventListener
+	{
+	protected:
+		~EventListener(){}
+
+	public:
+		virtual void handleEvent(const Event &evt) = 0;
+	};
 }
-
-#include <vxLib/types.h>
-#include <vector>
-#include <vxLib/Container/sorted_array.h>
-#include <mutex>
-
-class EventManager
-{
-	std::mutex m_evtMutex;
-	std::vector<vx::Event> m_events[2];
-	std::vector<std::pair<u64, vx::EventListener*>> m_eventListeners;
-	u32 m_currentReadQueue{0};
-
-public:
-	EventManager();
-	~EventManager();
-
-	void initialize();
-
-	void registerListener(vx::EventListener* ptr, u64 priority);
-
-	void update();
-
-	void addEvent(const vx::Event &evt);
-};

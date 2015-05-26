@@ -29,8 +29,8 @@ SOFTWARE.
 #include "gl/BufferBindingManager.h"
 #include "developer.h"
 #include <vxLib/gl/ProgramPipeline.h>
-#include "Event.h"
-#include "EventTypes.h"
+#include <vxEngineLib/Event.h>
+#include <vxEngineLib/EventTypes.h>
 #include "EventsIngame.h"
 #include "ScreenshotFactory.h"
 #include "DebugRenderSettings.h"
@@ -67,6 +67,7 @@ struct RenderAspect::ColdData
 	vx::gl::Texture m_gbufferSurfaceSlice;
 	// surface : rgbaf16
 	vx::gl::Texture m_gbufferTangentSlice;
+	vx::gl::Texture m_gbufferBitangentSlice;
 	vx::gl::Texture m_aabbTexture;
 	vx::gl::Buffer m_screenshotBuffer;
 
@@ -75,71 +76,7 @@ struct RenderAspect::ColdData
 	// contains index into texture array sorted by texture handle
 
 	Font m_font;
-	//	std::vector<std::unique_ptr<Graphics::Renderer>> m_renderers;
 };
-
-/*class DoubleBufferRaw
-{
-	u8* m_buffers[2];
-	u32 m_currentBuffer;
-	u32 m_frontSize;
-	u32 m_backSize;
-	u32 m_capacity;
-
-	*/
-RenderAspect::DoubleBufferRaw::DoubleBufferRaw()
-	:m_frontBuffer(nullptr),
-	m_backBuffer(nullptr),
-	m_frontSize(0),
-	m_backSize(0),
-	m_capacity(0)
-{
-}
-
-RenderAspect::DoubleBufferRaw::DoubleBufferRaw(vx::StackAllocator* allocator, u32 capacity)
-	:m_frontBuffer(nullptr),
-	m_backBuffer(nullptr),
-	m_frontSize(0),
-	m_backSize(0),
-	m_capacity(0)
-{
-	auto front = allocator->allocate(capacity, 64);
-	auto back = allocator->allocate(capacity, 64);
-
-	m_frontBuffer = front;
-	m_backBuffer = back;
-
-	m_capacity = capacity;
-}
-
-bool RenderAspect::DoubleBufferRaw::memcpy(const u8* data, u32 size)
-{
-	auto newSize = m_frontSize + size;
-	if (newSize >= m_capacity)
-		return false;
-
-	::memcpy(m_frontBuffer + m_frontSize, data, size);
-	m_frontSize = newSize;
-
-	return true;
-}
-
-void RenderAspect::DoubleBufferRaw::swapBuffers()
-{
-	std::swap(m_frontBuffer, m_backBuffer);
-	std::swap(m_frontSize, m_backSize);
-	m_frontSize = 0;
-}
-
-u8* RenderAspect::DoubleBufferRaw::getBackBuffer()
-{
-	return m_backBuffer;
-}
-
-u32 RenderAspect::DoubleBufferRaw::getBackBufferSize() const
-{
-	return m_backSize;
-}
 
 RenderAspect::RenderAspect()
 	:m_shaderManager(),
@@ -240,6 +177,7 @@ void RenderAspect::createUniformBuffers()
 		data.u_normalSlice = m_pColdData->m_gbufferNormalSlice.getTextureHandle();
 		data.u_surfaceSlice = m_pColdData->m_gbufferSurfaceSlice.getTextureHandle();
 		data.u_tangentSlice = m_pColdData->m_gbufferTangentSlice.getTextureHandle();
+		data.u_bitangentSlice = m_pColdData->m_gbufferBitangentSlice.getTextureHandle();
 		data.u_depthSlice = m_pColdData->m_gbufferDepthTexture.getTextureHandle();
 		data.u_aabbTexture = m_pColdData->m_aabbTexture.getTextureHandle();
 		data.u_ambientSlice = m_pColdData->m_ambientColorTexture.getTextureHandle();
@@ -252,6 +190,19 @@ void RenderAspect::createUniformBuffers()
 		desc.pData = &data;
 
 		m_objectManager.createBuffer("UniformTextureBuffer", desc);
+	}
+
+	{
+		RenderSettingsBlock data;
+		data.resolution = m_resolution;
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
+		desc.size = sizeof(RenderSettingsBlock);
+		desc.immutable = 1;
+		desc.pData = &data;
+
+		m_objectManager.createBuffer("RenderSettingsBufferBlock", desc);
 	}
 }
 
@@ -268,7 +219,7 @@ void RenderAspect::createTextures()
 		m_pColdData->m_gbufferAlbedoSlice.create(desc);
 		m_pColdData->m_gbufferAlbedoSlice.makeTextureResident();
 
-		desc.format = vx::gl::TextureFormat::RGB16F;
+		desc.format = vx::gl::TextureFormat::RGBA16F;
 		m_pColdData->m_gbufferNormalSlice.create(desc);
 		m_pColdData->m_gbufferNormalSlice.makeTextureResident();
 
@@ -279,6 +230,9 @@ void RenderAspect::createTextures()
 		desc.format = vx::gl::TextureFormat::RGBA16F;
 		m_pColdData->m_gbufferTangentSlice.create(desc);
 		m_pColdData->m_gbufferTangentSlice.makeTextureResident();
+
+		m_pColdData->m_gbufferBitangentSlice.create(desc);
+		m_pColdData->m_gbufferBitangentSlice.makeTextureResident();
 
 		desc.format = vx::gl::TextureFormat::DEPTH32;
 		desc.type = vx::gl::TextureType::Texture_2D;
@@ -326,9 +280,10 @@ void RenderAspect::createFrameBuffers()
 		m_gbufferFB.attachTexture(vx::gl::Attachment::Color1, m_pColdData->m_gbufferNormalSlice, 0);
 		m_gbufferFB.attachTexture(vx::gl::Attachment::Color2, m_pColdData->m_gbufferSurfaceSlice, 0);
 		m_gbufferFB.attachTexture(vx::gl::Attachment::Color3, m_pColdData->m_gbufferTangentSlice, 0);
+		m_gbufferFB.attachTexture(vx::gl::Attachment::Color4, m_pColdData->m_gbufferBitangentSlice, 0);
 		m_gbufferFB.attachTexture(vx::gl::Attachment::Depth, m_pColdData->m_gbufferDepthTexture, 0);
 
-		GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+		GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
 		glNamedFramebufferDrawBuffers(m_gbufferFB.getId(), 4, buffers);
 	}
 
@@ -654,11 +609,11 @@ void RenderAspect::taskCreateActorGpuIndex(u8* p, u32* offset)
 	CreateActorData* data = (CreateActorData*)p;
 	auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material, data->pScene);
 
-	Event e;
+	vx::Event e;
 	e.arg1.u32 = data->index;
 	e.arg2.u32 = (u32)gpuIndex;
 	e.code = (u32)IngameEvent::Created_Actor_GPU;
-	e.type = EventType::Ingame_Event;
+	e.type = vx::EventType::Ingame_Event;
 
 	evtManager->addEvent(e);
 
@@ -709,10 +664,12 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	voxelize(*meshVao, *cmdBuffer, meshCount);
 	gpuProfiler->popGpuMarker();
 
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	gpuProfiler->pushGpuMarker("mipmap");
 	m_voxelRenderer.createMipmaps();
 	gpuProfiler->popGpuMarker();
 
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	gpuProfiler->pushGpuMarker("pixel list");
 	createConeTracePixelList();
 	gpuProfiler->popGpuMarker();
@@ -755,11 +712,13 @@ void RenderAspect::bindBuffers()
 	auto pCameraBufferStatic = m_objectManager.getBuffer("CameraBufferStatic");
 	auto shaderStoragePixelListCmdBuffer = m_objectManager.getBuffer("ShaderStoragePixelListCmdBuffer");
 	auto shaderStorageConetracePixelListBuffer = m_objectManager.getBuffer("ShaderStorageConetracePixelListBuffer");
+	auto renderSettingsBufferBlock = m_objectManager.getBuffer("RenderSettingsBufferBlock");
 
 	gl::BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
 	gl::BufferBindingManager::bindBaseUniform(2, pCameraBufferStatic->getId());
 	gl::BufferBindingManager::bindBaseUniform(3, pUniformTextureBuffer->getId());
 	gl::BufferBindingManager::bindBaseUniform(5, pShadowTransformBuffer->getId());
+	gl::BufferBindingManager::bindBaseUniform(10, renderSettingsBufferBlock->getId());
 
 	gl::BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(3, shaderStorageConetracePixelListBuffer->getId());
@@ -784,9 +743,6 @@ void RenderAspect::clearBuffers()
 
 	auto mapped = shaderStoragePixelListCmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 	mapped->count = 0;
-	
-	//u32 data = 0;
-	//shaderStoragePixelListCmdBuffer->subData(0, sizeof(u32), &data);
 }
 
 void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count)
@@ -820,6 +776,8 @@ void RenderAspect::voxelDebug()
 
 void RenderAspect::createConeTracePixelList()
 {
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
 	vx::gl::StateManager::bindFrameBuffer(0);
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
@@ -834,6 +792,8 @@ void RenderAspect::createConeTracePixelList()
 
 void RenderAspect::coneTrace()
 {
+	glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
+
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 
 	auto shaderStoragePixelListCmdBuffer = m_objectManager.getBuffer("ShaderStoragePixelListCmdBuffer");
@@ -978,14 +938,14 @@ void RenderAspect::takeScreenshot()
 	ScreenshotFactory::writeScreenshotToFile(m_resolution, pScreenshotData);
 }
 
-void RenderAspect::handleEvent(const Event &evt)
+void RenderAspect::handleEvent(const vx::Event &evt)
 {
 	switch (evt.type)
 	{
-	case(EventType::File_Event) :
+	case(vx::EventType::File_Event) :
 		handleFileEvent(evt);
 		break;
-	case(EventType::Ingame_Event) :
+	case(vx::EventType::Ingame_Event) :
 		//handleIngameEvent(evt);
 		break;
 	default:
@@ -993,13 +953,13 @@ void RenderAspect::handleEvent(const Event &evt)
 	}
 }
 
-void RenderAspect::handleFileEvent(const Event &evt)
+void RenderAspect::handleFileEvent(const vx::Event &evt)
 {
-	auto fileEvent = (FileEvent)evt.code;
+	auto fileEvent = (vx::FileEvent)evt.code;
 
 	switch (fileEvent)
 	{
-	case FileEvent::Scene_Loaded:
+	case vx::FileEvent::Scene_Loaded:
 	{
 		vx::verboseChannelPrintF(0, dev::Channel_Render, "Queuing loading Scene into Render");
 		auto pScene = (Scene*)evt.arg1.ptr;
@@ -1015,7 +975,7 @@ void RenderAspect::handleFileEvent(const Event &evt)
 	}
 }
 
-void RenderAspect::handleIngameEvent(const Event &evt)
+void RenderAspect::handleIngameEvent(const vx::Event &evt)
 {
 	auto type = (IngameEvent)evt.code;
 
@@ -1034,11 +994,11 @@ void RenderAspect::handleIngameEvent(const Event &evt)
 
 		delete(data);
 
-		Event e;
+		vx::Event e;
 		e.arg1 = evt.arg1;
 		e.arg2.u32 = (u32)gpuIndex;
 		e.code = (u32)IngameEvent::Created_Actor_GPU;
-		e.type = EventType::Ingame_Event;
+		e.type = vx::EventType::Ingame_Event;
 
 		evtManager->addEvent(e);
 	}

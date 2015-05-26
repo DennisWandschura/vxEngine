@@ -36,7 +36,7 @@ class RenderAspect;
 struct EntityActor;
 class Scene;
 
-#include "EventListener.h"
+#include <vxEngineLib/EventListener.h>
 #include "Pool.h"
 #include "PlayerController.h"
 #include "ComponentsForward.h"
@@ -46,7 +46,7 @@ class Scene;
 enum class PlayerType : u32;
 enum class FileType : u8;
 
-class EntityAspect : public EventListener
+class EntityAspect : public vx::EventListener
 {
 	struct ColdData
 	{
@@ -72,8 +72,8 @@ class EntityAspect : public EventListener
 
 	//////////////////
 
-	void handleFileEvent(const Event &evt);
-	void handleIngameEvent(const Event &evt);
+	void handleFileEvent(const vx::Event &evt);
+	void handleIngameEvent(const vx::Event &evt);
 
 	//////////////////
 
@@ -101,7 +101,7 @@ public:
 
 	void createPlayerEntity(const vx::float3 &position);
 
-	void handleEvent(const Event &evt);
+	void handleEvent(const vx::Event &evt);
 
 	//////////////////
 

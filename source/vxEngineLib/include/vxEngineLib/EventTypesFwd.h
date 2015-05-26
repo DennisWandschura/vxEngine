@@ -23,18 +23,12 @@ SOFTWARE.
 */
 #pragma once
 
-#include <vxLib/Variant.h>
+#include <vxLib/types.h>
 
-enum class EventType : u8;
-
-struct Event
+namespace vx
 {
-	// type of event
-	EventType type;
-	// additional filter
-	u16 filter;
-	// specific event code of type
-	u32 code;
-	vx::Variant arg1;
-	vx::Variant arg2;
-};
+	enum class EventType : u8;
+	enum class FileEvent : u16;
+	enum class IngameEvent : u16;
+	enum class AIEvent : u16;
+}

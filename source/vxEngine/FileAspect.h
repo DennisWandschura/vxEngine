@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #pragma once
 
-class Event;
 class CoreAspect;
 class MeshInstance;
 class FileEntry;
@@ -48,7 +47,7 @@ namespace vx
 #include "TextureFile.h"
 #include "Material.h"
 #include <vxLib\Graphics\Mesh.h>
-#include "EventTypesFwd.h"
+#include <vxEngineLib/EventTypesFwd.h>
 #include "Pool.h"
 #include <vxEngineLib/MeshFile.h>
 #include "TextureFileManager.h"
@@ -89,7 +88,7 @@ class VX_ALIGN(64) FileAspect
 	void getFolderString(FileType fileType, const char** folder);
 	const u8* readFile(const char *file, u32* fileSize);
 
-	void pushFileEvent(FileEvent code,vx::Variant arg1, vx::Variant arg2);
+	void pushFileEvent(vx::FileEvent code,vx::Variant arg1, vx::Variant arg2);
 
 	LoadFileReturnType loadFile(const FileEntry &file, std::vector<FileEntry>* missingFiles, void* pUserData);
 	bool loadMesh(const LoadMeshDescription &desc);

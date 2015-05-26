@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "EventManager.h"
-#include "Event.h"
-#include "EventTypes.h"
-#include "EventListener.h"
+#include <vxEngineLib/Event.h>
+#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/EventListener.h>
 
 EventManager::EventManager()
 	:m_events(),
@@ -41,11 +41,11 @@ void EventManager::initialize()
 {
 }
 
-void EventManager::registerListener(EventListener* ptr, u64 priority)
+void EventManager::registerListener(vx::EventListener* ptr, u64 priority)
 {
 	m_eventListeners.push_back(std::make_pair(priority, ptr));
 
-	std::sort(m_eventListeners.begin(), m_eventListeners.end(), std::greater<std::pair<u64, EventListener*>>());
+	std::sort(m_eventListeners.begin(), m_eventListeners.end(), std::greater<std::pair<u64, vx::EventListener*>>());
 }
 
 void EventManager::update()
@@ -65,7 +65,7 @@ void EventManager::update()
 	events.clear();
 }
 
-void EventManager::addEvent(const Event &evt)
+void EventManager::addEvent(const vx::Event &evt)
 {
 	std::lock_guard<std::mutex> g(m_evtMutex);
 	auto currentWriteQueue = (m_currentReadQueue + 1) % 2;

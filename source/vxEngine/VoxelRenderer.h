@@ -54,6 +54,7 @@ class VoxelRenderer
 	};
 
 	u32 m_pipelineVoxelize{0};
+	u32 m_pipelineGs{ 0 };
 	u32 m_pipelineDebug{0};
 	u32 m_pipelineMipmap{ 0 };
 	vx::gl::Framebuffer m_voxelFB;

@@ -24,6 +24,18 @@
     <ClInclude Include="include\vxEngineLib\Serializable.h">
       <Filter>Header Files\include</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Event.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EventListener.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EventTypesFwd.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EventTypes.h">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">

@@ -24,57 +24,28 @@ SOFTWARE.
 #pragma once
 
 #include <vxLib/types.h>
-#include "thread.h"
-#include <atomic>
-#include <vxLib/Allocator/StackAllocator.h>
-#include "SystemAspect.h"
-#include "RenderAspect.h"
-#include "PhysicsAspect.h"
-#include "FileAspect.h"
-#include "memory.h"
-#include "LevelEditor.h"
-#include "EntityAspect.h"
-#include "EventManager.h"
-#include "ActorAspect.h"
 
-class Engine
+namespace vx
 {
-	EventManager m_eventManager;
-	SystemAspect m_systemAspect;
-	PhysicsAspect m_physicsAspect;
-	ActorAspect m_actorAspect;
-	RenderAspect m_renderAspect;
-	EntityAspect m_entityAspect;
-	u32 m_bRun;
-	FileAspect m_fileAspect;
-	std::atomic_uint m_bRunFileThread;
-	std::atomic_uint m_bRunRenderThread;
-	vx::StackAllocator m_allocator;
-	u32 m_shutdown{0};
-	vx::thread m_fileAspectThread;
-	vx::thread m_renderThread;
-	Memory m_memory;
 
-	void loopFileThread();
-	bool initializeImpl(const std::string &dataDir);
+	enum class EventType : u8
+	{
+		File_Event,
+		Ingame_Event,
+		AI_Event,
+		Editor_Event
+	};
 
-	void update();
-	void mainLoop();
-	void renderLoop();
+	enum class FileEvent : u16
+	{
+		// arg1 contains ptr to scene, arg2 contains sid of filename
+		Scene_Loaded,
+		// arg1 contains sid to file, arg2 contains ptr
+		Texture_Loaded,
+		// arg1 contains sid to file, arg2 userdata
+		Material_Loaded,
+		// arg1 contains sid to file, arg2 userdata
+		Mesh_Loaded
+	};
 
-public:
-	Engine();
-	~Engine();
-
-	bool initialize();
-	void shutdown();
-
-	void start();
-
-	void stop();
-
-	void handleEvent(const vx::Event &evt);
-	void keyPressed(u16 key);
-
-	void requestLoadFile(const FileEntry &fileEntry, void* p);
-};
+}

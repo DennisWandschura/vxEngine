@@ -23,8 +23,8 @@ SOFTWARE.
 */
 #include "EditorEngine.h"
 #include "enums.h"
-#include "Event.h"
-#include "EventTypes.h"
+#include <vxEngineLib/Event.h>
+#include <vxEngineLib/EventTypes.h>
 #include "developer.h"
 #include <vxLib/util/DebugPrint.h>
 #include "Locator.h"
@@ -177,11 +177,11 @@ void EditorEngine::buildNavGraph()
 	m_renderAspect.updateNavMeshGraphNodesBuffer(graph);
 }
 
-void EditorEngine::handleEvent(const Event &evt)
+void EditorEngine::handleEvent(const vx::Event &evt)
 {
 	switch (evt.type)
 	{
-	case(EventType::File_Event) :
+	case(vx::EventType::File_Event) :
 		handleFileEvent(evt);
 		break;
 	default:
@@ -189,13 +189,13 @@ void EditorEngine::handleEvent(const Event &evt)
 	}
 }
 
-void EditorEngine::handleFileEvent(const Event &evt)
+void EditorEngine::handleFileEvent(const vx::Event &evt)
 {
-	FileEvent fe = (FileEvent)evt.code;
+	auto fe = (vx::FileEvent)evt.code;
 
 	switch (fe)
 	{
-	case::FileEvent::Mesh_Loaded:
+	case vx::FileEvent::Mesh_Loaded:
 	{
 		//vx::verboseChannelPrintF(1, dev::Channel_Editor, "Loaded Mesh");
 		/*std::string* pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
@@ -208,9 +208,9 @@ void EditorEngine::handleFileEvent(const Event &evt)
 
 		delete(pStr);*/
 	}break;
-	case::FileEvent::Texture_Loaded:
+	case vx::FileEvent::Texture_Loaded:
 		break;
-	case::FileEvent::Material_Loaded:
+	case vx::FileEvent::Material_Loaded:
 	{
 		//vx::verboseChannelPrintF(1, dev::Channel_Editor, "Loaded Material");
 		//std::string* pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
@@ -223,7 +223,7 @@ void EditorEngine::handleFileEvent(const Event &evt)
 
 		//delete(pStr);
 	}break;
-	case FileEvent::Scene_Loaded:
+	case vx::FileEvent::Scene_Loaded:
 		vx::verboseChannelPrintF(0, dev::Channel_Editor, "Loaded Scene");
 		call_editorCallback(evt.arg2.u64);
 

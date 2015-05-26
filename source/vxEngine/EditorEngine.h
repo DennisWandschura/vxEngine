@@ -34,13 +34,13 @@ class EditorScene;
 #include "memory.h"
 #include "LevelEditor.h"
 #include "Editor.h"
-#include "EventListener.h"
+#include <vxEngineLib/EventListener.h>
 #include "InfluenceMap.h"
 #include "Ray.h"
 
 enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
-class EditorEngine : public EventListener
+class EditorEngine : public vx::EventListener
 {
 	static u32 s_editorTypeMesh;
 	static u32 s_editorTypeMaterial;
@@ -90,7 +90,7 @@ class EditorEngine : public EventListener
 	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);
 
-	void handleFileEvent(const Event &evt);
+	void handleFileEvent(const vx::Event &evt);
 
 	vx::float4a getRayDir(s32 mouseX, s32 mouseY);
 
@@ -123,7 +123,7 @@ public:
 
 	void stop();
 
-	void handleEvent(const Event &evt);
+	void handleEvent(const vx::Event &evt);
 
 	void requestLoadFile(const FileEntry &fileEntry, void* p);
 

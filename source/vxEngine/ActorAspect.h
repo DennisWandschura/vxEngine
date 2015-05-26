@@ -32,21 +32,25 @@ namespace Component
 template<typename T>
 class Pool;
 
-struct Event;
+namespace vx
+{
+	struct Event;
+}
+
 struct EntityActor;
 class EntityAspect;
 class PhysicsAspect;
 class EventManager;
 class Scene;
 
-#include "EventListener.h"
+#include <vxEngineLib/EventListener.h>
 #include "InfluenceMap.h"
 #include "ActionManager.h"
 #include <vxLib/Allocator/StackAllocator.h>
 #include "NavMeshGraph.h"
 #include "ai/Squad.h"
 
-class ActorAspect : public EventListener
+class ActorAspect : public vx::EventListener
 {
 	ai::Squad m_squad;
 	const Pool<Component::Actor>* m_pActorPool{ nullptr };
@@ -62,8 +66,8 @@ class ActorAspect : public EventListener
 	// Event functions
 	///////////////////
 
-	void handleFileEvent(const Event &evt);
-	void handleIngameEvent(const Event &evt);
+	void handleFileEvent(const vx::Event &evt);
+	void handleIngameEvent(const vx::Event &evt);
 
 	///////////////////
 
@@ -72,24 +76,10 @@ class ActorAspect : public EventListener
 public:
 	explicit ActorAspect(const PhysicsAspect &physicsAspect);
 
-	///////////////////
-
 	void initialize(const EntityAspect &entityAspect, vx::StackAllocator* pAllocator);
 	void shutdown();
 
-	///////////////////
-
-	///////////////////
-	// update functions
-	///////////////////
-
 	void update();
 
-	///////////////////
-
-	///////////////////
-
-	void handleEvent(const Event &evt);
-
-	///////////////////
+	void handleEvent(const vx::Event &evt);
 };

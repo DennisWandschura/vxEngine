@@ -82,7 +82,7 @@
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;_DEBUG_STATIC_BUILD;_VX_NOAUDIO;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;_DEBUG_STATIC_BUILD;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -187,6 +187,7 @@
     <ClInclude Include="CreateActorData.h" />
     <ClInclude Include="dds.h" />
     <ClInclude Include="DDS_File.h" />
+    <ClInclude Include="DoubleBufferRaw.h" />
     <ClInclude Include="DrawCommand.h" />
     <ClInclude Include="EngineConfig.h" />
     <ClInclude Include="EngineGlobals.h" />
@@ -223,7 +224,6 @@
     <ClInclude Include="AStar.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="developer.h" />
-    <ClInclude Include="EventListener.h" />
     <ClInclude Include="GpuFunctions.h" />
     <ClInclude Include="GpuProfiler.h" />
     <ClInclude Include="ImageBindingManager.h" />
@@ -264,10 +264,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityAspect.h" />
     <ClInclude Include="enums.h" />
-    <ClInclude Include="Event.h" />
     <ClInclude Include="EventManager.h" />
-    <ClInclude Include="EventTypes.h" />
-    <ClInclude Include="EventTypesFwd.h" />
     <ClInclude Include="Face.h" />
     <ClInclude Include="FileEntry.h" />
     <ClInclude Include="FileAspect.h" />
@@ -338,7 +335,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="ActionActorCreatePath.cpp" />
+    <ClCompile Include="ActionActorCreatePath.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="ActionFollowPath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -351,7 +350,9 @@
     <ClCompile Include="ActionPlayerMove.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="ActionPrintText.cpp" />
+    <ClCompile Include="ActionPrintText.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="ActionSetFollowPath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -376,7 +377,12 @@
     <ClCompile Include="BVH.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="CpuProfiler.cpp" />
+    <ClCompile Include="CpuProfiler.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="DoubleBufferRaw.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Timer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -701,8 +707,6 @@
     <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.vert" />
     <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.frag" />
     <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.vert" />
-    <None Include="..\..\game\data\shaders\programs\forward_render.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\forward_render.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\graph.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\graph.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\influenceMap.frag" />

@@ -53,7 +53,7 @@ class Scene;
 class FileAspect;
 class MeshInstance;
 
-#include "EventListener.h"
+#include <vxEngineLib/EventListener.h>
 #include <foundation/PxErrorCallback.h>
 #include <extensions/PxDefaultAllocator.h>
 #include "LoadFileCallback.h"
@@ -70,7 +70,7 @@ public:
 	void reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line) override;
 };
 
-class PhysicsAspect : public EventListener
+class PhysicsAspect : public vx::EventListener
 {
 	static UserErrorCallback s_defaultErrorCallback;
 	static physx::PxDefaultAllocator s_defaultAllocatorCallback;
@@ -93,7 +93,7 @@ class PhysicsAspect : public EventListener
 	void processScene(const Scene* pScene);
 
 	//////////////// handle Events
-	void handleFileEvent(const Event &evt);
+	void handleFileEvent(const vx::Event &evt);
 	////////////////
 
 public:
@@ -105,7 +105,7 @@ public:
 	void fetch();
 	void update(const f32 dt);
 
-	void handleEvent(const Event &evt);
+	void handleEvent(const vx::Event &evt);
 
 	physx::PxController* createActor(const vx::float3 &translation, f32 height);
 

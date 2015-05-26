@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -22,7 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #if !defined(_VX_NOAUDIO) && !defined(_VX_EDITOR)
-#pragma once
 
 struct OggVorbis_File;
 

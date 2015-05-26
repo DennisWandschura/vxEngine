@@ -32,8 +32,8 @@ SOFTWARE.
 #include "FileAspect.h"
 #include "PhysicsDefines.h"
 #include "enums.h"
-#include "Event.h"
-#include "EventTypes.h"
+#include <vxEngineLib/Event.h>
+#include <vxEngineLib/EventTypes.h>
 
 UserErrorCallback PhysicsAspect::s_defaultErrorCallback{};
 physx::PxDefaultAllocator PhysicsAspect::s_defaultAllocatorCallback{};
@@ -157,11 +157,11 @@ void PhysicsAspect::update(const f32 dt)
 	m_pScene->simulate(dt);
 }
 
-void PhysicsAspect::handleEvent(const Event &evt)
+void PhysicsAspect::handleEvent(const vx::Event &evt)
 {
 	switch (evt.type)
 	{
-	case(EventType::File_Event) :
+	case(vx::EventType::File_Event) :
 		handleFileEvent(evt);
 		break;
 	default:
@@ -169,12 +169,12 @@ void PhysicsAspect::handleEvent(const Event &evt)
 	}
 }
 
-void PhysicsAspect::handleFileEvent(const Event &evt)
+void PhysicsAspect::handleFileEvent(const vx::Event &evt)
 {
-	auto fileEvent = (FileEvent)evt.code;
+	auto fileEvent = (vx::FileEvent)evt.code;
 	switch (fileEvent)
 	{
-	case FileEvent::Scene_Loaded:
+	case vx::FileEvent::Scene_Loaded:
 		processScene((Scene*)evt.arg1.ptr);
 		break;
 	default:

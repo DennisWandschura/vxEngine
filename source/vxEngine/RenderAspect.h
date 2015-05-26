@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 namespace Graphics
 {
@@ -32,7 +32,7 @@ namespace Graphics
 class GpuProfiler;
 
 #include "RenderAspectDescription.h"
-#include "EventListener.h"
+#include <vxEngineLib/EventListener.h>
 #include <vxLib\gl\RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
 #include "SceneRenderer.h"
@@ -46,31 +46,12 @@ class GpuProfiler;
 #include "RenderCommandFinalImage.h"
 #include "RenderSettings.h"
 #include "Graphics/CommandList.h"
+#include "DoubleBufferRaw.h"
 
-class VX_ALIGN(64) RenderAspect : public EventListener
+class VX_ALIGN(64) RenderAspect : public vx::EventListener
 {
 protected:
 	struct ColdData;
-
-	class DoubleBufferRaw
-	{
-		u8* m_frontBuffer;
-		u8* m_backBuffer;
-		u32 m_frontSize;
-		u32 m_backSize;
-		u32 m_capacity;
-
-	public:
-		DoubleBufferRaw();
-		DoubleBufferRaw(vx::StackAllocator* allocator, u32 capacity);
-
-		bool memcpy(const u8* data, u32 size);
-
-		void swapBuffers();
-
-		u8* getBackBuffer();
-		u32 getBackBufferSize() const;
-	};
 
 	Graphics::CommandList m_commandList;
 	std::unique_ptr<Graphics::ShadowRenderer> m_shadowRenderer;
@@ -118,8 +99,8 @@ protected:
 	bool initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, vx::StackAllocator *pAllocator);
 
 	////////////// Event handling
-	void handleFileEvent(const Event &evt);
-	void handleIngameEvent(const Event &evt);
+	void handleFileEvent(const vx::Event &evt);
+	void handleIngameEvent(const vx::Event &evt);
 	//////////////
 
 	void bindBuffers();
@@ -172,7 +153,7 @@ public:
 
 	void render(GpuProfiler* gpuProfiler);
 
-	virtual void handleEvent(const Event &evt) override;
+	virtual void handleEvent(const vx::Event &evt) override;
 
 	void keyPressed(u16 key);
 

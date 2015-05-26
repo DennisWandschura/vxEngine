@@ -33,8 +33,8 @@ SOFTWARE.
 #include "RenderAspect.h"
 #include "ComponentRender.h"
 #include "Actor.h"
-#include "Event.h"
-#include "EventTypes.h"
+#include <vxEngineLib/Event.h>
+#include <vxEngineLib/EventTypes.h>
 #include "Locator.h"
 #include "enums.h"
 #include "EventManager.h"
@@ -180,8 +180,8 @@ void EntityAspect::createActorEntity(const vx::float3 &position, f32 height, u32
 
 	auto pActor = createComponentActor(entityIndex, pEntity, pInput, &pEntity->actor);
 
-	Event evt;
-	evt.type = EventType::Ingame_Event;
+	vx::Event evt;
+	evt.type = vx::EventType::Ingame_Event;
 	evt.code = (u32)IngameEvent::Created_Actor;
 	evt.arg1.ptr = pEntity;
 	evt.arg2.ptr = pActor;
@@ -294,14 +294,14 @@ Component::Input& EntityAspect::getComponentInput(u16 i)
 	return m_poolInput[i];
 }
 
-void EntityAspect::handleEvent(const Event &evt)
+void EntityAspect::handleEvent(const vx::Event &evt)
 {
 	switch (evt.type)
 	{
-	case EventType::Ingame_Event:
+	case vx::EventType::Ingame_Event:
 		handleIngameEvent(evt);
 		break;
-	case EventType::File_Event:
+	case vx::EventType::File_Event:
 		handleFileEvent(evt);
 		break;
 	default:
@@ -309,13 +309,13 @@ void EntityAspect::handleEvent(const Event &evt)
 	}
 }
 
-void EntityAspect::handleFileEvent(const Event &evt)
+void EntityAspect::handleFileEvent(const vx::Event &evt)
 {
-	if (evt.code == (u32)FileEvent::Scene_Loaded)
+	if (evt.code == (u32)vx::FileEvent::Scene_Loaded)
 	{
-		Event e;
+		vx::Event e;
 		e.arg1 = evt.arg1;
-		e.type = EventType::Ingame_Event;
+		e.type = vx::EventType::Ingame_Event;
 		e.code = (u32)IngameEvent::Level_Started;
 
 		auto pEvtManager = Locator::getEventManager();
@@ -325,7 +325,7 @@ void EntityAspect::handleFileEvent(const Event &evt)
 	}
 }
 
-void EntityAspect::handleIngameEvent(const Event &evt)
+void EntityAspect::handleIngameEvent(const vx::Event &evt)
 {
 	IngameEvent e = (IngameEvent)evt.code;
 	switch (e)

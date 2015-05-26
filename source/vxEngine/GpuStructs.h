@@ -41,13 +41,18 @@ struct CamerablockStatic
 	vx::mat4 orthoMatrix;
 };
 
-struct VX_ALIGN(32) VoxelBlock
+struct VoxelData
 {
 	vx::mat4 projectionMatrix;
 	u32 dim;
 	u32 halfDim;
 	float gridCellSize;
 	float invGridCellSize;
+};
+
+struct VoxelBlock
+{
+	VoxelData data[4];
 };
 
 struct LightData
@@ -76,6 +81,7 @@ struct UniformTextureBufferBlock
 	u64 u_normalSlice;
 	u64 u_surfaceSlice;
 	u64 u_tangentSlice;
+	u64 u_bitangentSlice;
 	u64 u_depthSlice;
 	u64 u_aabbTexture;
 	u64 u_ambientSlice;
@@ -99,4 +105,9 @@ struct MaterialGPU
 	u32 indexNormal;
 	u32 indexSurface;
 	u32 hasNormalMap;
+};
+
+struct RenderSettingsBlock
+{
+	vx::uint2 resolution;
 };
