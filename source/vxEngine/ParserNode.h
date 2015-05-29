@@ -68,13 +68,15 @@ namespace Parser
 		bool as(f64* data) const;
 		bool as(std::string* data) const;
 
-		bool as(unsigned int i, int* data) const;
-		bool as(unsigned int i, unsigned int* data) const;
-		bool as(unsigned int i, float* data) const;
-		bool as(unsigned int i, double* data) const;
+		bool as(u32 i, int* data) const;
+		bool as(u32 i, unsigned int* data) const;
+		bool as(u32 i, float* data) const;
+		bool as(u32 i, double* data) const;
+		bool as(u32 i, std::string* data) const;
+		bool as(unsigned int i, Node* data) const;
 
 		bool isArray() const { return m_isArray; }
-		unsigned int size() const { return m_dataSize; }
+		u32 size() const { return m_dataSize; }
 	};
 }
 

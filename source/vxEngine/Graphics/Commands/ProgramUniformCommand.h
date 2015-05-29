@@ -40,6 +40,7 @@ namespace Graphics
 		void setFloat(u32 program, u32 location, u32 count);
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 
 	private:
 		void programUniformFloat(u32* offset);

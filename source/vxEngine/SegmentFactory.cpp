@@ -5,6 +5,7 @@
 #include <vxLib/gl/ProgramPipeline.h>
 #include <vxLib/gl/Buffer.h>
 #include "ParserNode.h"
+#include "Graphics/CommandFactory.h"
 
 namespace Graphics
 {
@@ -41,6 +42,17 @@ namespace Graphics
 		auto cmdBuffer = objectManager.getBuffer(cmdName.c_str());
 		auto paramBuffer = objectManager.getBuffer(paramName.c_str());
 		auto fbo = objectManager.getFramebuffer(fboName.c_str());
+
+		auto comamndsNode = root.get("commands");
+
+		auto commandCount = comamndsNode->size();
+		for (u32 i = 0; i < commandCount; ++i)
+		{
+			Parser::Node entry;
+			comamndsNode->as(i, &entry);
+
+			CommandFactory::createFromNodeAndPushToSegment(entry, &segment, pipe);
+		}
 
 		Graphics::StateDescription desc;
 		desc.fbo = (fbo != nullptr) ? fbo->getId() : 0;

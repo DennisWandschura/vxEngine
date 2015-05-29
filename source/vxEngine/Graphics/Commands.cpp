@@ -25,6 +25,7 @@ SOFTWARE.
 #include "Commands.h"
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
+#include "Segment.h"
 
 namespace Graphics
 {
@@ -35,11 +36,21 @@ namespace Graphics
 		*offset += sizeof(ViewportCommand);
 	}
 
+	void ViewportCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
+	}
+
 	void PointSizeCommand::execute(u32* offset)
 	{
 		glPointSize(m_pointSize);
 
 		*offset += sizeof(PointSizeCommand);
+	}
+
+	void PointSizeCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
 	}
 
 	void DrawArraysIndirectCommand::execute(u32* offset)
@@ -49,11 +60,21 @@ namespace Graphics
 		*offset += sizeof(DrawArraysIndirectCommand);
 	}
 
+	void DrawArraysIndirectCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
+	}
+
 	void DrawElementsIndirectCommand::execute(u32* offset)
 	{
 		glDrawElementsIndirect(m_mode, m_type, (void*)m_offset);
 
 		*offset += sizeof(DrawElementsIndirectCommand);
+	}
+
+	void DrawElementsIndirectCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
 	}
 
 	void MultiDrawElementsIndirectCountCommand::execute(u32* offset)
@@ -63,11 +84,21 @@ namespace Graphics
 		*offset += sizeof(MultiDrawElementsIndirectCountCommand);
 	}
 
+	void MultiDrawElementsIndirectCountCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
+	}
+
 	void MultiDrawArraysIndirectCountCommand::execute(u32* offset)
 	{
 		glMultiDrawArraysIndirectCountARB(m_mode, m_indirectOffset, m_parameterBufferOffset, m_maxdrawcount, sizeof(vx::gl::DrawArraysIndirectCommand));
 
 		*offset += sizeof(MultiDrawArraysIndirectCountCommand);
+	}
+
+	void MultiDrawArraysIndirectCountCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
 	}
 
 	void ClearColorCommand::execute(u32* offset)
@@ -77,11 +108,21 @@ namespace Graphics
 		*offset += sizeof(ClearColorCommand);
 	}
 
+	void ClearColorCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
+	}
+
 	void FramebufferTextureCommand::execute(u32* offset)
 	{
 		glNamedFramebufferTexture(m_framebufferId, m_attachment, m_texture, m_level);
 
 		*offset += sizeof(FramebufferTextureCommand);
+	}
+
+	void FramebufferTextureCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
 	}
 
 	void PolygonOffsetCommand::execute(u32* offset)
@@ -91,6 +132,11 @@ namespace Graphics
 		*offset += sizeof(PolygonOffsetCommand);
 	}
 
+	void PolygonOffsetCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
+	}
+
 	void ClearCommand::execute(u32* offset)
 	{
 		glClear(m_bits);
@@ -98,9 +144,19 @@ namespace Graphics
 		*offset += sizeof(ClearCommand);
 	}
 
+	void ClearCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
+	}
+
 	void BarrierCommand::execute(u32* offset)
 	{
 		glMemoryBarrier(m_barrierBits);
 		*offset += sizeof(BarrierCommand);
+	}
+
+	void BarrierCommand::pushToSegment(Segment* segment)
+	{
+		segment->pushCommand(*this);
 	}
 }

@@ -94,7 +94,7 @@ RenderAspect::~RenderAspect()
 
 bool RenderAspect::createBuffers()
 {
-	m_emptyVao.create();
+	m_objectManager.createVertexArray("emptyVao");
 
 	{
 		vx::gl::BufferDescription desc;
@@ -430,9 +430,10 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 		m_pColdData->m_font = Font(std::move(ref), std::move(fontAtlas));
 	}
 
-	m_renderpassFinalImageFullShading.initialize(m_emptyVao, *m_shaderManager.getPipeline("draw_final_image.pipe"), m_resolution);
-	m_renderpassFinalImageAlbedo.initialize(m_emptyVao, *m_shaderManager.getPipeline("drawFinalImageAlbedo.pipe"), m_resolution);
-	m_renderpassFinalImageNormals.initialize(m_emptyVao, *m_shaderManager.getPipeline("drawFinalImageNormals.pipe"), m_resolution);
+	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
+	m_renderpassFinalImageFullShading.initialize(*emptyVao, *m_shaderManager.getPipeline("draw_final_image.pipe"), m_resolution);
+	m_renderpassFinalImageAlbedo.initialize(*emptyVao, *m_shaderManager.getPipeline("drawFinalImageAlbedo.pipe"), m_resolution);
+	m_renderpassFinalImageNormals.initialize(*emptyVao, *m_shaderManager.getPipeline("drawFinalImageNormals.pipe"), m_resolution);
 
 	m_pRenderPassFinalImage = &m_renderpassFinalImageFullShading;
 
@@ -772,12 +773,15 @@ void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer
 
 void RenderAspect::voxelDebug()
 {
-	m_voxelRenderer.debug(m_emptyVao, m_resolution);
+	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
+	m_voxelRenderer.debug(*emptyVao, m_resolution);
 }
 
 void RenderAspect::createConeTracePixelList()
 {
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
 
 	vx::gl::StateManager::bindFrameBuffer(0);
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
@@ -786,13 +790,15 @@ void RenderAspect::createConeTracePixelList()
 	auto pPipeline = m_shaderManager.getPipeline("createConeTraceList.pipe");
 
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
+	vx::gl::StateManager::bindVertexArray(emptyVao->getId());
 
 	glDrawArrays(GL_POINTS, 0, 1);
 }
 
 void RenderAspect::coneTrace()
 {
+	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
+
 	glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
 
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
@@ -803,17 +809,19 @@ void RenderAspect::coneTrace()
 	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, shaderStoragePixelListCmdBuffer->getId());
 
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
+	vx::gl::StateManager::bindVertexArray(emptyVao->getId());
 
 	glDrawArraysIndirect(GL_POINTS, 0);
 }
 
 void RenderAspect::blurAmbientColor()
 {
+	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
+
 	vx::gl::StateManager::setClearColor(0, 0, 0, 1);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
-	vx::gl::StateManager::bindVertexArray(m_emptyVao.getId());
+	vx::gl::StateManager::bindVertexArray(emptyVao->getId());
 
 	auto pPipeline = m_shaderManager.getPipeline("blurpass.pipe");
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());

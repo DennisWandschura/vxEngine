@@ -28,11 +28,15 @@ SOFTWARE.
 
 namespace Graphics
 {
+	class Segment;
+
 	struct Command
 	{
 		virtual ~Command(){}
 
 		virtual void execute(u32* offset) = 0;
+
+		virtual void pushToSegment(Segment* segment) = 0;
 
 		static void handleCommand(Command* header, u32* offset)
 		{
@@ -52,6 +56,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct PointSizeCommand : public Command
@@ -64,6 +69,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct DrawArraysIndirectCommand : public Command
@@ -78,6 +84,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct DrawElementsIndirectCommand : public Command
@@ -94,6 +101,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct MultiDrawElementsIndirectCountCommand : public Command
@@ -114,6 +122,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct MultiDrawArraysIndirectCountCommand : public Command
@@ -132,6 +141,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct ClearColorCommand : public Command
@@ -144,6 +154,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct FramebufferTextureCommand : public Command
@@ -162,6 +173,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct PolygonOffsetCommand : public Command
@@ -176,6 +188,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct ClearCommand : public Command
@@ -188,6 +201,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct ProfilerCommand : public Command
@@ -202,6 +216,7 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 
 	struct BarrierCommand : public Command
@@ -214,5 +229,6 @@ namespace Graphics
 		}
 
 		void execute(u32* offset) override;
+		void pushToSegment(Segment* segment) override;
 	};
 }

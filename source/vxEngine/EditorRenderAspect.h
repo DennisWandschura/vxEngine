@@ -56,13 +56,10 @@ class EditorRenderAspect : public RenderAspect
 
 		vx::gl::Buffer m_navMeshVertexCmdBuffer;
 		vx::gl::Buffer m_graphNodesCmdBuffer;
-		vx::gl::Buffer m_navmeshCmdBuffer;
-		vx::gl::Buffer m_lightCmdBuffer;
 
 		u32 m_lightCount{ 0 };
 		u32 m_navMeshIndexCount{ 0 };
 		u32 m_navMeshVertexCount{ 0 };
-		vx::gl::VertexArray m_navMeshVao;
 		vx::gl::VertexArray m_navMeshVertexVao;
 	};
 

@@ -950,6 +950,9 @@
     <ClCompile Include="ParserNode.cpp">
       <Filter>Source Files\Text Parser</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\CommandFactory.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">

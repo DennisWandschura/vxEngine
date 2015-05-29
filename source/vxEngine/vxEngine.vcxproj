@@ -385,6 +385,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Fiber.cpp" />
+    <ClCompile Include="Graphics\CommandFactory.cpp" />
     <ClCompile Include="ParserNode.cpp" />
     <ClCompile Include="SegmentFactory.cpp" />
     <ClCompile Include="Timer.cpp">

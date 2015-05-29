@@ -31,7 +31,8 @@ namespace Parser
 	const char* getKeyBeginEnd(const char* str, int* startOffset)
 	{
 		while (str[0] == ' ' ||
-			str[0] == '\n')
+			str[0] == '\n' ||
+			str[0] == '{')
 		{
 			++str;
 			++(*startOffset);
@@ -90,15 +91,28 @@ namespace Parser
 
 	const char* getArrayEnd(const char* str)
 	{
-		char c = str[0];
-		int i = 0;
-		while (c != ']')
+		int layer = 1;
+
+		while (true)
 		{
-			++i;
-			c = str[i];
+			char c = str[0];
+
+			if (c == '\0')
+				break;
+
+			if (c == '[')
+				++layer;
+
+			if (c == ']')
+				--layer;
+
+			if (layer == 0)
+				break;
+
+			++str;
 		}
 
-		return str + i;
+		return str;
 	}
 
 	const char* getBracketEnd(const char* str, int layer)
@@ -128,6 +142,8 @@ namespace Parser
 	{
 		unsigned int count = 0;
 
+		int layer = 0;
+
 		if (str[0] != '\0')
 			count = 1;
 
@@ -136,7 +152,13 @@ namespace Parser
 			if (str[0] == '\0')
 				break;
 
-			if (str[0] == ',')
+			if (str[0] == '[')
+				++layer;
+
+			if (str[0] == ']')
+				--layer;
+
+			if (str[0] == ',' && layer == 0)
 				++count;
 
 			++str;
@@ -162,9 +184,25 @@ namespace Parser
 
 	const char* Node::insertNode(const char* str)
 	{
+		if (str == nullptr)
+			return nullptr;
+
 		int offset = 0;
 		auto keyEnd = getKeyBeginEnd(str, &offset);
 		str += offset;
+
+		if (str[0] == '}')
+		{
+			++str;
+
+			offset = 0;
+			keyEnd = getKeyBeginEnd(str, &offset);
+			str += offset;
+
+		}
+
+		if (str[0] == '\0')
+			return nullptr;
 
 		std::string key;
 		key.append(str, keyEnd);
@@ -314,13 +352,45 @@ namespace Parser
 
 	const char* getArrayDataBegin(unsigned i, const char* str)
 	{
+		int layer = 0;
+
 		while (i != 0)
 		{
 			if (str[0] == '\0')
 				return nullptr;
 
-			if (str[0] == ',')
+			if (str[0] == '[')
+				++layer;
+
+			if (str[0] == ']')
+				--layer;
+
+			if (str[0] == ',' && layer == 0)
 				--i;
+
+			++str;
+		}
+
+		return str;
+	}
+
+	const char* getArrayDataEnd(const char* str)
+	{
+		int layer = 0;
+
+		while (true)
+		{
+			if (str[0] == '\0')
+				break;
+
+			if (str[0] == '[')
+				++layer;
+
+			if (str[0] == ']')
+				--layer;
+
+			if (str[0] == ',' && layer == 0)
+				break;
 
 			++str;
 		}
@@ -385,6 +455,39 @@ namespace Parser
 			return false;
 
 		*data = strtod(begin, nullptr);
+		return true;
+	}
+
+	bool Node::as(u32 i, std::string* data) const
+	{
+		if (i >= m_dataSize)
+			return false;
+
+		auto begin = getArrayItemBegin(i);
+		if (begin == nullptr)
+			return false;
+
+		auto end = getArrayDataEnd(begin);
+
+		data->append(begin, end);
+		return true;
+	}
+
+	bool Node::as(unsigned int i, Node* data) const
+	{
+		if (i >= m_dataSize)
+			return false;
+
+		auto begin = getArrayItemBegin(i);
+		if (begin == nullptr)
+			return false;
+
+		auto end = getArrayDataEnd(begin);
+
+		std::string tmp;
+		tmp.append(begin, end);
+		data->create(tmp.c_str());
+
 		return true;
 	}
 }

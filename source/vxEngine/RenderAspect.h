@@ -71,7 +71,6 @@ protected:
 	vx::gl::Framebuffer m_aabbFB;
 	vx::gl::Framebuffer m_coneTraceFB;
 	vx::gl::Framebuffer m_blurFB[2];
-	vx::gl::VertexArray m_emptyVao;
 
 	RenderCommandFinalImage m_renderpassFinalImageFullShading;
 	RenderCommandFinalImage m_renderpassFinalImageAlbedo;

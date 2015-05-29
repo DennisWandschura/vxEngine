@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "ProgramUniformCommand.h"
 #include <vxLib/gl/gl.h>
+#include "../Segment.h"
 
 namespace Graphics
 {
@@ -59,6 +60,10 @@ namespace Graphics
 		}
 
 		*offset += sizeof(ProgramUniformCommand);
+	}
+
+	void ProgramUniformCommand::pushToSegment(Segment* segment)
+	{
 	}
 
 	void ProgramUniformCommand::programUniformFloat(u32* offset)
