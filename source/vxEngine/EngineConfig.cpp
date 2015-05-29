@@ -23,40 +23,23 @@ SOFTWARE.
 */
 #include "EngineConfig.h"
 #include "RenderAspectDescription.h"
-#include "TextParserFile.h"
+#include "ParserNode.h"
 
 bool EngineConfig::loadFromFile(const char* file)
 {
-	TextParser::File settingsFile;
-	if (!settingsFile.createFromFile(file))
-		return false;
+	Parser::Node root;
+	root.createFromFile(file);
 
-	u32 resolution[2];
-	settingsFile.getNode("resolution")->as(resolution);
-	settingsFile.getNode("shadow_map_resolution")->as(m_shadowMapResolution);
-	settingsFile.getNode("fov")->as(m_fov);
-	settingsFile.getNode("z_near")->as(m_zNear);
-	settingsFile.getNode("z_far")->as(m_zFar);
-	settingsFile.getNode("voxel_gi_mode")->as(m_voxelGiMode);
-	settingsFile.getNode("vsync")->as(m_vsync);
-	settingsFile.getNode("debug")->as(m_renderDebug);
-
-	m_resolution.x = resolution[0];
-	m_resolution.y = resolution[1];
+	root.get("resolution")->as(&m_resolution);
+	root.get("shadow_map_resolution")->as(&m_shadowMapResolution);
+	root.get("fov")->as(&m_fov);
+	root.get("z_near")->as(&m_zNear);
+	root.get("z_far")->as(&m_zFar);
+	root.get("voxel_gi_mode")->as(&m_voxelGiMode);
+	root.get("vsync")->as(&m_vsync);
+	root.get("debug")->as(&m_renderDebug);
 
 	return true;
-
-	/*YAML::Node settingsFile = YAML::LoadFile(file);
-	auto renderNode = settingsFile["render_settings"];
-
-	m_resolution = renderNode["resolution"].as<vx::uint2>();
-	m_shadowMapResolution = renderNode["shadow_map_resolution"].as<u32>();
-	m_fov = renderNode["fov"].as<f32>();
-	m_zNear = renderNode["z_near"].as<f32>();
-	m_zFar = renderNode["z_far"].as<f32>();
-	m_voxelGiMode = renderNode["voxel_gi_mode"].as<u32>();
-	m_vsync = renderNode["vsync"].as<bool>();
-	m_renderDebug = renderNode["debug"].as<bool>();*/
 }
 
 RenderAspectDescription EngineConfig::getRenderAspectDescription(const vx::Window* window, vx::StackAllocator* allocator) const

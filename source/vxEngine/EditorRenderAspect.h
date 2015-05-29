@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 class MeshInstance;
 class NavMesh;
@@ -42,11 +42,6 @@ class EditorRenderAspect : public RenderAspect
 	{
 		const MeshInstance* ptr{nullptr};
 		vx::gl::DrawElementsIndirectCommand cmd;
-	};
-
-	struct SelectedLight
-	{
-
 	};
 
 	struct EditorColdData
@@ -71,7 +66,6 @@ class EditorRenderAspect : public RenderAspect
 		vx::gl::VertexArray m_navMeshVertexVao;
 	};
 
-	vx::gl::Buffer m_meshCountBuffer;
 	Graphics::CommandList m_commandList;
 
 	vx::gl::VertexArray m_navMeshGraphNodesVao;

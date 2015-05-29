@@ -3,6 +3,18 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ai/Squad.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ai\Squad.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/audio/AudioAspect.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\audio\AudioAspect.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/audio/AudioManager.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\audio\AudioManager.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/audio/ogg_stream.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\audio\ogg_stream.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/audio/WavFile.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\audio\WavFile.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/gl/BufferBindingManager.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\gl\BufferBindingManager.cpp"
 
@@ -204,9 +216,6 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/NavMeshGraph.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\NavMeshGraph.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ogg_stream.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ogg_stream.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/PhysicsAspect.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\PhysicsAspect.cpp"
 
@@ -305,8 +314,5 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/VoxelRenderer.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\VoxelRenderer.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Wander.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Wander.cpp"
 
 

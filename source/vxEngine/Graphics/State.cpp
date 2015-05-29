@@ -46,7 +46,8 @@ namespace Graphics
 		m_paramBuffer(0),
 		m_blendState(0),
 		m_depthTestState(1),
-		m_polygonOffsetFillState(0)
+		m_polygonOffsetFillState(0),
+		m_padding()
 	{
 
 	}
@@ -74,33 +75,6 @@ namespace Graphics
 		g_capabilityFun[m_blendState](vx::gl::Capabilities::Blend);
 		g_capabilityFun[m_polygonOffsetFillState](vx::gl::Capabilities::Polygon_Offset_Fill);
 
-		/*if (m_depthTestState == 0)
-		{
-			vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-		}
-		else
-		{
-			vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-		}
-
-		if (m_blendState == 0)
-		{
-			vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-		}
-		else
-		{
-			vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-		}
-
-		if (m_polygonOffsetFillState == 0)
-		{
-			vx::gl::StateManager::disable(vx::gl::Capabilities::Polygon_Offset_Fill);
-		}
-		else
-		{
-			vx::gl::StateManager::enable(vx::gl::Capabilities::Polygon_Offset_Fill);
-		}*/
-
 		vx::gl::StateManager::bindFrameBuffer(m_fbo);
 		vx::gl::StateManager::bindVertexArray(m_vao);
 		vx::gl::StateManager::bindPipeline(m_pipeline);
@@ -114,42 +88,13 @@ namespace Graphics
 		if (m_paramBuffer != 0)
 		{
 			vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, m_paramBuffer);
-			//glBindBuffer(GL_PARAMETER_BUFFER_ARB, m_paramBuffer);
 		}
 	}
 
-	void State::compile(std::string* str)
+	bool State::isValid() const
 	{
-		if (m_blendState == 0)
-		{
-			*str += std::string("vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);\n");
-		}
-		else
-		{
-			*str += std::string("vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);\n");
-		}
+		bool isValid = (m_vao != 0) && (m_pipeline != 0);
 
-		if (m_depthTestState == 0)
-		{
-			*str += std::string("vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);\n");
-		}
-		else
-		{
-			*str += std::string("vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);\n");
-		}
-
-		*str += std::string("vx::gl::StateManager::bindFrameBuffer(") + std::to_string(m_fbo) + ");\n";
-		*str += std::string("vx::gl::StateManager::bindVertexArray(") + std::to_string(m_vao) + std::string(");\n");
-		*str += std::string("vx::gl::StateManager::bindPipeline(") + std::to_string(m_pipeline) + std::string(");\n");
-
-		if (m_indirectBuffer != 0)
-		{
-			*str += std::string("vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer,") + std::to_string(m_indirectBuffer) + std::string(");\n");
-		}
-
-		if (m_paramBuffer != 0)
-		{
-			*str += std::string("vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, ") + std::to_string(m_paramBuffer) + std::string(");\n");
-		}
+		return isValid;
 	}
 }

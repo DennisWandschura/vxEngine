@@ -91,44 +91,21 @@ void Engine::update()
 
 	//////////////
 
-	{
-		m_actorAspect.update();
-
-	}
-
-	//////////////
+	CpuProfiler::pushMarker("actor");
+	m_actorAspect.update();
+	CpuProfiler::popMarker();
 
 	//////////////
-	//m_profiler.pushCpuMarker("update.physics()");
-	{
-		m_entityAspect.updatePhysics_linear(g_dt);
-		m_physicsAspect.update(g_dt);
-	}
 
-	//m_profiler.popCpuMarker();
-	//////////////
+	CpuProfiler::pushMarker("physics");
+	m_entityAspect.updatePhysics_linear(g_dt);
+	m_physicsAspect.update(g_dt);
+	CpuProfiler::popMarker();
 
-	//////////////
-	//m_profiler.pushCpuMarker("update.position()");
-
-	{
-
-		m_entityAspect.updatePlayerPositionCamera();
-		m_entityAspect.updateActorTransforms();
-	}
-
-	//m_profiler.popCpuMarker();
-	//////////////
-
-	//////////////
-	//m_profiler.pushCpuMarker("update.render()");
-
-	//m_renderAspect.update();
-
-	//m_profiler.popCpuMarker();
-	//////////////
-
-	////////////// UPDATE END
+	CpuProfiler::pushMarker("actor position");
+	m_entityAspect.updatePlayerPositionCamera();
+	m_entityAspect.updateActorTransforms();
+	CpuProfiler::popMarker();
 }
 
 void Engine::renderLoop()
@@ -141,10 +118,12 @@ void Engine::renderLoop()
 	GpuProfiler gpuProfiler;
 	m_renderAspect.initializeProfiler(&gpuProfiler, &m_allocator);
 
+	CpuProfiler::setPosition(vx::float2(0, 500));
+
+	CpuProfiler::initialize(&m_renderAspect.getProfilerFont());
+
 	//Video video;
 	//video.initialize("test.video");
-
-
 
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
@@ -162,10 +141,16 @@ void Engine::renderLoop()
 		accum += frameTime;
 
 		gpuProfiler.frame();
+		CpuProfiler::frame();
+
+		CpuProfiler::pushMarker("frame");
 
 		while (accum >= g_dt)
 		{
 			gpuProfiler.update(g_dt);
+
+			CpuProfiler::update(g_dt);
+			CpuProfiler::updateRenderer();
 
 			accum -= g_dt;
 		}
@@ -175,6 +160,7 @@ void Engine::renderLoop()
 		gpuProfiler.pushGpuMarker("render()");
 		m_renderAspect.render(&gpuProfiler);
 		gpuProfiler.popGpuMarker();
+		CpuProfiler::popMarker();
 
 		last = current;
 	}
@@ -189,6 +175,9 @@ void Engine::mainLoop()
 
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
+
+	auto &font = m_renderAspect.getProfilerFont();
+	CpuProfiler::initialize(&font);
 
 	f32 accum = 0.0f;
 	while (m_bRun != 0)
@@ -220,6 +209,8 @@ void Engine::mainLoop()
 			accum -= g_dt;
 
 			CpuProfiler::popMarker();
+
+			CpuProfiler::update(g_dt);
 
 			//	m_profiler.update(g_dt);
 			//m_profileGraph.update();
@@ -270,8 +261,6 @@ bool Engine::initialize()
 	if (!initializeImpl(dataDir))
 		return false;
 
-	CpuProfiler::initialize();
-
 	EngineConfig config;
 	config.loadFromFile("settings.txt");
 
@@ -290,6 +279,11 @@ bool Engine::initialize()
 
 	if (!m_entityAspect.initialize(&m_allocator))
 		return false;
+
+#if _VX_AUDIO
+	if (!m_audioAspect.initialize())
+		return false;
+#endif
 
 	m_actorAspect.initialize(m_entityAspect, &m_allocator);
 
@@ -317,6 +311,9 @@ void Engine::shutdown()
 	m_fileAspectThread.join();
 	m_renderThread.join();
 
+#if _VX_AUDIO
+	m_audioAspect.shutdown();
+#endif
 	m_entityAspect.shutdown();
 	m_physicsAspect.shutdown();
 	m_renderAspect.shutdown(m_systemAspect.getWindow().getHwnd());

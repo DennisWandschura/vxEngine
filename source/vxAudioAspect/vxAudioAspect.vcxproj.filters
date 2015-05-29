@@ -13,24 +13,45 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="unity">
+      <UniqueIdentifier>{4d4e164b-65ca-47eb-92f0-cb8630d48d0d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AudioManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="include\vxAudio\Sound.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxAudio\WavFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxAudio\AudioAspect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxAudio\AudioManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxAudio\ogg_stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="AudioAspect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AudioManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ogg_stream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WavFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="unity\Unity_vxAudioAspect1.cpp">
+      <Filter>unity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="vxAudio\AudioManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vxAudio\AudioAspect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vxAudio\Sound.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <None Include="generate_unity.bff" />
   </ItemGroup>
 </Project>

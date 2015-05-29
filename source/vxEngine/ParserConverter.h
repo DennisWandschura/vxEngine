@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,4 +22,41 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "Wander.h"
+
+#include <vxLib/math/Vector.h>
+
+namespace Parser
+{
+	template<typename T>
+	struct Converter;
+
+	template<>
+	struct Converter < vx::int2 >
+	{
+		static bool decode(const Node &node, vx::int2* data)
+		{
+			if (!node.isArray() && node.size() != 2)
+				return false;
+
+			node.as(0u, &data->v[0]);
+			node.as(1u, &data->v[1]);
+
+			return true;
+		}
+	};
+
+	template<>
+	struct Converter < vx::uint2 >
+	{
+		static bool decode(const Node &node, vx::uint2* data)
+		{
+			if (!node.isArray() && node.size() != 2)
+				return false;
+
+			node.as(0u, &data->v[0]);
+			node.as(1u, &data->v[1]);
+
+			return true;
+		}
+	};
+}

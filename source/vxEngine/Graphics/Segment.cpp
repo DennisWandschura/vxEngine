@@ -67,4 +67,9 @@ namespace Graphics
 			i += offset;
 		}
 	}
+
+	bool Segment::isValid() const
+	{
+		return m_state.isValid() && !m_commmands.empty();
+	}
 }

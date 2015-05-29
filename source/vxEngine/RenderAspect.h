@@ -159,4 +159,5 @@ public:
 
 	const vx::gl::ShaderManager& getShaderManager() const { return m_shaderManager; }
 	void getProjectionMatrix(vx::mat4* m);
+	const Font& getProfilerFont() const;
 };

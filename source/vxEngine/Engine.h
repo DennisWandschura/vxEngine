@@ -36,6 +36,9 @@ SOFTWARE.
 #include "EntityAspect.h"
 #include "EventManager.h"
 #include "ActorAspect.h"
+#if _VX_AUDIO
+#include <vxAudio/AudioAspect.h>
+#endif
 
 class Engine
 {
@@ -53,6 +56,9 @@ class Engine
 	u32 m_shutdown{0};
 	vx::thread m_fileAspectThread;
 	vx::thread m_renderThread;
+#if _VX_AUDIO
+	vx::AudioAspect m_audioAspect;
+#endif
 	Memory m_memory;
 
 	void loopFileThread();

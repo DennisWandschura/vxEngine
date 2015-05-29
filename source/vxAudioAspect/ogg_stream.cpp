@@ -21,8 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#if !defined(_VX_NOAUDIO) && !defined(_VX_EDITOR)
-#include "ogg_stream.h"
+#include <vxAudio/ogg_stream.h>
 
 //#define BUFFER_SIZE (4096 * 8)
 
@@ -69,15 +68,14 @@ bool ogg_stream::open(const char *path)
 	alGenSources(1, &m_source);
 	check();
 
-	alSource3f(m_source, AL_POSITION, 0.0, 0.0, 0.0);
-	alSource3f(m_source, AL_VELOCITY, 0.0, 0.0, 0.0);
-	alSource3f(m_source, AL_DIRECTION, 0.0, 0.0, 0.0);
-	alSourcef(m_source, AL_ROLLOFF_FACTOR, 0.0);
-	alSourcei(m_source, AL_SOURCE_RELATIVE, AL_TRUE);
+	alSource3f(m_source, AL_POSITION, 0, 0.0, 0.0);
+	alSource3f(m_source, AL_VELOCITY, 0.0f, 0.0, 0.0);
+	alSource3f(m_source, AL_DIRECTION, 0.0f, 0.0, 0.0);
+	alSourcef(m_source, AL_ROLLOFF_FACTOR, 1.0f);
+	alSourcei(m_source, AL_SOURCE_RELATIVE, AL_FALSE);
 
 	return true;
 }
-
 
 void ogg_stream::close()
 {
@@ -216,4 +214,3 @@ void ogg_stream::stop()
 	m_isPlaying = 0;
 	alSourceStop(m_source);
 }
-#endif

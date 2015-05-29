@@ -35,7 +35,7 @@ SOFTWARE.
 #pragma comment(lib, "libvorbisfile_static_d.lib")
 #pragma comment(lib, "libogg_static_d.lib")
 #pragma comment(lib, "OpenAL32.lib")
-//#pragma comment(lib, "vxAudio_d.lib")
+#pragma comment(lib, "vxAudioAspect_d.lib")
 #endif
 
 #elif defined(_RELEASE_STATIC_BUILD)
@@ -48,7 +48,7 @@ SOFTWARE.
 #pragma comment(lib, "libvorbisfile_static.lib")
 #pragma comment(lib, "libogg_static.lib")
 #pragma comment(lib, "OpenAL32.lib")
-#pragma comment(lib, "vxAudio.lib")
+#pragma comment(lib, "vxAudioAspect.lib")
 #endif
 
 #ifdef _PHYSX_CHECKED

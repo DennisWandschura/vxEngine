@@ -26,15 +26,18 @@ SOFTWARE.
 typedef struct ALCdevice_struct ALCdevice;
 typedef struct ALCcontext_struct ALCcontext;
 
-class AudioManager
+namespace Audio
 {
-	ALCdevice* m_pDevice;
-	ALCcontext* m_pContext;
+	class AudioManager
+	{
+		ALCdevice* m_pDevice;
+		ALCcontext* m_pContext;
 
-public:
-	AudioManager();
-	~AudioManager();
+	public:
+		AudioManager();
+		~AudioManager();
 
-	bool init();
-	void shutdown();
-};
+		bool init();
+		void shutdown();
+	};
+}

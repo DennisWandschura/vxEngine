@@ -29,6 +29,9 @@ struct Triangle
 {
 	vx::float3 m_points[3];
 
+	Triangle() :m_points(){}
+	~Triangle(){}
+
 	vx::float3& operator[](u32 i)
 	{
 		return m_points[i];
@@ -44,5 +47,5 @@ struct Triangle
 	vx::float3 getCentroid() const;
 
 	bool contains(const vx::float3 &point) const;
-	bool Triangle::sharesEdge(const Triangle &other) const;
+	bool sharesEdge(const Triangle &other) const;
 };

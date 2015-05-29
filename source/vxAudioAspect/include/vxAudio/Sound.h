@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,24 +23,27 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#if !defined(_VX_NOAUDIO) && !defined(_VX_EDITOR)
-#pragma once
 
-#include <AL/al.h>
-#include <vxLib/math/Vector.h>
+#include <vxLib/types.h>
 
-class Sound
+namespace Audio
 {
-	u32 m_sourceId;
-	vx::float3 m_position;
+	class Sound
+	{
+		u32 m_source;
 
-public:
-	Sound();
+	public:
+		Sound() :m_source(0){}
 
-	Sound(f32 x, f32 y, f32 z);
+		virtual ~Sound() {}
 
-	~Sound();
+		virtual bool start() = 0;
+		virtual void stop() = 0;
 
-	void setPosition(const vx::float3 &position);
-};
-#endif
+		virtual void reset() = 0;
+
+		virtual void setVolume(f32 volume) = 0;
+
+		virtual bool isFinished() = 0;
+	};
+}

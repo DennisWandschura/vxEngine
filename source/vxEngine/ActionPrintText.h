@@ -22,42 +22,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#if !defined(_VX_NOAUDIO) && !defined(_VX_EDITOR)
 
-struct OggVorbis_File;
+#include "Action.h"
+#include <string>
 
-#include <vorbis/vorbisfile.h>
-#include <al/al.h>
-#include <vxLib/types.h>
-
-#define BUFFERS 3
-
-class ogg_stream
+class ActionPrintText : public Action
 {
-	OggVorbis_File m_vf{};
-	ALuint m_buffers[BUFFERS]; // front and back buffers
-	vorbis_info *m_pVorbisInfo{nullptr};    // some formatting data
-	u32 m_isPlaying{0};
-	ALuint m_source{0};		// audio source
-	ALenum m_format{0};		// internal format
-
-	void check();                 // checks OpenAL error state
-	void empty();
-	bool stream(ALuint buffer, u8* pBuffer, u32 bufferSize);   // reloads a buffer      
+	std::string m_text;
 
 public:
-	ogg_stream() = default;
-	~ogg_stream();
+	ActionPrintText(const char* text);
 
-	bool open(const char *path); // obtain a handle to the file
-	void close();
+	void run() override;
 
-	void play(u8* pBuffer, u32 bufferSize);        // play the Ogg stream
-	bool isPlaying();         // check if the source is playing
-	bool update(u8* pBuffer, u32 bufferSize); // update the stream if necessary
-	void stop();
-
-	//! from 0.0f to 1.0f
-	void setVolume(float volume);
+	bool isComplete() const override;
 };
-#endif

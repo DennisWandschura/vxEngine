@@ -61,7 +61,7 @@ void VoxelRenderer::createVoxelBuffer(gl::ObjectManager* objectManager)
 	const __m128 axisY = { 0, 1, 0, 0 };
 
 	const u32 sizeLod[voxelLodCount] = { 128, 64, 32, 16 };
-	const f32 gridsizeLod[voxelLodCount] = { 10, 10, 10, 10 };
+	const f32 gridsizeLod[voxelLodCount] = { 24, 24, 24, 24 };
 
 	VoxelBlock voxelBlock;
 	for (u32 i = 0; i < voxelLodCount; ++i)
@@ -109,7 +109,7 @@ void VoxelRenderer::createVoxelTextureBuffer(gl::ObjectManager* objectManager)
 
 	for (int i = 0; i < 6; ++i)
 	{
-		for (int lod = 0; lod < voxelLodCount; ++lod)
+		for (u32 lod = 0; lod < voxelLodCount; ++lod)
 		{
 			voxelHandles.lod[lod].u_voxelEmmitanceImage[i] = m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(lod, 1, 0);
 		}

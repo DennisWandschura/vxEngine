@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,46 +22,42 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
+#if !defined(_VX_NOAUDIO) && !defined(_VX_EDITOR)
 
-#include <vxLib/types.h>
-#include <string>
+struct OggVorbis_File;
 
-namespace Graphics
+#include <vorbis/vorbisfile.h>
+#include <al/al.h>
+#include <vxLib/math/Vector.h>
+
+class ogg_stream
 {
-	struct StateDescription
-	{
-		u32 fbo{0};
-		u32 vao{0};
-		u32 pipeline{0};
-		u32 indirectBuffer{0};
-		u32 paramBuffer{0};
-		bool depthState{true};
-		bool blendState{false};
-		bool polygonOffsetFillState{false};
-	};
+	static const u32 BUFFERS = 3;
 
-	class State
-	{
-		u32 m_fbo;
-		u32 m_vao;
-		u32 m_pipeline;
-		u32 m_indirectBuffer;
-		u32 m_paramBuffer;
+	OggVorbis_File m_vf{};
+	ALuint m_buffers[BUFFERS]; // front and back buffers
+	vorbis_info *m_pVorbisInfo{nullptr};    // some formatting data
+	u32 m_isPlaying{0};
+	ALuint m_source{0};		// audio source
+	ALenum m_format{0};		// internal format
 
-		u8 m_blendState;
-		u8 m_depthTestState;
-		u8 m_polygonOffsetFillState;
-		u8 m_padding;
+	void check();                 // checks OpenAL error state
+	void empty();
+	bool stream(ALuint buffer, u8* pBuffer, u32 bufferSize);   // reloads a buffer      
 
-	public:
-		State();
-		~State();
+public:
+	ogg_stream() = default;
+	~ogg_stream();
 
-		void set(const StateDescription &desc);
+	bool open(const char *path); // obtain a handle to the file
+	void close();
 
-		void update();
+	void play(u8* pBuffer, u32 bufferSize);        // play the Ogg stream
+	bool isPlaying();         // check if the source is playing
+	bool update(u8* pBuffer, u32 bufferSize); // update the stream if necessary
+	void stop();
 
-		bool isValid() const;
-	};
-}
+	//! from 0.0f to 1.0f
+	void setVolume(float volume);
+};
+#endif

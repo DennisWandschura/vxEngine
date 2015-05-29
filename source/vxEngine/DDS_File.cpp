@@ -86,6 +86,18 @@ void Texture::clear()
 	m_mipmaps.clear();
 }
 
+DDS_File::DDS_File()
+	:m_images(),
+	m_components(0),
+	m_type(),
+	m_format(0)
+{
+}
+
+DDS_File::~DDS_File()
+{
+}
+
 u32 DDS_File::clamp_size(u32 size)
 {
 	if (size <= 0)

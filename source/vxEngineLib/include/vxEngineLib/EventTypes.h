@@ -45,7 +45,8 @@ namespace vx
 		// arg1 contains sid to file, arg2 userdata
 		Material_Loaded,
 		// arg1 contains sid to file, arg2 userdata
-		Mesh_Loaded
+		Mesh_Loaded,
+		Wav_Loaded
 	};
 
 }

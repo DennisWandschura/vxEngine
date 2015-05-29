@@ -24,23 +24,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+#include <vxLib/math/Vector.h>
 
-class Sound
+namespace Editor
 {
-	u32 m_source;
+	enum class ObjectColors{SelectedMesh, NavmeshVertex, Navmesh, Waypoint, ColorCount};
 
-public:
-	Sound() :m_source(0){}
-
-	virtual ~Sound() {}
-
-	virtual bool start() = 0;
-	virtual void stop() = 0;
-
-	virtual void reset() = 0;
-
-	virtual void setVolume(f32 volume) = 0;
-
-	virtual bool isFinished() = 0;
-};
+	const vx::float3 g_objectColors[(u32)ObjectColors::ColorCount] =
+	{
+		{1, 0, 0}
+	};
+}

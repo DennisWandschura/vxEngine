@@ -105,8 +105,8 @@ void ActorAspect::handleIngameEvent(const vx::Event &evt)
 
 	if (ingameEvt == IngameEvent::Created_Actor)
 	{
-		auto entity = (EntityActor*)evt.arg1.ptr;
-		auto actorComponent = (Component::Actor*)evt.arg2.ptr;
+		auto entity = static_cast<EntityActor*>(evt.arg1.ptr);
+		auto actorComponent = static_cast<Component::Actor*>(evt.arg2.ptr);
 
 		m_squad.addEntity(entity, actorComponent);
 	}

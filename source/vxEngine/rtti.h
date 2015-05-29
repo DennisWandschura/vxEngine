@@ -79,14 +79,15 @@ namespace rtti
 		typedef void(*SetDataFun)(void*, const void*, u32);
 
 		std::string m_name;
-		size_t m_size{0};
+		size_t m_size;
 		u64 m_sid;
 		vx::sorted_vector<u64, Member> m_members;
-		ConstructObjectFunc m_constructFun{ nullptr };
-		DestructObjectFunc m_destructFun{nullptr};
+		ConstructObjectFunc m_constructFun;
+		DestructObjectFunc m_destructFun;
 		u32 m_alignment;
 
-		TypeData(){}
+		TypeData() :m_name(), m_size(0), m_sid(0), m_members(), m_constructFun(nullptr), m_destructFun(nullptr), m_alignment(0){}
+		~TypeData(){}
 
 		void registerMember(const char *name, size_t offset, const TypeData *pTypeData);
 

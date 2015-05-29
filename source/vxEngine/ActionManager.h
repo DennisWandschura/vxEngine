@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,25 +22,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 class Action;
 
-#include <vector>
 #include <vxLib/types.h>
+#include <vxLib/Container/DoubleBuffer.h>
+#include <vxLib/memory.h>
 
 class ActionManager
 {
-	std::vector<Action*> m_queue;
-	std::vector<Action*> m_temp;
-	std::vector<Action*>* m_active;
+	vx::DoubleBuffer<Action*> m_queue;
+	std::unique_ptr<Action*[]> m_memory;
 
 public:
 	ActionManager();
 	~ActionManager();
 
-	void scheduleAction(Action* p);
-	void scheduleActions(Action** p, u32 count);
+	bool scheduleAction(Action* p);
+	bool scheduleActions(Action** p, u32 count);
 
 	void update();
 };

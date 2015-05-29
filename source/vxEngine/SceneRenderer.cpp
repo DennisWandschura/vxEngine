@@ -41,6 +41,7 @@ SOFTWARE.
 #include <vxLib/gl/ShaderManager.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxLib/algorithm.h>
+#include "CpuProfiler.h"
 
 SceneRenderer::SceneRenderer()
 	:m_pObjectManager(nullptr)
@@ -203,6 +204,8 @@ bool SceneRenderer::initializeProfiler(const Font &font, u64 fontTextureHandle, 
 	auto textureIndex = *m_coldData->m_texturesGPU.find(fontTextureHandle);
 	if (!gpuProfiler->initialize(&font, shaderManager.getPipeline("text.pipe"), textureIndex, resolution, pAllocator))
 		return false;
+
+	CpuProfiler::initializeRenderer(shaderManager.getPipeline("text.pipe"), textureIndex, resolution);
 
 	return true;
 }
@@ -377,17 +380,6 @@ void SceneRenderer::writeMeshToBuffer(const vx::StringID &meshSid, const vx::Mes
 		vertex.normal = pMeshVertices[j].normal;
 		vertex.tangent = pMeshVertices[j].tangent;
 		vertex.uv = pMeshVertices[j].texCoords;
-
-		/*vx::mat4 tbnMatrix;
-		tbnMatrix.c[0] = vx::loadFloat(pMeshVertices[j].tangent);
-		tbnMatrix.c[1] = vx::loadFloat(pMeshVertices[j].bitangent);
-		tbnMatrix.c[2] = vx::loadFloat(pMeshVertices[j].normal);
-
-		auto qtbn = Quaternion::create(tbnMatrix);
-
-		auto vnormal = vx::loadFloat(vertex.normal);
-
-		auto nn = vx::Vector3Rotate(vnormal, qtbn.v);*/
 
 		f32 w = vx::dot(vx::cross(vertex.normal, vertex.tangent), pMeshVertices[j].bitangent);
 		if (w < 0.0f)

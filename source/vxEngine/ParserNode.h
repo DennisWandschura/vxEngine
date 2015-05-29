@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,46 +22,60 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 #include <vxLib/types.h>
 #include <string>
+#include <map>
 
-namespace Graphics
+namespace Parser
 {
-	struct StateDescription
-	{
-		u32 fbo{0};
-		u32 vao{0};
-		u32 pipeline{0};
-		u32 indirectBuffer{0};
-		u32 paramBuffer{0};
-		bool depthState{true};
-		bool blendState{false};
-		bool polygonOffsetFillState{false};
-	};
+	template<typename T>
+	struct Converter;
 
-	class State
+	class Node
 	{
-		u32 m_fbo;
-		u32 m_vao;
-		u32 m_pipeline;
-		u32 m_indirectBuffer;
-		u32 m_paramBuffer;
+		std::string m_data;
+		std::map<std::string, Node> m_nodes;
+		unsigned int m_dataSize;
+		bool m_isArray;
+		bool m_isMap;
 
-		u8 m_blendState;
-		u8 m_depthTestState;
-		u8 m_polygonOffsetFillState;
-		u8 m_padding;
+		const char* insertNode(const char* str);
+
+		const char* getArrayItemBegin(unsigned int i) const;
 
 	public:
-		State();
-		~State();
+		Node();
+		~Node();
 
-		void set(const StateDescription &desc);
+		void create(const char* str);
+		void createFromFile(const char* file);
 
-		void update();
+		const Node* get(const char* id) const;
 
-		bool isValid() const;
+		template<typename T>
+		bool as(T* data) const
+		{
+			return Converter<T>::decode(*this, data);
+		}
+
+		bool as(bool* data) const;
+		bool as(u8* data) const;
+		bool as(s8* data) const;
+		bool as(s32* data) const;
+		bool as(u32* data) const;
+		bool as(f32* data) const;
+		bool as(f64* data) const;
+		bool as(std::string* data) const;
+
+		bool as(unsigned int i, int* data) const;
+		bool as(unsigned int i, unsigned int* data) const;
+		bool as(unsigned int i, float* data) const;
+		bool as(unsigned int i, double* data) const;
+
+		bool isArray() const { return m_isArray; }
+		unsigned int size() const { return m_dataSize; }
 	};
 }
+
+#include "ParserConverter.h"

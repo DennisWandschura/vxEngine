@@ -123,21 +123,21 @@ class TextureManager
 	vx::sorted_vector<TextureCmp, TextureBucket> m_textureBuckets;
 	vx::sorted_vector<u32, TextureWrapper*> m_wrappers;
 
-	TextureBucket* findBucket(const vx::ushort3 textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
-	TextureRef createTexture2DSlice(TextureBucket *pBucket, const vx::uint2 size, vx::gl::DataType dataType, const void *pData);
+	TextureBucket* findBucket(const vx::ushort3 &textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
+	TextureRef createTexture2DSlice(TextureBucket *pBucket, const vx::uint2 &size, vx::gl::DataType dataType, const void *pData);
 
 public:
 	TextureManager();
 	void reserveBuckets(u32 n);
 
-	void createBucket(u32 bucketSize, const vx::ushort3 textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
+	void createBucket(u32 bucketSize, const vx::ushort3 &textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
 
-	u64 createTexture(const vx::ushort3 size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
+	u64 createTexture(const vx::ushort3 &size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format);
 
 	// texture files are always loaded into 2d arrays
 	TextureRef load(const TextureFile &f, u8 mipLevels, u8 srgb);
 
-	TextureRef load(const vx::ushort3 size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format, vx::gl::DataType dataType = (vx::gl::DataType)0, const void *ptr = nullptr);
+	TextureRef load(const vx::ushort3 &size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format, vx::gl::DataType dataType = (vx::gl::DataType)0, const void *ptr = nullptr);
 
 	u64 getTextureHandle(const TextureRef &ref);
 

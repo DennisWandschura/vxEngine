@@ -42,6 +42,7 @@ SOFTWARE.
 #include "Graphics/Segment.h"
 #include "Graphics/Commands/ProgramUniformCommand.h"
 #include "NavMeshTriangle.h"
+#include "SegmentFactory.h"
 
 struct VertexNavMesh
 {
@@ -127,7 +128,7 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	m_pEditorColdData->m_spawnPointVao.bindVertexBuffer(m_pEditorColdData->m_spawnPointVbo, 0, 0, sizeof(vx::float3));
 
 	createIndirectCmdBuffers();
-
+	
 	{
 		auto vaoSid = m_objectManager.createVertexArray("drawInfluenceCellNewVao");
 
@@ -248,7 +249,7 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 		desc.pData = &drawCount;
 		desc.size = sizeof(u32);
 
-		m_meshCountBuffer.create(desc);
+		m_objectManager.createBuffer("meshParamBuffer", desc);
 	}
 }
 
@@ -274,37 +275,13 @@ void EditorRenderAspect::createCommandList()
 	Graphics::DrawElementsIndirectCommand drawNavmeshCmd;
 	drawNavmeshCmd.set(GL_TRIANGLES, GL_UNSIGNED_SHORT);
 
-	std::unique_ptr<u8[]> bufferDrawMesh;
-	std::unique_ptr<u8[]> bufferDrawLights;
-	std::unique_ptr<u8[]> bufferDrawNavmesh;
-	std::unique_ptr<u8[]> bufferDrawNavmeshVertices;
-	std::unique_ptr<u8[]> bufferDrawGraphVertices;
-	std::unique_ptr<u8[]> bufferDrawSpawnPoints;
-	std::unique_ptr<u8[]> bufferDrawInfluenceCells;
-
 	{
-		auto cmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
-		auto meshVao = m_objectManager.getVertexArray("meshVao");
-		auto pipe = m_shaderManager.getPipeline("editorDrawMesh.pipe");
-
-		Graphics::StateDescription desc;
-		desc.fbo = 0;
-		desc.vao = meshVao->getId();
-		desc.pipeline = pipe->getId();
-		desc.indirectBuffer = cmdBuffer->getId();
-		desc.paramBuffer = m_meshCountBuffer.getId();
-		desc.depthState = true;
-		desc.blendState = false;
-
-		Graphics::State state;
-		state.set(desc);
-
 		Graphics::MultiDrawElementsIndirectCountCommand drawCmd;
 		drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT, 100);
 
-		Graphics::Segment segmentDrawMeshes;
-		segmentDrawMeshes.setState(state);
+		Graphics::Segment segmentDrawMeshes = Graphics::SegmentFactory::createFromFile("segmentDrawMeshes.txt", m_objectManager, m_shaderManager);
 		segmentDrawMeshes.pushCommand(drawCmd);
+		VX_ASSERT(segmentDrawMeshes.isValid());
 
 		m_commandList.pushSegment(segmentDrawMeshes, "drawMeshes");
 	}
@@ -847,8 +824,9 @@ void EditorRenderAspect::handleLoadScene(const vx::Event &evt)
 	updateNavMeshBuffer(navMesh);
 
 	{
+		auto paramBuffer = m_objectManager.getBuffer("meshParamBuffer");
 		u32 count = scene->getMeshInstanceCount();
-		m_meshCountBuffer.subData(0, sizeof(u32), &count);
+		paramBuffer->subData(0, sizeof(u32), &count);
 	}
 
 	{

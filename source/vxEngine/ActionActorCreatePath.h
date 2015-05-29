@@ -35,7 +35,7 @@ class ActionActorCreatePath : public Action
 	Component::Actor* m_actor;
 
 public:
-	explicit ActionActorCreatePath::ActionActorCreatePath(Component::Actor* actor);
+	explicit ActionActorCreatePath(Component::Actor* actor);
 
 	void run() override;
 

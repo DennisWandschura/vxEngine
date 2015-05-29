@@ -28,25 +28,29 @@ SOFTWARE.
 
 class Font;
 
+namespace vx
+{
+	namespace gl
+	{
+		class ProgramPipeline;
+	}
+}
+
 class CpuProfiler
 {
-	class Profiler;
-
-	struct Vertex
-	{
-		vx::float3 inputPosition;
-		vx::float3 inputTexCoords;
-		vx::float4 inputColor;
-	};
-
-	static thread_local CpuProfiler::Profiler* s_profiler;
-
 public:
-	static void initialize();
+	static void initialize(const Font* font);
 	static void shutdown();
 
 	static void frame();
+	static void update(f32 dt);
 
 	static void pushMarker(const char* id);
 	static void popMarker();
+
+	static void initializeRenderer(const vx::gl::ProgramPipeline* pPipeline, u32 textureIndex, const vx::float2 &resolution);
+	static void shutdownRenderer();
+	static void updateRenderer();
+	static void render();
+	static void setPosition(const vx::float2 &position);
 };

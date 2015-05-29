@@ -21,52 +21,66 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "vxAudio/AudioManager.h"
+#include <vxAudio/AudioManager.h>
 #include <AL/alc.h>
 #include <cstdio>
+#include <AL/al.h>
+#include <math.h>
 
-#pragma comment(lib, "OpenAL32.lib")
-
-AudioManager::AudioManager()
-	:m_pDevice(nullptr),
-	m_pContext(nullptr)
+namespace Audio
 {
-}
-
-bool AudioManager::init()
-{
-	m_pDevice = alcOpenDevice(nullptr);
-	if (m_pDevice == nullptr)
-		return false;
-
-	m_pContext = alcCreateContext(m_pDevice, nullptr);
-	if (!alcMakeContextCurrent(m_pContext))
+	AudioManager::AudioManager()
+		:m_pDevice(nullptr),
+		m_pContext(nullptr)
 	{
-		//puts(" failed to make context current");
-		return false;
 	}
 
-	//puts("Created audio device and context");
-	return true;
-}
-
-AudioManager::~AudioManager()
-{
-	shutdown();
-}
-
-void AudioManager::shutdown()
-{
-	if (m_pContext)
+	bool AudioManager::init()
 	{
-		alcMakeContextCurrent(nullptr);
-		alcDestroyContext(m_pContext);
-		m_pContext = nullptr;
+		m_pDevice = alcOpenDevice(nullptr);
+		if (m_pDevice == nullptr)
+			return false;
+
+		m_pContext = alcCreateContext(m_pDevice, nullptr);
+		if (!alcMakeContextCurrent(m_pContext))
+		{
+			//puts(" failed to make context current");
+			return false;
+		}
+
+		alListener3f(AL_POSITION, 0, 0, 0);
+
+		float directionvect[6];
+		directionvect[0] = (float)sin(0.0f);
+		directionvect[1] = 0;
+		directionvect[2] = (float)cos(0.0f);
+		directionvect[3] = 0;
+		directionvect[4] = 1;
+		directionvect[5] = 0;
+		alListenerfv(AL_ORIENTATION, directionvect);
+
+		//puts("Created audio device and context");
+		return true;
 	}
 
-	if (m_pDevice)
+	AudioManager::~AudioManager()
 	{
-		alcCloseDevice(m_pDevice);
-		m_pDevice = nullptr;
+		shutdown();
+	}
+
+	void AudioManager::shutdown()
+	{
+		if (m_pContext)
+		{
+			alcMakeContextCurrent(nullptr);
+			alcDestroyContext(m_pContext);
+			m_pContext = nullptr;
+		}
+
+		if (m_pDevice)
+		{
+			alcCloseDevice(m_pDevice);
+			m_pDevice = nullptr;
+		}
 	}
 }

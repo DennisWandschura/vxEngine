@@ -27,15 +27,18 @@ SOFTWARE.
 #include <vxEngineLib/EventListener.h>
 #include "AudioManager.h"
 
-class AudioAspect : public vx::EventListener
+namespace vx
 {
-	AudioManager m_audioManager;
+	class AudioAspect : public vx::EventListener
+	{
+		Audio::AudioManager m_audioManager;
 
-public:
-	bool initialize();
-	void shutdown();
+	public:
+		bool initialize();
+		void shutdown();
 
-	void handleEvent(const vx::Event &evt) override;
+		void handleEvent(const vx::Event &evt) override;
 
-	void update();
-};
+		void update();
+	};
+}

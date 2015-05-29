@@ -656,3 +656,13 @@ void EditorEngine::showInfluenceMap(bool b)
 {
 	m_renderAspect.showInfluenceMap(b);
 }
+
+void EditorEngine::addWaypoint(s32 mouseX, s32 mouseY)
+{
+	vx::float3 hitPos;
+	auto ptr = raytraceAgainstStaticMeshes(mouseX, mouseY, &hitPos);
+	if (ptr)
+	{
+		// todo
+	}
+}

@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "Material.h"
 #include "TextureFile.h"
-#include "TextParserFile.h"
+#include "ParserNode.h"
 
 Material::Material()
 	:m_albedo(),
@@ -85,47 +85,21 @@ void MaterialFile::load(const u8 *ptr)
 
 bool MaterialFile::loadFromFile(const char *file)
 {
-	TextParser::File text;
-	if (!text.createFromFile(file))
-		return false;
+	Parser::Node root;
+	root.createFromFile(file);
 
 	std::string albedoTextureFile;
-	text.getNode("albedo")->as(albedoTextureFile);
+	root.get("albedo")->as(&albedoTextureFile);
 
 	std::string normalTextureFile;
-	text.getNode("normals")->as(normalTextureFile);
+	root.get("normals")->as(&normalTextureFile);
 
 	std::string surfaceTextureFile;
-	text.getNode("surface")->as(surfaceTextureFile);
+	root.get("surface")->as(&surfaceTextureFile);
 
-	text.getNode("static friction")->as(m_staticFriction);
-	text.getNode("dynamic friction")->as(m_dynamicFriction);
-	text.getNode("restitution")->as(m_restitution);
-	/*try
-	{
-		YAML::Node root = YAML::LoadFile(file);
-
-		auto strAlbedo = root["albedo"].as<std::string>();
-		auto strNormals = root["normals"].as<std::string>();
-		auto strSurface = root["surface"].as<std::string>();
-		auto staticFriction = root["static friction"].as<f32>();
-		auto dynamicFriction = root["dynamic friction"].as<f32>();
-		auto restitution = root["restitution"].as<f32>();
-
-		strncpy(m_albedo.data, strAlbedo.c_str(), strAlbedo.size());
-		strncpy(m_normal.data, strNormals.c_str(), strNormals.size());
-		strncpy(m_surface.data, strSurface.c_str(), strSurface.size());
-		m_staticFriction = staticFriction;
-		m_dynamicFriction = dynamicFriction;
-		m_restitution = restitution;
-
-	}
-	catch (YAML::Exception &e)
-	{
-		VX_UNREFERENCED_PARAMETER(e);
-		return false;
-	}
-	*/
+	root.get("static friction")->as(&m_staticFriction);
+	root.get("dynamic friction")->as(&m_dynamicFriction);
+	root.get("restitution")->as(&m_restitution);
 
 	strncpy(m_albedo.data, albedoTextureFile.c_str(), 32);
 	strncpy(m_normal.data, normalTextureFile.c_str(), 32);

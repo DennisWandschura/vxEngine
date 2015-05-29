@@ -24,12 +24,16 @@ SOFTWARE.
 #include "ActionManager.h"
 #include "Action.h"
 
+namespace ActionManagerCpp
+{
+	const auto g_maxActionCount = 256u;
+}
+
 ActionManager::ActionManager()
 	:m_queue(),
-	m_temp(),
-	m_active()
+	m_memory(std::make_unique<Action*[]>(ActionManagerCpp::g_maxActionCount * 2))
 {
-
+	m_queue = vx::DoubleBuffer<Action*>(m_memory.get(), ActionManagerCpp::g_maxActionCount);
 }
 
 ActionManager::~ActionManager()
@@ -37,34 +41,37 @@ ActionManager::~ActionManager()
 
 }
 
-void ActionManager::scheduleAction(Action* p)
+bool ActionManager::scheduleAction(Action* p)
 {
-	m_queue.push_back(p);
+	return m_queue.push(p);
 }
 
-void ActionManager::scheduleActions(Action** p, u32 count)
+bool ActionManager::scheduleActions(Action** p, u32 count)
 {
+	if (m_queue.sizeFront() + count >= m_queue.capacity())
+		return false;
+
 	for (u32 i = 0; i < count; ++i)
 	{
-		m_queue.push_back(p[i]);
+		m_queue.push(p[i]);
 	}
+
+	return true;
 }
 
 void ActionManager::update()
 {
-	m_temp.reserve(m_queue.size());
+	m_queue.swapBuffers();
 
-	for (auto &it : m_queue)
+	auto size = m_queue.sizeBack();
+	for (u32 i = 0; i < size; ++i)
 	{
-		//if (it->getPriority() <= )
+		auto it = m_queue.getItemFromBackBuffer(i);
 		it->run();
 
 		if (!it->isComplete())
 		{
-			m_temp.push_back(it);
+			m_queue.push(it);
 		}
 	}
-
-	m_queue.clear();
-	m_queue.swap(m_temp);
 }

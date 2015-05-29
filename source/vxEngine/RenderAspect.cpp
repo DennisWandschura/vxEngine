@@ -44,6 +44,7 @@ SOFTWARE.
 #include "Graphics/ShadowRenderer.h"
 #include "Graphics/Segment.h"
 #include <vxLib/Window.h>
+#include "CpuProfiler.h"
 
 RenderAspect* g_renderAspect{ nullptr };
 
@@ -877,6 +878,8 @@ void RenderAspect::renderProfiler(GpuProfiler* gpuProfiler)
 
 	gpuProfiler->render();
 
+	CpuProfiler::render();
+
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 }
 
@@ -1018,4 +1021,9 @@ u16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::Str
 	buffer->subData(0, sizeof(u32), &count);
 
 	return gpuIndex;
+}
+
+const Font& RenderAspect::getProfilerFont() const
+{
+	return m_pColdData->m_font;
 }

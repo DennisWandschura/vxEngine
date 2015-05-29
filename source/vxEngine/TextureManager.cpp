@@ -156,7 +156,7 @@ void TextureManager::reserveBuckets(u32 n)
 	m_textureBuckets.reserve(n);
 }
 
-TextureManager::TextureBucket* TextureManager::findBucket(const vx::ushort3 textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
+TextureManager::TextureBucket* TextureManager::findBucket(const vx::ushort3 &textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
 {
 	TextureCmp cmp;
 	cmp.m_size = textureSize;
@@ -175,7 +175,7 @@ TextureManager::TextureBucket* TextureManager::findBucket(const vx::ushort3 text
 	return pBucket;
 }
 
-TextureRef TextureManager::createTexture2DSlice(TextureBucket *pBucket, vx::uint2 size, vx::gl::DataType dataType, const void *pData)
+TextureRef TextureManager::createTexture2DSlice(TextureBucket *pBucket, const vx::uint2 &size, vx::gl::DataType dataType, const void *pData)
 {
 	TextureRef ref;
 	for (auto i = 0u; i < pBucket->m_size; ++i)
@@ -220,7 +220,7 @@ TextureRef TextureManager::createTexture2DSlice(TextureBucket *pBucket, vx::uint
 	return ref;
 }
 
-void TextureManager::createBucket(u32 bucketSize, const vx::ushort3 textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
+void TextureManager::createBucket(u32 bucketSize, const vx::ushort3 &textureSize, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
 {
 	TextureCmp cmp;
 	cmp.m_size = textureSize;
@@ -244,7 +244,7 @@ void TextureManager::createBucket(u32 bucketSize, const vx::ushort3 textureSize,
 	// else do nothing
 }
 
-u64 TextureManager::createTexture(const vx::ushort3 size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
+u64 TextureManager::createTexture(const vx::ushort3 &size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format)
 {
 	// try to find bucket
 	auto pBucket = findBucket(size, miplevels, type, format);
@@ -322,7 +322,7 @@ TextureRef TextureManager::load(const TextureFile &f, u8 mipLevels, u8 srgb)
 	return result;
 }
 
-TextureRef TextureManager::load(const vx::ushort3 size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format, vx::gl::DataType dataType, const void *ptr)
+TextureRef TextureManager::load(const vx::ushort3 &size, u8 miplevels, vx::gl::TextureType type, vx::gl::TextureFormat format, vx::gl::DataType dataType, const void *ptr)
 {
 	TextureRef ref;
 	auto pBucket = findBucket(size, miplevels, type, format);

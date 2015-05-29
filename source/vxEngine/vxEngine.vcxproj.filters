@@ -88,14 +88,8 @@
     <Filter Include="Source Files\AI\Decisions">
       <UniqueIdentifier>{9722b3d2-e3c7-42f2-88d4-69994f1fecc4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Audio">
-      <UniqueIdentifier>{ff8c5043-b37f-40f7-b28f-e591a97f2c43}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Entity">
       <UniqueIdentifier>{b0af94ff-bf79-4e2b-9fed-9a2a7174f18f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Audio">
-      <UniqueIdentifier>{cc04bd82-04f7-4b6b-98a7-702cb46dbc80}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\AI\Conditions">
       <UniqueIdentifier>{1ee87ea5-3d17-40b9-9cf3-06fe886dc689}</UniqueIdentifier>
@@ -363,12 +357,6 @@
     <ClInclude Include="PhysicsFactory.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="Sound.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="ogg_stream.h">
-      <Filter>Header Files\Audio</Filter>
-    </ClInclude>
     <ClInclude Include="SmallObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -528,15 +516,6 @@
     <ClInclude Include="Graphics\StaticMeshRenderer.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="TextParserNodeConverter.h">
-      <Filter>Header Files\Text Parser</Filter>
-    </ClInclude>
-    <ClInclude Include="TextParserNode.h">
-      <Filter>Header Files\Text Parser</Filter>
-    </ClInclude>
-    <ClInclude Include="TextParserFile.h">
-      <Filter>Header Files\Text Parser</Filter>
-    </ClInclude>
     <ClInclude Include="gl\ObjectManager.h">
       <Filter>Header Files\Render\gl</Filter>
     </ClInclude>
@@ -636,14 +615,32 @@
     <ClInclude Include="ActionActorCreatePath.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
-    <ClInclude Include="ActionManager.h">
-      <Filter>Header Files\AI</Filter>
-    </ClInclude>
     <ClInclude Include="CpuProfiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DoubleBufferRaw.h">
       <Filter>Header Files\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionManager.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="Fiber.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorObjectColors.h">
+      <Filter>Header Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="SegmentFactory.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\CommandFactory.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ParserNode.h">
+      <Filter>Header Files\Text Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="ParserConverter.h">
+      <Filter>Header Files\Text Parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -716,9 +713,6 @@
     <ClCompile Include="EventManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Wander.cpp">
-      <Filter>Source Files\AI</Filter>
-    </ClCompile>
     <ClCompile Include="StateMachine.cpp">
       <Filter>Source Files\AI</Filter>
     </ClCompile>
@@ -751,12 +745,6 @@
     </ClCompile>
     <ClCompile Include="AABB.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ogg_stream.cpp">
-      <Filter>Source Files\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="Sound.cpp">
-      <Filter>Source Files\Audio</Filter>
     </ClCompile>
     <ClCompile Include="SmallObject.cpp">
       <Filter>Source Files</Filter>
@@ -878,12 +866,6 @@
     <ClCompile Include="Graphics\Renderer.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="TextParserFile.cpp">
-      <Filter>Source Files\Text Parser</Filter>
-    </ClCompile>
-    <ClCompile Include="TextParserNode.cpp">
-      <Filter>Source Files\Text Parser</Filter>
-    </ClCompile>
     <ClCompile Include="gl\BufferBindingManager.cpp">
       <Filter>Source Files\Render\gl</Filter>
     </ClCompile>
@@ -958,6 +940,15 @@
     </ClCompile>
     <ClCompile Include="DoubleBufferRaw.cpp">
       <Filter>Source Files\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="Fiber.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SegmentFactory.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ParserNode.cpp">
+      <Filter>Source Files\Text Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

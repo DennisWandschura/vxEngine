@@ -51,7 +51,7 @@ namespace Graphics
 		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
 		pushCommand(const T &command)
 		{
-			static_assert(__alignof(T) == 8, "");
+			static_assert(__alignof(T) == 8u, "");
 			const u8* ptr = (u8*)&command;
 
 			pushCommand(ptr, sizeof(T));
@@ -69,5 +69,7 @@ namespace Graphics
 		}
 
 		void draw();
+
+		bool isValid() const;
 	};
 }

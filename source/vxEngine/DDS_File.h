@@ -91,6 +91,9 @@ class DDS_File
 	void flip_blocks_dxtc5(DXTColBlock *line, unsigned int numBlocks);
 
 public:
+	DDS_File();
+	~DDS_File();
+
 	bool loadFromFile(const char* file, bool flipImage = true);
 
 	bool isCompressed() const;

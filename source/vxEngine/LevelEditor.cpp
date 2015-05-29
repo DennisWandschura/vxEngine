@@ -229,5 +229,10 @@ namespace Editor
 	{
 		g_pEditor->engine.showInfluenceMap(b);
 	}
+
+	void addWaypoint(s32 x, s32 y)
+	{
+		g_pEditor->engine.addWaypoint(x, y);
+	}
 }
 #endif

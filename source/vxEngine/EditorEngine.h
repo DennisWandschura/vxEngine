@@ -153,4 +153,6 @@ public:
 
 	void showNavmesh(bool b);
 	void showInfluenceMap(bool b);
+
+	void addWaypoint(s32 mouseX, s32 mouseY);
 };

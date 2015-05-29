@@ -95,11 +95,11 @@ class GpuProfiler
 
 	struct EntryGpu
 	{
-		u32 time;
+		u32 time{0};
 		u32 timeMin{ 0xffffffff };
 		u32 timeMax{ 0 };
 		char name[s_maxCharacters];
-		u8 layer;
+		u8 layer{0};
 		u32 queryStart{ 0 };
 		u32 queryEnd{ 0 };
 
@@ -132,7 +132,7 @@ public:
 	GpuProfiler();
 	~GpuProfiler();
 
-	bool initialize(const Font* pFont, const vx::gl::ProgramPipeline* pPipeline, u32 textureIndex, const vx::uint2 windowResolution, vx::StackAllocator* pAllocator);
+	bool initialize(const Font* pFont, const vx::gl::ProgramPipeline* pPipeline, u32 textureIndex, const vx::uint2 &windowResolution, vx::StackAllocator* pAllocator);
 
 	void update(f32 dt);
 

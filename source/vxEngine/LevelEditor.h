@@ -67,5 +67,7 @@ namespace Editor
 
 	extern "C" DLL_EXPORT void showNavmesh(bool b);
 	extern "C" DLL_EXPORT void showInfluenceMap(bool b);
+
+	extern "C" DLL_EXPORT void addWaypoint(s32 x, s32 y);
 }
 #endif

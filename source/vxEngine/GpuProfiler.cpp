@@ -109,7 +109,7 @@ GpuProfiler::~GpuProfiler()
 {
 }
 
-bool GpuProfiler::initialize(const Font* pFont, const vx::gl::ProgramPipeline* pPipeline, u32 textureIndex, const vx::uint2 windowResolution, vx::StackAllocator* pAllocator)
+bool GpuProfiler::initialize(const Font* pFont, const vx::gl::ProgramPipeline* pPipeline, u32 textureIndex, const vx::uint2 &windowResolution, vx::StackAllocator* pAllocator)
 {
 	LARGE_INTEGER frq;
 	QueryPerformanceFrequency(&frq);

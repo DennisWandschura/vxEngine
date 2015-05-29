@@ -1,0 +1,12 @@
+Unity("Unity_vxAudioAspect")
+	{
+		.UnityInputPath = ''
+		.UnityOutputPattern = 'Unity_vxAudioAspect*.cpp'
+		.UnityOutputPath = 'unity'
+		.UnityInputExcludePath = 'unity'
+	}
+
+Alias('all')
+{
+	.Targets = { 'Unity_vxAudioAspect' }
+}
