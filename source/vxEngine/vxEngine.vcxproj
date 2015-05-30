@@ -192,7 +192,6 @@
     <ClInclude Include="EditorObjectColors.h" />
     <ClInclude Include="EngineConfig.h" />
     <ClInclude Include="EngineGlobals.h" />
-    <ClInclude Include="Fiber.h" />
     <ClInclude Include="FileFactory.h" />
     <ClInclude Include="gl\BufferBindingManager.h" />
     <ClInclude Include="gl\BufferManager.h" />
@@ -395,21 +394,48 @@
     <ClCompile Include="DoubleBufferRaw.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Fiber.cpp" />
-    <ClCompile Include="Graphics\CommandFactory.cpp" />
-    <ClCompile Include="Graphics\Commands\BarrierCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\ClearColorCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\ClearCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\DrawElementsIndirectCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\FramebufferTextureCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\PointSizeCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\PolygonOffsetCommand.cpp" />
-    <ClCompile Include="Graphics\Commands\ViewportCommand.cpp" />
-    <ClCompile Include="ParserNode.cpp" />
-    <ClCompile Include="SegmentFactory.cpp" />
+    <ClCompile Include="Graphics\CommandFactory.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\BarrierCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\ClearColorCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\ClearCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\DrawElementsIndirectCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\FramebufferTextureCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\PointSizeCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\PolygonOffsetCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\ViewportCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ParserNode.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="SegmentFactory.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Timer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

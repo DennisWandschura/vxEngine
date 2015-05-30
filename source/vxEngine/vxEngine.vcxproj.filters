@@ -624,9 +624,6 @@
     <ClInclude Include="ActionManager.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
-    <ClInclude Include="Fiber.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EditorObjectColors.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
@@ -965,9 +962,6 @@
     <ClCompile Include="DoubleBufferRaw.cpp">
       <Filter>Source Files\Container</Filter>
     </ClCompile>
-    <ClCompile Include="Fiber.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SegmentFactory.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
@@ -981,9 +975,6 @@
       <Filter>Source Files\Render\Graphics\Commands</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Commands\ProgramUniformCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\PointSizeCommand.cpp">
       <Filter>Source Files\Render\Graphics\Commands</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Commands\DrawElementsIndirectCommand.cpp">
@@ -1011,6 +1002,9 @@
       <Filter>Source Files\Render\Graphics\Commands</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\PointSizeCommand.cpp">
       <Filter>Source Files\Render\Graphics\Commands</Filter>
     </ClCompile>
   </ItemGroup>

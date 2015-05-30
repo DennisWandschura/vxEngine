@@ -3,18 +3,6 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ai/Squad.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ai\Squad.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/audio/AudioAspect.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\audio\AudioAspect.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/audio/AudioManager.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\audio\AudioManager.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/audio/ogg_stream.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\audio\ogg_stream.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/audio/WavFile.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\audio\WavFile.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/gl/BufferBindingManager.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\gl\BufferBindingManager.cpp"
 
@@ -24,17 +12,47 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/gl/ObjectManager.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\gl\ObjectManager.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/BarrierCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\BarrierCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/ClearColorCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\ClearColorCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/ClearCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\ClearCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/DrawArraysIndirectCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\DrawArraysIndirectCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/DrawElementsIndirectCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\DrawElementsIndirectCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/FramebufferTextureCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\FramebufferTextureCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/MultiDrawArraysIndirectCountCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/MultiDrawElementsIndirectCountCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/PointSizeCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\PointSizeCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/PolygonOffsetCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\PolygonOffsetCommand.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/ProgramUniformCommand.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\ProgramUniformCommand.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/BufferFactory.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\BufferFactory.cpp"
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/ViewportCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\ViewportCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/CommandFactory.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\CommandFactory.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/CommandList.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\CommandList.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Renderer.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Renderer.cpp"
@@ -47,9 +65,6 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/State.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\State.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/StaticMeshRenderer.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\StaticMeshRenderer.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Surface.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Surface.cpp"
@@ -216,6 +231,9 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/NavMeshGraph.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\NavMeshGraph.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ParserNode.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ParserNode.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/PhysicsAspect.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\PhysicsAspect.cpp"
 
@@ -264,6 +282,9 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Seek.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Seek.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/SegmentFactory.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\SegmentFactory.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/SmallObjAllocator.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\SmallObjAllocator.cpp"
 
@@ -281,12 +302,6 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Text.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Text.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/TextParserFile.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\TextParserFile.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/TextParserNode.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\TextParserNode.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/TextureFile.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\TextureFile.cpp"
