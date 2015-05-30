@@ -25,21 +25,82 @@ SOFTWARE.
 #include "ProgramUniformCommand.h"
 #include <vxLib/gl/gl.h>
 #include "../Segment.h"
+#include "../../ParserNode.h"
+#include "../CommandFactory.h"
+#include <vxLib/gl/ProgramPipeline.h>
 
 namespace Graphics
 {
-	void ProgramUniformCommand::setUInt(u32 program, u32 location, u32 count)
+	void createFromNodeProgramUniformCommand(const Parser::Node &node, Segment* segment, void* p)
 	{
-		m_program = program;
-		m_dataType = vx::gl::DataType::Unsigned_Int;
-		m_count = count;
-		m_location = location;
+		auto paramsNode = node.get("params");
+
+		u32 params[3];
+		paramsNode->as(0, &params[0]);
+		paramsNode->as(1, &params[1]);
+		paramsNode->as(2, &params[2]);
+	//	paramsNode->as(3, &params[3]);
+
+		ProgramUniformCommand command;
+		//command.set(params[0], params[1], params[2], (vx::gl::DataType)params[3]);
+
+		auto dataTypeNode = node.get("dataType");
+		auto dataNode = node.get("data");
+
+		std::string dataType;
+		dataTypeNode->as(&dataType);
+
+		auto pipeline = (vx::gl::ProgramPipeline*)p;
+
+		if (strcmp(dataType.c_str(), "float") == 0)
+		{
+			command.set((*pipeline)[(vx::gl::ShaderProgramType)params[0]], params[1], params[2], vx::gl::DataType::Float);
+
+			if (params[2] == 1)
+			{
+				f32 value;
+				dataNode->as((float*)&value);
+
+				segment->pushCommand(command, value);
+			}
+			else if (params[2] == 3)
+			{
+				vx::float3 value;
+
+				dataNode->as(0, (float*)&value[0]);
+				dataNode->as(1, (float*)&value[1]);
+				dataNode->as(2, (float*)&value[2]);
+
+				segment->pushCommand(command, value);
+			}
+			else if (params[2] == 4)
+			{
+				vx::float4 value;
+
+				dataNode->as(0, (float*)&value[0]);
+				dataNode->as(1, (float*)&value[1]);
+				dataNode->as(2, (float*)&value[2]);
+				dataNode->as(3, (float*)&value[3]);
+
+				segment->pushCommand(command, value);
+			}
+			else
+			{
+				VX_ASSERT(false);
+			}
+		}
+		else
+		{
+			VX_ASSERT(false);
+		}
 	}
 
-	void ProgramUniformCommand::setFloat(u32 program, u32 location, u32 count)
+	REGISTER_COMMANDFACTORY(ProgramUniformCommand, createFromNodeProgramUniformCommand);
+
+	void ProgramUniformCommand::set(u32 program, u32 location, u32 count, vx::gl::DataType dataType)
 	{
 		m_program = program;
-		m_dataType = vx::gl::DataType::Float;
+		m_dataType = dataType;
 		m_count = count;
 		m_location = location;
 	}
@@ -55,15 +116,11 @@ namespace Graphics
 			programUniformUInt(offset);
 			break;
 		default:
-			assert(false);
+			VX_ASSERT(false);
 			break;
 		}
 
 		*offset += sizeof(ProgramUniformCommand);
-	}
-
-	void ProgramUniformCommand::pushToSegment(Segment* segment)
-	{
 	}
 
 	void ProgramUniformCommand::programUniformFloat(u32* offset)

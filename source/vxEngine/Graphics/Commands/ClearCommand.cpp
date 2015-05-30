@@ -21,51 +21,38 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
-
-#include <vector>
-#include "State.h"
-#include <memory>
+#include "ClearCommand.h"
+#include <vxLib/gl/gl.h>
+#include "../Segment.h"
+#include "../../ParserNode.h"
+#include "../CommandFactory.h"
 
 namespace Graphics
 {
-	class ProgramUniformCommand;
-
-	class ProgramUniformData;
-
-	class Segment
+	void createFromNodeClearCommand(const Parser::Node &node, Segment* segment, void* p)
 	{
-		std::vector<u8> m_commmands;
-		State m_state;
+		auto paramsNode = node.get("params");
 
-		void pushCommand(const u8*, u32 count);
+		u32 param;
+		paramsNode->as(0, &param);
 
-	public:
-		Segment();
-		~Segment();
+		ClearCommand command;
+		command.set(param);
 
-		void setState(const State &state);
+		segment->pushCommand(command);
+	}
 
-		template < typename T >
-		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		pushCommand(const T &command)
-		{
-			static_assert(__alignof(T) == 8u, "");
-			const u8* ptr = (u8*)&command;
+	REGISTER_COMMANDFACTORY(ClearCommand, createFromNodeClearCommand);
 
-			pushCommand(ptr, sizeof(T));
-		}
+	void ClearCommand::set(u32 bits)
+	{
+		m_bits = bits;
+	}
 
-		template < typename T >
-		void pushCommand(const ProgramUniformCommand &command, const T &data)
-		{
-			pushCommand(command, (const u8*)&data);
-		}
+	void ClearCommand::execute(u32* offset)
+	{
+		glClear(m_bits);
 
-		void pushCommand(const ProgramUniformCommand &command, const u8* data);
-
-		void draw();
-
-		bool isValid() const;
-	};
+		*offset += sizeof(ClearCommand);
+	}
 }

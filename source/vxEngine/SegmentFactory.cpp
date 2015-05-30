@@ -51,7 +51,7 @@ namespace Graphics
 			Parser::Node entry;
 			comamndsNode->as(i, &entry);
 
-			CommandFactory::createFromNodeAndPushToSegment(entry, &segment, pipe);
+			CommandFactory::get().createFromNodeAndPushToSegment(entry, &segment, pipe);
 		}
 
 		Graphics::StateDescription desc;
@@ -67,6 +67,8 @@ namespace Graphics
 		state.set(desc);
 
 		segment.setState(state);
+
+		VX_ASSERT(segment.isValid());
 
 		return segment;
 	}

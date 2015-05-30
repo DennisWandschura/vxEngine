@@ -24,7 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "../Commands.h"
+#include <vxLib/gl/Base.h>
+#include "Command.h"
 
 namespace Graphics
 {
@@ -36,45 +37,12 @@ namespace Graphics
 		u16 m_count;
 		u32 m_location;
 
-		void setUInt(u32 program, u32 location, u32 count);
-		void setFloat(u32 program, u32 location, u32 count);
+		void set(u32 program, u32 location, u32 count, vx::gl::DataType dataType);
 
 		void execute(u32* offset) override;
-		void pushToSegment(Segment* segment) override;
 
 	private:
 		void programUniformFloat(u32* offset);
 		void programUniformUInt(u32* offset);
-	};
-
-	template<typename T>
-	struct ProgramUniformData
-	{
-		enum { Count = sizeof(T) };
-
-		union
-		{
-			u8 u[Count];
-			u64 padding;
-		};
-
-		ProgramUniformData() : u()
-		{
-		}
-
-		void set(const T &data)
-		{
-			memcpy(u, &data, sizeof(T));
-		}
-
-		u8& operator[](u32 i)
-		{
-			return u[i];
-		}
-
-		const u8& operator[](u32 i) const
-		{
-			return u[i];
-		}
 	};
 }

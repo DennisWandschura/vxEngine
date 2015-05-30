@@ -25,7 +25,7 @@ SOFTWARE.
 */
 
 #include <vxLib/Container/sorted_vector.h>
-#include "Commands.h"
+#include <vxLib/StringID.h>
 
 namespace Parser
 {
@@ -43,15 +43,35 @@ namespace vx
 namespace Graphics
 {
 	class Segment;
+
 	struct CommandDataDescription
 	{
 		u32 count;
 		void* p;
 	};
 
-	class CommandFactory
+	typedef void(*CreateFromNodeAndPushFunction)(const Parser::Node &node, Segment* segment, void* p);
+
+	class CommandFactoryRegister
 	{
 	public:
-		static void createFromNodeAndPushToSegment(const Parser::Node &node, Segment* segment, const vx::gl::ProgramPipeline* pipeline);
+		CommandFactoryRegister(const char* id, CreateFromNodeAndPushFunction fp);
+	};
+
+#define REGISTER_COMMANDFACTORY(CLASS, FP) CommandFactoryRegister g_commandFactory##CLASS{ #CLASS, FP }
+
+	class CommandFactory
+	{
+		vx::sorted_vector<vx::StringID, CreateFromNodeAndPushFunction> m_functions;
+
+	public:
+		CommandFactory();
+		~CommandFactory();
+
+		void registerFunction(const char* id, CreateFromNodeAndPushFunction fp);
+
+		void createFromNodeAndPushToSegment(const Parser::Node &node, Segment* segment, const vx::gl::ProgramPipeline* pipeline);
+
+		static CommandFactory& get();
 	};
 }

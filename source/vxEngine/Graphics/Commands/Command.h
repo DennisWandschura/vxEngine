@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,51 +22,22 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vector>
-#include "State.h"
-#include <memory>
+#include <vxLib/math/Vector.h>
 
 namespace Graphics
 {
-	class ProgramUniformCommand;
+	class Segment;
 
-	class ProgramUniformData;
-
-	class Segment
+	struct Command
 	{
-		std::vector<u8> m_commmands;
-		State m_state;
+		virtual ~Command(){}
 
-		void pushCommand(const u8*, u32 count);
+		virtual void execute(u32* offset) = 0;
 
-	public:
-		Segment();
-		~Segment();
-
-		void setState(const State &state);
-
-		template < typename T >
-		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		pushCommand(const T &command)
+		static void handleCommand(Command* header, u32* offset)
 		{
-			static_assert(__alignof(T) == 8u, "");
-			const u8* ptr = (u8*)&command;
-
-			pushCommand(ptr, sizeof(T));
+			header->execute(offset);
 		}
-
-		template < typename T >
-		void pushCommand(const ProgramUniformCommand &command, const T &data)
-		{
-			pushCommand(command, (const u8*)&data);
-		}
-
-		void pushCommand(const ProgramUniformCommand &command, const u8* data);
-
-		void draw();
-
-		bool isValid() const;
 	};
 }

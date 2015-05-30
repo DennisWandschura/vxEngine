@@ -21,51 +21,44 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
-
-#include <vector>
-#include "State.h"
-#include <memory>
+#include "FramebufferTextureCommand.h"
+#include "../Segment.h"
+#include <vxLib/gl/gl.h>
+#include "../../ParserNode.h"
+#include "../CommandFactory.h"
 
 namespace Graphics
 {
-	class ProgramUniformCommand;
-
-	class ProgramUniformData;
-
-	class Segment
+	void createFromNodeFramebufferTextureCommand(const Parser::Node &node, Segment* segment, void* p)
 	{
-		std::vector<u8> m_commmands;
-		State m_state;
+		auto paramsNode = node.get("params");
 
-		void pushCommand(const u8*, u32 count);
+		u32 params[4];
+		paramsNode->as(0, &params[0]);
+		paramsNode->as(1, &params[1]);
+		paramsNode->as(2, &params[2]);
+		paramsNode->as(3, &params[3]);
 
-	public:
-		Segment();
-		~Segment();
+		FramebufferTextureCommand command;
+		command.set(params[0], params[1], params[2], params[3]);
 
-		void setState(const State &state);
+		segment->pushCommand(command);
+	}
 
-		template < typename T >
-		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		pushCommand(const T &command)
-		{
-			static_assert(__alignof(T) == 8u, "");
-			const u8* ptr = (u8*)&command;
+	REGISTER_COMMANDFACTORY(FramebufferTextureCommand, createFromNodeFramebufferTextureCommand);
 
-			pushCommand(ptr, sizeof(T));
-		}
+	void FramebufferTextureCommand::set(u32 framebufferId, u32 attachment, u32 texture, u32 level)
+	{
+		m_framebufferId = framebufferId;
+		m_attachment = attachment;
+		m_texture = texture;
+		m_level = level;
+	}
 
-		template < typename T >
-		void pushCommand(const ProgramUniformCommand &command, const T &data)
-		{
-			pushCommand(command, (const u8*)&data);
-		}
+	void FramebufferTextureCommand::execute(u32* offset)
+	{
+		glNamedFramebufferTexture(m_framebufferId, m_attachment, m_texture, m_level);
 
-		void pushCommand(const ProgramUniformCommand &command, const u8* data);
-
-		void draw();
-
-		bool isValid() const;
-	};
+		*offset += sizeof(FramebufferTextureCommand);
+	}
 }

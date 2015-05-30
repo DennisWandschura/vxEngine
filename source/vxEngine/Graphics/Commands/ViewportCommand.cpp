@@ -21,51 +21,46 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
-
-#include <vector>
-#include "State.h"
-#include <memory>
+#include "ViewportCommand.h"
+#include <vxLib/gl/StateManager.h>
+#include "../Segment.h"
+#include "../../ParserNode.h"
+#include "../CommandFactory.h"
 
 namespace Graphics
 {
-	class ProgramUniformCommand;
-
-	class ProgramUniformData;
-
-	class Segment
+	void createFromNodeViewportCommand(const Parser::Node &node, Segment* segment, void* p)
 	{
-		std::vector<u8> m_commmands;
-		State m_state;
+		auto paramsNode = node.get("params");
 
-		void pushCommand(const u8*, u32 count);
+		u32 params[4];
+		paramsNode->as(0, &params[0]);
+		paramsNode->as(1, &params[1]);
+		paramsNode->as(2, &params[2]);
+		paramsNode->as(3, &params[3]);
 
-	public:
-		Segment();
-		~Segment();
+		ViewportCommand command;
+		command.m_offset.x = params[0];
+		command.m_offset.y = params[1];
+		command.m_size.x = params[2];
+		command.m_size.y = params[3];
 
-		void setState(const State &state);
+		segment->pushCommand(command);
+	}
 
-		template < typename T >
-		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		pushCommand(const T &command)
-		{
-			static_assert(__alignof(T) == 8u, "");
-			const u8* ptr = (u8*)&command;
+	REGISTER_COMMANDFACTORY(ViewportCommand, createFromNodeViewportCommand);
 
-			pushCommand(ptr, sizeof(T));
-		}
+	void ViewportCommand::set(const vx::uint2 &offset, const vx::uint2 &size)
+	{
+		m_offset = offset;
+		m_size = size;
+	}
 
-		template < typename T >
-		void pushCommand(const ProgramUniformCommand &command, const T &data)
-		{
-			pushCommand(command, (const u8*)&data);
-		}
+	void ViewportCommand::execute(u32* offset)
+	{
+		vx::gl::StateManager::setViewport(m_offset.x, m_offset.y, m_size.x, m_size.y);
 
-		void pushCommand(const ProgramUniformCommand &command, const u8* data);
+		*offset += sizeof(ViewportCommand);
 
-		void draw();
-
-		bool isValid() const;
-	};
+	}
 }

@@ -21,51 +21,42 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
-
-#include <vector>
-#include "State.h"
-#include <memory>
+#include "DrawElementsIndirectCommand.h"
+#include <vxLib/gl/gl.h>
+#include "../Segment.h"
+#include "../../ParserNode.h"
+#include "../CommandFactory.h"
 
 namespace Graphics
 {
-	class ProgramUniformCommand;
-
-	class ProgramUniformData;
-
-	class Segment
+	void createFromNodeDrawElementsIndirectCommand(const Parser::Node &node, Segment* segment, void* p)
 	{
-		std::vector<u8> m_commmands;
-		State m_state;
+		auto paramsNode = node.get("params");
 
-		void pushCommand(const u8*, u32 count);
+		u32 params[3];
+		paramsNode->as(0, &params[0]);
+		paramsNode->as(1, &params[1]);
+		paramsNode->as(2, &params[2]);
 
-	public:
-		Segment();
-		~Segment();
+		DrawElementsIndirectCommand command;
+		command.set(params[0], params[1], params[2]);
 
-		void setState(const State &state);
+		segment->pushCommand(command);
+	}
 
-		template < typename T >
-		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		pushCommand(const T &command)
-		{
-			static_assert(__alignof(T) == 8u, "");
-			const u8* ptr = (u8*)&command;
+	REGISTER_COMMANDFACTORY(DrawElementsIndirectCommand, createFromNodeDrawElementsIndirectCommand);
 
-			pushCommand(ptr, sizeof(T));
-		}
+	void DrawElementsIndirectCommand::set(u32 mode, u32 type, u32 offset)
+	{
+		m_mode = mode;
+		m_type = type;
+		m_offset = offset;
+	}
 
-		template < typename T >
-		void pushCommand(const ProgramUniformCommand &command, const T &data)
-		{
-			pushCommand(command, (const u8*)&data);
-		}
+	void DrawElementsIndirectCommand::execute(u32* offset)
+	{
+		glDrawElementsIndirect(m_mode, m_type, (void*)m_offset);
 
-		void pushCommand(const ProgramUniformCommand &command, const u8* data);
-
-		void draw();
-
-		bool isValid() const;
-	};
+		*offset += sizeof(DrawElementsIndirectCommand);
+	}
 }

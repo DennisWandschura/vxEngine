@@ -148,6 +148,9 @@
     <Filter Include="Source Files\unity">
       <UniqueIdentifier>{7250a31e-9de9-4e53-99b2-f1ad7b3aa74b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Render\Graphics\Commands">
+      <UniqueIdentifier>{807e9711-a7a0-4e5f-8e32-7d17c27ac795}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -501,9 +504,6 @@
     <ClInclude Include="Graphics\Commands.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\BufferFactory.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Reference.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -641,6 +641,42 @@
     </ClInclude>
     <ClInclude Include="ParserConverter.h">
       <Filter>Header Files\Text Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\ViewportCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\Command.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\PointSizeCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\DrawArraysIndirectCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\DrawElementsIndirectCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\ClearColorCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\FramebufferTextureCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\PolygonOffsetCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\ClearCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\BarrierCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -857,12 +893,6 @@
     <ClCompile Include="Graphics\CommandList.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\BufferFactory.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\StaticMeshRenderer.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\Renderer.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
@@ -876,12 +906,6 @@
       <Filter>Source Files\Render\gl</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\ShadowRenderer.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\ProgramUniformCommand.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="FileEntry.cpp">
@@ -952,6 +976,42 @@
     </ClCompile>
     <ClCompile Include="Graphics\CommandFactory.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\ViewportCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\ProgramUniformCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\PointSizeCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\DrawElementsIndirectCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\ClearColorCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\FramebufferTextureCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\PolygonOffsetCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\BarrierCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\ClearCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

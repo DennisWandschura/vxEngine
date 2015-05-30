@@ -201,8 +201,19 @@
     <ClInclude Include="Graphics\CommandFactory.h" />
     <ClInclude Include="Graphics\CommandList.h" />
     <ClInclude Include="Graphics\Commands.h" />
-    <ClInclude Include="Graphics\BufferFactory.h" />
+    <ClInclude Include="Graphics\Commands\BarrierCommand.h" />
+    <ClInclude Include="Graphics\Commands\ClearColorCommand.h" />
+    <ClInclude Include="Graphics\Commands\ClearCommand.h" />
+    <ClInclude Include="Graphics\Commands\Command.h" />
+    <ClInclude Include="Graphics\Commands\DrawArraysIndirectCommand.h" />
+    <ClInclude Include="Graphics\Commands\DrawElementsIndirectCommand.h" />
+    <ClInclude Include="Graphics\Commands\FramebufferTextureCommand.h" />
+    <ClInclude Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.h" />
+    <ClInclude Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.h" />
+    <ClInclude Include="Graphics\Commands\PointSizeCommand.h" />
+    <ClInclude Include="Graphics\Commands\PolygonOffsetCommand.h" />
     <ClInclude Include="Graphics\Commands\ProgramUniformCommand.h" />
+    <ClInclude Include="Graphics\Commands\ViewportCommand.h" />
     <ClInclude Include="Graphics\Renderer.h" />
     <ClInclude Include="Graphics\Segment.h" />
     <ClInclude Include="Graphics\ShadowRenderer.h" />
@@ -386,6 +397,17 @@
     </ClCompile>
     <ClCompile Include="Fiber.cpp" />
     <ClCompile Include="Graphics\CommandFactory.cpp" />
+    <ClCompile Include="Graphics\Commands\BarrierCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\ClearColorCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\ClearCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\DrawElementsIndirectCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\FramebufferTextureCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\PointSizeCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\PolygonOffsetCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\ViewportCommand.cpp" />
     <ClCompile Include="ParserNode.cpp" />
     <ClCompile Include="SegmentFactory.cpp" />
     <ClCompile Include="Timer.cpp">
@@ -451,13 +473,7 @@
     <ClCompile Include="GpuProfiler.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Graphics\BufferFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Graphics\CommandList.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Graphics\Commands\ProgramUniformCommand.cpp">
@@ -473,9 +489,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Graphics\State.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Graphics\StaticMeshRenderer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Graphics\Surface.cpp">

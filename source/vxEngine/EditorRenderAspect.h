@@ -47,25 +47,13 @@ class EditorRenderAspect : public RenderAspect
 	struct EditorColdData
 	{
 		vx::gl::Texture m_editorTextures;
-		vx::gl::Buffer m_editorTextureBuffer;
-		vx::gl::Buffer m_spawnPointVbo;
-		vx::gl::VertexArray m_spawnPointVao;
-		vx::gl::Buffer m_spawnPointCmdBuffer;
-
-		vx::gl::Buffer m_navMeshGraphNodesVbo;
-
-		vx::gl::Buffer m_navMeshVertexCmdBuffer;
-		vx::gl::Buffer m_graphNodesCmdBuffer;
 
 		u32 m_lightCount{ 0 };
 		u32 m_navMeshIndexCount{ 0 };
 		u32 m_navMeshVertexCount{ 0 };
-		vx::gl::VertexArray m_navMeshVertexVao;
 	};
 
 	Graphics::CommandList m_commandList;
-
-	vx::gl::VertexArray m_navMeshGraphNodesVao;
 
 	u32 m_navMeshGraphNodesCount{0};
 

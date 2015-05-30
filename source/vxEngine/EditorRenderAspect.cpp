@@ -36,7 +36,6 @@ SOFTWARE.
 #include <vxLib/algorithm.h>
 #include "Graphics/Segment.h"
 #include "DDS_File.h"
-#include "Graphics/BufferFactory.h"
 #include "Spawn.h"
 #include "Graphics/Commands.h"
 #include "Graphics/Segment.h"
@@ -98,37 +97,65 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 
 	auto result = initializeImpl(dataDir, windowResolution, debug, pAllocator);
 
-	vx::gl::BufferDescription navmeshVertexVboDesc;
-	navmeshVertexVboDesc.bufferType = vx::gl::BufferType::Array_Buffer;
-	navmeshVertexVboDesc.flags = vx::gl::BufferStorageFlags::Write;
-	navmeshVertexVboDesc.immutable = 1;
-	navmeshVertexVboDesc.pData = nullptr;
-	navmeshVertexVboDesc.size = sizeof(VertexNavMesh) * 256;
-	m_objectManager.createBuffer("navMeshVertexVbo", navmeshVertexVboDesc);
+	{
+		vx::gl::BufferDescription navmeshVertexVboDesc;
+		navmeshVertexVboDesc.bufferType = vx::gl::BufferType::Array_Buffer;
+		navmeshVertexVboDesc.flags = vx::gl::BufferStorageFlags::Write;
+		navmeshVertexVboDesc.immutable = 1;
+		navmeshVertexVboDesc.pData = nullptr;
+		navmeshVertexVboDesc.size = sizeof(VertexNavMesh) * 256;
+		m_objectManager.createBuffer("navMeshVertexVbo", navmeshVertexVboDesc);
+	}
 
-	vx::gl::BufferDescription navMeshVertexIboDesc;
-	navMeshVertexIboDesc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
-	navMeshVertexIboDesc.flags = vx::gl::BufferStorageFlags::Write;
-	navMeshVertexIboDesc.immutable = 1;
-	navMeshVertexIboDesc.pData = nullptr;
-	navMeshVertexIboDesc.size = sizeof(u16) * 256 * 3;
-	m_objectManager.createBuffer("navMeshVertexIbo", navMeshVertexIboDesc);
+	{
+		vx::gl::BufferDescription navMeshVertexIboDesc;
+		navMeshVertexIboDesc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
+		navMeshVertexIboDesc.flags = vx::gl::BufferStorageFlags::Write;
+		navMeshVertexIboDesc.immutable = 1;
+		navMeshVertexIboDesc.pData = nullptr;
+		navMeshVertexIboDesc.size = sizeof(u16) * 256 * 3;
+		m_objectManager.createBuffer("navMeshVertexIbo", navMeshVertexIboDesc);
+	}
 
 	createNavMeshVertexVao();
 	createNavMeshVao();
 
-	m_pEditorColdData->m_navMeshGraphNodesVbo = Graphics::BufferFactory::createVertexBuffer(sizeof(vx::float3) * 256, vx::gl::BufferStorageFlags::Write);
+	{
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Array_Buffer;
+		desc.flags = vx::gl::BufferStorageFlags::Write;
+		desc.immutable = 1;
+		desc.pData = nullptr;
+		desc.size = sizeof(vx::float3) * 256;
+		m_objectManager.createBuffer("navMeshGraphNodesVbo", desc);
+	}
+
 	createNavMeshNodesVao();
 
-	m_pEditorColdData->m_spawnPointVbo = Graphics::BufferFactory::createVertexBuffer(sizeof(vx::float3) * 256, vx::gl::BufferStorageFlags::Write);
-	m_pEditorColdData->m_spawnPointVao.create();
-	m_pEditorColdData->m_spawnPointVao.enableArrayAttrib(0);
-	m_pEditorColdData->m_spawnPointVao.arrayAttribBinding(0, 0);
-	m_pEditorColdData->m_spawnPointVao.arrayAttribFormatF(0, 3, 0, 0);
-	m_pEditorColdData->m_spawnPointVao.bindVertexBuffer(m_pEditorColdData->m_spawnPointVbo, 0, 0, sizeof(vx::float3));
+
+	{
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Array_Buffer;
+		desc.flags = vx::gl::BufferStorageFlags::Write;
+		desc.immutable = 1;
+		desc.pData = nullptr;
+		desc.size = sizeof(vx::float3) * 256;
+		m_objectManager.createBuffer("spawnPointVbo", desc);
+	}
+
+	auto spawnPointVbo = m_objectManager.getBuffer("spawnPointVbo");
+
+	m_objectManager.createVertexArray("spawnPointVao");
+	auto m_spawnPointVao = m_objectManager.getVertexArray("spawnPointVao");
+
+	m_spawnPointVao->create();
+	m_spawnPointVao->enableArrayAttrib(0);
+	m_spawnPointVao->arrayAttribBinding(0, 0);
+	m_spawnPointVao->arrayAttribFormatF(0, 3, 0, 0);
+	m_spawnPointVao->bindVertexBuffer(*spawnPointVbo, 0, 0, sizeof(vx::float3));
 
 	createIndirectCmdBuffers();
-	
+
 	{
 		auto vaoSid = m_objectManager.createVertexArray("drawInfluenceCellNewVao");
 
@@ -173,8 +200,10 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 
 	createEditorTextures();
 
+	auto editorTextureBuffer = m_objectManager.getBuffer("editorTextureBuffer");
+
 	bindBuffers();
-	glBindBufferBase(GL_UNIFORM_BUFFER, 8, m_pEditorColdData->m_editorTextureBuffer.getId());
+	glBindBufferBase(GL_UNIFORM_BUFFER, 8, editorTextureBuffer->getId());
 
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -201,27 +230,33 @@ void EditorRenderAspect::createNavMeshVertexVao()
 {
 	auto navMeshVertexVbo = m_objectManager.getBuffer("navMeshVertexVbo");
 
-	m_pEditorColdData->m_navMeshVertexVao.create();
-	m_pEditorColdData->m_navMeshVertexVao.enableArrayAttrib(0);
-	m_pEditorColdData->m_navMeshVertexVao.arrayAttribFormatF(0, 3, 0, 0);
-	m_pEditorColdData->m_navMeshVertexVao.arrayAttribBinding(0, 0);
+	m_objectManager.createVertexArray("navMeshVertexVao");
+	auto navMeshVertexVao = m_objectManager.getVertexArray("navMeshVertexVao");
 
-	m_pEditorColdData->m_navMeshVertexVao.enableArrayAttrib(1);
-	m_pEditorColdData->m_navMeshVertexVao.arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
-	m_pEditorColdData->m_navMeshVertexVao.arrayAttribBinding(1, 0);
+	navMeshVertexVao->create();
+	navMeshVertexVao->enableArrayAttrib(0);
+	navMeshVertexVao->arrayAttribFormatF(0, 3, 0, 0);
+	navMeshVertexVao->arrayAttribBinding(0, 0);
 
-	m_pEditorColdData->m_navMeshVertexVao.bindVertexBuffer(*navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
+	navMeshVertexVao->enableArrayAttrib(1);
+	navMeshVertexVao->arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
+	navMeshVertexVao->arrayAttribBinding(1, 0);
+
+	navMeshVertexVao->bindVertexBuffer(*navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
 }
 
 void EditorRenderAspect::createNavMeshNodesVao()
 {
-	m_navMeshGraphNodesVao.create();
+	m_objectManager.createVertexArray("navMeshGraphNodesVao");
+	auto navMeshGraphNodesVao = m_objectManager.getVertexArray("navMeshGraphNodesVao");
+	navMeshGraphNodesVao->create();
 
-	m_navMeshGraphNodesVao.enableArrayAttrib(0);
-	m_navMeshGraphNodesVao.arrayAttribFormatF(0, 3, 0, 0);
-	m_navMeshGraphNodesVao.arrayAttribBinding(0, 0);
+	navMeshGraphNodesVao->enableArrayAttrib(0);
+	navMeshGraphNodesVao->arrayAttribFormatF(0, 3, 0, 0);
+	navMeshGraphNodesVao->arrayAttribBinding(0, 0);
 
-	m_navMeshGraphNodesVao.bindVertexBuffer(m_pEditorColdData->m_navMeshGraphNodesVbo, 0, 0, sizeof(vx::float3));
+	auto navMeshGraphNodesVbo = m_objectManager.getBuffer("navMeshGraphNodesVbo");
+	navMeshGraphNodesVao->bindVertexBuffer(*navMeshGraphNodesVbo, 0, 0, sizeof(vx::float3));
 }
 
 void EditorRenderAspect::createIndirectCmdBuffers()
@@ -239,24 +274,22 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 		desc.size = sizeof(vx::gl::DrawArraysIndirectCommand);
 
 		m_objectManager.createBuffer("lightCmdBuffer", desc);
+		m_objectManager.createBuffer("navMeshVertexCmdBuffer", desc);
+		m_objectManager.createBuffer("graphNodesCmdBuffer", desc);
+		m_objectManager.createBuffer("spawnPointCmdBuffer", desc);
 	}
-
-	m_pEditorColdData->m_navMeshVertexCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
-	//m_pEditorColdData->m_lightCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
-	m_pEditorColdData->m_graphNodesCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
-	m_pEditorColdData->m_spawnPointCmdBuffer = Graphics::BufferFactory::createIndirectCmdBuffer(sizeof(vx::gl::DrawArraysIndirectCommand), vx::gl::BufferStorageFlags::Write, (u8*)&arrayCmd);
 
 	{
 		vx::gl::DrawElementsIndirectCommand elementsCmd;
-	memset(&elementsCmd, 0, sizeof(vx::gl::DrawElementsIndirectCommand));
-	elementsCmd.instanceCount = 1;
+		memset(&elementsCmd, 0, sizeof(vx::gl::DrawElementsIndirectCommand));
+		elementsCmd.instanceCount = 1;
 
-	vx::gl::BufferDescription desc;
-	desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
-	desc.flags = vx::gl::BufferStorageFlags::Write;
-	desc.immutable = 1;
-	desc.pData = &elementsCmd;
-	desc.size = sizeof(vx::gl::DrawElementsIndirectCommand);
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+		desc.flags = vx::gl::BufferStorageFlags::Write;
+		desc.immutable = 1;
+		desc.pData = &elementsCmd;
+		desc.size = sizeof(vx::gl::DrawElementsIndirectCommand);
 
 		m_objectManager.createBuffer("navmeshCmdBuffer", desc);
 	}
@@ -279,7 +312,6 @@ void EditorRenderAspect::createCommandList()
 	m_commandList.initialize();
 
 	Graphics::Segment segmentDrawMeshes = Graphics::SegmentFactory::createFromFile("segmentDrawMeshes.txt", m_objectManager, m_shaderManager);
-	VX_ASSERT(segmentDrawMeshes.isValid());
 	m_commandList.pushSegment(segmentDrawMeshes, "drawMeshes");
 
 	Graphics::Segment segmentDrawLights = Graphics::SegmentFactory::createFromFile("segmentDrawLights.txt", m_objectManager, m_shaderManager);
@@ -288,72 +320,11 @@ void EditorRenderAspect::createCommandList()
 	Graphics::Segment segmentDrawNavmesh = Graphics::SegmentFactory::createFromFile("segmentDrawNavmesh.txt", m_objectManager, m_shaderManager);
 	m_commandList.pushSegment(segmentDrawNavmesh, "drawNavmesh");
 
-	{
-		auto pipe = m_shaderManager.getPipeline("editorDrawPointColor.pipe");
+	Graphics::Segment segmentDrawNavmeshVertices = Graphics::SegmentFactory::createFromFile("segmentDrawNavmeshVertices.txt", m_objectManager, m_shaderManager);
+	m_commandList.pushSegment(segmentDrawNavmeshVertices, "drawNavmeshVertices");
 
-		Graphics::StateDescription desc;
-		desc.fbo = 0;
-		desc.vao = m_pEditorColdData->m_navMeshVertexVao.getId();
-		desc.pipeline = pipe->getId();
-		desc.indirectBuffer = m_pEditorColdData->m_navMeshVertexCmdBuffer.getId();
-		desc.paramBuffer = 0;
-		desc.depthState = false;
-		desc.blendState = true;
-
-		Graphics::State state;
-		state.set(desc);
-
-		Graphics::PointSizeCommand pointSizeCmd;
-		pointSizeCmd.set(5.0f);
-
-		Graphics::DrawArraysIndirectCommand drawArraysPointsCmd;
-		drawArraysPointsCmd.set(GL_POINTS);
-
-		Graphics::Segment segmentDrawNavmeshVertices;
-		segmentDrawNavmeshVertices.setState(state);
-		segmentDrawNavmeshVertices.pushCommand(pointSizeCmd);
-		segmentDrawNavmeshVertices.pushCommand(drawArraysPointsCmd);
-
-		m_commandList.pushSegment(segmentDrawNavmeshVertices, "drawNavmeshVertices");
-	}
-
-	{
-		auto pipe = m_shaderManager.getPipeline("editorDrawPoint.pipe");
-		auto fsShader = pipe->getFragmentShader();
-
-		Graphics::StateDescription desc;
-		desc.fbo = 0;
-		desc.vao = m_navMeshGraphNodesVao.getId();
-		desc.pipeline = pipe->getId();
-		desc.indirectBuffer = m_pEditorColdData->m_graphNodesCmdBuffer.getId();
-		desc.paramBuffer = 0;
-		desc.depthState = false;
-		desc.blendState = true;
-
-		Graphics::State state;
-		state.set(desc);
-
-		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
-		editorDrawPointUniformCmd.setFloat(fsShader, 0, 4);
-
-		vx::float4 color(0, 1, 0.5f, 0.5f);
-		Graphics::ProgramUniformData<vx::float4> editorDrawPointUniformData;
-		editorDrawPointUniformData.set(color);
-
-		Graphics::PointSizeCommand pointSizeCmd;
-		pointSizeCmd.set(5.0f);
-
-		Graphics::DrawArraysIndirectCommand drawArraysPointsCmd;
-		drawArraysPointsCmd.set(GL_POINTS);
-
-		Graphics::Segment segmentDrawGraphVertices;
-		segmentDrawGraphVertices.setState(state);
-		segmentDrawGraphVertices.pushCommand(pointSizeCmd);
-		segmentDrawGraphVertices.pushCommand(editorDrawPointUniformCmd, editorDrawPointUniformData);
-		segmentDrawGraphVertices.pushCommand(drawArraysPointsCmd);
-
-		m_commandList.pushSegment(segmentDrawGraphVertices, "drawGraphVertices");
-	}
+	Graphics::Segment segmentDrawGraphVertices = Graphics::SegmentFactory::createFromFile("segmentDrawGraphVertices.txt", m_objectManager, m_shaderManager);
+	m_commandList.pushSegment(segmentDrawGraphVertices, "drawGraphVertices");
 
 	{
 		vx::gl::BufferDescription bufferDesc;
@@ -379,103 +350,21 @@ void EditorRenderAspect::createCommandList()
 
 		auto vao = m_objectManager.getVertexArray(vaoSid);
 		auto vbo = m_objectManager.getBuffer(bufferSid);
-		auto cmdBuffer = m_objectManager.getBuffer(cmdSid);
 
 		vao->enableArrayAttrib(0);
 		vao->arrayAttribFormatF(0, 3, 0, 0);
 		vao->arrayAttribBinding(0, 0);
 		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(vx::float3));
-
-		auto pipe = m_shaderManager.getPipeline("editorDrawNavmeshConnection.pipe");
-		auto fsShader = pipe->getFragmentShader();
-
-		Graphics::StateDescription desc;
-		desc.fbo = 0;
-		desc.vao = vao->getId();
-		desc.pipeline = pipe->getId();
-		desc.indirectBuffer = cmdBuffer->getId();
-		desc.paramBuffer = 0;
-		desc.depthState = false;
-		desc.blendState = true;
-
-		Graphics::State state;
-		state.set(desc);
-
-		Graphics::DrawArraysIndirectCommand drawCmd;
-		drawCmd.set(GL_LINES);
-
-		Graphics::ProgramUniformCommand editorDrawPointUniformCmd;
-		editorDrawPointUniformCmd.setFloat(fsShader, 0, 4);
-
-		vx::float4 color(0, 1, 0, 1);
-		Graphics::ProgramUniformData<vx::float4> editorDrawPointUniformData;
-		editorDrawPointUniformData.set(color);
-
-		Graphics::Segment segmentDrawNavmeshConnections;
-		segmentDrawNavmeshConnections.setState(state);
-		segmentDrawNavmeshConnections.pushCommand(editorDrawPointUniformCmd, editorDrawPointUniformData);
-		segmentDrawNavmeshConnections.pushCommand(drawCmd);
-		m_commandList.pushSegment(segmentDrawNavmeshConnections, "editorDrawNavmeshConnection");
 	}
 
-	{
-		auto pPipeline = m_shaderManager.getPipeline("editorDrawSpawn.pipe");
+	Graphics::Segment segmentDrawNavmeshConnections = Graphics::SegmentFactory::createFromFile("segmentDrawNavmeshConnections.txt", m_objectManager, m_shaderManager);
+	m_commandList.pushSegment(segmentDrawNavmeshConnections, "editorDrawNavmeshConnection");
 
-		Graphics::StateDescription desc;
-		desc.fbo = 0;
-		desc.vao = m_pEditorColdData->m_spawnPointVao.getId();
-		desc.pipeline = pPipeline->getId();
-		desc.indirectBuffer = m_pEditorColdData->m_spawnPointCmdBuffer.getId();
-		desc.paramBuffer = 0;
-		desc.depthState = false;
-		desc.blendState = true;
+	Graphics::Segment segmentDrawSpawnPoint = Graphics::SegmentFactory::createFromFile("segmentDrawSpawnPoint.txt", m_objectManager, m_shaderManager);
+	m_commandList.pushSegment(segmentDrawSpawnPoint, "drawSpawnPoints");
 
-		Graphics::State state;
-		state.set(desc);
-
-		Graphics::ProgramUniformCommand uniformCmd;
-		uniformCmd.setFloat(pPipeline->getFragmentShader(), 0, 1);
-
-		Graphics::ProgramUniformData<f32> uniformData;
-		uniformData.set(1.0f);
-
-		Graphics::DrawArraysIndirectCommand drawArraysPointsCmd;
-		drawArraysPointsCmd.set(GL_POINTS);
-
-		Graphics::Segment segmentDrawSpawnPoint;
-		segmentDrawSpawnPoint.setState(state);
-		segmentDrawSpawnPoint.pushCommand(uniformCmd, uniformData);
-		segmentDrawSpawnPoint.pushCommand(drawArraysPointsCmd);
-
-		m_commandList.pushSegment(segmentDrawSpawnPoint, "drawSpawnPoints");
-	}
-
-	{
-		auto pPipeline = m_shaderManager.getPipeline("editorDrawInfluenceCell.pipe");
-		auto vao = m_objectManager.getVertexArray("drawInfluenceCellNewVao");
-		auto cmd = m_objectManager.getBuffer("drawInfluenceCellNewCmd");
-
-		Graphics::StateDescription desc;
-		desc.fbo = 0;
-		desc.vao = vao->getId();
-		desc.pipeline = pPipeline->getId();
-		desc.indirectBuffer = cmd->getId();
-		desc.paramBuffer = 0;
-		desc.depthState = false;
-		desc.blendState = true;
-
-		Graphics::State state;
-		state.set(desc);
-
-		Graphics::DrawArraysIndirectCommand drawCmd;
-		drawCmd.set(GL_TRIANGLES);
-
-		Graphics::Segment segmentDrawNavmesh;
-		segmentDrawNavmesh.setState(state);
-		segmentDrawNavmesh.pushCommand(drawCmd);
-
-		m_commandList.pushSegment(segmentDrawNavmesh, "drawInfluenceCellNew");
-	}
+	Graphics::Segment segmentDrawInfluenceCell = Graphics::SegmentFactory::createFromFile("segmentDrawInfluenceCell.txt", m_objectManager, m_shaderManager);
+	m_commandList.pushSegment(segmentDrawInfluenceCell, "drawInfluenceCell");
 }
 
 void EditorRenderAspect::createEditorTextures()
@@ -524,7 +413,7 @@ void EditorRenderAspect::createEditorTextures()
 	bufferDesc.pData = &handle;
 	bufferDesc.size = sizeof(u64);
 
-	m_pEditorColdData->m_editorTextureBuffer.create(bufferDesc);
+	m_objectManager.createBuffer("editorTextureBuffer", bufferDesc);
 }
 
 void EditorRenderAspect::update()
@@ -800,11 +689,13 @@ void EditorRenderAspect::handleLoadScene(const vx::Event &evt)
 	auto spawnCount = scene->getSpawnCount();
 	auto spawns = scene->getSpawns();
 	{
-		auto mappedCmdBuffer = m_pEditorColdData->m_spawnPointCmdBuffer.map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		auto cmdBuffer = m_objectManager.getBuffer("spawnPointCmdBuffer");
+		auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 		mappedCmdBuffer->count = spawnCount;
 		mappedCmdBuffer.unmap();
 
-		auto mappedVbo = m_pEditorColdData->m_spawnPointVbo.map<vx::float3>(vx::gl::Map::Write_Only);
+		auto spawnPointVbo = m_objectManager.getBuffer("spawnPointVbo");
+		auto mappedVbo = spawnPointVbo->map<vx::float3>(vx::gl::Map::Write_Only);
 		for (u32 i = 0; i < spawnCount; ++i)
 		{
 			mappedVbo[i] = spawns[i].position;
@@ -874,7 +765,8 @@ void EditorRenderAspect::updateNavMeshVertexBufferWithSelectedVertex(const vx::f
 	m_pEditorColdData->m_navMeshVertexCount = count;
 	uploadToNavMeshVertexBuffer(src.get(), count);
 
-	auto mappedCmdBuffer = m_pEditorColdData->m_navMeshVertexCmdBuffer.map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	auto cmdBuffer = m_objectManager.getBuffer("navMeshVertexCmdBuffer");
+	auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer->count = count;
 }
 
@@ -1023,10 +915,12 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 
 	m_navMeshGraphNodesCount = nodeCount;
 
-	auto mappedBuffer = m_pEditorColdData->m_navMeshGraphNodesVbo.map<vx::float3>(vx::gl::Map::Write_Only);
+	auto navMeshGraphNodesVbo = m_objectManager.getBuffer("navMeshGraphNodesVbo");
+	auto mappedBuffer = navMeshGraphNodesVbo->map<vx::float3>(vx::gl::Map::Write_Only);
 	vx::memcpy(mappedBuffer.get(), src.get(), nodeCount);
 
-	auto mappedCmdBuffer = m_pEditorColdData->m_graphNodesCmdBuffer.map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	auto cmdBuffer = m_objectManager.getBuffer("graphNodesCmdBuffer");
+	auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer->count = nodeCount;
 
 	{

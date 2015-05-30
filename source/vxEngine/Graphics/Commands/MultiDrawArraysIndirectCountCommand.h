@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,26 +22,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/gl/Buffer.h>
-
-namespace vx
-{
-	namespace gl
-	{
-		class Buffer;
-	}
-}
+#include "Command.h"
 
 namespace Graphics
 {
-	class BufferFactory
+	struct MultiDrawArraysIndirectCountCommand : public Command
 	{
-	public:
-		static vx::gl::Buffer createVertexBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr = nullptr);
-		static vx::gl::Buffer createIndexBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr = nullptr);
-		static vx::gl::Buffer createIndirectCmdBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr);
-		static vx::gl::Buffer createParameterBuffer(u64 size, vx::gl::BufferStorageFlags::Flags flags, const u8* ptr);
+		u32 m_mode;
+		u32 m_indirectOffset;
+		u32 m_parameterBufferOffset;
+		u32 m_maxdrawcount;
+
+		void set(u32 mode, u32 maxDrawCount, u32 indirectOffset = 0, u32 paramOffset = 0);
+
+		void execute(u32* offset) override;
 	};
 }

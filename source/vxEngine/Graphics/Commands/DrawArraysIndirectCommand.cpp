@@ -21,51 +21,41 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vector>
-#include "State.h"
-#include <memory>
+#include "DrawArraysIndirectCommand.h"
+#include <vxLib/gl/gl.h>
+#include "../Segment.h"
+#include "../../ParserNode.h"
+#include "../CommandFactory.h"
 
 namespace Graphics
 {
-	class ProgramUniformCommand;
-
-	class ProgramUniformData;
-
-	class Segment
+	void createFromNodeDrawArraysIndirectCommand(const Parser::Node &node, Segment* segment, void* p)
 	{
-		std::vector<u8> m_commmands;
-		State m_state;
+		auto paramsNode = node.get("params");
 
-		void pushCommand(const u8*, u32 count);
+		u32 params[2];
+		paramsNode->as(0, &params[0]);
+		paramsNode->as(1, &params[1]);
 
-	public:
-		Segment();
-		~Segment();
+		DrawArraysIndirectCommand command;
+		command.set(params[0], params[1]);
 
-		void setState(const State &state);
+		segment->pushCommand(command);
+	}
 
-		template < typename T >
-		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		pushCommand(const T &command)
-		{
-			static_assert(__alignof(T) == 8u, "");
-			const u8* ptr = (u8*)&command;
+	REGISTER_COMMANDFACTORY(DrawArraysIndirectCommand, createFromNodeDrawArraysIndirectCommand);
 
-			pushCommand(ptr, sizeof(T));
-		}
+	void DrawArraysIndirectCommand::set(u32 mode, u32 offset)
+	{
+		m_mode = mode;
+		m_offset = offset;
+	}
 
-		template < typename T >
-		void pushCommand(const ProgramUniformCommand &command, const T &data)
-		{
-			pushCommand(command, (const u8*)&data);
-		}
+	void DrawArraysIndirectCommand::execute(u32* offset)
+	{
+		glDrawArraysIndirect(m_mode, (void*)m_offset);
 
-		void pushCommand(const ProgramUniformCommand &command, const u8* data);
-
-		void draw();
-
-		bool isValid() const;
-	};
+		*offset += sizeof(DrawArraysIndirectCommand);
+	}
 }

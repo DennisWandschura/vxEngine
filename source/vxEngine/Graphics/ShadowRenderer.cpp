@@ -174,15 +174,11 @@ namespace Graphics
 		segmentCreateShadowmap.pushCommand(polyCmd);
 
 		Graphics::ProgramUniformCommand uniformCmd;
-		uniformCmd.setUInt(gsShader, 0, 1);
+		uniformCmd.set(gsShader, 0, 1, vx::gl::DataType::Unsigned_Int);
 
 		auto maxLightCount = s_settings->m_maxActiveLights;
 		for (u32 i = 0; i < maxLightCount; ++i)
 		{
-
-			Graphics::ProgramUniformData<u32> uniformData;
-			uniformData.set(i);
-
 			Graphics::FramebufferTextureCommand fbTexCmd;
 			fbTexCmd.set(fbo->getId(), GL_DEPTH_ATTACHMENT, m_shadowTextureIds[i], 0);
 
@@ -191,7 +187,7 @@ namespace Graphics
 
 			segmentCreateShadowmap.pushCommand(fbTexCmd);
 			segmentCreateShadowmap.pushCommand(clearCmd);
-			segmentCreateShadowmap.pushCommand(uniformCmd, uniformData);
+			segmentCreateShadowmap.pushCommand(uniformCmd, i);
 			segmentCreateShadowmap.pushCommand(drawCmd);
 		}
 

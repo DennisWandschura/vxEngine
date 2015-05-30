@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,51 +22,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vector>
-#include "State.h"
-#include <memory>
+#include "Command.h"
 
 namespace Graphics
 {
-	class ProgramUniformCommand;
-
-	class ProgramUniformData;
-
-	class Segment
+	struct FramebufferTextureCommand : public Command
 	{
-		std::vector<u8> m_commmands;
-		State m_state;
+		u32 m_framebufferId;
+		u32 m_attachment;
+		u32 m_texture;
+		u32 m_level;
 
-		void pushCommand(const u8*, u32 count);
+		void set(u32 framebufferId, u32 attachment, u32 texture, u32 level);
 
-	public:
-		Segment();
-		~Segment();
-
-		void setState(const State &state);
-
-		template < typename T >
-		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		pushCommand(const T &command)
-		{
-			static_assert(__alignof(T) == 8u, "");
-			const u8* ptr = (u8*)&command;
-
-			pushCommand(ptr, sizeof(T));
-		}
-
-		template < typename T >
-		void pushCommand(const ProgramUniformCommand &command, const T &data)
-		{
-			pushCommand(command, (const u8*)&data);
-		}
-
-		void pushCommand(const ProgramUniformCommand &command, const u8* data);
-
-		void draw();
-
-		bool isValid() const;
+		void execute(u32* offset) override;
 	};
 }

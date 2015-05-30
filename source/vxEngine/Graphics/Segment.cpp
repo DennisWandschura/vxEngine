@@ -23,6 +23,7 @@ SOFTWARE.
 */
 #include "Segment.h"
 #include "Commands.h"
+#include "Commands/ProgramUniformCommand.h"
 
 namespace Graphics
 {
@@ -49,6 +50,25 @@ namespace Graphics
 	void Segment::setState(const State &state)
 	{
 		m_state = state;
+	}
+
+	void Segment::pushCommand(const ProgramUniformCommand &command, const u8* data)
+	{
+		static_assert(__alignof(ProgramUniformCommand) == 8, "");
+
+		u8* ptr = (u8*)&command;
+		pushCommand(ptr, sizeof(ProgramUniformCommand));
+
+		u8 bytePerItem = 4;
+		if (command.m_dataType == vx::gl::DataType::Float)
+			bytePerItem = 4;
+		else if (command.m_dataType == vx::gl::DataType::Int)
+			bytePerItem = 4;
+		else if (command.m_dataType == vx::gl::DataType::Unsigned_Int)
+			bytePerItem = 4;
+
+		auto dataSize = command.m_count * bytePerItem;
+		pushCommand(data, dataSize);
 	}
 
 	void Segment::draw()
