@@ -29,6 +29,7 @@ namespace Graphics
 	class ShadowRenderer;
 }
 
+struct EngineConfig;
 class GpuProfiler;
 
 #include "RenderAspectDescription.h"
@@ -44,7 +45,6 @@ class GpuProfiler;
 #include <mutex>
 #include <vector>
 #include "RenderCommandFinalImage.h"
-#include "RenderSettings.h"
 #include "Graphics/CommandList.h"
 #include "DoubleBufferRaw.h"
 
@@ -57,7 +57,6 @@ protected:
 	std::unique_ptr<Graphics::ShadowRenderer> m_shadowRenderer;
 	vx::uint2 m_resolution;
 	SceneRenderer m_sceneRenderer;
-	VoxelRenderer m_voxelRenderer;
 	RenderCommand* m_pRenderPassFinalImage;
 	std::mutex m_updateMutex;
 	std::vector<RenderUpdateTask> m_tasks;
@@ -66,7 +65,6 @@ protected:
 
 	vx::gl::Buffer m_cameraBuffer;
 	
-	//vx::gl::Framebuffer m_shadowFB;
 	vx::gl::Framebuffer m_gbufferFB;
 	vx::gl::Framebuffer m_aabbFB;
 	vx::gl::Framebuffer m_coneTraceFB;
@@ -95,6 +93,7 @@ protected:
 	void createTextures();
 	void createFrameBuffers();
 
+	bool initializeCommon(const vx::gl::ContextDescription &desc, const EngineConfig* settings);
 	bool initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, vx::StackAllocator *pAllocator);
 
 	////////////// Event handling
@@ -110,7 +109,7 @@ protected:
 	void voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count);
 	void voxelDebug();
 
-	void createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count);
+	void createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer);
 
 	void createConeTracePixelList();
 	void coneTrace();
@@ -131,14 +130,13 @@ protected:
 	void createRenderPassCreateShadowMaps();
 
 	void createColdData();
-	void setSettings(const vx::uint2 &resolution);
-	void provideRenderData();
+	void provideRenderData(const EngineConfig* settings);
 
 public:
 	RenderAspect();
 	virtual ~RenderAspect();
 
-	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc);
+	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings);
 	void shutdown(const HWND hwnd);
 
 	bool initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocator* allocator);

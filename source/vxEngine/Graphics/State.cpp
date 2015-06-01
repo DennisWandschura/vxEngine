@@ -82,7 +82,6 @@ namespace Graphics
 		if (m_indirectBuffer != 0)
 		{
 			vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, m_indirectBuffer);
-			//glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_indirectBuffer);
 		}
 
 		if (m_paramBuffer != 0)

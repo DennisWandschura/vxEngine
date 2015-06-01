@@ -33,6 +33,16 @@ SOFTWARE.
 
 const u32 voxelLodCount = 4;
 
+VoxelRenderer::VoxelRenderer()
+{
+
+}
+
+VoxelRenderer::~VoxelRenderer()
+{
+
+}
+
 void VoxelRenderer::initialize(u16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager)
 {
 	//m_voxelTextureSize = voxelTextureSize;
@@ -42,14 +52,11 @@ void VoxelRenderer::initialize(u16 voxelTextureSize, const vx::gl::ShaderManager
 	m_mipcount = voxelLodCount;
 
 	m_pColdData = vx::make_unique<ColdData>();
-	auto pipe = shaderManager.getPipeline("voxelize.pipe");
-	m_pipelineVoxelize = pipe->getId();
-	m_pipelineGs = pipe->getGeometryShader();
 	m_pipelineDebug = shaderManager.getPipeline("voxel_debug.pipe")->getId();
 	m_pipelineMipmap = shaderManager.getPipeline("voxelMipmap.pipe")->getId();
 
 	createVoxelTextures();
-	createFrameBuffer();
+	createFrameBuffer(objectManager);
 
 	createVoxelBuffer(objectManager);
 	createVoxelTextureBuffer(objectManager);
@@ -161,7 +168,7 @@ void VoxelRenderer::createVoxelTextures()
 	m_voxelOpacityTextureId = m_pColdData->m_voxelOpacityTexture.getId();
 }
 
-void VoxelRenderer::createFrameBuffer()
+void VoxelRenderer::createFrameBuffer(gl::ObjectManager* objectManager)
 {
 	vx::gl::TextureDescription desc;
 	desc.type = vx::gl::TextureType::Texture_2D_MS;
@@ -170,18 +177,11 @@ void VoxelRenderer::createFrameBuffer()
 	desc.samples = 8;
 	m_pColdData->m_voxelFbTexture.create(desc);
 
-	m_voxelFB.create();
-	m_voxelFB.attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_voxelFbTexture, 0);
-	glNamedFramebufferDrawBuffer(m_voxelFB.getId(), GL_COLOR_ATTACHMENT0);
-}
+	auto voxelFBSid = objectManager->createFramebuffer("voxelFB");
+	auto voxelFB = objectManager->getFramebuffer(voxelFBSid);
 
-void VoxelRenderer::bindBuffers(const gl::ObjectManager &objectManager)
-{
-	auto pVoxelBuffer = objectManager.getBuffer("VoxelBuffer");
-	auto pVoxelTextureBuffer = objectManager.getBuffer("VoxelTextureBuffer");
-
-	gl::BufferBindingManager::bindBaseUniform(6, pVoxelBuffer->getId());
-	gl::BufferBindingManager::bindBaseUniform(7, pVoxelTextureBuffer->getId());
+	voxelFB->attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_voxelFbTexture, 0);
+	glNamedFramebufferDrawBuffer(voxelFB->getId(), GL_COLOR_ATTACHMENT0);
 }
 
 void VoxelRenderer::clearTextures()
@@ -195,76 +195,6 @@ void VoxelRenderer::clearTextures()
 
 		glClearTexImage(m_voxelOpacityTextureId, miplevel, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	}
-}
-
-void VoxelRenderer::voxelizeScene(u32 count, const vx::gl::Buffer &indirectCmdBuffer, const vx::gl::VertexArray &vao)
-{
-	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-	vx::gl::StateManager::bindFrameBuffer(m_voxelFB);
-
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Cull_Face);
-
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glDepthMask(GL_FALSE);
-
-	vx::gl::StateManager::bindPipeline(m_pipelineVoxelize);
-	vx::gl::StateManager::bindVertexArray(vao);
-	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, indirectCmdBuffer.getId());
-
-	glProgramUniform1i(m_pipelineGs, 0, 0);
-	vx::gl::StateManager::setViewport(0, 0, 128, 128);
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	glProgramUniform1i(m_pipelineGs, 0, 1);
-	vx::gl::StateManager::setViewport(0, 0, 64, 64);
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	glProgramUniform1i(m_pipelineGs, 0, 2);
-	vx::gl::StateManager::setViewport(0, 0, 32, 32);
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	glProgramUniform1i(m_pipelineGs, 0, 3);
-	vx::gl::StateManager::setViewport(0, 0, 16, 16);
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glDepthMask(GL_TRUE);
-
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
-}
-
-void VoxelRenderer::createMipmaps()
-{
-	/*int srcLevel = 0;
-	int dstLevel = 1;
-	auto dstResolution = m_voxelTextureSize / 2;
-
-	for (u8 i = 1; i <= m_mipcount; ++i)
-	{
-	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
-
-	vx::gl::StateManager::bindPipeline(m_pipelineMipmap);
-
-	for (int j = 0; j < 6; ++j)
-	{
-	glBindImageTexture(0, m_voxelEmmitanceTexturesId[j], srcLevel, 1, 0, GL_READ_ONLY, GL_RGBA8);
-	glBindImageTexture(1, m_voxelEmmitanceTexturesId[j], dstLevel, 1, 0, GL_WRITE_ONLY, GL_RGBA8);
-
-	glDrawArraysInstanced(GL_POINTS, 0, dstResolution, dstResolution * dstResolution);
-	}
-
-	glBindImageTexture(0, m_voxelOpacityTextureId, srcLevel, 1, 0, GL_READ_ONLY, GL_RGBA8);
-	glBindImageTexture(1, m_voxelOpacityTextureId, dstLevel, 1, 0, GL_WRITE_ONLY, GL_RGBA8);
-
-	glDrawArraysInstanced(GL_POINTS, 0, dstResolution, dstResolution * dstResolution);
-
-	++srcLevel;
-	++dstLevel;
-	dstResolution /= 2;
-	}*/
 }
 
 void VoxelRenderer::debug(const vx::gl::VertexArray &vao, vx::uint2 &resolution)

@@ -43,7 +43,7 @@ public:
 	static void shutdown();
 
 	static void frame();
-	static void update(f32 dt);
+	static void update();
 
 	static void pushMarker(const char* id);
 	static void popMarker();

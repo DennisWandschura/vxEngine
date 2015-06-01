@@ -507,9 +507,6 @@
     <ClInclude Include="Reference.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\CommandCompiler.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\Renderer.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
@@ -524,9 +521,6 @@
     </ClInclude>
     <ClInclude Include="gl\BufferBindingManager.h">
       <Filter>Header Files\Render\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderSettings.h">
-      <Filter>Header Files\Render</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\ShadowRenderer.h">
       <Filter>Header Files\Render\Graphics</Filter>
@@ -674,6 +668,9 @@
     </ClInclude>
     <ClInclude Include="Graphics\Commands\BarrierCommand.h">
       <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\CommandListFactory.h">
+      <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1007,6 +1004,9 @@
     <ClCompile Include="Graphics\Commands\PointSizeCommand.cpp">
       <Filter>Source Files\Render\Graphics\Commands</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\CommandListFactory.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">
@@ -1020,9 +1020,6 @@
     </None>
     <None Include="..\..\game\data\shaders\include\structs.glsl">
       <Filter>Shaders\include</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\create_gbuffer.pipe">
-      <Filter>Shader Pipelines</Filter>
     </None>
     <None Include="..\..\game\data\shaders\draw_aabb.pipe">
       <Filter>Shader Pipelines</Filter>
@@ -1066,9 +1063,6 @@
     <None Include="..\..\game\data\shaders\programs\graph.vs.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="..\..\game\data\shaders\programs\mesh.vs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\..\game\data\shaders\programs\navmesh.fs.glsl">
       <Filter>Shaders</Filter>
     </None>
@@ -1106,9 +1100,6 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\voxelize.vs.glsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\..\game\data\shaders\programs\create_gbuffer.fs.glsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\create_aabb.vs.glsl">
@@ -1272,6 +1263,21 @@
     </None>
     <None Include="..\..\game\data\shaders\programs\createConeTraceList.geom">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\drawDynamicMesh.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\drawMeshToGBuffer.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\drawMeshToGBuffer.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\drawMesh.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\editorSelectedMesh.pipe">
+      <Filter>Shader Pipelines</Filter>
     </None>
   </ItemGroup>
 </Project>

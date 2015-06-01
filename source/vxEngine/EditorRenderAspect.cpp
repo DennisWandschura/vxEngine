@@ -42,6 +42,8 @@ SOFTWARE.
 #include "Graphics/Commands/ProgramUniformCommand.h"
 #include "NavMeshTriangle.h"
 #include "SegmentFactory.h"
+#include "Graphics/CommandListFactory.h"
+#include "EngineConfig.h"
 
 struct VertexNavMesh
 {
@@ -62,12 +64,10 @@ EditorRenderAspect::EditorRenderAspect()
 {
 }
 
-bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND tmp, const vx::uint2 &windowResolution,
-	f32 fovDeg, f32 zNear, f32 zFar, bool vsync, bool debug, vx::StackAllocator *pAllocator)
+bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND tmp, vx::StackAllocator *pAllocator, const EngineConfig* settings)
 {
-	RenderAspect::createColdData();
-	RenderAspect::setSettings(windowResolution);
-	RenderAspect::provideRenderData();
+	/*RenderAspect::createColdData();
+	RenderAspect::provideRenderData(settings);
 
 	if (!m_renderContext.initializeExtensions(tmp))
 	{
@@ -91,11 +91,29 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	{
 		puts("Error initializing Context");
 		return false;
-	}
+	}*/
+
+
+	vx::gl::OpenGLDescription glDescription;
+	glDescription.bDebugMode = settings->m_renderDebug;
+	glDescription.bVsync = settings->m_vsync;
+	glDescription.farZ = settings->m_zFar;
+	glDescription.fovRad = vx::degToRad(settings->m_fov);
+	glDescription.hwnd = panel;
+	glDescription.majVersion = 4;
+	glDescription.minVersion = 5;
+	glDescription.nearZ = settings->m_zNear;
+	glDescription.resolution = settings->m_resolution;
+	vx::gl::ContextDescription contextDesc;
+	contextDesc.tmpHwnd = tmp;
+	contextDesc.glParams = glDescription;
+
+	if (!initializeCommon(contextDesc, settings))
+		return false;
 
 	m_pEditorColdData = vx::make_unique<EditorColdData>();
 
-	auto result = initializeImpl(dataDir, windowResolution, debug, pAllocator);
+	auto result = initializeImpl(dataDir, settings->m_resolution, settings->m_renderDebug, pAllocator);
 
 	{
 		vx::gl::BufferDescription navmeshVertexVboDesc;
@@ -309,23 +327,6 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 
 void EditorRenderAspect::createCommandList()
 {
-	m_commandList.initialize();
-
-	Graphics::Segment segmentDrawMeshes = Graphics::SegmentFactory::createFromFile("segmentDrawMeshes.txt", m_objectManager, m_shaderManager);
-	m_commandList.pushSegment(segmentDrawMeshes, "drawMeshes");
-
-	Graphics::Segment segmentDrawLights = Graphics::SegmentFactory::createFromFile("segmentDrawLights.txt", m_objectManager, m_shaderManager);
-	m_commandList.pushSegment(segmentDrawLights, "drawLights");
-
-	Graphics::Segment segmentDrawNavmesh = Graphics::SegmentFactory::createFromFile("segmentDrawNavmesh.txt", m_objectManager, m_shaderManager);
-	m_commandList.pushSegment(segmentDrawNavmesh, "drawNavmesh");
-
-	Graphics::Segment segmentDrawNavmeshVertices = Graphics::SegmentFactory::createFromFile("segmentDrawNavmeshVertices.txt", m_objectManager, m_shaderManager);
-	m_commandList.pushSegment(segmentDrawNavmeshVertices, "drawNavmeshVertices");
-
-	Graphics::Segment segmentDrawGraphVertices = Graphics::SegmentFactory::createFromFile("segmentDrawGraphVertices.txt", m_objectManager, m_shaderManager);
-	m_commandList.pushSegment(segmentDrawGraphVertices, "drawGraphVertices");
-
 	{
 		vx::gl::BufferDescription bufferDesc;
 		bufferDesc.bufferType = vx::gl::BufferType::Array_Buffer;
@@ -357,14 +358,7 @@ void EditorRenderAspect::createCommandList()
 		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(vx::float3));
 	}
 
-	Graphics::Segment segmentDrawNavmeshConnections = Graphics::SegmentFactory::createFromFile("segmentDrawNavmeshConnections.txt", m_objectManager, m_shaderManager);
-	m_commandList.pushSegment(segmentDrawNavmeshConnections, "editorDrawNavmeshConnection");
-
-	Graphics::Segment segmentDrawSpawnPoint = Graphics::SegmentFactory::createFromFile("segmentDrawSpawnPoint.txt", m_objectManager, m_shaderManager);
-	m_commandList.pushSegment(segmentDrawSpawnPoint, "drawSpawnPoints");
-
-	Graphics::Segment segmentDrawInfluenceCell = Graphics::SegmentFactory::createFromFile("segmentDrawInfluenceCell.txt", m_objectManager, m_shaderManager);
-	m_commandList.pushSegment(segmentDrawInfluenceCell, "drawInfluenceCell");
+	Graphics::CommandListFactory::createFromFile("commandListEditor.txt", m_objectManager, m_shaderManager, &m_commandList);
 }
 
 void EditorRenderAspect::createEditorTextures()
@@ -968,11 +962,11 @@ void EditorRenderAspect::showNavmesh(bool b)
 {
 	if (b)
 	{
-		m_commandList.enableSegment("drawNavmesh");
+		m_commandList.enableSegment("segmentDrawNavmesh.txt");
 	}
 	else
 	{
-		m_commandList.disableSegment("drawNavmesh");
+		m_commandList.disableSegment("segmentDrawNavmesh.txt");
 	}
 }
 
@@ -980,11 +974,11 @@ void EditorRenderAspect::showInfluenceMap(bool b)
 {
 	if (b)
 	{
-		m_commandList.enableSegment("drawInfluenceMap");
+		m_commandList.enableSegment("segmentDrawInfluenceCell.txt");
 	}
 	else
 	{
-		m_commandList.disableSegment("drawInfluenceMap");
+		m_commandList.disableSegment("segmentDrawInfluenceCell.txt");
 
 	}
 }

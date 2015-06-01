@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 struct RenderAspectDescription;
 class SystemAspect;
@@ -33,25 +33,25 @@ namespace vx
 }
 
 #include <vxLib/math/Vector.h>
+#include "ParserNode.h"
 
-class EngineConfig
+struct EngineConfig
 {
+	Parser::Node m_root;
 	vx::uint2 m_resolution{1920, 1080};
 	u32 m_shadowMapResolution{2048};
 	f32 m_fov{66.0f};
 	f32 m_zNear{0.1f};
 	f32 m_zFar{1000.0f};
+	u32 m_maxActiveLights{ 5 };
+	u32 m_maxMeshInstances{150};
 	u8 m_voxelGiMode{0};
 	bool m_vsync{false};
 	bool m_renderDebug{false};
 
-public:
-	//void loadFromYAML(const char* file);
 	bool loadFromFile(const char* file);
-
-	const vx::uint2& getResolution() const { return m_resolution; }
-	bool isVSync() const { return m_vsync; }
-	bool isRenderDebug() const { return m_renderDebug; }
 
 	RenderAspectDescription getRenderAspectDescription(const vx::Window* window, vx::StackAllocator* allocator) const;
 };
+
+extern EngineConfig g_engineConfig;

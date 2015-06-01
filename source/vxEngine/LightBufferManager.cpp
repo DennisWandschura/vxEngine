@@ -25,14 +25,15 @@ SOFTWARE.
 #include "GpuStructs.h"
 #include "gl/BufferBindingManager.h"
 #include "Light.h"
+#include "gl/ObjectManager.h"
 
-void LightBufferManager::initialize(u32 maxLightCount)
+void LightBufferManager::initialize(u32 maxLightCount, gl::ObjectManager* objectManager)
 {
-	createLightDataBuffer(maxLightCount);
+	createLightDataBuffer(maxLightCount, objectManager);
 	m_maxLightCount = maxLightCount;
 }
 
-void LightBufferManager::createLightDataBuffer(u32 maxLightCount)
+void LightBufferManager::createLightDataBuffer(u32 maxLightCount, gl::ObjectManager* objectManager)
 {
 	LightDataBlock lightdata;
 	lightdata.size = 0;
@@ -43,15 +44,11 @@ void LightBufferManager::createLightDataBuffer(u32 maxLightCount)
 	lightDataDesc.immutable = 1;
 	lightDataDesc.flags = vx::gl::BufferStorageFlags::Write;
 	lightDataDesc.pData = &lightdata;
-	m_lightDataBuffer.create(lightDataDesc);
+
+	objectManager->createBuffer("lightDataBuffer", lightDataDesc);
 }
 
-void LightBufferManager::bindBuffer()
-{
-	gl::BufferBindingManager::bindBaseUniform(1, m_lightDataBuffer.getId());
-}
-
-void LightBufferManager::updateLightDataBuffer(const Light* lights, u32 count)
+void LightBufferManager::updateLightDataBuffer(const Light* lights, u32 count, gl::ObjectManager* objectManager)
 {
 	VX_ASSERT(count <= 5);
 
@@ -68,7 +65,8 @@ void LightBufferManager::updateLightDataBuffer(const Light* lights, u32 count)
 
 	m_lightCount = count;
 
-	auto lightDataMappedBuffer = m_lightDataBuffer.map<LightDataBlock>(vx::gl::Map::Write_Only);
+	auto lightDataBuffer = objectManager->getBuffer("lightDataBuffer");
+	auto lightDataMappedBuffer = lightDataBuffer->map<LightDataBlock>(vx::gl::Map::Write_Only);
 	*lightDataMappedBuffer = data;
 	lightDataMappedBuffer.unmap();
 }

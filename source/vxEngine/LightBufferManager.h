@@ -25,21 +25,24 @@ SOFTWARE.
 
 struct Light;
 
+namespace gl
+{
+	class ObjectManager;
+}
+
 #include <vxLib/gl/Buffer.h>
 
 class LightBufferManager
 {
-	vx::gl::Buffer m_lightDataBuffer;
 	u32 m_lightCount{ 0 };
 	u32 m_maxLightCount{ 0 };
 
-	void createLightDataBuffer(u32 maxLightCount);
+	void createLightDataBuffer(u32 maxLightCount, gl::ObjectManager* objectManager);
 
 public:
-	void initialize(u32 maxLightCount);
+	void initialize(u32 maxLightCount, gl::ObjectManager* objectManager);
 
-	void bindBuffer();
-	void updateLightDataBuffer(const Light* lights, u32 count);
+	void updateLightDataBuffer(const Light* lights, u32 count, gl::ObjectManager* objectManager);
 
 	u32 getLightCount() const { return m_lightCount; }
 };

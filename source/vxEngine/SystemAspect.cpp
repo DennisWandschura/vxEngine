@@ -34,7 +34,7 @@ SystemAspect::SystemAspect()
 
 bool SystemAspect::initialize(const EngineConfig &config, CallbackKeyPressedFp fp, HandleInputFp inputFp)
 {
-	if (!m_window.initialize(L"vxEngine", config.getResolution(), false))
+	if (!m_window.initialize(L"vxEngine", config.m_resolution, false))
 		return false;
 
 	vx::RawInput::setCallbackKeyPressed(fp);

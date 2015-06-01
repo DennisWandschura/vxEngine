@@ -25,7 +25,8 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 #include <string>
-#include <map>
+#include <vxLib/Container/sorted_vector.h>
+#include <vxLib/StringID.h>
 
 namespace Parser
 {
@@ -35,8 +36,8 @@ namespace Parser
 	class Node
 	{
 		std::string m_data;
-		std::map<std::string, Node> m_nodes;
-		unsigned int m_dataSize;
+		vx::sorted_vector<vx::StringID, Node> m_nodes;
+		u32 m_dataSize;
 		bool m_isArray;
 		bool m_isMap;
 
@@ -49,7 +50,7 @@ namespace Parser
 		~Node();
 
 		void create(const char* str);
-		void createFromFile(const char* file);
+		bool createFromFile(const char* file);
 
 		const Node* get(const char* id) const;
 

@@ -27,9 +27,9 @@ namespace Graphics
 {
 	vx::gl::ShaderManager* Renderer::s_shaderManager{nullptr};
 	gl::ObjectManager* Renderer::s_objectManager{nullptr};
-	RenderSettings* Renderer::s_settings{nullptr};
+	const EngineConfig* Renderer::s_settings{ nullptr };
 
-	void Renderer::provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, RenderSettings* settings)
+	void Renderer::provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, const EngineConfig* settings)
 	{
 		s_shaderManager = shaderManager;
 		s_objectManager = objectManager;

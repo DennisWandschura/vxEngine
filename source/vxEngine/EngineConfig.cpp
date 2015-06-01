@@ -25,19 +25,22 @@ SOFTWARE.
 #include "RenderAspectDescription.h"
 #include "ParserNode.h"
 
+EngineConfig g_engineConfig{};
+
 bool EngineConfig::loadFromFile(const char* file)
 {
-	Parser::Node root;
-	root.createFromFile(file);
+	m_root.createFromFile(file);
 
-	root.get("resolution")->as(&m_resolution);
-	root.get("shadow_map_resolution")->as(&m_shadowMapResolution);
-	root.get("fov")->as(&m_fov);
-	root.get("z_near")->as(&m_zNear);
-	root.get("z_far")->as(&m_zFar);
-	root.get("voxel_gi_mode")->as(&m_voxelGiMode);
-	root.get("vsync")->as(&m_vsync);
-	root.get("debug")->as(&m_renderDebug);
+	m_root.get("resolution")->as(&m_resolution);
+	m_root.get("shadow_map_resolution")->as(&m_shadowMapResolution);
+	m_root.get("fov")->as(&m_fov);
+	m_root.get("z_near")->as(&m_zNear);
+	m_root.get("z_far")->as(&m_zFar);
+	m_root.get("maxActiveLights")->as(&m_maxActiveLights);
+	m_root.get("maxMeshInstances")->as(&m_maxMeshInstances);
+	m_root.get("voxel_gi_mode")->as(&m_voxelGiMode);
+	m_root.get("vsync")->as(&m_vsync);
+	m_root.get("debug")->as(&m_renderDebug);
 
 	return true;
 }
@@ -47,12 +50,10 @@ RenderAspectDescription EngineConfig::getRenderAspectDescription(const vx::Windo
 	RenderAspectDescription renderAspectDesc;
 	renderAspectDesc.window = window;
 	renderAspectDesc.resolution = m_resolution;
-	renderAspectDesc.shadowMapResolution = m_shadowMapResolution;
 	renderAspectDesc.fovRad = vx::degToRad(m_fov);
 	renderAspectDesc.z_near = m_zNear;
 	renderAspectDesc.z_far = m_zFar;
 	renderAspectDesc.vsync = m_vsync;
-	renderAspectDesc.voxelGiMode = (VoxelGiMode)m_voxelGiMode;
 	renderAspectDesc.debug = m_renderDebug;
 	renderAspectDesc.pAllocator = allocator;
 

@@ -24,15 +24,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/math/Vector.h>
 
-struct RenderSettings
+namespace gl
 {
-	vx::uint2 m_resolution;
-	u32 m_maxActiveLights;
-	u32 m_shadowmapResolution;
-	u32 m_maxMeshInstances;
-	u32 m_maxStaticMeshInstances;
-	u32 m_maxDynamicMeshInstances;
-	u8 voxelGiQuality;
-};
+	class ObjectManager;
+}
+
+namespace vx
+{
+	namespace gl
+	{
+		class ShaderManager;
+	}
+}
+
+#include "CommandList.h"
+
+namespace Graphics
+{
+	class CommandListFactory
+	{
+	public:
+		static void createFromFile(const char *file, const gl::ObjectManager &objectManager, const vx::gl::ShaderManager &shaderManager, CommandList* list);
+	};
+}

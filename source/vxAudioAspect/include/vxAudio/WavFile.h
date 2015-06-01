@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,19 +23,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/types.h>
-#include <string>
+#include <memory>
 
-namespace Graphics
+class WavFile
 {
-	enum class CommandHeader : u32;
+	std::unique_ptr<unsigned char[]> m_data;
+	unsigned int m_size;
 
-	class CommandCompiler
-	{
-	public:
-		static void getNextCommand(CommandHeader* ptr, u32* offset);
-		static void compileCommand(CommandHeader* ptr, u32* offset, std::string* srcFile, u8* dataBuffer, u32* bufferOffset);
-	};
-}
+public:
+	WavFile();
+	~WavFile();
+
+	bool loadFromFile(const char* file);
+
+	const unsigned char* getData() const { return m_data.get(); }
+	unsigned int getSize() const { return m_size; }
+};

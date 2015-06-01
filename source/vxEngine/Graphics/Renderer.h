@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #pragma once
 
-struct RenderSettings;
+struct EngineConfig;
 
 namespace gl
 {
@@ -50,7 +50,7 @@ namespace Graphics
 	protected:
 		static vx::gl::ShaderManager* s_shaderManager;
 		static gl::ObjectManager* s_objectManager;
-		static RenderSettings* s_settings;
+		static const EngineConfig* s_settings;
 
 	public:
 		virtual ~Renderer(){}
@@ -64,6 +64,6 @@ namespace Graphics
 		virtual void clearData() = 0;
 		virtual void bindBuffers() = 0;
 
-		static void provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, RenderSettings* settings);
+		static void provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, const EngineConfig* settings);
 	};
 }

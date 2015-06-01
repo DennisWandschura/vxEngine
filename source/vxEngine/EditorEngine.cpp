@@ -33,6 +33,7 @@ SOFTWARE.
 #include "EditorScene.h"
 #include "NavMeshGraph.h"
 #include "Light.h"
+#include "EngineConfig.h"
 
 u32 EditorEngine::s_editorTypeMesh{ 0xffffffff };
 u32 EditorEngine::s_editorTypeMaterial{ 0xffffffff };
@@ -104,12 +105,14 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	if (!initializeImpl(dataDir))
 		return false;
 
-	const f32 fov = 66.0f;
-	const auto z_near = 0.1f;
-	const auto z_far = 1000.0f;
-	const auto vsync = false;
-	const auto debug = true;
-	if (!m_renderAspect.initialize(dataDir, panel, tmp, resolution, fov, z_near, z_far, vsync, debug, &m_allocator))
+	g_engineConfig.m_fov = 66.0f;
+	g_engineConfig.m_zFar = 1000.0f;
+	g_engineConfig.m_renderDebug = true;
+	g_engineConfig.m_resolution = resolution;
+	g_engineConfig.m_vsync = false;
+	g_engineConfig.m_zNear = 0.1f;
+
+	if (!m_renderAspect.initialize(dataDir, panel, tmp, &m_allocator, &g_engineConfig))
 	{
 		puts("Error initializing Renderer");
 		return false;
@@ -256,7 +259,7 @@ void EditorEngine::editor_start()
 	m_fileAspectThread = vx::thread(&EditorEngine::loopFileThread, this);
 }
 
-void EditorEngine::editor_render(f32 dt)
+void EditorEngine::editor_render()
 {
 	m_eventManager.update();
 

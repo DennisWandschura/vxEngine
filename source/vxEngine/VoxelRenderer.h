@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 namespace vx
 {
@@ -53,11 +53,8 @@ class VoxelRenderer
 		vx::gl::Texture m_voxelOpacityTexture;
 	};
 
-	u32 m_pipelineVoxelize{0};
-	u32 m_pipelineGs{ 0 };
 	u32 m_pipelineDebug{0};
 	u32 m_pipelineMipmap{ 0 };
-	vx::gl::Framebuffer m_voxelFB;
 	u16 m_voxelTextureSize{0};
 	u8 m_mipcount{ 1 };
 	u32 m_voxelEmmitanceTexturesId[6];
@@ -68,18 +65,15 @@ class VoxelRenderer
 	void createVoxelBuffer(gl::ObjectManager* objectManager);
 	void createVoxelTextureBuffer(gl::ObjectManager* objectManager);
 	void createVoxelTextures();
-	void createFrameBuffer();
+	void createFrameBuffer(gl::ObjectManager* objectManager);
 
 public:
-	VoxelRenderer() = default;
+	VoxelRenderer();
+	~VoxelRenderer();
 
 	void initialize(u16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager);
 
-	void bindBuffers(const gl::ObjectManager &objectManager);
-
 	void clearTextures();
-	void voxelizeScene(u32 count, const vx::gl::Buffer &indirectCmdBuffer, const vx::gl::VertexArray &vao);
-	void createMipmaps();
 
 	void debug(const vx::gl::VertexArray &vao, vx::uint2 &resolution);
 };

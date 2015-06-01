@@ -45,6 +45,7 @@ SOFTWARE.
 #include "Graphics/Segment.h"
 #include <vxLib/Window.h>
 #include "CpuProfiler.h"
+#include "Graphics/CommandListFactory.h"
 
 RenderAspect* g_renderAspect{ nullptr };
 
@@ -58,7 +59,7 @@ namespace
 
 struct RenderAspect::ColdData
 {
-	RenderSettings m_settings;
+	VoxelRenderer m_voxelRenderer;
 	vx::gl::Texture m_gbufferDepthTexture;
 	// albedoSlice : rgb8
 	vx::gl::Texture m_gbufferAlbedoSlice;
@@ -315,24 +316,13 @@ void RenderAspect::createColdData()
 	m_pColdData = vx::make_unique<ColdData>();
 }
 
-void RenderAspect::setSettings(const vx::uint2 &resolution)
+void RenderAspect::provideRenderData(const EngineConfig* settings)
 {
-	m_pColdData->m_settings.m_resolution = resolution;
-	m_pColdData->m_settings.m_maxActiveLights = 5;
-	m_pColdData->m_settings.m_shadowmapResolution = 2048;
-	m_pColdData->m_settings.voxelGiQuality = 0;
-	m_pColdData->m_settings.m_maxMeshInstances = 150;
+	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, settings);
 }
 
-void RenderAspect::provideRenderData()
+bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings)
 {
-	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, &m_pColdData->m_settings);
-}
-
-bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc)
-{
-	createColdData();
-
 	vx::gl::OpenGLDescription glDescription;
 	glDescription.bDebugMode = desc.debug;
 	glDescription.bVsync = desc.vsync;
@@ -349,11 +339,8 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	contextDesc.hInstance = desc.window->getHinstance();
 	contextDesc.windowClass = desc.window->getClassName();
 
-	if (!m_renderContext.initialize(contextDesc))
+	if (!initializeCommon(contextDesc, settings))
 		return false;
-
-	setSettings(desc.resolution);
-	provideRenderData();
 
 	auto result = initializeImpl(dataDir, desc.resolution, desc.debug, desc.pAllocator);
 
@@ -361,6 +348,18 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 		bindBuffers();
 
 	return result;
+}
+
+bool RenderAspect::initializeCommon(const vx::gl::ContextDescription &contextDesc, const EngineConfig* settings)
+{
+	createColdData();
+
+	if (!m_renderContext.initialize(contextDesc))
+		return false;
+
+	provideRenderData(settings);
+
+	return true;
 }
 
 bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, vx::StackAllocator *pAllocator)
@@ -403,9 +402,10 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	m_commandList.initialize();
 
 	m_sceneRenderer.initialize(10, &m_objectManager, pAllocator);
-	m_voxelRenderer.initialize(128, m_shaderManager, &m_objectManager);
+	m_pColdData->m_voxelRenderer.initialize(128, m_shaderManager, &m_objectManager);
 
 	{
+
 		auto pShadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
 		pShadowRenderer->initialize();
 
@@ -418,6 +418,8 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 		m_shadowRenderer = std::move(pShadowRenderer);
 		//m_pColdData->m_renderers.push_back(std::move(pShadowRenderer));
 	}
+
+	//Graphics::CommandListFactory::createFromFile("commandList.txt", m_objectManager, m_shaderManager, &m_commandList);
 
 	{
 		auto file = (dataDir + "textures/verdana.png");
@@ -648,8 +650,8 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 
-	auto meshCount = m_sceneRenderer.getMeshInstanceCount();
-	auto cmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
+	auto meshInstanceCount = m_sceneRenderer.getMeshInstanceCount();
+	auto meshCmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
 	auto meshVao = m_objectManager.getVertexArray("meshVao");
 	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");
 
@@ -658,17 +660,69 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	gpuProfiler->popGpuMarker();
 
 	gpuProfiler->pushGpuMarker("gbuffer");
-	createGBuffer(*meshVao, *cmdBuffer, meshCount);
+	{
+		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+		vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+
+		vx::gl::StateManager::bindFrameBuffer(m_gbufferFB);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, *meshParamBuffer);
+
+		auto pPipeline = m_shaderManager.getPipeline("drawMeshToGBuffer.pipe");
+		vx::gl::StateManager::bindPipeline(pPipeline->getId());
+		vx::gl::StateManager::bindVertexArray(*meshVao);
+		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, *meshCmdBuffer);
+		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
+	}
 	gpuProfiler->popGpuMarker();
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	gpuProfiler->pushGpuMarker("voxelize");
-	voxelize(*meshVao, *cmdBuffer, meshCount);
-	gpuProfiler->popGpuMarker();
+	{
+		auto voxelFB = m_objectManager.getFramebuffer("voxelFB");
 
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	gpuProfiler->pushGpuMarker("mipmap");
-	m_voxelRenderer.createMipmaps();
+		auto pipeline = m_shaderManager.getPipeline("voxelize.pipe");
+		auto geomShader = pipeline->getGeometryShader();
+
+		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+		vx::gl::StateManager::bindFrameBuffer(*voxelFB);
+
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Cull_Face);
+
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glDepthMask(GL_FALSE);
+
+		vx::gl::StateManager::bindPipeline(*pipeline);
+		vx::gl::StateManager::bindVertexArray(*meshVao);
+		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, *meshCmdBuffer);
+		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, *meshParamBuffer);
+
+		glProgramUniform1i(geomShader, 0, 0);
+		vx::gl::StateManager::setViewport(0, 0, 128, 128);
+		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+		glProgramUniform1i(geomShader, 0, 1);
+		vx::gl::StateManager::setViewport(0, 0, 64, 64);
+		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+		glProgramUniform1i(geomShader, 0, 2);
+		vx::gl::StateManager::setViewport(0, 0, 32, 32);
+		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+		glProgramUniform1i(geomShader, 0, 3);
+		vx::gl::StateManager::setViewport(0, 0, 16, 16);
+		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glDepthMask(GL_TRUE);
+
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
+	}
 	gpuProfiler->popGpuMarker();
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -715,24 +769,31 @@ void RenderAspect::bindBuffers()
 	auto shaderStoragePixelListCmdBuffer = m_objectManager.getBuffer("ShaderStoragePixelListCmdBuffer");
 	auto shaderStorageConetracePixelListBuffer = m_objectManager.getBuffer("ShaderStorageConetracePixelListBuffer");
 	auto renderSettingsBufferBlock = m_objectManager.getBuffer("RenderSettingsBufferBlock");
+	auto pVoxelBuffer = m_objectManager.getBuffer("VoxelBuffer");
+	auto pVoxelTextureBuffer = m_objectManager.getBuffer("VoxelTextureBuffer");
+	auto transformBuffer = m_objectManager.getBuffer("transformBuffer");
+	auto materialBlockBuffer = m_objectManager.getBuffer("materialBlockBuffer");
+	auto lightDataBuffer = m_objectManager.getBuffer("lightDataBuffer");
 
 	gl::BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
+	gl::BufferBindingManager::bindBaseUniform(1, lightDataBuffer->getId());
 	gl::BufferBindingManager::bindBaseUniform(2, pCameraBufferStatic->getId());
 	gl::BufferBindingManager::bindBaseUniform(3, pUniformTextureBuffer->getId());
 	gl::BufferBindingManager::bindBaseUniform(5, pShadowTransformBuffer->getId());
+	gl::BufferBindingManager::bindBaseUniform(6, pVoxelBuffer->getId());
+	gl::BufferBindingManager::bindBaseUniform(7, pVoxelTextureBuffer->getId());
 	gl::BufferBindingManager::bindBaseUniform(10, renderSettingsBufferBlock->getId());
 
+	gl::BufferBindingManager::bindBaseShaderStorage(0, transformBuffer->getId());
+	gl::BufferBindingManager::bindBaseShaderStorage(1, materialBlockBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(3, shaderStorageConetracePixelListBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(4, shaderStoragePixelListCmdBuffer->getId());
-
-	m_sceneRenderer.bindBuffers();
-	m_voxelRenderer.bindBuffers(m_objectManager);
 }
 
 void RenderAspect::clearTextures()
 {
-	m_voxelRenderer.clearTextures();
+	m_pColdData->m_voxelRenderer.clearTextures();
 
 	m_pColdData->m_ambientColorTexture.clearImage(0, GL_RGBA, GL_UNSIGNED_SHORT, nullptr);
 
@@ -747,13 +808,16 @@ void RenderAspect::clearBuffers()
 	mapped->count = 0;
 }
 
-void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count)
+void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer)
 {
+	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");
+
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
 
-	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer.getId());
+	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer);
+	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, *meshParamBuffer);
 	vx::gl::StateManager::bindFrameBuffer(m_gbufferFB);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -762,19 +826,57 @@ void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::B
 
 	vx::gl::StateManager::bindVertexArray(vao);
 
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
-	//glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 128, sizeof(vx::gl::DrawElementsIndirectCommand));
+	glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
 }
 
 void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count)
 {
-	m_voxelRenderer.voxelizeScene(count, cmdBuffer, vao);
+	auto voxelFB = m_objectManager.getFramebuffer("voxelFB");
+
+	auto pipeline = m_shaderManager.getPipeline("voxelize.pipe");
+	auto geomShader = pipeline->getGeometryShader();
+
+	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+	vx::gl::StateManager::bindFrameBuffer(*voxelFB);
+
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Cull_Face);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
+
+	vx::gl::StateManager::bindPipeline(*pipeline);
+	vx::gl::StateManager::bindVertexArray(vao);
+	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer.getId());
+
+	glProgramUniform1i(geomShader, 0, 0);
+	vx::gl::StateManager::setViewport(0, 0, 128, 128);
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glProgramUniform1i(geomShader, 0, 1);
+	vx::gl::StateManager::setViewport(0, 0, 64, 64);
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glProgramUniform1i(geomShader, 0, 2);
+	vx::gl::StateManager::setViewport(0, 0, 32, 32);
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glProgramUniform1i(geomShader, 0, 3);
+	vx::gl::StateManager::setViewport(0, 0, 16, 16);
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
 }
 
 void RenderAspect::voxelDebug()
 {
 	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
-	m_voxelRenderer.debug(*emptyVao, m_resolution);
+	m_pColdData->m_voxelRenderer.debug(*emptyVao, m_resolution);
 }
 
 void RenderAspect::createConeTracePixelList()

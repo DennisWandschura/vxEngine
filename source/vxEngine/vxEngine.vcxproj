@@ -196,9 +196,9 @@
     <ClInclude Include="gl\BufferBindingManager.h" />
     <ClInclude Include="gl\BufferManager.h" />
     <ClInclude Include="gl\ObjectManager.h" />
-    <ClInclude Include="Graphics\CommandCompiler.h" />
     <ClInclude Include="Graphics\CommandFactory.h" />
     <ClInclude Include="Graphics\CommandList.h" />
+    <ClInclude Include="Graphics\CommandListFactory.h" />
     <ClInclude Include="Graphics\Commands.h" />
     <ClInclude Include="Graphics\Commands\BarrierCommand.h" />
     <ClInclude Include="Graphics\Commands\ClearColorCommand.h" />
@@ -226,7 +226,6 @@
     <ClInclude Include="Reference.h" />
     <ClInclude Include="RenderCommand.h" />
     <ClInclude Include="RenderCommandFinalImage.h" />
-    <ClInclude Include="RenderSettings.h" />
     <ClInclude Include="GpuStructs.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="EditorEngine.h" />
@@ -397,6 +396,7 @@
     <ClCompile Include="Graphics\CommandFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Graphics\CommandListFactory.cpp" />
     <ClCompile Include="Graphics\Commands\BarrierCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -685,9 +685,9 @@
     <None Include="..\..\game\data\shaders\blurShadowY.pipe" />
     <None Include="..\..\game\data\shaders\coneTrace.pipe" />
     <None Include="..\..\game\data\shaders\createConeTraceList.pipe" />
-    <None Include="..\..\game\data\shaders\create_gbuffer.pipe" />
     <None Include="..\..\game\data\shaders\drawFinalImageAlbedo.pipe" />
     <None Include="..\..\game\data\shaders\drawFinalImageNormals.pipe" />
+    <None Include="..\..\game\data\shaders\drawMeshToGBuffer.pipe" />
     <None Include="..\..\game\data\shaders\draw_aabb.pipe" />
     <None Include="..\..\game\data\shaders\draw_final_image.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawMesh.pipe" />
@@ -697,6 +697,7 @@
     <None Include="..\..\game\data\shaders\editorDrawSpawn.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawPoint.pipe" />
     <None Include="..\..\game\data\shaders\editorDrawInfluenceCell.pipe" />
+    <None Include="..\..\game\data\shaders\editorSelectedMesh.pipe" />
     <None Include="..\..\game\data\shaders\forward_render.pipe" />
     <None Include="..\..\game\data\shaders\graph.pipe" />
     <None Include="..\..\game\data\shaders\include\atomicCounters.glsl" />
@@ -711,7 +712,9 @@
     <None Include="..\..\game\data\shaders\programs\coneTrace.vert" />
     <None Include="..\..\game\data\shaders\programs\createConeTraceList.frag" />
     <None Include="..\..\game\data\shaders\programs\createConeTraceList.geom" />
-    <None Include="..\..\game\data\shaders\programs\create_gbuffer.fs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\drawDynamicMesh.vert" />
+    <None Include="..\..\game\data\shaders\programs\drawMesh.vert" />
+    <None Include="..\..\game\data\shaders\programs\drawMeshToGBuffer.frag" />
     <None Include="..\..\game\data\shaders\programs\create_aabb.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\create_aabb.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\create_aabb.vs.glsl" />
@@ -741,7 +744,6 @@
     <None Include="..\..\game\data\shaders\programs\influenceMap.frag" />
     <None Include="..\..\game\data\shaders\programs\influenceMap.geom" />
     <None Include="..\..\game\data\shaders\programs\influenceMap.vert" />
-    <None Include="..\..\game\data\shaders\programs\mesh.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\navmesh.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\navmesh.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\screenquad.fs.glsl" />

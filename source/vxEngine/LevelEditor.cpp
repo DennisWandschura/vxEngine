@@ -110,7 +110,7 @@ namespace Editor
 
 		g_last = current;
 
-		g_pEditor->engine.editor_render(frameTime);
+		g_pEditor->engine.editor_render();
 
 	}
 

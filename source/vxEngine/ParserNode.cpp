@@ -115,7 +115,7 @@ namespace Parser
 		return str;
 	}
 
-	const char* getBracketEnd(const char* str, int layer)
+	const char* getBracesEnd(const char* str, int layer)
 	{
 		while (true)
 		{
@@ -165,6 +165,33 @@ namespace Parser
 		}
 
 		return count;
+	}
+
+	const char* skipOpenBracketAndSpace(const char* str)
+	{
+		while (str[0] == '[' ||
+			str[0] == ' ')
+		{
+			if (str[0] == '\0')
+				break;
+
+			++str;
+		}
+
+		return str;
+	}
+
+	const char* skipSpace(const char* str)
+	{
+		while (str[0] == ' ')
+		{
+			if (str[0] == '\0')
+				break;
+
+			++str;
+		}
+
+		return str;
 	}
 
 	Node::Node()
@@ -220,7 +247,9 @@ namespace Parser
 
 		if (dataBegin[0] == '[')
 		{
-			++dataBegin;
+			dataBegin = skipOpenBracketAndSpace(dataBegin);
+			//++dataBegin;
+			//++dataBegin;
 			auto dataEnd = getArrayEnd(dataBegin);
 			data.append(dataBegin, dataEnd);
 
@@ -233,11 +262,10 @@ namespace Parser
 		}
 		else if (dataBegin[0] == '{')
 		{
-			++dataBegin;
-			++dataBegin;
+			dataBegin = skipSpace(++dataBegin);
 
 			int layer = 1;
-			auto dataEnd = getBracketEnd(dataBegin, layer);
+			auto dataEnd = getBracesEnd(dataBegin, layer);
 			next = dataEnd + 1;
 			--dataEnd;
 			data.append(dataBegin, dataEnd);
@@ -262,7 +290,8 @@ namespace Parser
 		n.m_isArray = isArray;
 		n.m_isMap = isMap;
 
-		m_nodes.insert(std::make_pair(key, n));
+		auto sid = vx::make_sid(key.c_str());
+		m_nodes.insert(sid, std::move(n));
 
 		if (next && next[0] == '\0')
 			next = nullptr;
@@ -276,9 +305,12 @@ namespace Parser
 			str = insertNode(str);
 	}
 
-	void Node::createFromFile(const char* file)
+	bool Node::createFromFile(const char* file)
 	{
 		std::ifstream inFile(file);
+		if (!inFile.is_open())
+			return false;
+
 		inFile.seekg(0, std::ifstream::end);
 		auto sz = inFile.tellg();
 		inFile.seekg(0, std::ifstream::beg);
@@ -288,15 +320,19 @@ namespace Parser
 		inFile.read(data.get(), sz);
 
 		create(data.get());
+
+		return true;
 	}
 
 	const Node* Node::get(const char* id) const
 	{
 		const Node* result = nullptr;
-		auto it = m_nodes.find(id);
+		auto sid = vx::make_sid(id);
+
+		auto it = m_nodes.find(sid);
 		if (it != m_nodes.end())
 		{
-			result = &it->second;
+			result = &(*it);
 		}
 
 		return result;
@@ -370,6 +406,9 @@ namespace Parser
 
 			++str;
 		}
+
+		while (str[0] == ' ')
+			++str;
 
 		return str;
 	}
@@ -469,23 +508,22 @@ namespace Parser
 
 		auto end = getArrayDataEnd(begin);
 
+		if (i == m_dataSize - 1)
+		{
+			if (end[0] == '\0' && end[-1] == ' ')
+				--end;
+		}
+
 		data->append(begin, end);
 		return true;
 	}
 
 	bool Node::as(unsigned int i, Node* data) const
 	{
-		if (i >= m_dataSize)
-			return false;
-
-		auto begin = getArrayItemBegin(i);
-		if (begin == nullptr)
-			return false;
-
-		auto end = getArrayDataEnd(begin);
-
 		std::string tmp;
-		tmp.append(begin, end);
+		if (!as(i, &tmp))
+			return false;
+
 		data->create(tmp.c_str());
 
 		return true;

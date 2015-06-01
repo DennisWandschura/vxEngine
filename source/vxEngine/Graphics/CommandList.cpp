@@ -51,9 +51,26 @@ namespace Graphics
 	{
 	}
 
+	CommandList::CommandList(CommandList &&rhs)
+		: m_sortedSegments(std::move(rhs.m_sortedSegments)),
+		m_coldData(std::move(rhs.m_coldData))
+	{
+
+	}
+
 	CommandList::~CommandList()
 	{
 
+	}
+
+	CommandList& CommandList::operator=(CommandList &&rhs)
+	{
+		if (this != &rhs)
+		{
+			m_sortedSegments = std::move(rhs.m_sortedSegments);
+			m_coldData = std::move(rhs.m_coldData);
+		}
+		return *this;
 	}
 
 	void CommandList::initialize()
@@ -64,9 +81,10 @@ namespace Graphics
 	void CommandList::pushSegment(const Segment &segment, const char* id)
 	{
 		u32 slot = m_sortedSegments.size();
+		auto sid = vx::make_sid(id);
 
 		m_sortedSegments.insert(slot, segment);
-		m_coldData->m_segmentIndices.insert(vx::make_sid(id), slot);
+		m_coldData->m_segmentIndices.insert(sid, slot);
 	}
 
 	void CommandList::enableSegment(const char* id)

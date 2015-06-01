@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 #include <vxLib/types.h>
 #include <vxLib/Container/sorted_vector.h>
@@ -48,7 +48,12 @@ namespace Graphics
 
 	public:
 		CommandList();
+		CommandList(const CommandList&) = delete;
+		CommandList(CommandList &&rhs);
 		~CommandList();
+
+		CommandList& operator=(const CommandList&) = delete;
+		CommandList& operator=(CommandList &&rhs);
 
 		void initialize();
 

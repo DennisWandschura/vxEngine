@@ -31,18 +31,14 @@ namespace vx
 
 #include <vxLib/math/Vector.h>
 
-enum class VoxelGiMode : u8 {Normal = 0, High = 1};
-
 struct RenderAspectDescription
 {
 	const vx::Window* window;
 	vx::StackAllocator* pAllocator;
 	vx::uint2 resolution;
-	u32 shadowMapResolution;
 	f32 fovRad;
 	f32 z_near;
 	f32 z_far;
-	VoxelGiMode voxelGiMode;
 	bool vsync;
 	bool debug;
 };

@@ -115,7 +115,7 @@ public:
 	void editor_saveScene(const char* name);
 
 	void editor_start();
-	void editor_render(f32 dt);
+	void editor_render();
 	void editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f);
 
 	void editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ);

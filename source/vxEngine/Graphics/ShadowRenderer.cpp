@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include "ShadowRenderer.h"
 #include "../gl/ObjectManager.h"
-#include "../RenderSettings.h"
+#include "../EngineConfig.h"
 #include <vxLib/gl/gl.h>
 #include <string>
 #include "Segment.h"
@@ -68,7 +68,7 @@ namespace Graphics
 	void ShadowRenderer::createShadowTextures()
 	{
 		m_textureCount = s_settings->m_maxActiveLights;
-		auto textureResolution = s_settings->m_shadowmapResolution;
+		auto textureResolution = s_settings->m_shadowMapResolution;
 
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
 
@@ -136,7 +136,7 @@ namespace Graphics
 	void ShadowRenderer::getSegments(std::vector<Segment>* segments)
 	{
 		auto maxMeshInstances = s_settings->m_maxMeshInstances;
-		auto resolution = s_settings->m_shadowmapResolution;
+		auto resolution = s_settings->m_shadowMapResolution;
 
 		auto fbo = s_objectManager->getFramebuffer("shadowFbo");
 		auto vao = s_objectManager->getVertexArray("meshVao");
@@ -179,6 +179,7 @@ namespace Graphics
 		auto maxLightCount = s_settings->m_maxActiveLights;
 		for (u32 i = 0; i < maxLightCount; ++i)
 		{
+			const auto ll = GL_UNSIGNED_INT;
 			Graphics::FramebufferTextureCommand fbTexCmd;
 			fbTexCmd.set(fbo->getId(), GL_DEPTH_ATTACHMENT, m_shadowTextureIds[i], 0);
 

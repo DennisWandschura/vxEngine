@@ -305,7 +305,7 @@ namespace CpuProfilerCpp
 			}
 		}
 
-		void update(f32 dt)
+		void update()
 		{
 				f32 textureSlice = m_pFont->getTextureEntry().getSlice();
 				auto textureSize = m_pFont->getTextureEntry().getTextureSize();
@@ -634,9 +634,9 @@ void CpuProfiler::frame()
 	CpuProfilerCpp::s_profiler->frame();
 }
 
-void CpuProfiler::update(f32 dt)
+void CpuProfiler::update()
 {
-	CpuProfilerCpp::s_profiler->update(dt);
+	CpuProfilerCpp::s_profiler->update();
 }
 
 void CpuProfiler::pushMarker(const char* id)

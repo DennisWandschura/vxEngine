@@ -89,6 +89,43 @@ namespace Graphics
 				VX_ASSERT(false);
 			}
 		}
+		else if (strcmp(dataType.c_str(), "uint") == 0)
+		{
+			command.set((*pipeline)[(vx::gl::ShaderProgramType)params[0]], params[1], params[2], vx::gl::DataType::Unsigned_Int);
+
+			if (params[2] == 1)
+			{
+				u32 value;
+				dataNode->as((u32*)&value);
+
+				segment->pushCommand(command, value);
+			}
+			else if (params[2] == 3)
+			{
+				vx::uint3 value;
+
+				dataNode->as(0, (u32*)&value[0]);
+				dataNode->as(1, (u32*)&value[1]);
+				dataNode->as(2, (u32*)&value[2]);
+
+				segment->pushCommand(command, value);
+			}
+			else if (params[2] == 4)
+			{
+				vx::uint4 value;
+
+				dataNode->as(0, (u32*)&value[0]);
+				dataNode->as(1, (u32*)&value[1]);
+				dataNode->as(2, (u32*)&value[2]);
+				dataNode->as(3, (u32*)&value[3]);
+
+				segment->pushCommand(command, value);
+			}
+			else
+			{
+				VX_ASSERT(false);
+			}
+		}
 		else
 		{
 			VX_ASSERT(false);

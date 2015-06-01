@@ -149,7 +149,7 @@ void Engine::renderLoop()
 		{
 			gpuProfiler.update(g_dt);
 
-			CpuProfiler::update(g_dt);
+			CpuProfiler::update();
 			CpuProfiler::updateRenderer();
 
 			accum -= g_dt;
@@ -210,7 +210,7 @@ void Engine::mainLoop()
 
 			CpuProfiler::popMarker();
 
-			CpuProfiler::update(g_dt);
+			CpuProfiler::update();
 
 			//	m_profiler.update(g_dt);
 			//m_profileGraph.update();
@@ -261,15 +261,14 @@ bool Engine::initialize()
 	if (!initializeImpl(dataDir))
 		return false;
 
-	EngineConfig config;
-	config.loadFromFile("settings.txt");
+	g_engineConfig.loadFromFile("settings.txt");
 
-	if (!m_systemAspect.initialize(config, ::callbackKeyPressed, ::handleInput))
+	if (!m_systemAspect.initialize(g_engineConfig, ::callbackKeyPressed, ::handleInput))
 		return false;
 
-	RenderAspectDescription renderAspectDesc = config.getRenderAspectDescription(&m_systemAspect.getWindow(), &m_allocator);
+	RenderAspectDescription renderAspectDesc = g_engineConfig.getRenderAspectDescription(&m_systemAspect.getWindow(), &m_allocator);
 
-	if (!m_renderAspect.initialize(dataDir, renderAspectDesc))
+	if (!m_renderAspect.initialize(dataDir, renderAspectDesc, &g_engineConfig))
 		return false;
 
 	m_renderAspect.makeCurrent(false);
