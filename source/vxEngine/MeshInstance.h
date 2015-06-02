@@ -40,17 +40,19 @@ namespace YAML
 
 class MeshInstance
 {
+	vx::StringID m_nameSid;
 	vx::StringID m_meshSid;
 	vx::StringID m_materialSid;
 	vx::Transform m_transform;
 
 public:
 	MeshInstance();
-	MeshInstance(vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform);
+	MeshInstance(const vx::StringID &nameSid, const vx::StringID &meshSid, const vx::StringID &materialSid, const vx::Transform &transform);
 
-	vx::StringID getMeshSid() const noexcept{ return m_meshSid; }
-	vx::StringID getMaterialSid() const noexcept{ return m_materialSid; }
-	const vx::Transform& getTransform() const noexcept{ return m_transform; }
+	vx::StringID getNameSid() const noexcept{ return m_nameSid; }
+	vx::StringID getMeshSid() const noexcept { return m_meshSid; }
+	vx::StringID getMaterialSid() const noexcept { return m_materialSid; }
+	const vx::Transform& getTransform() const noexcept { return m_transform; }
 
 #if _VX_EDITOR
 	void setTranslation(const vx::float3 &translation);
@@ -61,19 +63,16 @@ class MeshInstanceFile
 {
 	using Buffer = char[32];
 
+	Buffer m_name;
 	Buffer m_mesh;
 	Buffer m_material;
 	vx::Transform m_transform;
 
 public:
 	MeshInstanceFile();
-	MeshInstanceFile(const char(&meshName)[32], const char(&materialName)[32], const vx::Transform &transform);
+	MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::Transform &transform);
 
-	void load(const u8 *ptr);
-//	void load(const YAML::Node &node);
-
-	//void save(YAML::Node &node) const;
-
+	const char* getName() const noexcept{ return m_name; }
 	const char* getMeshFile() const noexcept;
 	const char* getMaterialFile() const noexcept;
 	const vx::Transform& getTransform() const noexcept{ return m_transform; }

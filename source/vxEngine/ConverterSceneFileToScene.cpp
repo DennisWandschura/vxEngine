@@ -58,9 +58,11 @@ bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshIn
 	for (auto i = 0u; i < desc.sceneFile->m_meshInstanceCount; ++i)
 	{
 		auto &instance = desc.sceneFile->m_pMeshInstances[i];
+		auto name = instance.getName();
 		auto meshFile = instance.getMeshFile();
 		auto materialFile = instance.getMaterialFile();
 
+		auto sidName = vx::make_sid(name);
 		auto sidMesh = vx::make_sid(meshFile);
 		auto itMesh = desc.sortedMeshes->find(sidMesh);
 		auto sidMaterial = vx::make_sid(materialFile);
@@ -74,7 +76,7 @@ bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshIn
 		desc.sceneMeshes->insert(sidMesh, *itMesh);
 		desc.sceneMaterials->insert(sidMaterial, *itMaterial);
 
-		desc.pMeshInstances[i] = MeshInstance(sidMesh, sidMaterial, instance.getTransform());
+		desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, sidMaterial, instance.getTransform());
 	}
 
 	return true;

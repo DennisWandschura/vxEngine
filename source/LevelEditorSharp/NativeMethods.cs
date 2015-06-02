@@ -105,10 +105,24 @@ namespace LevelEditor
         public unsafe static extern void setSelectNavMeshVertexPosition(ref Float3 position);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern bool selectMesh(int x, int y);
+        public unsafe static extern uint getMeshInstanceCount();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void deselectMesh();
+        [return: MarshalAs(UnmanagedType.BStr)]
+        public unsafe static extern string getMeshInstanceName(uint i);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern bool selectMeshInstance(int x, int y);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern bool selectMeshInstanceIndex(uint i);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void deselectMeshInstance();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.BStr)]
+        public unsafe static extern string getSelectedMeshInstanceName();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void updateSelectedMeshInstanceTransform(ref Float3 translation);
@@ -134,5 +148,11 @@ namespace LevelEditor
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void setSelectLightPosition(ref Float3 position);
 
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern uint getMeshCount();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.BStr)]
+        public unsafe static extern string getMeshName(uint i);
     }
 }

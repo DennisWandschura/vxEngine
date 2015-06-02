@@ -62,7 +62,6 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 
 	scene.m_navMesh.copyTo(&sceneFile->m_navMesh);
 
-
 	auto meshInstanceCount = scene.m_meshInstances.size();
 
 	sceneFile->m_meshInstanceCount = meshInstanceCount;
@@ -71,6 +70,7 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 	{
 		auto &it = scene.m_meshInstances[i];
 
+		auto instanceName = scene.getMeshInstanceName(it.getNameSid());
 		auto instanceMeshName = scene.getMeshName(it.getMeshSid());
 		auto instanceMaterialName = scene.getMaterialName(it.getMaterialSid());
 
@@ -80,7 +80,10 @@ void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFil
 		char materialName[32];
 		strcpy(materialName, instanceMaterialName);
 
-		sceneFile->m_pMeshInstances[i] = MeshInstanceFile(meshName, materialName,it.getTransform());
+		char name[32];
+		strcpy(name, instanceName);
+
+		sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, it.getTransform());
 	}
 
 	auto spawns = scene.getSpawns();

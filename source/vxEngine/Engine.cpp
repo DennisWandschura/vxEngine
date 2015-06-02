@@ -30,6 +30,7 @@ SOFTWARE.
 #include "GpuProfiler.h"
 #include "EngineGlobals.h"
 #include "CpuProfiler.h"
+#include <vxEngineLib/EventTypes.h>
 
 Engine* g_pEngine{ nullptr };
 
@@ -289,10 +290,10 @@ bool Engine::initialize()
 	Locator::provide(&m_physicsAspect);
 
 	// register aspects that receive events
-	m_eventManager.registerListener(&m_renderAspect, 3);
-	m_eventManager.registerListener(&m_physicsAspect, 2);
-	m_eventManager.registerListener(&m_entityAspect, 1);
-	m_eventManager.registerListener(&m_actorAspect, 2);
+	m_eventManager.registerListener(&m_renderAspect, 3, (u8)vx::EventType::File_Event);
+	m_eventManager.registerListener(&m_physicsAspect, 2, (u8)vx::EventType::File_Event);
+	m_eventManager.registerListener(&m_entityAspect, 1, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event);
+	m_eventManager.registerListener(&m_actorAspect, 2, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event | (u8)vx::EventType::AI_Event);
 
 	m_bRun = 1;
 	m_bRunFileThread.store(1);

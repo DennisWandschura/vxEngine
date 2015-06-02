@@ -134,9 +134,9 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	m_eventManager.initialize();
 	Locator::provide(&m_eventManager);
 
-	m_eventManager.registerListener(&m_renderAspect, 1);
-	m_eventManager.registerListener(&m_physicsAspect, 1);
-	m_eventManager.registerListener(this, 1);
+	m_eventManager.registerListener(&m_renderAspect, 1, (u8)vx::EventType::File_Event);
+	m_eventManager.registerListener(&m_physicsAspect, 1, (u8)vx::EventType::File_Event);
+	m_eventManager.registerListener(this, 1, (u8)vx::EventType::File_Event);
 
 	//m_bRun = 1;
 	m_bRunFileThread.store(1);
@@ -283,7 +283,7 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	else if (type == s_editorTypeMaterial)
 	{
 		//fileEntry = FileEntry(filename, FileType::Material);
-	//	p = new std::string(filename);
+		//	p = new std::string(filename);
 		assert(false);
 	}
 	else if (type == s_editorTypeScene)
@@ -369,7 +369,41 @@ MeshInstance* EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, 
 	return m_physicsAspect.raycast_static(tmp, ray_world, 50.0f, hitPosition);
 }
 
-bool EditorEngine::selectMesh(s32 x, s32 y)
+u32 EditorEngine::getMeshInstanceCount() const
+{
+	u32 result = 0;
+
+	if (m_pEditorScene)
+	{
+		result = m_pEditorScene->getMeshInstanceCount();
+	}
+
+	return result;
+}
+
+const char* EditorEngine::getMeshInstanceName(u32 i) const
+{
+	if (m_pEditorScene)
+	{
+		auto meshInstances = m_pEditorScene->getMeshInstances();
+		return m_pEditorScene->getMeshInstanceName(meshInstances[i].getNameSid());
+	}
+
+	return nullptr;
+}
+
+const char* EditorEngine::getSelectedMeshInstanceName() const
+{
+	auto meshInstance = (MeshInstance*)m_selected.m_item;
+	const char* name = nullptr;
+	if (meshInstance)
+	{
+		name = m_pEditorScene->getMeshInstanceName(meshInstance->getNameSid());
+	}
+	return name;
+}
+
+bool EditorEngine::selectMeshInstance(s32 x, s32 y)
 {
 	bool result = false;
 	if (m_pEditorScene)
@@ -389,7 +423,24 @@ bool EditorEngine::selectMesh(s32 x, s32 y)
 	return result;
 }
 
-void EditorEngine::deselectMesh()
+bool EditorEngine::selectMeshInstance(u32 i)
+{
+	bool result = false;
+	if (m_pEditorScene)
+	{
+		auto instances = m_pEditorScene->getMeshInstances();
+
+		m_renderAspect.setSelectedMeshInstance(&instances[i]);
+		m_selected.m_type = SelectedType::MeshInstance;
+		m_selected.m_item = (void*)&instances[i];
+
+		result = true;
+	}
+
+	return result;
+}
+
+void EditorEngine::deselectMeshInstance()
 {
 	if (m_pEditorScene)
 	{
@@ -640,14 +691,14 @@ void EditorEngine::setSelectLightPosition(const vx::float3 &position)
 	}
 }
 
-SelectedType EditorEngine::getSelectedItemType() const 
+SelectedType EditorEngine::getSelectedItemType() const
 {
-	return m_selected.m_type; 
+	return m_selected.m_type;
 }
 
-EditorScene* EditorEngine::getEditorScene() const 
+EditorScene* EditorEngine::getEditorScene() const
 {
-	return m_pEditorScene; 
+	return m_pEditorScene;
 }
 
 void EditorEngine::showNavmesh(bool b)
@@ -668,4 +719,26 @@ void EditorEngine::addWaypoint(s32 mouseX, s32 mouseY)
 	{
 		// todo
 	}
+}
+
+u32 EditorEngine::getMeshCount() const
+{
+	if (m_pEditorScene)
+		return m_pEditorScene->getMeshes().size();
+
+	return 0;
+}
+
+const char* EditorEngine::getMeshName(u32 i) const
+{
+	const char* meshName = nullptr;
+	if (m_pEditorScene)
+	{
+		auto &meshes = m_pEditorScene->getMeshes();
+		auto sid = meshes.keys()[i];
+
+		meshName = m_pEditorScene->getMeshName(sid);
+	}
+
+	return meshName;
 }

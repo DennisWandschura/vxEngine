@@ -41,11 +41,18 @@ void EventManager::initialize()
 {
 }
 
-void EventManager::registerListener(vx::EventListener* ptr, u64 priority)
+void EventManager::registerListener(vx::EventListener* ptr, u64 priority, u16 filter)
 {
-	m_eventListeners.push_back(std::make_pair(priority, ptr));
+	Listener listener;
+	listener.ptr = ptr;
+	listener.mask = filter;
 
-	std::sort(m_eventListeners.begin(), m_eventListeners.end(), std::greater<std::pair<u64, vx::EventListener*>>());
+	m_eventListeners.push_back(std::make_pair(priority, listener));
+
+	std::sort(m_eventListeners.begin(), m_eventListeners.end(), [](const std::pair<u64, Listener> &lhs, const std::pair<u64, Listener> &rhs)
+	{
+		return lhs.first > rhs.first;
+	});
 }
 
 void EventManager::update()
@@ -59,7 +66,11 @@ void EventManager::update()
 	{
 		for (auto &it : events)
 		{
-			a.second->handleEvent(it);
+			auto m = ((u32)it.type & a.second.mask);
+			if (m != 0)
+			{
+				a.second.ptr->handleEvent(it);
+			}
 		}
 	}
 	events.clear();

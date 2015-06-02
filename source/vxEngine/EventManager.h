@@ -36,9 +36,15 @@ namespace vx
 
 class EventManager
 {
+	struct Listener
+	{
+		vx::EventListener* ptr;
+		u32 mask;
+	};
+
 	std::mutex m_evtMutex;
 	std::vector<vx::Event> m_events[2];
-	std::vector<std::pair<u64, vx::EventListener*>> m_eventListeners;
+	std::vector<std::pair<u64, Listener>> m_eventListeners;
 	u32 m_currentReadQueue{0};
 
 public:
@@ -47,7 +53,7 @@ public:
 
 	void initialize();
 
-	void registerListener(vx::EventListener* ptr, u64 priority);
+	void registerListener(vx::EventListener* ptr, u64 priority, u16 filter);
 
 	void update();
 

@@ -132,8 +132,12 @@ public:
 	void setSelectedNavMeshVertexPosition(const vx::float3 &position);
 	vx::float3 getSelectedNavMeshVertexPosition() const;
 
-	bool selectMesh(s32 mouseX, s32 mouseY);
-	void deselectMesh();
+	u32 getMeshInstanceCount() const;
+	const char* getMeshInstanceName(u32 i) const;
+	const char* getSelectedMeshInstanceName() const;
+	bool selectMeshInstance(s32 mouseX, s32 mouseY);
+	bool selectMeshInstance(u32 i);
+	void deselectMeshInstance();
 
 	bool addNavMeshVertex(s32 mouseX, s32 mouseY);
 	void deleteSelectedNavMeshVertex();
@@ -155,4 +159,7 @@ public:
 	void showInfluenceMap(bool b);
 
 	void addWaypoint(s32 mouseX, s32 mouseY);
+
+	u32 getMeshCount() const;
+	const char* getMeshName(u32 i) const;
 };

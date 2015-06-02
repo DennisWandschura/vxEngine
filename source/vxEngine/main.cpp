@@ -140,6 +140,11 @@ int main()
 	auto n5 = vx::quaternionRotation(normal, qRotations_normal[4]);
 	auto n6 = vx::quaternionRotation(normal, qRotations_normal[5]);
 
+	const auto mask = 0xffffffff;
+
+	const auto fil = 1 << 1;
+	const auto resl = mask & fil;
+
 	HANDLE hLogFile = nullptr;
 	hLogFile = CreateFileA("log.txt", GENERIC_WRITE,
 		FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,

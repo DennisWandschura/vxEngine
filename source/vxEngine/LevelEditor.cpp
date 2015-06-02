@@ -47,11 +47,24 @@ namespace Editor
 	};
 
 	Editor* g_pEditor{ nullptr };
-	void* g_pMemory{nullptr};
+	void* g_pMemory{ nullptr };
 	LARGE_INTEGER g_last{};
-	f64 g_invFrequency{1.0};
+	f64 g_invFrequency{ 1.0 };
 	const u32 g_hz = 40u;
 	const f32 g_dt = 1.0f / g_hz;
+
+	BSTR ANSItoBSTR(const char* input)
+	{
+		BSTR result = NULL;
+		int lenA = lstrlenA(input);
+		int lenW = ::MultiByteToWideChar(CP_ACP, 0, input, lenA, NULL, 0);
+		if (lenW > 0)
+		{
+			result = ::SysAllocStringLen(0, lenW);
+			::MultiByteToWideChar(CP_ACP, 0, input, lenA, result, lenW);
+		}
+		return result;
+	}
 
 	template<class T>
 	void destroy(T *p)
@@ -126,7 +139,7 @@ namespace Editor
 
 	void saveScene(const char* name)
 	{
-		printf("%s\n",name);
+		printf("%s\n", name);
 		g_pEditor->engine.editor_saveScene(name);
 	}
 
@@ -180,14 +193,43 @@ namespace Editor
 		g_pEditor->engine.setSelectedNavMeshVertexPosition(position);
 	}
 
-	bool selectMesh(s32 x, s32 y)
+	u32 getMeshInstanceCount()
 	{
-		return g_pEditor->engine.selectMesh(x, y);
+		return g_pEditor->engine.getMeshInstanceCount();
 	}
 
-	void deselectMesh()
+	BSTR getMeshInstanceName(u32 i)
 	{
-		g_pEditor->engine.deselectMesh();
+		auto meshInstanceName = g_pEditor->engine.getMeshInstanceName(i);
+
+		if (meshInstanceName)
+		{
+			return ANSItoBSTR(meshInstanceName);
+		}
+		else
+		{
+			return ::SysAllocString(L"meshInstance");
+		}
+	}
+
+	bool selectMeshInstance(s32 x, s32 y)
+	{
+		return g_pEditor->engine.selectMeshInstance(x, y);
+	}
+
+	bool selectMeshInstanceIndex(u32 i)
+	{
+		return g_pEditor->engine.selectMeshInstance(i);
+	}
+
+	void deselectMeshInstance()
+	{
+		g_pEditor->engine.deselectMeshInstance();
+	}
+
+	BSTR getSelectedMeshInstanceName()
+	{
+		return ANSItoBSTR(g_pEditor->engine.getSelectedMeshInstanceName());
 	}
 
 	void updateSelectedMeshInstanceTransform(const vx::float3 &translation)
@@ -233,6 +275,25 @@ namespace Editor
 	void addWaypoint(s32 x, s32 y)
 	{
 		g_pEditor->engine.addWaypoint(x, y);
+	}
+
+	u32 getMeshCount()
+	{
+		return g_pEditor->engine.getMeshCount();
+	}
+
+	BSTR getMeshName(u32 i)
+	{
+		auto meshName = g_pEditor->engine.getMeshName(i);
+
+		if (meshName)
+		{
+			return ANSItoBSTR(meshName);
+		}
+		else
+		{
+			return ::SysAllocString(L"mesh");
+		}
 	}
 }
 #endif

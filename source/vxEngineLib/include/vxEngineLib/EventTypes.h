@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,19 +22,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 #include <vxLib/types.h>
 
 namespace vx
 {
-
 	enum class EventType : u8
 	{
-		File_Event,
-		Ingame_Event,
-		AI_Event,
-		Editor_Event
+		File_Event = 1 << 0,
+		Ingame_Event = 1 << 1,
+		AI_Event = 1 << 2,
+		Editor_Event = 1 << 3
 	};
 
 	enum class FileEvent : u16

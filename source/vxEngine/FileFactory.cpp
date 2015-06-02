@@ -99,4 +99,5 @@ bool FileFactory::load(const u8* ptr, SceneFile* data, vx::Allocator* allocator)
 	auto currentCrc = data->getCrc();
 
 	return (header.crc == currentCrc);
+	//return true;
 }

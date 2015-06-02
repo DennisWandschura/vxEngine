@@ -134,7 +134,6 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 
 	if (result)
 	{
-		//result = sceneFile.createScene(meshes, materials, pScene);
 		result = ConverterSceneFileToScene::convert(desc.meshes, desc.materials, sceneFile, pScene);
 	}
 	else

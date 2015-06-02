@@ -43,6 +43,7 @@ struct EditorSceneParams
 	vx::sorted_vector<vx::StringID, std::string> m_materialNames;
 	vx::sorted_vector<vx::StringID, std::string> m_meshNames;
 	vx::sorted_vector<vx::StringID, std::string> m_actorNames;
+	vx::sorted_vector<vx::StringID, std::string> m_meshInstanceNames;
 
 	~EditorSceneParams();
 };
@@ -65,10 +66,10 @@ class EditorScene : public SceneBase
 	std::vector<SelectableWrapper<Light>> m_selectableLights;
 	std::vector<SelectableWrapper<Spawn>> m_selectableSpawns;
 
-	vx::sorted_vector<vx::StringID, MeshInstance> m_sortedMeshInstances;
-	vx::sorted_vector<vx::StringID, std::string> m_materialNames{};
-	vx::sorted_vector<vx::StringID, std::string> m_meshNames{};
-	vx::sorted_vector<vx::StringID, std::string> m_actorNames{};
+	vx::sorted_vector<vx::StringID, std::string> m_materialNames;
+	vx::sorted_vector<vx::StringID, std::string> m_meshNames;
+	vx::sorted_vector<vx::StringID, std::string> m_actorNames;
+	vx::sorted_vector<vx::StringID, std::string> m_meshInstanceNames;
 
 	void buildSelectableLights();
 
@@ -88,18 +89,15 @@ public:
 	// returns 1 on insert, 0 if already present
 	u8 addMaterial(vx::StringID sid, const char* name, Material* pMaterial);
 	// returns 1 on insert, 0 if mesh or material is missing
-	u8 addMeshInstance(vx::StringID instanceSid, vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform);
 	void addWaypoint(const Waypoint &wp);
 
-	MeshInstance* findMeshInstance(vx::StringID instanceSid);
-
-	const vx::sorted_vector<vx::StringID, MeshInstance>& getMeshInstancesSortedByName() const { return m_sortedMeshInstances; }
 	const MeshInstance* getMeshInstances() const override;
 	u32 getMeshInstanceCount() const override;
 
-	const char* getMaterialName(vx::StringID sid) const;
-	const char* getMeshName(vx::StringID sid) const;
-	const char* getActorName(vx::StringID sid) const;
+	const char* getMeshInstanceName(const vx::StringID &sid) const;
+	const char* getMaterialName(const vx::StringID &sid) const;
+	const char* getMeshName(const vx::StringID &sid) const;
+	const char* getActorName(const vx::StringID &sid) const;
 
 	Spawn* getSpawn(const Ray &ray);
 	Light* getLight(const Ray &ray);

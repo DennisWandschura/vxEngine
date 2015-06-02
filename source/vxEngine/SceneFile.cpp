@@ -37,6 +37,8 @@ SOFTWARE.
 #include "Waypoint.h"
 #include <vxLib/util/CityHash.h>
 
+#include <string>
+
 struct SceneFile::CreateSceneMeshInstancesDesc
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
@@ -44,6 +46,7 @@ struct SceneFile::CreateSceneMeshInstancesDesc
 	MeshInstance* pMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 };
 
 struct SceneFile::CreateSceneActorsDesc
@@ -63,6 +66,7 @@ struct SceneFile::CreateSceneShared
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
+	vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 	Spawn* sceneSpawns;
 	u32* vertexCount;
 	u32* indexCount;
@@ -105,37 +109,6 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* a
 	return m_navMesh.load(ptr);
 }
 
-/*void SceneFile::loadFromYAML(const char *file)
-{
-	auto root = YAML::LoadFile(file);
-
-	auto spawns = SpawnFile::loadFromYaml(root["spawns"]);
-	auto meshInstances = root["meshInstances"].as<std::vector<MeshInstanceFile>>();
-	auto lights = Light::loadFromYaml(root["lights"]);
-	auto actors = root["actors"].as<std::vector<ActorFile>>();
-	m_navMesh.loadFromYAML(root["navmesh"]);
-
-	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(meshInstances.size());
-	vx::read(m_pMeshInstances.get(), (u8*)meshInstances.data(), meshInstances.size());
-
-	m_pLights = vx::make_unique<Light[]>(lights.size());
-	vx::read(m_pLights.get(), (u8*)lights.data(), lights.size());
-
-	m_pSpawns = vx::make_unique<SpawnFile[]>(spawns.size());
-	vx::read(m_pSpawns.get(), (u8*)spawns.data(), spawns.size());
-
-	if (actors.size() != 0)
-	{
-		m_pActors = vx::make_unique<ActorFile[]>(actors.size());
-		vx::read(m_pActors.get(), (u8*)actors.data(), actors.size());
-	}
-
-	m_meshInstanceCount = meshInstances.size();
-	m_lightCount = lights.size();
-	m_spawnCount = spawns.size();
-	m_actorCount = actors.size();
-}*/
-
 bool SceneFile::saveToFile(const char *file) const
 {
 	bool result = false;
@@ -176,39 +149,6 @@ bool SceneFile::saveToFile(vx::File *file) const
 	return true;
 }
 
-/*void SceneFile::saveToYAML(const char *file) const
-{
-	YAML::Node meshNode;
-
-	for (auto i = 0u; i < m_meshInstanceCount; ++i)
-	{
-		meshNode[i] = m_pMeshInstances[i];
-	}
-
-	YAML::Node lightNode = Light::saveToYaml(m_pLights.get(), m_lightCount);
-
-	YAML::Node spawnsNode = SpawnFile::saveToYaml(m_pSpawns.get(), m_spawnCount);
-
-	YAML::Node actorNode;
-	for (auto i = 0u; i < m_actorCount; ++i)
-	{
-		actorNode[i] = m_pActors[i];
-	}
-
-	YAML::Node root;
-	root["spawns"] = spawnsNode;
-	root["meshInstances"] = meshNode;
-	root["lights"] = lightNode;
-	root["actors"] = actorNode;
-
-	YAML::Node tmp;
-	m_navMesh.saveToYAML(tmp);
-	root["navmesh"] = tmp;
-
-	std::ofstream outfile(file);
-	outfile << root;
-}*/
-
 const std::unique_ptr<MeshInstanceFile[]>& SceneFile::getMeshInstances() const noexcept
 {
 	return m_pMeshInstances;
@@ -223,10 +163,17 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 {
 	for (auto i = 0u; i < m_meshInstanceCount; ++i)
 	{
+		std::string genName = "instance" + std::to_string(i);
+
 		auto &instance = m_pMeshInstances[i];
+		auto name = instance.getName();
 		auto meshFile = instance.getMeshFile();
 		auto materialFile = instance.getMaterialFile();
 
+		if (name[0] == '\0')
+			name = genName.c_str();
+
+		auto sidName = vx::make_sid(name);
 		auto sidMesh = vx::make_sid(meshFile);
 		auto itMesh = desc.sortedMeshes->find(sidMesh);
 		auto sidMaterial = vx::make_sid(materialFile);
@@ -240,7 +187,12 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 		desc.sceneMeshes->insert(sidMesh, *itMesh);
 		desc.sceneMaterials->insert(sidMaterial, *itMaterial);
 
-		desc.pMeshInstances[i] = MeshInstance(sidMesh, sidMaterial, instance.getTransform());
+		desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, sidMaterial, instance.getTransform());
+
+		if (desc.sceneMeshInstanceNames)
+		{
+			desc.sceneMeshInstanceNames->insert(sidName, std::string(name));
+		}
 	}
 
 	return true;
@@ -290,6 +242,7 @@ bool SceneFile::createSceneShared(const CreateSceneShared &desc)
 	createMeshInstancesDesc.sceneMeshes = desc.sceneMeshes;
 	createMeshInstancesDesc.sortedMaterials = desc.sortedMaterials;
 	createMeshInstancesDesc.sortedMeshes = desc.sortedMeshes;
+	createMeshInstancesDesc.sceneMeshInstanceNames = desc.sceneMeshInstanceNames;
 	if (!createSceneMeshInstances(createMeshInstancesDesc))
 		return false;
 
@@ -346,6 +299,7 @@ u8 SceneFile::createScene(const CreateSceneDescription &desc)
 	sharedDesc.sortedMeshes = desc.sortedMeshes;
 	sharedDesc.vertexCount = &vertexCount;
 	sharedDesc.indexCount = &indexCount;
+	sharedDesc.sceneMeshInstanceNames = nullptr;
 	if (!createSceneShared(sharedDesc))
 		return 0;
 
@@ -387,6 +341,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 	vx::sorted_vector<vx::StringID, Actor> sceneActors;
+	vx::sorted_vector<vx::StringID, std::string> sceneMeshInstanceNames;
 	std::vector<MeshInstance> meshInstances(m_meshInstanceCount);
 	auto sceneSpawns = vx::make_unique<Spawn[]>(m_spawnCount);
 
@@ -403,6 +358,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sharedDesc.sortedMeshes = desc.sortedMeshes;
 	sharedDesc.vertexCount = &vertexCount;
 	sharedDesc.indexCount = &indexCount;
+	sharedDesc.sceneMeshInstanceNames = &sceneMeshInstanceNames;
 	if (!createSceneShared(sharedDesc))
 		return 0;
 
@@ -457,6 +413,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
 	sceneParams.m_baseParams.m_meshes = std::move(sceneMeshes);
 	sceneParams.m_baseParams.m_navMesh = std::move(m_navMesh);
+	sceneParams.m_meshInstanceNames = std::move(sceneMeshInstanceNames);
 #if _VX_EDITOR
 	sceneParams.m_baseParams.m_pLights.reserve(m_lightCount);
 	for (u32 i = 0; i < m_lightCount; ++i)

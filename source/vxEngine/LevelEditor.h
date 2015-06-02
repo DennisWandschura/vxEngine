@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include <vxLib/math/Vector.h>
 #include "Editor.h"
+#include <comutil.h>
 
 #ifdef _VX_EDITOR
 #define DLL_EXPORT __declspec( dllexport )
@@ -55,8 +56,12 @@ namespace Editor
 	extern "C" DLL_EXPORT void getSelectNavMeshVertexPosition(vx::float3* position);
 	extern "C" DLL_EXPORT void setSelectNavMeshVertexPosition(const vx::float3 &position);
 
-	extern "C" DLL_EXPORT bool selectMesh(s32 x, s32 y);
-	extern "C" DLL_EXPORT void deselectMesh();
+	extern "C" DLL_EXPORT u32 getMeshInstanceCount();
+	extern "C" DLL_EXPORT BSTR getMeshInstanceName(u32 i);
+	extern "C" DLL_EXPORT bool selectMeshInstance(s32 x, s32 y);
+	extern "C" DLL_EXPORT bool selectMeshInstanceIndex(u32 i);
+	extern "C" DLL_EXPORT void deselectMeshInstance();
+	extern "C" DLL_EXPORT BSTR getSelectedMeshInstanceName();
 	extern "C" DLL_EXPORT void updateSelectedMeshInstanceTransform(const vx::float3 &translation);
 
 	extern "C" DLL_EXPORT void createLight();
@@ -69,5 +74,8 @@ namespace Editor
 	extern "C" DLL_EXPORT void showInfluenceMap(bool b);
 
 	extern "C" DLL_EXPORT void addWaypoint(s32 x, s32 y);
+
+	extern "C" DLL_EXPORT u32 getMeshCount();
+	extern "C" DLL_EXPORT BSTR getMeshName(u32 i);
 }
 #endif

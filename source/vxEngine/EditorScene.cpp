@@ -37,7 +37,7 @@ EditorSceneParams::~EditorSceneParams()
 EditorScene::EditorScene()
 	:m_meshInstances(), 
 	m_waypoints(),
-	m_sortedMeshInstances()
+	m_meshInstanceNames()
 {
 
 }
@@ -48,7 +48,8 @@ EditorScene::EditorScene(EditorSceneParams &&params)
 	m_selectableLights(),
 	m_materialNames(std::move(params.m_materialNames)),
 	m_meshNames(std::move(params.m_meshNames)),
-	m_actorNames(std::move(params.m_actorNames))
+	m_actorNames(std::move(params.m_actorNames)),
+	m_meshInstanceNames(std::move(params.m_meshInstanceNames))
 {
 	buildSelectableLights();
 
@@ -82,10 +83,10 @@ EditorScene& EditorScene::operator = (EditorScene &&rhs)
 		std::swap(m_meshInstances, rhs.m_meshInstances);
 		std::swap(m_waypoints, rhs.m_waypoints);
 		std::swap(m_selectableLights, rhs.m_selectableLights);
-		std::swap(m_sortedMeshInstances, rhs.m_sortedMeshInstances);
 		std::swap(m_materialNames, rhs.m_materialNames);
 		std::swap(m_meshNames, rhs.m_meshNames);
 		std::swap(m_actorNames, rhs.m_actorNames);
+		std::swap(m_meshInstanceNames, rhs.m_meshInstanceNames);
 	}
 
 	return *this;
@@ -167,38 +168,21 @@ u8 EditorScene::addMaterial(vx::StringID sid, const char* name, Material* pMater
 	return result;
 }
 
-u8 EditorScene::addMeshInstance(vx::StringID instanceSid, vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform)
-{
-	auto itMesh = m_meshes.find(meshSid);
-	auto itMaterial = m_materials.find(materialSid);
-
-	if (itMesh == m_meshes.end() ||
-		itMaterial == m_materials.end())
-		return 0;
-
-	MeshInstance instance(meshSid, materialSid, transform);
-	m_sortedMeshInstances.insert(instanceSid, std::move(instance));
-
-	m_meshInstances.push_back(instance);
-
-	return 1;
-}
-
 void EditorScene::addWaypoint(const Waypoint &wp)
 {
 	m_waypoints.push_back(wp);
 }
 
-MeshInstance* EditorScene::findMeshInstance(vx::StringID instanceSid)
+const char* EditorScene::getMeshInstanceName(const vx::StringID &sid) const
 {
-	auto it = m_sortedMeshInstances.find(instanceSid);
-	if (it == m_sortedMeshInstances.end())
+	auto it = m_meshInstanceNames.find(sid);
+	if (it == m_meshInstanceNames.end())
 		return nullptr;
 
-	return &(*it);
+	return it->c_str();
 }
 
-const char* EditorScene::getMaterialName(vx::StringID sid) const
+const char* EditorScene::getMaterialName(const vx::StringID &sid) const
 {
 	auto it = m_materialNames.find(sid);
 	if (it == m_materialNames.end())
@@ -207,7 +191,7 @@ const char* EditorScene::getMaterialName(vx::StringID sid) const
 	return it->c_str();
 }
 
-const char* EditorScene::getMeshName(vx::StringID sid) const
+const char* EditorScene::getMeshName(const vx::StringID &sid) const
 {
 	auto it = m_meshNames.find(sid);
 	if (it == m_meshNames.end())
@@ -216,7 +200,7 @@ const char* EditorScene::getMeshName(vx::StringID sid) const
 	return it->c_str();
 }
 
-const char* EditorScene::getActorName(vx::StringID sid) const
+const char* EditorScene::getActorName(const vx::StringID &sid) const
 {
 	auto it = m_actorNames.find(sid);
 	if (it == m_actorNames.end())

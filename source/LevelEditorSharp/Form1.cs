@@ -72,6 +72,7 @@ namespace LevelEditor
         string m_currentSceneFileName;
 
         Dictionary<UInt64, string> m_requestedFiles;
+        Dictionary<string, EditorNodeEntry> m_meshInstances;
 
         public Form1()
         {
@@ -87,6 +88,7 @@ namespace LevelEditor
             groupBoxMesh.Hide();
 
             m_requestedFiles = new Dictionary<ulong, string>();
+            m_meshInstances = new Dictionary<string, EditorNodeEntry>();
 
             loadFileDelegate = new LoadedFileFun(loadedFile);
 
@@ -353,6 +355,28 @@ namespace LevelEditor
                 {
                     m_materialNode.Nodes.Add(new EditorNodeEntry(sid, s_typeMaterial, str));
                 }
+                else if (type == s_typeScene)
+                {
+                    var meshCount = NativeMethods.getMeshCount();
+                    for (uint i = 0; i < meshCount; ++i)
+                    {
+                        var meshName = NativeMethods.getMeshName(i);
+
+                        m_meshNode.Nodes.Add(new EditorNodeEntry(sid, s_typeMesh, meshName));
+                    }
+
+                    var meshInstanceCount = NativeMethods.getMeshInstanceCount();
+                    for (uint i = 0; i < meshInstanceCount; ++i)
+                    {
+                        var meshInstanceName = NativeMethods.getMeshInstanceName(i);
+
+                        var tmp = new EditorNodeEntry(sid, s_typeMeshInstance, meshInstanceName);
+
+                        m_meshInstances.Add(meshInstanceName, tmp);
+
+                        m_meshInstanceNode.Nodes.Add(tmp);
+                    }
+                }
                 else
                 {
                     Console.Write("loaded unknown file type\n");
@@ -434,6 +458,14 @@ namespace LevelEditor
             numericUpDownNavmeshPositionZ.Value = (decimal)translation.z;
         }
 
+        private void getSelectedMeshInstanceTransform()
+        {
+            Float3 translation;
+            translation.x = translation.y = translation.z = 0.0f;
+
+            setNumericUpDownTranslation(translation);
+        }
+
         private void updateTranslation()
         {
             Float3 translation;
@@ -464,20 +496,13 @@ namespace LevelEditor
 
                 if (entry.type == s_typeMeshInstance)
                 {
-                    Float3 translation;
-                    translation.x = translation.y = translation.z = 0.0f;
+                    getSelectedMeshInstanceTransform();
 
-                    Float3 rotation;
-                    rotation.x = rotation.y = rotation.z = 0.0f;
+                    uint index = (uint)entry.Index;
 
-                    float scaling = 1.0f;
+                    NativeMethods.selectMeshInstanceIndex(index);
 
-                    /*if (NativeMethods.getTransform(entry.sid, ref translation, ref rotation, ref scaling) != 0)
-                    {
-                        numericUpDown_translation_x.Value = (decimal)translation.x;
-                        numericUpDown_translation_y.Value = (decimal)translation.y;
-                        numericUpDown_translation_z.Value = (decimal)translation.z;
-                    }*/
+                    textBoxMeshName.Text = NativeMethods.getSelectedMeshInstanceName();
 
                     groupBoxMesh.Show();
                 }
@@ -538,7 +563,16 @@ namespace LevelEditor
         {
             Float3 translation;
             translation.x = translation.y = translation.z = 0.0f;
-            NativeMethods.selectMesh(x, y);
+            if(NativeMethods.selectMeshInstance(x, y))
+            {
+                var instanceName = NativeMethods.getSelectedMeshInstanceName();
+
+                EditorNodeEntry entry;
+                if(m_meshInstances.TryGetValue(instanceName, out entry))
+                {
+                    treeView_entities.SelectedNode = entry;
+                }
+            }
         }
 
         public void selectMesh()
@@ -548,7 +582,7 @@ namespace LevelEditor
 
         public void deselectMesh()
         {
-            NativeMethods.deselectMesh();
+            NativeMethods.deselectMeshInstance();
         }
 
         public void selectNavMeshVertex()

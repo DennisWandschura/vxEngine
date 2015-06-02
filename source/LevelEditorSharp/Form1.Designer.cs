@@ -86,6 +86,7 @@ namespace LevelEditor
             this.groupBoxMesh = new System.Windows.Forms.GroupBox();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.comboBox_selectEditorMode = new System.Windows.Forms.ToolStripComboBox();
+            this.toolStripButtonCreateLight = new System.Windows.Forms.ToolStripButton();
             this.openFileDialog1_loadScene = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog_scene = new System.Windows.Forms.SaveFileDialog();
             this.numericUpDownNavmeshPositionZ = new System.Windows.Forms.NumericUpDown();
@@ -100,7 +101,9 @@ namespace LevelEditor
             this.numericUpDownLightX = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownLightY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownLightZ = new System.Windows.Forms.NumericUpDown();
-            this.toolStripButtonCreateLight = new System.Windows.Forms.ToolStripButton();
+            this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
+            this.label6 = new System.Windows.Forms.Label();
+            this.textBoxMeshName = new System.Windows.Forms.TextBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_x)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_y)).BeginInit();
@@ -126,6 +129,7 @@ namespace LevelEditor
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightX)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightZ)).BeginInit();
+            this.flowLayoutPanel6.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -524,15 +528,16 @@ namespace LevelEditor
             // 
             // groupBoxMesh
             // 
+            this.groupBoxMesh.Controls.Add(this.flowLayoutPanel6);
             this.groupBoxMesh.Controls.Add(this.flowLayoutPanel1);
             this.groupBoxMesh.Controls.Add(this.flowLayoutPanel2);
             this.groupBoxMesh.Controls.Add(this.flowLayoutPanel3);
             this.groupBoxMesh.Location = new System.Drawing.Point(1380, 621);
             this.groupBoxMesh.Name = "groupBoxMesh";
-            this.groupBoxMesh.Size = new System.Drawing.Size(398, 124);
+            this.groupBoxMesh.Size = new System.Drawing.Size(398, 149);
             this.groupBoxMesh.TabIndex = 10;
             this.groupBoxMesh.TabStop = false;
-            this.groupBoxMesh.Text = "Transform";
+            this.groupBoxMesh.Text = "Mesh Instance";
             // 
             // toolStrip1
             // 
@@ -551,6 +556,16 @@ namespace LevelEditor
             this.comboBox_selectEditorMode.Size = new System.Drawing.Size(121, 25);
             this.comboBox_selectEditorMode.SelectedIndexChanged += new System.EventHandler(this.comboBox_selectEditorMode_SelectedIndexChanged);
             this.comboBox_selectEditorMode.Click += new System.EventHandler(this.comboBox_selectEditorMode_Click);
+            // 
+            // toolStripButtonCreateLight
+            // 
+            this.toolStripButtonCreateLight.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonCreateLight.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCreateLight.Image")));
+            this.toolStripButtonCreateLight.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonCreateLight.Name = "toolStripButtonCreateLight";
+            this.toolStripButtonCreateLight.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonCreateLight.Text = "toolStripButton1";
+            this.toolStripButtonCreateLight.Click += new System.EventHandler(this.toolStripButtonCreateLight_Click);
             // 
             // openFileDialog1_loadScene
             // 
@@ -647,7 +662,7 @@ namespace LevelEditor
             // groupBoxNavMesh
             // 
             this.groupBoxNavMesh.Controls.Add(this.flowLayoutPanel4);
-            this.groupBoxNavMesh.Location = new System.Drawing.Point(1380, 760);
+            this.groupBoxNavMesh.Location = new System.Drawing.Point(1386, 910);
             this.groupBoxNavMesh.Name = "groupBoxNavMesh";
             this.groupBoxNavMesh.Size = new System.Drawing.Size(398, 59);
             this.groupBoxNavMesh.TabIndex = 16;
@@ -744,15 +759,36 @@ namespace LevelEditor
             this.numericUpDownLightZ.TabIndex = 14;
             this.numericUpDownLightZ.ValueChanged += new System.EventHandler(this.numericUpDownLightZ_ValueChanged);
             // 
-            // toolStripButtonCreateLight
+            // flowLayoutPanel6
             // 
-            this.toolStripButtonCreateLight.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonCreateLight.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCreateLight.Image")));
-            this.toolStripButtonCreateLight.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonCreateLight.Name = "toolStripButtonCreateLight";
-            this.toolStripButtonCreateLight.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButtonCreateLight.Text = "toolStripButton1";
-            this.toolStripButtonCreateLight.Click += new System.EventHandler(this.toolStripButtonCreateLight_Click);
+            this.flowLayoutPanel6.AutoSize = true;
+            this.flowLayoutPanel6.Controls.Add(this.textBoxMeshName);
+            this.flowLayoutPanel6.Controls.Add(this.label6);
+            this.flowLayoutPanel6.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
+            this.flowLayoutPanel6.Location = new System.Drawing.Point(6, 112);
+            this.flowLayoutPanel6.Name = "flowLayoutPanel6";
+            this.flowLayoutPanel6.Size = new System.Drawing.Size(375, 26);
+            this.flowLayoutPanel6.TabIndex = 19;
+            // 
+            // label6
+            // 
+            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(228, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(38, 26);
+            this.label6.TabIndex = 8;
+            this.label6.Text = "Name:";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // textBoxMeshName
+            // 
+            this.textBoxMeshName.Location = new System.Drawing.Point(272, 3);
+            this.textBoxMeshName.MaxLength = 31;
+            this.textBoxMeshName.Name = "textBoxMeshName";
+            this.textBoxMeshName.Size = new System.Drawing.Size(100, 20);
+            this.textBoxMeshName.TabIndex = 9;
             // 
             // Form1
             // 
@@ -806,6 +842,8 @@ namespace LevelEditor
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightX)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightZ)).EndInit();
+            this.flowLayoutPanel6.ResumeLayout(false);
+            this.flowLayoutPanel6.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -862,6 +900,9 @@ namespace LevelEditor
         private System.Windows.Forms.NumericUpDown numericUpDownLightY;
         private System.Windows.Forms.NumericUpDown numericUpDownLightZ;
         private System.Windows.Forms.ToolStripButton toolStripButtonCreateLight;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
+        private System.Windows.Forms.TextBox textBoxMeshName;
+        private System.Windows.Forms.Label label6;
     }
 }
 

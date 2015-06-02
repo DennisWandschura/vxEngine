@@ -1058,9 +1058,6 @@ void RenderAspect::handleEvent(const vx::Event &evt)
 	case(vx::EventType::File_Event) :
 		handleFileEvent(evt);
 		break;
-	case(vx::EventType::Ingame_Event) :
-		//handleIngameEvent(evt);
-		break;
 	default:
 		break;
 	}

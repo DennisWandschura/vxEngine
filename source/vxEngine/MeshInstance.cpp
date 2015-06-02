@@ -25,14 +25,16 @@ SOFTWARE.
 #include <cstring>
 
 MeshInstance::MeshInstance()
-	:m_meshSid(),
+	:m_nameSid(),
+	m_meshSid(),
 	m_materialSid(),
 	m_transform()
 {
 }
 
-MeshInstance::MeshInstance(vx::StringID meshSid, vx::StringID materialSid, const vx::Transform &transform)
-	:m_meshSid(meshSid),
+MeshInstance::MeshInstance(const vx::StringID &nameSid, const vx::StringID &meshSid, const vx::StringID &materialSid, const vx::Transform &transform)
+	:m_nameSid(nameSid),
+	m_meshSid(meshSid),
 	m_materialSid(materialSid),
 	m_transform(transform)
 {
@@ -46,47 +48,24 @@ void MeshInstance::setTranslation(const vx::float3 &translation)
 #endif
 
 MeshInstanceFile::MeshInstanceFile()
-	:m_mesh(),
+	:m_name(),
+	m_mesh(),
 	m_material(),
 	m_transform()
 {
 }
 
-MeshInstanceFile::MeshInstanceFile(const char(&meshName)[32], const char(&materialName)[32],
+MeshInstanceFile::MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32],
 	const vx::Transform &transform)
-	:m_mesh(),
+	:m_name(),
+	m_mesh(),
 	m_material(),
 	m_transform(transform)
 {
+	strcpy_s(m_name, instanceName);
 	strcpy_s(m_mesh, meshName);
 	strcpy_s(m_material, materialName);
 }
-
-void MeshInstanceFile::load(const u8 *ptr)
-{
-	memcpy(this, ptr, sizeof(MeshInstanceFile));
-}
-
-/*void MeshInstanceFile::load(const YAML::Node &node)
-{
-	auto strMesh = node["mesh"].as<std::string>();
-	auto strMaterial = node["material"].as<std::string>();
-	m_transform.m_translation = node["translation"].as<vx::float3>();
-	m_transform.m_rotation = node["rotation"].as<vx::float3>();
-	m_transform.m_scaling = node["scaling"].as<f32>();
-
-	strncpy(m_mesh, strMesh.data(), strMesh.size());
-	strncpy(m_material, strMaterial.data(), strMaterial.size());
-}
-
-void MeshInstanceFile::save(YAML::Node &node) const
-{
-	node["mesh"] = std::string(m_mesh);
-	node["material"] = std::string(m_material);
-	node["translation"] = m_transform.m_translation;
-	node["rotation"] = m_transform.m_rotation;
-	node["scaling"] = m_transform.m_scaling;
-}*/
 
 const char* MeshInstanceFile::getMeshFile() const noexcept
 {
