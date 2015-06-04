@@ -60,9 +60,16 @@ namespace Editor
 	extern "C" DLL_EXPORT BSTR getMeshInstanceName(u32 i);
 	extern "C" DLL_EXPORT bool selectMeshInstance(s32 x, s32 y);
 	extern "C" DLL_EXPORT bool selectMeshInstanceIndex(u32 i);
+	extern "C" DLL_EXPORT u64 getMeshInstanceSid(u32 i);
 	extern "C" DLL_EXPORT void deselectMeshInstance();
 	extern "C" DLL_EXPORT BSTR getSelectedMeshInstanceName();
-	extern "C" DLL_EXPORT void updateSelectedMeshInstanceTransform(const vx::float3 &translation);
+	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceSid();
+	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceMeshSid();
+	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceMaterialSid();
+
+	extern "C" DLL_EXPORT void setSelectedMeshInstanceTransform(const vx::float3 &translation);
+	extern "C" DLL_EXPORT void setSelectedMeshInstanceMaterial(u64 sid);
+	extern "C" DLL_EXPORT u64 setSelectedMeshInstanceName(const char* name);
 
 	extern "C" DLL_EXPORT void createLight();
 	extern "C" DLL_EXPORT bool selectLight(s32 x, s32 y);
@@ -77,5 +84,10 @@ namespace Editor
 
 	extern "C" DLL_EXPORT u32 getMeshCount();
 	extern "C" DLL_EXPORT BSTR getMeshName(u32 i);
+	extern "C" DLL_EXPORT u64 getMeshSid(u32 i);
+
+	extern "C" DLL_EXPORT u32 getMaterialCount();
+	extern "C" DLL_EXPORT BSTR getMaterialName(u32 i);
+	extern "C" DLL_EXPORT u64 getMaterialSid(u32 i);
 }
 #endif

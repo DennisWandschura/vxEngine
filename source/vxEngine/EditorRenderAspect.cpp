@@ -826,7 +826,7 @@ bool EditorRenderAspect::setSelectedMeshInstance(const MeshInstance* p)
 	return true;
 }
 
-void EditorRenderAspect::updateSelectedMeshInstanceTransform(vx::Transform &transform)
+void EditorRenderAspect::setSelectedMeshInstanceTransform(vx::Transform &transform)
 {
 	if (m_selectedInstance.ptr)
 	{
@@ -834,6 +834,11 @@ void EditorRenderAspect::updateSelectedMeshInstanceTransform(vx::Transform &tran
 
 		m_sceneRenderer.updateTransform(transform, index);
 	}
+}
+
+bool EditorRenderAspect::setSelectedMeshInstanceMaterial(const Material* material) const
+{
+	return m_sceneRenderer.setMeshInstanceMaterial(m_selectedInstance.ptr, material);
 }
 
 void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influenceMap)

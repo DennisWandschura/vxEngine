@@ -672,6 +672,9 @@
     <ClInclude Include="Graphics\CommandListFactory.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Commands\DrawArraysCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -1007,6 +1010,9 @@
     <ClCompile Include="Graphics\CommandListFactory.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\Commands\DrawArraysCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl">
@@ -1277,6 +1283,21 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\editorSelectedMesh.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorSelectedMesh.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\shadow.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\createLightCmdBuffer.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\resetLightCmdBuffer.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\resetLightCmdBuffer.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
   </ItemGroup>

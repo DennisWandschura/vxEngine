@@ -32,14 +32,31 @@ namespace LevelEditor
 {
     class EditorNodeEntry : TreeNode
     {
-        public UInt64 sid;
-       public  UInt32 type;
+        public ulong sid;
+        public uint type;
 
-        public EditorNodeEntry(UInt64 sid, UInt32 type, string text)
+        public EditorNodeEntry(ulong sid, uint type, string text)
             : base(text)
         {
             this.sid = sid;
             this.type = type;
+        }
+    }
+
+    class EditorEntry
+    {
+        string m_text;
+        public ulong m_sid;
+
+        public EditorEntry(string text, ulong sid)
+        {
+            m_text = text;
+            m_sid = sid;
+        }
+
+        public override string ToString()
+        {
+            return m_text;
         }
     }
 }

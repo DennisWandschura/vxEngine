@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,49 +22,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-struct EngineConfig;
-
-namespace gl
-{
-	class ObjectManager;
-}
-
-namespace vx
-{
-	namespace gl
-	{
-		class  ShaderManager;
-	}
-}
-
-#include <vector>
-#include <vxLib/types.h>
+#include "Command.h"
 
 namespace Graphics
 {
-	class Segment;
-
-	class Renderer
+	struct DrawArraysCommand : public Command
 	{
-	protected:
-		static vx::gl::ShaderManager* s_shaderManager;
-		static gl::ObjectManager* s_objectManager;
-		static const EngineConfig* s_settings;
+		u32 m_mode;
+		u32 m_first;
+		u32 m_count;
 
-	public:
-		virtual ~Renderer(){}
+		void set(u32 mode, u32 first, u32 count);
 
-		virtual void initialize() = 0;
-
-		virtual void update() = 0;
-
-		virtual void getSegments(std::vector<std::pair<std::string, Segment>>* segments) = 0;
-
-		virtual void clearData() = 0;
-		virtual void bindBuffers() = 0;
-
-		static void provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, const EngineConfig* settings);
+		void execute(u32* offset) override;
 	};
 }

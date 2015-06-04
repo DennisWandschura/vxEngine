@@ -409,11 +409,14 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 		auto pShadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
 		pShadowRenderer->initialize();
 
-		std::vector<Graphics::Segment> segments;
+		std::vector<std::pair<std::string,Graphics::Segment>> segments;
 		pShadowRenderer->getSegments(&segments);
 		pShadowRenderer->bindBuffers();
 
-		m_commandList.pushSegment(segments.front(), "segmentCreateShadows");
+		for (auto &it : segments)
+		{
+			m_commandList.pushSegment(it.second, it.first.c_str());
+		}
 
 		m_shadowRenderer = std::move(pShadowRenderer);
 		//m_pColdData->m_renderers.push_back(std::move(pShadowRenderer));
@@ -578,6 +581,8 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
 	buffer->subData(0, sizeof(u32), &count);
 
+	m_shadowRenderer->updateDrawCmds();
+
 	*offset += sizeof(Scene*);
 }
 
@@ -650,7 +655,7 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 
-	auto meshInstanceCount = m_sceneRenderer.getMeshInstanceCount();
+	auto instanceCount = m_sceneRenderer.getMeshInstanceCount();
 	auto meshCmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
 	auto meshVao = m_objectManager.getVertexArray("meshVao");
 	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");
@@ -674,6 +679,7 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 		vx::gl::StateManager::bindPipeline(pPipeline->getId());
 		vx::gl::StateManager::bindVertexArray(*meshVao);
 		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, *meshCmdBuffer);
+		//glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, instanceCount, sizeof(vx::gl::DrawElementsIndirectCommand));
 		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
 	}
 	gpuProfiler->popGpuMarker();
@@ -774,6 +780,8 @@ void RenderAspect::bindBuffers()
 	auto transformBuffer = m_objectManager.getBuffer("transformBuffer");
 	auto materialBlockBuffer = m_objectManager.getBuffer("materialBlockBuffer");
 	auto lightDataBuffer = m_objectManager.getBuffer("lightDataBuffer");
+	auto lightCmdBuffer = m_objectManager.getBuffer("lightCmdBuffer");
+	auto meshCmdIndexBuffer = m_objectManager.getBuffer("meshCmdIndexBuffer");
 
 	gl::BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
 	gl::BufferBindingManager::bindBaseUniform(1, lightDataBuffer->getId());
@@ -789,6 +797,8 @@ void RenderAspect::bindBuffers()
 	gl::BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(3, shaderStorageConetracePixelListBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(4, shaderStoragePixelListCmdBuffer->getId());
+	gl::BufferBindingManager::bindBaseShaderStorage(5, lightCmdBuffer->getId());
+	gl::BufferBindingManager::bindBaseShaderStorage(6, meshCmdIndexBuffer->getId());
 }
 
 void RenderAspect::clearTextures()
@@ -1121,7 +1131,11 @@ void RenderAspect::getProjectionMatrix(vx::mat4* m)
 
 u16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene)
 {
-	auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, pScene);
+	vx::gl::DrawElementsIndirectCommand drawCmd;
+	u32 cmdIndex = 0;
+	auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, pScene, &drawCmd, &cmdIndex);
+
+	m_shadowRenderer->updateDrawCmd(drawCmd, cmdIndex);
 
 	auto count = m_sceneRenderer.getMeshInstanceCount();
 	auto buffer = m_objectManager.getBuffer("meshParamBuffer");

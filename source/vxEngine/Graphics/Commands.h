@@ -26,6 +26,7 @@ SOFTWARE.
 #include "Commands/BarrierCommand.h"
 #include "Commands/ClearColorCommand.h"
 #include "Commands/ClearCommand.h"
+#include "Commands/DrawArraysCommand.h"
 #include "Commands/DrawArraysIndirectCommand.h"
 #include "Commands/DrawElementsIndirectCommand.h"
 #include "Commands/FramebufferTextureCommand.h"

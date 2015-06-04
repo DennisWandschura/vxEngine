@@ -49,7 +49,7 @@ namespace LevelEditor
         const string m_libPath = "d:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/lib/";
         const string m_dllName = "vxEngine_d.dll";
 
-        public delegate void LoadFileCallback(UInt64 sid, UInt32 type);
+        public delegate void LoadFileCallback(ulong sid, uint type);
 
         // bool initialize(intptr_t hwndPanel, intptr_t hwndTmp, unsigned int panelSizeX, unsigned int panelSizeY);
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
@@ -112,6 +112,18 @@ namespace LevelEditor
         public unsafe static extern string getMeshInstanceName(uint i);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getMeshInstanceSid(uint i);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getSelectedMeshInstanceSid();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getSelectedMeshInstanceMeshSid();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getSelectedMeshInstanceMaterialSid();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern bool selectMeshInstance(int x, int y);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
@@ -125,7 +137,13 @@ namespace LevelEditor
         public unsafe static extern string getSelectedMeshInstanceName();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void updateSelectedMeshInstanceTransform(ref Float3 translation);
+        public unsafe static extern void setSelectedMeshInstanceTransform(ref Float3 translation);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setSelectedMeshInstanceMaterial(ulong sid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong setSelectedMeshInstanceName(string name);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void showNavmesh(bool b);
@@ -154,5 +172,18 @@ namespace LevelEditor
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.BStr)]
         public unsafe static extern string getMeshName(uint i);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getMeshSid(uint i);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern uint getMaterialCount();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.BStr)]
+        public unsafe static extern string getMaterialName(uint i);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getMaterialSid(uint i);
     }
 }

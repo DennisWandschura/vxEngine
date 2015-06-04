@@ -54,9 +54,9 @@ public:
 	vx::StringID getMaterialSid() const noexcept { return m_materialSid; }
 	const vx::Transform& getTransform() const noexcept { return m_transform; }
 
-#if _VX_EDITOR
 	void setTranslation(const vx::float3 &translation);
-#endif
+	void setMaterialSid(const vx::StringID &sid) { m_materialSid = sid; }
+	void setNameSid(const vx::StringID &sid) { m_nameSid = sid; }
 };
 
 class MeshInstanceFile

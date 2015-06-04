@@ -99,6 +99,8 @@ public:
 	const char* getMeshName(const vx::StringID &sid) const;
 	const char* getActorName(const vx::StringID &sid) const;
 
+	void addMeshInstanceName(const vx::StringID &sid, const std::string &name);
+
 	Spawn* getSpawn(const Ray &ray);
 	Light* getLight(const Ray &ray);
 

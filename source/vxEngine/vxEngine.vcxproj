@@ -204,6 +204,7 @@
     <ClInclude Include="Graphics\Commands\ClearColorCommand.h" />
     <ClInclude Include="Graphics\Commands\ClearCommand.h" />
     <ClInclude Include="Graphics\Commands\Command.h" />
+    <ClInclude Include="Graphics\Commands\DrawArraysCommand.h" />
     <ClInclude Include="Graphics\Commands\DrawArraysIndirectCommand.h" />
     <ClInclude Include="Graphics\Commands\DrawElementsIndirectCommand.h" />
     <ClInclude Include="Graphics\Commands\FramebufferTextureCommand.h" />
@@ -406,6 +407,7 @@
     <ClCompile Include="Graphics\Commands\ClearCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Graphics\Commands\DrawArraysCommand.cpp" />
     <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -712,6 +714,7 @@
     <None Include="..\..\game\data\shaders\programs\coneTrace.vert" />
     <None Include="..\..\game\data\shaders\programs\createConeTraceList.frag" />
     <None Include="..\..\game\data\shaders\programs\createConeTraceList.geom" />
+    <None Include="..\..\game\data\shaders\programs\createLightCmdBuffer.vert" />
     <None Include="..\..\game\data\shaders\programs\drawDynamicMesh.vert" />
     <None Include="..\..\game\data\shaders\programs\drawMesh.vert" />
     <None Include="..\..\game\data\shaders\programs\drawMeshToGBuffer.frag" />
@@ -739,6 +742,7 @@
     <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.vert" />
     <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.frag" />
     <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.vert" />
+    <None Include="..\..\game\data\shaders\programs\editorSelectedMesh.frag" />
     <None Include="..\..\game\data\shaders\programs\graph.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\graph.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\influenceMap.frag" />
@@ -746,10 +750,12 @@
     <None Include="..\..\game\data\shaders\programs\influenceMap.vert" />
     <None Include="..\..\game\data\shaders\programs\navmesh.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\navmesh.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\resetLightCmdBuffer.vert" />
     <None Include="..\..\game\data\shaders\programs\screenquad.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\screenquad.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\screenquad.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\screenquadRay.gs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\shadow.frag" />
     <None Include="..\..\game\data\shaders\programs\shadow.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\shadow.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\text.fs.glsl" />
@@ -762,6 +768,7 @@
     <None Include="..\..\game\data\shaders\programs\voxel_debug.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\voxel_debug.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\voxel_debug.vs.glsl" />
+    <None Include="..\..\game\data\shaders\resetLightCmdBuffer.pipe" />
     <None Include="..\..\game\data\shaders\shadow.pipe" />
     <None Include="..\..\game\data\shaders\shadowVsm.pipe" />
     <None Include="..\..\game\data\shaders\text.pipe" />

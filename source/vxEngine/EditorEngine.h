@@ -85,7 +85,7 @@ class EditorEngine : public vx::EventListener
 	vx::sorted_vector<vx::StringID, std::pair<Editor::LoadFileCallback, u32>> m_requestedFiles;
 
 	// calls the callback provided by editor_loadFile
-	void call_editorCallback(vx::StringID sid);
+	void call_editorCallback(const vx::StringID &sid);
 
 	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);
@@ -127,17 +127,23 @@ public:
 
 	void requestLoadFile(const FileEntry &fileEntry, void* p);
 
-	void updateSelectedMeshInstanceTransform(const vx::float3 &p);
-
 	void setSelectedNavMeshVertexPosition(const vx::float3 &position);
 	vx::float3 getSelectedNavMeshVertexPosition() const;
 
 	u32 getMeshInstanceCount() const;
 	const char* getMeshInstanceName(u32 i) const;
+	u64 getMeshInstanceSid(u32 i) const;
 	const char* getSelectedMeshInstanceName() const;
+	u64 getSelectedMeshInstanceSid() const;
+	u64 getSelectedMeshInstanceMeshSid() const;
+	u64 getSelectedMeshInstanceMaterialSid() const;
 	bool selectMeshInstance(s32 mouseX, s32 mouseY);
 	bool selectMeshInstance(u32 i);
 	void deselectMeshInstance();
+
+	void setSelectedMeshInstanceTransform(const vx::float3 &p);
+	void setSelectedMeshInstanceMaterial(u64 sid) const;
+	u64 setSelectedMeshInstanceName(const char* name);
 
 	bool addNavMeshVertex(s32 mouseX, s32 mouseY);
 	void deleteSelectedNavMeshVertex();
@@ -162,4 +168,9 @@ public:
 
 	u32 getMeshCount() const;
 	const char* getMeshName(u32 i) const;
+	u64 getMeshSid(u32 i) const;
+
+	u32 getMaterialCount() const;
+	const char* getMaterialName(u32 i) const;
+	u64 getMaterialSid(u32 i) const;
 };

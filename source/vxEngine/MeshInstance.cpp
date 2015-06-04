@@ -40,12 +40,10 @@ MeshInstance::MeshInstance(const vx::StringID &nameSid, const vx::StringID &mesh
 {
 }
 
-#if _VX_EDITOR
 void MeshInstance::setTranslation(const vx::float3 &translation)
 {
 	m_transform.m_translation = translation;
 }
-#endif
 
 MeshInstanceFile::MeshInstanceFile()
 	:m_name(),

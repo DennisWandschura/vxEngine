@@ -108,7 +108,8 @@ public:
 	const vx::Camera& getCamera() const;
 
 	bool setSelectedMeshInstance(const MeshInstance* p);
-	void updateSelectedMeshInstanceTransform(vx::Transform &transform);
+	void setSelectedMeshInstanceTransform(vx::Transform &transform);
+	bool setSelectedMeshInstanceMaterial(const Material* material) const;
 
 	void updateNavMeshBuffer(const NavMesh &navMesh, u32(&selectedVertex)[3], u8 selectedCount);
 	void updateNavMeshBuffer(const NavMesh &navMesh);

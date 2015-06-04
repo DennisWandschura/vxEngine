@@ -21,49 +21,43 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-struct EngineConfig;
-
-namespace gl
-{
-	class ObjectManager;
-}
-
-namespace vx
-{
-	namespace gl
-	{
-		class  ShaderManager;
-	}
-}
-
-#include <vector>
-#include <vxLib/types.h>
+#include "DrawArraysCommand.h"
+#include <vxLib/gl/gl.h>
+#include "../Segment.h"
+#include "../../ParserNode.h"
+#include "../CommandFactory.h"
 
 namespace Graphics
 {
-	class Segment;
-
-	class Renderer
+	void createFromNodeDrawArraysCommand(const Parser::Node &node, Segment* segment, void* p)
 	{
-	protected:
-		static vx::gl::ShaderManager* s_shaderManager;
-		static gl::ObjectManager* s_objectManager;
-		static const EngineConfig* s_settings;
+		auto paramsNode = node.get("params");
 
-	public:
-		virtual ~Renderer(){}
+		u32 params[3];
+		paramsNode->as(0, &params[0]);
+		paramsNode->as(1, &params[1]);
+		paramsNode->as(2, &params[2]);
 
-		virtual void initialize() = 0;
+		DrawArraysCommand command;
+		command.set(params[0], params[1], params[2]);
 
-		virtual void update() = 0;
+		segment->pushCommand(command);
+	}
 
-		virtual void getSegments(std::vector<std::pair<std::string, Segment>>* segments) = 0;
+	REGISTER_COMMANDFACTORY(DrawArraysCommand, createFromNodeDrawArraysCommand);
 
-		virtual void clearData() = 0;
-		virtual void bindBuffers() = 0;
+	void DrawArraysCommand::set(u32 mode, u32 first, u32 count)
+	{
+		m_mode = mode;
+		m_first = first;
+		m_count = count;
+	}
 
-		static void provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, const EngineConfig* settings);
-	};
+	void DrawArraysCommand::execute(u32* offset)
+	{
+		glDrawArrays(m_mode, m_first, m_count);
+
+		*offset += sizeof(DrawArraysCommand);
+	}
 }

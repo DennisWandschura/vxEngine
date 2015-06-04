@@ -24,19 +24,35 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace vx
+{
+	namespace gl
+	{
+		struct DrawElementsIndirectCommand;
+	}
+}
+
 #include "Renderer.h"
 #include <vxLib/memory.h>
+#include <vxLib/StringID.h>
 
 namespace Graphics
 {
 	class ShadowRenderer : public Renderer
 	{
-		std::unique_ptr<u32[]> m_shadowTextureIds;
+		std::unique_ptr<u32[]> m_shadowDepthTextureIds;
+		std::unique_ptr<u32[]> m_shadowDiffuseTextureIds;
+		vx::StringID m_lightCmdBufferSid;
 		u32 m_textureCount;
 
 		void createShadowTextureBuffer();
 		void createShadowTextures();
 		void createFramebuffer();
+
+		void createLightDrawCommandBuffers();
+
+		Segment createSegmentResetCmdBuffer() const;
+		Segment createSegmentCullMeshes() const;
 
 	public:
 		ShadowRenderer();
@@ -46,7 +62,10 @@ namespace Graphics
 
 		void update() override;
 
-		void getSegments(std::vector<Segment>* segments) override;
+		void updateDrawCmds();
+		void updateDrawCmd(const vx::gl::DrawElementsIndirectCommand &cmd, u32 index);
+
+		void getSegments(std::vector<std::pair<std::string, Segment>>* segments) override;
 
 		void clearData() override;
 		void bindBuffers() override;

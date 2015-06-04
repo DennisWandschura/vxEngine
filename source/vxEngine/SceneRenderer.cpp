@@ -201,7 +201,7 @@ void SceneRenderer::createMeshCmdBuffer()
 	vx::gl::BufferDescription meshCmdDesc;
 	meshCmdDesc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
 	meshCmdDesc.immutable = 1;
-	meshCmdDesc.flags = vx::gl::BufferStorageFlags::Write;
+	meshCmdDesc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Read;
 
 	meshCmdDesc.size = sizeof(vx::gl::DrawElementsIndirectCommand) * (s_meshMaxInstancesDynamic + s_meshMaxInstancesStatic);
 	m_pObjectManager->createBuffer("meshCmdBuffer", meshCmdDesc);
@@ -212,6 +212,15 @@ void SceneRenderer::createMeshCmdBuffer()
 	meshCmdDesc.size = sizeof(u32) * 2;
 	meshCmdDesc.pData = &count;
 	m_pObjectManager->createBuffer("meshParamBuffer", meshCmdDesc);
+
+	{
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+		desc.size = sizeof(u32) *(s_meshMaxInstancesDynamic + s_meshMaxInstancesStatic);
+		desc.immutable = 1;
+		desc.flags = vx::gl::BufferStorageFlags::Write;
+		m_pObjectManager->createBuffer("meshCmdIndexBuffer", desc);
+	}
 }
 
 void SceneRenderer::createMeshTransformBuffer()
@@ -291,7 +300,7 @@ void SceneRenderer::createMaterial(Material* pMaterial)
 	pMaterial->setTextures(std::move(albedoRef), std::move(normalRef), std::move(surfaceRef));
 }
 
-u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &material, const Scene* pScene)
+u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &material, const Scene* pScene, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex)
 {
 	auto itMesh = m_coldData->m_meshEntries.find(meshSid);
 	VX_ASSERT(itMesh != m_coldData->m_meshEntries.end());
@@ -344,14 +353,20 @@ u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::St
 	// create transform and draw command
 	auto materialIndex = *itMaterial;
 
-	u32 elementId = m_dynamicMeshInstanceCount;
-	u16 index = m_dynamicMeshInstanceCount;
+	auto instanceCount = m_staticMeshInstanceCount + m_dynamicMeshInstanceCount;
+	u32 elementId = s_meshMaxInstancesStatic + m_dynamicMeshInstanceCount;
+	u16 index = instanceCount;
 
 	updateTransform(transform, elementId);
 	writeMeshInstanceIdBuffer(elementId, materialIndex);
 
 	auto cmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
-	writeMeshInstanceToCommandBuffer(*itMesh, index, elementId, nullptr, cmdBuffer);
+	writeMeshInstanceToCommandBuffer(*itMesh, index, elementId, drawCmd, cmdBuffer);
+	*cmdIndex = index;
+
+	auto meshParamBuffer = m_pObjectManager->getBuffer("meshParamBuffer");
+	auto mappedParamBuffer = meshParamBuffer->map<u32>(vx::gl::Map::Write_Only);
+	*mappedParamBuffer = instanceCount;
 
 	++m_dynamicMeshInstanceCount;
 
@@ -374,13 +389,12 @@ void SceneRenderer::updateTransform(const vx::Transform &transform, u32 elementI
 
 void SceneRenderer::updateTransform(const vx::TransformGpu &transform, u32 elementId)
 {
-	//auto offset = sizeof(vx::TransformGpu) * elementId;
-	//m_coldData->m_transformBlock.subData(offset, sizeof(vx::TransformGpu), &transform);
+	auto offset = sizeof(vx::TransformGpu) * elementId;
 
 	auto transformBlockBuffer = m_pObjectManager->getBuffer("transformBuffer");
 
-	auto pTransforms = transformBlockBuffer->map<vx::TransformGpu>(vx::gl::Map::Write_Only);
-	vx::memcpy(pTransforms.get() + elementId, transform);
+	auto pTransforms = transformBlockBuffer->mapRange<vx::TransformGpu>(offset, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
+	*pTransforms = transform;
 	pTransforms.unmap();
 }
 
@@ -564,7 +578,7 @@ void SceneRenderer::updateLightBuffer(const Light *pLights, u32 lightCount, cons
 	vx::memcpy(shadowTransformsMappedBuffer.get(), shadowTransforms);
 }
 
-void SceneRenderer::writeMeshInstanceIdBuffer(u32 elementId, u32 materialIndex)
+void SceneRenderer::writeMeshInstanceIdBuffer(u32 elementId, u32 materialIndex) const
 {
 	auto drawId = elementId | (materialIndex << 16);
 	auto pMeshId = m_coldData->m_meshIdVbo.map<u32>(vx::gl::Map::Write_Only);
@@ -585,6 +599,10 @@ void SceneRenderer::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, u32 in
 
 	auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
 	mappedCmdBuffer[index] = cmd;
+
+	auto meshCmdIndexBuffer = m_pObjectManager->getBuffer("meshCmdIndexBuffer");
+	auto mappedMeshCmdIndexBuffer = meshCmdIndexBuffer->map<u32>(vx::gl::Map::Write_Only);
+	mappedMeshCmdIndexBuffer[elementId] = index;
 }
 
 void addMeshToGpu(u32* vertexOffset, u32* indexOffset)
@@ -679,6 +697,34 @@ TextureRef SceneRenderer::loadTexture(const char* file)
 	return ref;
 }
 
+u32 SceneRenderer::getMaterialIndex(const Material* material) const
+{
+	u32 index = 0;
+
+	auto it = m_coldData->m_materialIndices.find(material);
+	if (it != m_coldData->m_materialIndices.end())
+	{
+		index = *it;
+	}
+
+	return index;
+}
+
+bool SceneRenderer::setMeshInstanceMaterial(const MeshInstance *instance, const Material* material) const
+{
+	auto materialIndex = getMaterialIndex(material);
+	bool result = false;
+
+	auto itCmd = m_coldData->m_instanceCmds.find(instance);
+	if (itCmd != m_coldData->m_instanceCmds.end())
+	{
+		writeMeshInstanceIdBuffer(itCmd->baseInstance, materialIndex);
+		result = true;
+	}
+
+	return result;
+}
+
 u16 SceneRenderer::getActorGpuIndex()
 {
 	u32 elementId = s_meshMaxInstancesStatic + m_dynamicMeshInstanceCount++;
@@ -705,4 +751,14 @@ vx::gl::DrawElementsIndirectCommand SceneRenderer::getDrawCommand(const MeshInst
 u32 SceneRenderer::getLightCount() const
 {
 	return m_coldData->m_lightBufferManager.getLightCount();
+}
+
+const MeshEntry* SceneRenderer::getMeshEntries() const
+{
+	return m_coldData->m_meshEntries.data();
+}
+
+u32 SceneRenderer::getMeshEntryCount() const
+{
+	return m_coldData->m_meshEntries.size();
 }

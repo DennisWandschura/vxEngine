@@ -222,13 +222,13 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		//VX_ASSERT(pMaterial != nullptr);
 		//m_renderAspect.editor_addMaterial(sid, pStr->c_str(), pMaterial);
 
-		call_editorCallback(evt.arg1.u64);
+		//call_editorCallback(vx::StringID(evt.arg1.u64));
 
 		//delete(pStr);
 	}break;
 	case vx::FileEvent::Scene_Loaded:
 		vx::verboseChannelPrintF(0, dev::Channel_Editor, "Loaded Scene");
-		call_editorCallback(evt.arg2.u64);
+		call_editorCallback(vx::StringID(evt.arg2.u64));
 
 		buildNavGraph();
 		break;
@@ -321,7 +321,7 @@ void EditorEngine::editor_rotateCamera(f32 dirX, f32 dirY, f32 dirZ)
 	m_renderAspect.editor_rotateCamera(v);
 }
 
-void EditorEngine::call_editorCallback(vx::StringID sid)
+void EditorEngine::call_editorCallback(const vx::StringID &sid)
 {
 	std::lock_guard<std::mutex> guard(m_editorMutex);
 	auto it = m_requestedFiles.find(sid);
@@ -392,6 +392,19 @@ const char* EditorEngine::getMeshInstanceName(u32 i) const
 	return nullptr;
 }
 
+u64 EditorEngine::getMeshInstanceSid(u32 i) const
+{
+	u64 sidValue = 0;
+
+	if (m_pEditorScene)
+	{
+		auto meshInstances = m_pEditorScene->getMeshInstances();
+		sidValue = meshInstances[i].getNameSid().value;
+	}
+
+	return sidValue;
+}
+
 const char* EditorEngine::getSelectedMeshInstanceName() const
 {
 	auto meshInstance = (MeshInstance*)m_selected.m_item;
@@ -401,6 +414,45 @@ const char* EditorEngine::getSelectedMeshInstanceName() const
 		name = m_pEditorScene->getMeshInstanceName(meshInstance->getNameSid());
 	}
 	return name;
+}
+
+u64 EditorEngine::getSelectedMeshInstanceSid() const
+{
+	u64 sidValue = 0;
+
+	auto meshInstance = (MeshInstance*)m_selected.m_item;
+	if (meshInstance)
+	{
+		sidValue = meshInstance->getNameSid().value;
+	}
+
+	return sidValue;
+}
+
+u64 EditorEngine::getSelectedMeshInstanceMeshSid() const
+{
+	u64 sidValue = 0;
+
+	auto meshInstance = (MeshInstance*)m_selected.m_item;
+	if (meshInstance)
+	{
+		sidValue = meshInstance->getMeshSid().value;
+	}
+
+	return sidValue;
+}
+
+u64 EditorEngine::getSelectedMeshInstanceMaterialSid() const
+{
+	u64 sidValue = 0;
+
+	auto meshInstance = (MeshInstance*)m_selected.m_item;
+	if (meshInstance)
+	{
+		sidValue = meshInstance->getMaterialSid().value;
+	}
+
+	return sidValue;
 }
 
 bool EditorEngine::selectMeshInstance(s32 x, s32 y)
@@ -449,14 +501,59 @@ void EditorEngine::deselectMeshInstance()
 	}
 }
 
-void EditorEngine::updateSelectedMeshInstanceTransform(const vx::float3 &p)
+void EditorEngine::setSelectedMeshInstanceMaterial(u64 sid) const
+{
+	if (m_pEditorScene && m_selected.m_item)
+	{
+		auto meshInstance = (MeshInstance*)m_selected.m_item;
+
+		auto &sceneMaterials = m_pEditorScene->getMaterials();
+		auto it = sceneMaterials.find(vx::StringID(sid));
+		if (it != sceneMaterials.end())
+		{
+			if (m_renderAspect.setSelectedMeshInstanceMaterial(*it))
+			{
+				meshInstance->setMaterialSid(vx::StringID(sid));
+			}
+		}
+	}
+}
+
+void EditorEngine::setSelectedMeshInstanceTransform(const vx::float3 &p)
 {
 	vx::Transform transform;
 	transform.m_translation = p;
 	transform.m_rotation = vx::float3(0.0f);
 	transform.m_scaling = 1.0f;
 
-	m_renderAspect.updateSelectedMeshInstanceTransform(transform);
+	if (m_pEditorScene && m_selected.m_item)
+	{
+		auto meshInstance = (MeshInstance*)m_selected.m_item;
+		meshInstance->setTranslation(transform.m_translation);
+
+		m_renderAspect.setSelectedMeshInstanceTransform(transform);
+	}
+}
+
+u64 EditorEngine::setSelectedMeshInstanceName(const char* name)
+{
+	vx::StringID sid;
+
+	if (m_pEditorScene && m_selected.m_item)
+	{
+		auto meshInstance = (MeshInstance*)m_selected.m_item;
+
+		sid = vx::make_sid(name);
+
+		if (meshInstance->getNameSid() != sid)
+		{
+			meshInstance->setNameSid(sid);
+
+			m_pEditorScene->addMeshInstanceName(sid, std::string(name));
+		}
+	}
+
+	return sid.value;
 }
 
 bool EditorEngine::addNavMeshVertex(s32 mouseX, s32 mouseY)
@@ -741,4 +838,61 @@ const char* EditorEngine::getMeshName(u32 i) const
 	}
 
 	return meshName;
+}
+
+u64 EditorEngine::getMeshSid(u32 i) const
+{
+	u64 sidValue = 0;
+
+	if (m_pEditorScene)
+	{
+		auto &meshes = m_pEditorScene->getMeshes();
+		auto sid = meshes.keys()[i];
+
+		sidValue = sid.value;
+	}
+
+	return sidValue;
+}
+
+u32 EditorEngine::getMaterialCount() const
+{
+	u32 count = 0;
+
+	if (m_pEditorScene)
+	{
+		count = m_pEditorScene->getMaterialCount();
+	}
+
+	return count;
+}
+
+const char* EditorEngine::getMaterialName(u32 i) const
+{
+	const char* name = nullptr;
+
+	if (m_pEditorScene)
+	{
+		auto &materials = m_pEditorScene->getMaterials();
+		auto sid = materials.keys()[i];
+
+		name = m_pEditorScene->getMaterialName(sid);
+	}
+
+	return name;
+}
+
+u64 EditorEngine::getMaterialSid(u32 i) const
+{
+	u64 sidValue = 0;
+
+	if (m_pEditorScene)
+	{
+		auto &materials = m_pEditorScene->getMaterials();
+		auto sid = materials.keys()[i];
+
+		sidValue = sid.value;
+	}
+
+	return sidValue;
 }

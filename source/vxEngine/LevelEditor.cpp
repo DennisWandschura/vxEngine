@@ -212,6 +212,11 @@ namespace Editor
 		}
 	}
 
+	u64 getMeshInstanceSid(u32 i)
+	{
+		return g_pEditor->engine.getMeshInstanceSid(i);
+	}
+
 	bool selectMeshInstance(s32 x, s32 y)
 	{
 		return g_pEditor->engine.selectMeshInstance(x, y);
@@ -232,9 +237,34 @@ namespace Editor
 		return ANSItoBSTR(g_pEditor->engine.getSelectedMeshInstanceName());
 	}
 
-	void updateSelectedMeshInstanceTransform(const vx::float3 &translation)
+	u64 getSelectedMeshInstanceSid()
 	{
-		g_pEditor->engine.updateSelectedMeshInstanceTransform(translation);
+		return g_pEditor->engine.getSelectedMeshInstanceSid();
+	}
+
+	u64 getSelectedMeshInstanceMeshSid()
+	{
+		return g_pEditor->engine.getSelectedMeshInstanceMeshSid();
+	}
+
+	u64 getSelectedMeshInstanceMaterialSid()
+	{
+		return g_pEditor->engine.getSelectedMeshInstanceMaterialSid();
+	}
+
+	void setSelectedMeshInstanceTransform(const vx::float3 &translation)
+	{
+		g_pEditor->engine.setSelectedMeshInstanceTransform(translation);
+	}
+
+	void setSelectedMeshInstanceMaterial(u64 sid)
+	{
+		g_pEditor->engine.setSelectedMeshInstanceMaterial(sid);
+	}
+
+	u64 setSelectedMeshInstanceName(const char* name)
+	{
+		return g_pEditor->engine.setSelectedMeshInstanceName(name);
 	}
 
 	void createLight()
@@ -292,8 +322,37 @@ namespace Editor
 		}
 		else
 		{
-			return ::SysAllocString(L"mesh");
+			return ::SysAllocString(L"unknownMesh");
 		}
+	}
+
+	u64 getMeshSid(u32 i)
+	{
+		return g_pEditor->engine.getMeshSid(i);
+	}
+
+	u32 getMaterialCount()
+	{
+		return g_pEditor->engine.getMaterialCount();
+	}
+
+	BSTR getMaterialName(u32 i)
+	{
+		auto name = g_pEditor->engine.getMaterialName(i);
+
+		if (name)
+		{
+			return ANSItoBSTR(name);
+		}
+		else
+		{
+			return ::SysAllocString(L"unknownMaterial");
+		}
+	}
+
+	u64 getMaterialSid(u32 i)
+	{
+		return g_pEditor->engine.getMaterialSid(i);
 	}
 }
 #endif

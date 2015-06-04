@@ -209,6 +209,15 @@ const char* EditorScene::getActorName(const vx::StringID &sid) const
 	return it->c_str();
 }
 
+void EditorScene::addMeshInstanceName(const vx::StringID &sid, const std::string &name)
+{
+	auto it = m_meshInstanceNames.find(sid);
+	if (it == m_meshInstanceNames.end())
+	{
+		m_meshInstanceNames.insert(sid, std::move(name));
+	}
+}
+
 const MeshInstance* EditorScene::getMeshInstances() const
 {
 	return m_meshInstances.data();
