@@ -44,6 +44,7 @@ struct SceneFile::CreateSceneMeshInstancesDesc
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
 	MeshInstance* pMeshInstances;
+	vx::sorted_vector<vx::StringID, MeshInstance>* sortedMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 	vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
@@ -63,6 +64,7 @@ struct SceneFile::CreateSceneShared
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
 	MeshInstance* pMeshInstances;
+	vx::sorted_vector<vx::StringID, MeshInstance>* sortedMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
@@ -161,14 +163,54 @@ u32 SceneFile::getNumMeshInstances() const noexcept
 
 bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc)
 {
+	struct InstanceInserter
+	{
+		typedef void(InstanceInserter::*InserterFun)(const MeshInstance &instance, u32 i);
+
+		InserterFun m_fp;
+		MeshInstance* m_instances;
+		vx::sorted_vector<vx::StringID, MeshInstance>* m_sortedInstances;
+
+		InstanceInserter(const CreateSceneMeshInstancesDesc &desc)
+			:m_instances(desc.pMeshInstances),
+			m_sortedInstances(desc.sortedMeshInstances)
+		{
+			if (m_instances == nullptr)
+			{
+				m_fp = insertSorted;
+			}
+			else
+			{
+				m_fp = insertArray;
+			}
+		}
+
+		void insertArray(const MeshInstance &instance, u32 i)
+		{
+			m_instances[i] = instance;
+		}
+
+		void insertSorted(const MeshInstance &instance, u32 i)
+		{
+			m_sortedInstances->insert(instance.getNameSid(), instance);
+		}
+
+		void operator()(const MeshInstance &instance, u32 i)
+		{
+			(this->*m_fp)(instance, i);
+		}
+	};
+
+	InstanceInserter instanceInserter(desc);
+
 	for (auto i = 0u; i < m_meshInstanceCount; ++i)
 	{
 		std::string genName = "instance" + std::to_string(i);
 
-		auto &instance = m_pMeshInstances[i];
-		auto name = instance.getName();
-		auto meshFile = instance.getMeshFile();
-		auto materialFile = instance.getMaterialFile();
+		auto &instanceFile = m_pMeshInstances[i];
+		auto name = instanceFile.getName();
+		auto meshFile = instanceFile.getMeshFile();
+		auto materialFile = instanceFile.getMaterialFile();
 
 		if (name[0] == '\0')
 			name = genName.c_str();
@@ -187,7 +229,8 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 		desc.sceneMeshes->insert(sidMesh, *itMesh);
 		desc.sceneMaterials->insert(sidMaterial, *itMaterial);
 
-		desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, sidMaterial, instance.getTransform());
+		auto instance = MeshInstance(sidName, sidMesh, sidMaterial, instanceFile.getTransform());;
+		instanceInserter(instance, i);
 
 		if (desc.sceneMeshInstanceNames)
 		{
@@ -238,6 +281,7 @@ bool SceneFile::createSceneShared(const CreateSceneShared &desc)
 {
 	CreateSceneMeshInstancesDesc createMeshInstancesDesc;
 	createMeshInstancesDesc.pMeshInstances = desc.pMeshInstances;
+	createMeshInstancesDesc.sortedMeshInstances = desc.sortedMeshInstances;
 	createMeshInstancesDesc.sceneMaterials = desc.sceneMaterials;
 	createMeshInstancesDesc.sceneMeshes = desc.sceneMeshes;
 	createMeshInstancesDesc.sortedMaterials = desc.sortedMaterials;
@@ -342,14 +386,16 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 	vx::sorted_vector<vx::StringID, Actor> sceneActors;
 	vx::sorted_vector<vx::StringID, std::string> sceneMeshInstanceNames;
-	std::vector<MeshInstance> meshInstances(m_meshInstanceCount);
+	vx::sorted_vector<vx::StringID, MeshInstance> meshInstances;
+	meshInstances.reserve(m_meshInstanceCount);
 	auto sceneSpawns = vx::make_unique<Spawn[]>(m_spawnCount);
 
 	u32 vertexCount = 0;
 	u32 indexCount = 0;
 
 	CreateSceneShared sharedDesc;
-	sharedDesc.pMeshInstances = meshInstances.data();
+	sharedDesc.pMeshInstances = nullptr;
+	sharedDesc.sortedMeshInstances = &meshInstances;
 	sharedDesc.sceneMaterials = &sceneMaterials;
 	sharedDesc.sceneMeshes = &sceneMeshes;
 	sharedDesc.sceneActors = &sceneActors;

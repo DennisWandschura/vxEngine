@@ -358,7 +358,7 @@ vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY)
 	return ray_world;
 }
 
-MeshInstance* EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition)
+vx::StringID EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition)
 {
 	auto ray_world = getRayDir(mouseX, mouseY);
 
@@ -455,18 +455,26 @@ u64 EditorEngine::getSelectedMeshInstanceMaterialSid() const
 	return sidValue;
 }
 
+void EditorEngine::getSelectMeshInstancePosition(vx::float3* position)
+{
+	auto meshInstance = (MeshInstance*)m_selected.m_item;
+	auto &transform = meshInstance->getTransform();
+	*position = transform.m_translation;
+}
+
 bool EditorEngine::selectMeshInstance(s32 x, s32 y)
 {
 	bool result = false;
 	if (m_pEditorScene)
 	{
 		vx::float3 p;
-		auto ptr = raytraceAgainstStaticMeshes(x, y, &p);
-		if (ptr != nullptr)
+		auto sid = raytraceAgainstStaticMeshes(x, y, &p);
+		if (sid.value != 0)
 		{
+			auto ptr = m_pEditorScene->getMeshInstance(sid);
 			m_renderAspect.setSelectedMeshInstance(ptr);
 			m_selected.m_type = SelectedType::MeshInstance;
-			m_selected.m_item = ptr;
+			m_selected.m_item = (void*)ptr;
 
 			result = true;
 		}
@@ -501,6 +509,46 @@ void EditorEngine::deselectMeshInstance()
 	}
 }
 
+void EditorEngine::createMeshInstance()
+{
+	if (m_pEditorScene)
+	{
+		auto selectedInstance = (MeshInstance*)m_selected.m_item;
+
+		vx::StringID selectedSid;
+		if (selectedInstance)
+			selectedSid = selectedInstance->getNameSid();
+
+		auto instance = m_pEditorScene->createMeshInstance();
+		m_renderAspect.createMeshInstance(instance);
+
+		m_physicsAspect.editorAddMeshInstance(instance);
+
+		if (selectedSid.value != 0)
+		{
+			auto newSelectedInstance = m_pEditorScene->getMeshInstance(selectedSid);
+
+			m_renderAspect.setSelectedMeshInstance(newSelectedInstance);
+			m_selected.m_type = SelectedType::MeshInstance;
+			m_selected.m_item = (void*)newSelectedInstance;
+		}
+	}
+}
+
+void EditorEngine::removeSelectedMeshInstance()
+{
+	if (m_pEditorScene && m_selected.m_item)
+	{
+		if (m_renderAspect.removeSelectedMeshInstance())
+		{
+			auto meshInstance = (MeshInstance*)m_selected.m_item;
+			m_pEditorScene->removeMeshInstance(meshInstance->getNameSid());
+
+			deselectMeshInstance();
+		}
+	}
+}
+
 void EditorEngine::setSelectedMeshInstanceMaterial(u64 sid) const
 {
 	if (m_pEditorScene && m_selected.m_item)
@@ -532,6 +580,7 @@ void EditorEngine::setSelectedMeshInstanceTransform(const vx::float3 &p)
 		meshInstance->setTranslation(transform.m_translation);
 
 		m_renderAspect.setSelectedMeshInstanceTransform(transform);
+		m_physicsAspect.editorSetStaticMeshInstancePosition(meshInstance->getNameSid(), p);
 	}
 }
 
@@ -559,15 +608,16 @@ u64 EditorEngine::setSelectedMeshInstanceName(const char* name)
 bool EditorEngine::addNavMeshVertex(s32 mouseX, s32 mouseY)
 {
 	vx::float3 hitPos;
-	auto ptr = raytraceAgainstStaticMeshes(mouseX, mouseY, &hitPos);
-	if (ptr)
+	auto sid = raytraceAgainstStaticMeshes(mouseX, mouseY, &hitPos);
+	if (sid.value != 0)
 	{
+		auto ptr = m_pEditorScene->getMeshInstance(sid);
 		auto &navMesh = m_pEditorScene->getNavMesh();
 		navMesh.addVertex(hitPos);
 		m_renderAspect.updateNavMeshBuffer(navMesh);
 	}
 
-	return ptr != nullptr;
+	return sid.value != 0;
 }
 
 void EditorEngine::deleteSelectedNavMeshVertex()
@@ -810,12 +860,12 @@ void EditorEngine::showInfluenceMap(bool b)
 
 void EditorEngine::addWaypoint(s32 mouseX, s32 mouseY)
 {
-	vx::float3 hitPos;
-	auto ptr = raytraceAgainstStaticMeshes(mouseX, mouseY, &hitPos);
-	if (ptr)
+	/*vx::float3 hitPos;
+	auto sid = raytraceAgainstStaticMeshes(mouseX, mouseY, &hitPos);
+	if (sid.value != 0)
 	{
 		// todo
-	}
+	}*/
 }
 
 u32 EditorEngine::getMeshCount() const

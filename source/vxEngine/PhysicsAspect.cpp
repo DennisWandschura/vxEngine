@@ -53,7 +53,6 @@ PhysicsAspect::PhysicsAspect(FileAspect &fileAspect)
 	m_pActorMaterial(nullptr),
 	m_pPhysics(nullptr),
 	m_mutex(),
-	m_triangleMeshInstances(),
 	m_physxMeshes(),
 	m_physxMaterials(),
 	m_staticMeshInstances(),
@@ -182,7 +181,7 @@ void PhysicsAspect::handleFileEvent(const vx::Event &evt)
 	}
 }
 
-MeshInstance* PhysicsAspect::raycast_static(const vx::float4a &origin, const vx::float4a &dir, f32 maxDistance, vx::float3* hitPosition) const
+vx::StringID PhysicsAspect::raycast_static(const vx::float4a &origin, const vx::float4a &dir, f32 maxDistance, vx::float3* hitPosition) const
 {
 	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
 	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
@@ -196,7 +195,7 @@ MeshInstance* PhysicsAspect::raycast_static(const vx::float4a &origin, const vx:
 	m_pScene->raycast(rayOrigin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData);
 
 	u8 result = hit.hasBlock;
-	MeshInstance* ptr = nullptr;
+	vx::StringID sid;
 	if (result != 0)
 	{
 		hitPosition->x = hit.block.position.x;
@@ -204,17 +203,18 @@ MeshInstance* PhysicsAspect::raycast_static(const vx::float4a &origin, const vx:
 		hitPosition->z = hit.block.position.z;
 
 		auto pActor = hit.block.actor;
-		ptr = (MeshInstance*)pActor->userData;
+		auto sidptr = (vx::StringID*)&pActor->userData;
+		sid.value = sidptr->value;
 	}
 
-	return ptr;
+	return sid;
 }
 
-bool PhysicsAspect::editorGetStaticMeshInstancePosition(const MeshInstance* ptr, vx::float3* p) const
+bool PhysicsAspect::editorGetStaticMeshInstancePosition(const vx::StringID &sid, vx::float3* p) const
 {
 	bool result = false;
 
-	auto it = m_staticMeshInstances.find(ptr);
+	auto it = m_staticMeshInstances.find(sid);
 	if (it != m_staticMeshInstances.end())
 	{
 		physx::PxTransform transform = (*it)->getGlobalPose();
@@ -229,9 +229,9 @@ bool PhysicsAspect::editorGetStaticMeshInstancePosition(const MeshInstance* ptr,
 	return result;
 }
 
-void PhysicsAspect::editorSetStaticMeshInstancePosition(const MeshInstance* ptr, const vx::float3 &p)
+void PhysicsAspect::editorSetStaticMeshInstancePosition(const vx::StringID &sid, const vx::float3 &p)
 {
-	auto it = m_staticMeshInstances.find(ptr);
+	auto it = m_staticMeshInstances.find(sid);
 	if (it != m_staticMeshInstances.end())
 	{
 		physx::PxTransform transform = (*it)->getGlobalPose();
@@ -241,6 +241,55 @@ void PhysicsAspect::editorSetStaticMeshInstancePosition(const MeshInstance* ptr,
 
 		(*it)->setGlobalPose(transform);
 	}
+}
+
+void PhysicsAspect::editorAddMeshInstance(const MeshInstance* ptr)
+{
+	if (ptr)
+		addMeshInstance(*ptr);
+}
+
+void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
+{
+	auto instanceSid = meshInstance.getNameSid();
+	auto meshSid = meshInstance.getMeshSid();
+	auto instanceTransform = meshInstance.getTransform();
+
+	auto qRotation = vx::loadFloat(instanceTransform.m_rotation);
+	qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
+
+	physx::PxTransform transform;
+	transform.p.x = instanceTransform.m_translation.x;
+	transform.p.y = instanceTransform.m_translation.y;
+	transform.p.z = instanceTransform.m_translation.z;
+	_mm_storeu_ps(&transform.q.x, qRotation);
+	/*transform.q.x = qRotation.m128_f32[0];
+	transform.q.y = qRotation.m128_f32[1];
+	transform.q.z = qRotation.m128_f32[2];
+	transform.q.w = qRotation.m128_f32[3];*/
+
+	assert(transform.isValid());
+
+	auto itPhysxTriangleMesh = m_physxMeshes.find(meshSid);
+	assert(itPhysxTriangleMesh != m_physxMeshes.end());
+
+	auto itPhysxMaterial = m_physxMaterials.find(meshInstance.getMaterialSid());
+
+	//auto isActor = meshInstance.isActor();
+
+	auto pmat = *itPhysxMaterial;
+
+	// static
+	auto pShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*itPhysxTriangleMesh), *pmat);
+	auto pRigidStatic = m_pPhysics->createRigidStatic(transform);
+	pRigidStatic->attachShape(*pShape);
+
+	auto sidptr = (vx::StringID*)&pRigidStatic->userData;
+	sidptr->value = instanceSid.value;
+
+	m_staticMeshInstances.insert(instanceSid, pRigidStatic);
+
+	m_pScene->addActor(*pRigidStatic);
 }
 
 void PhysicsAspect::processScene(const Scene* pScene)
@@ -278,45 +327,7 @@ void PhysicsAspect::processScene(const Scene* pScene)
 
 	for (auto i = 0u; i < numInstances; ++i)
 	{
-		auto &meshInstance = pMeshInstances[i];
-		auto meshSid = meshInstance.getMeshSid();
-		auto instanceTransform = meshInstance.getTransform();
-
-		auto qRotation = vx::loadFloat(instanceTransform.m_rotation);
-		qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
-
-		physx::PxTransform transform;
-		transform.p.x = instanceTransform.m_translation.x;
-		transform.p.y = instanceTransform.m_translation.y;
-		transform.p.z = instanceTransform.m_translation.z;
-		_mm_storeu_ps(&transform.q.x, qRotation);
-		/*transform.q.x = qRotation.m128_f32[0];
-		transform.q.y = qRotation.m128_f32[1];
-		transform.q.z = qRotation.m128_f32[2];
-		transform.q.w = qRotation.m128_f32[3];*/
-
-		assert(transform.isValid());
-
-		auto itPhysxTriangleMesh = m_physxMeshes.find(meshSid);
-		assert(itPhysxTriangleMesh != m_physxMeshes.end());
-
-		auto itPhysxMaterial = m_physxMaterials.find(meshInstance.getMaterialSid());
-
-		//auto isActor = meshInstance.isActor();
-
-		auto pmat = *itPhysxMaterial;
-
-		// static
-		auto pShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*itPhysxTriangleMesh), *pmat);
-		auto pRigidStatic = m_pPhysics->createRigidStatic(transform);
-		pRigidStatic->attachShape(*pShape);
-		pRigidStatic->userData = (void*)&meshInstance;
-
-		m_staticMeshInstances.insert(&meshInstance, pRigidStatic);
-
-		m_pScene->addActor(*pRigidStatic);
-
-		m_triangleMeshInstances.push_back(*itPhysxTriangleMesh);
+		addMeshInstance(pMeshInstances[i]);
 	}
 
 	m_pScene->unlockWrite();

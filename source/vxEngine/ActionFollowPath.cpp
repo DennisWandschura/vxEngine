@@ -30,6 +30,7 @@ ActionFollowPath::ActionFollowPath(EntityActor* entity, Component::Input* compon
 	:m_componentInput(componentInput),
 	m_entity(entity),
 	m_arrive(),
+	m_lookWhereYoureGoing(componentInput),
 	m_actor(actor),
 	m_arrived(false)
 {
@@ -58,10 +59,15 @@ void ActionFollowPath::run()
 		}
 		else
 		{
-			//memcpy(&m_componentInput->velocity, &steering.velocity, sizeof(vx::float3));
 			m_componentInput->velocity.x = steering.velocity.x;
 			m_componentInput->velocity.y = steering.velocity.y;
 			m_componentInput->velocity.z = steering.velocity.z;
+
+			m_lookWhereYoureGoing.getSteering(&steering);
+
+			//memcpy(&m_componentInput->velocity, &steering.velocity, sizeof(vx::float3));
+
+			m_componentInput->orientation.x = steering.angular;
 		}
 	}
 }

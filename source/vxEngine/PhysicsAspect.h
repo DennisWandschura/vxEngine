@@ -81,10 +81,9 @@ class PhysicsAspect : public vx::EventListener
 	physx::PxMaterial* m_pActorMaterial{ nullptr };
 	physx::PxPhysics *m_pPhysics;
 	std::mutex m_mutex;
-	std::vector<const physx::PxTriangleMesh*> m_triangleMeshInstances;
 	vx::sorted_vector<vx::StringID, physx::PxTriangleMesh*> m_physxMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxMaterial*> m_physxMaterials;
-	vx::sorted_vector<const MeshInstance*, physx::PxRigidStatic*> m_staticMeshInstances;
+	vx::sorted_vector<vx::StringID, physx::PxRigidStatic*> m_staticMeshInstances;
 	physx::PxFoundation *m_pFoundation;
 	physx::PxDefaultCpuDispatcher* m_pCpuDispatcher;
 	physx::PxCooking* m_pCooking;
@@ -95,6 +94,8 @@ class PhysicsAspect : public vx::EventListener
 	//////////////// handle Events
 	void handleFileEvent(const vx::Event &evt);
 	////////////////
+
+	void addMeshInstance(const MeshInstance &instance);
 
 public:
 	explicit PhysicsAspect(FileAspect &fileAspect);
@@ -112,8 +113,9 @@ public:
 	void move(const vx::float4a &velocity, f32 dt, physx::PxController* pController);
 	void setPosition(const vx::float3 &position, physx::PxController* pController);
 
-	MeshInstance* raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition) const;
+	vx::StringID raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition) const;
 
-	bool editorGetStaticMeshInstancePosition(const MeshInstance* ptr, vx::float3* p) const;
-	void editorSetStaticMeshInstancePosition(const MeshInstance* ptr, const vx::float3 &p);
+	bool editorGetStaticMeshInstancePosition(const vx::StringID &sid, vx::float3* p) const;
+	void editorSetStaticMeshInstancePosition(const vx::StringID &sid, const vx::float3 &p);
+	void editorAddMeshInstance(const MeshInstance* ptr);
 };

@@ -221,6 +221,7 @@
     <ClInclude Include="Graphics\StaticMeshRenderer.h" />
     <ClInclude Include="Graphics\Surface.h" />
     <ClInclude Include="input\Keys.h" />
+    <ClInclude Include="LookWhereYoureGoing.h" />
     <ClInclude Include="ParserConverter.h" />
     <ClInclude Include="ParserNode.h" />
     <ClInclude Include="PseudoRandom.h" />
@@ -432,6 +433,7 @@
     <ClCompile Include="Graphics\Commands\ViewportCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="LookWhereYoureGoing.cpp" />
     <ClCompile Include="ParserNode.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

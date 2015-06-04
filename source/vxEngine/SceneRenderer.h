@@ -93,6 +93,7 @@ class SceneRenderer
 
 	void createMaterial(Material* pMaterial);
 
+	void addMeshInstance(const MeshInstance *instance, const vx::gl::Buffer* cmdBuffer, const MeshEntry &meshEntry, u16 elementId, u32 materialIndex);
 	void writeMaterialToBuffer(const Material *pMaterial, u32 offset);
 	void writeMeshToBuffer(const WriteMeshToBufferDesc &desc);
 	void writeMeshesToGpuBuffer(const WriteMeshesToGpuBufferDesc &desc);
@@ -114,12 +115,12 @@ public:
 	TextureRef loadTexture(const char* file);
 
 	u32 getMaterialIndex(const Material* material) const;
-	bool setMeshInstanceMaterial(const MeshInstance *instance, const Material* material) const;
+	bool setMeshInstanceMaterial(const vx::StringID &sid, const Material* material) const;
 
 	u16 getActorGpuIndex();
 
 	u32 getMeshInstanceCount() const { return m_staticMeshInstanceCount + m_dynamicMeshInstanceCount; }
-	vx::gl::DrawElementsIndirectCommand getDrawCommand(const MeshInstance* p) const;
+	vx::gl::DrawElementsIndirectCommand getDrawCommand(const vx::StringID &sid) const;
 
 	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex);
 	void updateTransform(const vx::Transform &t, u32 elementId);
@@ -130,4 +131,7 @@ public:
 
 	const MeshEntry* getMeshEntries() const;
 	u32 getMeshEntryCount() const;
+
+	void editorCreateMeshInstance(const MeshInstance* instance);
+	bool editorRemoveStaticMeshInstance(const vx::StringID &sid);
 };

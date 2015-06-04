@@ -252,6 +252,11 @@ namespace Editor
 		return g_pEditor->engine.getSelectedMeshInstanceMaterialSid();
 	}
 
+	void getSelectMeshInstancePosition(vx::float3* position)
+	{
+		g_pEditor->engine.getSelectMeshInstancePosition(position);
+	}
+
 	void setSelectedMeshInstanceTransform(const vx::float3 &translation)
 	{
 		g_pEditor->engine.setSelectedMeshInstanceTransform(translation);
@@ -265,6 +270,16 @@ namespace Editor
 	u64 setSelectedMeshInstanceName(const char* name)
 	{
 		return g_pEditor->engine.setSelectedMeshInstanceName(name);
+	}
+
+	void createMeshInstance()
+	{
+		g_pEditor->engine.createMeshInstance();
+	}
+
+	void removeSelectedMeshInstance()
+	{
+		g_pEditor->engine.removeSelectedMeshInstance();
 	}
 
 	void createLight()

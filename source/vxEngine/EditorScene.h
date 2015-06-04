@@ -38,7 +38,7 @@ namespace vx
 struct EditorSceneParams
 {
 	SceneBaseParams m_baseParams;
-	std::vector<MeshInstance> m_meshInstances;
+	vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
 	std::vector<Waypoint> m_waypoints;
 	vx::sorted_vector<vx::StringID, std::string> m_materialNames;
 	vx::sorted_vector<vx::StringID, std::string> m_meshNames;
@@ -61,7 +61,7 @@ class EditorScene : public SceneBase
 		SelectableWrapper() :m_bounds(), m_ptr(nullptr){}
 	};
 
-	std::vector<MeshInstance> m_meshInstances;
+	vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
 	std::vector<Waypoint> m_waypoints;
 	std::vector<SelectableWrapper<Light>> m_selectableLights;
 	std::vector<SelectableWrapper<Spawn>> m_selectableSpawns;
@@ -91,6 +91,7 @@ public:
 	// returns 1 on insert, 0 if mesh or material is missing
 	void addWaypoint(const Waypoint &wp);
 
+	const MeshInstance* getMeshInstance(const vx::StringID &sid) const;
 	const MeshInstance* getMeshInstances() const override;
 	u32 getMeshInstanceCount() const override;
 
@@ -100,6 +101,8 @@ public:
 	const char* getActorName(const vx::StringID &sid) const;
 
 	void addMeshInstanceName(const vx::StringID &sid, const std::string &name);
+	const MeshInstance* createMeshInstance();
+	void removeMeshInstance(const vx::StringID &sid);
 
 	Spawn* getSpawn(const Ray &ray);
 	Light* getLight(const Ray &ray);

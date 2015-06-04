@@ -23,18 +23,28 @@ SOFTWARE.
 */
 #pragma once
 
-struct EntityActor;
+namespace Component
+{
+	struct Input;
+}
 
+#include "Steering.h"
 #include <vxLib/math/Vector.h>
 
-struct Align
+class Align : public Steering
 {
-	EntityActor* m_pCharacter;
-	EntityActor* m_pTarget;
+protected:
+	Component::Input* m_pCharacter;
+	Component::Input* m_pTarget;
 	f32 m_maxAngularAcceleration;
 	f32 m_maxRotation;
 	f32 m_targetRadius;
 	f32 m_slowRadius;
 
-	void update(vx::float2* orientation);
+public:
+	Align(Component::Input* character, Component::Input* target);
+
+	virtual bool getSteering(SteeringOutput* output) override;
+
+	void setTarget(Component::Input* target);
 };

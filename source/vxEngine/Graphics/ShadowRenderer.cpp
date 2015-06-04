@@ -141,12 +141,12 @@ namespace Graphics
 		auto fbo = s_objectManager->getFramebuffer(sid);
 
 		//fbo->attachTexture(vx::gl::Attachment::Color0, m_shadowDiffuseTextureIds[0], 0);
-		fbo->attachTexture(vx::gl::Attachment::Depth, m_shadowDepthTextureIds[0], 0);
+		//fbo->attachTexture(vx::gl::Attachment::Depth, m_shadowDepthTextureIds[0], 0);
 
 		glNamedFramebufferDrawBuffer(fbo->getId(), GL_NONE);
 
-		auto status = fbo->checkStatus();
-		VX_ASSERT(status == GL_FRAMEBUFFER_COMPLETE);
+		//auto status = fbo->checkStatus();
+		//VX_ASSERT(status == GL_FRAMEBUFFER_COMPLETE);
 	}
 
 	void ShadowRenderer::createLightDrawCommandBuffers()
@@ -347,9 +347,6 @@ namespace Graphics
 			Graphics::FramebufferTextureCommand fbDepthTexCmd;
 			fbDepthTexCmd.set(fbo->getId(), GL_DEPTH_ATTACHMENT, m_shadowDepthTextureIds[i], 0);
 
-			//Graphics::FramebufferTextureCommand fbDiffuseTexCmd;
-			//fbDiffuseTexCmd.set(fbo->getId(), GL_COLOR_ATTACHMENT0, m_shadowDiffuseTextureIds[i], 0);
-
 			Graphics::ClearCommand clearCmd;
 			clearCmd.set(GL_DEPTH_BUFFER_BIT);
 
@@ -357,7 +354,6 @@ namespace Graphics
 			drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT, maxMeshInstances, cmdOffset);
 
 			segmentCreateShadowmap.pushCommand(fbDepthTexCmd);
-			//segmentCreateShadowmap.pushCommand(fbDiffuseTexCmd);
 			segmentCreateShadowmap.pushCommand(clearCmd);
 			segmentCreateShadowmap.pushCommand(uniformCmd, i);
 			segmentCreateShadowmap.pushCommand(drawCmd);

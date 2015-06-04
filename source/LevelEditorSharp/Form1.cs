@@ -228,7 +228,12 @@ namespace LevelEditor
             DecisionEditorMouseButtonPressed decisionMouseLeftButton = new DecisionEditorMouseButtonPressed(stateSelectLight, decisionMouseRightButton, this, MouseButtons.Left);
             ActionDecisionTree actionOnMouseClick = new ActionDecisionTree(decisionMouseLeftButton);
 
+            ActionCallFunction actionShowGui = new ActionCallFunction(showLightGui);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideLightGui);
+
+            stateEditLights.addEntryAction(actionShowGui);
             stateEditLights.addAction(actionOnMouseClick);
+            stateEditLights.addExitAction(actionHideGui);
             stateEditLights.addExitAction(actionDeselectLight);
 
             return stateEditLights;
@@ -238,11 +243,16 @@ namespace LevelEditor
         {
             ActionDeselectMesh actionDeselectMesh = new ActionDeselectMesh(this);
 
+            ActionCallFunction actionShowGui = new ActionCallFunction(showMeshGui);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideMeshGui);
+
             State stateEditMesh = new State();
 
             var actionOnMouseClick = createActionOnMouseClickMesh(stateEditMesh, actionDeselectMesh);
 
+            stateEditMesh.addEntryAction(actionShowGui);
             stateEditMesh.addAction(actionOnMouseClick);
+            stateEditMesh.addExitAction(actionHideGui);
             stateEditMesh.addExitAction(actionDeselectMesh);
 
             return stateEditMesh;
@@ -285,7 +295,22 @@ namespace LevelEditor
             m_selectItemStateMachine.addState(stateEditMesh);
             m_selectItemStateMachine.addState(stateEditLights);
 
-            m_selectItemStateMachine.setCurrentState(stateEditNavMesh);
+            State emptyState = new State();
+            emptyState.addTransition(transitionEditMesh);
+            emptyState.addTransition(transitionEditNavMesh);
+            emptyState.addTransition(transitionEditLights);
+
+            m_selectItemStateMachine.setCurrentState(emptyState);
+        }
+
+        void showLightGui()
+        {
+            toolStripButtonCreateLight.Visible = true;
+
+        }
+            void hideLightGui()
+        {
+            toolStripButtonCreateLight.Visible = false;
         }
 
         void getSelectedLightPosition()
@@ -494,9 +519,14 @@ namespace LevelEditor
 
         void setNumericUpDownTranslation(Float3 translation)
         {
-            numericUpDown_translation_x.Value = (decimal)translation.x;
-            numericUpDown_translation_y.Value = (decimal)translation.y;
-            numericUpDown_translation_z.Value = (decimal)translation.z;
+            //if (numericUpDown_translation_x.Value != (decimal)translation.x)
+                numericUpDown_translation_x.Value = (decimal)translation.x;
+
+            //if (numericUpDown_translation_y.Value != (decimal)translation.y)
+                numericUpDown_translation_y.Value = (decimal)translation.y;
+
+           // if (numericUpDown_translation_z.Value != (decimal)translation.z)
+                numericUpDown_translation_z.Value = (decimal)translation.z;
         }
 
         void setNumericUpDownNavMeshPosition(Float3 translation)
@@ -510,6 +540,8 @@ namespace LevelEditor
         {
             Float3 translation;
             translation.x = translation.y = translation.z = 0.0f;
+
+            NativeMethods.getSelectMeshInstancePosition(ref translation);
 
             setNumericUpDownTranslation(translation);
         }
@@ -533,6 +565,16 @@ namespace LevelEditor
             {
                 meshInstanceComboBoxMaterial.SelectedItem = entry;
             }
+        }
+
+        void showMeshGui()
+        {
+            toolStripButtonCreateMeshInstance.Visible = true;
+        }
+
+        void hideMeshGui()
+        {
+            toolStripButtonCreateMeshInstance.Visible = false;
         }
 
         private void updateTranslation()
@@ -611,7 +653,7 @@ namespace LevelEditor
 
         private void panel_render_MouseEnter(object sender, EventArgs e)
         {
-            //panel_render.Focus();
+            panel_render.Focus();
         }
 
         private void selectMesh(int x, int y)
@@ -638,6 +680,8 @@ namespace LevelEditor
         public void deselectMesh()
         {
             NativeMethods.deselectMeshInstance();
+            treeView_entities.SelectedNode = null;
+            groupBoxMesh.Hide();
         }
 
         public void selectNavMeshVertex()
@@ -1008,6 +1052,12 @@ namespace LevelEditor
         private void textBoxMeshName_MouseLeave(object sender, EventArgs e)
         {
             label6.Focus();
+        }
+
+        private void toolStripButtonCreateMeshInstance_Click(object sender, EventArgs e)
+        {
+            NativeMethods.createMeshInstance();
+            addSceneMeshInstances();
         }
     }
 }

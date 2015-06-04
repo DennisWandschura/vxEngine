@@ -94,7 +94,7 @@ class EditorEngine : public vx::EventListener
 
 	vx::float4a getRayDir(s32 mouseX, s32 mouseY);
 
-	MeshInstance* raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition);
+	vx::StringID raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition);
 
 	void createStateMachine();
 
@@ -137,9 +137,13 @@ public:
 	u64 getSelectedMeshInstanceSid() const;
 	u64 getSelectedMeshInstanceMeshSid() const;
 	u64 getSelectedMeshInstanceMaterialSid() const;
+	void getSelectMeshInstancePosition(vx::float3* position);
 	bool selectMeshInstance(s32 mouseX, s32 mouseY);
 	bool selectMeshInstance(u32 i);
 	void deselectMeshInstance();
+
+	void createMeshInstance();
+	void removeSelectedMeshInstance();
 
 	void setSelectedMeshInstanceTransform(const vx::float3 &p);
 	void setSelectedMeshInstanceMaterial(u64 sid) const;

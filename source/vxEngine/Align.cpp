@@ -22,9 +22,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Align.h"
-#include "Entity.h"
+#include "ComponentInput.h"
 
-void Align::update(vx::float2* orientation)
+Align::Align(Component::Input* character, Component::Input* target)
+	:m_pCharacter(character),
+	m_pTarget(target),
+	m_maxAngularAcceleration(1.0f),
+	m_maxRotation(3.14f),
+	m_targetRadius(0.5f),
+	m_slowRadius(0.1f)
+{
+
+}
+
+bool Align::getSteering(SteeringOutput* output)
 {
 	const f32 timeToTarget = 0.1f;
 
@@ -35,7 +46,7 @@ void Align::update(vx::float2* orientation)
 	auto rotSz = abs(rotation.x);
 
 	if (rotSz < m_targetRadius)
-		return;
+		return false;
 
 	f32 targetRotation = m_maxRotation;
 	if (rotSz <= m_slowRadius)
@@ -55,5 +66,12 @@ void Align::update(vx::float2* orientation)
 		angular *= m_maxAngularAcceleration;
 	}
 
-	orientation->x = angular;
+	output->angular = angular;
+
+	return true;
+}
+
+void Align::setTarget(Component::Input* target)
+{
+	m_pTarget = target;
 }

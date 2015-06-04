@@ -35,12 +35,14 @@ struct EntityActor;
 #include <vector>
 #include <vxLib/math/Vector.h>
 #include "Arrive.h"
+#include "LookWhereYoureGoing.h"
 
 class ActionFollowPath : public Action
 {
 	Component::Input* m_componentInput;
 	EntityActor* m_entity;
 	Arrive m_arrive;
+	LookWhereYoureGoing m_lookWhereYoureGoing;
 	Component::Actor* m_actor;
 
 	bool m_arrived;

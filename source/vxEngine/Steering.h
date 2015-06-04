@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,18 +22,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
-
-namespace Component
-{
-	struct Input;
-}
 
 #include <vxLib/math/Vector.h>
 
 struct SteeringOutput
 {
-	vx::float3 velocity;
+	vx::float3 velocity{};
 	f32 angular{0.0f};
 };
 

@@ -28,6 +28,7 @@ SOFTWARE.
 #include "Actor.h"
 #include "Light.h"
 #include "Spawn.h"
+#include <string>
 
 EditorSceneParams::~EditorSceneParams()
 {
@@ -114,10 +115,6 @@ void EditorScene::buildSelectableLights()
 
 void EditorScene::sortMeshInstances()
 {
-	std::sort(m_meshInstances.begin(), m_meshInstances.end(), [&](const MeshInstance &lhs, const MeshInstance &rhs)
-	{
-		return (lhs.getMeshSid() < rhs.getMeshSid());
-	});
 }
 
 Light* EditorScene::addLight(const Light &light)
@@ -216,6 +213,45 @@ void EditorScene::addMeshInstanceName(const vx::StringID &sid, const std::string
 	{
 		m_meshInstanceNames.insert(sid, std::move(name));
 	}
+}
+
+const MeshInstance* EditorScene::createMeshInstance()
+{
+	std::string instanceName = "instance" + std::to_string(m_meshInstances.size());
+	auto nameSid = vx::make_sid(instanceName.c_str());
+
+	auto meshSid = *m_meshes.keys();
+	auto materialSid = *m_materials.keys();
+	
+	vx::Transform transform;
+	MeshInstance instance(nameSid, meshSid, materialSid, transform);
+
+	addMeshInstanceName(nameSid, instanceName);
+
+	auto it = m_meshInstances.insert(nameSid, instance);
+
+	return &*it;
+}
+
+void EditorScene::removeMeshInstance(const vx::StringID &sid)
+{
+	auto itName = m_meshInstanceNames.find(sid);
+	if (itName != m_meshInstanceNames.end())
+		m_meshInstanceNames.erase(itName);
+
+	auto it = m_meshInstances.find(sid);
+	if (it != m_meshInstances.end())
+		m_meshInstances.erase(it);
+}
+
+const MeshInstance* EditorScene::getMeshInstance(const vx::StringID &sid) const
+{
+	const MeshInstance* p = nullptr;
+	auto it = m_meshInstances.find(sid);
+	if (it != m_meshInstances.end())
+		p = &*it;
+
+	return p;
 }
 
 const MeshInstance* EditorScene::getMeshInstances() const

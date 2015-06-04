@@ -44,6 +44,7 @@ SOFTWARE.
 #include "SegmentFactory.h"
 #include "Graphics/CommandListFactory.h"
 #include "EngineConfig.h"
+#include "MeshInstance.h"
 
 struct VertexNavMesh
 {
@@ -807,11 +808,11 @@ const vx::Camera& EditorRenderAspect::getCamera() const
 	return m_camera;
 }
 
-bool EditorRenderAspect::setSelectedMeshInstance(const MeshInstance* p)
+bool EditorRenderAspect::setSelectedMeshInstance(const MeshInstance* instance)
 {
-	if (p)
+	if (instance)
 	{
-		auto cmd = m_sceneRenderer.getDrawCommand(p);
+		auto cmd = m_sceneRenderer.getDrawCommand(instance->getNameSid());
 
 		if (cmd.count == 0)
 		{
@@ -821,7 +822,7 @@ bool EditorRenderAspect::setSelectedMeshInstance(const MeshInstance* p)
 		m_selectedInstance.cmd = cmd;
 	}
 
-	m_selectedInstance.ptr = p;
+	m_selectedInstance.ptr = instance;
 
 	return true;
 }
@@ -838,7 +839,17 @@ void EditorRenderAspect::setSelectedMeshInstanceTransform(vx::Transform &transfo
 
 bool EditorRenderAspect::setSelectedMeshInstanceMaterial(const Material* material) const
 {
-	return m_sceneRenderer.setMeshInstanceMaterial(m_selectedInstance.ptr, material);
+	return m_sceneRenderer.setMeshInstanceMaterial(m_selectedInstance.ptr->getNameSid(), material);
+}
+
+void EditorRenderAspect::createMeshInstance(const MeshInstance* instance)
+{
+	m_sceneRenderer.editorCreateMeshInstance(instance);
+}
+
+bool EditorRenderAspect::removeSelectedMeshInstance()
+{
+	return m_sceneRenderer.editorRemoveStaticMeshInstance(m_selectedInstance.ptr->getNameSid());
 }
 
 void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influenceMap)

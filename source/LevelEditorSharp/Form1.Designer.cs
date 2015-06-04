@@ -97,6 +97,7 @@ namespace LevelEditor
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.comboBox_selectEditorMode = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripButtonCreateLight = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonCreateMeshInstance = new System.Windows.Forms.ToolStripButton();
             this.openFileDialog1_loadScene = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog_scene = new System.Windows.Forms.SaveFileDialog();
             this.numericUpDownNavmeshPositionZ = new System.Windows.Forms.NumericUpDown();
@@ -606,6 +607,7 @@ namespace LevelEditor
             // 
             // meshInstanceComboBoxMesh
             // 
+            this.meshInstanceComboBoxMesh.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.meshInstanceComboBoxMesh.FormattingEnabled = true;
             this.meshInstanceComboBoxMesh.Location = new System.Drawing.Point(45, 3);
             this.meshInstanceComboBoxMesh.Name = "meshInstanceComboBoxMesh";
@@ -637,6 +639,7 @@ namespace LevelEditor
             // 
             // meshInstanceComboBoxMaterial
             // 
+            this.meshInstanceComboBoxMaterial.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.meshInstanceComboBoxMaterial.FormattingEnabled = true;
             this.meshInstanceComboBoxMaterial.Location = new System.Drawing.Point(53, 3);
             this.meshInstanceComboBoxMaterial.Name = "meshInstanceComboBoxMaterial";
@@ -660,7 +663,8 @@ namespace LevelEditor
             // 
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.comboBox_selectEditorMode,
-            this.toolStripButtonCreateLight});
+            this.toolStripButtonCreateLight,
+            this.toolStripButtonCreateMeshInstance});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1904, 25);
@@ -669,6 +673,7 @@ namespace LevelEditor
             // 
             // comboBox_selectEditorMode
             // 
+            this.comboBox_selectEditorMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_selectEditorMode.Name = "comboBox_selectEditorMode";
             this.comboBox_selectEditorMode.Size = new System.Drawing.Size(121, 25);
             this.comboBox_selectEditorMode.SelectedIndexChanged += new System.EventHandler(this.comboBox_selectEditorMode_SelectedIndexChanged);
@@ -681,8 +686,20 @@ namespace LevelEditor
             this.toolStripButtonCreateLight.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonCreateLight.Name = "toolStripButtonCreateLight";
             this.toolStripButtonCreateLight.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButtonCreateLight.Text = "toolStripButton1";
+            this.toolStripButtonCreateLight.Text = "Create Light";
+            this.toolStripButtonCreateLight.Visible = false;
             this.toolStripButtonCreateLight.Click += new System.EventHandler(this.toolStripButtonCreateLight_Click);
+            // 
+            // toolStripButtonCreateMeshInstance
+            // 
+            this.toolStripButtonCreateMeshInstance.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonCreateMeshInstance.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCreateMeshInstance.Image")));
+            this.toolStripButtonCreateMeshInstance.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonCreateMeshInstance.Name = "toolStripButtonCreateMeshInstance";
+            this.toolStripButtonCreateMeshInstance.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonCreateMeshInstance.Text = "Create Mesh Instance";
+            this.toolStripButtonCreateMeshInstance.Visible = false;
+            this.toolStripButtonCreateMeshInstance.Click += new System.EventHandler(this.toolStripButtonCreateMeshInstance_Click);
             // 
             // openFileDialog1_loadScene
             // 
@@ -1001,6 +1018,7 @@ namespace LevelEditor
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel7;
         private System.Windows.Forms.ComboBox meshInstanceComboBoxMaterial;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.ToolStripButton toolStripButtonCreateMeshInstance;
     }
 }
 

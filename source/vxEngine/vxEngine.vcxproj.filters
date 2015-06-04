@@ -675,6 +675,9 @@
     <ClInclude Include="Graphics\Commands\DrawArraysCommand.h">
       <Filter>Header Files\Render\Graphics\Commands</Filter>
     </ClInclude>
+    <ClInclude Include="LookWhereYoureGoing.h">
+      <Filter>Header Files\AI\Steering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -1012,6 +1015,9 @@
     </ClCompile>
     <ClCompile Include="Graphics\Commands\DrawArraysCommand.cpp">
       <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="LookWhereYoureGoing.cpp">
+      <Filter>Source Files\AI\Steering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

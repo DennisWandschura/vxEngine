@@ -60,8 +60,9 @@ struct SceneRenderer::ColdData
 	TextureManager m_textureManager;
 	vx::sorted_vector<const Material*, u32> m_materialIndices;
 	vx::sorted_vector<vx::StringID, MeshEntry> m_meshEntries;
-	vx::sorted_vector<const MeshInstance*, vx::gl::DrawElementsIndirectCommand> m_instanceCmds;
+	vx::sorted_vector<vx::StringID, vx::gl::DrawElementsIndirectCommand> m_instanceCmds;
 	vx::sorted_vector<u64, u32> m_texturesGPU;
+	std::vector<vx::gl::DrawElementsIndirectCommand> m_staticDrawCommands;
 };
 
 struct SceneRenderer::WriteMeshesToGpuBufferDesc
@@ -605,9 +606,20 @@ void SceneRenderer::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, u32 in
 	mappedMeshCmdIndexBuffer[elementId] = index;
 }
 
-void addMeshToGpu(u32* vertexOffset, u32* indexOffset)
+void SceneRenderer::addMeshInstance(const MeshInstance *instance, const vx::gl::Buffer* cmdBuffer,const MeshEntry &meshEntry, u16 elementId, u32 materialIndex)
 {
+	auto transform = instance->getTransform();
+	transform.m_rotation = vx::degToRad(transform.m_rotation);
 
+	updateTransform(transform, elementId);
+	writeMeshInstanceIdBuffer(elementId, materialIndex);
+
+	vx::gl::DrawElementsIndirectCommand cmd;
+	writeMeshInstanceToCommandBuffer(meshEntry, elementId, elementId, &cmd, cmdBuffer);
+
+	m_coldData->m_staticDrawCommands.push_back(cmd);
+
+	m_coldData->m_instanceCmds.insert(instance->getNameSid(), cmd);
 }
 
 void SceneRenderer::updateBuffers(const MeshInstance *pInstances, u32 instanceCount, const vx::sorted_vector<const Material*, u32> &materialIndices, const vx::sorted_vector<vx::StringID, MeshEntry> &meshEntries)
@@ -624,6 +636,8 @@ void SceneRenderer::updateBuffers(const MeshInstance *pInstances, u32 instanceCo
 
 	auto cmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
 
+	m_coldData->m_staticDrawCommands.reserve(instanceCount);
+
 	for (auto i = 0u; i < instanceCount; ++i)
 	{
 		auto currentMeshSid = pInstances[i].getMeshSid();
@@ -634,16 +648,7 @@ void SceneRenderer::updateBuffers(const MeshInstance *pInstances, u32 instanceCo
 
 		u16 elementId = i;
 
-		auto transform = pInstances[i].getTransform();
-		transform.m_rotation = vx::degToRad(transform.m_rotation);
-
-		updateTransform(transform, elementId);
-		writeMeshInstanceIdBuffer(elementId, materialIndex);
-
-		vx::gl::DrawElementsIndirectCommand cmd;
-		writeMeshInstanceToCommandBuffer(*meshEntry, elementId, elementId, &cmd, cmdBuffer);
-
-		m_coldData->m_instanceCmds.insert(&pInstances[i], cmd);
+		addMeshInstance(&pInstances[i], cmdBuffer, *meshEntry, elementId, materialIndex);
 
 		++totalInstanceCount;
 	}
@@ -710,12 +715,12 @@ u32 SceneRenderer::getMaterialIndex(const Material* material) const
 	return index;
 }
 
-bool SceneRenderer::setMeshInstanceMaterial(const MeshInstance *instance, const Material* material) const
+bool SceneRenderer::setMeshInstanceMaterial(const vx::StringID &sid, const Material* material) const
 {
 	auto materialIndex = getMaterialIndex(material);
 	bool result = false;
 
-	auto itCmd = m_coldData->m_instanceCmds.find(instance);
+	auto itCmd = m_coldData->m_instanceCmds.find(sid);
 	if (itCmd != m_coldData->m_instanceCmds.end())
 	{
 		writeMeshInstanceIdBuffer(itCmd->baseInstance, materialIndex);
@@ -734,12 +739,12 @@ u16 SceneRenderer::getActorGpuIndex()
 	return elementId;
 }
 
-vx::gl::DrawElementsIndirectCommand SceneRenderer::getDrawCommand(const MeshInstance* p) const
+vx::gl::DrawElementsIndirectCommand SceneRenderer::getDrawCommand(const vx::StringID &sid) const
 {
 	vx::gl::DrawElementsIndirectCommand cmd;
 	cmd.count = 0;
 
-	auto it = m_coldData->m_instanceCmds.find(p);
+	auto it = m_coldData->m_instanceCmds.find(sid);
 	if (it != m_coldData->m_instanceCmds.end())
 	{
 		cmd = *it;
@@ -761,4 +766,61 @@ const MeshEntry* SceneRenderer::getMeshEntries() const
 u32 SceneRenderer::getMeshEntryCount() const
 {
 	return m_coldData->m_meshEntries.size();
+}
+
+void SceneRenderer::editorCreateMeshInstance(const MeshInstance* newInstance)
+{
+	auto pFileAspect = Locator::getFileAspect();
+	auto currentMeshSid = newInstance->getMeshSid();
+	auto meshEntry = m_coldData->m_meshEntries.find(currentMeshSid);
+
+	auto pCurrentMaterial = pFileAspect->getMaterial(newInstance->getMaterialSid());
+	auto materialIndex = *m_coldData->m_materialIndices.find(pCurrentMaterial);
+
+	u16 elementId = m_staticMeshInstanceCount;
+
+	auto cmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
+	addMeshInstance(newInstance, cmdBuffer, *meshEntry, elementId, materialIndex);
+
+	++m_staticMeshInstanceCount;
+
+	auto meshParamBuffer = m_pObjectManager->getBuffer("meshParamBuffer");
+	auto mappedMeshParamBuffer = meshParamBuffer->map<u32>(vx::gl::Map::Write_Only);
+	*mappedMeshParamBuffer = m_staticMeshInstanceCount;
+}
+
+bool SceneRenderer::editorRemoveStaticMeshInstance(const vx::StringID &sid)
+{
+	bool result = false;
+
+	auto it = m_coldData->m_instanceCmds.find(sid);
+	if (it != m_coldData->m_instanceCmds.end())
+	{
+		auto cmdIndex = it->baseInstance;
+		m_coldData->m_instanceCmds.erase(it);
+		--m_staticMeshInstanceCount;
+
+		auto meshCmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
+		auto meshParamBuffer = m_pObjectManager->getBuffer("meshParamBuffer");
+
+		auto mappedMeshParamBuffer = meshParamBuffer->map<u32>(vx::gl::Map::Write_Only);
+		*mappedMeshParamBuffer = m_staticMeshInstanceCount;
+		mappedMeshParamBuffer.unmap();
+
+		std::vector<vx::gl::DrawElementsIndirectCommand> newDrawCommands;
+		newDrawCommands.reserve(m_staticMeshInstanceCount);
+
+		newDrawCommands.insert(newDrawCommands.begin(), m_coldData->m_staticDrawCommands.begin(), m_coldData->m_staticDrawCommands.begin() + cmdIndex);
+
+		newDrawCommands.insert(newDrawCommands.end(), m_coldData->m_staticDrawCommands.begin() + cmdIndex + 1, m_coldData->m_staticDrawCommands.end());
+
+		auto mappedMeshCmdBuffer = meshCmdBuffer->map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
+		vx::memcpy(mappedMeshCmdBuffer.get(), newDrawCommands.data(), m_staticMeshInstanceCount);
+		mappedMeshCmdBuffer.unmap();
+
+		m_coldData->m_staticDrawCommands.swap(newDrawCommands);
+		result = true;
+	}
+
+	return result;
 }
