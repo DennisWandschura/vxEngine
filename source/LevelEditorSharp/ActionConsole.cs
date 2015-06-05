@@ -54,5 +54,10 @@ namespace LevelEditor
         {
             throw new NotImplementedException();
         }
+
+        public override string ToString()
+        {
+            return "ActionConsole";
+        }
     }
 }

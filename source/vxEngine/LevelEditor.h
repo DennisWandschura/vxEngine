@@ -60,6 +60,7 @@ namespace Editor
 	extern "C" DLL_EXPORT void removeNavMeshTriangle();
 	extern "C" DLL_EXPORT bool getSelectNavMeshVertexPosition(vx::float3* position);
 	extern "C" DLL_EXPORT void setSelectNavMeshVertexPosition(const vx::float3 &position);
+	extern "C" DLL_EXPORT u32 getSelectedNavMeshCount();
 
 	extern "C" DLL_EXPORT u32 getMeshInstanceCount();
 	extern "C" DLL_EXPORT BSTR getMeshInstanceName(u32 i);

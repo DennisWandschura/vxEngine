@@ -63,10 +63,19 @@ namespace LevelEditor
 
         public override Action clone()
         {
+            /*if (m_deselectedNavMesh == 0)
+                return null;
+
             var action = new ActionDeselectNavMesh(m_editorForm);
             action.m_deselectedNavMesh = m_deselectedNavMesh;
 
-            return action;
+            return action;*/
+            return null;
+        }
+
+        public override string ToString()
+        {
+            return "ActionDeselectNavMesh";
         }
     }
 }

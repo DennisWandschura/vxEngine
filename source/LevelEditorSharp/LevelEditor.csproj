@@ -97,6 +97,7 @@
     <Compile Include="ActionDeselectNavMesh.cs" />
     <Compile Include="ActionList.cs" />
     <Compile Include="ActionRenameSelectedMeshInstance.cs" />
+    <Compile Include="DecisionKeyDown.cs" />
     <Compile Include="DecisionKeyDownNew.cs" />
     <Compile Include="ActionMultiSelectNavMesh.cs" />
     <Compile Include="ActionSelectMesh.cs" />
@@ -104,8 +105,9 @@
     <Compile Include="Condition.cs" />
     <Compile Include="ConditionEditorState.cs" />
     <Compile Include="Decision.cs" />
-    <Compile Include="DecisionKeyDown.cs" />
     <Compile Include="DecisionEditorMouseButtonPressed.cs" />
+    <Compile Include="DecisionKeyUp.cs" />
+    <Compile Include="DecisionSelectedNavMesh.cs" />
     <Compile Include="DecisionTreeNode.cs" />
     <Compile Include="DecisionTreeTransition.cs" />
     <Compile Include="EditorNodeEntry.cs" />

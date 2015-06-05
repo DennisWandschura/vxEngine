@@ -36,11 +36,13 @@ namespace LevelEditor
 
         ActionCallFunctionProc m_fun;
         ActionCallFunctionProc m_undoFun;
+        bool m_clone;
 
-        public ActionCallFunction(ActionCallFunctionProc fn, ActionCallFunctionProc undoFun)
+        public ActionCallFunction(ActionCallFunctionProc fn, ActionCallFunctionProc undoFun, bool clone)
         {
             m_fun = fn;
             m_undoFun = undoFun;
+            m_clone = clone;
         }
 
         public override void run()
@@ -65,7 +67,15 @@ namespace LevelEditor
 
         public override Action clone()
         {
-            return new ActionCallFunction(m_fun, m_undoFun);
+            if (!m_clone)
+                return null;
+
+            return new ActionCallFunction(m_fun, m_undoFun, m_clone);
+        }
+
+        public override string ToString()
+        {
+            return "ActionCallFunction";
         }
     }
 
@@ -105,6 +115,11 @@ namespace LevelEditor
         public override Action clone()
         {
             return new ActionCallFunctionReturnBool(m_fun, m_undoFun);
+        }
+
+        public override string ToString()
+        {
+            return "ActionCallFunctionReturnBool";
         }
     }
 }

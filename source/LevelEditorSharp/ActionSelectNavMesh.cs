@@ -33,15 +33,17 @@ namespace LevelEditor
     {
         Form1 m_editorForm;
         int m_mouseX, m_mouseY;
-        int m_hasSelected;
+        int m_hasPrevSelected;
         Float3 m_lastPosition;
+        bool m_selected;
 
         public ActionSelectNavMesh(Form1 editorForm)
         {
             m_editorForm = editorForm;
             m_mouseX = 0;
             m_mouseY = 0;
-            m_hasSelected = 0;
+            m_hasPrevSelected = 0;
+            m_selected = false;
 
             m_lastPosition = new Float3(0, 0, 0);
         }
@@ -51,12 +53,12 @@ namespace LevelEditor
             m_mouseX = m_editorForm.getMouseX();
             m_mouseY = m_editorForm.getMouseY();
 
-            m_editorForm.selectNavMeshVertex(m_mouseX, m_mouseY, out m_hasSelected, ref m_lastPosition);
+            m_selected = m_editorForm.selectNavMeshVertex(m_mouseX, m_mouseY, out m_hasPrevSelected, ref m_lastPosition);
         }
 
         public override void undo()
         {
-            if (m_hasSelected != 0)
+            if (m_hasPrevSelected != 0)
             {
                 m_editorForm.selectNavMeshVertex(ref m_lastPosition);
             }
@@ -78,15 +80,25 @@ namespace LevelEditor
 
         public override Action clone()
         {
+           /* if (!m_selected)
+                return null;
+
             var action = new ActionSelectNavMesh(m_editorForm);
             action.m_mouseX = m_mouseX;
             action.m_mouseY = m_mouseY;
-            action.m_hasSelected = m_hasSelected;
+            action.m_hasPrevSelected = m_hasPrevSelected;
             action.m_lastPosition.x = m_lastPosition.x;
             action.m_lastPosition.y = m_lastPosition.y;
             action.m_lastPosition.z = m_lastPosition.z;
+            action.m_selected = m_selected;
 
-            return action;
+            return action;*/
+            return null;
+        }
+
+        public override string ToString()
+        {
+            return "ActionSelectNavMesh";
         }
     }
 }

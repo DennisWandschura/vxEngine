@@ -47,7 +47,11 @@ namespace LevelEditor
 
         public override void undo()
         {
-            NativeMethods.removeNavMeshTriangle();
+            if (m_selected)
+            {
+                Console.WriteLine("ActionCreateNavMeshTriangle undo");
+                NativeMethods.removeNavMeshTriangle();
+            }
         }
 
         public override void redo()
@@ -65,7 +69,18 @@ namespace LevelEditor
 
         public override Action clone()
         {
-            throw new NotImplementedException();
+            var action = new ActionCreateNavMeshTriangle();
+            action.m_selected = m_selected;
+            action.m_selectedVertices.x = m_selectedVertices.x;
+            action.m_selectedVertices.y = m_selectedVertices.y;
+            action.m_selectedVertices.z = m_selectedVertices.z;
+
+            return action;
+        }
+
+        public override string ToString()
+        {
+            return "ActionCreateNavMeshTriangle";
         }
     }
 }

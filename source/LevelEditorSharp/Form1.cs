@@ -153,16 +153,16 @@ namespace LevelEditor
             ActionSelectNavMesh actionSelectNavMesh = new ActionSelectNavMesh(this);
             ActionMultiSelectNavMesh actionMultiSelectNavMesh = new ActionMultiSelectNavMesh(this);
 
-            TargetState stateSelectNavMeshVertex = new TargetState(stateEditNavMesh);
+            TargetState stateSelectNavMeshVertex = new TargetState(stateEditNavMesh, "stateSelectNavMeshVertex");
             stateSelectNavMeshVertex.addAction(actionSelectNavMesh);
 
-            TargetState stateMultiSelectNavMeshVertex = new TargetState(stateEditNavMesh);
+            TargetState stateMultiSelectNavMeshVertex = new TargetState(stateEditNavMesh, "stateMultiSelectNavMeshVertex");
             stateMultiSelectNavMeshVertex.addAction(actionMultiSelectNavMesh);
 
-            TargetState stateDeselectNavMeshVertex = new TargetState(stateEditNavMesh);
+            TargetState stateDeselectNavMeshVertex = new TargetState(stateEditNavMesh, "stateDeselectNavMeshVertex");
             stateDeselectNavMeshVertex.addAction(actionDeselectNavMesh);
 
-            TargetState stateCreateVertex = new TargetState(stateEditNavMesh);
+            TargetState stateCreateVertex = new TargetState(stateEditNavMesh, "stateCreateNavMeshVertex");
             stateCreateVertex.addAction(new ActionCreateNavMeshVertex(this));
 
             DecisionKeyDown decisionShiftKeyDown = new DecisionKeyDown(stateMultiSelectNavMeshVertex, stateSelectNavMeshVertex, System.Windows.Input.Key.LeftShift);
@@ -185,12 +185,16 @@ namespace LevelEditor
             var actionOnMouseClick = createActionOnMouseClickNavMesh(stateEditNavMesh, actionDeselectNavMesh);
 
             ActionCreateNavMeshTriangle actionCreateNavMeshTriangle = new ActionCreateNavMeshTriangle();
-            TargetState stateKeyDown = new TargetState(stateEditNavMesh);
-            stateKeyDown.addAction(actionCreateNavMeshTriangle);
-            DecisionKeyDownNew keyDown = new DecisionKeyDownNew(stateKeyDown, null, this, Keys.C);
-            ActionDecisionTree actionKeyDown = new ActionDecisionTree(keyDown);
+ 
+            TargetState stateKeyUp = new TargetState(stateEditNavMesh, "stateCreateNavMeshTriangle");
+            stateKeyUp.addAction(actionCreateNavMeshTriangle);
 
-            //stateEditNavMesh.addAction(actionKeyDown);
+            DecisionSelectedNavMesh decisionSelectedNavMesh = new DecisionSelectedNavMesh(stateKeyUp, null);
+            DecisionKeyUp decKeyUp = new DecisionKeyUp(decisionSelectedNavMesh, null, this, Keys.C);
+
+            ActionDecisionTree actionKeyUp = new ActionDecisionTree(decKeyUp);
+
+            stateEditNavMesh.addAction(actionKeyUp);
             stateEditNavMesh.addAction(actionOnMouseClick);
             stateEditNavMesh.addExitAction(actionDeselectNavMesh);
 
@@ -201,10 +205,10 @@ namespace LevelEditor
         {
             ActionSelectMesh actionSelectMesh = new ActionSelectMesh(this);
 
-            TargetState stateSelectMesh = new TargetState(stateEditMesh);
+            TargetState stateSelectMesh = new TargetState(stateEditMesh, "stateSelectMesh");
             stateSelectMesh.addAction(actionSelectMesh);
 
-            TargetState stateDeselectMesh = new TargetState(stateEditMesh);
+            TargetState stateDeselectMesh = new TargetState(stateEditMesh, "destateSelectMesh");
             stateDeselectMesh.addAction(actionDeselectMesh);
 
             DecisionEditorMouseButtonPressed decisionMouseRightButton = new DecisionEditorMouseButtonPressed(stateDeselectMesh, null, this, MouseButtons.Right);
@@ -217,22 +221,22 @@ namespace LevelEditor
 
         private State createStateEditLights()
         {
-            ActionCallFunction actionDeselectLight = new ActionCallFunction(deselectLight, selectLight);
-            ActionCallFunction actionSelectLight = new ActionCallFunction(selectLight, deselectLight);
+            ActionCallFunction actionDeselectLight = new ActionCallFunction(deselectLight, selectLight, true);
+            ActionCallFunction actionSelectLight = new ActionCallFunction(selectLight, deselectLight, true);
             State stateEditLights = new State();
 
-            TargetState stateSelectLight = new TargetState(stateEditLights);
+            TargetState stateSelectLight = new TargetState(stateEditLights, "stateSelectLight");
             stateSelectLight.addAction(actionSelectLight);
 
-            TargetState stateDeselectLight = new TargetState(stateEditLights);
+            TargetState stateDeselectLight = new TargetState(stateEditLights, "destateSelectLight");
             stateDeselectLight.addAction(actionDeselectLight);
 
             DecisionEditorMouseButtonPressed decisionMouseRightButton = new DecisionEditorMouseButtonPressed(stateDeselectLight, null, this, MouseButtons.Right);
             DecisionEditorMouseButtonPressed decisionMouseLeftButton = new DecisionEditorMouseButtonPressed(stateSelectLight, decisionMouseRightButton, this, MouseButtons.Left);
             ActionDecisionTree actionOnMouseClick = new ActionDecisionTree(decisionMouseLeftButton);
 
-            ActionCallFunction actionShowGui = new ActionCallFunction(showLightGui, hideLightGui);
-            ActionCallFunction actionHideGui = new ActionCallFunction(hideLightGui, showLightGui);
+            ActionCallFunction actionShowGui = new ActionCallFunction(showLightGui, hideLightGui, false);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideLightGui, showLightGui,false);
 
             stateEditLights.addEntryAction(actionShowGui);
             stateEditLights.addAction(actionOnMouseClick);
@@ -246,8 +250,8 @@ namespace LevelEditor
         {
             ActionDeselectMesh actionDeselectMesh = new ActionDeselectMesh(this);
 
-            ActionCallFunction actionShowGui = new ActionCallFunction(showMeshGui, hideMeshGui);
-            ActionCallFunction actionHideGui = new ActionCallFunction(hideMeshGui, showMeshGui);
+            ActionCallFunction actionShowGui = new ActionCallFunction(showMeshGui, hideMeshGui, false);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideMeshGui, showMeshGui, false);
 
             State stateEditMesh = new State();
 
@@ -259,14 +263,6 @@ namespace LevelEditor
             stateEditMesh.addExitAction(actionDeselectMesh);
 
             return stateEditMesh;
-        }
-
-        private void createActionOnKeyboardNavMesh(State stateEditNavMesh)
-        {
-            ActionCreateNavMeshTriangle actionCreateNavMeshTriangle = new ActionCreateNavMeshTriangle();
-
-            TargetState stateCreateNavMeshTriangle = new TargetState(stateEditNavMesh);
-            stateCreateNavMeshTriangle.addAction(actionCreateNavMeshTriangle);
         }
 
         void createStateMachine()
@@ -670,21 +666,25 @@ namespace LevelEditor
             }
         }
 
-        public void selectMesh(int mouseX, int mouseY)
+        public bool selectMesh(int mouseX, int mouseY)
         {
+            bool result = false;
             Float3 translation;
             translation.x = translation.y = translation.z = 0.0f;
             if (NativeMethods.selectMeshInstance(mouseX, mouseY))
             {
                 setSelectedMeshInstanceNode();
+                result = true;
             }
+
+            return result;
         }
 
-        public void selectMesh(int mouseX, int mouseY, out ulong selectedSid)
+        public bool selectMesh(int mouseX, int mouseY, out ulong selectedSid)
         {
             selectedSid = NativeMethods.getSelectedMeshInstanceSid();
 
-            selectMesh(mouseX, mouseY);
+            return selectMesh(mouseX, mouseY);
         }
 
         public void selectMesh(ulong sid)
@@ -745,7 +745,7 @@ namespace LevelEditor
             }
         }
 
-        public void selectNavMeshVertex(int mouseX, int mouseY, out int hasPreviousSelected, ref Float3 position)
+        public bool selectNavMeshVertex(int mouseX, int mouseY, out int hasPreviousSelected, ref Float3 position)
         {
             hasPreviousSelected = 0;
 
@@ -754,14 +754,18 @@ namespace LevelEditor
                 hasPreviousSelected = 1;
             }
 
+            bool result = false;
             if (NativeMethods.selectNavMeshVertex(mouseX, mouseY))
             {
                 updateNavMeshVertexGui();
+                result = true;
             }
             else
             {
                 groupBoxNavMesh.Hide();
             }
+
+            return result;
         }
 
         public void selectNavMeshVertex(uint index, out int mm)
@@ -780,7 +784,7 @@ namespace LevelEditor
         public void multiSelectNavMeshVertex()
         {
             NativeMethods.multiSelectNavMeshVertex(m_mouseX, m_mouseY);
-            groupBoxMesh.Hide();
+            groupBoxNavMesh.Hide();
         }
 
         public uint deselectNavMeshVertex()
@@ -797,9 +801,15 @@ namespace LevelEditor
             foreach (var item in actions)
             {
                 item.run();
-                ActionList actionList = new ActionList(item.clone(), m_actionListHead);
-                m_actionListHead.setNext(actionList);
-                m_actionListHead = actionList;
+                var action = item.clone();
+                if (action != null)
+                {
+                    ActionList actionList = new ActionList(action, m_actionListHead);
+
+                    treeViewActionList.Nodes.Add(actionList.ToString());
+                    m_actionListHead.setNext(actionList);
+                    m_actionListHead = actionList;
+                }
             }
         }
 
@@ -882,9 +892,11 @@ namespace LevelEditor
                 e.Handled = true;
             }
 
-            m_keys.Add(e.KeyCode, false);
-
             m_keyDownAlt = e.Alt;
+
+            updateStateMachine();
+
+            m_keys[Keys.C] = false;
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -898,7 +910,7 @@ namespace LevelEditor
                 e.Handled = true;
             }
 
-            m_keys.Add(e.KeyCode, true);
+            m_keys[e.KeyCode] = true;
 
             m_keyDownAlt = e.Alt;
         }
@@ -977,8 +989,6 @@ namespace LevelEditor
             {
                 m_editorState = EditorState.EditSpawns;
             }
-
-            updateStateMachine();
         }
 
         public MouseButtons getLastClickedMouseButton()
@@ -1014,9 +1024,21 @@ namespace LevelEditor
         public bool isKeyDown(System.Windows.Forms.Keys key)
         {
             bool isDown = false;
-            m_keys.TryGetValue(key, out isDown);
+            //m_keys.TryGetValue(key, out isDown);
 
             return isDown;
+        }
+
+        public bool isKeyUp(System.Windows.Forms.Keys key)
+        {
+            bool isDown = false;
+            bool isUp = false;
+            if (m_keys.TryGetValue(key, out isDown))
+            {
+                isUp = isDown;
+            }
+
+            return isUp;
         }
 
         void setSelectedNavMeshVertexPosition()
@@ -1167,6 +1189,10 @@ namespace LevelEditor
 
                 m_actionListHead.redo();
             }
+        }
+
+        private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        {
         }
     }
 }

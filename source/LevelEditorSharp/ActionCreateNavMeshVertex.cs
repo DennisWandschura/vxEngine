@@ -81,5 +81,10 @@ namespace LevelEditor
 
             return action;
         }
+
+        public override string ToString()
+        {
+            return "ActionCreateNavMeshVertex";
+        }
     }
 }

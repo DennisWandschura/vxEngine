@@ -34,6 +34,7 @@ namespace LevelEditor
         Form1 m_editorForm;
         int m_mouseX, m_mouseY;
         ulong m_prevSelectedSid;
+        bool m_selectedMesh;
 
         public ActionSelectMesh(Form1 editorForm)
         {
@@ -41,13 +42,14 @@ namespace LevelEditor
             m_mouseX = 0;
             m_mouseY = 0;
             m_prevSelectedSid = 0;
+            m_selectedMesh = false;
         }
 
         public override void run()
         {
             m_mouseX = m_editorForm.getMouseX();
             m_mouseY = m_editorForm.getMouseY();
-            m_editorForm.selectMesh(m_mouseX, m_mouseY, out m_prevSelectedSid);
+            m_selectedMesh = m_editorForm.selectMesh(m_mouseX, m_mouseY, out m_prevSelectedSid);
         }
 
         public override void undo()
@@ -74,12 +76,22 @@ namespace LevelEditor
 
         public override Action clone()
         {
+           /* if (m_selectedMesh == false)
+                return null;
+
             var action = new ActionSelectMesh(m_editorForm);
             action.m_mouseX = m_mouseX;
             action.m_mouseY = m_mouseY;
             action.m_prevSelectedSid = m_prevSelectedSid;
+            action.m_selectedMesh = m_selectedMesh;
 
-            return action;
+            return action;*/
+            return null;
+        }
+
+        public override string ToString()
+        {
+            return "ActionSelectMesh";
         }
     }
 }

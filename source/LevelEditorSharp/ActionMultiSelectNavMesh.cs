@@ -45,12 +45,10 @@ namespace LevelEditor
 
         public override void undo()
         {
-            throw new NotImplementedException();
         }
 
         public override void redo()
         {
-            throw new NotImplementedException();
         }
 
         public override bool isComplete()
@@ -60,7 +58,12 @@ namespace LevelEditor
 
         public override Action clone()
         {
-            throw new NotImplementedException();
+            return null;
+        }
+
+        public override string ToString()
+        {
+            return "ActionMultiSelectNavMesh";
         }
     }
 }

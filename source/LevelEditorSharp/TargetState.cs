@@ -33,16 +33,19 @@ namespace LevelEditor
     {
         List<Action> m_actions;
         State m_targetState;
+        string m_debugString;
 
-        public TargetState(State targetState)
+        public TargetState(State targetState, string debugText)
         {
             m_actions = new List<Action>();
             m_targetState = targetState;
+            m_debugString = debugText;
         }
 
         public void addAction(Action a)
         {
-            m_actions.Add(a);
+            if(a != null)
+                m_actions.Add(a);
         }
 
         public override TargetState makeDecision()
@@ -62,14 +65,21 @@ namespace LevelEditor
 
         public TargetState clone()
         {
-            var state = new TargetState(m_targetState);
+            var state = new TargetState(m_targetState, m_debugString);
 
             foreach (var item in this.m_actions)
             {
-                state.m_actions.Add(item.clone());
+                var newAction = item.clone();
+                if (newAction != null)
+                    state.m_actions.Add(newAction);
             }
 
             return state;
+        }
+
+        public string getDebugString()
+        {
+            return m_debugString;
         }
     }
 }

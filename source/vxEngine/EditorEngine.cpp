@@ -804,6 +804,8 @@ bool EditorEngine::createNavMeshTriangleFromSelectedVertices(vx::uint3* selected
 		selected->x = m_selected.m_navMeshVertices.m_vertices[0];
 		selected->y = m_selected.m_navMeshVertices.m_vertices[1];
 		selected->z = m_selected.m_navMeshVertices.m_vertices[2];
+
+		result = true;
 	}
 
 	return result;
@@ -825,8 +827,19 @@ void EditorEngine::createNavMeshTriangleFromIndices(const vx::uint3 &indices)
 
 void EditorEngine::removeNavMeshTriangle()
 {
-	auto &navMesh = m_pEditorScene->getNavMesh();
-	navMesh.removeTriangle();
+	if (m_pEditorScene)
+	{
+		auto &navMesh = m_pEditorScene->getNavMesh();
+		navMesh.removeTriangle();
+
+		m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+		buildNavGraph();
+	}
+}
+
+u32 EditorEngine::getSelectedNavMeshCount() const
+{
+	return m_selected.m_navMeshVertices.m_count;
 }
 
 void EditorEngine::setSelectedNavMeshVertexPosition(const vx::float3 &position)

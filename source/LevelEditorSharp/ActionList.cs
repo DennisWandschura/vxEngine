@@ -77,5 +77,10 @@ namespace LevelEditor
         {
             m_next = next;
         }
+
+        public override string ToString()
+        {
+            return action.ToString();
+        }
     }
 }

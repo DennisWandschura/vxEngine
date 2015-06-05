@@ -87,11 +87,31 @@ namespace LevelEditor
 
         public override Action clone()
         {
+            if (this.m_lastState == null)
+                return null;
+
+            var newState = this.m_lastState.clone();
+            if (newState.getActions().Count == 0)
+                return null;
+
             var action = new ActionDecisionTree(m_root);
-            if (this.m_lastState != null)
-                action.m_lastState = this.m_lastState.clone();
+            action.m_lastState = newState;
 
             return action;
+        }
+
+        public override string ToString()
+        {
+            if (m_lastState != null)
+            {
+                var actions = m_lastState.getActions();
+                if (actions.Count == 1)
+                {
+                    return actions[0].ToString();
+                }
+            }
+
+            return "ActionDecisionTree";
         }
     }
 }

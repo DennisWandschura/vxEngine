@@ -164,6 +164,7 @@ public:
 	bool createNavMeshTriangleFromSelectedVertices(vx::uint3* selected);
 	void createNavMeshTriangleFromIndices(const vx::uint3 &indices);
 	void removeNavMeshTriangle();
+	u32 getSelectedNavMeshCount() const;
 
 	void createLight();
 	bool selectLight(s32 mouseX, s32 mouseY);

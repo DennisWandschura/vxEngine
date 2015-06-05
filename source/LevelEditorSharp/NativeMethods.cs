@@ -134,6 +134,9 @@ namespace LevelEditor
         public unsafe static extern void setSelectNavMeshVertexPosition(ref Float3 position);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern uint getSelectedNavMeshCount();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern uint getMeshInstanceCount();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]

@@ -218,6 +218,11 @@ namespace Editor
 		g_pEditor->engine.setSelectedNavMeshVertexPosition(position);
 	}
 
+	u32 getSelectedNavMeshCount()
+	{
+		return g_pEditor->engine.getSelectedNavMeshCount();
+	}
+
 	u32 getMeshInstanceCount()
 	{
 		return g_pEditor->engine.getMeshInstanceCount();

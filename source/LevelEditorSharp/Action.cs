@@ -39,5 +39,7 @@ namespace LevelEditor
         public abstract bool isComplete();
 
         public abstract Action clone();
+
+        public abstract override string ToString();
     }
 }
