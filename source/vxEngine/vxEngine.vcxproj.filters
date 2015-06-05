@@ -678,6 +678,9 @@
     <ClInclude Include="LookWhereYoureGoing.h">
       <Filter>Header Files\AI\Steering</Filter>
     </ClInclude>
+    <ClInclude Include="EditorMeshInstance.h">
+      <Filter>Header Files\Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

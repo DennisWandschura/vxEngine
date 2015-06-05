@@ -59,5 +59,17 @@ namespace LevelEditor
         {
             return m_targetState;
         }
+
+        public TargetState clone()
+        {
+            var state = new TargetState(m_targetState);
+
+            foreach (var item in this.m_actions)
+            {
+                state.m_actions.Add(item.clone());
+            }
+
+            return state;
+        }
     }
 }

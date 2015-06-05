@@ -189,6 +189,7 @@
     <ClInclude Include="DDS_File.h" />
     <ClInclude Include="DoubleBufferRaw.h" />
     <ClInclude Include="DrawCommand.h" />
+    <ClInclude Include="EditorMeshInstance.h" />
     <ClInclude Include="EditorObjectColors.h" />
     <ClInclude Include="EngineConfig.h" />
     <ClInclude Include="EngineGlobals.h" />

@@ -44,7 +44,7 @@ SOFTWARE.
 #include "SegmentFactory.h"
 #include "Graphics/CommandListFactory.h"
 #include "EngineConfig.h"
-#include "MeshInstance.h"
+#include "EditorMeshInstance.h"
 
 struct VertexNavMesh
 {
@@ -808,7 +808,7 @@ const vx::Camera& EditorRenderAspect::getCamera() const
 	return m_camera;
 }
 
-bool EditorRenderAspect::setSelectedMeshInstance(const MeshInstance* instance)
+bool EditorRenderAspect::setSelectedMeshInstance(const Editor::MeshInstance* instance)
 {
 	if (instance)
 	{
@@ -842,9 +842,9 @@ bool EditorRenderAspect::setSelectedMeshInstanceMaterial(const Material* materia
 	return m_sceneRenderer.setMeshInstanceMaterial(m_selectedInstance.ptr->getNameSid(), material);
 }
 
-void EditorRenderAspect::createMeshInstance(const MeshInstance* instance)
+void EditorRenderAspect::editorAddMeshInstance(const Editor::MeshInstance &instance)
 {
-	m_sceneRenderer.editorCreateMeshInstance(instance);
+	m_sceneRenderer.editorAddMeshInstance(instance.getMeshInstance());
 }
 
 bool EditorRenderAspect::removeSelectedMeshInstance()

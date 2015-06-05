@@ -23,7 +23,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class MeshInstance;
+namespace Editor
+{
+	class MeshInstance;
+}
+
 class NavMesh;
 struct VertexNavMesh;
 class InfluenceMap;
@@ -40,7 +44,7 @@ class EditorRenderAspect : public RenderAspect
 
 	struct SelectedMeshInstance
 	{
-		const MeshInstance* ptr{nullptr};
+		const Editor::MeshInstance* ptr{nullptr};
 		vx::gl::DrawElementsIndirectCommand cmd;
 	};
 
@@ -107,11 +111,11 @@ public:
 
 	const vx::Camera& getCamera() const;
 
-	bool setSelectedMeshInstance(const MeshInstance* instance);
+	bool setSelectedMeshInstance(const Editor::MeshInstance* instance);
 	void setSelectedMeshInstanceTransform(vx::Transform &transform);
 	bool setSelectedMeshInstanceMaterial(const Material* material) const;
 
-	void createMeshInstance(const MeshInstance* instance);
+	void editorAddMeshInstance(const Editor::MeshInstance &instance);
 	bool removeSelectedMeshInstance();
 
 	void updateNavMeshBuffer(const NavMesh &navMesh, u32(&selectedVertex)[3], u8 selectedCount);

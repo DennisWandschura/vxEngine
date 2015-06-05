@@ -44,6 +44,20 @@ namespace LevelEditor
         }
     };
 
+    public struct uint3
+    {
+        public uint x, y, z;
+
+         public uint3(uint x, uint y, uint z) { this.x = x; this.y = y; this.z = z; }
+
+         public void zero()
+         {
+             this.x = 0;
+             this.y = 0;
+             this.z = 0;
+         }
+    }
+
     static class NativeMethods
     {
         const string m_libPath = "d:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/lib/";
@@ -84,22 +98,37 @@ namespace LevelEditor
         public unsafe static extern bool selectNavMeshVertex(int x, int y);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern bool selectNavMeshVertexPosition(ref Float3 position);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern bool selectNavMeshVertexIndex(uint i);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern bool multiSelectNavMeshVertex(int x, int y);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void deselectNavMeshVertex();
+        public unsafe static extern uint deselectNavMeshVertex();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern bool addNavMeshVertex(int x, int y);
+        public unsafe static extern bool addNavMeshVertex(int x, int y, ref Float3 position);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void deleteSelectedNavMeshVertex();
+        public unsafe static extern void removeNavMeshVertex(ref Float3 position);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern bool createNavMeshTriangleFromSelectedVertices();
+        public unsafe static extern void removeSelectedNavMeshVertex();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void getSelectNavMeshVertexPosition(ref Float3 position);
+        public unsafe static extern bool createNavMeshTriangleFromSelectedVertices(ref uint3 selected);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void createNavMeshTriangleFromIndices(ref uint3 indices);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void removeNavMeshTriangle();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern bool getSelectNavMeshVertexPosition(ref Float3 position);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void setSelectNavMeshVertexPosition(ref Float3 position);
@@ -133,7 +162,10 @@ namespace LevelEditor
         public unsafe static extern bool selectMeshInstanceIndex(uint i);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void deselectMeshInstance();
+        public unsafe static extern bool selectMeshInstanceSid(ulong sid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong deselectMeshInstance();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.BStr)]

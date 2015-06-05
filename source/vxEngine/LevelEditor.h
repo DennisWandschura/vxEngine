@@ -47,21 +47,27 @@ namespace Editor
 
 	extern "C" DLL_EXPORT void rotateCamera(f32 dirX, f32 dirY, f32 dirZ);
 
-	extern "C" DLL_EXPORT bool addNavMeshVertex(s32 x, s32 y);
-	extern "C" DLL_EXPORT void deleteSelectedNavMeshVertex();
+	extern "C" DLL_EXPORT bool addNavMeshVertex(s32 x, s32 y, vx::float3* position);
+	extern "C" DLL_EXPORT void removeNavMeshVertex(const vx::float3 &position);
+	extern "C" DLL_EXPORT void removeSelectedNavMeshVertex();
 	extern "C" DLL_EXPORT bool selectNavMeshVertex(s32 x, s32 y);
+	extern "C" DLL_EXPORT bool selectNavMeshVertexIndex(u32 index);
+	extern "C" DLL_EXPORT bool selectNavMeshVertexPosition(const vx::float3 &position);
 	extern "C" DLL_EXPORT bool multiSelectNavMeshVertex(s32 mouseX, s32 mouseY);
-	extern "C" DLL_EXPORT void deselectNavMeshVertex();
-	extern "C" DLL_EXPORT bool createNavMeshTriangleFromSelectedVertices();
-	extern "C" DLL_EXPORT void getSelectNavMeshVertexPosition(vx::float3* position);
+	extern "C" DLL_EXPORT u32 deselectNavMeshVertex();
+	extern "C" DLL_EXPORT bool createNavMeshTriangleFromSelectedVertices(vx::uint3* selected);
+	extern "C" DLL_EXPORT void createNavMeshTriangleFromIndices(const vx::uint3 &indices);
+	extern "C" DLL_EXPORT void removeNavMeshTriangle();
+	extern "C" DLL_EXPORT bool getSelectNavMeshVertexPosition(vx::float3* position);
 	extern "C" DLL_EXPORT void setSelectNavMeshVertexPosition(const vx::float3 &position);
 
 	extern "C" DLL_EXPORT u32 getMeshInstanceCount();
 	extern "C" DLL_EXPORT BSTR getMeshInstanceName(u32 i);
 	extern "C" DLL_EXPORT bool selectMeshInstance(s32 x, s32 y);
 	extern "C" DLL_EXPORT bool selectMeshInstanceIndex(u32 i);
+	extern "C" DLL_EXPORT bool selectMeshInstanceSid(u64 sid);
 	extern "C" DLL_EXPORT u64 getMeshInstanceSid(u32 i);
-	extern "C" DLL_EXPORT void deselectMeshInstance();
+	extern "C" DLL_EXPORT u64 deselectMeshInstance();
 	extern "C" DLL_EXPORT BSTR getSelectedMeshInstanceName();
 	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceSid();
 	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceMeshSid();

@@ -29,6 +29,11 @@ namespace Graphics
 	class ShadowRenderer;
 }
 
+namespace Editor
+{
+	class Scene;
+}
+
 struct EngineConfig;
 class GpuProfiler;
 
@@ -79,7 +84,6 @@ protected:
 	
 	vx::StackAllocator m_allocator;
 
-	Scene* m_pScene{nullptr};
 	gl::ObjectManager m_objectManager;
 	std::unique_ptr<ColdData> m_pColdData;
 

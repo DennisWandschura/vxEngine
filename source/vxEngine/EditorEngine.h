@@ -23,7 +23,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class EditorScene;
+namespace Editor
+{
+	class Scene;
+}
 
 #include "EventManager.h"
 #include "SystemAspect.h"
@@ -65,7 +68,7 @@ class EditorEngine : public vx::EventListener
 	EventManager m_eventManager;
 	PhysicsAspect m_physicsAspect;
 	EditorRenderAspect m_renderAspect;
-	EditorScene* m_pEditorScene{ nullptr };
+	Editor::Scene* m_pEditorScene{ nullptr };
 	InfluenceMap m_influenceMap;
 	std::mutex m_editorMutex;
 	VX_ALIGN(64) struct
@@ -107,7 +110,7 @@ public:
 	EditorEngine();
 	~EditorEngine();
 
-	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, EditorScene* pScene);
+	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene);
 	void shutdownEditor();
 
 	static void editor_setTypes(u32 mesh, u32 material, u32 scene);
@@ -128,7 +131,7 @@ public:
 	void requestLoadFile(const FileEntry &fileEntry, void* p);
 
 	void setSelectedNavMeshVertexPosition(const vx::float3 &position);
-	vx::float3 getSelectedNavMeshVertexPosition() const;
+	bool getSelectedNavMeshVertexPosition(vx::float3* p) const;
 
 	u32 getMeshInstanceCount() const;
 	const char* getMeshInstanceName(u32 i) const;
@@ -140,7 +143,8 @@ public:
 	void getSelectMeshInstancePosition(vx::float3* position);
 	bool selectMeshInstance(s32 mouseX, s32 mouseY);
 	bool selectMeshInstance(u32 i);
-	void deselectMeshInstance();
+	bool selectMeshInstance(u64 sid);
+	u64 deselectMeshInstance();
 
 	void createMeshInstance();
 	void removeSelectedMeshInstance();
@@ -149,12 +153,17 @@ public:
 	void setSelectedMeshInstanceMaterial(u64 sid) const;
 	u64 setSelectedMeshInstanceName(const char* name);
 
-	bool addNavMeshVertex(s32 mouseX, s32 mouseY);
-	void deleteSelectedNavMeshVertex();
+	bool addNavMeshVertex(s32 mouseX, s32 mouseY, vx::float3* position);
+	void removeNavMeshVertex(const vx::float3 &position);
+	void removeSelectedNavMeshVertex();
 	bool selectNavMeshVertex(s32 mouseX, s32 mouseY);
+	bool selectNavMeshVertexIndex(u32 index);
+	bool selectNavMeshVertexPosition(const vx::float3 &position);
 	bool multiSelectNavMeshVertex(s32 mouseX, s32 mouseY);
-	void deselectNavMeshVertex();
-	bool createNavMeshTriangleFromSelectedVertices();
+	u32 deselectNavMeshVertex();
+	bool createNavMeshTriangleFromSelectedVertices(vx::uint3* selected);
+	void createNavMeshTriangleFromIndices(const vx::uint3 &indices);
+	void removeNavMeshTriangle();
 
 	void createLight();
 	bool selectLight(s32 mouseX, s32 mouseY);
@@ -163,7 +172,7 @@ public:
 	void setSelectLightPosition(const vx::float3 &position);
 
 	SelectedType getSelectedItemType() const;
-	EditorScene* getEditorScene() const;
+	Editor::Scene* getEditorScene() const;
 
 	void showNavmesh(bool b);
 	void showInfluenceMap(bool b);

@@ -32,20 +32,54 @@ namespace LevelEditor
     class ActionSelectMesh : Action
     {
         Form1 m_editorForm;
+        int m_mouseX, m_mouseY;
+        ulong m_prevSelectedSid;
 
         public ActionSelectMesh(Form1 editorForm)
         {
             m_editorForm = editorForm;
+            m_mouseX = 0;
+            m_mouseY = 0;
+            m_prevSelectedSid = 0;
         }
 
         public override void run()
         {
-            m_editorForm.selectMesh();
+            m_mouseX = m_editorForm.getMouseX();
+            m_mouseY = m_editorForm.getMouseY();
+            m_editorForm.selectMesh(m_mouseX, m_mouseY, out m_prevSelectedSid);
+        }
+
+        public override void undo()
+        {
+            if (m_prevSelectedSid != 0)
+            {
+                m_editorForm.selectMesh(m_prevSelectedSid);
+            }
+            else
+            {
+                m_editorForm.deselectMesh();
+            }
+        }
+
+        public override void redo()
+        {
+            m_editorForm.selectMesh(m_mouseX, m_mouseY);
         }
 
         public override bool isComplete()
         {
             return true;
+        }
+
+        public override Action clone()
+        {
+            var action = new ActionSelectMesh(m_editorForm);
+            action.m_mouseX = m_mouseX;
+            action.m_mouseY = m_mouseY;
+            action.m_prevSelectedSid = m_prevSelectedSid;
+
+            return action;
         }
     }
 }

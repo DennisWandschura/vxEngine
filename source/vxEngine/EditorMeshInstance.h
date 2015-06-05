@@ -1,4 +1,6 @@
-﻿/*
+#pragma once
+
+/*
 The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
@@ -21,38 +23,31 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LevelEditor
+#include "MeshInstance.h"
+#include <string>
+
+namespace Editor
 {
-    class ActionConsole : Action
-    {
-        public override void run()
-        {
-            Console.WriteLine("Test\n");
-        }
+	class MeshInstance
+	{
+		::MeshInstance m_meshInstance;
+		std::string m_name;
 
-        public override void undo()
-        {
-        }
+	public:
+		MeshInstance(const ::MeshInstance &instance, std::string &&name)
+			:m_meshInstance(instance),
+			m_name(std::move(name))
+		{
+		}
 
-        public override void redo()
-        {
-            run();
-        }
+		const ::MeshInstance& getMeshInstance() const { return m_meshInstance; }
+		::MeshInstance& getMeshInstance() { return m_meshInstance; }
+		const std::string& getName() const { return m_name; }
 
-        public override bool isComplete()
-        {
-            return true;
-        }
-
-        public override Action clone()
-        {
-            throw new NotImplementedException();
-        }
-    }
+		vx::StringID getNameSid() const noexcept{ return m_meshInstance.getNameSid(); }
+		vx::StringID getMeshSid() const noexcept{ return m_meshInstance.getMeshSid(); }
+		vx::StringID getMaterialSid() const noexcept{ return m_meshInstance.getMaterialSid(); }
+		const vx::Transform& getTransform() const noexcept{ return m_meshInstance.getTransform(); }
+	};
 }

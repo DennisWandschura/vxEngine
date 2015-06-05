@@ -29,7 +29,7 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include "SceneFactory.h"
 
-bool FileFactory::save(vx::File* file, const EditorScene &data)
+bool FileFactory::save(vx::File* file, const Editor::Scene &data)
 {
 	SceneFile sceneFile;
 	SceneFactory::convert(data, &sceneFile);

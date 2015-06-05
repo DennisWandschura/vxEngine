@@ -24,7 +24,11 @@ SOFTWARE.
 #pragma once
 
 class SceneFile;
-class EditorScene;
+
+namespace Editor
+{
+	class Scene;
+}
 
 namespace vx
 {
@@ -38,7 +42,7 @@ namespace vx
 class FileFactory
 {
 public:
-	static bool save(vx::File* file, const EditorScene &data);
+	static bool save(vx::File* file, const Editor::Scene &data);
 
 	static bool save(const char* file, const SceneFile &data);
 	static bool save(vx::File* file, const SceneFile &data);

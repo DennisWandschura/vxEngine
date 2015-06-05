@@ -32,20 +32,61 @@ namespace LevelEditor
     class ActionSelectNavMesh : Action
     {
         Form1 m_editorForm;
+        int m_mouseX, m_mouseY;
+        int m_hasSelected;
+        Float3 m_lastPosition;
 
         public ActionSelectNavMesh(Form1 editorForm)
         {
             m_editorForm = editorForm;
+            m_mouseX = 0;
+            m_mouseY = 0;
+            m_hasSelected = 0;
+
+            m_lastPosition = new Float3(0, 0, 0);
         }
 
         public override void run()
         {
-            m_editorForm.selectNavMeshVertex();
+            m_mouseX = m_editorForm.getMouseX();
+            m_mouseY = m_editorForm.getMouseY();
+
+            m_editorForm.selectNavMeshVertex(m_mouseX, m_mouseY, out m_hasSelected, ref m_lastPosition);
+        }
+
+        public override void undo()
+        {
+            if (m_hasSelected != 0)
+            {
+                m_editorForm.selectNavMeshVertex(ref m_lastPosition);
+            }
+            else
+            {
+                m_editorForm.deselectNavMeshVertex();
+            }
+        }
+
+        public override void redo()
+        {
+            m_editorForm.selectNavMeshVertex(m_mouseX, m_mouseY);
         }
 
         public override bool isComplete()
         {
             return true;
+        }
+
+        public override Action clone()
+        {
+            var action = new ActionSelectNavMesh(m_editorForm);
+            action.m_mouseX = m_mouseX;
+            action.m_mouseY = m_mouseY;
+            action.m_hasSelected = m_hasSelected;
+            action.m_lastPosition.x = m_lastPosition.x;
+            action.m_lastPosition.y = m_lastPosition.y;
+            action.m_lastPosition.z = m_lastPosition.z;
+
+            return action;
         }
     }
 }

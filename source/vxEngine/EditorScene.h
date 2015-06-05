@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,9 +22,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-class MeshInstance;
+
 struct Waypoint;
 class FileEntry;
 
@@ -35,77 +35,83 @@ namespace vx
 #include "SceneBase.h"
 #include <vector>
 
-struct EditorSceneParams
+namespace Editor
 {
-	SceneBaseParams m_baseParams;
-	vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
-	std::vector<Waypoint> m_waypoints;
-	vx::sorted_vector<vx::StringID, std::string> m_materialNames;
-	vx::sorted_vector<vx::StringID, std::string> m_meshNames;
-	vx::sorted_vector<vx::StringID, std::string> m_actorNames;
-	vx::sorted_vector<vx::StringID, std::string> m_meshInstanceNames;
+	class MeshInstance;
 
-	~EditorSceneParams();
-};
-
-class EditorScene : public SceneBase
-{
-	friend class ConverterEditorSceneToSceneFile;
-
-	template<typename T>
-	struct SelectableWrapper
+	struct SceneParams
 	{
-		AABB m_bounds;
-		T* m_ptr;
+		SceneBaseParams m_baseParams;
+		vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
+		std::vector<Waypoint> m_waypoints;
+		vx::sorted_vector<vx::StringID, std::string> m_materialNames;
+		vx::sorted_vector<vx::StringID, std::string> m_meshNames;
+		vx::sorted_vector<vx::StringID, std::string> m_actorNames;
+		vx::sorted_vector<vx::StringID, std::string> m_meshInstanceNames;
 
-		SelectableWrapper() :m_bounds(), m_ptr(nullptr){}
+		~SceneParams();
 	};
 
-	vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
-	std::vector<Waypoint> m_waypoints;
-	std::vector<SelectableWrapper<Light>> m_selectableLights;
-	std::vector<SelectableWrapper<Spawn>> m_selectableSpawns;
+	class Scene : public SceneBase
+	{
+		friend class ConverterEditorSceneToSceneFile;
 
-	vx::sorted_vector<vx::StringID, std::string> m_materialNames;
-	vx::sorted_vector<vx::StringID, std::string> m_meshNames;
-	vx::sorted_vector<vx::StringID, std::string> m_actorNames;
-	vx::sorted_vector<vx::StringID, std::string> m_meshInstanceNames;
+		template<typename T>
+		struct SelectableWrapper
+		{
+			AABB m_bounds;
+			T* m_ptr;
 
-	void buildSelectableLights();
+			SelectableWrapper() :m_bounds(), m_ptr(nullptr){}
+		};
 
-public:
-	EditorScene();
-	EditorScene(EditorScene &&rhs);
-	EditorScene(EditorSceneParams &&params);
-	~EditorScene();
+		vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
+		std::vector<Waypoint> m_waypoints;
+		std::vector<SelectableWrapper<Light>> m_selectableLights;
+		std::vector<SelectableWrapper<Spawn>> m_selectableSpawns;
 
-	EditorScene& operator = (EditorScene &&rhs);
+		vx::sorted_vector<vx::StringID, std::string> m_materialNames;
+		vx::sorted_vector<vx::StringID, std::string> m_meshNames;
+		vx::sorted_vector<vx::StringID, std::string> m_actorNames;
 
-	void sortMeshInstances() override;
+		void buildSelectableLights();
 
-	Light* addLight(const Light &light);
-	// returns 1 on insert, 0 if already present
-	u8 addMesh(vx::StringID sid, const char* name, const vx::MeshFile* pMesh);
-	// returns 1 on insert, 0 if already present
-	u8 addMaterial(vx::StringID sid, const char* name, Material* pMaterial);
-	// returns 1 on insert, 0 if mesh or material is missing
-	void addWaypoint(const Waypoint &wp);
+		const ::MeshInstance* getMeshInstances() const override { return nullptr; }
 
-	const MeshInstance* getMeshInstance(const vx::StringID &sid) const;
-	const MeshInstance* getMeshInstances() const override;
-	u32 getMeshInstanceCount() const override;
+	public:
+		Scene();
+		Scene(Scene &&rhs);
+		Scene(SceneParams &&params);
+		~Scene();
 
-	const char* getMeshInstanceName(const vx::StringID &sid) const;
-	const char* getMaterialName(const vx::StringID &sid) const;
-	const char* getMeshName(const vx::StringID &sid) const;
-	const char* getActorName(const vx::StringID &sid) const;
+		Scene& operator = (Scene &&rhs);
 
-	void addMeshInstanceName(const vx::StringID &sid, const std::string &name);
-	const MeshInstance* createMeshInstance();
-	void removeMeshInstance(const vx::StringID &sid);
+		void sortMeshInstances() override;
 
-	Spawn* getSpawn(const Ray &ray);
-	Light* getLight(const Ray &ray);
+		Light* addLight(const Light &light);
+		// returns 1 on insert, 0 if already present
+		u8 addMesh(vx::StringID sid, const char* name, const vx::MeshFile* pMesh);
+		// returns 1 on insert, 0 if already present
+		u8 addMaterial(vx::StringID sid, const char* name, Material* pMaterial);
+		// returns 1 on insert, 0 if mesh or material is missing
+		void addWaypoint(const Waypoint &wp);
 
-	void updateLightPositions();
-};
+		const MeshInstance* getMeshInstance(const vx::StringID &sid) const;
+		const MeshInstance* getMeshInstancesEditor() const;
+		u32 getMeshInstanceCount() const override;
+
+		const char* getMeshInstanceName(const vx::StringID &sid) const;
+		const char* getMaterialName(const vx::StringID &sid) const;
+		const char* getMeshName(const vx::StringID &sid) const;
+		const char* getActorName(const vx::StringID &sid) const;
+
+		const Editor::MeshInstance& createMeshInstance();
+		void removeMeshInstance(const vx::StringID &sid);
+		void renameMeshInstance(const vx::StringID &sid, const char* newName);
+
+		Spawn* getSpawn(const Ray &ray);
+		Light* getLight(const Ray &ray);
+
+		void updateLightPositions();
+	};
+}

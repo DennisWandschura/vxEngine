@@ -89,7 +89,7 @@ class PhysicsAspect : public vx::EventListener
 	physx::PxCooking* m_pCooking;
 
 	physx::PxTriangleMesh* processMesh(const vx::MeshFile* pMesh);
-	void processScene(const Scene* pScene);
+	void processScene(const void* pScene);
 
 	//////////////// handle Events
 	void handleFileEvent(const vx::Event &evt);
@@ -117,5 +117,5 @@ public:
 
 	bool editorGetStaticMeshInstancePosition(const vx::StringID &sid, vx::float3* p) const;
 	void editorSetStaticMeshInstancePosition(const vx::StringID &sid, const vx::float3 &p);
-	void editorAddMeshInstance(const MeshInstance* ptr);
+	void editorAddMeshInstance(const MeshInstance &instance);
 };

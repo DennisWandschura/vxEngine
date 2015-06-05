@@ -384,6 +384,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 
 	m_camera.setPosition(0, 2.5f, 15);
 
+	m_shaderManager.addParameter("lightInvo", 6u);
 	if (!m_shaderManager.initialize(dataDir, true))
 	{
 		puts("Error initializing Shadermanager");
@@ -572,10 +573,13 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 	u64 address;
 	::memcpy(&address, p, 8);
 
-	Scene* pScene = (Scene*)address;
+#if _VX_EDITOR
+	auto pScene = (Editor::Scene*)address;
+#else
+	auto pScene = (Scene*)address;
+#endif
 	vx::verboseChannelPrintF(0, dev::Channel_Render, "Loading Scene into Render");
-	m_sceneRenderer.loadScene(*pScene, m_objectManager);
-	m_pScene = pScene;
+	m_sceneRenderer.loadScene(pScene, m_objectManager);
 
 	auto count = m_sceneRenderer.getMeshInstanceCount();
 	auto buffer = m_objectManager.getBuffer("meshParamBuffer");

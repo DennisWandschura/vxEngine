@@ -43,9 +43,24 @@ namespace LevelEditor
             m_editorForm.multiSelectNavMeshVertex();
         }
 
+        public override void undo()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void redo()
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool isComplete()
         {
             return true;
+        }
+
+        public override Action clone()
+        {
+            throw new NotImplementedException();
         }
     }
 }

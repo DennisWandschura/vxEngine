@@ -33,7 +33,11 @@ struct Spawn;
 class MeshInstance;
 class Material;
 class Scene;
-class EditorScene;
+
+namespace Editor
+{
+	class Scene;
+}
 
 namespace vx
 {
@@ -62,7 +66,7 @@ struct CreateEditorSceneDescription
 	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Material*, std::less<vx::StringID>> *sortedMaterials;
 	const vx::sorted_vector<vx::StringID, std::string> *loadedFiles;
-	EditorScene *pScene;
+	Editor::Scene *pScene;
 };
 
 class SceneFile : public vx::Serializable

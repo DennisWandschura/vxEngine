@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 namespace vx
 {
@@ -36,10 +36,16 @@ namespace vx
 	class StackAllocator;
 
 	struct StringID;
+
+	class File;
+}
+
+namespace Editor
+{
+	class Scene;
 }
 
 class Scene;
-class EditorScene;
 class SceneFile;
 class FileEntry;
 class Material;
@@ -47,11 +53,6 @@ class Material;
 namespace Factory
 {
 	struct CreateSceneDescription;
-}
-
-namespace vx
-{
-	class File;
 }
 
 #include <vxLib/types.h>
@@ -66,10 +67,10 @@ class SceneFactory
 public:
 	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, Scene *pScene);
 
-	static bool createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, EditorScene *pScene);
-	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, EditorScene *pScene);
+	static bool createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, Editor::Scene *pScene);
+	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, Editor::Scene *pScene);
 
-	static bool save(const EditorScene &scene, vx::File* file);
+	static bool save(const Editor::Scene &scene, vx::File* file);
 
-	static void convert(const EditorScene &scene, SceneFile* sceneFile);
+	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
 };

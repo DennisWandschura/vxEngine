@@ -201,6 +201,45 @@ void NavMesh::addVertex(const vx::float3 &vertex)
 #endif
 }
 
+void NavMesh::buildBounds()
+{
+#if _VX_EDITOR
+	m_bounds = AABB();
+	for (auto &it : m_vertices)
+	{
+		m_bounds = AABB::merge(m_bounds, it);
+	}
+#endif
+}
+
+bool NavMesh::removeVertex(const vx::float3 &position)
+{
+	bool found = false;
+#if _VX_EDITOR
+	u32 index = 0;
+	for (auto &it : m_vertexBounds)
+	{
+		if (it.contains(position))
+		{
+			found = true;
+			break;
+		}
+
+		++index;
+	}
+
+	if (found)
+	{
+		m_vertexBounds.erase(m_vertexBounds.begin() + index);
+		m_vertices.erase(m_vertices.begin() + index);
+		--m_vertexCount;
+	}
+
+	buildBounds();
+#endif
+	return found;
+}
+
 void NavMesh::findAndEraseVertexFromIndices(u16 vertexIndex)
 {
 #if _VX_EDITOR
@@ -284,18 +323,14 @@ std::unique_ptr<NavMeshTriangle[]> NavMesh::createNavMeshTriangles()
 	return ptr;
 }
 
-void NavMesh::deleteVertex(u32 index)
+void NavMesh::removeVertex(u32 index)
 {
 #if _VX_EDITOR
 	m_vertices.erase(m_vertices.begin() + index);
 	m_vertexBounds.erase(m_vertexBounds.begin() + index);
 	--m_vertexCount;
 
-	m_bounds = AABB();
-	for (auto &it : m_vertices)
-	{
-		m_bounds = AABB::merge(m_bounds, it);
-	}
+	buildBounds();
 	
 	findAndEraseVertexFromIndices(index);
 
@@ -333,6 +368,20 @@ void NavMesh::addTriangle(const u32(&selectedIndices)[3])
 #endif
 }
 
+void NavMesh::removeTriangle()
+{
+#if _VX_EDITOR
+	m_triangleIndices.pop_back();
+	m_triangleIndices.pop_back();
+	m_triangleIndices.pop_back();
+
+	--m_triangleCount;
+
+	m_navMeshTriangles = createNavMeshTriangles();
+	buildBounds();
+#endif
+}
+
 void NavMesh::setVertexPosition(u32 i, const vx::float3 &position)
 {
 #if _VX_EDITOR
@@ -340,7 +389,7 @@ void NavMesh::setVertexPosition(u32 i, const vx::float3 &position)
 	m_vertexBounds[i].min = position - vx::float3(0.1f);
 	m_vertexBounds[i].max = position + vx::float3(0.1f);
 
-	m_bounds = AABB::merge(m_bounds, position);
+	buildBounds();
 
 	m_navMeshTriangles = createNavMeshTriangles();
 #else
@@ -382,6 +431,26 @@ u32 NavMesh::testRayAgainstVertices(const Ray &ray)
 #else
 	VX_UNREFERENCED_PARAMETER(ray);
 #endif
+	return result;
+}
+
+bool NavMesh::getIndex(const vx::float3 &position, u32* index) const
+{
+	bool result = false;
+
+#if _VX_EDITOR
+	for (u32 i = 0; i < m_vertexCount; ++i)
+	{
+		auto &it = m_vertexBounds[i];
+		if (it.contains(position))
+		{
+			result = true;
+			*index = i;
+			break;
+		}
+	}
+#endif
+
 	return result;
 }
 

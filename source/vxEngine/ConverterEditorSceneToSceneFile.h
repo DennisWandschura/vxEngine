@@ -24,10 +24,13 @@ SOFTWARE.
 #pragma once
 
 class SceneFile;
-class EditorScene;
+namespace Editor
+{
+	class Scene;
+}
 
 class ConverterEditorSceneToSceneFile
 {
 public:
-	static void convert(const EditorScene &scene, SceneFile* sceneFile);
+	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
 };

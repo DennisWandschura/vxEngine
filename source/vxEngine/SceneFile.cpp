@@ -24,7 +24,7 @@ SOFTWARE.
 #include "SceneFile.h"
 #include "utility.h"
 #include <vxLib/File/File.h>
-#include "MeshInstance.h"
+#include "EditorMeshInstance.h"
 #include "Material.h"
 #include <fstream>
 #include <vxLib/Container/sorted_array.h>
@@ -44,7 +44,7 @@ struct SceneFile::CreateSceneMeshInstancesDesc
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
 	MeshInstance* pMeshInstances;
-	vx::sorted_vector<vx::StringID, MeshInstance>* sortedMeshInstances;
+	vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 	vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
@@ -64,7 +64,7 @@ struct SceneFile::CreateSceneShared
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
 	MeshInstance* pMeshInstances;
-	vx::sorted_vector<vx::StringID, MeshInstance>* sortedMeshInstances;
+	vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
@@ -165,11 +165,11 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 {
 	struct InstanceInserter
 	{
-		typedef void(InstanceInserter::*InserterFun)(const MeshInstance &instance, u32 i);
+		typedef void(InstanceInserter::*InserterFun)(const MeshInstance &instance, u32 i, const char* name);
 
 		InserterFun m_fp;
 		MeshInstance* m_instances;
-		vx::sorted_vector<vx::StringID, MeshInstance>* m_sortedInstances;
+		vx::sorted_vector<vx::StringID, Editor::MeshInstance>* m_sortedInstances;
 
 		InstanceInserter(const CreateSceneMeshInstancesDesc &desc)
 			:m_instances(desc.pMeshInstances),
@@ -185,19 +185,20 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 			}
 		}
 
-		void insertArray(const MeshInstance &instance, u32 i)
+		void insertArray(const MeshInstance &instance, u32 i, const char*)
 		{
 			m_instances[i] = instance;
 		}
 
-		void insertSorted(const MeshInstance &instance, u32 i)
+		void insertSorted(const MeshInstance &instance, u32, const char* name)
 		{
-			m_sortedInstances->insert(instance.getNameSid(), instance);
+			Editor::MeshInstance editorInstance(instance, std::string(name));
+			m_sortedInstances->insert(instance.getNameSid(), editorInstance);
 		}
 
-		void operator()(const MeshInstance &instance, u32 i)
+		void operator()(const MeshInstance &instance, u32 i, const char* name)
 		{
-			(this->*m_fp)(instance, i);
+			(this->*m_fp)(instance, i, name);
 		}
 	};
 
@@ -230,7 +231,7 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 		desc.sceneMaterials->insert(sidMaterial, *itMaterial);
 
 		auto instance = MeshInstance(sidName, sidMesh, sidMaterial, instanceFile.getTransform());;
-		instanceInserter(instance, i);
+		instanceInserter(instance, i, name);
 
 		if (desc.sceneMeshInstanceNames)
 		{
@@ -386,7 +387,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 	vx::sorted_vector<vx::StringID, Actor> sceneActors;
 	vx::sorted_vector<vx::StringID, std::string> sceneMeshInstanceNames;
-	vx::sorted_vector<vx::StringID, MeshInstance> meshInstances;
+	vx::sorted_vector<vx::StringID, Editor::MeshInstance> meshInstances;
 	meshInstances.reserve(m_meshInstanceCount);
 	auto sceneSpawns = vx::make_unique<Spawn[]>(m_spawnCount);
 
@@ -452,7 +453,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 		actorNames.insert(sid, actorFile.m_name);
 	}
 
-	EditorSceneParams sceneParams;
+	Editor::SceneParams sceneParams;
 	sceneParams.m_baseParams.m_actors = std::move(sceneActors);
 	sceneParams.m_baseParams.m_indexCount = indexCount;
 	sceneParams.m_baseParams.m_lightCount = m_lightCount;
@@ -481,7 +482,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sceneParams.m_actorNames = std::move(actorNames);
 
 	VX_ASSERT(desc.pScene);
-	*desc.pScene = EditorScene(std::move(sceneParams));
+	*desc.pScene = Editor::Scene(std::move(sceneParams));
 	desc.pScene->sortMeshInstances();
 
 	return 1;

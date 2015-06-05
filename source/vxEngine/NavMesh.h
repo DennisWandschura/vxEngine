@@ -58,6 +58,8 @@ class NavMesh
 
 	std::unique_ptr<NavMeshTriangle[]> createNavMeshTriangles();
 
+	void buildBounds();
+
 public:
 	/////////////// constructors
 	NavMesh();
@@ -95,12 +97,15 @@ public:
 	/////////////// getters
 
 	void addVertex(const vx::float3 &vertex);
-	void deleteVertex(u32 index);
+	bool removeVertex(const vx::float3 &vertex);
+	void removeVertex(u32 index);
 	void addTriangle(const u32(&indices)[3]);
+	void removeTriangle();
 	void setVertexPosition(u32 i, const vx::float3 &position);
 
 	bool isValid() const;
 
 	// returns u32 max on failure
 	u32 testRayAgainstVertices(const Ray &ray);
+	bool getIndex(const vx::float3 &position, u32* index) const;
 };

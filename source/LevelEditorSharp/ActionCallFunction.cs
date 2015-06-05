@@ -34,21 +34,38 @@ namespace LevelEditor
     {
         public delegate void ActionCallFunctionProc();
 
-        ActionCallFunctionProc fun;
+        ActionCallFunctionProc m_fun;
+        ActionCallFunctionProc m_undoFun;
 
-        public ActionCallFunction(ActionCallFunctionProc fn)
+        public ActionCallFunction(ActionCallFunctionProc fn, ActionCallFunctionProc undoFun)
         {
-            fun = fn;
+            m_fun = fn;
+            m_undoFun = undoFun;
         }
 
         public override void run()
         {
-            fun();
+            m_fun();
+        }
+
+        public override void undo()
+        {
+            m_undoFun();
+        }
+
+        public override void redo()
+        {
+            m_fun();
         }
 
         public override bool isComplete()
         {
             return true;
+        }
+
+        public override Action clone()
+        {
+            return new ActionCallFunction(m_fun, m_undoFun);
         }
     }
 
@@ -56,21 +73,38 @@ namespace LevelEditor
     {
         public delegate bool ActionCallFunctionProc();
 
-        ActionCallFunctionProc fun;
+        ActionCallFunctionProc m_fun;
+        ActionCallFunctionProc m_undoFun;
 
-        public ActionCallFunctionReturnBool(ActionCallFunctionProc fn)
+        public ActionCallFunctionReturnBool(ActionCallFunctionProc fn, ActionCallFunctionProc undoFn)
         {
-            fun = fn;
+            m_fun = fn;
+            m_undoFun = undoFn;
         }
 
         public override void run()
         {
-            fun();
+            m_fun();
+        }
+
+        public override void undo()
+        {
+            m_undoFun();
+        }
+
+        public override void redo()
+        {
+            m_fun();
         }
 
         public override bool isComplete()
         {
             return true;
+        }
+
+        public override Action clone()
+        {
+            return new ActionCallFunctionReturnBool(m_fun, m_undoFun);
         }
     }
 }

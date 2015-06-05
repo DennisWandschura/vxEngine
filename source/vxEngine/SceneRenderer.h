@@ -93,7 +93,9 @@ class SceneRenderer
 
 	void createMaterial(Material* pMaterial);
 
-	void addMeshInstance(const MeshInstance *instance, const vx::gl::Buffer* cmdBuffer, const MeshEntry &meshEntry, u16 elementId, u32 materialIndex);
+	void setMeshParamBufferValue(u32 count);
+
+	void addMeshInstanceToBuffers(const MeshInstance &instance, const vx::gl::Buffer* cmdBuffer, const MeshEntry &meshEntry, u16 elementId, u32 materialIndex);
 	void writeMaterialToBuffer(const Material *pMaterial, u32 offset);
 	void writeMeshToBuffer(const WriteMeshToBufferDesc &desc);
 	void writeMeshesToGpuBuffer(const WriteMeshesToGpuBufferDesc &desc);
@@ -102,7 +104,8 @@ class SceneRenderer
 
 	void updateStaticMeshBuffer(const vx::sorted_vector<vx::StringID, const vx::MeshFile*> &meshes);
 	void updateLightBuffer(const Light *pLights, u32 numLights, const gl::ObjectManager &objectManager);
-	void updateBuffers(const MeshInstance *pInstances, u32 instanceCount, const vx::sorted_vector<const Material*, u32> &materialIndices, const vx::sorted_vector<vx::StringID, MeshEntry> &meshEntries);
+	void updateBuffersWithMeshInstance(const MeshInstance &instance, u16 elementId, const vx::gl::Buffer* cmdBuffer);
+	void updateBuffers(const void *pInstances, u32 instanceCount);
 
 public:
 	SceneRenderer();
@@ -111,7 +114,7 @@ public:
 	void initialize(u32 maxLightCount, gl::ObjectManager* objectManager, vx::StackAllocator *pAllocator);
 	bool initializeProfiler(const Font &font, u64 fontTextureHandle,const vx::uint2 &resolution, const vx::gl::ShaderManager &shaderManager, GpuProfiler* gpuProfiler, vx::StackAllocator *pAllocator);
 
-	void loadScene(const Scene &scene, const gl::ObjectManager &objectManager);
+	void loadScene(const void* scene, const gl::ObjectManager &objectManager);
 	TextureRef loadTexture(const char* file);
 
 	u32 getMaterialIndex(const Material* material) const;
@@ -132,6 +135,6 @@ public:
 	const MeshEntry* getMeshEntries() const;
 	u32 getMeshEntryCount() const;
 
-	void editorCreateMeshInstance(const MeshInstance* instance);
+	void editorAddMeshInstance(const MeshInstance &instance);
 	bool editorRemoveStaticMeshInstance(const vx::StringID &sid);
 };

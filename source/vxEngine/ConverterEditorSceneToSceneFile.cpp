@@ -28,11 +28,11 @@ SOFTWARE.
 #include "Actor.h"
 #include "Light.h"
 #include "NavMesh.h"
-#include "MeshInstance.h"
+#include "EditorMeshInstance.h"
 #include "Spawn.h"
 #include "enums.h"
 
-void ConverterEditorSceneToSceneFile::convert(const EditorScene &scene, SceneFile* sceneFile)
+void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneFile* sceneFile)
 {
 	auto actorCount = scene.m_actors.size();
 	sceneFile->m_actorCount = actorCount;

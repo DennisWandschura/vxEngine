@@ -32,18 +32,20 @@ namespace LevelEditor
     class ActionDecisionTree : Action
     {
         DecisionTreeNode m_root;
+        TargetState m_lastState;
 
         public ActionDecisionTree(DecisionTreeNode root)
         {
             m_root = root;
+            m_lastState = null;
         }
 
         public override void run()
         {
-            var targetState = m_root.makeDecision();
-            if(targetState != null)
+            m_lastState = m_root.makeDecision();
+            if (m_lastState != null)
             {
-                var actions = targetState.getActions();
+                var actions = m_lastState.getActions();
 
                 foreach (var action in actions)
                 {
@@ -52,9 +54,44 @@ namespace LevelEditor
             }
         }
 
+        public override void undo()
+        {
+            if (m_lastState != null)
+            {
+                var actions = m_lastState.getActions();
+
+                foreach (var action in actions)
+                {
+                    action.undo();
+                }
+            }
+        }
+
+        public override void redo()
+        {
+            if (m_lastState != null)
+            {
+                var actions = m_lastState.getActions();
+
+                foreach (var action in actions)
+                {
+                    action.redo();
+                }
+            }
+        }
+
         public override bool isComplete()
         {
             return true;
+        }
+
+        public override Action clone()
+        {
+            var action = new ActionDecisionTree(m_root);
+            if (this.m_lastState != null)
+                action.m_lastState = this.m_lastState.clone();
+
+            return action;
         }
     }
 }

@@ -66,7 +66,6 @@ namespace LevelEditor
         MouseButtons m_lastClickedMouseButton;
         StateMachine m_selectItemStateMachine;
         EditorState m_editorState;
-        int m_keys;
         bool m_selectedNavMesh;
         string m_currentSceneFileName;
 
@@ -74,6 +73,8 @@ namespace LevelEditor
         Dictionary<ulong, EditorNodeEntry> m_sortedMeshInstances;
         Dictionary<ulong, EditorEntry> m_sortedMeshes;
         Dictionary<ulong, EditorEntry> m_sortedMaterials;
+        Dictionary<Keys, bool> m_keys;
+        ActionList m_actionListHead;
 
         public Form1()
         {
@@ -92,6 +93,7 @@ namespace LevelEditor
             m_sortedMeshInstances = new Dictionary<ulong, EditorNodeEntry>();
             m_sortedMeshes = new Dictionary<ulong, EditorEntry>();
             m_sortedMaterials = new Dictionary<ulong, EditorEntry>();
+            m_keys = new Dictionary<Keys, bool>();
 
             loadFileDelegate = new LoadedFileFun(loadedFile);
 
@@ -101,7 +103,8 @@ namespace LevelEditor
             m_selectedNavMesh = false;
             m_mouseX = 0;
             m_mouseY = 0;
-            m_keys = 0;
+
+            m_actionListHead = new ActionList(null, null);
 
             createStateMachine();
 
@@ -214,8 +217,8 @@ namespace LevelEditor
 
         private State createStateEditLights()
         {
-            ActionCallFunction actionDeselectLight = new ActionCallFunction(deselectLight);
-            ActionCallFunction actionSelectLight = new ActionCallFunction(selectLight);
+            ActionCallFunction actionDeselectLight = new ActionCallFunction(deselectLight, selectLight);
+            ActionCallFunction actionSelectLight = new ActionCallFunction(selectLight, deselectLight);
             State stateEditLights = new State();
 
             TargetState stateSelectLight = new TargetState(stateEditLights);
@@ -228,8 +231,8 @@ namespace LevelEditor
             DecisionEditorMouseButtonPressed decisionMouseLeftButton = new DecisionEditorMouseButtonPressed(stateSelectLight, decisionMouseRightButton, this, MouseButtons.Left);
             ActionDecisionTree actionOnMouseClick = new ActionDecisionTree(decisionMouseLeftButton);
 
-            ActionCallFunction actionShowGui = new ActionCallFunction(showLightGui);
-            ActionCallFunction actionHideGui = new ActionCallFunction(hideLightGui);
+            ActionCallFunction actionShowGui = new ActionCallFunction(showLightGui, hideLightGui);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideLightGui, showLightGui);
 
             stateEditLights.addEntryAction(actionShowGui);
             stateEditLights.addAction(actionOnMouseClick);
@@ -243,8 +246,8 @@ namespace LevelEditor
         {
             ActionDeselectMesh actionDeselectMesh = new ActionDeselectMesh(this);
 
-            ActionCallFunction actionShowGui = new ActionCallFunction(showMeshGui);
-            ActionCallFunction actionHideGui = new ActionCallFunction(hideMeshGui);
+            ActionCallFunction actionShowGui = new ActionCallFunction(showMeshGui, hideMeshGui);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideMeshGui, showMeshGui);
 
             State stateEditMesh = new State();
 
@@ -308,7 +311,7 @@ namespace LevelEditor
             toolStripButtonCreateLight.Visible = true;
 
         }
-            void hideLightGui()
+        void hideLightGui()
         {
             toolStripButtonCreateLight.Visible = false;
         }
@@ -439,11 +442,11 @@ namespace LevelEditor
 
                 if (type == s_typeMesh)
                 {
-                   // var meshEntry = new EditorNodeEntry(sid, s_typeMesh, str);
+                    // var meshEntry = new EditorNodeEntry(sid, s_typeMesh, str);
 
-                   // m_meshNode.Nodes.Add(meshEntry);
+                    // m_meshNode.Nodes.Add(meshEntry);
 
-                   
+
                 }
                 else if (type == s_typeMaterial)
                 {
@@ -520,13 +523,13 @@ namespace LevelEditor
         void setNumericUpDownTranslation(Float3 translation)
         {
             //if (numericUpDown_translation_x.Value != (decimal)translation.x)
-                numericUpDown_translation_x.Value = (decimal)translation.x;
+            numericUpDown_translation_x.Value = (decimal)translation.x;
 
             //if (numericUpDown_translation_y.Value != (decimal)translation.y)
-                numericUpDown_translation_y.Value = (decimal)translation.y;
+            numericUpDown_translation_y.Value = (decimal)translation.y;
 
-           // if (numericUpDown_translation_z.Value != (decimal)translation.z)
-                numericUpDown_translation_z.Value = (decimal)translation.z;
+            // if (numericUpDown_translation_z.Value != (decimal)translation.z)
+            numericUpDown_translation_z.Value = (decimal)translation.z;
         }
 
         void setNumericUpDownNavMeshPosition(Float3 translation)
@@ -656,47 +659,117 @@ namespace LevelEditor
             panel_render.Focus();
         }
 
-        private void selectMesh(int x, int y)
+        void setSelectedMeshInstanceNode()
         {
-            Float3 translation;
-            translation.x = translation.y = translation.z = 0.0f;
-            if (NativeMethods.selectMeshInstance(x, y))
-            {
-                var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
+            var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
 
-                EditorNodeEntry entry;
-                if (m_sortedMeshInstances.TryGetValue(instanceSid, out entry))
-                {
-                    treeView_entities.SelectedNode = entry;
-                }
+            EditorNodeEntry entry;
+            if (m_sortedMeshInstances.TryGetValue(instanceSid, out entry))
+            {
+                treeView_entities.SelectedNode = entry;
             }
         }
 
-        public void selectMesh()
+        public void selectMesh(int mouseX, int mouseY)
         {
-            selectMesh(m_mouseX, m_mouseY);
+            Float3 translation;
+            translation.x = translation.y = translation.z = 0.0f;
+            if (NativeMethods.selectMeshInstance(mouseX, mouseY))
+            {
+                setSelectedMeshInstanceNode();
+            }
         }
 
-        public void deselectMesh()
+        public void selectMesh(int mouseX, int mouseY, out ulong selectedSid)
         {
-            NativeMethods.deselectMeshInstance();
+            selectedSid = NativeMethods.getSelectedMeshInstanceSid();
+
+            selectMesh(mouseX, mouseY);
+        }
+
+        public void selectMesh(ulong sid)
+        {
+            Float3 translation;
+            translation.x = translation.y = translation.z = 0.0f;
+
+            if (NativeMethods.selectMeshInstanceSid(sid))
+            {
+                setSelectedMeshInstanceNode();
+            }
+        }
+
+        public ulong deselectMesh()
+        {
+            var sid = NativeMethods.deselectMeshInstance();
+
             treeView_entities.SelectedNode = null;
             groupBoxMesh.Hide();
+
+            return sid;
         }
 
-        public void selectNavMeshVertex()
+        void updateNavMeshVertexGui()
         {
-            if (NativeMethods.selectNavMeshVertex(m_mouseX, m_mouseY))
+            m_selectedNavMesh = true;
+
+            Float3 position;
+            position.x = position.y = position.z = 0;
+            NativeMethods.getSelectNavMeshVertexPosition(ref position);
+            setNumericUpDownNavMeshPosition(position);
+
+            groupBoxNavMesh.Show();
+            m_selectedNavMesh = false;
+        }
+
+        public void selectNavMeshVertex(int mouseX, int mouseY)
+        {
+            if (NativeMethods.selectNavMeshVertex(mouseX, mouseY))
             {
-                m_selectedNavMesh = true;
+                updateNavMeshVertexGui();
+            }
+            else
+            {
+                groupBoxNavMesh.Hide();
+            }
+        }
 
-                Float3 position;
-                position.x = position.y = position.z = 0;
-                NativeMethods.getSelectNavMeshVertexPosition(ref position);
-                setNumericUpDownNavMeshPosition(position);
+        public void selectNavMeshVertex(ref Float3 position)
+        {
+            if (NativeMethods.selectNavMeshVertexPosition(ref position))
+            {
+                updateNavMeshVertexGui();
+            }
+            else
+            {
+                groupBoxNavMesh.Hide();
+            }
+        }
 
-                groupBoxNavMesh.Show();
-                m_selectedNavMesh = false;
+        public void selectNavMeshVertex(int mouseX, int mouseY, out int hasPreviousSelected, ref Float3 position)
+        {
+            hasPreviousSelected = 0;
+
+            if(NativeMethods.getSelectNavMeshVertexPosition(ref position))
+            {
+                hasPreviousSelected = 1;
+            }
+
+            if (NativeMethods.selectNavMeshVertex(mouseX, mouseY))
+            {
+                updateNavMeshVertexGui();
+            }
+            else
+            {
+                groupBoxNavMesh.Hide();
+            }
+        }
+
+        public void selectNavMeshVertex(uint index, out int mm)
+        {
+            mm = 0;
+            if (NativeMethods.selectNavMeshVertexIndex(index))
+            {
+                updateNavMeshVertexGui();
             }
             else
             {
@@ -710,15 +783,12 @@ namespace LevelEditor
             groupBoxMesh.Hide();
         }
 
-        public void deselectNavMeshVertex()
+        public uint deselectNavMeshVertex()
         {
-            NativeMethods.deselectNavMeshVertex();
+            var index = NativeMethods.deselectNavMeshVertex();
             groupBoxNavMesh.Hide();
-        }
 
-        private void addNavMeshVertex(int x, int y)
-        {
-            NativeMethods.addNavMeshVertex(x, y);
+            return index;
         }
 
         private void updateStateMachine()
@@ -727,6 +797,9 @@ namespace LevelEditor
             foreach (var item in actions)
             {
                 item.run();
+                ActionList actionList = new ActionList(item.clone(), m_actionListHead);
+                m_actionListHead.setNext(actionList);
+                m_actionListHead = actionList;
             }
         }
 
@@ -796,12 +869,12 @@ namespace LevelEditor
             }
             else if (e.KeyCode == Keys.C)
             {
-                NativeMethods.createNavMeshTriangleFromSelectedVertices();
+               // NativeMethods.createNavMeshTriangleFromSelectedVertices();
             }
             else if (e.KeyCode == Keys.Delete)
             {
-                if (m_editorState == EditorState.EditNavMesh)
-                    NativeMethods.deleteSelectedNavMeshVertex();
+                //if (m_editorState == EditorState.EditNavMesh)
+                 //   NativeMethods.removeSelectedNavMeshVertex();
             }
 
             if (e.Alt)
@@ -809,9 +882,9 @@ namespace LevelEditor
                 e.Handled = true;
             }
 
-            m_keyDownAlt = e.Alt;
+            m_keys.Add(e.KeyCode, false);
 
-            m_keys ^= (1 << (int)e.KeyCode);
+            m_keyDownAlt = e.Alt;
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -825,8 +898,9 @@ namespace LevelEditor
                 e.Handled = true;
             }
 
+            m_keys.Add(e.KeyCode, true);
+
             m_keyDownAlt = e.Alt;
-            m_keys ^= (1 << (int)e.KeyCode);
         }
 
         private void toolStripButton1_Click(object sender, EventArgs e)
@@ -927,26 +1001,22 @@ namespace LevelEditor
             return m_keyDownShift;
         }
 
-        private void toolStripButton1_Click_1(object sender, EventArgs e)
+        public int getMouseX()
         {
-            NativeMethods.createNavMeshTriangleFromSelectedVertices();
+            return m_mouseX;
         }
 
-        public void createNavMeshVertex()
+        public int getMouseY()
         {
-            NativeMethods.addNavMeshVertex(m_mouseX, m_mouseY);
+            return m_mouseY;
         }
 
         public bool isKeyDown(System.Windows.Forms.Keys key)
         {
-            var mask = (1 << (int)key);
+            bool isDown = false;
+            m_keys.TryGetValue(key, out isDown);
 
-            return ((m_keys & mask) == mask);
-        }
-
-        private void toolStripButton1_Click_2(object sender, EventArgs e)
-        {
-            NativeMethods.createNavMeshTriangleFromSelectedVertices();
+            return isDown;
         }
 
         void setSelectedNavMeshVertexPosition()
@@ -1031,21 +1101,21 @@ namespace LevelEditor
 
             if (oldSid != 0)
             {
-                 EditorNodeEntry nodeEntry;
-                 if (m_sortedMeshInstances.TryGetValue(oldSid, out nodeEntry))
-                 {
-                     ulong newSid = NativeMethods.setSelectedMeshInstanceName(textBoxMeshName.Text);
+                EditorNodeEntry nodeEntry;
+                if (m_sortedMeshInstances.TryGetValue(oldSid, out nodeEntry))
+                {
+                    ulong newSid = NativeMethods.setSelectedMeshInstanceName(textBoxMeshName.Text);
 
-                     if (newSid != 0 && newSid != oldSid)
-                     {
-                         m_sortedMeshInstances.Remove(oldSid);
+                    if (newSid != 0 && newSid != oldSid)
+                    {
+                        m_sortedMeshInstances.Remove(oldSid);
 
-                         nodeEntry.sid = newSid;
-                         nodeEntry.Text = textBoxMeshName.Text;
+                        nodeEntry.sid = newSid;
+                        nodeEntry.Text = textBoxMeshName.Text;
 
-                         m_sortedMeshInstances.Add(newSid, nodeEntry);
-                     }
-                 }
+                        m_sortedMeshInstances.Add(newSid, nodeEntry);
+                    }
+                }
             }
         }
 
@@ -1058,6 +1128,45 @@ namespace LevelEditor
         {
             NativeMethods.createMeshInstance();
             addSceneMeshInstances();
+        }
+
+        private void undoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            m_actionListHead.undo();
+
+            var prev = m_actionListHead.prev();
+            var tmp = prev.next();
+            if (prev == null)
+            {
+                Console.WriteLine("Error undo, null");
+            }
+            else if (prev == m_actionListHead)
+            {
+                Console.WriteLine("Error undo");
+            }
+            else if (tmp != m_actionListHead)
+            {
+                Console.WriteLine("Error undo");
+            }
+
+            if (prev != null)
+            {
+                m_actionListHead = prev;
+            }
+        }
+
+        private void redoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (m_actionListHead != null)
+            {
+                var next = m_actionListHead.next();
+                if (next != null)
+                {
+                    m_actionListHead = next;
+                }
+
+                m_actionListHead.redo();
+            }
         }
     }
 }

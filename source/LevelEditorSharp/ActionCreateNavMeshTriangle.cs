@@ -31,14 +31,41 @@ namespace LevelEditor
 {
     class ActionCreateNavMeshTriangle : Action
     {
+        uint3 m_selectedVertices;
+        bool m_selected;
+
+        public ActionCreateNavMeshTriangle()
+        {
+            m_selectedVertices = new uint3(0, 0, 0);
+            m_selected = false;
+        }
+
         public override void run()
         {
-            NativeMethods.createNavMeshTriangleFromSelectedVertices();
+           m_selected = NativeMethods.createNavMeshTriangleFromSelectedVertices(ref m_selectedVertices);
+        }
+
+        public override void undo()
+        {
+            NativeMethods.removeNavMeshTriangle();
+        }
+
+        public override void redo()
+        {
+            if(m_selected)
+            {
+                NativeMethods.createNavMeshTriangleFromIndices(ref m_selectedVertices);
+            }
         }
 
         public override bool isComplete()
         {
             return true;
+        }
+
+        public override Action clone()
+        {
+            throw new NotImplementedException();
         }
     }
 }

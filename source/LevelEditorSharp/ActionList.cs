@@ -1,4 +1,10 @@
-﻿/*
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+/*
 The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
@@ -21,38 +27,55 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LevelEditor
 {
-    class ActionConsole : Action
+    class ActionList
     {
-        public override void run()
+        Action action;
+        ActionList m_next;
+        ActionList m_prev;
+        bool isUndo;
+
+        public ActionList(Action action, ActionList prev)
         {
-            Console.WriteLine("Test\n");
+            this.action = action;
+            m_next = null;
+            m_prev = prev;
+            isUndo = false;
         }
 
-        public override void undo()
+        public void undo()
         {
+            if (action != null && !isUndo)
+            {
+                action.undo();
+                isUndo = true;
+            }
         }
 
-        public override void redo()
+        public ActionList next()
         {
-            run();
+            return m_next;
         }
 
-        public override bool isComplete()
+        public ActionList prev()
         {
-            return true;
+            return m_prev;
         }
 
-        public override Action clone()
+        public void redo()
         {
-            throw new NotImplementedException();
+            if (action != null && isUndo)
+            {
+                action.redo();
+                isUndo = false;
+            }
+        }
+
+        public void setNext(ActionList next)
+        {
+            m_next = next;
         }
     }
 }

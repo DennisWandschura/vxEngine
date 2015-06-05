@@ -95,6 +95,8 @@
     <Compile Include="ActionDecisionTree.cs" />
     <Compile Include="ActionDeselectMesh.cs" />
     <Compile Include="ActionDeselectNavMesh.cs" />
+    <Compile Include="ActionList.cs" />
+    <Compile Include="ActionRenameSelectedMeshInstance.cs" />
     <Compile Include="DecisionKeyDownNew.cs" />
     <Compile Include="ActionMultiSelectNavMesh.cs" />
     <Compile Include="ActionSelectMesh.cs" />

@@ -213,7 +213,7 @@ bool FileAspect::loadFileScene(const LoadFileOfTypeDescription &desc, bool edito
 		bool created = false;
 		if (editor)
 		{
-			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, (EditorScene*)desc.pUserData);
+			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, (Editor::Scene*)desc.pUserData);
 		}
 		else
 		{
@@ -552,7 +552,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	{
 	case FileType::Scene:
 	{
-		auto &scene = *(EditorScene*)request.userData;
+		auto &scene = *(Editor::Scene*)request.userData;
 
 		saveResult = FileFactory::save(&f, scene);
 		if (saveResult == 0)

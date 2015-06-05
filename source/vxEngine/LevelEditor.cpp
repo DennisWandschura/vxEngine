@@ -35,7 +35,7 @@ namespace Editor
 		Timer clock;
 		Logfile logfile;
 		EditorEngine engine;
-		EditorScene scene;
+		Editor::Scene scene;
 
 		Editor()
 			:clock(),
@@ -158,34 +158,59 @@ namespace Editor
 		return g_pEditor->engine.selectNavMeshVertex(x, y);
 	}
 
+	bool selectNavMeshVertexIndex(u32 index)
+	{
+		return g_pEditor->engine.selectNavMeshVertexIndex(index);
+	}
+
+	bool selectNavMeshVertexPosition(const vx::float3 &position)
+	{
+		return g_pEditor->engine.selectNavMeshVertexPosition(position);
+	}
+
 	bool multiSelectNavMeshVertex(s32 mouseX, s32 mouseY)
 	{
 		return g_pEditor->engine.multiSelectNavMeshVertex(mouseX, mouseY);
 	}
 
-	void deselectNavMeshVertex()
+	u32 deselectNavMeshVertex()
 	{
-		g_pEditor->engine.deselectNavMeshVertex();
+		return g_pEditor->engine.deselectNavMeshVertex();
 	}
 
-	bool createNavMeshTriangleFromSelectedVertices()
+	bool createNavMeshTriangleFromSelectedVertices(vx::uint3* selected)
 	{
-		return g_pEditor->engine.createNavMeshTriangleFromSelectedVertices();
+		return g_pEditor->engine.createNavMeshTriangleFromSelectedVertices(selected);
 	}
 
-	bool addNavMeshVertex(s32 x, s32 y)
+	void createNavMeshTriangleFromIndices(const vx::uint3 &indices)
 	{
-		return g_pEditor->engine.addNavMeshVertex(x, y);
+		return g_pEditor->engine.createNavMeshTriangleFromIndices(indices);
 	}
 
-	void deleteSelectedNavMeshVertex()
+	void removeNavMeshTriangle()
 	{
-		g_pEditor->engine.deleteSelectedNavMeshVertex();
+		g_pEditor->engine.removeNavMeshTriangle();
 	}
 
-	void getSelectNavMeshVertexPosition(vx::float3* position)
+	bool addNavMeshVertex(s32 x, s32 y, vx::float3* position)
 	{
-		*position = g_pEditor->engine.getSelectedNavMeshVertexPosition();
+		return g_pEditor->engine.addNavMeshVertex(x, y, position);
+	}
+
+	void removeNavMeshVertex(const vx::float3 &position)
+	{
+		g_pEditor->engine.removeNavMeshVertex(position);
+	}
+
+	void removeNavMeshVertex()
+	{
+		g_pEditor->engine.removeSelectedNavMeshVertex();
+	}
+
+	bool getSelectNavMeshVertexPosition(vx::float3* position)
+	{
+		return g_pEditor->engine.getSelectedNavMeshVertexPosition(position);
 	}
 
 	void setSelectNavMeshVertexPosition(const vx::float3 &position)
@@ -227,9 +252,14 @@ namespace Editor
 		return g_pEditor->engine.selectMeshInstance(i);
 	}
 
-	void deselectMeshInstance()
+	bool selectMeshInstanceSid(u64 sid)
 	{
-		g_pEditor->engine.deselectMeshInstance();
+		return g_pEditor->engine.selectMeshInstance(sid);
+	}
+
+	u64 deselectMeshInstance()
+	{
+		return g_pEditor->engine.deselectMeshInstance();
 	}
 
 	BSTR getSelectedMeshInstanceName()

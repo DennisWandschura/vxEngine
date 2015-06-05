@@ -33,6 +33,11 @@ namespace LevelEditor
     {
         public abstract void run();
 
+        public abstract void undo();
+        public abstract void redo();
+
         public abstract bool isComplete();
+
+        public abstract Action clone();
     }
 }

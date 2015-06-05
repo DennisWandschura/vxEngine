@@ -25,7 +25,7 @@ SOFTWARE.
 #include <PxPhysicsAPI.h>
 #include <vxLib/Graphics/Mesh.h>
 #include "Scene.h"
-#include "MeshInstance.h"
+#include "EditorMeshInstance.h"
 #include <Windows.h>
 #include "Material.h"
 #include <extensions/PxDefaultSimulationFilterShader.h>
@@ -34,6 +34,7 @@ SOFTWARE.
 #include "enums.h"
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
+#include "EditorScene.h"
 
 UserErrorCallback PhysicsAspect::s_defaultErrorCallback{};
 physx::PxDefaultAllocator PhysicsAspect::s_defaultAllocatorCallback{};
@@ -174,7 +175,7 @@ void PhysicsAspect::handleFileEvent(const vx::Event &evt)
 	switch (fileEvent)
 	{
 	case vx::FileEvent::Scene_Loaded:
-		processScene((Scene*)evt.arg1.ptr);
+		processScene(evt.arg1.ptr);
 		break;
 	default:
 		break;
@@ -243,10 +244,9 @@ void PhysicsAspect::editorSetStaticMeshInstancePosition(const vx::StringID &sid,
 	}
 }
 
-void PhysicsAspect::editorAddMeshInstance(const MeshInstance* ptr)
+void PhysicsAspect::editorAddMeshInstance(const MeshInstance &instance)
 {
-	if (ptr)
-		addMeshInstance(*ptr);
+	addMeshInstance(instance);
 }
 
 void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
@@ -292,9 +292,15 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 	m_pScene->addActor(*pRigidStatic);
 }
 
-void PhysicsAspect::processScene(const Scene* pScene)
+void PhysicsAspect::processScene(const void* ptr)
 {
 	m_pScene->lockWrite();
+
+#if _VX_EDITOR
+	auto pScene = (Editor::Scene*)ptr;
+#else
+	auto pScene = (Scene*)ptr;
+#endif
 
 	auto &meshes = pScene->getMeshes();
 
@@ -313,7 +319,11 @@ void PhysicsAspect::processScene(const Scene* pScene)
 	}
 
 	auto numInstances = pScene->getMeshInstanceCount();
+#if _VX_EDITOR
+	auto pMeshInstances = pScene->getMeshInstancesEditor();
+#else
 	auto pMeshInstances = pScene->getMeshInstances();
+#endif
 
 	auto &sceneMaterials = pScene->getMaterials();
 	for (auto i = 0u; i < sceneMaterials.size(); ++i)
@@ -327,7 +337,11 @@ void PhysicsAspect::processScene(const Scene* pScene)
 
 	for (auto i = 0u; i < numInstances; ++i)
 	{
+#if _VX_EDITOR
+		addMeshInstance(pMeshInstances[i].getMeshInstance());
+#else
 		addMeshInstance(pMeshInstances[i]);
+#endif
 	}
 
 	m_pScene->unlockWrite();

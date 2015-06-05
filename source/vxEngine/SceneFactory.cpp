@@ -149,7 +149,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 	return result;
 }
 
-bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, EditorScene *pScene)
+bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, Editor::Scene *pScene)
 {
 	SceneFile sceneFile;
 	auto result = FileFactory::load(file, &sceneFile, allocator, nullptr);
@@ -178,7 +178,7 @@ bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, v
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, EditorScene* pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, Editor::Scene* pScene)
 {
 	SceneFile sceneFile;
 	auto result = FileFactory::load(ptr, &sceneFile, nullptr);
@@ -207,7 +207,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 	return result;
 }
 
-bool SceneFactory::save(const EditorScene &scene, vx::File* file)
+bool SceneFactory::save(const Editor::Scene &scene, vx::File* file)
 {
 	SceneFile sceneFile;
 	convert(scene, &sceneFile);
@@ -215,7 +215,7 @@ bool SceneFactory::save(const EditorScene &scene, vx::File* file)
 	return sceneFile.saveToFile(file);
 }
 
-void SceneFactory::convert(const EditorScene &scene, SceneFile* sceneFile)
+void SceneFactory::convert(const Editor::Scene &scene, SceneFile* sceneFile)
 {
 	ConverterEditorSceneToSceneFile::convert(scene, sceneFile);
 }

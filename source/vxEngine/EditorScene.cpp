@@ -22,292 +22,292 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "EditorScene.h"
-#include "MeshInstance.h"
+#include "EditorMeshInstance.h"
 #include "Waypoint.h"
 #include "SceneFile.h"
 #include "Actor.h"
 #include "Light.h"
 #include "Spawn.h"
-#include <string>
 
-EditorSceneParams::~EditorSceneParams()
+namespace Editor
 {
-
-}
-
-EditorScene::EditorScene()
-	:m_meshInstances(), 
-	m_waypoints(),
-	m_meshInstanceNames()
-{
-
-}
-
-EditorScene::EditorScene(EditorSceneParams &&params)
-	: SceneBase(params.m_baseParams),
-	m_meshInstances(std::move(params.m_meshInstances)),
-	m_selectableLights(),
-	m_materialNames(std::move(params.m_materialNames)),
-	m_meshNames(std::move(params.m_meshNames)),
-	m_actorNames(std::move(params.m_actorNames)),
-	m_meshInstanceNames(std::move(params.m_meshInstanceNames))
-{
-	buildSelectableLights();
-
-	m_selectableSpawns.reserve(m_spawnCount);
-	for (u32 i = 0; i < m_spawnCount; ++i)
+	SceneParams::~SceneParams()
 	{
-		auto &spawn = m_pSpawns[i];
 
-		AABB bounds;
-		bounds.max = spawn.position + vx::float3(0.1f);
-		bounds.min = spawn.position - vx::float3(0.1f);
-
-		SelectableWrapper<Spawn> selected;
-		selected.m_bounds = bounds;
-		selected.m_ptr = &spawn;
-
-		m_selectableSpawns.push_back(selected);
-	}
-}
-
-EditorScene::~EditorScene()
-{
-
-}
-
-EditorScene& EditorScene::operator = (EditorScene &&rhs)
-{
-	if (this != &rhs)
-	{
-		SceneBase::operator=(std::move(rhs));
-		std::swap(m_meshInstances, rhs.m_meshInstances);
-		std::swap(m_waypoints, rhs.m_waypoints);
-		std::swap(m_selectableLights, rhs.m_selectableLights);
-		std::swap(m_materialNames, rhs.m_materialNames);
-		std::swap(m_meshNames, rhs.m_meshNames);
-		std::swap(m_actorNames, rhs.m_actorNames);
-		std::swap(m_meshInstanceNames, rhs.m_meshInstanceNames);
 	}
 
-	return *this;
-}
-
-void EditorScene::buildSelectableLights()
-{
-	m_selectableLights.clear();
-	m_selectableLights.reserve(m_lightCount);
-	for (u32 i = 0; i < m_lightCount; ++i)
+	Scene::Scene()
+		:m_meshInstances(),
+		m_waypoints()
 	{
-		auto &light = m_pLights[i];
 
-		AABB bounds;
-		bounds.max = light.m_position + vx::float3(0.1f);
-		bounds.min = light.m_position - vx::float3(0.1f);
-
-		SelectableWrapper<Light> selectLight;
-		selectLight.m_bounds = bounds;
-		selectLight.m_ptr = &light;
-
-		m_selectableLights.push_back(selectLight);
 	}
-}
 
-void EditorScene::sortMeshInstances()
-{
-}
+	Scene::Scene(SceneParams &&params)
+		: SceneBase(params.m_baseParams),
+		m_meshInstances(std::move(params.m_meshInstances)),
+		m_selectableLights(),
+		m_materialNames(std::move(params.m_materialNames)),
+		m_meshNames(std::move(params.m_meshNames)),
+		m_actorNames(std::move(params.m_actorNames))
+	{
+		buildSelectableLights();
 
-Light* EditorScene::addLight(const Light &light)
-{
+		m_selectableSpawns.reserve(m_spawnCount);
+		for (u32 i = 0; i < m_spawnCount; ++i)
+		{
+			auto &spawn = m_pSpawns[i];
+
+			AABB bounds;
+			bounds.max = spawn.position + vx::float3(0.1f);
+			bounds.min = spawn.position - vx::float3(0.1f);
+
+			SelectableWrapper<Spawn> selected;
+			selected.m_bounds = bounds;
+			selected.m_ptr = &spawn;
+
+			m_selectableSpawns.push_back(selected);
+		}
+	}
+
+	Scene::~Scene()
+	{
+
+	}
+
+	Scene& Scene::operator = (Scene &&rhs)
+	{
+		if (this != &rhs)
+		{
+			SceneBase::operator=(std::move(rhs));
+			std::swap(m_meshInstances, rhs.m_meshInstances);
+			std::swap(m_waypoints, rhs.m_waypoints);
+			std::swap(m_selectableLights, rhs.m_selectableLights);
+			std::swap(m_materialNames, rhs.m_materialNames);
+			std::swap(m_meshNames, rhs.m_meshNames);
+			std::swap(m_actorNames, rhs.m_actorNames);
+		}
+
+		return *this;
+	}
+
+	void Scene::buildSelectableLights()
+	{
+		m_selectableLights.clear();
+		m_selectableLights.reserve(m_lightCount);
+		for (u32 i = 0; i < m_lightCount; ++i)
+		{
+			auto &light = m_pLights[i];
+
+			AABB bounds;
+			bounds.max = light.m_position + vx::float3(0.1f);
+			bounds.min = light.m_position - vx::float3(0.1f);
+
+			SelectableWrapper<Light> selectLight;
+			selectLight.m_bounds = bounds;
+			selectLight.m_ptr = &light;
+
+			m_selectableLights.push_back(selectLight);
+		}
+	}
+
+	void Scene::sortMeshInstances()
+	{
+	}
+
+	Light* Scene::addLight(const Light &light)
+	{
 #if _VX_EDITOR
-	m_pLights.push_back(light);
-	++m_lightCount;
+		m_pLights.push_back(light);
+		++m_lightCount;
 
-	buildSelectableLights();
+		buildSelectableLights();
 
-	return &m_pLights.back();
+		return &m_pLights.back();
 #else
-	return nullptr;
+		return nullptr;
 #endif
-}
-
-u8 EditorScene::addMesh(vx::StringID sid, const char* name, const vx::MeshFile* pMesh)
-{
-	u8 result = 0;
-	auto it = m_meshes.find(sid);
-	if (it == m_meshes.end())
-	{
-		char buffer[32];
-		strcpy_s(buffer, name);
-
-		m_meshNames.insert(sid, buffer);
-
-		m_meshes.insert(sid, pMesh);
-		result = 1;
 	}
 
-	return result;
-}
-
-u8 EditorScene::addMaterial(vx::StringID sid, const char* name, Material* pMaterial)
-{
-	u8 result = 0;
-	auto it = m_materials.find(sid);
-	if (it == m_materials.end())
+	u8 Scene::addMesh(vx::StringID sid, const char* name, const vx::MeshFile* pMesh)
 	{
-		char buffer[32];
-		strcpy_s(buffer, name);
-		m_materialNames.insert(sid, buffer);
-		m_materials.insert(sid, pMaterial);
-		result = 1;
-	}
-
-	return result;
-}
-
-void EditorScene::addWaypoint(const Waypoint &wp)
-{
-	m_waypoints.push_back(wp);
-}
-
-const char* EditorScene::getMeshInstanceName(const vx::StringID &sid) const
-{
-	auto it = m_meshInstanceNames.find(sid);
-	if (it == m_meshInstanceNames.end())
-		return nullptr;
-
-	return it->c_str();
-}
-
-const char* EditorScene::getMaterialName(const vx::StringID &sid) const
-{
-	auto it = m_materialNames.find(sid);
-	if (it == m_materialNames.end())
-		return nullptr;
-
-	return it->c_str();
-}
-
-const char* EditorScene::getMeshName(const vx::StringID &sid) const
-{
-	auto it = m_meshNames.find(sid);
-	if (it == m_meshNames.end())
-		return nullptr;
-
-	return it->c_str();
-}
-
-const char* EditorScene::getActorName(const vx::StringID &sid) const
-{
-	auto it = m_actorNames.find(sid);
-	if (it == m_actorNames.end())
-		return nullptr;
-
-	return it->c_str();
-}
-
-void EditorScene::addMeshInstanceName(const vx::StringID &sid, const std::string &name)
-{
-	auto it = m_meshInstanceNames.find(sid);
-	if (it == m_meshInstanceNames.end())
-	{
-		m_meshInstanceNames.insert(sid, std::move(name));
-	}
-}
-
-const MeshInstance* EditorScene::createMeshInstance()
-{
-	std::string instanceName = "instance" + std::to_string(m_meshInstances.size());
-	auto nameSid = vx::make_sid(instanceName.c_str());
-
-	auto meshSid = *m_meshes.keys();
-	auto materialSid = *m_materials.keys();
-	
-	vx::Transform transform;
-	MeshInstance instance(nameSid, meshSid, materialSid, transform);
-
-	addMeshInstanceName(nameSid, instanceName);
-
-	auto it = m_meshInstances.insert(nameSid, instance);
-
-	return &*it;
-}
-
-void EditorScene::removeMeshInstance(const vx::StringID &sid)
-{
-	auto itName = m_meshInstanceNames.find(sid);
-	if (itName != m_meshInstanceNames.end())
-		m_meshInstanceNames.erase(itName);
-
-	auto it = m_meshInstances.find(sid);
-	if (it != m_meshInstances.end())
-		m_meshInstances.erase(it);
-}
-
-const MeshInstance* EditorScene::getMeshInstance(const vx::StringID &sid) const
-{
-	const MeshInstance* p = nullptr;
-	auto it = m_meshInstances.find(sid);
-	if (it != m_meshInstances.end())
-		p = &*it;
-
-	return p;
-}
-
-const MeshInstance* EditorScene::getMeshInstances() const
-{
-	return m_meshInstances.data();
-}
-
-u32 EditorScene::getMeshInstanceCount() const
-{
-	return m_meshInstances.size();
-}
-
-Spawn* EditorScene::getSpawn(const Ray &ray)
-{
-	Spawn* result = nullptr;
-
-	f32 a, b;
-	for (auto &it : m_selectableSpawns)
-	{
-		if (it.m_bounds.intersects(ray, &a, &b))
+		u8 result = 0;
+		auto it = m_meshes.find(sid);
+		if (it == m_meshes.end())
 		{
-			result = it.m_ptr;
-			break;
+			char buffer[32];
+			strcpy_s(buffer, name);
+
+			m_meshNames.insert(sid, buffer);
+
+			m_meshes.insert(sid, pMesh);
+			result = 1;
+		}
+
+		return result;
+	}
+
+	u8 Scene::addMaterial(vx::StringID sid, const char* name, Material* pMaterial)
+	{
+		u8 result = 0;
+		auto it = m_materials.find(sid);
+		if (it == m_materials.end())
+		{
+			char buffer[32];
+			strcpy_s(buffer, name);
+			m_materialNames.insert(sid, buffer);
+			m_materials.insert(sid, pMaterial);
+			result = 1;
+		}
+
+		return result;
+	}
+
+	void Scene::addWaypoint(const Waypoint &wp)
+	{
+		m_waypoints.push_back(wp);
+	}
+
+	const char* Scene::getMeshInstanceName(const vx::StringID &sid) const
+	{
+		auto it = m_meshInstances.find(sid);
+		if (it == m_meshInstances.end())
+			return nullptr;
+
+		return it->getName().c_str();
+	}
+
+	const char* Scene::getMaterialName(const vx::StringID &sid) const
+	{
+		auto it = m_materialNames.find(sid);
+		if (it == m_materialNames.end())
+			return nullptr;
+
+		return it->c_str();
+	}
+
+	const char* Scene::getMeshName(const vx::StringID &sid) const
+	{
+		auto it = m_meshNames.find(sid);
+		if (it == m_meshNames.end())
+			return nullptr;
+
+		return it->c_str();
+	}
+
+	const char* Scene::getActorName(const vx::StringID &sid) const
+	{
+		auto it = m_actorNames.find(sid);
+		if (it == m_actorNames.end())
+			return nullptr;
+
+		return it->c_str();
+	}
+
+	const Editor::MeshInstance& Scene::createMeshInstance()
+	{
+		std::string instanceName = "instance" + std::to_string(m_meshInstances.size());
+		auto nameSid = vx::make_sid(instanceName.c_str());
+
+		auto meshSid = *m_meshes.keys();
+		auto materialSid = *m_materials.keys();
+
+		vx::Transform transform;
+		::MeshInstance instance(nameSid, meshSid, materialSid, transform);
+		Editor::MeshInstance editorInstance(instance, std::move(instanceName));
+
+		auto it = m_meshInstances.insert(nameSid, editorInstance);
+
+		return *it;
+	}
+
+	void Scene::removeMeshInstance(const vx::StringID &sid)
+	{
+		auto it = m_meshInstances.find(sid);
+		if (it != m_meshInstances.end())
+			m_meshInstances.erase(it);
+	}
+
+	void Scene::renameMeshInstance(const vx::StringID &sid, const char* newName)
+	{
+		auto it = m_meshInstances.find(sid);
+		if (it != m_meshInstances.end())
+		{
+			auto newSid = vx::make_sid(newName);
+			::MeshInstance newInstance(newSid,it->getMeshSid(), it->getMaterialSid(), it->getTransform());
+			Editor::MeshInstance editrInstance(newInstance, std::string(newName));
+
+			m_meshInstances.erase(it);
+
+			m_meshInstances.insert(newSid, std::move(editrInstance));
 		}
 	}
 
-	return result;
-}
-
-Light* EditorScene::getLight(const Ray &ray)
-{
-	Light* result = nullptr;
-
-	f32 a, b;
-	for (auto &it : m_selectableLights)
+	const MeshInstance* Scene::getMeshInstance(const vx::StringID &sid) const
 	{
-		if (it.m_bounds.intersects(ray, &a, &b))
-		{
-			result = it.m_ptr;
-			break;
-		}
+		const MeshInstance* p = nullptr;
+		auto it = m_meshInstances.find(sid);
+		if (it != m_meshInstances.end())
+			p = &*it;
+
+		return p;
 	}
 
-	return result;
-}
-
-void EditorScene::updateLightPositions()
-{
-	for (u32 i = 0; i < m_lightCount; ++i)
+	const Editor::MeshInstance* Scene::getMeshInstancesEditor() const
 	{
-		auto &light = m_pLights[i];
+		return m_meshInstances.data();
+	}
 
-		AABB bounds;
-		bounds.max = light.m_position + vx::float3(0.1f);
-		bounds.min = light.m_position - vx::float3(0.1f);
+	u32 Scene::getMeshInstanceCount() const
+	{
+		return m_meshInstances.size();
+	}
 
-		m_selectableLights[i].m_bounds = bounds;
+	Spawn* Scene::getSpawn(const Ray &ray)
+	{
+		Spawn* result = nullptr;
+
+		f32 a, b;
+		for (auto &it : m_selectableSpawns)
+		{
+			if (it.m_bounds.intersects(ray, &a, &b))
+			{
+				result = it.m_ptr;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	Light* Scene::getLight(const Ray &ray)
+	{
+		Light* result = nullptr;
+
+		f32 a, b;
+		for (auto &it : m_selectableLights)
+		{
+			if (it.m_bounds.intersects(ray, &a, &b))
+			{
+				result = it.m_ptr;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	void Scene::updateLightPositions()
+	{
+		for (u32 i = 0; i < m_lightCount; ++i)
+		{
+			auto &light = m_pLights[i];
+
+			AABB bounds;
+			bounds.max = light.m_position + vx::float3(0.1f);
+			bounds.min = light.m_position - vx::float3(0.1f);
+
+			m_selectableLights[i].m_bounds = bounds;
+		}
 	}
 }

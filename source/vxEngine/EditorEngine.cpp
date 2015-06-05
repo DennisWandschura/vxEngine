@@ -28,7 +28,7 @@ SOFTWARE.
 #include "developer.h"
 #include <vxLib/util/DebugPrint.h>
 #include "Locator.h"
-#include "MeshInstance.h"
+#include "EditorMeshInstance.h"
 #include "Ray.h"
 #include "EditorScene.h"
 #include "NavMeshGraph.h"
@@ -90,7 +90,7 @@ void EditorEngine::createStateMachine()
 {
 }
 
-bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, EditorScene* pScene)
+bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene)
 {
 	vx::activateChannel(dev::Channel_Render);
 	vx::activateChannel(dev::Channel_Editor);
@@ -385,7 +385,7 @@ const char* EditorEngine::getMeshInstanceName(u32 i) const
 {
 	if (m_pEditorScene)
 	{
-		auto meshInstances = m_pEditorScene->getMeshInstances();
+		auto meshInstances = m_pEditorScene->getMeshInstancesEditor();
 		return m_pEditorScene->getMeshInstanceName(meshInstances[i].getNameSid());
 	}
 
@@ -398,7 +398,7 @@ u64 EditorEngine::getMeshInstanceSid(u32 i) const
 
 	if (m_pEditorScene)
 	{
-		auto meshInstances = m_pEditorScene->getMeshInstances();
+		auto meshInstances = m_pEditorScene->getMeshInstancesEditor();
 		sidValue = meshInstances[i].getNameSid().value;
 	}
 
@@ -488,7 +488,7 @@ bool EditorEngine::selectMeshInstance(u32 i)
 	bool result = false;
 	if (m_pEditorScene)
 	{
-		auto instances = m_pEditorScene->getMeshInstances();
+		auto instances = m_pEditorScene->getMeshInstancesEditor();
 
 		m_renderAspect.setSelectedMeshInstance(&instances[i]);
 		m_selected.m_type = SelectedType::MeshInstance;
@@ -500,29 +500,55 @@ bool EditorEngine::selectMeshInstance(u32 i)
 	return result;
 }
 
-void EditorEngine::deselectMeshInstance()
+bool EditorEngine::selectMeshInstance(u64 sid)
 {
+	bool result = false;
 	if (m_pEditorScene)
 	{
-		m_renderAspect.setSelectedMeshInstance(nullptr);
-		m_selected.m_item = nullptr;
+		auto instance = m_pEditorScene->getMeshInstance(vx::StringID(sid));
+		VX_ASSERT(instance != nullptr);
+
+		m_selected.m_type = SelectedType::MeshInstance;
+		m_selected.m_item = (void*)instance;
+
+		result = true;
 	}
+
+	return result;
+}
+
+u64 EditorEngine::deselectMeshInstance()
+{
+	u64 result = 0;
+	if (m_pEditorScene)
+	{
+		auto selectedInstance = (Editor::MeshInstance*)m_selected.m_item;
+		if (selectedInstance)
+		{
+			result = selectedInstance->getNameSid().value;
+
+			m_renderAspect.setSelectedMeshInstance(nullptr);
+			m_selected.m_item = nullptr;
+		}
+	}
+
+	return result;
 }
 
 void EditorEngine::createMeshInstance()
 {
 	if (m_pEditorScene)
 	{
-		auto selectedInstance = (MeshInstance*)m_selected.m_item;
+		auto selectedInstance = (Editor::MeshInstance*)m_selected.m_item;
 
 		vx::StringID selectedSid;
 		if (selectedInstance)
 			selectedSid = selectedInstance->getNameSid();
 
 		auto instance = m_pEditorScene->createMeshInstance();
-		m_renderAspect.createMeshInstance(instance);
+		m_renderAspect.editorAddMeshInstance(instance);
 
-		m_physicsAspect.editorAddMeshInstance(instance);
+		m_physicsAspect.editorAddMeshInstance(instance.getMeshInstance());
 
 		if (selectedSid.value != 0)
 		{
@@ -591,21 +617,13 @@ u64 EditorEngine::setSelectedMeshInstanceName(const char* name)
 	if (m_pEditorScene && m_selected.m_item)
 	{
 		auto meshInstance = (MeshInstance*)m_selected.m_item;
-
-		sid = vx::make_sid(name);
-
-		if (meshInstance->getNameSid() != sid)
-		{
-			meshInstance->setNameSid(sid);
-
-			m_pEditorScene->addMeshInstanceName(sid, std::string(name));
-		}
+		m_pEditorScene->renameMeshInstance(meshInstance->getNameSid(), name);
 	}
 
 	return sid.value;
 }
 
-bool EditorEngine::addNavMeshVertex(s32 mouseX, s32 mouseY)
+bool EditorEngine::addNavMeshVertex(s32 mouseX, s32 mouseY, vx::float3* position)
 {
 	vx::float3 hitPos;
 	auto sid = raytraceAgainstStaticMeshes(mouseX, mouseY, &hitPos);
@@ -615,18 +633,30 @@ bool EditorEngine::addNavMeshVertex(s32 mouseX, s32 mouseY)
 		auto &navMesh = m_pEditorScene->getNavMesh();
 		navMesh.addVertex(hitPos);
 		m_renderAspect.updateNavMeshBuffer(navMesh);
+
+		*position = hitPos;
 	}
 
 	return sid.value != 0;
 }
 
-void EditorEngine::deleteSelectedNavMeshVertex()
+void EditorEngine::removeNavMeshVertex(const vx::float3 &position)
+{
+	if (m_pEditorScene)
+	{
+		auto &navMesh = m_pEditorScene->getNavMesh();
+		navMesh.removeVertex(position);
+		m_renderAspect.updateNavMeshBuffer(navMesh);
+	}
+}
+
+void EditorEngine::removeSelectedNavMeshVertex()
 {
 	if (m_selected.m_navMeshVertices.m_count != 0)
 	{
 		auto index = m_selected.m_navMeshVertices.m_vertices[0];
 		auto &navMesh = m_pEditorScene->getNavMesh();
-		navMesh.deleteVertex(index);
+		navMesh.removeVertex(index);
 
 		m_renderAspect.updateNavMeshBuffer(navMesh);
 	}
@@ -676,6 +706,46 @@ bool EditorEngine::selectNavMeshVertex(s32 mouseX, s32 mouseY)
 	return result;
 }
 
+bool EditorEngine::selectNavMeshVertexIndex(u32 index)
+{
+	bool result = false;
+	if (m_pEditorScene)
+	{
+		auto &navMesh = m_pEditorScene->getNavMesh();
+
+		m_selected.m_navMeshVertices.m_vertices[0] = index;
+		m_selected.m_navMeshVertices.m_count = 1;
+		m_selected.m_type = SelectedType::NavMeshVertex;
+		m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+
+		result = true;
+	}
+
+	return result;
+}
+
+bool EditorEngine::selectNavMeshVertexPosition(const vx::float3 &position)
+{
+	bool result = false;
+	if (m_pEditorScene)
+	{
+		auto &navMesh = m_pEditorScene->getNavMesh();
+
+		u32 index = 0;
+		if (navMesh.getIndex(position, &index))
+		{
+			m_selected.m_navMeshVertices.m_vertices[0] = index;
+			m_selected.m_navMeshVertices.m_count = 1;
+			m_selected.m_type = SelectedType::NavMeshVertex;
+			m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+
+			result = true;
+		}
+	}
+
+	return result;
+}
+
 bool EditorEngine::multiSelectNavMeshVertex(s32 mouseX, s32 mouseY)
 {
 	bool result = false;
@@ -702,18 +772,23 @@ bool EditorEngine::multiSelectNavMeshVertex(s32 mouseX, s32 mouseY)
 	return result;
 }
 
-void EditorEngine::deselectNavMeshVertex()
+u32 EditorEngine::deselectNavMeshVertex()
 {
+	u32 index = 0;
 	if (m_pEditorScene)
 	{
 		auto &navMesh = m_pEditorScene->getNavMesh();
 		m_renderAspect.updateNavMeshBuffer(navMesh);
+
+		index = m_selected.m_navMeshVertices.m_vertices[0];
 		m_selected.m_navMeshVertices.m_count = 0;
 	}
 	m_selected.m_item = nullptr;
+
+	return index;
 }
 
-bool EditorEngine::createNavMeshTriangleFromSelectedVertices()
+bool EditorEngine::createNavMeshTriangleFromSelectedVertices(vx::uint3* selected)
 {
 	bool result = false;
 
@@ -725,9 +800,33 @@ bool EditorEngine::createNavMeshTriangleFromSelectedVertices()
 		buildNavGraph();
 
 		m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+
+		selected->x = m_selected.m_navMeshVertices.m_vertices[0];
+		selected->y = m_selected.m_navMeshVertices.m_vertices[1];
+		selected->z = m_selected.m_navMeshVertices.m_vertices[2];
 	}
 
 	return result;
+}
+
+void EditorEngine::createNavMeshTriangleFromIndices(const vx::uint3 &indices)
+{
+	if (m_pEditorScene)
+	{
+		m_selected.m_navMeshVertices.m_count = 3;
+		m_selected.m_navMeshVertices.m_vertices[0] = indices.x;
+		m_selected.m_navMeshVertices.m_vertices[1] = indices.y;
+		m_selected.m_navMeshVertices.m_vertices[2] = indices.z;
+
+		vx::uint3 tmp;
+		createNavMeshTriangleFromSelectedVertices(&tmp);
+	}
+}
+
+void EditorEngine::removeNavMeshTriangle()
+{
+	auto &navMesh = m_pEditorScene->getNavMesh();
+	navMesh.removeTriangle();
 }
 
 void EditorEngine::setSelectedNavMeshVertexPosition(const vx::float3 &position)
@@ -744,9 +843,9 @@ void EditorEngine::setSelectedNavMeshVertexPosition(const vx::float3 &position)
 	}
 }
 
-vx::float3 EditorEngine::getSelectedNavMeshVertexPosition() const
+bool EditorEngine::getSelectedNavMeshVertexPosition(vx::float3* p) const
 {
-	vx::float3 result;
+	bool result = false;
 	if (m_selected.m_navMeshVertices.m_count != 0)
 	{
 		auto selectedIndex = m_selected.m_navMeshVertices.m_vertices[0];
@@ -754,7 +853,8 @@ vx::float3 EditorEngine::getSelectedNavMeshVertexPosition() const
 		auto &navMesh = m_pEditorScene->getNavMesh();
 		auto vertices = navMesh.getVertices();
 
-		result = vertices[selectedIndex];
+		*p = vertices[selectedIndex];
+		result = true;
 	}
 	return result;
 }
@@ -843,7 +943,7 @@ SelectedType EditorEngine::getSelectedItemType() const
 	return m_selected.m_type;
 }
 
-EditorScene* EditorEngine::getEditorScene() const
+Editor::Scene* EditorEngine::getEditorScene() const
 {
 	return m_pEditorScene;
 }

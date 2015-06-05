@@ -32,13 +32,26 @@ namespace LevelEditor
     class ActionDeselectNavMesh : Action
     {
         Form1 m_editorForm;
+        uint m_deselectedNavMesh;
 
         public ActionDeselectNavMesh(Form1 editorForm)
         {
             m_editorForm = editorForm;
+            m_deselectedNavMesh = 0;
         }
 
         public override void run()
+        {
+            m_deselectedNavMesh = m_editorForm.deselectNavMeshVertex();
+        }
+
+        public override void undo()
+        {
+            int tmp = 0;
+            m_editorForm.selectNavMeshVertex(m_deselectedNavMesh, out tmp);
+        }
+
+        public override void redo()
         {
             m_editorForm.deselectNavMeshVertex();
         }
@@ -46,6 +59,14 @@ namespace LevelEditor
         public override bool isComplete()
         {
             return true;
+        }
+
+        public override Action clone()
+        {
+            var action = new ActionDeselectNavMesh(m_editorForm);
+            action.m_deselectedNavMesh = m_deselectedNavMesh;
+
+            return action;
         }
     }
 }

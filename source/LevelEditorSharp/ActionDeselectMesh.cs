@@ -32,20 +32,42 @@ namespace LevelEditor
     class ActionDeselectMesh : Action
     {
         Form1 m_editorForm;
+        ulong m_deselectedMeshInstance;
 
         public ActionDeselectMesh(Form1 editorForm)
         {
             m_editorForm = editorForm;
+            m_deselectedMeshInstance = 0;
         }
 
         public override void run()
         {
-            m_editorForm.deselectMesh();
+            m_deselectedMeshInstance = m_editorForm.deselectMesh();
+        }
+
+        public override void undo()
+        {
+            Console.WriteLine("ActionDeselectMesh undo: {0:G}", m_deselectedMeshInstance);
+            m_editorForm.selectMesh(m_deselectedMeshInstance);
+        }
+
+        public override void redo()
+        {
+            Console.WriteLine("ActionDeselectMesh redo: {0:G}", m_deselectedMeshInstance);
+            run();
         }
 
         public override bool isComplete()
         {
             return true;
+        }
+
+        public override Action clone()
+        {
+            var action = new ActionDeselectMesh(m_editorForm);
+            action.m_deselectedMeshInstance = m_deselectedMeshInstance;
+
+            return action;
         }
     }
 }
