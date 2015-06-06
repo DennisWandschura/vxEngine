@@ -109,6 +109,7 @@ class VX_ALIGN(64) FileAspect
 	void handleLoadRequest(FileRequest* request, std::vector<FileEntry>* missingFiles);
 	void handleSaveRequest(FileRequest* request);
 	void handleRequest(FileRequest* request, std::vector<FileEntry>* missingFiles);
+	void onExistingFile(const FileRequest* request, const vx::StringID &sid);
 	void onLoadFileFailed(FileRequest* request, const std::vector<FileEntry> &missingFiles);
 	void retryLoadFile(const FileRequest &request, const std::vector<FileEntry> &missingFiles);
 

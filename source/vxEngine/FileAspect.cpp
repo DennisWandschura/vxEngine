@@ -449,10 +449,10 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 #endif
 		{
 			vx::Variant arg1;
-			arg1.ptr = desc.pUserData;
+			arg1.u64 = desc.sid.value;
 
 			vx::Variant arg2;
-			arg2.u64 = desc.sid.value;
+			arg2.ptr = desc.pUserData; 
 
 			pushFileEvent(vx::FileEvent::Scene_Loaded, arg1, arg2);
 
@@ -552,9 +552,9 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	{
 	case FileType::Scene:
 	{
-		auto &scene = *(Editor::Scene*)request.userData;
+		auto scene = (Editor::Scene*)request.userData;
 
-		saveResult = FileFactory::save(&f, scene);
+		saveResult = FileFactory::save(&f, *scene);
 		if (saveResult == 0)
 		{
 			vx::verboseChannelPrintF(0, dev::Channel_FileAspect, "Error saving scene !");
@@ -565,6 +565,8 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 			vx::verboseChannelPrintF(0, dev::Channel_FileAspect, "Saved Scene");
 			LOG_ARGS(m_logfile, "Saved scene '%s'\n", false, file);
 		}
+
+		SceneFactory::deleteScene(scene);
 	}
 	break;
 	default:
@@ -631,18 +633,60 @@ void FileAspect::onLoadFileFailed(FileRequest* request, const std::vector<FileEn
 	}
 }
 
+void FileAspect::onExistingFile(const FileRequest* request, const vx::StringID &sid)
+{
+	auto fileType = request->m_fileEntry.getType();
+
+	vx::Variant arg1;
+	arg1.u64 = sid.value;
+
+	vx::Variant arg2;
+	arg2.ptr = request->userData;
+
+	vx::FileEvent fileEvent;
+	switch (fileType)
+	{
+	case FileType::Invalid:
+		break;
+	case FileType::Mesh:
+		fileEvent = vx::FileEvent::Mesh_Existing;
+		break;
+	case FileType::Texture:
+		fileEvent = vx::FileEvent::Texture_Existing;
+		break;
+	case FileType::Material:
+		fileEvent = vx::FileEvent::Material_Existing;
+		break;
+	case FileType::Scene:
+		fileEvent = vx::FileEvent::Scene_Existing;
+		break;
+	default:
+		break;
+	}
+
+	pushFileEvent(fileEvent, arg1, arg2);
+}
+
 void FileAspect::handleLoadRequest(FileRequest* request, std::vector<FileEntry>* missingFiles)
 {
-	auto result = loadFile(request->m_fileEntry, missingFiles, request->userData);
-	if (result.result == 0)
+	auto fileName = request->m_fileEntry.getString();
+	auto sid = vx::make_sid(fileName);
+	auto it = m_loadedFiles.find(sid);
+	if (it != m_loadedFiles.end())
 	{
-		onLoadFileFailed(request, *missingFiles);
+		onExistingFile(request, sid);
 	}
 	else
 	{
-		auto fileName = request->m_fileEntry.getString();
-		auto sid = vx::make_sid(fileName);
-		m_loadedFiles.insert(sid, fileName);
+		auto result = loadFile(request->m_fileEntry, missingFiles, request->userData);
+		if (result.result == 0)
+		{
+			onLoadFileFailed(request, *missingFiles);
+		}
+		else
+		{
+			m_loadedFiles.insert(sid, fileName);
+		}
 	}
 }
 

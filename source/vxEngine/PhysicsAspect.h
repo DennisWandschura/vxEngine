@@ -116,6 +116,6 @@ public:
 	vx::StringID raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition) const;
 
 	bool editorGetStaticMeshInstancePosition(const vx::StringID &sid, vx::float3* p) const;
-	void editorSetStaticMeshInstancePosition(const vx::StringID &sid, const vx::float3 &p);
+	void editorSetStaticMeshInstancePosition(const MeshInstance &meshInstance, const vx::StringID &sid, const vx::float3 &p);
 	void editorAddMeshInstance(const MeshInstance &instance);
 };

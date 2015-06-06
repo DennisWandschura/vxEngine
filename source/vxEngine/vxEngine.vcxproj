@@ -180,6 +180,7 @@
     <ClInclude Include="ai\Squad.h" />
     <ClInclude Include="ConditionActorFollowingPath.h" />
     <ClInclude Include="ConditionActorHasPath.h" />
+    <ClInclude Include="copy.h" />
     <ClInclude Include="CpuProfiler.h" />
     <ClInclude Include="CreateSceneDescription.h" />
     <ClInclude Include="ConverterEditorSceneToSceneFile.h" />

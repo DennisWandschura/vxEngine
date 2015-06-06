@@ -28,6 +28,7 @@ SOFTWARE.
 #include "Actor.h"
 #include "Light.h"
 #include "Spawn.h"
+#include "copy.h"
 
 namespace Editor
 {
@@ -111,8 +112,55 @@ namespace Editor
 		}
 	}
 
+	void Scene::copy(Scene* dst) const
+	{
+		SceneBase::copy(dst);
+
+		copySortedVector(&dst->m_meshInstances, m_meshInstances);
+		dst->m_waypoints = m_waypoints;
+		dst->m_selectableLights = m_selectableLights;
+		dst->m_selectableSpawns = m_selectableSpawns;
+		copySortedVector(&dst->m_materialNames, m_materialNames);
+		copySortedVector(&dst->m_meshNames, m_meshNames);
+		copySortedVector(&dst->m_actorNames, m_actorNames);
+	}
+
 	void Scene::sortMeshInstances()
 	{
+	}
+
+	void Scene::removeUnusedMaterials()
+	{
+		vx::sorted_vector<vx::StringID, Material*> newMaterials;
+		newMaterials.reserve(m_materials.size());
+
+		for (auto &it : m_meshInstances)
+		{
+			auto materialSid = it.getMaterialSid();
+
+			auto materialIt = m_materials.find(materialSid);
+
+			newMaterials.insert(materialSid, *materialIt);
+		}
+
+		newMaterials.swap(m_materials);
+	}
+
+	void Scene::removeUnusedMeshes()
+	{
+		vx::sorted_vector<vx::StringID, const vx::MeshFile*> newMeshes;
+		newMeshes.reserve(m_meshes.size());
+
+		for (auto &it : m_meshInstances)
+		{
+			auto meshSid = it.getMeshSid();
+
+			auto meshIt = m_meshes.find(meshSid);
+
+			newMeshes.insert(meshSid, *meshIt);
+		}
+
+		newMeshes.swap(m_meshes);
 	}
 
 	Light* Scene::addLight(const Light &light)
@@ -228,24 +276,39 @@ namespace Editor
 			m_meshInstances.erase(it);
 	}
 
-	void Scene::renameMeshInstance(const vx::StringID &sid, const char* newName)
+	bool Scene::renameMeshInstance(const vx::StringID &sid, const char* newName)
 	{
+		bool result = false;
 		auto it = m_meshInstances.find(sid);
 		if (it != m_meshInstances.end())
 		{
 			auto newSid = vx::make_sid(newName);
-			::MeshInstance newInstance(newSid,it->getMeshSid(), it->getMaterialSid(), it->getTransform());
+			::MeshInstance newInstance(newSid, it->getMeshSid(), it->getMaterialSid(), it->getTransform());
 			Editor::MeshInstance editrInstance(newInstance, std::string(newName));
 
 			m_meshInstances.erase(it);
 
 			m_meshInstances.insert(newSid, std::move(editrInstance));
+
+			result = true;
 		}
+
+		return result;
 	}
 
 	const MeshInstance* Scene::getMeshInstance(const vx::StringID &sid) const
 	{
 		const MeshInstance* p = nullptr;
+		auto it = m_meshInstances.find(sid);
+		if (it != m_meshInstances.end())
+			p = &*it;
+
+		return p;
+	}
+
+	MeshInstance* Scene::getMeshInstance(const vx::StringID &sid)
+	{
+		MeshInstance* p = nullptr;
 		auto it = m_meshInstances.find(sid);
 		if (it != m_meshInstances.end())
 			p = &*it;

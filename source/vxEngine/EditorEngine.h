@@ -139,8 +139,8 @@ public:
 	const char* getSelectedMeshInstanceName() const;
 	u64 getSelectedMeshInstanceSid() const;
 	u64 getSelectedMeshInstanceMeshSid() const;
-	u64 getSelectedMeshInstanceMaterialSid() const;
-	void getSelectMeshInstancePosition(vx::float3* position);
+	u64 getMeshInstanceMaterialSid(u64 instanceSid) const;
+	void getMeshInstancePosition(u64 sid, vx::float3* position);
 	bool selectMeshInstance(s32 mouseX, s32 mouseY);
 	bool selectMeshInstance(u32 i);
 	bool selectMeshInstance(u64 sid);
@@ -149,9 +149,11 @@ public:
 	void createMeshInstance();
 	void removeSelectedMeshInstance();
 
-	void setSelectedMeshInstanceTransform(const vx::float3 &p);
-	void setSelectedMeshInstanceMaterial(u64 sid) const;
-	u64 setSelectedMeshInstanceName(const char* name);
+	void setMeshInstancePosition(u64 sid, const vx::float3 &p);
+	void setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDeg);
+	void getMeshInstanceRotation(u64 sid, vx::float3* rotationDeg) const;
+	void setMeshInstanceMaterial(u64 instanceSid, u64 materialSid);
+	bool setMeshInstanceName(u64 sid, const char* name);
 
 	bool addNavMeshVertex(s32 mouseX, s32 mouseY, vx::float3* position);
 	void removeNavMeshVertex(const vx::float3 &position);

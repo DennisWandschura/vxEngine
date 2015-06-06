@@ -80,16 +80,18 @@ protected:
 	u32 m_spawnCount{ 0 };
 
 	SceneBase();
+	SceneBase(const SceneBase &rhs) = delete;
 	SceneBase(SceneBaseParams &params);
 
 public:
 	SceneBase(SceneBase &&rhs);
-	SceneBase(const SceneBase&) = delete;
 
 	virtual ~SceneBase();
 
 	SceneBase& operator = (const SceneBase&) = delete;
 	SceneBase& operator = (SceneBase &&rhs);
+
+	void copy(SceneBase *dst) const;
 
 	virtual void sortMeshInstances() = 0;
 

@@ -63,7 +63,7 @@ class NavMesh
 public:
 	/////////////// constructors
 	NavMesh();
-	NavMesh(const NavMesh &rhs) = delete;
+	NavMesh(const NavMesh &) = delete;
 	NavMesh(NavMesh &&rhs);
 	~NavMesh();
 	/////////////// constructors
@@ -73,7 +73,7 @@ public:
 	NavMesh& operator=(NavMesh &&rhs);
 	/////////////// operators
 
-	void copyTo(NavMesh* other) const;
+	void copy(NavMesh* dst) const;
 
 	/////////////// loading
 	//void loadFromYAML(const YAML::Node &node);

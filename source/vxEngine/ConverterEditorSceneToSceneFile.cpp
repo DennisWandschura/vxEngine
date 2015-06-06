@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #define _CRT_SECURE_NO_WARNINGS
+
 #include "ConverterEditorSceneToSceneFile.h"
 #include "EditorScene.h"
 #include "SceneFile.h"
@@ -61,7 +62,7 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 		sceneFile->m_pLights[i] = scene.m_pLights[i];
 	}
 
-	scene.m_navMesh.copyTo(&sceneFile->m_navMesh);
+	scene.m_navMesh.copy(&sceneFile->m_navMesh);
 
 	auto meshInstanceCount = scene.m_meshInstances.size();
 

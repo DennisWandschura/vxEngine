@@ -73,7 +73,7 @@ void ActorAspect::handleFileEvent(const vx::Event &evt)
 {
 	if (evt.code == (u32)vx::FileEvent::Scene_Loaded)
 	{
-		auto pCurrentScene = reinterpret_cast<const Scene*>(evt.arg1.ptr);
+		auto pCurrentScene = reinterpret_cast<const Scene*>(evt.arg2.ptr);
 		auto &navmesh = pCurrentScene->getNavMesh();
 
 		m_navmeshGraph.initialize(navmesh);

@@ -97,6 +97,9 @@
     <Compile Include="ActionDeselectNavMesh.cs" />
     <Compile Include="ActionList.cs" />
     <Compile Include="ActionRenameSelectedMeshInstance.cs" />
+    <Compile Include="ActionSetMeshInstanceMaterial.cs" />
+    <Compile Include="ActionSetMeshInstancePosition.cs" />
+    <Compile Include="ActionSetMeshInstanceRotation.cs" />
     <Compile Include="DecisionKeyDown.cs" />
     <Compile Include="DecisionKeyDownNew.cs" />
     <Compile Include="ActionMultiSelectNavMesh.cs" />

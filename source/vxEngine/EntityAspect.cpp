@@ -314,14 +314,14 @@ void EntityAspect::handleFileEvent(const vx::Event &evt)
 	if (evt.code == (u32)vx::FileEvent::Scene_Loaded)
 	{
 		vx::Event e;
-		e.arg1 = evt.arg1;
+		e.arg1 = evt.arg2;
 		e.type = vx::EventType::Ingame_Event;
 		e.code = (u32)IngameEvent::Level_Started;
 
 		auto pEvtManager = Locator::getEventManager();
 		pEvtManager->addEvent(e);
 
-		m_coldData->m_pCurrentScene = (const Scene*)evt.arg1.ptr;
+		m_coldData->m_pCurrentScene = (const Scene*)evt.arg2.ptr;
 	}
 }
 

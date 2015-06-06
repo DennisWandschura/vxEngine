@@ -47,7 +47,12 @@ namespace Parser
 
 	public:
 		Node();
+		Node(const Node&) = delete;
+		Node(Node &&rhs);
 		~Node();
+
+		Node& operator=(const Node&) = delete;
+		Node& operator=(Node &&rhs);
 
 		void create(const char* str);
 		bool createFromFile(const char* file);

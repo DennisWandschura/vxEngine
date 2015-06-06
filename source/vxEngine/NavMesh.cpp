@@ -26,6 +26,7 @@ SOFTWARE.
 #include "NavMeshTriangle.h"
 #include <vxLib/algorithm.h>
 #include "utility.h"
+#include "copy.h"
 
 NavMesh::NavMesh()
 	:m_navMeshTriangles(),
@@ -75,59 +76,29 @@ NavMesh& NavMesh::operator = (NavMesh &&rhs)
 	return *this;
 }
 
-void NavMesh::copyTo(NavMesh* other) const
+void NavMesh::copy(NavMesh* dst) const
 {
 #if _VX_EDITOR
-	other->m_vertices.clear();
-	if (other->m_vertexCount < m_vertexCount)
-	{
-		other->m_vertices.reserve(m_vertexCount);
-	}
+	dst->m_vertices.clear();
+	dst->m_vertices = m_vertices;
 
-	for (auto &it : m_vertices)
-	{
-		other->m_vertices.push_back(it);
-	}
+	dst->m_triangleIndices.clear();
+	dst->m_triangleIndices = m_triangleIndices;
 
-	other->m_triangleIndices.clear();
-	if (other->m_triangleCount < m_triangleCount)
-	{
-		other->m_navMeshTriangles = vx::make_unique<NavMeshTriangle[]>(m_triangleCount);
-		other->m_triangleIndices.reserve(m_triangleCount * 3);
-	}
-
-	for (auto &it : m_triangleIndices)
-	{
-		other->m_triangleIndices.push_back(it);
-	}
-
-	other->m_vertexBounds.clear();
-	other->m_vertexBounds.reserve(m_vertexBounds.size());
-	for (auto &it : m_vertexBounds)
-	{
-		other->m_vertexBounds.push_back(it);
-	}
+	dst->m_vertexBounds.clear();
+	dst->m_vertexBounds = m_vertexBounds;
 #else
-	if (other->m_vertexCount < m_vertexCount)
-	{
-		other->m_vertices = vx::make_unique<vx::float3[]>(m_vertexCount);
-	}
-	vx::memcpy(other->m_vertices.get(), m_vertices.get(), m_vertexCount);
+	copyUniquePtr(&dst->m_vertices, m_vertices, m_vertexCount);
 
 	auto indexCount = m_triangleCount * 3;
-	if (other->m_triangleCount < m_triangleCount)
-	{
-		other->m_navMeshTriangles = vx::make_unique<NavMeshTriangle[]>(m_triangleCount);
-		other->m_triangleIndices = vx::make_unique<u16[]>(indexCount);
-	}
-	vx::memcpy(other->m_triangleIndices.get(), m_triangleIndices.get(), indexCount);
+	copyUniquePtr(&dst->m_triangleIndices, m_triangleIndices, indexCount);
 #endif
 
-	vx::memcpy(other->m_navMeshTriangles.get(), m_navMeshTriangles.get(), m_triangleCount);
+	copyUniquePtr(&dst->m_navMeshTriangles, m_navMeshTriangles, m_triangleCount);
 
-	other->m_bounds = m_bounds;
-	other->m_vertexCount = m_vertexCount;
-	other->m_triangleCount = m_triangleCount;
+	dst->m_bounds = m_bounds;
+	dst->m_vertexCount = m_vertexCount;
+	dst->m_triangleCount = m_triangleCount;
 }
 
 void NavMesh::saveToFile(vx::File *file) const

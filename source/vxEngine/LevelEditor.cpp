@@ -282,29 +282,39 @@ namespace Editor
 		return g_pEditor->engine.getSelectedMeshInstanceMeshSid();
 	}
 
-	u64 getSelectedMeshInstanceMaterialSid()
+	u64 getMeshInstanceMaterialSid(u64 instanceSid)
 	{
-		return g_pEditor->engine.getSelectedMeshInstanceMaterialSid();
+		return g_pEditor->engine.getMeshInstanceMaterialSid(instanceSid);
 	}
 
-	void getSelectMeshInstancePosition(vx::float3* position)
+	void getMeshInstancePosition(u64 sid, vx::float3* position)
 	{
-		g_pEditor->engine.getSelectMeshInstancePosition(position);
+		g_pEditor->engine.getMeshInstancePosition(sid, position);
 	}
 
-	void setSelectedMeshInstanceTransform(const vx::float3 &translation)
+	void setMeshInstancePosition(u64 sid, const vx::float3 &translation)
 	{
-		g_pEditor->engine.setSelectedMeshInstanceTransform(translation);
+		g_pEditor->engine.setMeshInstancePosition(sid, translation);
 	}
 
-	void setSelectedMeshInstanceMaterial(u64 sid)
+	void setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDeg)
 	{
-		g_pEditor->engine.setSelectedMeshInstanceMaterial(sid);
+		g_pEditor->engine.setMeshInstanceRotation(sid, rotationDeg);
 	}
 
-	u64 setSelectedMeshInstanceName(const char* name)
+	void getMeshInstanceRotation(u64 sid, vx::float3* rotationDeg)
 	{
-		return g_pEditor->engine.setSelectedMeshInstanceName(name);
+		g_pEditor->engine.getMeshInstanceRotation(sid, rotationDeg);
+	}
+
+	void setMeshInstanceMaterial(u64 instanceSid, u64 materialSid)
+	{
+		g_pEditor->engine.setMeshInstanceMaterial(instanceSid, materialSid);
+	}
+
+	bool setMeshInstanceName(u64 instanceSid, const char* newName)
+	{
+		return g_pEditor->engine.setMeshInstanceName(instanceSid, newName);
 	}
 
 	void createMeshInstance()

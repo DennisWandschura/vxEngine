@@ -662,7 +662,7 @@ void EditorRenderAspect::handleEditorEvent(const vx::Event &evt)
 
 void EditorRenderAspect::handleLoadScene(const vx::Event &evt)
 {
-	auto scene = (Scene*)evt.arg1.ptr;
+	auto scene = (Scene*)evt.arg2.ptr;
 	auto lightCount = scene->getLightCount();
 	m_pEditorColdData->m_lightCount = lightCount;
 	auto &navMesh = scene->getNavMesh();

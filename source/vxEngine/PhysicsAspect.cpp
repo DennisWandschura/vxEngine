@@ -175,7 +175,7 @@ void PhysicsAspect::handleFileEvent(const vx::Event &evt)
 	switch (fileEvent)
 	{
 	case vx::FileEvent::Scene_Loaded:
-		processScene(evt.arg1.ptr);
+		processScene(evt.arg2.ptr);
 		break;
 	default:
 		break;
@@ -230,15 +230,21 @@ bool PhysicsAspect::editorGetStaticMeshInstancePosition(const vx::StringID &sid,
 	return result;
 }
 
-void PhysicsAspect::editorSetStaticMeshInstancePosition(const vx::StringID &sid, const vx::float3 &p)
+void PhysicsAspect::editorSetStaticMeshInstancePosition(const MeshInstance &meshInstance, const vx::StringID &sid, const vx::float3 &p)
 {
 	auto it = m_staticMeshInstances.find(sid);
 	if (it != m_staticMeshInstances.end())
 	{
-		physx::PxTransform transform = (*it)->getGlobalPose();
-		transform.p.x = p.x;
-		transform.p.y = p.y;
-		transform.p.z = p.z;
+		auto instanceTransform = meshInstance.getTransform();
+
+		auto qRotation = vx::loadFloat(instanceTransform.m_rotation);
+		qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
+
+		physx::PxTransform transform;
+		transform.p.x = instanceTransform.m_translation.x;
+		transform.p.y = instanceTransform.m_translation.y;
+		transform.p.z = instanceTransform.m_translation.z;
+		_mm_storeu_ps(&transform.q.x, qRotation);
 
 		(*it)->setGlobalPose(transform);
 	}
@@ -263,10 +269,6 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 	transform.p.y = instanceTransform.m_translation.y;
 	transform.p.z = instanceTransform.m_translation.z;
 	_mm_storeu_ps(&transform.q.x, qRotation);
-	/*transform.q.x = qRotation.m128_f32[0];
-	transform.q.y = qRotation.m128_f32[1];
-	transform.q.z = qRotation.m128_f32[2];
-	transform.q.w = qRotation.m128_f32[3];*/
 
 	assert(transform.isValid());
 

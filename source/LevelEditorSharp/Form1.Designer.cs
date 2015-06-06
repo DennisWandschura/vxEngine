@@ -422,6 +422,7 @@ namespace LevelEditor
             this.numericUpDown_rot_z.Name = "numericUpDown_rot_z";
             this.numericUpDown_rot_z.Size = new System.Drawing.Size(100, 20);
             this.numericUpDown_rot_z.TabIndex = 5;
+            this.numericUpDown_rot_z.ValueChanged += new System.EventHandler(this.numericUpDown_rot_z_ValueChanged);
             // 
             // numericUpDown_rot_y
             // 
@@ -440,6 +441,7 @@ namespace LevelEditor
             this.numericUpDown_rot_y.Name = "numericUpDown_rot_y";
             this.numericUpDown_rot_y.Size = new System.Drawing.Size(100, 20);
             this.numericUpDown_rot_y.TabIndex = 4;
+            this.numericUpDown_rot_y.ValueChanged += new System.EventHandler(this.numericUpDown_rot_y_ValueChanged);
             // 
             // numericUpDown_rot_x
             // 
@@ -458,6 +460,7 @@ namespace LevelEditor
             this.numericUpDown_rot_x.Name = "numericUpDown_rot_x";
             this.numericUpDown_rot_x.Size = new System.Drawing.Size(100, 20);
             this.numericUpDown_rot_x.TabIndex = 3;
+            this.numericUpDown_rot_x.ValueChanged += new System.EventHandler(this.numericUpDown_rot_x_ValueChanged);
             // 
             // label2
             // 

@@ -45,6 +45,10 @@ namespace Editor
 		::MeshInstance& getMeshInstance() { return m_meshInstance; }
 		const std::string& getName() const { return m_name; }
 
+		void setTranslation(const vx::float3 &translation){ m_meshInstance.setTranslation(translation); }
+		void setRotation(const vx::float3 &rotation){ m_meshInstance.setRotation(rotation); }
+		void setMaterialSid(const vx::StringID &sid) { m_meshInstance.setMaterialSid(sid); }
+
 		vx::StringID getNameSid() const noexcept{ return m_meshInstance.getNameSid(); }
 		vx::StringID getMeshSid() const noexcept{ return m_meshInstance.getMeshSid(); }
 		vx::StringID getMaterialSid() const noexcept{ return m_meshInstance.getMaterialSid(); }

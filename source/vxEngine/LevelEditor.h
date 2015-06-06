@@ -72,15 +72,20 @@ namespace Editor
 	extern "C" DLL_EXPORT BSTR getSelectedMeshInstanceName();
 	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceSid();
 	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceMeshSid();
-	extern "C" DLL_EXPORT void getSelectMeshInstancePosition(vx::float3* position);
-	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceMaterialSid();
+
+	extern "C" DLL_EXPORT void getMeshInstancePosition(u64 sid, vx::float3* position);
+	extern "C" DLL_EXPORT void setMeshInstancePosition(u64 sid, const vx::float3 &translation);
+
+	extern "C" DLL_EXPORT void setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDeg);
+	extern "C" DLL_EXPORT void getMeshInstanceRotation(u64 sid, vx::float3* rotationDeg);
+
+	extern "C" DLL_EXPORT u64 getMeshInstanceMaterialSid(u64 instanceSid);
+	extern "C" DLL_EXPORT void setMeshInstanceMaterial(u64 instanceSid, u64 materialSid);
 
 	extern "C" DLL_EXPORT void createMeshInstance();
 	extern "C" DLL_EXPORT void removeSelectedMeshInstance();
 
-	extern "C" DLL_EXPORT void setSelectedMeshInstanceTransform(const vx::float3 &translation);
-	extern "C" DLL_EXPORT void setSelectedMeshInstanceMaterial(u64 sid);
-	extern "C" DLL_EXPORT u64 setSelectedMeshInstanceName(const char* name);
+	extern "C" DLL_EXPORT bool setMeshInstanceName(u64 instanceSid, const char* newName);
 
 	extern "C" DLL_EXPORT void createLight();
 	extern "C" DLL_EXPORT bool selectLight(s32 x, s32 y);

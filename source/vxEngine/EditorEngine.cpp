@@ -201,6 +201,7 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 	case vx::FileEvent::Mesh_Loaded:
 	{
 		//vx::verboseChannelPrintF(1, dev::Channel_Editor, "Loaded Mesh");
+		call_editorCallback(vx::StringID(evt.arg1.u64));
 		/*std::string* pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
 		auto sid = evt.arg1.sid;
 
@@ -228,7 +229,7 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 	}break;
 	case vx::FileEvent::Scene_Loaded:
 		vx::verboseChannelPrintF(0, dev::Channel_Editor, "Loaded Scene");
-		call_editorCallback(vx::StringID(evt.arg2.u64));
+		call_editorCallback(vx::StringID(evt.arg1.u64));
 
 		buildNavGraph();
 		break;
@@ -244,7 +245,9 @@ void EditorEngine::requestLoadFile(const FileEntry &fileEntry, void* p)
 
 void EditorEngine::editor_saveScene(const char* name)
 {
-	m_fileAspect.requestSaveFile(FileEntry(name, FileType::Scene), m_pEditorScene);
+	auto sceneCopy = new Editor::Scene();
+	m_pEditorScene->copy(sceneCopy);
+	m_fileAspect.requestSaveFile(FileEntry(name, FileType::Scene), sceneCopy);
 }
 
 void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene)
@@ -276,9 +279,8 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	FileEntry fileEntry;
 	if (type == s_editorTypeMesh)
 	{
-		//fileEntry = FileEntry(filename, FileType::Mesh);
-		//p = new std::string(filename);
-		assert(false);
+		fileEntry = FileEntry(filename, FileType::Mesh);
+		p = new std::string(filename);
 	}
 	else if (type == s_editorTypeMaterial)
 	{
@@ -442,11 +444,12 @@ u64 EditorEngine::getSelectedMeshInstanceMeshSid() const
 	return sidValue;
 }
 
-u64 EditorEngine::getSelectedMeshInstanceMaterialSid() const
+u64 EditorEngine::getMeshInstanceMaterialSid(u64 instanceSid) const
 {
 	u64 sidValue = 0;
 
-	auto meshInstance = (MeshInstance*)m_selected.m_item;
+	auto sid = vx::StringID(instanceSid);
+	auto meshInstance = m_pEditorScene->getMeshInstance(sid);
 	if (meshInstance)
 	{
 		sidValue = meshInstance->getMaterialSid().value;
@@ -455,10 +458,11 @@ u64 EditorEngine::getSelectedMeshInstanceMaterialSid() const
 	return sidValue;
 }
 
-void EditorEngine::getSelectMeshInstancePosition(vx::float3* position)
+void EditorEngine::getMeshInstancePosition(u64 sid, vx::float3* position)
 {
-	auto meshInstance = (MeshInstance*)m_selected.m_item;
-	auto &transform = meshInstance->getTransform();
+	auto instance = m_pEditorScene->getMeshInstance(vx::StringID(sid));
+
+	auto &transform = instance->getTransform();
 	*position = transform.m_translation;
 }
 
@@ -575,14 +579,15 @@ void EditorEngine::removeSelectedMeshInstance()
 	}
 }
 
-void EditorEngine::setSelectedMeshInstanceMaterial(u64 sid) const
+void EditorEngine::setMeshInstanceMaterial(u64 instanceSid, u64 materialSid)
 {
-	if (m_pEditorScene && m_selected.m_item)
+	if (m_pEditorScene)
 	{
-		auto meshInstance = (MeshInstance*)m_selected.m_item;
+		auto sid = vx::StringID(instanceSid);
+		auto meshInstance = m_pEditorScene->getMeshInstance(sid);
 
 		auto &sceneMaterials = m_pEditorScene->getMaterials();
-		auto it = sceneMaterials.find(vx::StringID(sid));
+		auto it = sceneMaterials.find(vx::StringID(materialSid));
 		if (it != sceneMaterials.end())
 		{
 			if (m_renderAspect.setSelectedMeshInstanceMaterial(*it))
@@ -593,34 +598,60 @@ void EditorEngine::setSelectedMeshInstanceMaterial(u64 sid) const
 	}
 }
 
-void EditorEngine::setSelectedMeshInstanceTransform(const vx::float3 &p)
+void EditorEngine::setMeshInstancePosition(u64 sid, const vx::float3 &p)
 {
-	vx::Transform transform;
-	transform.m_translation = p;
-	transform.m_rotation = vx::float3(0.0f);
-	transform.m_scaling = 1.0f;
-
-	if (m_pEditorScene && m_selected.m_item)
+	if (m_pEditorScene)
 	{
-		auto meshInstance = (MeshInstance*)m_selected.m_item;
-		meshInstance->setTranslation(transform.m_translation);
+		auto instanceSid = vx::StringID(sid);
+		auto instance = m_pEditorScene->getMeshInstance(instanceSid);
+
+		instance->setTranslation(p);
+
+		auto transform = instance->getTransform();
 
 		m_renderAspect.setSelectedMeshInstanceTransform(transform);
-		m_physicsAspect.editorSetStaticMeshInstancePosition(meshInstance->getNameSid(), p);
+		m_physicsAspect.editorSetStaticMeshInstancePosition(instance->getMeshInstance(), instanceSid, p);
 	}
 }
 
-u64 EditorEngine::setSelectedMeshInstanceName(const char* name)
+void EditorEngine::setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDeg)
 {
-	vx::StringID sid;
+	if (m_pEditorScene)
+	{
+		auto instanceSid = vx::StringID(sid);
+		auto instance = m_pEditorScene->getMeshInstance(instanceSid);
 
-	if (m_pEditorScene && m_selected.m_item)
+		auto rotation = vx::degToRad(rotationDeg);
+		instance->setRotation(rotation);
+
+		auto transform = instance->getTransform();
+
+		m_renderAspect.setSelectedMeshInstanceTransform(transform);
+		m_physicsAspect.editorSetStaticMeshInstancePosition(instance->getMeshInstance(), instanceSid, rotation);
+	}
+}
+
+void EditorEngine::getMeshInstanceRotation(u64 sid, vx::float3* rotationDeg) const
+{
+	if (m_pEditorScene)
+	{
+		auto instanceSid = vx::StringID(sid);
+		auto instance = m_pEditorScene->getMeshInstance(instanceSid);
+
+		auto transform = instance->getTransform();
+		*rotationDeg = vx::radToDeg(transform.m_rotation);
+	}
+}
+
+bool EditorEngine::setMeshInstanceName(u64 sid, const char* name)
+{
+	bool result = false;
+	if (m_pEditorScene)
 	{
 		auto meshInstance = (MeshInstance*)m_selected.m_item;
-		m_pEditorScene->renameMeshInstance(meshInstance->getNameSid(), name);
+		result = m_pEditorScene->renameMeshInstance(vx::StringID(sid), name);
 	}
-
-	return sid.value;
+	return result;
 }
 
 bool EditorEngine::addNavMeshVertex(s32 mouseX, s32 mouseY, vx::float3* position)

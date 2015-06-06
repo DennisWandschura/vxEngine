@@ -73,4 +73,6 @@ public:
 	static bool save(const Editor::Scene &scene, vx::File* file);
 
 	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
+
+	static void deleteScene(Editor::Scene *scene);
 };

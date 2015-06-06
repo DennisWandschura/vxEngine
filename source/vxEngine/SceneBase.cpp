@@ -25,6 +25,7 @@ SOFTWARE.
 #include "Light.h"
 #include "Spawn.h"
 #include "Actor.h"
+#include "copy.h"
 
 SceneBaseParams::~SceneBaseParams()
 {
@@ -36,7 +37,6 @@ SceneBase::SceneBase()
 	m_pSpawns(),
 	m_actors()
 {
-
 }
 
 SceneBase::SceneBase(SceneBase &&rhs)
@@ -88,6 +88,32 @@ SceneBase& SceneBase::operator = (SceneBase &&rhs)
 
 SceneBase::~SceneBase()
 {
+}
+
+void SceneBase::copy(SceneBase *dst) const
+{
+#if _VX_EDITOR
+	dst->m_pLights = m_pLights;
+#else
+	copyUniquePtr(&dst->m_pLights, m_pLights, m_lightCount);
+#endif
+
+	copySortedVector(&dst->m_materials, m_materials);
+	copySortedVector(&dst->m_meshes, m_meshes);
+	copySortedVector(&dst->m_actors, m_actors);
+
+	dst->m_pSpawns = vx::make_unique<Spawn[]>(m_spawnCount);
+	for (u32 i = 0; i < m_spawnCount; ++i)
+	{
+		dst->m_pSpawns[i] = m_pSpawns[i];
+	}
+
+	m_navMesh.copy(&dst->m_navMesh);
+
+	dst->m_lightCount = m_lightCount;
+	dst->m_vertexCount = m_vertexCount;
+	dst->m_indexCount = m_indexCount;
+	dst->m_spawnCount = m_spawnCount;
 }
 
 const Light* SceneBase::getLights() const

@@ -80,13 +80,20 @@ namespace Editor
 
 	public:
 		Scene();
+		Scene(const Scene &rhs) = delete;
 		Scene(Scene &&rhs);
 		Scene(SceneParams &&params);
 		~Scene();
 
+		Scene& operator = (const Scene &rhs) = delete;
 		Scene& operator = (Scene &&rhs);
 
+		void copy(Scene* dst) const;
+
 		void sortMeshInstances() override;
+
+		void removeUnusedMaterials();
+		void removeUnusedMeshes();
 
 		Light* addLight(const Light &light);
 		// returns 1 on insert, 0 if already present
@@ -97,6 +104,7 @@ namespace Editor
 		void addWaypoint(const Waypoint &wp);
 
 		const MeshInstance* getMeshInstance(const vx::StringID &sid) const;
+		MeshInstance* getMeshInstance(const vx::StringID &sid);
 		const MeshInstance* getMeshInstancesEditor() const;
 		u32 getMeshInstanceCount() const override;
 
@@ -107,7 +115,7 @@ namespace Editor
 
 		const Editor::MeshInstance& createMeshInstance();
 		void removeMeshInstance(const vx::StringID &sid);
-		void renameMeshInstance(const vx::StringID &sid, const char* newName);
+		bool renameMeshInstance(const vx::StringID &sid, const char* newName);
 
 		Spawn* getSpawn(const Ray &ray);
 		Light* getLight(const Ray &ray);

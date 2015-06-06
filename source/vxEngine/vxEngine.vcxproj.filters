@@ -681,6 +681,9 @@
     <ClInclude Include="EditorMeshInstance.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="copy.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

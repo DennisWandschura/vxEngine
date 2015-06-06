@@ -153,12 +153,6 @@ namespace LevelEditor
         public unsafe static extern ulong getSelectedMeshInstanceMeshSid();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern ulong getSelectedMeshInstanceMaterialSid();
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void getSelectMeshInstancePosition(ref Float3 position);
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern bool selectMeshInstance(int x, int y);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
@@ -175,13 +169,25 @@ namespace LevelEditor
         public unsafe static extern string getSelectedMeshInstanceName();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void setSelectedMeshInstanceTransform(ref Float3 translation);
+        public unsafe static extern void setMeshInstancePosition(ulong sid, ref Float3 translation);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void setSelectedMeshInstanceMaterial(ulong sid);
+        public unsafe static extern void getMeshInstancePosition(ulong sid, ref Float3 translation);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern ulong setSelectedMeshInstanceName(string name);
+        public unsafe static extern void setMeshInstanceRotation(ulong sid, ref Float3 rotationDeg);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void getMeshInstanceRotation(ulong sid, ref Float3 rotationDeg);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getMeshInstanceMaterialSid(ulong instanceSid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setMeshInstanceMaterial(ulong instanceSid, ulong materialSid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern bool setMeshInstanceName(ulong instanceSid, string name);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void createMeshInstance();

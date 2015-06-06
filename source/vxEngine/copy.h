@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,34 +24,29 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+#include <memory>
+#include <vxLib/Container/sorted_vector.h>
 
-namespace vx
+template<typename K, typename T>
+void copySortedVector(vx::sorted_vector<K, T>* dst, const vx::sorted_vector<K, T> &src)
 {
-	enum class EventType : u8
+	auto size = src.size();
+	dst->reserve(size);
+
+	auto keys = src.keys();
+	auto data = src.data();
+	for (u32 i = 0; i < size; ++i)
 	{
-		File_Event = 1 << 0,
-		Ingame_Event = 1 << 1,
-		AI_Event = 1 << 2,
-		Editor_Event = 1 << 3
-	};
+		dst->insert(keys[i], data[i]);
+	}
+}
 
-	enum class FileEvent : u16
+template<typename K>
+void copyUniquePtr(std::unique_ptr<K[]>* dst, const std::unique_ptr<K[]> &src, u32 size)
+{
+	*dst = vx::make_unique<K[]>(size);
+	for (u32 i = 0; i < size; ++i)
 	{
-		// arg1 contains sid of filename, arg2 contains ptr to scene
-		Scene_Loaded,
-		// arg1 contains sid to file, arg2 contains ptr
-		Texture_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Material_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Mesh_Loaded,
-		Wav_Loaded,
-
-		Scene_Existing,
-		Texture_Existing,
-		Material_Existing,
-		Mesh_Existing
-	};
-
+		(*dst)[i] = src[i];
+	}
 }

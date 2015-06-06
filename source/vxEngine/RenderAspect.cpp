@@ -1086,7 +1086,7 @@ void RenderAspect::handleFileEvent(const vx::Event &evt)
 	case vx::FileEvent::Scene_Loaded:
 	{
 		vx::verboseChannelPrintF(0, dev::Channel_Render, "Queuing loading Scene into Render");
-		auto pScene = (Scene*)evt.arg1.ptr;
+		auto pScene = (Scene*)evt.arg2.ptr;
 		
 		RenderUpdateTask task;
 		task.type = RenderUpdateTask::Type::LoadScene;

@@ -204,9 +204,33 @@ namespace Parser
 
 	}
 
+	Node::Node(Node &&rhs)
+		:m_data(std::move(rhs.m_data)),
+		m_nodes(std::move(rhs.m_nodes)),
+		m_dataSize(rhs.m_dataSize),
+		m_isArray(rhs.m_isArray),
+		m_isMap(rhs.m_isMap)
+	{
+
+	}
+
 	Node::~Node()
 	{
 
+	}
+
+	Node& Node::operator = (Node &&rhs)
+	{
+		if (this != &rhs)
+		{
+			m_data = std::move(rhs.m_data);
+			m_nodes = std::move(rhs.m_nodes);
+			m_dataSize = rhs.m_dataSize;
+			m_isArray = rhs.m_isArray;
+			m_isMap = rhs.m_isMap;
+		}
+
+		return *this;
 	}
 
 	const char* Node::insertNode(const char* str)
@@ -291,7 +315,7 @@ namespace Parser
 		n.m_isMap = isMap;
 
 		auto sid = vx::make_sid(key.c_str());
-		m_nodes.insert(sid, std::move(n));
+		m_nodes.insert(std::move(sid), std::move(n));
 
 		if (next && next[0] == '\0')
 			next = nullptr;

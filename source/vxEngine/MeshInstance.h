@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 class Material;
 
@@ -55,6 +55,7 @@ public:
 	const vx::Transform& getTransform() const noexcept { return m_transform; }
 
 	void setTranslation(const vx::float3 &translation);
+	void setRotation(const vx::float3 &rotation) { m_transform.m_rotation = rotation; }
 	void setMaterialSid(const vx::StringID &sid) { m_materialSid = sid; }
 	void setNameSid(const vx::StringID &sid) { m_nameSid = sid; }
 };

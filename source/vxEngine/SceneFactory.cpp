@@ -219,3 +219,8 @@ void SceneFactory::convert(const Editor::Scene &scene, SceneFile* sceneFile)
 {
 	ConverterEditorSceneToSceneFile::convert(scene, sceneFile);
 }
+
+void SceneFactory::deleteScene(Editor::Scene *scene)
+{
+	delete(scene);
+}
