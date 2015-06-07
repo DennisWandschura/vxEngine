@@ -1,6 +1,6 @@
+#pragma once
 #ifndef __VX_SERIALIZABLE_H
 #define __VX_SERIALIZABLE_H
-#pragma once
 /*
 The MIT License (MIT)
 

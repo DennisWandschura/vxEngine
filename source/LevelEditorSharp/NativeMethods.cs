@@ -150,7 +150,10 @@ namespace LevelEditor
         public unsafe static extern ulong getSelectedMeshInstanceSid();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern ulong getSelectedMeshInstanceMeshSid();
+        public unsafe static extern ulong getMeshInstanceMeshSid(ulong instanceSid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setMeshInstanceMeshSid(ulong instanceSid, ulong meshSid);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern bool selectMeshInstance(int x, int y);

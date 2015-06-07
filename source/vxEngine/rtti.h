@@ -168,7 +168,7 @@ namespace rtti
 		void destroy(const TypeData *pData, void *ptr);
 	};
 
-	typedef vx::GlobalSingleton<Manager, vx::CallbackCheck> SingletonRTTI;
+	typedef vx::GlobalSingleton<Manager, vx::AssertCheck, vx::CreationImplicit> SingletonRTTI;
 
 	template<class T>
 	struct TypeCreator : public TypeCreatorBase

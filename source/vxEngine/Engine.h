@@ -30,11 +30,11 @@ SOFTWARE.
 #include "SystemAspect.h"
 #include "RenderAspect.h"
 #include "PhysicsAspect.h"
-#include "FileAspect.h"
+#include <vxResourceAspect/FileAspect.h>
 #include "memory.h"
 #include "LevelEditor.h"
 #include "EntityAspect.h"
-#include "EventManager.h"
+#include <vxEngineLib/EventManager.h>
 #include "ActorAspect.h"
 #if _VX_AUDIO
 #include <vxAudio/AudioAspect.h>
@@ -42,7 +42,7 @@ SOFTWARE.
 
 class Engine
 {
-	EventManager m_eventManager;
+	vx::EventManager m_eventManager;
 	SystemAspect m_systemAspect;
 	PhysicsAspect m_physicsAspect;
 	ActorAspect m_actorAspect;
@@ -82,5 +82,5 @@ public:
 	void handleEvent(const vx::Event &evt);
 	void keyPressed(u16 key);
 
-	void requestLoadFile(const FileEntry &fileEntry, void* p);
+	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
 };

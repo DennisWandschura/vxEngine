@@ -25,12 +25,12 @@ SOFTWARE.
 #include <vxLib/gl/gl.h>
 #include "../Segment.h"
 #include <vxLib/gl/Base.h>
-#include "../../ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
 
 namespace Graphics
 {
-	void createFromNodeMultiDrawArraysIndirectCountCommand(const Parser::Node &node, Segment* segment, void* p)
+	void createFromNodeMultiDrawArraysIndirectCountCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 

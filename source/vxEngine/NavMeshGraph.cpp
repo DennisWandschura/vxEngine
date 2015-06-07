@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "NavMeshGraph.h"
-#include "NavMesh.h"
-#include "NavMeshTriangle.h"
+#include <vxEngineLib/NavMesh.h>
+#include <vxEngineLib/NavMeshTriangle.h>
 #include <vxLib/algorithm.h>
 #include <vector>
 #include <vxLib/Container/sorted_vector.h>

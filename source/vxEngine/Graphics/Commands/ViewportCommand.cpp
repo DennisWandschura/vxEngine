@@ -24,12 +24,12 @@ SOFTWARE.
 #include "ViewportCommand.h"
 #include <vxLib/gl/StateManager.h>
 #include "../Segment.h"
-#include "../../ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
 
 namespace Graphics
 {
-	void createFromNodeViewportCommand(const Parser::Node &node, Segment* segment, void* p)
+	void createFromNodeViewportCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 

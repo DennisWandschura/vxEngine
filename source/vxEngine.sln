@@ -16,6 +16,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vxEngineLib", "vxEngineLib\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vxAudioAspect", "vxAudioAspect\vxAudioAspect.vcxproj", "{3E3E438B-3C29-4AA6-8C0A-865EE4CEB744}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ResourceAspect", "ResourceAspect\ResourceAspect.vcxproj", "{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug Editor|Any CPU = Debug Editor|Any CPU
@@ -88,8 +90,8 @@ Global
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug Editor|Mixed Platforms.Build.0 = Debug|Win32
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug Editor|Win32.ActiveCfg = Debug|Win32
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug Editor|Win32.Build.0 = Debug|Win32
-		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug Editor|x64.ActiveCfg = Debug|x64
-		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug Editor|x64.Build.0 = Debug|x64
+		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug Editor|x64.ActiveCfg = Debug Editor|x64
+		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug Editor|x64.Build.0 = Debug Editor|x64
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
 		{01627754-0A45-41EC-B4F9-3208CB1CEB31}.Debug|Mixed Platforms.Build.0 = Debug|Win32
@@ -123,6 +125,27 @@ Global
 		{3E3E438B-3C29-4AA6-8C0A-865EE4CEB744}.Release|Win32.ActiveCfg = Release|Win32
 		{3E3E438B-3C29-4AA6-8C0A-865EE4CEB744}.Release|Win32.Build.0 = Release|Win32
 		{3E3E438B-3C29-4AA6-8C0A-865EE4CEB744}.Release|x64.ActiveCfg = Release|x64
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug Editor|Any CPU.ActiveCfg = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug Editor|Mixed Platforms.ActiveCfg = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug Editor|Mixed Platforms.Build.0 = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug Editor|Win32.ActiveCfg = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug Editor|Win32.Build.0 = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug Editor|x64.ActiveCfg = Debug Editor|x64
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug Editor|x64.Build.0 = Debug Editor|x64
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug|Win32.Build.0 = Debug|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug|x64.ActiveCfg = Debug|x64
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Debug|x64.Build.0 = Debug|x64
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Release|Any CPU.ActiveCfg = Release|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Release|Win32.ActiveCfg = Release|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Release|Win32.Build.0 = Release|Win32
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Release|x64.ActiveCfg = Release|x64
+		{CBFF0F0C-1B71-4611-8BA3-2518D30C253C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

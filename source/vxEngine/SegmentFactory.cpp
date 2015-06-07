@@ -27,7 +27,7 @@ SOFTWARE.
 #include <vxLib/gl/ShaderManager.h>
 #include <vxLib/gl/ProgramPipeline.h>
 #include <vxLib/gl/Buffer.h>
-#include "ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 #include "Graphics/CommandFactory.h"
 
 namespace Graphics

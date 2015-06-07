@@ -24,17 +24,17 @@ SOFTWARE.
 #include "PhysicsAspect.h"
 #include <PxPhysicsAPI.h>
 #include <vxLib/Graphics/Mesh.h>
-#include "Scene.h"
-#include "EditorMeshInstance.h"
+#include <vxEngineLib/Scene.h>
+#include <vxEngineLib/EditorMeshInstance.h>
 #include <Windows.h>
-#include "Material.h"
+#include <vxEngineLib/Material.h>
+#include <vxEngineLib/EditorScene.h>
 #include <extensions/PxDefaultSimulationFilterShader.h>
-#include "FileAspect.h"
 #include "PhysicsDefines.h"
-#include "enums.h"
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
-#include "EditorScene.h"
+#include "Locator.h"
+#include <vxResourceAspect/FileAspect.h>
 
 UserErrorCallback PhysicsAspect::s_defaultErrorCallback{};
 physx::PxDefaultAllocator PhysicsAspect::s_defaultAllocatorCallback{};
@@ -230,7 +230,7 @@ bool PhysicsAspect::editorGetStaticMeshInstancePosition(const vx::StringID &sid,
 	return result;
 }
 
-void PhysicsAspect::editorSetStaticMeshInstancePosition(const MeshInstance &meshInstance, const vx::StringID &sid, const vx::float3 &p)
+void PhysicsAspect::editorSetStaticMeshInstanceTransform(const MeshInstance &meshInstance, const vx::StringID &sid)
 {
 	auto it = m_staticMeshInstances.find(sid);
 	if (it != m_staticMeshInstances.end())
@@ -253,6 +253,42 @@ void PhysicsAspect::editorSetStaticMeshInstancePosition(const MeshInstance &mesh
 void PhysicsAspect::editorAddMeshInstance(const MeshInstance &instance)
 {
 	addMeshInstance(instance);
+}
+
+void PhysicsAspect::editorSetStaticMeshInstanceMesh(const MeshInstance &meshInstance)
+{
+	auto sid = meshInstance.getNameSid();
+	auto rigidStaticIt = m_staticMeshInstances.find(sid);
+
+	auto meshSid = meshInstance.getMeshSid();
+	auto newTriangleMeshIt = m_physxMeshes.find(meshSid);
+	if (newTriangleMeshIt == m_physxMeshes.end())
+	{
+		auto fileAspect = Locator::getFileAspect();
+		auto pMeshFile = fileAspect->getMesh(meshSid);
+
+		auto pResult = processMesh(pMeshFile);
+		if (!pResult)
+		{
+			VX_ASSERT(false);
+		}
+
+		// need to lock because we are modifying the vector
+		std::lock_guard<std::mutex> guard(m_mutex);
+		newTriangleMeshIt = m_physxMeshes.insert(meshSid, pResult);
+	}
+
+	auto itPhysxMaterial = m_physxMaterials.find(meshInstance.getMaterialSid());
+	auto newShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*newTriangleMeshIt), *(*itPhysxMaterial));
+
+	auto shapeCount = (*rigidStaticIt)->getNbShapes();
+	VX_ASSERT(shapeCount == 1);
+
+	physx::PxShape* oldShape;
+	(*rigidStaticIt)->getShapes(&oldShape, 1);
+
+	(*rigidStaticIt)->attachShape(*newShape);
+	(*rigidStaticIt)->detachShape(*oldShape);
 }
 
 void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)

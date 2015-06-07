@@ -28,18 +28,17 @@ namespace Editor
 	class Scene;
 }
 
-#include "EventManager.h"
+#include <vxEngineLib/EventManager.h>
 #include "SystemAspect.h"
 #include "EditorRenderAspect.h"
 #include "PhysicsAspect.h"
-#include "FileAspect.h"
+#include <vxResourceAspect/FileAspect.h>
 #include "thread.h"
 #include "memory.h"
 #include "LevelEditor.h"
 #include "Editor.h"
 #include <vxEngineLib/EventListener.h>
 #include "InfluenceMap.h"
-#include "Ray.h"
 
 enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
@@ -65,7 +64,7 @@ class EditorEngine : public vx::EventListener
 		};
 	};
 
-	EventManager m_eventManager;
+	vx::EventManager m_eventManager;
 	PhysicsAspect m_physicsAspect;
 	EditorRenderAspect m_renderAspect;
 	Editor::Scene* m_pEditorScene{ nullptr };
@@ -88,7 +87,7 @@ class EditorEngine : public vx::EventListener
 	vx::sorted_vector<vx::StringID, std::pair<Editor::LoadFileCallback, u32>> m_requestedFiles;
 
 	// calls the callback provided by editor_loadFile
-	void call_editorCallback(const vx::StringID &sid);
+	bool call_editorCallback(const vx::StringID &sid);
 
 	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);
@@ -105,6 +104,8 @@ class EditorEngine : public vx::EventListener
 	u32 getSelectedNavMeshVertex(s32 mouseX, s32 mouseY);
 
 	void buildNavGraph();
+
+	void addMesh(const vx::StringID &sid);
 
 public:
 	EditorEngine();
@@ -128,7 +129,7 @@ public:
 
 	void handleEvent(const vx::Event &evt);
 
-	void requestLoadFile(const FileEntry &fileEntry, void* p);
+	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
 
 	void setSelectedNavMeshVertexPosition(const vx::float3 &position);
 	bool getSelectedNavMeshVertexPosition(vx::float3* p) const;
@@ -137,8 +138,11 @@ public:
 	const char* getMeshInstanceName(u32 i) const;
 	u64 getMeshInstanceSid(u32 i) const;
 	const char* getSelectedMeshInstanceName() const;
+
 	u64 getSelectedMeshInstanceSid() const;
-	u64 getSelectedMeshInstanceMeshSid() const;
+	void setMeshInstanceMeshSid(u64 instanceSid, u64 meshSid);
+
+	u64 getMeshInstanceMeshSid(u64 instanceSid) const;
 	u64 getMeshInstanceMaterialSid(u64 instanceSid) const;
 	void getMeshInstancePosition(u64 sid, vx::float3* position);
 	bool selectMeshInstance(s32 mouseX, s32 mouseY);

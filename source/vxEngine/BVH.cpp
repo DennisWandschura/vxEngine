@@ -24,7 +24,7 @@ SOFTWARE.
 #include "BVH.h"
 #include "Primitive.h"
 #include <algorithm>
-#include "Ray.h"
+#include <vxEngineLib/Ray.h>
 
 struct LinearBVHNode
 {

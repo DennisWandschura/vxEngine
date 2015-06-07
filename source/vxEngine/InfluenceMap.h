@@ -26,8 +26,8 @@ SOFTWARE.
 class NavMesh;
 
 #include <vxLib/memory.h>
-#include "Triangle.h"
-#include "AABB.h"
+#include <vxEngineLib/Triangle.h>
+#include <vxEngineLib/AABB.h>
 
 struct InfluenceCell
 {

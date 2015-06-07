@@ -31,7 +31,7 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include <vxLib/Container/array.h>
 #include "NavMeshGraph.h"
-#include "Timer.h"
+#include <vxEngineLib/Timer.h>
 
 f32 AStar::heuristicDistance(const vx::float3 &fromNode, const vx::float3 &goalNode)
 {

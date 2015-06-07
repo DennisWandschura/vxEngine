@@ -25,11 +25,11 @@ SOFTWARE.
 #include <vxLib/gl/StateManager.h>
 #include "../Segment.h"
 #include "../CommandFactory.h"
-#include "../../ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 
 namespace Graphics
 {
-	void createFromNodeClearColorCommand(const Parser::Node &node, Segment* segment, void* p)
+	void createFromNodeClearColorCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		ClearColorCommand cmd;
 

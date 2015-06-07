@@ -25,9 +25,9 @@ SOFTWARE.
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/Event.h>
 #include "Locator.h"
-#include "Scene.h"
-#include "EventManager.h"
-#include "Pool.h"
+#include <vxEngineLib/Scene.h>
+#include <vxEngineLib/EventManager.h>
+#include <vxEngineLib/Pool.h>
 #include "ComponentActor.h"
 #include "EntityAspect.h"
 #include "Entity.h"

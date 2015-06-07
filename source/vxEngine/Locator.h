@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,21 +22,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-class EventManager;
+namespace vx
+{
+	class EventManager;
+}
 class PhysicsAspect;
 class FileAspect;
 
 class Locator
 {
-	static EventManager* s_pEventManager;
+	static vx::EventManager* s_pEventManager;
 	static PhysicsAspect* s_pPhysicsAspect;
 	static FileAspect* s_pFileAspect;
 
 public:
-	static void provide(EventManager* p);
-	static EventManager* getEventManager();
+	static void provide(vx::EventManager* p);
+	static vx::EventManager* getEventManager();
 
 	static void provide(PhysicsAspect* p);
 	static PhysicsAspect* getPhysicsAspect();

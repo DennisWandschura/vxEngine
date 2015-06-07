@@ -25,7 +25,7 @@ SOFTWARE.
 
 class Ray;
 
-#include "AABB.h"
+#include <vxEngineLib/AABB.h>
 
 class Primitive
 {

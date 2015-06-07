@@ -88,6 +88,7 @@ class EditorRenderAspect : public RenderAspect
 
 	void handleEditorEvent(const vx::Event &evt);
 	void handleLoadScene(const vx::Event &evt);
+	void handleLoadMesh(const vx::Event &evt);
 
 	void updateCamera();
 
@@ -114,6 +115,7 @@ public:
 	bool setSelectedMeshInstance(const Editor::MeshInstance* instance);
 	void setSelectedMeshInstanceTransform(vx::Transform &transform);
 	bool setSelectedMeshInstanceMaterial(const Material* material) const;
+	bool setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid);
 
 	void editorAddMeshInstance(const Editor::MeshInstance &instance);
 	bool removeSelectedMeshInstance();

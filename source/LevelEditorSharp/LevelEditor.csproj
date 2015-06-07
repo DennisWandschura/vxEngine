@@ -29,7 +29,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\tools\LevelEditorSharp\</OutputPath>
+    <OutputPath>..\..\game\tools\LevelEditor\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -98,6 +98,7 @@
     <Compile Include="ActionList.cs" />
     <Compile Include="ActionRenameSelectedMeshInstance.cs" />
     <Compile Include="ActionSetMeshInstanceMaterial.cs" />
+    <Compile Include="ActionSetMeshInstanceMesh.cs" />
     <Compile Include="ActionSetMeshInstancePosition.cs" />
     <Compile Include="ActionSetMeshInstanceRotation.cs" />
     <Compile Include="DecisionKeyDown.cs" />

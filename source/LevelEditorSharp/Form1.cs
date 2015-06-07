@@ -569,7 +569,7 @@ namespace LevelEditor
             textBoxMeshName.Text = NativeMethods.getSelectedMeshInstanceName();
 
             var materialSid = NativeMethods.getMeshInstanceMaterialSid(sid);
-            var meshSid = NativeMethods.getSelectedMeshInstanceMeshSid();
+            var meshSid = NativeMethods.getMeshInstanceMeshSid(sid);
 
             EditorEntry entry;
             if (m_sortedMeshes.TryGetValue(meshSid, out entry))
@@ -1268,6 +1268,31 @@ namespace LevelEditor
         private void numericUpDown_rot_z_ValueChanged(object sender, EventArgs e)
         {
             setMeshInstanceRotation();
+        }
+
+        private void meshInstanceComboBoxMesh_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            EditorEntry entry = (EditorEntry)meshInstanceComboBoxMesh.SelectedItem;
+
+            var newMeshSid = entry.m_sid;
+
+            var meshInstanceSid = NativeMethods.getSelectedMeshInstanceSid();
+
+            setMeshInstanceMesh(meshInstanceSid, newMeshSid);
+        }
+
+        void setMeshInstanceMesh(ulong meshInstanceSid, ulong newMeshSid)
+        {
+            if(m_selectedMeshInstanceSid == meshInstanceSid)
+            {
+                var oldMeshSid = NativeMethods.getMeshInstanceMeshSid(meshInstanceSid);
+
+                if(oldMeshSid != newMeshSid)
+                {
+                    var action = new ActionSetMeshInstanceMesh(meshInstanceSid, oldMeshSid, newMeshSid);
+                    runAction(action);
+                }
+            }
         }
     }
 }

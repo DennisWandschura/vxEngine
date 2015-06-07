@@ -30,16 +30,13 @@ SOFTWARE.
 
 #include <vxLib/ScopeGuard.h>
 #include "Engine.h"
-#include "Logfile.h"
-#include "Timer.h"
-#include "enums.h"
+#include <vxEngineLib/Logfile.h>
+#include <vxEngineLib/Timer.h>
 #include <csignal>
-
-#include "Scene.h"
+#include <vxEngineLib/Scene.h>
 
 #include "SmallObjAllocator.h"
 #include "SmallObject.h"
-#include "SceneFile.h"
 
 namespace
 {
@@ -203,7 +200,7 @@ int main()
 		return 1;
 	}
 
-	engine.requestLoadFile(FileEntry("test1.scene", FileType::Scene), &scene);
+	engine.requestLoadFile(vx::FileEntry("test1.scene", vx::FileType::Scene), &scene);
 
 	LOG(mainLogfile, "Starting", false);
 

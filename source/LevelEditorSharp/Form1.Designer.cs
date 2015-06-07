@@ -644,6 +644,7 @@ namespace LevelEditor
             this.meshInstanceComboBoxMesh.Name = "meshInstanceComboBoxMesh";
             this.meshInstanceComboBoxMesh.Size = new System.Drawing.Size(204, 21);
             this.meshInstanceComboBoxMesh.TabIndex = 18;
+            this.meshInstanceComboBoxMesh.SelectedIndexChanged += new System.EventHandler(this.meshInstanceComboBoxMesh_SelectedIndexChanged);
             // 
             // label8
             // 
@@ -928,7 +929,7 @@ namespace LevelEditor
             // 
             this.treeViewActionList.Location = new System.Drawing.Point(1683, 118);
             this.treeViewActionList.Name = "treeViewActionList";
-            this.treeViewActionList.Size = new System.Drawing.Size(171, 398);
+            this.treeViewActionList.Size = new System.Drawing.Size(209, 398);
             this.treeViewActionList.TabIndex = 18;
             // 
             // Form1

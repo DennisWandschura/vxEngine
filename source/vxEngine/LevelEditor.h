@@ -71,7 +71,9 @@ namespace Editor
 	extern "C" DLL_EXPORT u64 deselectMeshInstance();
 	extern "C" DLL_EXPORT BSTR getSelectedMeshInstanceName();
 	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceSid();
-	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceMeshSid();
+
+	extern "C" DLL_EXPORT u64 getMeshInstanceMeshSid(u64 instanceSid);
+	extern "C" DLL_EXPORT void setMeshInstanceMeshSid(u64 instanceSid, u64 meshSid);
 
 	extern "C" DLL_EXPORT void getMeshInstancePosition(u64 sid, vx::float3* position);
 	extern "C" DLL_EXPORT void setMeshInstancePosition(u64 sid, const vx::float3 &translation);

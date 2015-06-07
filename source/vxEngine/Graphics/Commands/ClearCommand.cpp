@@ -24,12 +24,12 @@ SOFTWARE.
 #include "ClearCommand.h"
 #include <vxLib/gl/gl.h>
 #include "../Segment.h"
-#include "../../ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
 
 namespace Graphics
 {
-	void createFromNodeClearCommand(const Parser::Node &node, Segment* segment, void* p)
+	void createFromNodeClearCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 

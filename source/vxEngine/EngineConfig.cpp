@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "EngineConfig.h"
 #include "RenderAspectDescription.h"
-#include "ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 
 EngineConfig g_engineConfig{};
 

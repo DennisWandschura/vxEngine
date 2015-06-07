@@ -33,7 +33,7 @@ namespace vx
 }
 
 #include <vxLib/math/Vector.h>
-#include "ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 
 struct EngineConfig
 {

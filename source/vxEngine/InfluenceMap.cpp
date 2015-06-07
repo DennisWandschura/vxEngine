@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "InfluenceMap.h"
-#include "NavMesh.h"
+#include <vxEngineLib/NavMesh.h>
+#include <vxEngineLib/NavMeshTriangle.h>
 #include "NavGraph.h"
 #include "NavNode.h"
-#include "NavMeshTriangle.h"
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/algorithm.h>
 #include <vector>

@@ -23,9 +23,9 @@ SOFTWARE.
 */
 #include "LevelEditor.h"
 #include "EditorEngine.h"
-#include "Light.h"
-#include "Transform.h"
-#include "EditorScene.h"
+#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Transform.h>
+#include <vxEngineLib/EditorScene.h>
 
 #ifdef _VX_EDITOR
 namespace Editor
@@ -277,9 +277,14 @@ namespace Editor
 		return g_pEditor->engine.getSelectedMeshInstanceSid();
 	}
 
-	u64 getSelectedMeshInstanceMeshSid()
+	u64 getMeshInstanceMeshSid(u64 instanceSid)
 	{
-		return g_pEditor->engine.getSelectedMeshInstanceMeshSid();
+		return g_pEditor->engine.getMeshInstanceMeshSid(instanceSid);
+	}
+
+	void setMeshInstanceMeshSid(u64 instanceSid, u64 meshSid)
+	{
+		g_pEditor->engine.setMeshInstanceMeshSid(instanceSid, meshSid);
 	}
 
 	u64 getMeshInstanceMaterialSid(u64 instanceSid)

@@ -22,27 +22,71 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "SceneRenderer.h"
-#include "Scene.h"
+#include <vxEngineLib/Scene.h>
+#include <vxEngineLib/EditorMeshInstance.h>
+#include <vxEngineLib/TextureFile.h>
+#include <vxEngineLib/EditorScene.h>
+#include <vxResourceAspect/FileAspect.h>
 #include "Vertex.h"
 #include "GpuStructs.h"
-#include "Transform.h"
+#include <vxEngineLib/Transform.h>
 #include "GpuFunctions.h"
 #include "Locator.h"
-#include "FileAspect.h"
 #include <vxLib/ScopeGuard.h>
-#include "EditorMeshInstance.h"
 #include "gl/ObjectManager.h"
 #include "gl/BufferBindingManager.h"
-#include "Light.h"
+#include <vxEngineLib/Light.h>
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/gl.h>
-#include "TextureFile.h"
 #include "GpuProfiler.h"
 #include <vxLib/gl/ShaderManager.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxLib/algorithm.h>
 #include "CpuProfiler.h"
-#include "EditorScene.h"
+#include "developer.h"
+#include <vxEngineLib/debugPrint.h>
+
+namespace SceneRendererCpp
+{
+	void getShadowTransform(const Light &light, PointLightShadowTransform* shadowTransform)
+	{
+		auto lightPos = vx::loadFloat(light.m_position);
+		auto projectionMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, 0.1f, light.m_falloff);
+
+		vx::mat4 viewMatrices[6];
+		// X+
+		vx::float4 up = { 0, -1, 0, 0 };
+		vx::float4 dir = { 1, 0, 0, 0 };
+		viewMatrices[0] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		// X-
+		up = { 0, -1, 0, 0 };
+		dir = { -1, 0, 0, 0 };
+		viewMatrices[1] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		// Y+
+		up = { 0, 0, 1, 0 };
+		dir = vx::float4(0, 1, 0, 0);
+		viewMatrices[2] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		// Y-
+		up = { 0, 0, -1, 0 };
+		dir = vx::float4(0, -1, 0, 0);
+		viewMatrices[3] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		// Z+
+		up = { 0, -1, 0, 0 };
+		dir = vx::float4(0, 0, 1, 0);
+		viewMatrices[4] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		// Z-
+		up = { 0, -1, 0, 0 };
+		dir = vx::float4(0, 0, -1, 0);
+		viewMatrices[5] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+
+		shadowTransform->projectionMatrix = projectionMatrix;
+		for (u32 i = 0; i < 6; ++i)
+		{
+			shadowTransform->viewMatrix[i] = viewMatrices[i];
+			shadowTransform->pvMatrices[i] = projectionMatrix * viewMatrices[i];
+		}
+	}
+}
 
 struct SceneRenderer::ColdData
 {
@@ -80,7 +124,7 @@ struct SceneRenderer::WriteMeshesToGpuBufferDesc
 struct SceneRenderer::WriteMeshToBufferDesc
 {
 	vx::StringID meshSid;
-	const vx::MeshFile* pMeshFile; 
+	const vx::MeshFile* pMeshFile;
 	VertexPNTUV* pVertices;
 	u32* pIndices;
 	u32* vertexOffset;
@@ -159,7 +203,7 @@ void SceneRenderer::createMeshBuffers()
 		desc.bufferType = vx::gl::BufferType::Array_Buffer;
 		desc.flags = vx::gl::BufferStorageFlags::Write;
 		desc.immutable = 1;
-		desc.pData =nullptr;
+		desc.pData = nullptr;
 
 		desc.size = sizeof(VertexPNTUV) * (s_maxVerticesStatic + s_maxVerticesDynamic);
 		m_coldData->m_meshVbo.create(desc);
@@ -233,7 +277,7 @@ void SceneRenderer::createMeshTransformBuffer()
 	desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
 
 	desc.size = sizeof(vx::TransformGpu) * (s_meshMaxInstancesStatic + s_meshMaxInstancesDynamic);
-	m_pObjectManager->createBuffer("transformBuffer",  desc);
+	m_pObjectManager->createBuffer("transformBuffer", desc);
 }
 
 void SceneRenderer::createMeshMaterialBuffer()
@@ -302,17 +346,18 @@ void SceneRenderer::createMaterial(Material* pMaterial)
 	pMaterial->setTextures(std::move(albedoRef), std::move(normalRef), std::move(surfaceRef));
 }
 
-u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &material, const Scene* pScene, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex)
+u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &material, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex)
 {
 	auto itMesh = m_coldData->m_meshEntries.find(meshSid);
 	VX_ASSERT(itMesh != m_coldData->m_meshEntries.end());
 	if (itMesh == m_coldData->m_meshEntries.end())
 	{
-		auto &sceneMeshes = pScene->getMeshes();
+		VX_ASSERT(false);
+		/*auto &sceneMeshes = pScene->getMeshes();
 		auto itSceneMesh = sceneMeshes.find(meshSid);
 
-		u32 vertexOffset = m_coldData->m_dynamicMeshVertexCount + s_maxVerticesStatic;
-		u32 indexOffset = m_coldData->m_dynamicMeshIndexCount + s_maxIndicesStatic;
+		//u32 vertexOffset = m_coldData->m_dynamicMeshVertexCount + s_maxVerticesStatic;
+		//u32 indexOffset = m_coldData->m_dynamicMeshIndexCount + s_maxIndicesStatic;
 
 		auto meshFile = (*itSceneMesh);
 
@@ -326,14 +371,14 @@ u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::St
 		desc.vertexOffsetGpu = &vertexOffset;
 		desc.meshEntries = &m_coldData->m_meshEntries;
 
-		writeMeshesToGpuBuffer(desc);
+		//writeMeshesToGpuBuffer(desc);
 
 		auto &mesh = meshFile->getMesh();
 
 		m_coldData->m_dynamicMeshVertexCount += mesh.getVertexCount();
 		m_coldData->m_dynamicMeshIndexCount += mesh.getIndexCount();
 
-		itMesh = m_coldData->m_meshEntries.find(meshSid);
+		itMesh = m_coldData->m_meshEntries.find(meshSid);*/
 	}
 
 	auto fileAspect = Locator::getFileAspect();
@@ -543,23 +588,21 @@ void SceneRenderer::writeMeshesToGpuBuffer(const WriteMeshesToGpuBufferDesc &des
 	memcpy(pGpuIndices.get(), pIndices, indexSizeBytes);
 }
 
-void SceneRenderer::updateStaticMeshBuffer(const vx::sorted_vector<vx::StringID, const vx::MeshFile*> &meshes)
+void SceneRenderer::updateMeshBuffer(const vx::MeshFile** meshes, const vx::StringID* keys, u32 count)
 {
-	u32 totalVertexCount = 0;
-	u32 totalIndexCount = 0;
-	auto meshCount = meshes.size();
-
 	WriteMeshesToGpuBufferDesc desc;
-	desc.count = meshCount;
+	desc.count = count;
 	desc.ibo = &m_coldData->m_meshIbo;
-	desc.indexOffsetGpu = &totalIndexCount;
-	desc.meshSid = meshes.keys();
-	desc.pMeshFiles = meshes.data();
+	desc.indexOffsetGpu = &m_coldData->m_meshIndexCount;
+	desc.meshSid = keys;
+	desc.pMeshFiles = meshes;
 	desc.vbo = &m_coldData->m_meshVbo;
-	desc.vertexOffsetGpu = &totalVertexCount;
+	desc.vertexOffsetGpu = &m_coldData->m_meshVertexCount;
 	desc.meshEntries = &m_coldData->m_meshEntries;
 
 	writeMeshesToGpuBuffer(desc);
+
+	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Vertex count: %u\nIndex count: %u", m_coldData->m_meshVertexCount, m_coldData->m_meshIndexCount);
 }
 
 void SceneRenderer::updateLightBuffer(const Light *pLights, u32 lightCount, const gl::ObjectManager &objectManager)
@@ -570,7 +613,7 @@ void SceneRenderer::updateLightBuffer(const Light *pLights, u32 lightCount, cons
 
 	for (auto i = 0u; i < lightCount; ++i)
 	{
-		pLights[i].getShadowTransform(&shadowTransforms.transforms[i]);
+		SceneRendererCpp::getShadowTransform(pLights[i], &shadowTransforms.transforms[i]);
 	}
 
 	m_coldData->m_lightBufferManager.updateLightDataBuffer(pLights, lightCount, m_pObjectManager);
@@ -700,7 +743,9 @@ void SceneRenderer::loadScene(const void* ptr, const gl::ObjectManager &objectMa
 	m_coldData->m_meshEntries.reserve(scene->getMeshes().size());
 
 	updateLightBuffer(scene->getLights(), scene->getLightCount(), objectManager);
-	updateStaticMeshBuffer(scene->getMeshes());
+	auto &sceneMeshes = scene->getMeshes();
+
+	updateMeshBuffer(sceneMeshes.data(), sceneMeshes.keys(), sceneMeshes.size());
 
 #if _VX_EDITOR
 	updateBuffers(scene->getMeshInstancesEditor(), scene->getMeshInstanceCount());
@@ -752,6 +797,83 @@ bool SceneRenderer::setMeshInstanceMaterial(const vx::StringID &sid, const Mater
 	}
 
 	return result;
+}
+
+void SceneRenderer::addMesh(const vx::StringID &meshSid)
+{
+	auto fileAspect = Locator::getFileAspect();
+	auto meshFile = fileAspect->getMesh(meshSid);
+
+	u32 indexOffsetGpu = m_coldData->m_meshIndexCount;
+	u32 vertexOffsetGpu = m_coldData->m_meshVertexCount;
+
+	auto vertexCount = meshFile->getMesh().getVertexCount();
+	auto indexCount = meshFile->getMesh().getIndexCount();
+
+	u32 offsetBytes = vertexOffsetGpu * sizeof(VertexPNTUV);
+	u32 offsetIndicesBytes = sizeof(u32) * indexOffsetGpu;
+
+	auto marker = m_coldData->m_scratchAllocator.getMarker();
+	SCOPE_EXIT
+	{
+		m_coldData->m_scratchAllocator.clear(marker);
+	};
+
+	auto vertexSizeBytes = sizeof(VertexPNTUV) * vertexCount;
+	auto indexSizeBytes = sizeof(u32) * indexCount;
+	VertexPNTUV* pVertices = (VertexPNTUV*)m_coldData->m_scratchAllocator.allocate(vertexSizeBytes);
+	u32* pIndices = (u32*)m_coldData->m_scratchAllocator.allocate(indexSizeBytes);
+
+	WriteMeshToBufferDesc writeDesc;
+	writeDesc.indexOffset = &m_coldData->m_meshIndexCount;
+	writeDesc.indexOffsetGpu = &indexOffsetGpu;
+	writeDesc.meshEntries = &m_coldData->m_meshEntries;
+	writeDesc.meshSid = meshSid;
+	writeDesc.pIndices = pIndices;
+	writeDesc.pMeshFile = meshFile;
+	writeDesc.pVertices = pVertices;
+	writeDesc.vertexOffset = &m_coldData->m_meshVertexCount;
+	writeDesc.vertexOffsetGpu = &vertexOffsetGpu;
+
+	writeMeshToBuffer(writeDesc);
+
+	auto pGpuVertices = m_coldData->m_meshVbo.mapRange<VertexPNTUV>(offsetBytes, vertexSizeBytes, vx::gl::MapRange::Write);
+	memcpy(pGpuVertices.get(), pVertices, vertexSizeBytes);
+
+	auto pGpuIndices = m_coldData->m_meshIbo.mapRange<u32>(offsetIndicesBytes, indexSizeBytes, vx::gl::MapRange::Write);
+	memcpy(pGpuIndices.get(), pIndices, indexSizeBytes);
+}
+
+bool SceneRenderer::setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid)
+{
+	auto meshEntryIt = m_coldData->m_meshEntries.find(meshSid);
+	if (meshEntryIt == m_coldData->m_meshEntries.end())
+	{
+		//addMesh(meshSid);
+		auto fileAspect = Locator::getFileAspect();
+		auto meshFile = fileAspect->getMesh(meshSid);
+
+		updateMeshBuffer(&meshFile, &meshSid, 1);
+
+		meshEntryIt = m_coldData->m_meshEntries.find(meshSid);
+	}
+
+	auto drawCmdIt = m_coldData->m_instanceCmds.find(sid);
+	auto elementId = drawCmdIt->baseInstance;
+	auto cmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
+
+	writeMeshInstanceToCommandBuffer(*meshEntryIt, elementId, elementId, &(*drawCmdIt), cmdBuffer);
+
+	for (auto &it : m_coldData->m_staticDrawCommands)
+	{
+		if (it.baseInstance == elementId)
+		{
+			it = *drawCmdIt;
+			break;
+		}
+	}
+
+	return true;
 }
 
 u16 SceneRenderer::getActorGpuIndex()

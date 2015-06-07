@@ -28,21 +28,20 @@ SOFTWARE.
 #include "ComponentActor.h"
 #include "ComponentInput.h"
 #include "PhysicsDefines.h"
-#include "Scene.h"
-#include "Transform.h"
+#include <vxEngineLib/Scene.h>
+#include <vxEngineLib/Transform.h>
 #include "RenderAspect.h"
 #include "ComponentRender.h"
-#include "Actor.h"
+#include <vxEngineLib/Actor.h>
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
 #include "Locator.h"
-#include "enums.h"
-#include "EventManager.h"
+#include <vxEngineLib/EventManager.h>
 #include "InfluenceMap.h"
 #include "NavGraph.h"
 #include "EventsIngame.h"
 #include <vxLib/ScopeGuard.h>
-#include "Spawn.h"
+#include <vxEngineLib/Spawn.h>
 #include "GpuFunctions.h"
 #include "CreateActorData.h"
 #include "State.h"
@@ -59,7 +58,7 @@ SOFTWARE.
 namespace
 {
 	template<typename T>
-	void createPool(u16 capacity, u8 alignment, vx::StackAllocator* pAllocator, Pool<T> *pPool)
+	void createPool(u16 capacity, u8 alignment, vx::StackAllocator* pAllocator, vx::Pool<T> *pPool)
 	{
 		pPool->initialize(pAllocator->allocate(sizeof(T) * capacity, alignment), capacity);
 	}
@@ -360,7 +359,6 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 				CreateActorData data;
 				data.material = itActor->m_material;
 				data.mesh = itActor->m_mesh;
-				data.pScene = m_coldData->m_pCurrentScene;
 				data.transform.m_rotation = vx::float3(0);
 				data.transform.m_scaling = 1.0f;
 				data.transform.m_translation = it.position;

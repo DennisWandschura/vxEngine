@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Engine.h"
-#include "Timer.h"
+#include <vxEngineLib/Timer.h>
 #include "EngineConfig.h"
 #include "Locator.h"
 #include "developer.h"
@@ -257,12 +257,16 @@ bool Engine::initializeImpl(const std::string &dataDir)
 
 bool Engine::initialize()
 {
-	const std::string dataDir("data/");
+	const std::string dataDir("../data/");
 
 	if (!initializeImpl(dataDir))
 		return false;
 
-	g_engineConfig.loadFromFile("settings.txt");
+	if (!g_engineConfig.loadFromFile("settings.txt"))
+	{
+		printf("could not load 'settings.txt'\n");
+		return false;
+	}
 
 	if (!m_systemAspect.initialize(g_engineConfig, ::callbackKeyPressed, ::handleInput))
 		return false;
@@ -343,7 +347,7 @@ void Engine::stop()
 	m_bRunRenderThread.store(0);
 }
 
-void Engine::requestLoadFile(const FileEntry &fileEntry, void* p)
+void Engine::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 {
 	m_fileAspect.requestLoadFile(fileEntry, p);
 }

@@ -54,17 +54,17 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>..\..\game\</OutDir>
+    <OutDir>..\..\game\bin\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
-    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxAudioAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxAudioAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
     <LibraryPath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\lib;E:\dev\libraries\openal-soft-1.16.0-bin\libs\Win64;E:\dev\libraries\libogg\bin\x64\intel;E:\dev\libraries\libvorbis-1.3.3\bin\x64\intel;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc11win64;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLL Debug|x64'">
     <OutDir>..\..\lib\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
     <LibraryPath>E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc11win64;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\lib;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -166,7 +166,6 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AABB.h" />
     <ClInclude Include="ActionActorCreatePath.h" />
     <ClInclude Include="ActionFollowPath.h" />
     <ClInclude Include="ActionManager.h" />
@@ -175,26 +174,19 @@
     <ClInclude Include="ActionPrintText.h" />
     <ClInclude Include="ActionSetFollowPath.h" />
     <ClInclude Include="ActionUpdateGpuTransform.h" />
-    <ClInclude Include="Actor.h" />
     <ClInclude Include="ActorAspect.h" />
     <ClInclude Include="ai\Squad.h" />
     <ClInclude Include="ConditionActorFollowingPath.h" />
     <ClInclude Include="ConditionActorHasPath.h" />
-    <ClInclude Include="copy.h" />
     <ClInclude Include="CpuProfiler.h" />
-    <ClInclude Include="CreateSceneDescription.h" />
-    <ClInclude Include="ConverterEditorSceneToSceneFile.h" />
-    <ClInclude Include="ConverterSceneFileToScene.h" />
     <ClInclude Include="CreateActorData.h" />
     <ClInclude Include="dds.h" />
     <ClInclude Include="DDS_File.h" />
     <ClInclude Include="DoubleBufferRaw.h" />
     <ClInclude Include="DrawCommand.h" />
-    <ClInclude Include="EditorMeshInstance.h" />
     <ClInclude Include="EditorObjectColors.h" />
     <ClInclude Include="EngineConfig.h" />
     <ClInclude Include="EngineGlobals.h" />
-    <ClInclude Include="FileFactory.h" />
     <ClInclude Include="gl\BufferBindingManager.h" />
     <ClInclude Include="gl\BufferManager.h" />
     <ClInclude Include="gl\ObjectManager.h" />
@@ -224,17 +216,13 @@
     <ClInclude Include="Graphics\Surface.h" />
     <ClInclude Include="input\Keys.h" />
     <ClInclude Include="LookWhereYoureGoing.h" />
-    <ClInclude Include="ParserConverter.h" />
-    <ClInclude Include="ParserNode.h" />
     <ClInclude Include="PseudoRandom.h" />
-    <ClInclude Include="Reference.h" />
     <ClInclude Include="RenderCommand.h" />
     <ClInclude Include="RenderCommandFinalImage.h" />
     <ClInclude Include="GpuStructs.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="EditorEngine.h" />
     <ClInclude Include="EditorRenderAspect.h" />
-    <ClInclude Include="EditorScene.h" />
     <ClInclude Include="EventEditor.h" />
     <ClInclude Include="EventsAI.h" />
     <ClInclude Include="Align.h" />
@@ -249,8 +237,6 @@
     <ClInclude Include="EventsIngame.h" />
     <ClInclude Include="LightBufferManager.h" />
     <ClInclude Include="NavMeshGraph.h" />
-    <ClInclude Include="NavMeshTriangle.h" />
-    <ClInclude Include="Plane.h" />
     <ClInclude Include="ProgramUniformBinding.h" />
     <ClInclude Include="RenderAspectDescription.h" />
     <ClInclude Include="DebugRenderSettings.h" />
@@ -259,10 +245,7 @@
     <ClInclude Include="ScreenshotFactory.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="SegmentFactory.h" />
-    <ClInclude Include="TextureFileManager.h" />
     <ClInclude Include="VoxelRenderer.h" />
-    <ClInclude Include="SceneBase.h" />
-    <ClInclude Include="SceneFile.h" />
     <ClInclude Include="SmallObjAllocator.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Component.h" />
@@ -279,28 +262,17 @@
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityAspect.h" />
-    <ClInclude Include="enums.h" />
-    <ClInclude Include="EventManager.h" />
     <ClInclude Include="Face.h" />
-    <ClInclude Include="FileEntry.h" />
-    <ClInclude Include="FileAspect.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="FontAtlas.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="LevelEditor.h" />
     <ClInclude Include="libraries.h" />
-    <ClInclude Include="Light.h" />
-    <ClInclude Include="LoadFileCallback.h" />
     <ClInclude Include="Locator.h" />
-    <ClInclude Include="Logfile.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="MaterialFactory.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="MeshFactory.h" />
-    <ClInclude Include="MeshInstance.h" />
     <ClInclude Include="NavConnection.h" />
     <ClInclude Include="NavGraph.h" />
-    <ClInclude Include="NavMesh.h" />
     <ClInclude Include="NavNode.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PhysicsDefines.h" />
@@ -311,16 +283,12 @@
     <ClInclude Include="memory.h" />
     <ClInclude Include="PoolAllocator.h" />
     <ClInclude Include="ProfilerGraph.h" />
-    <ClInclude Include="Ray.h" />
     <ClInclude Include="RingBuffer.h" />
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="SceneFactory.h" />
     <ClInclude Include="Seek.h" />
     <ClInclude Include="SharedFramebuffer.h" />
     <ClInclude Include="RenderAspect.h" />
     <ClInclude Include="rtti.h" />
     <ClInclude Include="SmallObject.h" />
-    <ClInclude Include="Spawn.h" />
     <ClInclude Include="stack.h" />
     <ClInclude Include="StackAllocator.h" />
     <ClInclude Include="State.h" />
@@ -329,26 +297,17 @@
     <ClInclude Include="SystemAspect.h" />
     <ClInclude Include="TargetState.h" />
     <ClInclude Include="Text.h" />
-    <ClInclude Include="TextureFile.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="thread.h" />
     <ClInclude Include="thread_save_vector.h" />
-    <ClInclude Include="Transform.h" />
     <ClInclude Include="Transition.h" />
-    <ClInclude Include="Triangle.h" />
-    <ClInclude Include="utility.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexArray.h" />
     <ClInclude Include="VirtualBaseClass.h" />
     <ClInclude Include="vxFile.h" />
     <ClInclude Include="Wander.h" />
-    <ClInclude Include="Waypoint.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AABB.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="ActionActorCreatePath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -436,26 +395,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="LookWhereYoureGoing.cpp" />
-    <ClCompile Include="ParserNode.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="SegmentFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ConditionActorFollowingPath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ConditionActorHasPath.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="ConverterEditorSceneToSceneFile.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="ConverterSceneFileToScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="DDS_File.cpp">
@@ -480,14 +426,8 @@
     <ClCompile Include="EditorRenderAspect.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="EditorScene.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="EngineConfig.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="FileFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="gl\BufferBindingManager.cpp">
@@ -532,9 +472,6 @@
     <ClCompile Include="InfluenceMap.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="LightBufferManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -542,9 +479,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="NavGraph.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="NavMesh.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="NavMeshGraph.cpp">
@@ -562,27 +496,11 @@
     <ClCompile Include="ScreenshotFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="TextureFileManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Triangle.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DLL Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="VoxelRenderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="SceneBase.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="SceneFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="SmallObjAllocator.cpp">
@@ -604,16 +522,6 @@
     <ClCompile Include="EntityAspect.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="EventManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="FileEntry.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="FileAspect.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Font.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -623,31 +531,16 @@
     <ClCompile Include="LevelEditor.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Logfile.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="MaterialFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="MeshFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="MeshInstance.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="PhysicsAspect.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="PlayerController.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Pool.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ProfilerGraph.cpp">
@@ -662,9 +555,6 @@
     <ClCompile Include="rtti_defines.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="SceneFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Seek.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -672,9 +562,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Text.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="TextureFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="TextureManager.cpp">

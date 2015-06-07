@@ -22,18 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "EditorEngine.h"
-#include "enums.h"
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
-#include "developer.h"
-#include <vxLib/util/DebugPrint.h>
 #include "Locator.h"
-#include "EditorMeshInstance.h"
-#include "Ray.h"
-#include "EditorScene.h"
+#include <vxEngineLib/EditorMeshInstance.h>
+#include <vxEngineLib/Ray.h>
+#include <vxEngineLib/EditorScene.h>
+#include <vxEngineLib/Light.h>
 #include "NavMeshGraph.h"
-#include "Light.h"
 #include "EngineConfig.h"
+#include <vxEngineLib/debugPrint.h>
+#include "developer.h"
 
 u32 EditorEngine::s_editorTypeMesh{ 0xffffffff };
 u32 EditorEngine::s_editorTypeMaterial{ 0xffffffff };
@@ -92,12 +91,12 @@ void EditorEngine::createStateMachine()
 
 bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene)
 {
-	vx::activateChannel(dev::Channel_Render);
-	vx::activateChannel(dev::Channel_Editor);
-	vx::activateChannel(dev::Channel_FileAspect);
+	vx::activateChannel(vx::debugPrint::Channel_Render);
+	vx::activateChannel(vx::debugPrint::Channel_Editor);
+	vx::activateChannel(vx::debugPrint::Channel_FileAspect);
 	vx::DebugPrint::g_verbosity = 1;
 
-	const std::string dataDir("../../game/data/");
+	const std::string dataDir("../../data/");
 	m_pEditorScene = pScene;
 	m_resolution = resolution;
 	m_panel = panel;
@@ -180,6 +179,10 @@ void EditorEngine::buildNavGraph()
 	m_renderAspect.updateNavMeshGraphNodesBuffer(graph);
 }
 
+void EditorEngine::addMesh(const vx::StringID &sid)
+{
+}
+
 void EditorEngine::handleEvent(const vx::Event &evt)
 {
 	switch (evt.type)
@@ -200,35 +203,24 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 	{
 	case vx::FileEvent::Mesh_Loaded:
 	{
-		//vx::verboseChannelPrintF(1, dev::Channel_Editor, "Loaded Mesh");
-		call_editorCallback(vx::StringID(evt.arg1.u64));
-		/*std::string* pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
-		auto sid = evt.arg1.sid;
+		auto sid = vx::StringID(evt.arg1.u64);
+		if (call_editorCallback(sid))
+		{
+			addMesh(sid);
+		}
 
-		auto pMesh = m_fileAspect.getMesh(sid);
-		//m_renderAspect.editor_addMesh(sid, pStr->c_str(), pMesh);
-
-		call_editorCallback(sid);
-
-		delete(pStr);*/
+		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
+		delete(pStr);
 	}break;
 	case vx::FileEvent::Texture_Loaded:
 		break;
 	case vx::FileEvent::Material_Loaded:
 	{
-		//vx::verboseChannelPrintF(1, dev::Channel_Editor, "Loaded Material");
-		//std::string* pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
-
-		//auto pMaterial = m_fileAspect.getMaterial(sid);
-		//VX_ASSERT(pMaterial != nullptr);
-		//m_renderAspect.editor_addMaterial(sid, pStr->c_str(), pMaterial);
-
-		//call_editorCallback(vx::StringID(evt.arg1.u64));
-
+		//auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
 		//delete(pStr);
 	}break;
 	case vx::FileEvent::Scene_Loaded:
-		vx::verboseChannelPrintF(0, dev::Channel_Editor, "Loaded Scene");
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded Scene");
 		call_editorCallback(vx::StringID(evt.arg1.u64));
 
 		buildNavGraph();
@@ -238,7 +230,7 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 	}
 }
 
-void EditorEngine::requestLoadFile(const FileEntry &fileEntry, void* p)
+void EditorEngine::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 {
 	m_fileAspect.requestLoadFile(fileEntry, p);
 }
@@ -247,7 +239,7 @@ void EditorEngine::editor_saveScene(const char* name)
 {
 	auto sceneCopy = new Editor::Scene();
 	m_pEditorScene->copy(sceneCopy);
-	m_fileAspect.requestSaveFile(FileEntry(name, FileType::Scene), sceneCopy);
+	m_fileAspect.requestSaveFile(vx::FileEntry(name, vx::FileType::Scene), sceneCopy);
 }
 
 void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene)
@@ -276,21 +268,21 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	assert(s_editorTypeMesh != s_editorTypeMaterial);
 
 	void *p = nullptr;
-	FileEntry fileEntry;
+	vx::FileEntry fileEntry;
 	if (type == s_editorTypeMesh)
 	{
-		fileEntry = FileEntry(filename, FileType::Mesh);
+		fileEntry = vx::FileEntry(filename, vx::FileType::Mesh);
 		p = new std::string(filename);
 	}
 	else if (type == s_editorTypeMaterial)
 	{
 		//fileEntry = FileEntry(filename, FileType::Material);
-		//	p = new std::string(filename);
+		//p = new std::string(filename);
 		assert(false);
 	}
 	else if (type == s_editorTypeScene)
 	{
-		fileEntry = FileEntry(filename, FileType::Scene);
+		fileEntry = vx::FileEntry(filename, vx::FileType::Scene);
 		p = m_pEditorScene;
 	}
 	else
@@ -309,7 +301,7 @@ void EditorEngine::editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ)
 	m_renderAspect.editor_moveCamera(dirX, dirY, dirZ);
 }
 
-void EditorEngine::editor_rotateCamera(f32 dirX, f32 dirY, f32 dirZ)
+void EditorEngine::editor_rotateCamera(f32 dirX, f32 dirY, f32)
 {
 	static f32 x = 0.0f;
 	static f32 y = 0.0f;
@@ -323,15 +315,20 @@ void EditorEngine::editor_rotateCamera(f32 dirX, f32 dirY, f32 dirZ)
 	m_renderAspect.editor_rotateCamera(v);
 }
 
-void EditorEngine::call_editorCallback(const vx::StringID &sid)
+bool EditorEngine::call_editorCallback(const vx::StringID &sid)
 {
+	bool result = false;
+
 	std::lock_guard<std::mutex> guard(m_editorMutex);
 	auto it = m_requestedFiles.find(sid);
 	if (it != m_requestedFiles.end())
 	{
 		(*it->first)(sid.value, it->second);
 		m_requestedFiles.erase(it);
+		result = true;
 	}
+
+	return result;
 }
 
 vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY)
@@ -431,17 +428,29 @@ u64 EditorEngine::getSelectedMeshInstanceSid() const
 	return sidValue;
 }
 
-u64 EditorEngine::getSelectedMeshInstanceMeshSid() const
+u64 EditorEngine::getMeshInstanceMeshSid(u64 instanceSid) const
 {
 	u64 sidValue = 0;
 
-	auto meshInstance = (MeshInstance*)m_selected.m_item;
-	if (meshInstance)
+	auto meshInstance = m_pEditorScene->getMeshInstance(vx::StringID(instanceSid));
+	if (meshInstance != nullptr)
 	{
 		sidValue = meshInstance->getMeshSid().value;
 	}
 
 	return sidValue;
+}
+
+void EditorEngine::setMeshInstanceMeshSid(u64 instanceSid, u64 meshSid)
+{
+	auto meshInstance = m_pEditorScene->getMeshInstance(vx::StringID(instanceSid));
+	if (meshInstance != nullptr)
+	{
+		m_renderAspect.setMeshInstanceMesh(vx::StringID(instanceSid), vx::StringID(meshSid));
+		meshInstance->setMeshSid(vx::StringID(meshSid));
+
+		m_physicsAspect.editorSetStaticMeshInstanceMesh(meshInstance->getMeshInstance());
+	}
 }
 
 u64 EditorEngine::getMeshInstanceMaterialSid(u64 instanceSid) const
@@ -610,7 +619,7 @@ void EditorEngine::setMeshInstancePosition(u64 sid, const vx::float3 &p)
 		auto transform = instance->getTransform();
 
 		m_renderAspect.setSelectedMeshInstanceTransform(transform);
-		m_physicsAspect.editorSetStaticMeshInstancePosition(instance->getMeshInstance(), instanceSid, p);
+		m_physicsAspect.editorSetStaticMeshInstanceTransform(instance->getMeshInstance(), instanceSid);
 	}
 }
 
@@ -627,7 +636,7 @@ void EditorEngine::setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDe
 		auto transform = instance->getTransform();
 
 		m_renderAspect.setSelectedMeshInstanceTransform(transform);
-		m_physicsAspect.editorSetStaticMeshInstancePosition(instance->getMeshInstance(), instanceSid, rotation);
+		m_physicsAspect.editorSetStaticMeshInstanceTransform(instance->getMeshInstance(), instanceSid);
 	}
 }
 

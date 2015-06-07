@@ -25,7 +25,7 @@ SOFTWARE.
 #include "ProgramUniformCommand.h"
 #include <vxLib/gl/gl.h>
 #include "../Segment.h"
-#include "../../ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
 #include <vxLib/gl/ProgramPipeline.h>
 

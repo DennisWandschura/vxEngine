@@ -52,8 +52,14 @@ void VoxelRenderer::initialize(u16 voxelTextureSize, const vx::gl::ShaderManager
 	m_mipcount = voxelLodCount;
 
 	m_pColdData = vx::make_unique<ColdData>();
-	m_pipelineDebug = shaderManager.getPipeline("voxel_debug.pipe")->getId();
-	m_pipelineMipmap = shaderManager.getPipeline("voxelMipmap.pipe")->getId();
+	auto voxel_debug = shaderManager.getPipeline("voxel_debug.pipe");
+	auto voxelMipmap = shaderManager.getPipeline("voxelMipmap.pipe");
+
+	VX_ASSERT(voxel_debug);
+	VX_ASSERT(voxelMipmap);
+
+	m_pipelineDebug = voxel_debug->getId();
+	m_pipelineMipmap = voxelMipmap->getId();
 
 	createVoxelTextures();
 	createFrameBuffer(objectManager);

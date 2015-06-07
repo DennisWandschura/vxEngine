@@ -29,11 +29,11 @@ namespace Component
 	struct Physics;
 }
 
-template<typename T>
-class Pool;
-
 namespace vx
 {
+	template<typename T>
+	class Pool;
+
 	struct Event;
 }
 
@@ -53,8 +53,8 @@ class Scene;
 class ActorAspect : public vx::EventListener
 {
 	ai::Squad m_squad;
-	const Pool<Component::Actor>* m_pActorPool{ nullptr };
-	const Pool<EntityActor>* m_pEntityPool{ nullptr };
+	const vx::Pool<Component::Actor>* m_pActorPool{ nullptr };
+	const vx::Pool<EntityActor>* m_pEntityPool{ nullptr };
 	ActionManager m_actionManager;
 	InfluenceMap m_influenceMap;
 	NavMeshGraph m_navmeshGraph;

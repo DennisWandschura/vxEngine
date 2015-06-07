@@ -35,11 +35,11 @@ SOFTWARE.
 #include "ScreenshotFactory.h"
 #include "DebugRenderSettings.h"
 #include <vxLib/Keyboard.h>
-#include <vxLib/util/DebugPrint.h>
+#include <vxEngineLib/debugPrint.h>
 #include "GpuProfiler.h"
 #include "CreateActorData.h"
 #include "Locator.h"
-#include "EventManager.h"
+#include <vxEngineLib/EventManager.h>
 #include "Graphics/Renderer.h"
 #include "Graphics/ShadowRenderer.h"
 #include "Graphics/Segment.h"
@@ -380,7 +380,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	vx::gl::StateManager::setClearColor(0, 0, 0, 1);
 	vx::gl::StateManager::setViewport(0, 0, windowResolution.x, windowResolution.y);
 
-	m_objectManager.initialize(50, 20, 20, 10, &m_allocator);
+	m_objectManager.initialize(50, 20, 20, 20, &m_allocator);
 
 	m_camera.setPosition(0, 2.5f, 15);
 
@@ -404,7 +404,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 
 	m_sceneRenderer.initialize(10, &m_objectManager, pAllocator);
 	m_pColdData->m_voxelRenderer.initialize(128, m_shaderManager, &m_objectManager);
-
+	
 	{
 
 		auto pShadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
@@ -578,7 +578,7 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 #else
 	auto pScene = (Scene*)address;
 #endif
-	vx::verboseChannelPrintF(0, dev::Channel_Render, "Loading Scene into Render");
+	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Loading Scene into Render");
 	m_sceneRenderer.loadScene(pScene, m_objectManager);
 
 	auto count = m_sceneRenderer.getMeshInstanceCount();
@@ -592,7 +592,7 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 
 void RenderAspect::taskToggleRenderMode()
 {
-	vx::verboseChannelPrintF(0, dev::Channel_Render, "Toggling Rendermode");
+	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Toggling Rendermode");
 
 	ShadingMode mode = dev::g_debugRenderSettings.getShadingMode();
 
@@ -620,7 +620,7 @@ void RenderAspect::taskCreateActorGpuIndex(u8* p, u32* offset)
 	auto evtManager = Locator::getEventManager();
 
 	CreateActorData* data = (CreateActorData*)p;
-	auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material, data->pScene);
+	auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material);
 
 	vx::Event e;
 	e.arg1.u32 = data->index;
@@ -1085,7 +1085,7 @@ void RenderAspect::handleFileEvent(const vx::Event &evt)
 	{
 	case vx::FileEvent::Scene_Loaded:
 	{
-		vx::verboseChannelPrintF(0, dev::Channel_Render, "Queuing loading Scene into Render");
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Queuing loading Scene into Render");
 		auto pScene = (Scene*)evt.arg2.ptr;
 		
 		RenderUpdateTask task;
@@ -1114,7 +1114,7 @@ void RenderAspect::handleIngameEvent(const vx::Event &evt)
 		auto evtManager = Locator::getEventManager();
 
 		CreateActorData* data = (CreateActorData*)evt.arg2.ptr;
-		auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material, data->pScene);
+		auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material);
 
 		delete(data);
 
@@ -1133,11 +1133,11 @@ void RenderAspect::getProjectionMatrix(vx::mat4* m)
 	*m = m_renderContext.getProjectionMatrix();
 }
 
-u16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene)
+u16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material)
 {
 	vx::gl::DrawElementsIndirectCommand drawCmd;
 	u32 cmdIndex = 0;
-	auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, pScene, &drawCmd, &cmdIndex);
+	auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, &drawCmd, &cmdIndex);
 
 	m_shadowRenderer->updateDrawCmd(drawCmd, cmdIndex);
 

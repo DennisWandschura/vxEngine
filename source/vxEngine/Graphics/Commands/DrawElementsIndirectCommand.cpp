@@ -23,13 +23,13 @@ SOFTWARE.
 */
 #include "DrawElementsIndirectCommand.h"
 #include <vxLib/gl/gl.h>
-#include "../Segment.h"
-#include "../../ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
+#include "../Segment.h"
 
 namespace Graphics
 {
-	void createFromNodeDrawElementsIndirectCommand(const Parser::Node &node, Segment* segment, void* p)
+	void createFromNodeDrawElementsIndirectCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 

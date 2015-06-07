@@ -24,7 +24,7 @@ SOFTWARE.
 #include "EditorRenderAspect.h"
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
-#include "Scene.h"
+#include <vxEngineLib/Scene.h>
 #include <vxLib/gl/gl.h>
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/ProgramPipeline.h>
@@ -36,15 +36,15 @@ SOFTWARE.
 #include <vxLib/algorithm.h>
 #include "Graphics/Segment.h"
 #include "DDS_File.h"
-#include "Spawn.h"
+#include <vxEngineLib/Spawn.h>
 #include "Graphics/Commands.h"
 #include "Graphics/Segment.h"
 #include "Graphics/Commands/ProgramUniformCommand.h"
-#include "NavMeshTriangle.h"
+#include <vxEngineLib/NavMeshTriangle.h>
+#include <vxEngineLib/EditorMeshInstance.h>
 #include "SegmentFactory.h"
 #include "Graphics/CommandListFactory.h"
 #include "EngineConfig.h"
-#include "EditorMeshInstance.h"
 
 struct VertexNavMesh
 {
@@ -115,6 +115,8 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	m_pEditorColdData = vx::make_unique<EditorColdData>();
 
 	auto result = initializeImpl(dataDir, settings->m_resolution, settings->m_renderDebug, pAllocator);
+	if (!result)
+		return false;
 
 	{
 		vx::gl::BufferDescription navmeshVertexVboDesc;
@@ -375,10 +377,11 @@ void EditorRenderAspect::createEditorTextures()
 
 	DDS_File ddsFileLight;
 	DDS_File ddsFileSpawn;
-	if (!ddsFileLight.loadFromFile("../../game/data/textures/editor/light.dds") ||
-		!ddsFileSpawn.loadFromFile("../../game/data/textures/editor/spawnPoint.dds"))
+	if (!ddsFileLight.loadFromFile("../../data/textures/editor/light.dds") ||
+		!ddsFileSpawn.loadFromFile("../../data/textures/editor/spawnPoint.dds"))
 	{
 		puts("Error loading texture !");
+		VX_ASSERT(false);
 		return;
 	}
 
@@ -698,6 +701,11 @@ void EditorRenderAspect::handleLoadScene(const vx::Event &evt)
 	}
 }
 
+void EditorRenderAspect::handleLoadMesh(const vx::Event &evt)
+{
+	VX_UNREFERENCED_PARAMETER(evt);
+}
+
 void EditorRenderAspect::handleFileEvent(const vx::Event &evt)
 {
 	RenderAspect::handleFileEvent(evt);
@@ -705,6 +713,10 @@ void EditorRenderAspect::handleFileEvent(const vx::Event &evt)
 	if ((vx::FileEvent)evt.code == vx::FileEvent::Scene_Loaded)
 	{
 		handleLoadScene(evt);
+	}
+	else if ((vx::FileEvent)evt.code == vx::FileEvent::Mesh_Loaded)
+	{
+		handleLoadMesh(evt);
 	}
 }
 
@@ -840,6 +852,11 @@ void EditorRenderAspect::setSelectedMeshInstanceTransform(vx::Transform &transfo
 bool EditorRenderAspect::setSelectedMeshInstanceMaterial(const Material* material) const
 {
 	return m_sceneRenderer.setMeshInstanceMaterial(m_selectedInstance.ptr->getNameSid(), material);
+}
+
+bool EditorRenderAspect::setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid)
+{
+	return m_sceneRenderer.setMeshInstanceMesh(sid, meshSid);
 }
 
 void EditorRenderAspect::editorAddMeshInstance(const Editor::MeshInstance &instance)

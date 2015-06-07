@@ -24,7 +24,7 @@ SOFTWARE.
 #include "LightBufferManager.h"
 #include "GpuStructs.h"
 #include "gl/BufferBindingManager.h"
-#include "Light.h"
+#include <vxEngineLib/Light.h>
 #include "gl/ObjectManager.h"
 
 void LightBufferManager::initialize(u32 maxLightCount, gl::ObjectManager* objectManager)

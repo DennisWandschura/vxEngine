@@ -103,32 +103,14 @@
     <Filter Include="Source Files\Editor">
       <UniqueIdentifier>{633544a4-e453-4b42-bc26-a5f6ede6c1ab}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Converter">
-      <UniqueIdentifier>{1cb8950f-257c-4239-b301-65fee806d41f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Render\Graphics\Profiler">
       <UniqueIdentifier>{4aebb6e8-175d-4166-88f5-cb6093379c59}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\File">
-      <UniqueIdentifier>{248bfd50-c7d4-4d47-a9f3-e4a4d2e713e0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Navigation">
       <UniqueIdentifier>{2c0367ea-7bb1-4975-8778-859b7f2a54ac}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Converter">
-      <UniqueIdentifier>{8a5d2184-34ad-4cd0-b1ad-7170b4c30eee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Text Parser">
-      <UniqueIdentifier>{9942faeb-09c7-4b93-928b-d1930324f0f4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Text Parser">
-      <UniqueIdentifier>{b36dd6f5-1249-4dbc-ad9f-d58828eb803c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Render\Graphics\Commands">
       <UniqueIdentifier>{1d0a9662-c3ff-48c0-a84f-1d210a2f147a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\File">
-      <UniqueIdentifier>{9d79818b-63e6-42ee-b9b4-8b478a36f85e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Input">
       <UniqueIdentifier>{30930ff3-e05e-497c-9e5f-a16b9dd1588c}</UniqueIdentifier>
@@ -183,12 +165,6 @@
     <ClInclude Include="MeshFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Logfile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshInstance.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="SharedFramebuffer.h">
       <Filter>Header Files\Render\gl</Filter>
     </ClInclude>
@@ -204,12 +180,6 @@
     <ClInclude Include="StackAllocator.h">
       <Filter>Header Files\Allocator</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="thread_save_vector.h">
       <Filter>Header Files\Container</Filter>
     </ClInclude>
@@ -222,14 +192,8 @@
     <ClInclude Include="Font.h">
       <Filter>Header Files\Render\gl</Filter>
     </ClInclude>
-    <ClInclude Include="MaterialFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PhysicsAspect.h">
       <Filter>Header Files\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="LoadFileCallback.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TextureManager.h">
       <Filter>Header Files\Render\Graphics</Filter>
@@ -237,14 +201,8 @@
     <ClInclude Include="memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TextureFile.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="vxFile.h">
       <Filter>Header Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="Material.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>Header Files\Entity</Filter>
@@ -264,29 +222,11 @@
     <ClInclude Include="Component.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BVH.h">
       <Filter>Header Files\Container</Filter>
     </ClInclude>
-    <ClInclude Include="utility.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
     <ClInclude Include="RenderAspect.h">
       <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="enums.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Spawn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Actor.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ComponentRender.h">
       <Filter>Header Files\Entity</Filter>
@@ -345,12 +285,6 @@
     <ClInclude Include="Locator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AABB.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Ray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Heap.h">
       <Filter>Header Files\Container</Filter>
     </ClInclude>
@@ -366,9 +300,6 @@
     <ClInclude Include="SmallObjAllocator.h">
       <Filter>Header Files\Allocator</Filter>
     </ClInclude>
-    <ClInclude Include="Waypoint.h">
-      <Filter>Header Files\AI</Filter>
-    </ClInclude>
     <ClInclude Include="InfluenceMap.h">
       <Filter>Header Files\AI</Filter>
     </ClInclude>
@@ -377,9 +308,6 @@
     </ClInclude>
     <ClInclude Include="developer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EventManager.h">
-      <Filter>Header Files\Events</Filter>
     </ClInclude>
     <ClInclude Include="EventsIngame.h">
       <Filter>Header Files\Events</Filter>
@@ -395,15 +323,6 @@
     </ClInclude>
     <ClInclude Include="EventEditor.h">
       <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="EditorScene.h">
-      <Filter>Header Files\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneFile.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EditorRenderAspect.h">
       <Filter>Header Files\Editor</Filter>
@@ -459,38 +378,11 @@
     <ClInclude Include="DDS_File.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Triangle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Plane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CreateActorData.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
     <ClInclude Include="Primitive.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CreateSceneDescription.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FileEntry.h">
-      <Filter>Header Files\File</Filter>
-    </ClInclude>
-    <ClInclude Include="FileFactory.h">
-      <Filter>Header Files\File</Filter>
-    </ClInclude>
-    <ClInclude Include="NavMesh.h">
-      <Filter>Header Files\Navigation</Filter>
-    </ClInclude>
-    <ClInclude Include="NavMeshTriangle.h">
-      <Filter>Header Files\Navigation</Filter>
-    </ClInclude>
-    <ClInclude Include="ConverterEditorSceneToSceneFile.h">
-      <Filter>Header Files\Converter</Filter>
-    </ClInclude>
-    <ClInclude Include="ConverterSceneFileToScene.h">
-      <Filter>Header Files\Converter</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\State.h">
       <Filter>Header Files\Render\Graphics</Filter>
@@ -503,9 +395,6 @@
     </ClInclude>
     <ClInclude Include="Graphics\Commands.h">
       <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Reference.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\Renderer.h">
       <Filter>Header Files\Render\Graphics</Filter>
@@ -534,9 +423,6 @@
     <ClInclude Include="Graphics\Commands\ProgramUniformCommand.h">
       <Filter>Header Files\Render\Graphics\Commands</Filter>
     </ClInclude>
-    <ClInclude Include="FileAspect.h">
-      <Filter>Header Files\File</Filter>
-    </ClInclude>
     <ClInclude Include="EntityAspect.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
@@ -560,9 +446,6 @@
     </ClInclude>
     <ClInclude Include="ai\Squad.h">
       <Filter>Header Files\AI</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureFileManager.h">
-      <Filter>Header Files\File</Filter>
     </ClInclude>
     <ClInclude Include="State.h">
       <Filter>Header Files\AI\State Machine</Filter>
@@ -627,12 +510,6 @@
     <ClInclude Include="Graphics\CommandFactory.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="ParserNode.h">
-      <Filter>Header Files\Text Parser</Filter>
-    </ClInclude>
-    <ClInclude Include="ParserConverter.h">
-      <Filter>Header Files\Text Parser</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\Commands\ViewportCommand.h">
       <Filter>Header Files\Render\Graphics\Commands</Filter>
     </ClInclude>
@@ -678,12 +555,6 @@
     <ClInclude Include="LookWhereYoureGoing.h">
       <Filter>Header Files\AI\Steering</Filter>
     </ClInclude>
-    <ClInclude Include="EditorMeshInstance.h">
-      <Filter>Header Files\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="copy.h">
-      <Filter>Header Files\util</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -710,18 +581,6 @@
     <ClCompile Include="MeshFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Logfile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshInstance.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FontAtlas.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
@@ -731,29 +590,17 @@
     <ClCompile Include="Font.cpp">
       <Filter>Source Files\Render\gl</Filter>
     </ClCompile>
-    <ClCompile Include="MaterialFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PhysicsAspect.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="TextureFile.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="TextureManager.cpp">
       <Filter>Source Files\Render\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="Pool.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BVH.cpp">
       <Filter>Source Files\Container</Filter>
     </ClCompile>
     <ClCompile Include="RenderAspect.cpp">
       <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="EventManager.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StateMachine.cpp">
       <Filter>Source Files\AI</Filter>
@@ -763,9 +610,6 @@
     </ClCompile>
     <ClCompile Include="ActionManager.cpp">
       <Filter>Source Files\AI</Filter>
-    </ClCompile>
-    <ClCompile Include="NavMesh.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NavGraph.cpp">
       <Filter>Source Files\AI\Navigation</Filter>
@@ -783,9 +627,6 @@
       <Filter>Source Files\AI\Steering</Filter>
     </ClCompile>
     <ClCompile Include="Locator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AABB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SmallObject.cpp">
@@ -818,18 +659,6 @@
     <ClCompile Include="LevelEditor.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="EditorScene.cpp">
-      <Filter>Source Files\Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneFile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="EditorRenderAspect.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
@@ -838,9 +667,6 @@
     </ClCompile>
     <ClCompile Include="PlayerController.cpp">
       <Filter>Source Files\Entity</Filter>
-    </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VoxelRenderer.cpp">
       <Filter>Source Files\Render</Filter>
@@ -856,12 +682,6 @@
     </ClCompile>
     <ClCompile Include="ScreenshotFactory.cpp">
       <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="ConverterSceneFileToScene.cpp">
-      <Filter>Source Files\Converter</Filter>
-    </ClCompile>
-    <ClCompile Include="ConverterEditorSceneToSceneFile.cpp">
-      <Filter>Source Files\Converter</Filter>
     </ClCompile>
     <ClCompile Include="EngineConfig.cpp">
       <Filter>Source Files</Filter>
@@ -883,9 +703,6 @@
     </ClCompile>
     <ClCompile Include="DDS_File.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Triangle.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NavMeshGraph.cpp">
       <Filter>Source Files\AI</Filter>
@@ -914,15 +731,6 @@
     <ClCompile Include="Graphics\ShadowRenderer.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="FileEntry.cpp">
-      <Filter>Source Files\File</Filter>
-    </ClCompile>
-    <ClCompile Include="FileFactory.cpp">
-      <Filter>Source Files\File</Filter>
-    </ClCompile>
-    <ClCompile Include="FileAspect.cpp">
-      <Filter>Source Files\File</Filter>
-    </ClCompile>
     <ClCompile Include="ActionUpdateGpuTransform.cpp">
       <Filter>Source Files\Actions</Filter>
     </ClCompile>
@@ -934,9 +742,6 @@
     </ClCompile>
     <ClCompile Include="ai\Squad.cpp">
       <Filter>Source Files\AI</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureFileManager.cpp">
-      <Filter>Source Files\File</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\Surface.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
@@ -956,9 +761,6 @@
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <Filter>Source Files\unity</Filter>
     </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ActionPrintText.cpp">
       <Filter>Source Files\Actions</Filter>
     </ClCompile>
@@ -973,9 +775,6 @@
     </ClCompile>
     <ClCompile Include="SegmentFactory.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="ParserNode.cpp">
-      <Filter>Source Files\Text Parser</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\CommandFactory.cpp">
       <Filter>Source Files\Render\Graphics</Filter>

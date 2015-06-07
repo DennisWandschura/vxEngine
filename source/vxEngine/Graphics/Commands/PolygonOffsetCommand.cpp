@@ -24,12 +24,12 @@ SOFTWARE.
 #include "PolygonOffsetCommand.h"
 #include <vxLib/gl/gl.h>
 #include "../Segment.h"
-#include "../../ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
 
 namespace Graphics
 {
-	void createFromNodePolygonOffsetCommand(const Parser::Node &node, Segment* segment, void* p)
+	void createFromNodePolygonOffsetCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 

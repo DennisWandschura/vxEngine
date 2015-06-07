@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "../ParserNode.h"
+#include <vxEngineLib/ParserNode.h>
 #include "CommandFactory.h"
 #include "Segment.h"
 #include "Commands/ProgramUniformCommand.h"
@@ -31,7 +31,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	typedef vx::GlobalSingleton<CommandFactory, vx::CallbackCheck> SingletonCommandFactory;
+	typedef vx::GlobalSingleton<CommandFactory, vx::AssertCheck, vx::CreationImplicit> SingletonCommandFactory;
 
 	CommandFactoryRegister::CommandFactoryRegister(const char* id, CreateFromNodeAndPushFunction fp)
 	{

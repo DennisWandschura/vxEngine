@@ -33,11 +33,4 @@ namespace dev
 	extern u8 g_toggleRender;
 	extern u8 g_record;
 	extern DebugRenderSettings g_debugRenderSettings;
-
-	enum Channel : u8
-	{
-		Channel_Render = 1 << 0,
-		Channel_Editor = 1 << 1,
-		Channel_FileAspect = 1 << 2
-	};
 }

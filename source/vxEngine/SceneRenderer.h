@@ -102,10 +102,12 @@ class SceneRenderer
 	void writeMeshInstanceIdBuffer(u32 elementId, u32 materialIndex) const;
 	void writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, u32 index, u32 elementId, vx::gl::DrawElementsIndirectCommand* cmd, const vx::gl::Buffer* cmdBuffer);
 
-	void updateStaticMeshBuffer(const vx::sorted_vector<vx::StringID, const vx::MeshFile*> &meshes);
+	void updateMeshBuffer(const vx::MeshFile** meshes, const vx::StringID* keys, u32 count);
 	void updateLightBuffer(const Light *pLights, u32 numLights, const gl::ObjectManager &objectManager);
 	void updateBuffersWithMeshInstance(const MeshInstance &instance, u16 elementId, const vx::gl::Buffer* cmdBuffer);
 	void updateBuffers(const void *pInstances, u32 instanceCount);
+
+	void addMesh(const vx::StringID &meshSid);
 
 public:
 	SceneRenderer();
@@ -119,13 +121,14 @@ public:
 
 	u32 getMaterialIndex(const Material* material) const;
 	bool setMeshInstanceMaterial(const vx::StringID &sid, const Material* material) const;
+	bool setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid);
 
 	u16 getActorGpuIndex();
 
 	u32 getMeshInstanceCount() const { return m_staticMeshInstanceCount + m_dynamicMeshInstanceCount; }
 	vx::gl::DrawElementsIndirectCommand getDrawCommand(const vx::StringID &sid) const;
 
-	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, const Scene* pScene, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex);
+	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex);
 	void updateTransform(const vx::Transform &t, u32 elementId);
 	void updateTransform(const vx::TransformGpu &t, u32 elementId);
 	void updateLights(const Light* lights, u32 count);

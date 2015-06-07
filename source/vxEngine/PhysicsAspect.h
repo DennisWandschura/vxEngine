@@ -56,7 +56,6 @@ class MeshInstance;
 #include <vxEngineLib/EventListener.h>
 #include <foundation/PxErrorCallback.h>
 #include <extensions/PxDefaultAllocator.h>
-#include "LoadFileCallback.h"
 #include <mutex>
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
@@ -116,6 +115,7 @@ public:
 	vx::StringID raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition) const;
 
 	bool editorGetStaticMeshInstancePosition(const vx::StringID &sid, vx::float3* p) const;
-	void editorSetStaticMeshInstancePosition(const MeshInstance &meshInstance, const vx::StringID &sid, const vx::float3 &p);
+	void editorSetStaticMeshInstanceTransform(const MeshInstance &meshInstance, const vx::StringID &sid);
 	void editorAddMeshInstance(const MeshInstance &instance);
+	void editorSetStaticMeshInstanceMesh(const MeshInstance &instance);
 };

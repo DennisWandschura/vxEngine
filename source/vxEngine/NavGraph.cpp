@@ -22,14 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "NavGraph.h"
-#include "NavMesh.h"
+#include <vxEngineLib/NavMesh.h>
+#include <vxEngineLib/AABB.h>
 #include "NavConnection.h"
 #include "NavNode.h"
 #include <vector>
-#include "utility.h"
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/algorithm.h>
-#include "AABB.h"
 #include <vxLib/ScopeGuard.h>
 
 namespace 

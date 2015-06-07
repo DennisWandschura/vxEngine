@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,40 +22,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 class TextureFile;
 
 #include <vxLib\gl\Texture.h>
 #include <vxLib/memory.h>
 #include <vxLib\Container\sorted_vector.h>
-
-class TextureRef
-{
-	u32 m_textureId;
-	u32 m_slice;
-	vx::uint2a m_textureSize;
-
-public:
-	TextureRef();
-	TextureRef(u32 textureId, u32 slice, vx::uint2 textureSize, u8 isArray);
-
-	TextureRef(const TextureRef&) = delete;
-	TextureRef(TextureRef &&rhs);
-
-	TextureRef& operator=(const TextureRef&) = delete;
-	TextureRef& operator=(TextureRef &&rhs);
-
-	void makeInvalid();
-
-	u32 getTextureId() const noexcept;
-
-	u32 getSlice() const noexcept;
-	const vx::uint2a& getTextureSize() const noexcept{ return m_textureSize; }
-
-	bool isArray() const noexcept;
-	bool isValid() const noexcept;
-};
+#include <vxEngineLib/TextureRef.h>
 
 class TextureManager
 {

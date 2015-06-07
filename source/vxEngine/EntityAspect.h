@@ -37,7 +37,7 @@ struct EntityActor;
 class Scene;
 
 #include <vxEngineLib/EventListener.h>
-#include "Pool.h"
+#include <vxEngineLib/Pool.h>
 #include "PlayerController.h"
 #include "ComponentsForward.h"
 #include <vxLib/math/Vector.h>
@@ -53,14 +53,14 @@ class EntityAspect : public vx::EventListener
 		const Scene* m_pCurrentScene{ nullptr };
 		EntityActor* m_pPlayer{ nullptr };
 
-		Pool<Component::Actor> m_poolActor;
+		vx::Pool<Component::Actor> m_poolActor;
 	};
 
 	PlayerController m_playerController;
-	Pool<Component::Render> m_poolRender;
-	Pool<Component::Input> m_poolInput;
+	vx::Pool<Component::Render> m_poolRender;
+	vx::Pool<Component::Input> m_poolInput;
 	PhysicsAspect &m_physicsAspect;
-	Pool<EntityActor> m_poolEntity;
+	vx:: Pool<EntityActor> m_poolEntity;
 	RenderAspect &m_renderAspect;
 	vx::StackAllocator m_allocator;
 	std::unique_ptr<ColdData> m_coldData;
@@ -109,6 +109,6 @@ public:
 
 	Component::Input& getComponentInput(u16 i);
 
-	const Pool<Component::Actor>& getActorPool() const { return m_coldData->m_poolActor; }
-	const Pool<EntityActor>& getEntityPool() const { return m_poolEntity; }
+	const vx::Pool<Component::Actor>& getActorPool() const { return m_coldData->m_poolActor; }
+	const vx::Pool<EntityActor>& getEntityPool() const { return m_poolEntity; }
 };
