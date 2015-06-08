@@ -32,22 +32,15 @@ namespace LevelEditor
     class StateMachine
     {
         State m_currentState;
-        List<State> m_states;
 
         public StateMachine()
         {
             m_currentState = null;
-            m_states = new List<State>();
         }
 
         public void setCurrentState(State state)
         {
             m_currentState = state;
-        }
-
-        public void addState(State state)
-        {
-            m_states.Add(state);
         }
 
         public List<Action> update()

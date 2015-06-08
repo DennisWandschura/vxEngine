@@ -66,15 +66,16 @@ namespace Editor
 		};
 
 		vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
-		std::vector<Waypoint> m_waypoints;
 		std::vector<SelectableWrapper<Light>> m_selectableLights;
 		std::vector<SelectableWrapper<Spawn>> m_selectableSpawns;
+		std::vector<SelectableWrapper<Waypoint>> m_selectableWaypoints;
 
 		vx::sorted_vector<vx::StringID, std::string> m_materialNames;
 		vx::sorted_vector<vx::StringID, std::string> m_meshNames;
 		vx::sorted_vector<vx::StringID, std::string> m_actorNames;
 
 		void buildSelectableLights();
+		void buildSelectableWaypoints();
 
 		const ::MeshInstance* getMeshInstances() const override { return nullptr; }
 
@@ -101,7 +102,8 @@ namespace Editor
 		// returns 1 on insert, 0 if already present
 		u8 addMaterial(vx::StringID sid, const char* name, Material* pMaterial);
 		// returns 1 on insert, 0 if mesh or material is missing
-		void addWaypoint(const Waypoint &wp);
+		void addWaypoint(const vx::float3 &position);
+		void removeWaypoint(const vx::float3 &position);
 
 		const MeshInstance* getMeshInstance(const vx::StringID &sid) const;
 		MeshInstance* getMeshInstance(const vx::StringID &sid);

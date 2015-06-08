@@ -71,13 +71,15 @@ void EditorEngine::loopFileThread()
 
 bool EditorEngine::initializeImpl(const std::string &dataDir)
 {
-	m_memory = Memory(100 MBYTE, 64);
+	m_memory = Memory(128 MBYTE, 64);
 
 	m_allocator = vx::StackAllocator(m_memory.get(), m_memory.size());
 
 	m_scratchAllocator = vx::StackAllocator(m_allocator.allocate(1 MBYTE, 64), 1 MBYTE);
 
-	if (!m_fileAspect.initialize(&m_allocator, dataDir))
+	m_eventManager.initialize(&m_allocator, 256);
+
+	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_eventManager))
 		return false;
 
 	Locator::provide(&m_fileAspect);
@@ -129,9 +131,6 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	}
 
 	Locator::provide(&m_physicsAspect);
-
-	m_eventManager.initialize();
-	Locator::provide(&m_eventManager);
 
 	m_eventManager.registerListener(&m_renderAspect, 1, (u8)vx::EventType::File_Event);
 	m_eventManager.registerListener(&m_physicsAspect, 1, (u8)vx::EventType::File_Event);
@@ -220,11 +219,13 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		//delete(pStr);
 	}break;
 	case vx::FileEvent::Scene_Loaded:
+	{
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded Scene");
 		call_editorCallback(vx::StringID(evt.arg1.u64));
 
 		buildNavGraph();
-		break;
+		m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
+	}break;
 	default:
 		break;
 	}
@@ -1011,14 +1012,38 @@ void EditorEngine::showInfluenceMap(bool b)
 	m_renderAspect.showInfluenceMap(b);
 }
 
-void EditorEngine::addWaypoint(s32 mouseX, s32 mouseY)
+bool EditorEngine::addWaypoint(s32 mouseX, s32 mouseY, vx::float3* position)
 {
-	/*vx::float3 hitPos;
+	bool result = false;
+
+	vx::float3 hitPos;
 	auto sid = raytraceAgainstStaticMeshes(mouseX, mouseY, &hitPos);
 	if (sid.value != 0)
 	{
-		// todo
-	}*/
+		auto &navMesh = m_pEditorScene->getNavMesh();
+		if (navMesh.contains(hitPos))
+		{
+			m_pEditorScene->addWaypoint(hitPos);
+			m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
+
+			*position = hitPos;
+			result = true;
+		}
+	}
+
+	return result;
+}
+
+void EditorEngine::addWaypoint(const vx::float3 &position)
+{
+	m_pEditorScene->addWaypoint(position);
+	m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
+}
+
+void EditorEngine::removeWaypoint(const vx::float3 &position)
+{
+	m_pEditorScene->removeWaypoint(position);
+	m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 }
 
 u32 EditorEngine::getMeshCount() const

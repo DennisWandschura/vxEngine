@@ -48,6 +48,7 @@ SOFTWARE.
 #elif defined(_RELEASE_STATIC_BUILD)
 #pragma comment(lib, "vxLib_s.lib")
 #pragma comment(lib, "vxEngineLib.lib")
+#pragma comment(lib, "ResourceAspect.lib")
 
 #ifdef _VX_NOAUDIO
 #else

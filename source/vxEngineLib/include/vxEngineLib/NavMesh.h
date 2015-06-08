@@ -96,6 +96,8 @@ public:
 	const AABB& getBounds() const { return m_bounds; }
 	/////////////// getters
 
+	bool contains(const vx::float3 &p) const;
+
 	void addVertex(const vx::float3 &vertex);
 	bool removeVertex(const vx::float3 &vertex);
 	void removeVertex(u32 index);

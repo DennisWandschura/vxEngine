@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Action.cs" />
+    <Compile Include="ActionAddWaypoint.cs" />
     <Compile Include="ActionCallFunction.cs" />
     <Compile Include="ActionConsole.cs" />
     <Compile Include="ActionCreateNavMeshTriangle.cs" />

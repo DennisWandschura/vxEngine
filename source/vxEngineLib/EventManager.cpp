@@ -29,7 +29,8 @@ SOFTWARE.
 namespace vx
 {
 	EventManager::EventManager()
-		:m_events(),
+		:m_evtMutex(),
+		m_events(),
 		m_eventListeners()
 	{
 	}
@@ -39,8 +40,10 @@ namespace vx
 
 	}
 
-	void EventManager::initialize()
+	void EventManager::initialize(vx::StackAllocator* allocator, u32 maxEvtCount)
 	{
+		auto memory = allocator->allocate(sizeof(vx::Event) * maxEvtCount * 2, __alignof(vx::Event));
+		m_events = DoubleBuffer<vx::Event>((vx::Event*)memory, maxEvtCount);
 	}
 
 	void EventManager::registerListener(vx::EventListener* ptr, u64 priority, u16 filter)
@@ -60,14 +63,16 @@ namespace vx
 	void EventManager::update()
 	{
 		std::unique_lock<std::mutex> lck(m_evtMutex);
-		m_currentReadQueue = (m_currentReadQueue + 1) % 2;
+		m_events.swapBuffers();
 		lck.unlock();
 
-		auto &events = m_events[m_currentReadQueue];
+		auto evtCount = m_events.sizeBack();
 		for (auto &a : m_eventListeners)
 		{
-			for (auto &it : events)
+			//for (auto &it : events)
+			for (u32 i = 0; i < evtCount; ++i)
 			{
+				auto &it = m_events.getItemFromBackBuffer(i);
 				auto m = ((u32)it.type & a.second.mask);
 				if (m != 0)
 				{
@@ -75,14 +80,13 @@ namespace vx
 				}
 			}
 		}
-		events.clear();
 	}
 
 	void EventManager::addEvent(const vx::Event &evt)
 	{
 		std::lock_guard<std::mutex> g(m_evtMutex);
-		auto currentWriteQueue = (m_currentReadQueue + 1) % 2;
+		auto result = m_events.push(evt);
 
-		m_events[currentWriteQueue].push_back(evt);
+		VX_ASSERT(result);
 	}
 }

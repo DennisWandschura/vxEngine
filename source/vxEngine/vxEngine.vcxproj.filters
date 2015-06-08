@@ -483,9 +483,6 @@
     <ClInclude Include="Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PseudoRandom.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ActionPrintText.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
@@ -554,6 +551,9 @@
     </ClInclude>
     <ClInclude Include="LookWhereYoureGoing.h">
       <Filter>Header Files\AI\Steering</Filter>
+    </ClInclude>
+    <ClInclude Include="PseudoRandom.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

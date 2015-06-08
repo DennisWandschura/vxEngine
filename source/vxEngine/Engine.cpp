@@ -144,7 +144,7 @@ void Engine::renderLoop()
 		gpuProfiler.frame();
 		CpuProfiler::frame();
 
-		CpuProfiler::pushMarker("frame");
+		CpuProfiler::pushMarker("frame"); // frame begin
 
 		while (accum >= g_dt)
 		{
@@ -156,12 +156,17 @@ void Engine::renderLoop()
 			accum -= g_dt;
 		}
 
+		CpuProfiler::pushMarker("update");
 		m_renderAspect.update();
+		CpuProfiler::popMarker();
 
+		CpuProfiler::pushMarker("render");
 		gpuProfiler.pushGpuMarker("render()");
 		m_renderAspect.render(&gpuProfiler);
 		gpuProfiler.popGpuMarker();
 		CpuProfiler::popMarker();
+
+		CpuProfiler::popMarker(); // frame end
 
 		last = current;
 	}
@@ -249,7 +254,10 @@ bool Engine::initializeImpl(const std::string &dataDir)
 
 	m_allocator = vx::StackAllocator(m_memory.get(), m_memory.size());
 
-	if (!m_fileAspect.initialize(&m_allocator, dataDir))
+	m_eventManager.initialize(&m_allocator, 255);
+	Locator::provide(&m_eventManager);
+
+	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_eventManager))
 		return false;
 
 	return true;
@@ -304,7 +312,6 @@ bool Engine::initialize()
 	m_bRunRenderThread.store(1);
 	m_shutdown = 0;
 
-	Locator::provide(&m_eventManager);
 	Locator::provide(&m_fileAspect);
 
 	return true;

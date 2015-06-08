@@ -119,8 +119,9 @@ FileAspect::~FileAspect()
 {
 }
 
-bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir)
+bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager)
 {
+	m_eventManager = evtManager;
 	const auto fileMemorySize = 5 MBYTE;
 	auto pFileMemory = pMainAllocator->allocate(fileMemorySize, 64);
 	if (!pFileMemory)

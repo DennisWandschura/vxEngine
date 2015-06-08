@@ -36,6 +36,7 @@ SOFTWARE.
 #include <vxEngineLib/Waypoint.h>
 #include <vxLib/util/CityHash.h>
 #include <vxEngineLib/memcpy.h>
+#include <vxEngineLib/Waypoint.h>
 
 struct SceneFile::CreateSceneMeshInstancesDesc
 {
@@ -76,7 +77,8 @@ SceneFile::SceneFile()
 	:m_meshInstanceCount(0),
 	m_lightCount(0),
 	m_spawnCount(0),
-	m_actorCount(0)
+	m_actorCount(0),
+	m_waypointCount(0)
 {
 }
 
@@ -86,10 +88,17 @@ SceneFile::~SceneFile()
 
 const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* allocator)
 {
+	printf("SceneFile.version: %u\n", version);
+
 	ptr = vx::read(m_meshInstanceCount, ptr);
 	ptr = vx::read(m_lightCount, ptr);
 	ptr = vx::read(m_spawnCount, ptr);
 	ptr = vx::read(m_actorCount, ptr);
+
+	if (version >= 2)
+	{
+		ptr = vx::read(m_waypointCount, ptr);
+	}
 
 	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
 	m_pLights = vx::make_unique<Light[]>(m_lightCount);
@@ -104,6 +113,13 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* a
 		m_pActors = vx::make_unique<ActorFile[]>(m_actorCount);
 
 		ptr = vx::read(m_pActors.get(), ptr, m_actorCount);
+	}
+
+	if (m_waypointCount != 0 && version >= 2)
+	{
+		m_waypoints = vx::make_unique<Waypoint[]>(m_waypointCount);
+
+		ptr = vx::read(m_waypoints.get(), ptr, m_waypointCount);
 	}
 
 	return m_navMesh.load(ptr);
@@ -138,11 +154,13 @@ bool SceneFile::saveToFile(vx::File *file) const
 	file->write(m_lightCount);
 	file->write(m_spawnCount);
 	file->write(m_actorCount);
+	file->write(m_waypointCount);
 
 	file->write(m_pMeshInstances.get(), m_meshInstanceCount);
 	file->write(m_pLights.get(), m_lightCount);
 	file->write(m_pSpawns.get(), m_spawnCount);
 	file->write(m_pActors.get(), m_actorCount);
+	file->write(m_waypoints.get(), m_waypointCount);
 
 	m_navMesh.saveToFile(file);
 
@@ -368,8 +386,16 @@ u8 SceneFile::createScene(const CreateSceneDescription &desc)
 	sceneParams.m_baseParams.m_vertexCount = vertexCount;
 	sceneParams.m_meshInstanceCount = m_meshInstanceCount;
 	sceneParams.m_pMeshInstances = std::move(pMeshInstances);
-	sceneParams.m_waypointCount = 0;
-	sceneParams.m_waypoints;
+	sceneParams.m_baseParams.m_waypointCount = m_waypointCount;
+#if _VX_EDITOR
+	sceneParams.m_baseParams.m_waypoints.reserve(m_waypointCount);
+	for(u32 i =0;i < m_waypointCount; ++i)
+	{
+		sceneParams.m_baseParams.m_waypoints.push_back(m_waypoints[i]);
+	}
+#else
+	sceneParams.m_baseParams.m_waypoints = std::move(m_waypoints);
+#endif
 
 	*desc.pScene = Scene(sceneParams);
 	desc.pScene->sortMeshInstances();
@@ -451,6 +477,13 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 		actorNames.insert(sid, actorFile.m_name);
 	}
 
+	std::vector<Waypoint> waypointsEditor;
+	waypointsEditor.reserve(m_waypointCount);
+	for (u32 i = 0; i < m_waypointCount; ++i)
+	{
+		waypointsEditor.push_back(m_waypoints[i]);
+	}
+
 	Editor::SceneParams sceneParams;
 	sceneParams.m_baseParams.m_actors = std::move(sceneActors);
 	sceneParams.m_baseParams.m_indexCount = indexCount;
@@ -472,8 +505,8 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sceneParams.m_baseParams.m_spawnCount = m_spawnCount;
 	sceneParams.m_baseParams.m_vertexCount = vertexCount;
 	sceneParams.m_meshInstances = std::move(meshInstances);
-	sceneParams.m_waypoints;
-
+	sceneParams.m_baseParams.m_waypointCount = m_waypointCount;
+	sceneParams.m_baseParams.m_waypoints = std::move(waypointsEditor);
 
 	sceneParams.m_materialNames = std::move(materialNames);
 	sceneParams.m_meshNames = std::move(meshNames);
@@ -524,5 +557,5 @@ u64 SceneFile::getCrc() const
 
 u32 SceneFile::getVersion() const
 {
-	return 1;
+	return 2;
 }

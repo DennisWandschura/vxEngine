@@ -439,10 +439,7 @@ void SceneRenderer::updateTransform(const vx::TransformGpu &transform, u32 eleme
 	auto offset = sizeof(vx::TransformGpu) * elementId;
 
 	auto transformBlockBuffer = m_pObjectManager->getBuffer("transformBuffer");
-
-	auto pTransforms = transformBlockBuffer->mapRange<vx::TransformGpu>(offset, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
-	*pTransforms = transform;
-	pTransforms.unmap();
+	transformBlockBuffer->subData(offset, sizeof(vx::TransformGpu), &transform);
 }
 
 void SceneRenderer::updateLights(const Light* lights, u32 count)

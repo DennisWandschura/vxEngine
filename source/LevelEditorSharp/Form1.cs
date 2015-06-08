@@ -33,7 +33,7 @@ using System.Windows.Forms;
 
 namespace LevelEditor
 {
-    public enum EditorState { EditMesh, EditNavMesh, EditLights, EditSpawns };
+    public enum EditorState { EditMesh, EditNavMesh, EditLights, EditSpawns, EditWaypoints };
 
     public partial class Form1 : Form
     {
@@ -41,6 +41,7 @@ namespace LevelEditor
         const string s_textEditNavMesh = "Edit Nav Mesh";
         const string s_textEditLights = "Edit Lights";
         const string s_textEditSpawns = "Edit Spawns";
+        const string s_textEditWaypoints = "Edit Waypoints";
         const int s_groupBoxEditPositionX = 1380;
         const int s_groupBoxEditPositionY = 620;
 
@@ -132,6 +133,7 @@ namespace LevelEditor
             comboBox_selectEditorMode.Items.Add(s_textEditNavMesh);
             comboBox_selectEditorMode.Items.Add(s_textEditLights);
             comboBox_selectEditorMode.Items.Add(s_textEditSpawns);
+            comboBox_selectEditorMode.Items.Add(s_textEditWaypoints);
             comboBox_selectEditorMode.SelectedIndex = 0;
 
             Point p = new Point();
@@ -267,6 +269,25 @@ namespace LevelEditor
             return stateEditMesh;
         }
 
+        State createStateEditWaypoints()
+        {
+            State stateEditWaypoints = new State();
+
+            ActionAddWaypoint actionAddWaypoint = new ActionAddWaypoint(this);
+
+            TargetState stateKeyUp = new TargetState(stateEditWaypoints, "stateEditWaypoints");
+            stateKeyUp.addAction(actionAddWaypoint);
+
+            DecisionKeyDown decisionCKeyDown = new DecisionKeyDown(stateKeyUp, null, System.Windows.Input.Key.C);
+            DecisionEditorMouseButtonPressed decisionMouseLeftButton = new DecisionEditorMouseButtonPressed(decisionCKeyDown, null, this, MouseButtons.Left);
+
+            ActionDecisionTree actionMouseLeftDown = new ActionDecisionTree(decisionMouseLeftButton);
+
+            stateEditWaypoints.addAction(actionMouseLeftDown);
+
+            return stateEditWaypoints;
+        }
+
         void createStateMachine()
         {
             m_selectItemStateMachine = new StateMachine();
@@ -274,32 +295,39 @@ namespace LevelEditor
             ConditionEditorState conditionEditorStateEditMesh = new ConditionEditorState(this, EditorState.EditMesh);
             ConditionEditorState conditionEditorStateEditLights = new ConditionEditorState(this, EditorState.EditLights);
             ConditionEditorState conditionEditorStateEditNavMesh = new ConditionEditorState(this, EditorState.EditNavMesh);
+            ConditionEditorState conditionEditorStateEditWaypoints = new ConditionEditorState(this, EditorState.EditWaypoints);
 
             var stateEditNavMesh = createStateEditNavMesh();
             var stateEditMesh = createStateEditMesh();
             var stateEditLights = createStateEditLights();
+            var stateEditWaypoints = createStateEditWaypoints();
 
             Transition transitionEditMesh = new Transition(conditionEditorStateEditMesh, stateEditMesh, "transitionEditMesh");
             Transition transitionEditNavMesh = new Transition(conditionEditorStateEditNavMesh, stateEditNavMesh, "transitionEditNavMesh");
             Transition transitionEditLights = new Transition(conditionEditorStateEditLights, stateEditLights, "transitionEditLights");
+            Transition transitionEditWaypoints = new Transition(conditionEditorStateEditWaypoints, stateEditWaypoints, "transitionEditWaypoints");
 
             stateEditNavMesh.addTransition(transitionEditMesh);
             stateEditNavMesh.addTransition(transitionEditLights);
+            stateEditNavMesh.addTransition(transitionEditWaypoints);
 
             stateEditMesh.addTransition(transitionEditNavMesh);
             stateEditMesh.addTransition(transitionEditLights);
+            stateEditMesh.addTransition(transitionEditWaypoints);
 
             stateEditLights.addTransition(transitionEditNavMesh);
             stateEditLights.addTransition(transitionEditMesh);
+            stateEditLights.addTransition(transitionEditWaypoints);
 
-            m_selectItemStateMachine.addState(stateEditNavMesh);
-            m_selectItemStateMachine.addState(stateEditMesh);
-            m_selectItemStateMachine.addState(stateEditLights);
+            stateEditWaypoints.addTransition(transitionEditMesh);
+            stateEditWaypoints.addTransition(transitionEditNavMesh);
+            stateEditWaypoints.addTransition(transitionEditLights);
 
             State emptyState = new State();
             emptyState.addTransition(transitionEditMesh);
             emptyState.addTransition(transitionEditNavMesh);
             emptyState.addTransition(transitionEditLights);
+            emptyState.addTransition(transitionEditWaypoints);
 
             m_selectItemStateMachine.setCurrentState(emptyState);
         }
@@ -1035,6 +1063,10 @@ namespace LevelEditor
             else if (selectedString == s_textEditSpawns)
             {
                 m_editorState = EditorState.EditSpawns;
+            }
+            else if(selectedString == s_textEditWaypoints)
+            {
+                m_editorState = EditorState.EditWaypoints;
             }
         }
 

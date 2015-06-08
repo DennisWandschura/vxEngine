@@ -21,6 +21,9 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/ClearCommand.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\ClearCommand.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/DrawArraysCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\DrawArraysCommand.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/DrawArraysIndirectCommand.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\DrawArraysIndirectCommand.cpp"
 
@@ -54,6 +57,9 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/CommandList.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\CommandList.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/CommandListFactory.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\CommandListFactory.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Renderer.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Renderer.cpp"
 
@@ -68,9 +74,6 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Surface.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Surface.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/AABB.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\AABB.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ActionActorCreatePath.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ActionActorCreatePath.cpp"
@@ -117,12 +120,6 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ConditionActorHasPath.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ConditionActorHasPath.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ConverterEditorSceneToSceneFile.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ConverterEditorSceneToSceneFile.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ConverterSceneFileToScene.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ConverterSceneFileToScene.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/CpuProfiler.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\CpuProfiler.cpp"
 
@@ -150,9 +147,6 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/EditorRenderAspect.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\EditorRenderAspect.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/EditorScene.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\EditorScene.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Engine.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Engine.cpp"
 
@@ -161,18 +155,6 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/EntityAspect.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\EntityAspect.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/EventManager.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\EventManager.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/FileAspect.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\FileAspect.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/FileEntry.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\FileEntry.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/FileFactory.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\FileFactory.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Font.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Font.cpp"
@@ -195,53 +177,32 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/LevelEditor.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\LevelEditor.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Light.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Light.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/LightBufferManager.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\LightBufferManager.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Locator.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Locator.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Logfile.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Logfile.cpp"
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/LookWhereYoureGoing.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\LookWhereYoureGoing.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/main.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\main.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Material.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Material.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/MaterialFactory.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\MaterialFactory.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/MeshFactory.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\MeshFactory.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/MeshInstance.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\MeshInstance.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/NavGraph.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\NavGraph.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/NavMesh.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\NavMesh.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/NavMeshGraph.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\NavMeshGraph.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ParserNode.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ParserNode.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/PhysicsAspect.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\PhysicsAspect.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/PlayerController.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\PlayerController.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Pool.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Pool.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ProfilerGraph.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ProfilerGraph.cpp"
@@ -260,18 +221,6 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/rtti_defines.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\rtti_defines.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Scene.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Scene.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/SceneBase.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\SceneBase.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/SceneFactory.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\SceneFactory.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/SceneFile.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\SceneFile.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/SceneRenderer.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\SceneRenderer.cpp"
@@ -303,26 +252,14 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Text.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Text.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/TextureFile.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\TextureFile.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/TextureFileManager.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\TextureFileManager.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/TextureManager.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\TextureManager.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/thread.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\thread.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Timer.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Timer.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Transition.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Transition.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Triangle.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Triangle.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Vertex.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Vertex.cpp"

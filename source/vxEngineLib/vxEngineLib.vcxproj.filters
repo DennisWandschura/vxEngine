@@ -16,6 +16,9 @@
     <Filter Include="Header Files\include">
       <UniqueIdentifier>{39cf05d8-f741-42d2-8181-337f97db54ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\unity">
+      <UniqueIdentifier>{4d8f417d-d68e-4093-be3e-da151ef154e8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxEngineLib\MeshFile.h">
@@ -175,6 +178,9 @@
     </ClCompile>
     <ClCompile Include="Timer.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="unity\Unity_vxEngine1.cpp">
+      <Filter>Source Files\unity</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

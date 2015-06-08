@@ -38,9 +38,7 @@ Scene::Scene()
 Scene::Scene(SceneParams &params)
 	: SceneBase(params.m_baseParams),
 	m_pMeshInstances(std::move(params.m_pMeshInstances)),
-	m_waypoints(std::move(params.m_waypoints)),
-	m_meshInstanceCount(params.m_meshInstanceCount),
-	m_waypointCount(params.m_waypointCount)
+	m_meshInstanceCount(params.m_meshInstanceCount)
 {
 }
 

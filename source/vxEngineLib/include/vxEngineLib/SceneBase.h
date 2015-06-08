@@ -30,6 +30,7 @@ struct Light;
 struct Spawn;
 struct Actor;
 class SceneFile;
+struct Waypoint;
 
 namespace vx
 {
@@ -52,11 +53,17 @@ struct SceneBaseParams
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	std::unique_ptr<Spawn[]> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
+#if _VX_EDITOR
+	std::vector<Waypoint> m_waypoints;
+#else
+	std::unique_ptr<Waypoint[]> m_waypoints;
+#endif
 	NavMesh m_navMesh;
 	u32 m_lightCount;
 	u32 m_vertexCount;
 	u32 m_indexCount;
 	u32 m_spawnCount;
+	u32 m_waypointCount;
 
 	~SceneBaseParams();
 };
@@ -73,11 +80,17 @@ protected:
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes{};
 	std::unique_ptr<Spawn[]> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
+#if _VX_EDITOR
+	std::vector<Waypoint> m_waypoints;
+#else
+	std::unique_ptr<Waypoint[]> m_waypoints;
+#endif
 	NavMesh m_navMesh{};
 	u32 m_lightCount{ 0 };
 	u32 m_vertexCount{ 0 };
 	u32 m_indexCount{ 0 };
 	u32 m_spawnCount{ 0 };
+	u32 m_waypointCount;
 
 	SceneBase();
 	SceneBase(const SceneBase &rhs) = delete;
@@ -114,4 +127,7 @@ public:
 
 	NavMesh& getNavMesh();
 	const NavMesh& getNavMesh() const;
+
+	const Waypoint* getWaypoints() const;
+	u32 getWaypointCount() const;
 };

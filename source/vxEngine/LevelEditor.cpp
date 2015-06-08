@@ -367,9 +367,19 @@ namespace Editor
 		g_pEditor->engine.showInfluenceMap(b);
 	}
 
-	void addWaypoint(s32 x, s32 y)
+	bool addWaypoint(s32 x, s32 y, vx::float3* position)
 	{
-		g_pEditor->engine.addWaypoint(x, y);
+		return g_pEditor->engine.addWaypoint(x, y, position);
+	}
+
+	void addWaypointPosition(const vx::float3 &position)
+	{
+		g_pEditor->engine.addWaypoint(position);
+	}
+
+	void removeWaypoint(const vx::float3 &position)
+	{
+		g_pEditor->engine.removeWaypoint(position);
 	}
 
 	u32 getMeshCount()

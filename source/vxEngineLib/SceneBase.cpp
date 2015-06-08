@@ -26,6 +26,7 @@ SOFTWARE.
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/copy.h>
+#include <vxEngineLib/Waypoint.h>
 
 SceneBaseParams::~SceneBaseParams()
 {
@@ -35,7 +36,9 @@ SceneBaseParams::~SceneBaseParams()
 SceneBase::SceneBase()
 	:m_pLights(),
 	m_pSpawns(),
-	m_actors()
+	m_actors(),
+	m_waypoints(),
+	m_waypointCount(0)
 {
 }
 
@@ -45,11 +48,13 @@ SceneBase::SceneBase(SceneBase &&rhs)
 	m_meshes(std::move(rhs.m_meshes)),
 	m_pSpawns(std::move(rhs.m_pSpawns)),
 	m_actors(std::move(rhs.m_actors)),
+	m_waypoints(std::move(rhs.m_waypoints)),
 	m_navMesh(std::move(rhs.m_navMesh)),
 	m_lightCount(rhs.m_lightCount),
 	m_vertexCount(rhs.m_vertexCount),
 	m_indexCount(rhs.m_indexCount),
-	m_spawnCount(rhs.m_spawnCount)
+	m_spawnCount(rhs.m_spawnCount),
+	m_waypointCount(rhs.m_waypointCount)
 {
 }
 
@@ -59,11 +64,13 @@ SceneBase::SceneBase(SceneBaseParams &params)
 	m_meshes(std::move(params.m_meshes)),
 	m_pSpawns(std::move(params.m_pSpawns)),
 	m_actors(std::move(params.m_actors)),
+	m_waypoints(std::move(params.m_waypoints)),
 	m_navMesh(std::move(params.m_navMesh)),
 	m_lightCount(params.m_lightCount),
 	m_vertexCount(params.m_vertexCount),
 	m_indexCount(params.m_indexCount),
-	m_spawnCount(params.m_spawnCount)
+	m_spawnCount(params.m_spawnCount),
+	m_waypointCount(params.m_waypointCount)
 {
 }
 
@@ -76,11 +83,13 @@ SceneBase& SceneBase::operator = (SceneBase &&rhs)
 		m_meshes = std::move(rhs.m_meshes);
 		m_pSpawns = std::move(rhs.m_pSpawns);
 		m_actors = std::move(rhs.m_actors);
+		m_waypoints = std::move(rhs.m_waypoints);
 		std::swap(m_navMesh, rhs.m_navMesh);
 		m_lightCount = rhs.m_lightCount;
 		m_vertexCount = rhs.m_vertexCount;
 		m_indexCount = rhs.m_indexCount;
 		m_spawnCount = rhs.m_spawnCount;
+		m_waypointCount = rhs.m_waypointCount;
 	}
 
 	return *this;
@@ -108,12 +117,19 @@ void SceneBase::copy(SceneBase *dst) const
 		dst->m_pSpawns[i] = m_pSpawns[i];
 	}
 
+#if _VX_EDITOR
+	dst->m_waypoints = m_waypoints;
+#else
+	copyUniquePtr(&dst->m_waypoints, m_waypoints, m_waypointCount);
+#endif
+
 	m_navMesh.copy(&dst->m_navMesh);
 
 	dst->m_lightCount = m_lightCount;
 	dst->m_vertexCount = m_vertexCount;
 	dst->m_indexCount = m_indexCount;
 	dst->m_spawnCount = m_spawnCount;
+	dst->m_waypointCount = m_waypointCount;
 }
 
 const Light* SceneBase::getLights() const
@@ -173,4 +189,14 @@ NavMesh& SceneBase::getNavMesh()
 const NavMesh& SceneBase::getNavMesh() const
 {
 	return m_navMesh;
+}
+
+const Waypoint* SceneBase::getWaypoints() const
+{
+	return m_waypoints.data();
+}
+
+u32 SceneBase::getWaypointCount() const
+{
+	return m_waypoints.size();
 }

@@ -68,7 +68,7 @@
     <LibraryPath>E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc11win64;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\lib;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
     <LibraryPath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\lib;E:\dev\libraries\openal-soft-1.16.0-bin\libs\Win64;E:\dev\libraries\libogg\bin\x64\intel;E:\dev\libraries\libvorbis-1.3.3\bin\x64\intel;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc11win64;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\lib;$(LibraryPath)</LibraryPath>
     <OutDir>..\..\game\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
@@ -359,7 +359,9 @@
     <ClCompile Include="Graphics\CommandFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Graphics\CommandListFactory.cpp" />
+    <ClCompile Include="Graphics\CommandListFactory.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Graphics\Commands\BarrierCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -369,7 +371,9 @@
     <ClCompile Include="Graphics\Commands\ClearCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Graphics\Commands\DrawArraysCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\DrawArraysCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -394,7 +398,9 @@
     <ClCompile Include="Graphics\Commands\ViewportCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="LookWhereYoureGoing.cpp" />
+    <ClCompile Include="LookWhereYoureGoing.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="SegmentFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -670,6 +676,14 @@
   <ItemGroup>
     <None Include="..\..\game\data\shaders\include\buffers.glsl" />
     <None Include="..\..\game\data\shaders\include\quaternion.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ResourceAspect\ResourceAspect.vcxproj">
+      <Project>{cbff0f0c-1b71-4611-8ba3-2518d30c253c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\vxEngineLib\vxEngineLib.vcxproj">
+      <Project>{01627754-0a45-41ec-b4f9-3208cb1ceb31}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -32,6 +32,7 @@ SOFTWARE.
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/Light.h>
 #include <vxEngineLib/Spawn.h>
+#include <vxEngineLib/Waypoint.h>
 #include <vxResourceAspect/SceneFile.h>
 
 void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneFile* sceneFile)
@@ -113,5 +114,12 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 			sceneFile->m_pSpawns[i].position = spawn.position;
 			sceneFile->m_pSpawns[i].type = spawn.type;
 		}
+	}
+
+	sceneFile->m_waypointCount = scene.m_waypointCount;
+	sceneFile->m_waypoints = vx::make_unique<Waypoint[]>(scene.m_waypointCount);
+	for (u32 i = 0; i < scene.m_waypointCount; ++i)
+	{
+		sceneFile->m_waypoints[i] = scene.m_waypoints[i];
 	}
 }

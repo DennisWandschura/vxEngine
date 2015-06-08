@@ -98,7 +98,9 @@ namespace Editor
 	extern "C" DLL_EXPORT void showNavmesh(bool b);
 	extern "C" DLL_EXPORT void showInfluenceMap(bool b);
 
-	extern "C" DLL_EXPORT void addWaypoint(s32 x, s32 y);
+	extern "C" DLL_EXPORT bool addWaypoint(s32 x, s32 y, vx::float3* position);
+	extern "C" DLL_EXPORT void addWaypointPosition(const vx::float3 &position);
+	extern "C" DLL_EXPORT void removeWaypoint(const vx::float3 &position);
 
 	extern "C" DLL_EXPORT u32 getMeshCount();
 	extern "C" DLL_EXPORT BSTR getMeshName(u32 i);

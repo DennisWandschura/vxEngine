@@ -171,14 +171,35 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 	sceneFile.m_navMesh.copy(&navMesh);
 
 #if _VX_EDITOR
-	auto pLights = std::vector<Light>(sceneFile.m_lightCount);
+	auto pLights = std::vector<Light>();
+	pLights.reserve(sceneFile.m_lightCount);
+	for (u32 i = 0; i < sceneFile.m_lightCount; ++i)
+	{
+		pLights.push_back(sceneFile.m_pLights[i]);
+	}
 #else
 	auto pLights = vx::make_unique<Light[]>(sceneFile.m_lightCount);
-#endif
 	for (u32 i = 0; i < sceneFile.m_lightCount; ++i)
 	{
 		pLights[i] = sceneFile.m_pLights[i];
 	}
+#endif
+	
+
+#if _VX_EDITOR
+	auto waypoints = std::vector<Waypoint>();
+	waypoints.reserve(sceneFile.m_waypointCount);
+	for (u32 i = 0; i < sceneFile.m_waypointCount; ++i)
+	{
+		waypoints.push_back(sceneFile.m_waypoints[i]);
+	}
+#else
+	auto waypoints = vx::make_unique<Waypoint[]>(sceneFile.m_waypointCount);
+	for (u32 i = 0; i < sceneFile.m_waypointCount; ++i)
+	{
+		waypoints[i] = sceneFile.m_waypoints[i];
+	}
+#endif
 
 	SceneParams sceneParams;
 	sceneParams.m_baseParams.m_actors = std::move(sceneActors);
@@ -193,8 +214,8 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 	sceneParams.m_baseParams.m_vertexCount = vertexCount;
 	sceneParams.m_meshInstanceCount = sceneFile.m_meshInstanceCount;
 	sceneParams.m_pMeshInstances = std::move(pMeshInstances);
-	sceneParams.m_waypointCount = 0;
-	sceneParams.m_waypoints;
+	sceneParams.m_baseParams.m_waypointCount = sceneFile.m_waypointCount;
+	sceneParams.m_baseParams.m_waypoints = std::move(waypoints);
 
 	*scene = Scene(sceneParams);
 	scene->sortMeshInstances();

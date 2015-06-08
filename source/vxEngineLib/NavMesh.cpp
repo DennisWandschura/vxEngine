@@ -172,6 +172,25 @@ void NavMesh::addVertex(const vx::float3 &vertex)
 #endif
 }
 
+bool NavMesh::contains(const vx::float3 &p) const
+{
+	bool result = false;
+
+	if (m_bounds.contains(p))
+	{
+		for (u32 i = 0; i < m_triangleCount; ++i)
+		{
+			if (m_navMeshTriangles[i].m_triangle.contains(p))
+			{
+				result = true;
+				break;
+			}
+		}
+	}
+
+	return result;
+}
+
 void NavMesh::buildBounds()
 {
 #if _VX_EDITOR

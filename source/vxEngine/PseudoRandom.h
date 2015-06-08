@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,42 +24,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace vx
-{
-	struct Event;
-	class EventListener;
-}
-
 #include <vxLib/types.h>
-#include <vector>
-#include <vxLib/Container/sorted_array.h>
-#include <mutex>
-#include <vxLib/Container/DoubleBuffer.h>
 
-namespace vx
+class PseudoRandom
 {
-	class EventManager
+	u32 m_gen1;
+	u32 m_gen2;
+	u32 m_seed;
+	u32 m_maxValue;
+
+public:
+	PseudoRandom() :m_gen1(), m_gen2(), m_seed(), m_maxValue(){}
+
+	PseudoRandom(u32 gen1, u32 seed, u32 maxValue) :m_gen1(gen1), m_gen2(gen1 * 2), m_seed(seed), m_maxValue(maxValue){}
+
+	u32 getValue()
 	{
-		struct Listener
-		{
-			vx::EventListener* ptr;
-			u32 mask;
-		};
+		auto newSeed = m_gen1 * m_seed + m_gen2;
+		newSeed = newSeed % m_maxValue;
 
-		std::mutex m_evtMutex;
-		DoubleBuffer<vx::Event> m_events;
-		std::vector<std::pair<u64, Listener>> m_eventListeners;
+		m_seed = newSeed;
+		return m_seed;
+	}
 
-	public:
-		EventManager();
-		~EventManager();
-
-		void initialize(vx::StackAllocator* allocator, u32 maxEvtCount);
-
-		void registerListener(vx::EventListener* ptr, u64 priority, u16 filter);
-
-		void update();
-
-		void addEvent(const vx::Event &evt);
-	};
-}
+	void setMaxValue(u32 maxValue)
+	{
+		m_maxValue = maxValue;
+	}
+};

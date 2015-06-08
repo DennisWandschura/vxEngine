@@ -184,7 +184,9 @@ public:
 	void showNavmesh(bool b);
 	void showInfluenceMap(bool b);
 
-	void addWaypoint(s32 mouseX, s32 mouseY);
+	bool addWaypoint(s32 mouseX, s32 mouseY, vx::float3* position);
+	void addWaypoint(const vx::float3 &position);
+	void removeWaypoint(const vx::float3 &position);
 
 	u32 getMeshCount() const;
 	const char* getMeshName(u32 i) const;

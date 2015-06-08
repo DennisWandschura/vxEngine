@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\unity">
+      <UniqueIdentifier>{15272fc5-8212-4779-8e8f-755ad57fc6a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileAspect.cpp">
@@ -41,6 +44,9 @@
     </ClCompile>
     <ClCompile Include="ConverterEditorSceneToSceneFile.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="unity\Unity_vxEngine1.cpp">
+      <Filter>Source Files\unity</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

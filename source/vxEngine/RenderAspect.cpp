@@ -651,10 +651,12 @@ void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
 
 void RenderAspect::render(GpuProfiler* gpuProfiler)
 {
+	CpuProfiler::pushMarker("clear");
 	gpuProfiler->pushGpuMarker("clear");
 	clearTextures();
 	clearBuffers();
 	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();
 
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
@@ -664,10 +666,13 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	auto meshVao = m_objectManager.getVertexArray("meshVao");
 	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");
 
+	CpuProfiler::pushMarker("shadow");
 	gpuProfiler->pushGpuMarker("shadow mapping");
 	m_commandList.draw();
 	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();
 
+	CpuProfiler::pushMarker("gbuffer");
 	gpuProfiler->pushGpuMarker("gbuffer");
 	{
 		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
@@ -687,7 +692,9 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
 	}
 	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();
 
+	CpuProfiler::pushMarker("voxelize");
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	gpuProfiler->pushGpuMarker("voxelize");
 	{
@@ -734,40 +741,52 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 		vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
 	}
 	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	CpuProfiler::pushMarker("pixel list");
 	gpuProfiler->pushGpuMarker("pixel list");
 	createConeTracePixelList();
 	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();
 
+	CpuProfiler::pushMarker("cone trace");
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	gpuProfiler->pushGpuMarker("cone trace");
 	coneTrace();
 	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	CpuProfiler::pushMarker("blur");
 	gpuProfiler->pushGpuMarker("blur");
 	blurAmbientColor();
 	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();
 
 	vx::gl::StateManager::setClearColor(0.1f, 0.1f, 0.1f, 1);
 	vx::gl::StateManager::bindFrameBuffer(0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
+	CpuProfiler::pushMarker("final");
 	gpuProfiler->pushGpuMarker("final");
 	m_pRenderPassFinalImage->render(1);
 	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();
 
 	//voxelDebug();
 
 	renderProfiler(gpuProfiler);
 
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
+
+	CpuProfiler::pushMarker("swapBuffers");
 
 	m_renderContext.swapBuffers();
+
+	CpuProfiler::popMarker();
 }
 
 void RenderAspect::bindBuffers()
@@ -816,10 +835,9 @@ void RenderAspect::clearTextures()
 
 void RenderAspect::clearBuffers()
 {
+	u32 count = 0;
 	auto shaderStoragePixelListCmdBuffer = m_objectManager.getBuffer("ShaderStoragePixelListCmdBuffer");
-
-	auto mapped = shaderStoragePixelListCmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
-	mapped->count = 0;
+	shaderStoragePixelListCmdBuffer->subData(0,sizeof(u32), &count);
 }
 
 void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer)

@@ -45,8 +45,9 @@ SOFTWARE.
 #include "SegmentFactory.h"
 #include "Graphics/CommandListFactory.h"
 #include "EngineConfig.h"
+#include <vxEngineLib/Waypoint.h>
 
-struct VertexNavMesh
+struct VertexPositionColor
 {
 	vx::float3 position;
 	vx::float3 color;
@@ -124,7 +125,7 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 		navmeshVertexVboDesc.flags = vx::gl::BufferStorageFlags::Write;
 		navmeshVertexVboDesc.immutable = 1;
 		navmeshVertexVboDesc.pData = nullptr;
-		navmeshVertexVboDesc.size = sizeof(VertexNavMesh) * 256;
+		navmeshVertexVboDesc.size = sizeof(VertexPositionColor) * 256;
 		m_objectManager.createBuffer("navMeshVertexVbo", navmeshVertexVboDesc);
 	}
 
@@ -185,7 +186,7 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 		desc.flags = vx::gl::BufferStorageFlags::Write;
 		desc.immutable = 1;
 		desc.pData = nullptr;
-		desc.size = sizeof(VertexNavMesh) * 256 * 3;
+		desc.size = sizeof(VertexPositionColor) * 256 * 3;
 
 		auto vboSid = m_objectManager.createBuffer("drawInfluenceCellNewVbo", desc);
 
@@ -213,8 +214,51 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 		vao->arrayAttribBinding(0, 0);
 		vao->arrayAttribBinding(1, 0);
 
-		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(VertexNavMesh));
+		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(VertexPositionColor));
 		vao->bindIndexBuffer(*ibo);
+	}
+
+	{
+		vx::gl::DrawArraysIndirectCommand cmd = {};
+		cmd.instanceCount = 1;
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
+		desc.immutable = 1;
+		desc.pData = &cmd;
+		desc.size = sizeof(vx::gl::DrawArraysIndirectCommand);
+
+		m_objectManager.createBuffer("waypointCmdBuffer", desc);
+	}
+
+	{
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Array_Buffer;
+		desc.flags = vx::gl::BufferStorageFlags::Write;
+		desc.immutable = 1;
+		desc.pData = nullptr;
+		desc.size = sizeof(VertexPositionColor) * 256;
+
+		m_objectManager.createBuffer("waypointVbo", desc);
+	}
+
+	{
+		auto vaoSid = m_objectManager.createVertexArray("waypointVao");
+
+		auto vao = m_objectManager.getVertexArray(vaoSid);
+		auto vbo = m_objectManager.getBuffer("waypointVbo");
+
+		vao->enableArrayAttrib(0);
+		vao->enableArrayAttrib(1);
+
+		vao->arrayAttribFormatF(0, 3, 0, 0);
+		vao->arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
+
+		vao->arrayAttribBinding(0, 0);
+		vao->arrayAttribBinding(1, 0);
+
+		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(VertexPositionColor));
 	}
 
 	createCommandList();
@@ -242,7 +286,7 @@ void EditorRenderAspect::createNavMeshVao()
 	navMeshVao->enableArrayAttrib(0);
 	navMeshVao->arrayAttribFormatF(0, 3, 0, 0);
 	navMeshVao->arrayAttribBinding(0, 0);
-	navMeshVao->bindVertexBuffer(*navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
+	navMeshVao->bindVertexBuffer(*navMeshVertexVbo, 0, 0, sizeof(VertexPositionColor));
 
 	navMeshVao->bindIndexBuffer(*ibo);
 }
@@ -263,7 +307,7 @@ void EditorRenderAspect::createNavMeshVertexVao()
 	navMeshVertexVao->arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
 	navMeshVertexVao->arrayAttribBinding(1, 0);
 
-	navMeshVertexVao->bindVertexBuffer(*navMeshVertexVbo, 0, 0, sizeof(VertexNavMesh));
+	navMeshVertexVao->bindVertexBuffer(*navMeshVertexVbo, 0, 0, sizeof(VertexPositionColor));
 }
 
 void EditorRenderAspect::createNavMeshNodesVao()
@@ -745,18 +789,18 @@ void EditorRenderAspect::updateNavMeshBuffer(const NavMesh &navMesh, u32(&select
 	updateNavMeshIndexBuffer(navMesh);
 }
 
-void EditorRenderAspect::uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, u32 count)
+void EditorRenderAspect::uploadToNavMeshVertexBuffer(const VertexPositionColor* vertices, u32 count)
 {
 	auto navMeshVertexVbo = m_objectManager.getBuffer("navMeshVertexVbo");
 
-	auto dst = navMeshVertexVbo->map<VertexNavMesh>(vx::gl::Map::Write_Only);
+	auto dst = navMeshVertexVbo->map<VertexPositionColor>(vx::gl::Map::Write_Only);
 	vx::memcpy(dst.get(), vertices, count);
 }
 
 void EditorRenderAspect::updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, u32 count, u32(&selectedVertexIndex)[3], u8 selectedCount)
 {
 	auto color = vx::float3(1, 0, 0);
-	auto src = vx::make_unique<VertexNavMesh[]>(count);
+	auto src = vx::make_unique<VertexPositionColor[]>(count);
 	for (u32 i = 0; i < count; ++i)
 	{
 		src[i].position = vertices[i];
@@ -877,7 +921,7 @@ void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influence
 	printf("InfluenceCellsNew: %u\n", cellCount);
 
 	auto vbo = m_objectManager.getBuffer("drawInfluenceCellNewVbo");
-	auto mappedBuffer = vbo->map<VertexNavMesh>(vx::gl::Map::Write_Only);
+	auto mappedBuffer = vbo->map<VertexPositionColor>(vx::gl::Map::Write_Only);
 
 	const vx::float3 colors[] =
 	{
@@ -989,6 +1033,22 @@ void EditorRenderAspect::updateLightBuffer(const Light* lights, u32 count)
 		auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 		mappedCmdBuffer->count = count;
 	}
+}
+
+void EditorRenderAspect::updateWaypoints(const Waypoint* w, u32 count)
+{
+	auto vbo = m_objectManager.getBuffer("waypointVbo");
+	auto cmd = m_objectManager.getBuffer("waypointCmdBuffer");
+
+	auto mappedVbo = vbo->map<VertexPositionColor>(vx::gl::Map::Write_Only);
+	for (u32 i = 0; i < count; ++i)
+	{
+		mappedVbo[i].position = w[i].position;
+		mappedVbo[i].color = {1, 1, 0};
+	}
+	mappedVbo.unmap();
+
+	cmd->subData(0, sizeof(u32), &count);
 }
 
 void EditorRenderAspect::showNavmesh(bool b)

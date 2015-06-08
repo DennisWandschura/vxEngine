@@ -238,5 +238,14 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern ulong getMaterialSid(uint i);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern bool addWaypoint(int x, int y, ref Float3 position);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void addWaypointPosition(ref Float3 position);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void removeWaypoint(ref Float3 position);
     }
 }

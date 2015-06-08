@@ -29,9 +29,10 @@ namespace Editor
 }
 
 class NavMesh;
-struct VertexNavMesh;
+struct VertexPositionColor;
 class InfluenceMap;
 class NavMeshGraph;
+struct Waypoint;
 
 #include "RenderAspect.h"
 #include <vxLib/Variant.h>
@@ -92,7 +93,7 @@ class EditorRenderAspect : public RenderAspect
 
 	void updateCamera();
 
-	void uploadToNavMeshVertexBuffer(const VertexNavMesh* vertices, u32 count);
+	void uploadToNavMeshVertexBuffer(const VertexPositionColor* vertices, u32 count);
 	void updateNavMeshVertexBufferWithSelectedVertex(const vx::float3* vertices, u32 count, u32(&selectedVertexIndex)[3], u8 selectedCount);
 	void updateNavMeshIndexBuffer(const u16* indices, u32 count);
 	void updateNavMeshIndexBuffer(const NavMesh &navMesh);
@@ -128,6 +129,8 @@ public:
 	void updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph);
 
 	void updateLightBuffer(const Light* lights, u32 count);
+
+	void updateWaypoints(const Waypoint* w, u32 count);
 
 	void showNavmesh(bool b);
 	void showInfluenceMap(bool b);

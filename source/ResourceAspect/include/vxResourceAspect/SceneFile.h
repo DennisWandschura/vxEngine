@@ -29,6 +29,7 @@ struct SpawnFile;
 struct ActorFile;
 struct Actor;
 struct Spawn;
+struct Waypoint;
 
 class MeshInstance;
 class Material;
@@ -82,11 +83,13 @@ class SceneFile : public vx::Serializable
 	std::unique_ptr<Light[]> m_pLights;
 	std::unique_ptr<SpawnFile[]> m_pSpawns;
 	std::unique_ptr<ActorFile[]> m_pActors;
+	std::unique_ptr<Waypoint[]> m_waypoints;
 	NavMesh m_navMesh;
 	u32 m_meshInstanceCount;
 	u32 m_lightCount;
 	u32 m_spawnCount;
 	u32 m_actorCount;
+	u32 m_waypointCount;
 
 	bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc);
 	bool createSceneActors(const CreateSceneActorsDesc &desc);

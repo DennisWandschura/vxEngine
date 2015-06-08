@@ -37,8 +37,7 @@ namespace Editor
 	}
 
 	Scene::Scene()
-		:m_meshInstances(),
-		m_waypoints()
+		:m_meshInstances()
 	{
 
 	}
@@ -81,8 +80,9 @@ namespace Editor
 		{
 			SceneBase::operator=(std::move(rhs));
 			std::swap(m_meshInstances, rhs.m_meshInstances);
-			std::swap(m_waypoints, rhs.m_waypoints);
 			std::swap(m_selectableLights, rhs.m_selectableLights);
+			std::swap(m_selectableSpawns, rhs.m_selectableSpawns);
+			std::swap(m_selectableWaypoints, rhs.m_selectableWaypoints);
 			std::swap(m_materialNames, rhs.m_materialNames);
 			std::swap(m_meshNames, rhs.m_meshNames);
 			std::swap(m_actorNames, rhs.m_actorNames);
@@ -111,14 +111,34 @@ namespace Editor
 		}
 	}
 
+	void Scene::buildSelectableWaypoints()
+	{
+		m_selectableWaypoints.clear();
+		m_selectableWaypoints.reserve(m_waypointCount);
+		for (u32 i = 0; i < m_waypointCount; ++i)
+		{
+			auto &waypoint = m_waypoints[i];
+
+			AABB bounds;
+			bounds.max = waypoint.position + vx::float3(0.1f);
+			bounds.min = waypoint.position - vx::float3(0.1f);
+
+			SelectableWrapper<Waypoint> selectLight;
+			selectLight.m_bounds = bounds;
+			selectLight.m_ptr = &waypoint;
+
+			m_selectableWaypoints.push_back(selectLight);
+		}
+	}
+
 	void Scene::copy(Scene* dst) const
 	{
 		SceneBase::copy(dst);
 
 		copySortedVector(&dst->m_meshInstances, m_meshInstances);
-		dst->m_waypoints = m_waypoints;
 		dst->m_selectableLights = m_selectableLights;
 		dst->m_selectableSpawns = m_selectableSpawns;
+		dst->m_selectableWaypoints = m_selectableWaypoints;
 		copySortedVector(&dst->m_materialNames, m_materialNames);
 		copySortedVector(&dst->m_meshNames, m_meshNames);
 		copySortedVector(&dst->m_actorNames, m_actorNames);
@@ -210,9 +230,45 @@ namespace Editor
 		return result;
 	}
 
-	void Scene::addWaypoint(const Waypoint &wp)
+	void Scene::addWaypoint(const vx::float3 &position)
 	{
-		m_waypoints.push_back(wp);
+#if _VX_EDITOR
+		Waypoint w;
+		w.position = position;
+		w.value = 0.0f;
+
+		m_waypoints.push_back(w);
+		++m_waypointCount;
+
+		buildSelectableWaypoints();
+#endif
+	}
+
+	void Scene::removeWaypoint(const vx::float3 &position)
+	{
+#if _VX_EDITOR
+		bool found = false;
+		u32 index = 0;
+		for (auto &it : m_selectableWaypoints)
+		{
+			if (it.m_bounds.contains(position))
+			{
+				found = true;
+				break;
+			}
+
+			++index;
+		}
+
+		if (found)
+		{
+			m_waypoints.erase(m_waypoints.begin() + index);
+			m_selectableWaypoints.erase(m_selectableWaypoints.begin() + index);
+			--m_waypointCount;
+
+			buildSelectableWaypoints();
+		}
+#endif
 	}
 
 	const char* Scene::getMeshInstanceName(const vx::StringID &sid) const

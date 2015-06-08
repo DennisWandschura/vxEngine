@@ -117,7 +117,7 @@ public:
 	FileAspect();
 	~FileAspect();
 
-	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir);
+	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager);
 	void shutdown();
 
 	void update();
