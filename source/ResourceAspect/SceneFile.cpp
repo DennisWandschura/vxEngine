@@ -477,12 +477,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 		actorNames.insert(sid, actorFile.m_name);
 	}
 
-	std::vector<Waypoint> waypointsEditor;
-	waypointsEditor.reserve(m_waypointCount);
-	for (u32 i = 0; i < m_waypointCount; ++i)
-	{
-		waypointsEditor.push_back(m_waypoints[i]);
-	}
+
 
 	Editor::SceneParams sceneParams;
 	sceneParams.m_baseParams.m_actors = std::move(sceneActors);
@@ -505,8 +500,19 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sceneParams.m_baseParams.m_spawnCount = m_spawnCount;
 	sceneParams.m_baseParams.m_vertexCount = vertexCount;
 	sceneParams.m_meshInstances = std::move(meshInstances);
+
 	sceneParams.m_baseParams.m_waypointCount = m_waypointCount;
+#if _VX_EDITOR
+	std::vector<Waypoint> waypointsEditor;
+	waypointsEditor.reserve(m_waypointCount);
+	for (u32 i = 0; i < m_waypointCount; ++i)
+	{
+		waypointsEditor.push_back(m_waypoints[i]);
+	}
 	sceneParams.m_baseParams.m_waypoints = std::move(waypointsEditor);
+#else
+	sceneParams.m_baseParams.m_waypoints = std::move(m_waypoints);
+#endif
 
 	sceneParams.m_materialNames = std::move(materialNames);
 	sceneParams.m_meshNames = std::move(meshNames);

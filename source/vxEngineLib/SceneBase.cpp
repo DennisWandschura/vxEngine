@@ -193,10 +193,14 @@ const NavMesh& SceneBase::getNavMesh() const
 
 const Waypoint* SceneBase::getWaypoints() const
 {
+#if _VX_EDITOR
 	return m_waypoints.data();
+#else
+	return m_waypoints.get();
+#endif
 }
 
 u32 SceneBase::getWaypointCount() const
 {
-	return m_waypoints.size();
+	return m_waypointCount;
 }

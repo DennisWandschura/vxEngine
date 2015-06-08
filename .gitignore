@@ -10,6 +10,7 @@
 *.geom
 *.frag
 *.pipe
+*.exe
 
 game/
 
