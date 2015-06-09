@@ -33,6 +33,13 @@ SOFTWARE.
 
 const u32 voxelLodCount = 4;
 
+struct VoxelRenderer::ColdData
+{
+	vx::gl::Texture m_voxelFbTexture;
+	vx::gl::Texture m_voxelEmmitanceTextures[6];
+	vx::gl::Texture m_voxelOpacityTextures[6];
+};
+
 VoxelRenderer::VoxelRenderer()
 {
 
@@ -105,33 +112,24 @@ void VoxelRenderer::createVoxelBuffer(gl::ObjectManager* objectManager)
 
 void VoxelRenderer::createVoxelTextureBuffer(gl::ObjectManager* objectManager)
 {
-	struct LodHandles
-	{
-		u64 u_voxelEmmitanceImage[6];
-	};
-
 	struct VoxelHandles
 	{
-		LodHandles lod[4];
+		u64 u_voxelEmmitanceImage[6];
 		u64 u_voxelEmmitanceTexture[6];
-		u64 u_voxelOpacityImage;
-		u64 u_voxelOpacityTexture;
+		u64 u_voxelOpacityImage[6];
+		u64 u_voxelOpacityTexture[6];
 	};
 
 	VoxelHandles voxelHandles;
 
 	for (int i = 0; i < 6; ++i)
 	{
-		for (u32 lod = 0; lod < voxelLodCount; ++lod)
-		{
-			voxelHandles.lod[lod].u_voxelEmmitanceImage[i] = m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(lod, 1, 0);
-		}
-
+		voxelHandles.u_voxelEmmitanceImage[i] = m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(0, 1, 0);
 		voxelHandles.u_voxelEmmitanceTexture[i] = m_pColdData->m_voxelEmmitanceTextures[i].getTextureHandle();
-	}
 
-	voxelHandles.u_voxelOpacityImage = m_pColdData->m_voxelOpacityTexture.getImageHandle(0, 1, 0);
-	voxelHandles.u_voxelOpacityTexture = m_pColdData->m_voxelOpacityTexture.getTextureHandle();
+		voxelHandles.u_voxelOpacityImage[i] = m_pColdData->m_voxelOpacityTextures[i].getImageHandle(0, 1, 0);
+		voxelHandles.u_voxelOpacityTexture[i] = m_pColdData->m_voxelOpacityTextures[i].getTextureHandle();
+	}
 
 	vx::gl::BufferDescription desc;
 	desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -164,14 +162,13 @@ void VoxelRenderer::createVoxelTextures()
 		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(3, 1, 0), GL_WRITE_ONLY);
 
 		m_voxelEmmitanceTexturesId[i] = m_pColdData->m_voxelEmmitanceTextures[i].getId();
+
+		m_pColdData->m_voxelOpacityTextures[i].create(desc);
+		m_pColdData->m_voxelOpacityTextures[i].setFilter(vx::gl::TextureFilter::LINEAR_MIPMAP_LINEAR, vx::gl::TextureFilter::LINEAR);
+		m_pColdData->m_voxelOpacityTextures[i].makeTextureResident();
+		glMakeImageHandleResidentARB(m_pColdData->m_voxelOpacityTextures[i].getImageHandle(0, 1, 0), GL_READ_WRITE);
+		m_voxelOpacityTextureId[i] = m_pColdData->m_voxelOpacityTextures[i].getId();
 	}
-
-	m_pColdData->m_voxelOpacityTexture.create(desc);
-	m_pColdData->m_voxelOpacityTexture.setFilter(vx::gl::TextureFilter::LINEAR_MIPMAP_LINEAR, vx::gl::TextureFilter::LINEAR);
-	m_pColdData->m_voxelOpacityTexture.makeTextureResident();
-	glMakeImageHandleResidentARB(m_pColdData->m_voxelOpacityTexture.getImageHandle(0, 1, 0), GL_READ_WRITE);
-
-	m_voxelOpacityTextureId = m_pColdData->m_voxelOpacityTexture.getId();
 }
 
 void VoxelRenderer::createFrameBuffer(gl::ObjectManager* objectManager)
@@ -192,15 +189,17 @@ void VoxelRenderer::createFrameBuffer(gl::ObjectManager* objectManager)
 
 void VoxelRenderer::clearTextures()
 {
-	for (u32 miplevel = 0; miplevel < m_mipcount; ++miplevel)
-	{
+	//for (u32 miplevel = 0; miplevel < m_mipcount; ++miplevel)
+	//{
 		for (int j = 0; j < 6; ++j)
 		{
-			glClearTexImage(m_voxelEmmitanceTexturesId[j], miplevel, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+			glClearTexImage(m_voxelEmmitanceTexturesId[j], 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+			glClearTexImage(m_voxelOpacityTextureId[j], 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		}
 
-		glClearTexImage(m_voxelOpacityTextureId, miplevel, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	}
+		
+	//}
 }
 
 void VoxelRenderer::debug(const vx::gl::VertexArray &vao, vx::uint2 &resolution)

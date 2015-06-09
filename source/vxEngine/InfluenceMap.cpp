@@ -29,12 +29,14 @@ SOFTWARE.
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/algorithm.h>
 #include <vector>
+#include <vxEngineLib/Waypoint.h>
 
 namespace InfluenceMapCpp
 {
 	struct BuildCell
 	{
 		std::vector<u32> indices;
+		std::vector<Waypoint> waypoints;
 		f32 totalArea;
 	};
 
@@ -210,10 +212,29 @@ namespace InfluenceMapCpp
 			*bounds = AABB::merge(*bounds, triangle.m_triangle[2]);
 		}
 	}
+
+	bool addWaypoint(const Waypoint &waypoint, const NavMeshTriangle* triangles, BuildCell* cell)
+	{
+		bool result = false;
+		for (auto &it : cell->indices)
+		{
+			auto &triangle = triangles[it];
+
+			if (triangle.m_triangle.contains(waypoint.position))
+			{
+				cell->waypoints.push_back(waypoint);
+				result = true;
+				break;
+			}
+		}
+
+		return result;
+	}
 }
 
 InfluenceMap::InfluenceMap()
-	:m_cellCount(0)
+	:m_cellCount(0),
+	m_waypointCount(0)
 {
 
 }
@@ -223,7 +244,7 @@ InfluenceMap::~InfluenceMap()
 
 }
 
-void InfluenceMap::initialize(const NavMesh &navMesh)
+void InfluenceMap::initialize(const NavMesh &navMesh, const Waypoint* waypoints, u32 count)
 {
 	auto triangles = navMesh.getNavMeshTriangles();
 	auto triangleCount = navMesh.getTriangleCount();
@@ -231,24 +252,54 @@ void InfluenceMap::initialize(const NavMesh &navMesh)
 	std::vector<InfluenceMapCpp::BuildCell> finalCells;
 	InfluenceMapCpp::buildCellsNew(triangles, triangleCount, &finalCells);
 
+	u32 currentWaypointIndex = 0;
+
+	while (currentWaypointIndex != count)
+	{
+		for (auto &buildCell : finalCells)
+		{
+			for (u32 i = currentWaypointIndex; i < count; ++i)
+			{
+				auto &waypoint = waypoints[currentWaypointIndex];
+				if (InfluenceMapCpp::addWaypoint(waypoint, triangles, &buildCell))
+				{
+					++currentWaypointIndex;
+				}
+			}
+		}
+	}
+
 	m_triangles = vx::make_unique<Triangle[]>(triangleCount);
 
 	m_cellCount = finalCells.size();
 	m_cells = vx::make_unique<InfluenceCell[]>(m_cellCount);
 	m_bounds = vx::make_unique<AABB[]>(m_cellCount);
+	m_waypoints = vx::make_unique<Waypoint[]>(count);
+	m_waypointCount = count;
 
 	u32 triangleIndex = 0;
 	u32 cellIndex = 0;
 	u32 triangleOffset = 0;
+	currentWaypointIndex = 0;
 	for (auto &buildCell : finalCells)
 	{
 		InfluenceMapCpp::createInfluenceCellBounds(buildCell, triangles, &m_bounds[cellIndex]);
 		m_bounds[cellIndex].min.y -= 0.1f;
 		m_bounds[cellIndex].max.y += 0.1f;
 
+		u16 waypointCount = buildCell.waypoints.size();
+		u16 waypointOffset = currentWaypointIndex;
+		for (auto &waypoint : buildCell.waypoints)
+		{
+			m_waypoints[currentWaypointIndex] = waypoint;
+			++currentWaypointIndex;
+		}
+
 		m_cells[cellIndex].triangleCount = buildCell.indices.size();
 		m_cells[cellIndex].triangleOffset = triangleOffset;
 		m_cells[cellIndex].totalArea = buildCell.totalArea;
+		m_cells[cellIndex].waypointCount = waypointCount;
+		m_cells[cellIndex].waypointOffset = waypointOffset;
 		++cellIndex;
 
 		for (auto &index : buildCell.indices)
@@ -277,6 +328,16 @@ const AABB* InfluenceMap::getBounds() const
 u32 InfluenceMap::getCellCount() const
 {
 	return m_cellCount;
+}
+
+const Waypoint* InfluenceMap::getWaypoints() const
+{
+	return m_waypoints.get();
+}
+
+u32 InfluenceMap::getWaypointCount() const
+{
+	return m_waypointCount;
 }
 
 bool InfluenceMap::sharesEdge(const InfluenceCell &a, const InfluenceCell &b) const

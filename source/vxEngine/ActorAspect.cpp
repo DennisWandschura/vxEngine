@@ -66,7 +66,7 @@ void ActorAspect::createInfluenceMap(const Scene* scene)
 {
 	auto &navmesh = scene->getNavMesh();
 
-	m_influenceMap.initialize(navmesh);
+	m_influenceMap.initialize(navmesh, scene->getWaypoints(), scene->getWaypointCount());
 }
 
 void ActorAspect::handleFileEvent(const vx::Event &evt)

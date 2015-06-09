@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+struct Waypoint;
 class NavMesh;
 
 #include <vxLib/memory.h>
@@ -34,6 +35,8 @@ struct InfluenceCell
 	u32 triangleCount;
 	u32 triangleOffset;
 	f32 totalArea;
+	u16 waypointCount;
+	u16 waypointOffset;
 };
 
 class InfluenceMap
@@ -41,18 +44,23 @@ class InfluenceMap
 	std::unique_ptr<InfluenceCell[]> m_cells;
 	std::unique_ptr<AABB[]> m_bounds;
 	std::unique_ptr<Triangle[]> m_triangles;
+	std::unique_ptr<Waypoint[]> m_waypoints;
 	u32 m_cellCount;
+	u32 m_waypointCount;
 
 public:
 	InfluenceMap();
 	~InfluenceMap();
 
-	void initialize(const NavMesh &navMesh);
+	void initialize(const NavMesh &navMesh, const Waypoint* waypoints, u32 count);
 
 	const InfluenceCell* getCells() const;
 	const Triangle* getTriangles() const;
 	const AABB* getBounds() const;
 	u32 getCellCount() const;
+
+	const Waypoint* getWaypoints() const;
+	u32 getWaypointCount() const;
 
 	bool sharesEdge(const InfluenceCell &a, const InfluenceCell &b) const;
 };

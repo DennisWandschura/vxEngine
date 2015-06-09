@@ -31,6 +31,7 @@ SOFTWARE.
 #include <vxLib/Container/array.h>
 #include <vxLib/ScopeGuard.h>
 #include <random>
+#include <vxEngineLib/Waypoint.h>
 #include <vxLib/Container/sorted_vector.h>
 
 namespace SquadCpp
@@ -68,6 +69,7 @@ namespace ai
 		auto seed = seedDist(gen);
 
 		m_pseudoRandom = PseudoRandom(gen1, seed, 1);
+		m_pseudoRandom.setMaxValue(1024);
 	}
 
 	bool Squad::addEntity(EntityActor* entity, Component::Actor* actorComponent)
@@ -99,6 +101,8 @@ namespace ai
 				{
 					data.m_cells[1] = *it;
 					++cellCount;
+
+					//m_waypoints;
 
 					m_availableCells.erase(it);
 					break;
@@ -170,35 +174,37 @@ namespace ai
 		if (targetCell == currentCell)
 			printf("Squad::createPath: Something went wrong\n");
 
-		auto influenceMapTriangles = s_influenceMap->getTriangles();
+		auto waypoints = s_influenceMap->getWaypoints();
 
-		vx::sorted_vector<f32, vx::float3> sortedCentroids;
-		for (u32 i = 0; i < targetCell->triangleCount; ++i)
+		std::vector<vx::float4> sortedWaypoints;
+		for (u32 i = 0; i < targetCell->waypointCount; ++i)
 		{
-			auto &currentTriangle = influenceMapTriangles[targetCell->triangleOffset + i];
+			auto &waypoint = waypoints[targetCell->waypointOffset + i];
+			auto distance = vx::distance(waypoint.position, entityPosition);
 
-			auto centroid = currentTriangle.getCentroid();
+			vx::float4 p;
+			p.x = waypoint.position.x;
+			p.y = waypoint.position.y;
+			p.z = waypoint.position.z;
+			p.w = distance;
 
-			auto distance = vx::distance(centroid, entityPosition);
-
-			sortedCentroids.insert(distance, centroid);
+			sortedWaypoints.push_back(p);
 		}
 
-		auto keysEnd = sortedCentroids.keys() + sortedCentroids.size();
-		auto it = std::lower_bound(sortedCentroids.keys(), sortedCentroids.keys() + sortedCentroids.size(), 5.0f);
-		u32 triangleCount = sortedCentroids.size();
-		u32 offset = 0;
-		if (it != keysEnd)
+		std::sort(sortedWaypoints.begin(), sortedWaypoints.end(), [](const vx::float4 &l, const vx::float4 &r)
 		{
-			triangleCount = keysEnd - it;
-			offset = it - sortedCentroids.keys();
-		}
+			return l.w > r.w;
+		});
 
-		std::uniform_int_distribution<u32> dist(0, triangleCount - 1);
+		auto index = m_pseudoRandom.getValue() % targetCell->waypointCount;
 
-		auto targetTriangleIndex = dist(m_gen) + offset;
+		if (sortedWaypoints[index].w <= 5.0f)
+			index = (index + 1) % targetCell->waypointCount;
 
-		auto endPosition = sortedCentroids[targetTriangleIndex];
+		vx::float3 endPosition;
+		endPosition.x = sortedWaypoints[index].x;
+		endPosition.y = sortedWaypoints[index].y;
+		endPosition.z = sortedWaypoints[index].z;
 
 		auto startNodeIndex = s_navmeshGraph->getClosestNodeInex(entityPosition);
 		auto endNodeIndex = s_navmeshGraph->getClosestNodeInex(endPosition);
@@ -229,7 +235,7 @@ namespace ai
 				path.push_back(outNodes[i]);
 			}
 
-			//printf("cell, node: %u %u\n", targetActorCellIndex, targetTriangleIndex);
+			printf("destination: %f %f %f\n", endPosition.x, endPosition.y, endPosition.z);
 			targetData->m_actorComponent->m_followingPath = 1;
 			targetData->m_actorComponent->m_data->targetCell = targetActorCellIndex;
 		}

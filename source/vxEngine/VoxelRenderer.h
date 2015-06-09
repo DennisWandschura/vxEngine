@@ -46,19 +46,14 @@ namespace gl
 
 class VoxelRenderer
 {
-	struct ColdData
-	{
-		vx::gl::Texture m_voxelFbTexture;
-		vx::gl::Texture m_voxelEmmitanceTextures[6];
-		vx::gl::Texture m_voxelOpacityTexture;
-	};
+	struct ColdData;
 
 	u32 m_pipelineDebug{0};
 	u32 m_pipelineMipmap{ 0 };
 	u16 m_voxelTextureSize{0};
 	u8 m_mipcount{ 1 };
 	u32 m_voxelEmmitanceTexturesId[6];
-	u32 m_voxelOpacityTextureId;
+	u32 m_voxelOpacityTextureId[6];
 
 	std::unique_ptr<ColdData> m_pColdData;
 

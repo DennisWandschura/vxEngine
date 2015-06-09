@@ -14,7 +14,7 @@ bool LookWhereYoureGoing::getSteering(SteeringOutput* output)
 	if (vx::length(m_pCharacter->velocity) == 0.0f)
 		return false;
 
-	target .orientation.x = atan2(-m_pCharacter->velocity.x, m_pCharacter->velocity.z) + 1.5f;
+	target.orientation.x = atan2(m_pCharacter->velocity.x, m_pCharacter->velocity.z) - 1.5f;
 
 	output->angular = vx::scalarModAngle(target.orientation.x);
 	//return Align::getSteering(output);

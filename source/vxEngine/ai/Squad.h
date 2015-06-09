@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+struct Waypoint;
 struct EntityActor;
 class InfluenceMap;
 class NavMeshGraph;
@@ -49,6 +50,7 @@ namespace ai
 		{
 			EntityActor* m_entity;
 			Component::Actor* m_actorComponent;
+			std::vector<Waypoint> m_waypoints;
 			u16 m_cells[2];
 			u8 m_cellCount;
 		};

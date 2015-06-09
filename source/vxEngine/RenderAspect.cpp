@@ -688,7 +688,6 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 		vx::gl::StateManager::bindPipeline(pPipeline->getId());
 		vx::gl::StateManager::bindVertexArray(*meshVao);
 		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, *meshCmdBuffer);
-		//glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, instanceCount, sizeof(vx::gl::DrawElementsIndirectCommand));
 		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
 	}
 	gpuProfiler->popGpuMarker();
@@ -697,49 +696,7 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	CpuProfiler::pushMarker("voxelize");
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	gpuProfiler->pushGpuMarker("voxelize");
-	{
-		auto voxelFB = m_objectManager.getFramebuffer("voxelFB");
-
-		auto pipeline = m_shaderManager.getPipeline("voxelize.pipe");
-		auto geomShader = pipeline->getGeometryShader();
-
-		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-		vx::gl::StateManager::bindFrameBuffer(*voxelFB);
-
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-		vx::gl::StateManager::disable(vx::gl::Capabilities::Cull_Face);
-
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		glDepthMask(GL_FALSE);
-
-		vx::gl::StateManager::bindPipeline(*pipeline);
-		vx::gl::StateManager::bindVertexArray(*meshVao);
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, *meshCmdBuffer);
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, *meshParamBuffer);
-
-		glProgramUniform1i(geomShader, 0, 0);
-		vx::gl::StateManager::setViewport(0, 0, 128, 128);
-		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-		glProgramUniform1i(geomShader, 0, 1);
-		vx::gl::StateManager::setViewport(0, 0, 64, 64);
-		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-		glProgramUniform1i(geomShader, 0, 2);
-		vx::gl::StateManager::setViewport(0, 0, 32, 32);
-		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-		glProgramUniform1i(geomShader, 0, 3);
-		vx::gl::StateManager::setViewport(0, 0, 16, 16);
-		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glDepthMask(GL_TRUE);
-
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
-	}
+	voxelize(*meshVao, *meshCmdBuffer, *meshParamBuffer);
 	gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
@@ -861,12 +818,11 @@ void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::B
 	glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
 }
 
-void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count)
+void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, const vx::gl::Buffer &paramBuffer)
 {
 	auto voxelFB = m_objectManager.getFramebuffer("voxelFB");
 
 	auto pipeline = m_shaderManager.getPipeline("voxelize.pipe");
-	auto geomShader = pipeline->getGeometryShader();
 
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::bindFrameBuffer(*voxelFB);
@@ -881,23 +837,11 @@ void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer
 
 	vx::gl::StateManager::bindPipeline(*pipeline);
 	vx::gl::StateManager::bindVertexArray(vao);
-	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer.getId());
+	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer);
+	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, paramBuffer);
 
-	glProgramUniform1i(geomShader, 0, 0);
 	vx::gl::StateManager::setViewport(0, 0, 128, 128);
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	glProgramUniform1i(geomShader, 0, 1);
-	vx::gl::StateManager::setViewport(0, 0, 64, 64);
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	glProgramUniform1i(geomShader, 0, 2);
-	vx::gl::StateManager::setViewport(0, 0, 32, 32);
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-	glProgramUniform1i(geomShader, 0, 3);
-	vx::gl::StateManager::setViewport(0, 0, 16, 16);
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, count, sizeof(vx::gl::DrawElementsIndirectCommand));
+	glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_TRUE);

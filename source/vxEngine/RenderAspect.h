@@ -110,7 +110,7 @@ protected:
 	void clearTextures();
 	void clearBuffers();
 
-	void voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, u32 count);
+	void voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, const vx::gl::Buffer &paramBuffer);
 	void voxelDebug();
 
 	void createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer);
