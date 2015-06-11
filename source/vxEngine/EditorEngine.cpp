@@ -34,9 +34,10 @@ SOFTWARE.
 #include <vxEngineLib/debugPrint.h>
 #include "developer.h"
 
-u32 EditorEngine::s_editorTypeMesh{ 0xffffffff };
-u32 EditorEngine::s_editorTypeMaterial{ 0xffffffff };
-u32 EditorEngine::s_editorTypeScene{ 0xffffffff };
+u32 g_editorTypeMesh{ 0xffffffff };
+u32 g_editorTypeMaterial{ 0xffffffff };
+u32 g_editorTypeScene{ 0xffffffff };
+u32 g_editorTypeFbx{ 0xffffffff };
 
 EditorEngine::EditorEngine()
 	:m_eventManager(),
@@ -178,10 +179,6 @@ void EditorEngine::buildNavGraph()
 	m_renderAspect.updateNavMeshGraphNodesBuffer(graph);
 }
 
-void EditorEngine::addMesh(const vx::StringID &sid)
-{
-}
-
 void EditorEngine::handleEvent(const vx::Event &evt)
 {
 	switch (evt.type)
@@ -203,12 +200,15 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 	case vx::FileEvent::Mesh_Loaded:
 	{
 		auto sid = vx::StringID(evt.arg1.u64);
+		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
+
 		if (call_editorCallback(sid))
 		{
-			addMesh(sid);
+			auto meshFile = m_fileAspect.getMesh(sid);
+
+			m_pEditorScene->addMesh(sid, pStr->c_str(), meshFile);
 		}
 
-		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
 		delete(pStr);
 	}break;
 	case vx::FileEvent::Texture_Loaded:
@@ -243,11 +243,12 @@ void EditorEngine::editor_saveScene(const char* name)
 	m_fileAspect.requestSaveFile(vx::FileEntry(name, vx::FileType::Scene), sceneCopy);
 }
 
-void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene)
+void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx)
 {
-	s_editorTypeMesh = mesh;
-	s_editorTypeMaterial = material;
-	s_editorTypeScene = scene;
+	g_editorTypeMesh = mesh;
+	g_editorTypeMaterial = material;
+	g_editorTypeScene = scene;
+	g_editorTypeFbx = fbx;
 }
 
 void EditorEngine::editor_start()
@@ -266,25 +267,28 @@ void EditorEngine::editor_render()
 
 void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f)
 {
-	assert(s_editorTypeMesh != s_editorTypeMaterial);
-
 	void *p = nullptr;
 	vx::FileEntry fileEntry;
-	if (type == s_editorTypeMesh)
+	if (type == g_editorTypeMesh)
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Mesh);
 		p = new std::string(filename);
 	}
-	else if (type == s_editorTypeMaterial)
+	else if (type == g_editorTypeMaterial)
 	{
 		//fileEntry = FileEntry(filename, FileType::Material);
 		//p = new std::string(filename);
 		assert(false);
 	}
-	else if (type == s_editorTypeScene)
+	else if (type == g_editorTypeScene)
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Scene);
 		p = m_pEditorScene;
+	}
+	else if (type == g_editorTypeFbx)
+	{
+		fileEntry = vx::FileEntry(filename, vx::FileType::Fbx);
+		p = new std::string(filename);
 	}
 	else
 	{
@@ -383,13 +387,14 @@ u32 EditorEngine::getMeshInstanceCount() const
 
 const char* EditorEngine::getMeshInstanceName(u32 i) const
 {
-	if (m_pEditorScene)
-	{
-		auto meshInstances = m_pEditorScene->getMeshInstancesEditor();
-		return m_pEditorScene->getMeshInstanceName(meshInstances[i].getNameSid());
-	}
+	auto meshInstances = m_pEditorScene->getMeshInstancesEditor();
+	auto sid = meshInstances[i].getNameSid();
+	return getMeshInstanceName(sid);
+}
 
-	return nullptr;
+const char* EditorEngine::getMeshInstanceName(const vx::StringID &sid) const
+{
+	return m_pEditorScene->getMeshInstanceName(sid);
 }
 
 u64 EditorEngine::getMeshInstanceSid(u32 i) const
@@ -549,43 +554,23 @@ u64 EditorEngine::deselectMeshInstance()
 	return result;
 }
 
-void EditorEngine::createMeshInstance()
+vx::StringID EditorEngine::createMeshInstance()
+{
+	auto instanceSid = m_pEditorScene->createMeshInstance();
+	auto instance = m_pEditorScene->getMeshInstance(instanceSid);
+	m_renderAspect.editorAddMeshInstance(*instance);
+
+	m_physicsAspect.editorAddMeshInstance(instance->getMeshInstance());
+
+	return instanceSid;
+}
+
+void EditorEngine::removeMeshInstance(u64 sid)
 {
 	if (m_pEditorScene)
 	{
-		auto selectedInstance = (Editor::MeshInstance*)m_selected.m_item;
-
-		vx::StringID selectedSid;
-		if (selectedInstance)
-			selectedSid = selectedInstance->getNameSid();
-
-		auto instance = m_pEditorScene->createMeshInstance();
-		m_renderAspect.editorAddMeshInstance(instance);
-
-		m_physicsAspect.editorAddMeshInstance(instance.getMeshInstance());
-
-		if (selectedSid.value != 0)
-		{
-			auto newSelectedInstance = m_pEditorScene->getMeshInstance(selectedSid);
-
-			m_renderAspect.setSelectedMeshInstance(newSelectedInstance);
-			m_selected.m_type = SelectedType::MeshInstance;
-			m_selected.m_item = (void*)newSelectedInstance;
-		}
-	}
-}
-
-void EditorEngine::removeSelectedMeshInstance()
-{
-	if (m_pEditorScene && m_selected.m_item)
-	{
-		if (m_renderAspect.removeSelectedMeshInstance())
-		{
-			auto meshInstance = (MeshInstance*)m_selected.m_item;
-			m_pEditorScene->removeMeshInstance(meshInstance->getNameSid());
-
-			deselectMeshInstance();
-		}
+		m_pEditorScene->removeMeshInstance(vx::StringID(sid));
+		m_renderAspect.removeMeshInstance(vx::StringID(sid));
 	}
 }
 
@@ -593,8 +578,7 @@ void EditorEngine::setMeshInstanceMaterial(u64 instanceSid, u64 materialSid)
 {
 	if (m_pEditorScene)
 	{
-		auto sid = vx::StringID(instanceSid);
-		auto meshInstance = m_pEditorScene->getMeshInstance(sid);
+		auto meshInstance = m_pEditorScene->getMeshInstance(vx::StringID(instanceSid));
 
 		auto &sceneMaterials = m_pEditorScene->getMaterials();
 		auto it = sceneMaterials.find(vx::StringID(materialSid));
@@ -602,7 +586,7 @@ void EditorEngine::setMeshInstanceMaterial(u64 instanceSid, u64 materialSid)
 		{
 			if (m_renderAspect.setSelectedMeshInstanceMaterial(*it))
 			{
-				meshInstance->setMaterialSid(vx::StringID(sid));
+				meshInstance->setMaterialSid(vx::StringID(materialSid));
 			}
 		}
 	}
@@ -632,7 +616,13 @@ void EditorEngine::setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDe
 		auto instance = m_pEditorScene->getMeshInstance(instanceSid);
 
 		auto rotation = vx::degToRad(rotationDeg);
-		instance->setRotation(rotation);
+		auto r = vx::loadFloat3(rotation);
+
+		auto q = vx::quaternionRotationRollPitchYawFromVector(r);
+
+		vx::float4 tmp;
+		vx::storeFloat4(&tmp, q);
+		instance->setRotation(tmp);
 
 		auto transform = instance->getTransform();
 
@@ -649,7 +639,15 @@ void EditorEngine::getMeshInstanceRotation(u64 sid, vx::float3* rotationDeg) con
 		auto instance = m_pEditorScene->getMeshInstance(instanceSid);
 
 		auto transform = instance->getTransform();
-		*rotationDeg = vx::radToDeg(transform.m_rotation);
+		auto q = transform.m_qRotation;
+
+		float rx = atan2(2 * (q.z * q.w + q.x * q.y), 1 - 2 * (q.y*q.y + q.z * q.z));
+		float ry = asin(2 * q.x * q.z - 2 * q.y * q.w);
+		float rz = atan2(2 * (q.x * q.w - q.y * q.z), 1 - 2 * q.w * q.w - 2 * q.z * q.z);
+		
+		rotationDeg->x = vx::radToDeg(rx);
+		rotationDeg->y = vx::radToDeg(ry);
+		rotationDeg->z = vx::radToDeg(rz);
 	}
 }
 
@@ -709,8 +707,8 @@ Ray EditorEngine::getRay(s32 mouseX, s32 mouseY)
 	auto cameraPosition = m_renderAspect.getCamera().getPosition();
 
 	Ray ray;
-	vx::storeFloat(&ray.o, cameraPosition);
-	vx::storeFloat(&ray.d, rayDir);
+	vx::storeFloat3(&ray.o, cameraPosition);
+	vx::storeFloat3(&ray.d, rayDir);
 	ray.maxt = 50.0f;
 
 	return ray;

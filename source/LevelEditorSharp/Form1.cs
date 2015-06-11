@@ -49,6 +49,7 @@ namespace LevelEditor
         const UInt32 s_typeMaterial = 1;
         const UInt32 s_typeMeshInstance = 2;
         const UInt32 s_typeScene = 3;
+        const UInt32 s_typeFbx = 4;
 
         static Form1 s_form;
 
@@ -115,7 +116,7 @@ namespace LevelEditor
             {
                 Panel tmp = new Panel();
 
-                NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene);
+                NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx);
             }
             catch (Exception e)
             {
@@ -407,12 +408,11 @@ namespace LevelEditor
             {
                 var meshName = NativeMethods.getMeshName(i);
                 var meshSid = NativeMethods.getMeshSid(i);
+
                 var meshEntry = new EditorNodeEntry(meshSid, s_typeMesh, meshName);
-
-                m_meshNode.Nodes.Add(meshEntry);
-
                 EditorEntry entry = new EditorEntry(meshName, meshSid);
 
+                m_meshNode.Nodes.Add(meshEntry);
                 meshInstanceComboBoxMesh.Items.Add(entry);
                 m_sortedMeshes.Add(meshEntry.sid, entry);
             }
@@ -426,14 +426,35 @@ namespace LevelEditor
             var meshInstanceCount = NativeMethods.getMeshInstanceCount();
             for (uint i = 0; i < meshInstanceCount; ++i)
             {
-                var meshInstanceName = NativeMethods.getMeshInstanceName(i);
-                var meshInstanceSid = NativeMethods.getMeshInstanceSid(i);
+                var sid = NativeMethods.getMeshInstanceSid(i);
 
-                var entry = new EditorNodeEntry(meshInstanceSid, s_typeMeshInstance, meshInstanceName);
+                var meshInstanceName = NativeMethods.getMeshInstanceNameIndex(i);
+
+                var entry = new EditorNodeEntry(sid, s_typeMeshInstance, meshInstanceName);
 
                 m_sortedMeshInstances.Add(entry.sid, entry);
-
                 m_meshInstanceNode.Nodes.Add(entry);
+               // addMeshInstance(meshInstanceSid);
+            }
+        }
+
+        public void addMeshInstance(ulong sid)
+        {
+            var meshInstanceName = NativeMethods.getMeshInstanceName(sid);
+
+            var entry = new EditorNodeEntry(sid, s_typeMeshInstance, meshInstanceName);
+
+            m_sortedMeshInstances.Add(entry.sid, entry);
+            m_meshInstanceNode.Nodes.Add(entry);
+        }
+
+        public void removeMeshInstance(ulong sid)
+        {
+            EditorNodeEntry entry;
+            if(m_sortedMeshInstances.TryGetValue(sid, out entry))
+            {
+                m_sortedMeshInstances.Remove(sid);
+                m_meshInstanceNode.Nodes.Remove(entry);
             }
         }
 
@@ -448,7 +469,7 @@ namespace LevelEditor
             {
                 var name = NativeMethods.getMaterialName(i);
                 var sid = NativeMethods.getMaterialSid(i);
-                var nodeEntry = new EditorNodeEntry(sid, s_typeMesh, name);
+                var nodeEntry = new EditorNodeEntry(sid, s_typeMaterial, name);
 
                 m_materialNode.Nodes.Add(nodeEntry);
 
@@ -464,14 +485,12 @@ namespace LevelEditor
             EditorEntry entry;
             if(!m_sortedMeshes.TryGetValue(sid, out entry))
             {
-                var nodeEntry = new EditorNodeEntry(sid, s_typeMesh, name);
-                EditorEntry editorEntry = new EditorEntry(name, sid);
+                var meshEntry = new EditorNodeEntry(sid, s_typeMesh, name);
+                entry = new EditorEntry(name, sid);
 
-                meshInstanceComboBoxMesh.Items.Add(nodeEntry);
-
-
-                meshInstanceComboBoxMesh.Items.Add(editorEntry);
-                m_sortedMeshes.Add(sid, editorEntry);
+                m_meshNode.Nodes.Add(meshEntry);
+                meshInstanceComboBoxMesh.Items.Add(entry);
+                m_sortedMeshes.Add(meshEntry.sid, entry);
             }
         }
 
@@ -608,6 +627,10 @@ namespace LevelEditor
             if (m_sortedMaterials.TryGetValue(materialSid, out entry))
             {
                 meshInstanceComboBoxMaterial.SelectedItem = entry;
+            }
+            else 
+            {
+                Console.WriteLine("Error getting instance material name: {0}", materialSid);
             }
         }
 
@@ -1193,9 +1216,15 @@ namespace LevelEditor
         {
            var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
 
-           if (instanceSid != 0 && m_selectedMeshInstanceSid == instanceSid)
+           if (materialSid != 0 && instanceSid != 0 && m_selectedMeshInstanceSid == instanceSid)
            {
+
               var oldSid = NativeMethods.getMeshInstanceMaterialSid(instanceSid);
+
+              Console.WriteLine("instance: {0}", instanceSid);
+              Console.WriteLine("old material: {0}", oldSid);
+              Console.WriteLine("new material: {0}", materialSid);
+
               var action = new ActionSetMeshInstanceMaterial(instanceSid, oldSid, materialSid);
               runAction(action);
            }
@@ -1240,8 +1269,8 @@ namespace LevelEditor
 
         private void toolStripButtonCreateMeshInstance_Click(object sender, EventArgs e)
         {
-            NativeMethods.createMeshInstance();
-            addSceneMeshInstances();
+            var action = new ActionCreateMeshInstance(this);
+            runAction(action);
         }
 
         private void undoToolStripMenuItem_Click(object sender, EventArgs e)

@@ -46,9 +46,9 @@ namespace vx
 		MeshFile& operator=(const MeshFile&) = delete;
 		MeshFile& operator=(MeshFile &&rhs);
 
-		const u8* loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* allocator) override;
+		const u8* loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator) override;
 
-		bool saveToFile(vx::File* file) const;
+		void saveToFile(vx::File* file) const override;
 
 		u64 getCrc() const override;
 

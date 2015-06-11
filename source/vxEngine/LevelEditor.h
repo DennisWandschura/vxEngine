@@ -32,7 +32,7 @@ SOFTWARE.
 
 namespace Editor
 {
-	extern "C" DLL_EXPORT bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene);
+	extern "C" DLL_EXPORT bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx);
 	extern "C" DLL_EXPORT void shutdownEditor();
 
 	extern "C" DLL_EXPORT void frame();
@@ -63,7 +63,8 @@ namespace Editor
 	extern "C" DLL_EXPORT u32 getSelectedNavMeshCount();
 
 	extern "C" DLL_EXPORT u32 getMeshInstanceCount();
-	extern "C" DLL_EXPORT BSTR getMeshInstanceName(u32 i);
+	extern "C" DLL_EXPORT BSTR getMeshInstanceNameIndex(u32 i);
+	extern "C" DLL_EXPORT BSTR getMeshInstanceName(u64 sid);
 	extern "C" DLL_EXPORT bool selectMeshInstance(s32 x, s32 y);
 	extern "C" DLL_EXPORT bool selectMeshInstanceIndex(u32 i);
 	extern "C" DLL_EXPORT bool selectMeshInstanceSid(u64 sid);
@@ -84,8 +85,8 @@ namespace Editor
 	extern "C" DLL_EXPORT u64 getMeshInstanceMaterialSid(u64 instanceSid);
 	extern "C" DLL_EXPORT void setMeshInstanceMaterial(u64 instanceSid, u64 materialSid);
 
-	extern "C" DLL_EXPORT void createMeshInstance();
-	extern "C" DLL_EXPORT void removeSelectedMeshInstance();
+	extern "C" DLL_EXPORT u64 createMeshInstance();
+	extern "C" DLL_EXPORT void removeMeshInstance(u64 sid);
 
 	extern "C" DLL_EXPORT bool setMeshInstanceName(u64 instanceSid, const char* newName);
 

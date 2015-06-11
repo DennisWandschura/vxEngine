@@ -44,10 +44,6 @@ enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
 class EditorEngine : public vx::EventListener
 {
-	static u32 s_editorTypeMesh;
-	static u32 s_editorTypeMaterial;
-	static u32 s_editorTypeScene;
-
 	struct SelectedNavMeshVertices
 	{
 		u32 m_vertices[3];
@@ -105,8 +101,6 @@ class EditorEngine : public vx::EventListener
 
 	void buildNavGraph();
 
-	void addMesh(const vx::StringID &sid);
-
 public:
 	EditorEngine();
 	~EditorEngine();
@@ -114,7 +108,7 @@ public:
 	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene);
 	void shutdownEditor();
 
-	static void editor_setTypes(u32 mesh, u32 material, u32 scene);
+	static void editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx);
 
 	void editor_saveScene(const char* name);
 
@@ -136,6 +130,7 @@ public:
 
 	u32 getMeshInstanceCount() const;
 	const char* getMeshInstanceName(u32 i) const;
+	const char* getMeshInstanceName(const vx::StringID &sid) const;
 	u64 getMeshInstanceSid(u32 i) const;
 	const char* getSelectedMeshInstanceName() const;
 
@@ -150,8 +145,8 @@ public:
 	bool selectMeshInstance(u64 sid);
 	u64 deselectMeshInstance();
 
-	void createMeshInstance();
-	void removeSelectedMeshInstance();
+	vx::StringID createMeshInstance();
+	void removeMeshInstance(u64 sid);
 
 	void setMeshInstancePosition(u64 sid, const vx::float3 &p);
 	void setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDeg);

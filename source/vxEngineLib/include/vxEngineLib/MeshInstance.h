@@ -55,10 +55,30 @@ public:
 	const vx::Transform& getTransform() const noexcept { return m_transform; }
 
 	void setTranslation(const vx::float3 &translation);
-	void setRotation(const vx::float3 &rotation) { m_transform.m_rotation = rotation; }
+	void setRotation(const vx::float4 &qRotation) { m_transform.m_qRotation = qRotation; }
 	void setMaterialSid(const vx::StringID &sid) { m_materialSid = sid; }
 	void setNameSid(const vx::StringID &sid) { m_nameSid = sid; }
 	void setMeshSid(const vx::StringID &sid) { m_meshSid = sid; }
+};
+
+class MeshInstanceFileOld
+{
+	using Buffer = char[32];
+
+	Buffer m_name;
+	Buffer m_mesh;
+	Buffer m_material;
+	vx::TransformOld m_transform;
+
+public:
+	MeshInstanceFileOld();
+	MeshInstanceFileOld(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::TransformOld &transform);
+	~MeshInstanceFileOld();
+
+	const char* getName() const noexcept{ return m_name; }
+	const char* getMeshFile() const noexcept;
+	const char* getMaterialFile() const noexcept;
+	const vx::TransformOld& getTransform() const noexcept{ return m_transform; }
 };
 
 class MeshInstanceFile

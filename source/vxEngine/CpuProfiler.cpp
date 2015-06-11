@@ -203,7 +203,7 @@ namespace CpuProfilerCpp
 
 		void writeGpuMarkers(f32 textureSlice, const vx::uint2a &textureSize, const __m128 &vInvTexSize, vx::uint2* bufferIndex, vx::float2 *cursorPos)
 		{
-			__m128 vColor = vx::loadFloat(g_threadColors[m_tid]);
+			__m128 vColor = vx::loadFloat4(g_threadColors[m_tid]);
 
 			char buffer[s_maxCpuStringSize];
 			vx::float2 position_x_texSlice(cursorPos->x, textureSlice);

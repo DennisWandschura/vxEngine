@@ -50,34 +50,34 @@ namespace SceneRendererCpp
 {
 	void getShadowTransform(const Light &light, PointLightShadowTransform* shadowTransform)
 	{
-		auto lightPos = vx::loadFloat(light.m_position);
+		auto lightPos = vx::loadFloat3(light.m_position);
 		auto projectionMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, 0.1f, light.m_falloff);
 
 		vx::mat4 viewMatrices[6];
 		// X+
 		vx::float4 up = { 0, -1, 0, 0 };
 		vx::float4 dir = { 1, 0, 0, 0 };
-		viewMatrices[0] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		viewMatrices[0] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
 		// X-
 		up = { 0, -1, 0, 0 };
 		dir = { -1, 0, 0, 0 };
-		viewMatrices[1] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		viewMatrices[1] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
 		// Y+
 		up = { 0, 0, 1, 0 };
 		dir = vx::float4(0, 1, 0, 0);
-		viewMatrices[2] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		viewMatrices[2] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
 		// Y-
 		up = { 0, 0, -1, 0 };
 		dir = vx::float4(0, -1, 0, 0);
-		viewMatrices[3] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		viewMatrices[3] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
 		// Z+
 		up = { 0, -1, 0, 0 };
 		dir = vx::float4(0, 0, 1, 0);
-		viewMatrices[4] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		viewMatrices[4] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
 		// Z-
 		up = { 0, -1, 0, 0 };
 		dir = vx::float4(0, 0, -1, 0);
-		viewMatrices[5] = vx::MatrixLookToRH(lightPos, vx::loadFloat(dir), vx::loadFloat(up));
+		viewMatrices[5] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
 
 		shadowTransform->projectionMatrix = projectionMatrix;
 		for (u32 i = 0; i < 6; ++i)
@@ -422,8 +422,7 @@ u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::St
 
 void SceneRenderer::updateTransform(const vx::Transform &transform, u32 elementId)
 {
-	auto qRotation = vx::loadFloat(transform.m_rotation);
-	qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
+	auto qRotation = vx::loadFloat4(transform.m_qRotation);
 	auto packedRotation = GpuFunctions::packQRotation(qRotation);
 
 	vx::TransformGpu t;
@@ -486,9 +485,6 @@ void SceneRenderer::writeMeshToBuffer(const WriteMeshToBufferDesc &desc)
 	auto &mesh = desc.pMeshFile->getMesh();
 	auto pMeshVertices = mesh.getVertices();
 	auto vertexCount = mesh.getVertexCount();
-
-	//////////////////////////////
-	const __m128 rotation = { vx::VX_PI, vx::VX_PI, vx::VX_PI, 0 };
 
 	for (auto j = 0u; j < vertexCount; ++j)
 	{
@@ -650,7 +646,6 @@ void SceneRenderer::writeMeshInstanceToCommandBuffer(MeshEntry meshEntry, u32 in
 void SceneRenderer::addMeshInstanceToBuffers(const MeshInstance &instance, const vx::gl::Buffer* cmdBuffer, const MeshEntry &meshEntry, u16 elementId, u32 materialIndex)
 {
 	auto transform = instance.getTransform();
-	transform.m_rotation = vx::degToRad(transform.m_rotation);
 
 	updateTransform(transform, elementId);
 	writeMeshInstanceIdBuffer(elementId, materialIndex);
@@ -667,8 +662,9 @@ void SceneRenderer::setMeshParamBufferValue(u32 count)
 {
 
 	auto meshParamBuffer = m_pObjectManager->getBuffer("meshParamBuffer");
-	auto mappedParamBuffer = meshParamBuffer->map<u32>(vx::gl::Map::Write_Only);
-	*mappedParamBuffer = count;
+	meshParamBuffer->subData(0, sizeof(u32), &count);
+	//auto mappedParamBuffer = meshParamBuffer->map<u32>(vx::gl::Map::Write_Only);
+	//*mappedParamBuffer = count;
 }
 
 void SceneRenderer::updateBuffersWithMeshInstance(const MeshInstance &instance, u16 elementId, const vx::gl::Buffer* cmdBuffer)
@@ -846,6 +842,7 @@ bool SceneRenderer::setMeshInstanceMesh(const vx::StringID &sid, const vx::Strin
 	auto meshEntryIt = m_coldData->m_meshEntries.find(meshSid);
 	if (meshEntryIt == m_coldData->m_meshEntries.end())
 	{
+		printf("adding mesh to gpu\n");
 		//addMesh(meshSid);
 		auto fileAspect = Locator::getFileAspect();
 		auto meshFile = fileAspect->getMesh(meshSid);
@@ -927,9 +924,7 @@ void SceneRenderer::editorAddMeshInstance(const MeshInstance &newInstance)
 
 	++m_staticMeshInstanceCount;
 
-	auto meshParamBuffer = m_pObjectManager->getBuffer("meshParamBuffer");
-	auto mappedMeshParamBuffer = meshParamBuffer->map<u32>(vx::gl::Map::Write_Only);
-	*mappedMeshParamBuffer = m_staticMeshInstanceCount;
+	setMeshParamBufferValue(m_staticMeshInstanceCount);
 }
 
 bool SceneRenderer::editorRemoveStaticMeshInstance(const vx::StringID &sid)
@@ -944,11 +939,8 @@ bool SceneRenderer::editorRemoveStaticMeshInstance(const vx::StringID &sid)
 		--m_staticMeshInstanceCount;
 
 		auto meshCmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
-		auto meshParamBuffer = m_pObjectManager->getBuffer("meshParamBuffer");
 
-		auto mappedMeshParamBuffer = meshParamBuffer->map<u32>(vx::gl::Map::Write_Only);
-		*mappedMeshParamBuffer = m_staticMeshInstanceCount;
-		mappedMeshParamBuffer.unmap();
+		setMeshParamBufferValue(m_staticMeshInstanceCount);
 
 		std::vector<vx::gl::DrawElementsIndirectCommand> newDrawCommands;
 		newDrawCommands.reserve(m_staticMeshInstanceCount);
@@ -956,6 +948,7 @@ bool SceneRenderer::editorRemoveStaticMeshInstance(const vx::StringID &sid)
 		newDrawCommands.insert(newDrawCommands.begin(), m_coldData->m_staticDrawCommands.begin(), m_coldData->m_staticDrawCommands.begin() + cmdIndex);
 
 		newDrawCommands.insert(newDrawCommands.end(), m_coldData->m_staticDrawCommands.begin() + cmdIndex + 1, m_coldData->m_staticDrawCommands.end());
+
 
 		auto mappedMeshCmdBuffer = meshCmdBuffer->map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
 		vx::memcpy(mappedMeshCmdBuffer.get(), newDrawCommands.data(), m_staticMeshInstanceCount);

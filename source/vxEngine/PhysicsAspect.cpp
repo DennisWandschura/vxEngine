@@ -237,8 +237,7 @@ void PhysicsAspect::editorSetStaticMeshInstanceTransform(const MeshInstance &mes
 	{
 		auto instanceTransform = meshInstance.getTransform();
 
-		auto qRotation = vx::loadFloat(instanceTransform.m_rotation);
-		qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
+		auto qRotation = vx::loadFloat4(instanceTransform.m_qRotation);
 
 		physx::PxTransform transform;
 		transform.p.x = instanceTransform.m_translation.x;
@@ -297,8 +296,7 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 	auto meshSid = meshInstance.getMeshSid();
 	auto instanceTransform = meshInstance.getTransform();
 
-	auto qRotation = vx::loadFloat(instanceTransform.m_rotation);
-	qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
+	auto qRotation = vx::loadFloat4(instanceTransform.m_qRotation);
 
 	physx::PxTransform transform;
 	transform.p.x = instanceTransform.m_translation.x;
@@ -308,19 +306,24 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 
 	assert(transform.isValid());
 
-	auto itPhysxTriangleMesh = m_physxMeshes.find(meshSid);
-	assert(itPhysxTriangleMesh != m_physxMeshes.end());
-
 	auto itPhysxMaterial = m_physxMaterials.find(meshInstance.getMaterialSid());
-
-	//auto isActor = meshInstance.isActor();
-
 	auto pmat = *itPhysxMaterial;
 
-	// static
-	auto pShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*itPhysxTriangleMesh), *pmat);
+	physx::PxShape* shape = nullptr;
+	auto itPhysxTriangleMesh = m_physxMeshes.find(meshSid);
+	if (itPhysxTriangleMesh != m_physxMeshes.end())
+	{
+		shape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*itPhysxTriangleMesh), *pmat);
+	}
+	else
+	{
+		auto it = m_physxConvexMeshes.find(meshSid);
+		VX_ASSERT(it != m_physxConvexMeshes.end());
+		shape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(*it), *pmat);
+	}
+
 	auto pRigidStatic = m_pPhysics->createRigidStatic(transform);
-	pRigidStatic->attachShape(*pShape);
+	pRigidStatic->attachShape(*shape);
 
 	auto sidptr = (vx::StringID*)&pRigidStatic->userData;
 	sidptr->value = instanceSid.value;
@@ -349,11 +352,16 @@ void PhysicsAspect::processScene(const void* ptr)
 		if (!pResult)
 		{
 			puts("error processing mesh");
+			auto result = processMeshConvex(pMeshFile);
+			std::lock_guard<std::mutex> guard(m_mutex);
+			m_physxConvexMeshes.insert(meshes.keys()[i], result);
 		}
-
-		// need to lock because we are modifying the vector
-		std::lock_guard<std::mutex> guard(m_mutex);
-		m_physxMeshes.insert(meshes.keys()[i], pResult);
+		else
+		{
+			// need to lock because we are modifying the vector
+			std::lock_guard<std::mutex> guard(m_mutex);
+			m_physxMeshes.insert(meshes.keys()[i], pResult);
+		}
 	}
 
 	auto numInstances = pScene->getMeshInstanceCount();
@@ -387,37 +395,16 @@ void PhysicsAspect::processScene(const void* ptr)
 
 physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::MeshFile* pMesh)
 {
-	/*auto pMeshVertices = pMesh->getVertices();
-	auto pIndices = pMesh->getIndices();
-
-	auto vertexCount = pMesh->getVertexCount();
-	auto indexCount = pMesh->getIndexCount();
-
-	auto pVertices = vx::make_unique<vx::float3[]>(vertexCount);
-	for (u32 i = 0; i < vertexCount; ++i)
-	{
-	pVertices[i] = pMeshVertices[i].position;
-	}
-
-	physx::PxTriangleMeshDesc meshDesc;
-	meshDesc.points.count = vertexCount;
-	meshDesc.points.stride = sizeof(vx::float3);
-	meshDesc.points.data = pVertices.get();
-
-	meshDesc.triangles.count = indexCount / 3;
-	meshDesc.triangles.stride = 3 * sizeof(u32);
-	meshDesc.triangles.data = pIndices;
-
-	physx::PxDefaultMemoryOutputStream writeBuffer;
-	bool status = m_pCooking->cookTriangleMesh(meshDesc, writeBuffer);
-	if (!status)
-	{
-	return nullptr;
-	}*/
-
 	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)pMesh->getPhysxData(), pMesh->getPhysxDataSize());
 
 	return m_pPhysics->createTriangleMesh(readBuffer);
+}
+
+physx::PxConvexMesh* PhysicsAspect::processMeshConvex(const vx::MeshFile* pMesh)
+{
+	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)pMesh->getPhysxData(), pMesh->getPhysxDataSize());
+
+	return m_pPhysics->createConvexMesh(readBuffer);
 }
 
 physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f32 height)

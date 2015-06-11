@@ -41,7 +41,6 @@ namespace Graphics
 	class ShadowRenderer : public Renderer
 	{
 		std::unique_ptr<u32[]> m_shadowDepthTextureIds;
-		std::unique_ptr<u32[]> m_shadowDiffuseTextureIds;
 		vx::StringID m_lightCmdBufferSid;
 		u32 m_textureCount;
 

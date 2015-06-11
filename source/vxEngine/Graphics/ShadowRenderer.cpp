@@ -73,7 +73,6 @@ namespace Graphics
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
 
 		m_shadowDepthTextureIds = vx::make_unique<u32[]>(m_textureCount);
-		m_shadowDiffuseTextureIds = vx::make_unique<u32[]>(m_textureCount);
 
 		vx::gl::TextureDescription depthDesc;
 		depthDesc.format = vx::gl::TextureFormat::DEPTH32F;
@@ -82,66 +81,48 @@ namespace Graphics
 		depthDesc.miplevels = 1;
 		depthDesc.sparse = 0;
 
-		vx::gl::TextureDescription diffuseDesc;
-		diffuseDesc.format = vx::gl::TextureFormat::RGB16F;
-		diffuseDesc.type = vx::gl::TextureType::Texture_Cubemap;
-		diffuseDesc.size = vx::ushort3(textureResolution, textureResolution, 6);
-		diffuseDesc.miplevels = 1;
-		diffuseDesc.sparse = 0;
-
 		const char textureDepthName[] = "shadowDepthTexture";
-		const char textureDiffuseName[] = "shadowDiffuseTexture";
 		const auto textureDepthNameSize = sizeof(textureDepthName);
-		const auto textureDiffuseNameSize = sizeof(textureDiffuseName);
 
 		char depthNameBuffer[24];
-		char diffuseNameBuffer[24];
 
 		memcpy(depthNameBuffer, textureDepthName, textureDepthNameSize);
-		memcpy(diffuseNameBuffer, textureDiffuseName, textureDiffuseNameSize);
 
 		auto mappedBuffer = shadowTexBuffer->map<UniformShadowTextureBufferBlock>(vx::gl::Map::Write_Only);
 
 		for (u32 i = 0; i < m_textureCount; ++i)
 		{
 			sprintf(depthNameBuffer + textureDepthNameSize - 1, "%u", i);
-			sprintf(diffuseNameBuffer + textureDiffuseNameSize - 1, "%u", i);
 
 			auto depthTextureSid = s_objectManager->createTexture(depthNameBuffer, depthDesc);
-			auto diffuseTextureSid = s_objectManager->createTexture(diffuseNameBuffer, diffuseDesc);
 			VX_ASSERT(depthTextureSid.value != 0u);
-			VX_ASSERT(diffuseTextureSid.value != 0u);
 
 			auto depthTexture = s_objectManager->getTexture(depthTextureSid);
-			auto diffuseTexture = s_objectManager->getTexture(diffuseTextureSid);
 
 			m_shadowDepthTextureIds[i] = depthTexture->getId();
-			m_shadowDiffuseTextureIds[i] = diffuseTexture->getId();
 
 			depthTexture->setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
 			depthTexture->setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE);
 
-			diffuseTexture->setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
-			diffuseTexture->setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE);
-
 			glTextureParameteri(depthTexture->getId(), GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 			glTextureParameteri(depthTexture->getId(), GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-			//float ones[] = { 0, 0, 0, 0 };
-			//glTextureParameterfv(m_pColdData->m_shadowTexture.getId(), GL_TEXTURE_BORDER_COLOR, ones);
 
 			depthTexture->makeTextureResident();
 
 			mappedBuffer->u_shadowTextures[i] = depthTexture->getTextureHandle();
 		}
+
+		//auto colorTex = s_objectManager->getTexture("shadowParaboloidTexture");
+		//colorTex->makeTextureResident();
+
+		//mappedBuffer->u_shadowTex = colorTex->getTextureHandle();
+		//mappedBuffer->u_shadowTex[1] = colorTexBack->getTextureHandle();
 	}
 
 	void ShadowRenderer::createFramebuffer()
 	{
 		auto sid = s_objectManager->createFramebuffer("shadowFbo");
 		auto fbo = s_objectManager->getFramebuffer(sid);
-
-		//fbo->attachTexture(vx::gl::Attachment::Color0, m_shadowDiffuseTextureIds[0], 0);
-		//fbo->attachTexture(vx::gl::Attachment::Depth, m_shadowDepthTextureIds[0], 0);
 
 		glNamedFramebufferDrawBuffer(fbo->getId(), GL_NONE);
 
@@ -238,6 +219,36 @@ namespace Graphics
 
 	void ShadowRenderer::initialize()
 	{
+		/*{
+			auto textureCount = s_settings->m_maxActiveLights * 2;
+			auto textureResolution = s_settings->m_shadowMapResolution;
+			vx::gl::TextureDescription desc = {};
+			desc.format = vx::gl::TextureFormat::R32F;
+			desc.miplevels = 1;
+			desc.size = vx::ushort3(textureResolution, textureResolution, textureCount);
+			desc.sparse = 0;
+			desc.type = vx::gl::TextureType::Texture_2D_Array;
+
+			auto texSid = s_objectManager->createTexture("shadowParaboloidTexture", desc);
+			auto colorTexFront = s_objectManager->getTexture(texSid);
+			colorTexFront->setWrapMode2D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
+
+			desc.format = vx::gl::TextureFormat::DEPTH32F;
+			s_objectManager->createTexture("shadowParaboloidTextureDepth", desc);
+		}
+
+		{
+			auto fboSid = s_objectManager->createFramebuffer("shadowParaboloidFbo");
+
+			auto fbo = s_objectManager->getFramebuffer(fboSid);
+			auto colorTexFront = s_objectManager->getTexture("shadowParaboloidTexture");
+			auto depthTex = s_objectManager->getTexture("shadowParaboloidTextureDepth");
+
+			fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexFront, 0);
+			fbo->attachTexture(vx::gl::Attachment::Depth, *depthTex, 0);
+
+		}*/
+
 		createShadowTextureBuffer();
 		createShadowTextures();
 		createFramebuffer();

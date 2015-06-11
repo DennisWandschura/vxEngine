@@ -202,7 +202,7 @@ void EntityAspect::updateInput(f32 dt)
 		entity.orientation = p->orientation;
 
 		//__m128 vVelocity = { p->velocity.x, 0, p->velocity.z, 0.0f };
-		__m128 vVelocity = vx::loadFloat(p->velocity);
+		__m128 vVelocity = vx::loadFloat4(p->velocity);
 		p->velocity.x = 0.0f;
 		p->velocity.y = 0.0f;
 		p->velocity.z = 0.0f;
@@ -359,7 +359,7 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 				CreateActorData data;
 				data.material = itActor->m_material;
 				data.mesh = itActor->m_mesh;
-				data.transform.m_rotation = vx::float3(0);
+				data.transform.m_qRotation = vx::float4(0, 0, 0, 1);
 				data.transform.m_scaling = 1.0f;
 				data.transform.m_translation = it.position;
 				data.index = i;

@@ -28,34 +28,7 @@ SOFTWARE.
 #include <vxLib/File/FileHeader.h>
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/ScopeGuard.h>
-
-bool FileFactory::save(vx::File* file, const Editor::Scene &data)
-{
-	SceneFile sceneFile;
-	SceneFactory::convert(data, &sceneFile);
-
-	return save(file, sceneFile);
-}
-
-bool FileFactory::save(const char* file, const SceneFile &data)
-{
-	vx::File f;
-	if (!f.create(file, vx::FileAccess::Write))
-		return false;
-
-	return save(&f, data);
-}
-
-bool FileFactory::save(vx::File* file, const SceneFile &data)
-{
-	vx::FileHeader header;
-	header.magic = vx::FileHeader::s_magic;
-	header.version = data.getVersion();
-	header.crc = data.getCrc();
-
-	file->write(header);
-	return data.saveToFile(file);
-}
+#include <vxEngineLib/FileFactory.h>
 
 bool FileFactory::load(const char* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator)
 {
@@ -83,21 +56,26 @@ bool FileFactory::load(vx::File* file, SceneFile* data, vx::StackAllocator* scra
 
 	file->close();
 	
-	return load(ptr, data, allocator);
+	return load(ptr, fileSize, data, allocator);
 }
 
-bool FileFactory::load(const u8* ptr, SceneFile* data, vx::Allocator* allocator)
+bool FileFactory::load(const u8* ptr, u32 fileSize, SceneFile* data, vx::Allocator* allocator)
 {
-	vx::FileHeader header = *(vx::FileHeader*)ptr;
+	vx::FileHeader headerTop = *(vx::FileHeader*)ptr;
 
-	if (header.magic != vx::FileHeader::s_magic)
+	if (headerTop.magic != vx::FileHeader::s_magic)
 		return false;
 
 	auto dataPtr = ptr + sizeof(vx::FileHeader);
-	data->loadFromMemory(dataPtr, header.version, allocator);
+	ptr = data->loadFromMemory(dataPtr, fileSize, headerTop.version, allocator);
 
 	auto currentCrc = data->getCrc();
+	if (headerTop.crc != currentCrc)
+		return false;
 
-	return (header.crc == currentCrc);
-	//return true;
+	vx::FileHeader headerBottom = *(vx::FileHeader*)ptr;
+	if (headerBottom.magic != vx::FileHeader::s_magic)
+		return false;
+
+	return headerBottom.crc == currentCrc;
 }

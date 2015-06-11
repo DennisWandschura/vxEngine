@@ -51,7 +51,7 @@ void ActionUpdateGpuTransform::run()
 	quaternionRotation = vx::quaternionRotationRollPitchYawFromVector(quaternionRotation);
 
 	RenderUpdateCameraData data;
-	data.position = vx::loadFloat(m_playerEntity->position);
+	data.position = vx::loadFloat3(m_playerEntity->position);
 	data.quaternionRotation = quaternionRotation;
 
 	m_pRenderAspect->queueUpdateCamera(data);

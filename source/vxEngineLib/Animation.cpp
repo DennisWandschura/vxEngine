@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -23,26 +22,50 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class SceneFile;
-
-namespace Editor
-{
-	class Scene;
-}
+#include <vxEngineLib/Animation.h>
+#include <vxLib/File/File.h>
+#include <vxEngineLib/memcpy.h>
 
 namespace vx
 {
-	class Allocator;
-	class StackAllocator;
-	class File;
+	void Animation::saveToFile(File* f) const
+	{
+		f->write(layerCount);
+		for (u32 i = 0; i < layerCount; ++i)
+		{
+			layers[i].saveToFile(f);
+		}
+	}
+
+	const u8* Animation::loadFromMemory(const u8 *ptr)
+	{
+		ptr = vx::read(layerCount, ptr);
+		layers = std::make_unique<AnimationLayer[]>(layerCount);
+		for (u32 i = 0; i < layerCount; ++i)
+		{
+			ptr = layers[i].loadFromMemory(ptr);
+		}
+
+		return ptr;
+	}
+
+	void AnimationLayer::saveToFile(File* f) const
+	{
+		f->write(frameCount);
+		f->write(frameRate);
+
+		for (u32 i = 0; i < frameCount; ++i)
+		{
+			f->write(samples[i]);
+		}
+	}
+
+	const u8* AnimationLayer::loadFromMemory(const u8 *ptr)
+	{
+		ptr = vx::read(frameCount, ptr);
+		ptr = vx::read(frameRate, ptr);
+
+		samples = std::make_unique<AnimationSample[]>(frameCount);
+		return vx::read(samples.get(), ptr, frameCount);
+	}
 }
-
-#include <vxLib/types.h>
-
-class FileFactory
-{
-public:
-	static bool load(const char* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
-	static bool load(vx::File* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
-	static bool load(const u8* ptr, u32 fileSize, SceneFile* data, vx::Allocator* allocator);
-};

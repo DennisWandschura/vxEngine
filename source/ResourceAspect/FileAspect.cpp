@@ -28,7 +28,6 @@ SOFTWARE.
 #include <vxResourceAspect/CreateSceneDescription.h>
 #include <vxLib/File/File.h>
 #include <vxLib/ScopeGuard.h>
-#include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Light.h>
 #include <vxEngineLib/EventManager.h>
 #include <vxEngineLib/Event.h>
@@ -94,6 +93,7 @@ struct FileAspect::LoadMeshDescription
 	LoadDescriptionShared shared;
 	const vx::FileHeader* fileHeader;
 	const u8 *fileData;
+	u32 size;
 };
 
 struct FileAspect::LoadMaterialDescription
@@ -176,7 +176,7 @@ bool FileAspect::loadMesh(const LoadMeshDescription &desc)
 		VX_ASSERT(meshFilePtr != nullptr);
 
 		auto marker = m_allocatorMeshData.getMarker();
-		auto p = meshFilePtr->loadFromMemory(desc.fileData, desc.fileHeader->version, &m_allocatorMeshData);
+		auto p = meshFilePtr->loadFromMemory(desc.fileData, desc.size, desc.fileHeader->version, &m_allocatorMeshData);
 		if (p == nullptr)
 		{
 			m_allocatorMeshData.clear(marker);
@@ -210,11 +210,11 @@ bool FileAspect::loadFileScene(const LoadFileOfTypeDescription &desc, bool edito
 		bool created = false;
 		if (editor)
 		{
-			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, (Editor::Scene*)desc.pUserData);
+			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, desc.fileSize, (Editor::Scene*)desc.pUserData);
 		}
 		else
 		{
-			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, (Scene*)desc.pUserData);
+			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, desc.fileSize, (Scene*)desc.pUserData);
 		}
 
 		if (created)
@@ -346,6 +346,7 @@ bool FileAspect::loadFileMesh(const LoadFileOfTypeDescription &desc)
 	LoadMeshDescription loadMeshDesc;
 	loadMeshDesc.fileHeader = &header;
 	loadMeshDesc.shared.filename = desc.fileName;
+	loadMeshDesc.size = desc.fileSize;
 	loadMeshDesc.fileData = meshFileDataBegin;
 	loadMeshDesc.shared.sid = desc.sid;
 	loadMeshDesc.shared.status = &desc.result->status;
@@ -423,20 +424,20 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 {
 	switch (desc.fileType)
 	{
-	case  vx::FileType::Mesh:
+	case vx::FileType::Mesh:
 	{
 		loadFileMesh(desc);
 	}break;
-	case  vx::FileType::Texture:
+	case vx::FileType::Texture:
 	{
 		loadFileTexture(desc);
 	}break;
-	case  vx::FileType::Material:
+	case vx::FileType::Material:
 	{
 		loadFileMaterial(desc);
 	}
 	break;
-	case  vx::FileType::Scene:
+	case vx::FileType::Scene:
 	{
 #if _VX_EDITOR
 		if (loadFileScene(desc, true))
@@ -455,6 +456,11 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 			desc.result->result = 1;
 			desc.result->type = vx::FileType::Scene;
 		}
+	}break;
+	case vx::FileType::Fbx:
+	{
+		// not implemented yet
+		VX_ASSERT(false);
 	}break;
 	default:
 		break;
@@ -549,8 +555,9 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	case vx::FileType::Scene:
 	{
 		auto scene = (Editor::Scene*)request.userData;
+		SceneFactory::saveToFile(*scene, &f);
 
-		saveResult = FileFactory::save(&f, *scene);
+		saveResult = 1;
 		if (saveResult == 0)
 		{
 			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error saving scene !");

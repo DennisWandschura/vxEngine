@@ -908,9 +908,9 @@ void EditorRenderAspect::editorAddMeshInstance(const Editor::MeshInstance &insta
 	m_sceneRenderer.editorAddMeshInstance(instance.getMeshInstance());
 }
 
-bool EditorRenderAspect::removeSelectedMeshInstance()
+bool EditorRenderAspect::removeMeshInstance(const vx::StringID &sid)
 {
-	return m_sceneRenderer.editorRemoveStaticMeshInstance(m_selectedInstance.ptr->getNameSid());
+	return m_sceneRenderer.editorRemoveStaticMeshInstance(sid);
 }
 
 void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influenceMap)

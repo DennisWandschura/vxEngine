@@ -48,6 +48,8 @@ namespace Editor
 class Scene;
 class SceneFile;
 class Material;
+class MeshInstanceFileOld;
+class MeshInstanceFile;
 
 namespace Factory
 {
@@ -61,17 +63,19 @@ class SceneFactory
 {
 	struct LoadSceneFileDescription;
 
+	static bool checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFile* instances, u32 count);
+	static bool checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFileOld* instances, u32 count);
 	static bool checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc);
 
 public:
-	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, Scene *pScene);
+	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, Scene *pScene);
 
 	static bool createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, Editor::Scene *pScene);
-	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, Editor::Scene *pScene);
-
-	static bool save(const Editor::Scene &scene, vx::File* file);
+	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, Editor::Scene *pScene);
 
 	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
+
+	static void saveToFile(const Editor::Scene &scene, vx::File* f);
 
 	static void deleteScene(Editor::Scene *scene);
 };

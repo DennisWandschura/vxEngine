@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -22,27 +21,41 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-class SceneFile;
-
-namespace Editor
-{
-	class Scene;
-}
+#include <vxEngineLib/FileFactory.h>
+#include <vxLib/File/FileHeader.h>
+#include <vxLib/File/File.h>
 
 namespace vx
 {
-	class Allocator;
-	class StackAllocator;
-	class File;
+	void FileFactory::saveToFile(const char* filename, const Serializable* data)
+	{
+		vx::File f;
+		f.create(filename, vx::FileAccess::Write);
+
+		saveToFile(&f, data);
+	}
+
+	void FileFactory::saveToFile(File* f, const Serializable* data)
+	{
+		FileHeader header;
+
+		header.magic = FileHeader::s_magic;
+		header.version = data->getVersion();
+		header.crc = data->getCrc();
+
+		f->write(header);
+		data->saveToFile(f);
+		f->write(header);
+	}
+
+	bool FileFactory::validate(const char* filename)
+	{
+		vx::File f;
+		f.open(filename, vx::FileAccess::Read);
+
+		FileHeader headerTop;
+		f.read(headerTop);
+
+		return headerTop.magic == FileHeader::s_magic;
+	}
 }
-
-#include <vxLib/types.h>
-
-class FileFactory
-{
-public:
-	static bool load(const char* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
-	static bool load(vx::File* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
-	static bool load(const u8* ptr, u32 fileSize, SceneFile* data, vx::Allocator* allocator);
-};

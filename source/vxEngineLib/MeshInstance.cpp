@@ -53,8 +53,7 @@ MeshInstanceFile::MeshInstanceFile()
 {
 }
 
-MeshInstanceFile::MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32],
-	const vx::Transform &transform)
+MeshInstanceFile::MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::Transform &transform)
 	:m_name(),
 	m_mesh(),
 	m_material(),
@@ -71,6 +70,42 @@ const char* MeshInstanceFile::getMeshFile() const noexcept
 }
 
 const char* MeshInstanceFile::getMaterialFile() const noexcept
+{
+	return m_material;
+}
+
+///
+
+MeshInstanceFileOld::MeshInstanceFileOld()
+:m_name(),
+m_mesh(),
+m_material(),
+m_transform()
+{
+}
+
+MeshInstanceFileOld::MeshInstanceFileOld(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::TransformOld &transform)
+:m_name(),
+m_mesh(),
+m_material(),
+m_transform(transform)
+{
+	strcpy_s(m_name, instanceName);
+	strcpy_s(m_mesh, meshName);
+	strcpy_s(m_material, materialName);
+}
+
+MeshInstanceFileOld::~MeshInstanceFileOld()
+{
+
+}
+
+const char* MeshInstanceFileOld::getMeshFile() const noexcept
+{
+	return m_mesh;
+}
+
+const char* MeshInstanceFileOld::getMaterialFile() const noexcept
 {
 	return m_material;
 }

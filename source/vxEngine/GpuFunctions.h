@@ -28,4 +28,5 @@ SOFTWARE.
 struct GpuFunctions
 {
 	static vx::uint2 __vectorcall packQRotation(const __m128 qRotation);
+	static __m128 __vectorcall unpackQRotation(const vx::uint2 &rotation);
 };

@@ -655,6 +655,8 @@
     <None Include="..\..\game\data\shaders\programs\shadow.frag" />
     <None Include="..\..\game\data\shaders\programs\shadow.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\shadow.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\shadowParaboloid.frag" />
+    <None Include="..\..\game\data\shaders\programs\shadowParaboloid.geom" />
     <None Include="..\..\game\data\shaders\programs\text.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\text.vs.glsl" />
     <None Include="..\..\game\data\shaders\programs\voxelize.fs.glsl" />

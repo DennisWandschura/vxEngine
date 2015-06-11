@@ -119,7 +119,7 @@ public:
 	bool setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid);
 
 	void editorAddMeshInstance(const Editor::MeshInstance &instance);
-	bool removeSelectedMeshInstance();
+	bool removeMeshInstance(const vx::StringID &sid);
 
 	void updateNavMeshBuffer(const NavMesh &navMesh, u32(&selectedVertex)[3], u8 selectedCount);
 	void updateNavMeshBuffer(const NavMesh &navMesh);

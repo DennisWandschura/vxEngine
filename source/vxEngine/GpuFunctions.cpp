@@ -39,3 +39,40 @@ vx::uint2 __vectorcall GpuFunctions::packQRotation(const __m128 qRotation)
 
 	return packedQRotation;
 }
+
+__m128 __vectorcall GpuFunctions::unpackQRotation(const vx::uint2 &rotation)
+{
+	/*
+	uvec4 tmp;
+	tmp.x = uRotation.x;
+	tmp.y = (uRotation.x >> 16);
+	tmp.z = uRotation.y;
+	tmp.w = (uRotation.y >> 16);
+	tmp = tmp & UINT16_MAX;
+
+	vec4 vrot = vec4(tmp) / UINT16_MAX;
+	vrot = vrot * 2.0 - 1.0;
+
+	return vrot;
+	*/
+
+	vx::uint4 tmp;
+	tmp.x = rotation.x & 0xffff;
+	tmp.y = (rotation.x >> 16) & 0xffff;
+	tmp.z = rotation.y & 0xffff;
+	tmp.w = (rotation.y >> 16) & 0xffff;
+
+	const __m128 vmax = { 0xffff, 0xffff, 0xffff, 0xffff };
+
+	__m128 qRotation;
+	qRotation.m128_f32[0] = (float)tmp.x;
+	qRotation.m128_f32[1] = (float)tmp.y;
+	qRotation.m128_f32[2] = (float)tmp.z;
+	qRotation.m128_f32[3] = (float)tmp.w;
+
+	qRotation = _mm_div_ps(qRotation, vmax);
+	qRotation = _mm_mul_ps(qRotation, vx::g_VXTwo);
+	qRotation = _mm_sub_ps(qRotation, vx::g_VXOne);
+
+	return qRotation;
+}

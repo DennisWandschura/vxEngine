@@ -307,7 +307,7 @@ namespace Editor
 		return it->c_str();
 	}
 
-	const Editor::MeshInstance& Scene::createMeshInstance()
+	vx::StringID Scene::createMeshInstance()
 	{
 		std::string instanceName = "instance" + std::to_string(m_meshInstances.size());
 		auto nameSid = vx::make_sid(instanceName.c_str());
@@ -319,9 +319,9 @@ namespace Editor
 		::MeshInstance instance(nameSid, meshSid, materialSid, transform);
 		Editor::MeshInstance editorInstance(instance, std::move(instanceName));
 
-		auto it = m_meshInstances.insert(nameSid, editorInstance);
+		m_meshInstances.insert(nameSid, editorInstance);
 
-		return *it;
+		return nameSid;
 	}
 
 	void Scene::removeMeshInstance(const vx::StringID &sid)

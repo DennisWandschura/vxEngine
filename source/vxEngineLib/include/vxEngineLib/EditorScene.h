@@ -115,7 +115,7 @@ namespace Editor
 		const char* getMeshName(const vx::StringID &sid) const;
 		const char* getActorName(const vx::StringID &sid) const;
 
-		const Editor::MeshInstance& createMeshInstance();
+		vx::StringID createMeshInstance();
 		void removeMeshInstance(const vx::StringID &sid);
 		bool renameMeshInstance(const vx::StringID &sid, const char* newName);
 

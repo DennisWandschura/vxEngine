@@ -28,8 +28,8 @@ void Light::getTransformationMatrix(vx::mat4* m) const
 	const __m128 x_axis = { 1, 0, 0, 0 };
 	const __m128 y_axis = { 0, 1, 0, 0 };
 
-	auto lightPos = vx::loadFloat(m_position);
-	auto lightDir = vx::loadFloat(m_direction);
+	auto lightPos = vx::loadFloat3(m_position);
+	auto lightDir = vx::loadFloat3(m_direction);
 
 	auto upDir = vx::cross3(x_axis, lightDir);
 	auto dot = vx::dot(upDir, upDir);

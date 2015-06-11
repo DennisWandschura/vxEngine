@@ -72,9 +72,9 @@ namespace Editor
 		p->~T();
 	}
 
-	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene)
+	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx)
 	{
-		EditorEngine::editor_setTypes(typeMesh, typeMaterial, typeScene);
+		EditorEngine::editor_setTypes(typeMesh, typeMaterial, typeScene, typeFbx);
 
 		g_pMemory = ::operator new(sizeof(Editor));
 		if (!g_pMemory)
@@ -228,9 +228,23 @@ namespace Editor
 		return g_pEditor->engine.getMeshInstanceCount();
 	}
 
-	BSTR getMeshInstanceName(u32 i)
+	BSTR getMeshInstanceNameIndex(u32 i)
 	{
 		auto meshInstanceName = g_pEditor->engine.getMeshInstanceName(i);
+
+		if (meshInstanceName)
+		{
+			return ANSItoBSTR(meshInstanceName);
+		}
+		else
+		{
+			return ::SysAllocString(L"meshInstance");
+		}
+	}
+
+	BSTR getMeshInstanceName(u64 sid)
+	{
+		auto meshInstanceName = g_pEditor->engine.getMeshInstanceName(sid);
 
 		if (meshInstanceName)
 		{
@@ -322,14 +336,14 @@ namespace Editor
 		return g_pEditor->engine.setMeshInstanceName(instanceSid, newName);
 	}
 
-	void createMeshInstance()
+	u64 createMeshInstance()
 	{
-		g_pEditor->engine.createMeshInstance();
+		return g_pEditor->engine.createMeshInstance().value;
 	}
 
-	void removeSelectedMeshInstance()
+	void removeMeshInstance(u64 sid)
 	{
-		g_pEditor->engine.removeSelectedMeshInstance();
+		g_pEditor->engine.removeMeshInstance(sid);
 	}
 
 	void createLight()

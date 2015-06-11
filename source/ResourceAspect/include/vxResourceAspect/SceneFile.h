@@ -31,6 +31,7 @@ struct Actor;
 struct Spawn;
 struct Waypoint;
 
+struct MeshInstanceFileOld;
 class MeshInstance;
 class Material;
 class Scene;
@@ -80,6 +81,7 @@ class SceneFile : public vx::Serializable
 	struct CreateSceneShared;
 
 	std::unique_ptr<MeshInstanceFile[]> m_pMeshInstances;
+	std::unique_ptr<MeshInstanceFileOld[]> m_pMeshInstancesOld;
 	std::unique_ptr<Light[]> m_pLights;
 	std::unique_ptr<SpawnFile[]> m_pSpawns;
 	std::unique_ptr<ActorFile[]> m_pActors;
@@ -96,18 +98,21 @@ class SceneFile : public vx::Serializable
 
 	bool createSceneShared(const CreateSceneShared &desc);
 
+	const u8* loadVersion2(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+	const u8* loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+
 public:
 	SceneFile();
 	~SceneFile();
 
-	const u8* loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* allocator) override;
+	const u8* loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator) override;
 	//void loadFromYAML(const char *file);
 
-	bool saveToFile(const char *file) const;
-	bool saveToFile(vx::File *file) const;
+	void saveToFile(vx::File *file) const override;
 	//void saveToYAML(const char *file) const;
 
-	const std::unique_ptr<MeshInstanceFile[]>& getMeshInstances() const noexcept;
+	const MeshInstanceFile* getMeshInstances() const noexcept;
+	const MeshInstanceFileOld* getMeshInstancesOld() const noexcept;
 	u32 getNumMeshInstances() const noexcept;
 
 	u8 createScene(const CreateSceneDescription &desc);

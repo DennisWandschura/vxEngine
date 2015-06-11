@@ -1111,5 +1111,11 @@
     <None Include="..\..\game\data\shaders\resetLightCmdBuffer.pipe">
       <Filter>Shader Pipelines</Filter>
     </None>
+    <None Include="..\..\game\data\shaders\programs\shadowParaboloid.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\shadowParaboloid.geom">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -55,29 +55,63 @@ struct ConverterSceneFileToScene::CreateSceneActorsDesc
 
 bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc)
 {
-	for (auto i = 0u; i < desc.sceneFile->m_meshInstanceCount; ++i)
+	if (desc.sceneFile->m_pMeshInstances)
 	{
-		auto &instance = desc.sceneFile->m_pMeshInstances[i];
-		auto name = instance.getName();
-		auto meshFile = instance.getMeshFile();
-		auto materialFile = instance.getMaterialFile();
-
-		auto sidName = vx::make_sid(name);
-		auto sidMesh = vx::make_sid(meshFile);
-		auto itMesh = desc.sortedMeshes->find(sidMesh);
-		auto sidMaterial = vx::make_sid(materialFile);
-		auto itMaterial = desc.sortedMaterials->find(sidMaterial);
-
-		if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
+		for (auto i = 0u; i < desc.sceneFile->m_meshInstanceCount; ++i)
 		{
-			return false;
+			auto &instance = desc.sceneFile->m_pMeshInstances[i];
+			auto name = instance.getName();
+			auto meshFile = instance.getMeshFile();
+			auto materialFile = instance.getMaterialFile();
+
+			auto sidName = vx::make_sid(name);
+			auto sidMesh = vx::make_sid(meshFile);
+			auto itMesh = desc.sortedMeshes->find(sidMesh);
+			auto sidMaterial = vx::make_sid(materialFile);
+			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
+
+			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
+			{
+				return false;
+			}
+
+			desc.sceneMeshes->insert(sidMesh, *itMesh);
+			desc.sceneMaterials->insert(sidMaterial, *itMaterial);
+
+			desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, sidMaterial, instance.getTransform());
 		}
-
-		desc.sceneMeshes->insert(sidMesh, *itMesh);
-		desc.sceneMaterials->insert(sidMaterial, *itMaterial);
-
-		desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, sidMaterial, instance.getTransform());
 	}
+	else
+	{
+		for (auto i = 0u; i < desc.sceneFile->m_meshInstanceCount; ++i)
+		{
+			auto &instance = desc.sceneFile->m_pMeshInstancesOld[i];
+			auto name = instance.getName();
+			auto meshFile = instance.getMeshFile();
+			auto materialFile = instance.getMaterialFile();
+
+			auto sidName = vx::make_sid(name);
+			auto sidMesh = vx::make_sid(meshFile);
+			auto itMesh = desc.sortedMeshes->find(sidMesh);
+			auto sidMaterial = vx::make_sid(materialFile);
+			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
+
+			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
+			{
+				return false;
+			}
+
+			desc.sceneMeshes->insert(sidMesh, *itMesh);
+			desc.sceneMaterials->insert(sidMaterial, *itMaterial);
+
+			auto oldTransform = instance.getTransform();
+
+			vx::Transform transform;
+			oldTransform.convertTo(&transform);
+			desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, sidMaterial, transform);
+		}
+	}
+	
 
 	return true;
 }

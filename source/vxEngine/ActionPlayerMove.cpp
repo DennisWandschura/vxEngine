@@ -67,7 +67,7 @@ void ActionPlayerMove::run()
 
 
 	auto vy = m_inputComponent->velocity.y;
-	vx::storeFloat(&m_inputComponent->velocity, vVelocity);
+	vx::storeFloat4(&m_inputComponent->velocity, vVelocity);
 	m_inputComponent->velocity.y = vy;
 
 	//_mm_store_ss(&m_inputComponent->velocity.x, vVelocity);

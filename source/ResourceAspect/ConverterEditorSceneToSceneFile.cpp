@@ -87,7 +87,8 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 		char name[32];
 		strncpy(name, instanceName, 32);
 
-		sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, it.getTransform());
+		auto transform = it.getTransform();
+		sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, transform);
 	}
 
 	auto spawns = scene.getSpawns();

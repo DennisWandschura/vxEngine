@@ -26,16 +26,20 @@ SOFTWARE.
 #include <assimp/postprocess.h>
 #include <memory>
 #include <Shlwapi.h>
-#include <PhysX/PxPhysicsAPI.h>
+#include <PxPhysicsAPI.h>
 #include <vxLib/ScopeGuard.h>
 #include <vxLib/File/File.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxLib/File/FileHeader.h>
+#include <vxEngineLib/AnimationFile.h>
+#include <vxEngineLib/FileFactory.h>
+#include <vxLib/util/CityHash.h>
+#include <fstream>
 
 #ifdef _DEBUG
-#pragma comment(lib, "vxLib_d.lib")
+#pragma comment(lib, "vxLib_sd.lib")
 #pragma comment(lib, "vxEngineLib_d.lib")
-#pragma comment(lib, "assimpd.lib")
+#pragma comment(lib, "assimp-vc120-mtd.lib")
 #pragma comment(lib, "PhysX3CHECKED_x64.lib")
 #pragma comment(lib, "PhysX3CookingCHECKED_x64.lib")
 #pragma comment(lib, "PhysX3CommonCHECKED_x64.lib")
@@ -60,7 +64,7 @@ bool createPhysXMesh(const void* vertices, u32 vertexCount, const u32* indices, 
 {
 	physx::PxTriangleMeshDesc meshDesc;
 	meshDesc.points.count = vertexCount;
-	meshDesc.points.stride = sizeof(vx::float3);
+	meshDesc.points.stride = sizeof(aiVector3D);
 	meshDesc.points.data = vertices;
 
 	meshDesc.triangles.count = indexCount / 3;
@@ -71,6 +75,8 @@ bool createPhysXMesh(const void* vertices, u32 vertexCount, const u32* indices, 
 
 	return status;
 }
+
+extern void exportAnimation(const aiAnimation* anim);
 
 bool import(const char *file)
 {
@@ -91,6 +97,15 @@ bool import(const char *file)
 
 	std::string filename = PathFindFileName(file);
 
+	//printf("animCount: %u\n", scene->mNumAnimations);
+
+	for (auto i = 0u; i < scene->mNumAnimations; ++i)
+	{
+		auto animation = scene->mAnimations[i];
+
+		exportAnimation(animation);
+	}
+
 	std::string meshFileName;
 	for (auto i = 0u; i < scene->mNumMeshes; ++i)
 	{
@@ -101,7 +116,7 @@ bool import(const char *file)
 
 		if (!pMesh->HasNormals() || !pMesh->HasTangentsAndBitangents())
 		{
-			printf("Error: Mesh %s has no normals/tangents/bitangents !\n", pMesh->mName);
+			printf("Error: Mesh %s has no normals/tangents/bitangents !\n", pMesh->mName.C_Str());
 			return false;
 		}
 
@@ -136,6 +151,8 @@ bool import(const char *file)
 			}
 		}
 
+		printf("vertexCount: %u\nIndexCount: %u\n", vertexCount, indexIndex);
+
 		printf("trying to create physx mesh\n");
 		physx::PxDefaultMemoryOutputStream writeBuffer;
 		if (!createPhysXMesh(pMesh->mVertices, vertexCount, indices, indexCount, &writeBuffer))
@@ -144,6 +161,7 @@ bool import(const char *file)
 			return false;
 		}
 		printf("created physx mesh\n");
+		printf("hash: %llu\n", CityHash64((char*)writeBuffer.getData(), writeBuffer.getSize()));
 
 		printf("creating mesh object\n");
 		vx::Mesh mesh(pMem.release(), vertexCount, indexCount);
@@ -159,36 +177,7 @@ bool import(const char *file)
 		printf("creating MeshFile object\n");
 		vx::MeshFile meshFile(std::move(mesh), writeBuffer.getData(), writeBuffer.getSize());
 
-		printf("creating File header\n");
-		vx::FileHeader header;
-		header.magic = vx::FileHeader::s_magic;
-		printf("version\n");
-		header.version = meshFile.getVersion();
-		printf("crc\n");
-		header.crc = meshFile.getCrc();
-
-		if (header.crc == 0)
-		{
-			return false;
-		}
-
-		printf("creating file\n");
-		vx::File file;
-		if (!file.create(meshFileName.c_str(), vx::FileAccess::Write))
-		{
-			printf("error creating file\n");
-			return false;
-		}
-
-		file.write(header);
-
-		printf("trying to save mesh: %s\n", meshName.c_str());
-		if (!meshFile.saveToFile(&file))
-		{
-			auto error = GetLastError();
-			printf("error %d saving to file %s\n", error, meshName.c_str());
-			return false;
-		}
+		vx::FileFactory::saveToFile(meshFileName.c_str(), &meshFile);
 
 		printf("saved mesh: %s\n", meshName.c_str());
 	}
@@ -274,7 +263,8 @@ int main(int argc, char *argv[], char *envp[])
 		return 1;
 	}
 
-	PhysXHandler<physx::PxCooking> pCooking = PxCreateCooking(PX_PHYSICS_VERSION, *pFoundation, physx::PxCookingParams(toleranceScale));
+	auto cookingParams = physx::PxCookingParams(toleranceScale);
+	PhysXHandler<physx::PxCooking> pCooking = PxCreateCooking(PX_PHYSICS_VERSION, *pFoundation, cookingParams);
 	if (!pCooking)
 	{
 		return 1;

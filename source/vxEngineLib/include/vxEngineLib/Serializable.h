@@ -34,12 +34,16 @@ namespace vx
 
 namespace vx
 {
+	class File;
+
 	class Serializable
 	{
 	public:
 		virtual ~Serializable(){}
 
-		virtual const u8* loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* allocator) = 0;
+		virtual void saveToFile(File* f) const = 0;
+
+		virtual const u8* loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator) = 0;
 
 		virtual u64 getCrc() const = 0;
 

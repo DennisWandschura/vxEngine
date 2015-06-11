@@ -71,7 +71,7 @@ namespace vx
 		return *this;
 	}
 
-	const u8* MeshFile::loadFromMemory(const u8 *ptr, u32 version, vx::Allocator* allocator)
+	const u8* MeshFile::loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator)
 	{
 		if (version != getVersion())
 		{
@@ -97,15 +97,13 @@ namespace vx
 		return (p + m_physxDataSize);
 	}
 
-	bool MeshFile::saveToFile(vx::File* file) const
+	void MeshFile::saveToFile(vx::File* file) const
 	{
 		if (!m_mesh.saveToFile(file))
-			return false;
+			return;
 
 		file->write(m_physxDataSize);
 		file->write(m_physxData, m_physxDataSize);
-
-		return true;
 	}
 
 	u64 MeshFile::getCrc() const

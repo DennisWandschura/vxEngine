@@ -384,8 +384,9 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 
 	m_camera.setPosition(0, 2.5f, 15);
 
-	m_shaderManager.addParameter("lightInvo", 6u);
-	if (!m_shaderManager.initialize(dataDir, true))
+	//m_shaderManager.addParameter("lightInvo", 6u);
+	//m_shaderManager.addParameter("maxLightCount", 5u);
+	if (!m_shaderManager.initialize(dataDir, &m_allocator, true))
 	{
 		puts("Error initializing Shadermanager");
 		return false;
@@ -737,7 +738,7 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 
 	renderProfiler(gpuProfiler);
 
-	glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 	CpuProfiler::pushMarker("swapBuffers");
 
@@ -794,7 +795,10 @@ void RenderAspect::clearBuffers()
 {
 	u32 count = 0;
 	auto shaderStoragePixelListCmdBuffer = m_objectManager.getBuffer("ShaderStoragePixelListCmdBuffer");
-	shaderStoragePixelListCmdBuffer->subData(0,sizeof(u32), &count);
+	auto mappedBuffer = shaderStoragePixelListCmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	mappedBuffer->count = 0;
+	mappedBuffer.unmap();
+	//shaderStoragePixelListCmdBuffer->subData(0,sizeof(u32), &count);
 }
 
 void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer)

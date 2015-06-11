@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,26 +24,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class SceneFile;
-
-namespace Editor
-{
-	class Scene;
-}
+#include "Serializable.h"
 
 namespace vx
 {
-	class Allocator;
-	class StackAllocator;
 	class File;
+
+	class FileFactory
+	{
+	public:
+		static void saveToFile(const char* filename, const Serializable* data);
+		static void saveToFile(File* file, const Serializable* data);
+
+		static bool validate(const char* filename);
+	};
 }
-
-#include <vxLib/types.h>
-
-class FileFactory
-{
-public:
-	static bool load(const char* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
-	static bool load(vx::File* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
-	static bool load(const u8* ptr, u32 fileSize, SceneFile* data, vx::Allocator* allocator);
-};

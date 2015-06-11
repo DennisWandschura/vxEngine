@@ -80,6 +80,7 @@ class PhysicsAspect : public vx::EventListener
 	physx::PxMaterial* m_pActorMaterial{ nullptr };
 	physx::PxPhysics *m_pPhysics;
 	std::mutex m_mutex;
+	vx::sorted_vector<vx::StringID, physx::PxConvexMesh*> m_physxConvexMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxTriangleMesh*> m_physxMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxMaterial*> m_physxMaterials;
 	vx::sorted_vector<vx::StringID, physx::PxRigidStatic*> m_staticMeshInstances;
@@ -88,6 +89,7 @@ class PhysicsAspect : public vx::EventListener
 	physx::PxCooking* m_pCooking;
 
 	physx::PxTriangleMesh* processMesh(const vx::MeshFile* pMesh);
+	physx::PxConvexMesh* processMeshConvex(const vx::MeshFile* pMesh);
 	void processScene(const void* pScene);
 
 	//////////////// handle Events
