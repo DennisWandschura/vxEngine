@@ -42,8 +42,8 @@ namespace LevelEditor
         const string s_textEditLights = "Edit Lights";
         const string s_textEditSpawns = "Edit Spawns";
         const string s_textEditWaypoints = "Edit Waypoints";
-        const int s_groupBoxEditPositionX = 1380;
-        const int s_groupBoxEditPositionY = 620;
+        const int s_groupBoxEditPositionX = 2000;
+        const int s_groupBoxEditPositionY = 680;
 
         const UInt32 s_typeMesh = 0;
         const UInt32 s_typeMaterial = 1;

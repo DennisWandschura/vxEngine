@@ -34,8 +34,6 @@ SOFTWARE.
 #include <vxEngineLib/debugPrint.h>
 #include "developer.h"
 
-#include <DirectXMath.h>
-
 u32 g_editorTypeMesh{ 0xffffffff };
 u32 g_editorTypeMaterial{ 0xffffffff };
 u32 g_editorTypeScene{ 0xffffffff };

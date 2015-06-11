@@ -45,11 +45,13 @@ namespace gl
 	vx::StringID ObjectManager::createVertexArray(const char* id)
 	{
 		auto sid = vx::make_sid(id);
+		auto it = m_vertexArrays.find(sid);
+		VX_ASSERT(it == m_vertexArrays.end());
 
 		vx::gl::VertexArray vao;
 		vao.create();
 
-		auto it = m_vertexArrays.insert(std::move(sid), std::move(vao));
+		it = m_vertexArrays.insert(std::move(sid), std::move(vao));
 		if (it == m_vertexArrays.end())
 			sid = 0;
 
@@ -93,11 +95,13 @@ namespace gl
 	vx::StringID ObjectManager::createFramebuffer(const char* id)
 	{
 		auto sid = vx::make_sid(id);
+		auto it = m_frameBuffers.find(sid);
+		VX_ASSERT(it == m_frameBuffers.end());
 
 		vx::gl::Framebuffer fb;
 		fb.create();
 
-		auto it = m_frameBuffers.insert(std::move(sid), std::move(fb));
+		it = m_frameBuffers.insert(std::move(sid), std::move(fb));
 		if (it == m_frameBuffers.end())
 			sid = 0;
 
@@ -140,12 +144,14 @@ namespace gl
 
 	vx::StringID ObjectManager::createTexture(const char* id, const vx::gl::TextureDescription &desc)
 	{
+		vx::StringID sid = vx::make_sid(id);
+		auto it = m_textures.find(sid);
+		VX_ASSERT(it == m_textures.end());
+
 		vx::gl::Texture texture;
 		texture.create(desc);
 
-		vx::StringID sid = vx::make_sid(id);
-
-		auto it = m_textures.insert(std::move(sid), std::move(texture));
+		it = m_textures.insert(std::move(sid), std::move(texture));
 		if (it == m_textures.end())
 			sid = 0;
 

@@ -48,11 +48,14 @@ namespace gl
 
 	vx::StringID BufferManager::createBuffer(const char* key, const vx::gl::BufferDescription &desc)
 	{
+		auto sid = vx::make_sid(key);
+		auto it = m_buffers.find(sid);
+		VX_ASSERT(it == m_buffers.end());
+
 		vx::gl::Buffer buffer;
 		buffer.create(desc);
 
-		auto sid = vx::make_sid(key);
-		auto it = m_buffers.insert(std::move(sid), std::move(buffer));
+		it = m_buffers.insert(std::move(sid), std::move(buffer));
 
 		if (it == m_buffers.end())
 		{

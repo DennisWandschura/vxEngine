@@ -24,7 +24,7 @@ SOFTWARE.
 #include "EditorRenderAspect.h"
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
-#include <vxEngineLib/Scene.h>
+#include <vxEngineLib/EditorScene.h>
 #include <vxLib/gl/gl.h>
 #include <vxLib/gl/StateManager.h>
 #include <vxLib/gl/ProgramPipeline.h>
@@ -46,6 +46,8 @@ SOFTWARE.
 #include "Graphics/CommandListFactory.h"
 #include "EngineConfig.h"
 #include <vxEngineLib/Waypoint.h>
+
+#include <vxEngineLib/Light.h>
 
 struct VertexPositionColor
 {
@@ -326,11 +328,10 @@ void EditorRenderAspect::createNavMeshNodesVao()
 
 void EditorRenderAspect::createIndirectCmdBuffers()
 {
-	vx::gl::DrawArraysIndirectCommand arrayCmd;
-	memset(&arrayCmd, 0, sizeof(vx::gl::DrawArraysIndirectCommand));
-	arrayCmd.instanceCount = 1;
-
 	{
+		vx::gl::DrawArraysIndirectCommand arrayCmd = {};
+		arrayCmd.instanceCount = 1;
+
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
 		desc.flags = vx::gl::BufferStorageFlags::Write;
@@ -338,7 +339,7 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 		desc.pData = &arrayCmd;
 		desc.size = sizeof(vx::gl::DrawArraysIndirectCommand);
 
-		m_objectManager.createBuffer("lightCmdBuffer", desc);
+		m_objectManager.createBuffer("editorLightCmdBuffer", desc);
 		m_objectManager.createBuffer("navMeshVertexCmdBuffer", desc);
 		m_objectManager.createBuffer("graphNodesCmdBuffer", desc);
 		m_objectManager.createBuffer("spawnPointCmdBuffer", desc);
@@ -359,7 +360,7 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 		m_objectManager.createBuffer("navmeshCmdBuffer", desc);
 	}
 
-	{
+	/*{
 		u32 drawCount = 0;
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Parameter_Buffer;
@@ -369,7 +370,7 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 		desc.size = sizeof(u32);
 
 		m_objectManager.createBuffer("meshParamBuffer", desc);
-	}
+	}*/
 }
 
 void EditorRenderAspect::createCommandList()
@@ -709,23 +710,24 @@ void EditorRenderAspect::handleEditorEvent(const vx::Event &evt)
 
 void EditorRenderAspect::handleLoadScene(const vx::Event &evt)
 {
-	auto scene = (Scene*)evt.arg2.ptr;
+	auto scene = (Editor::Scene*)evt.arg2.ptr;
 	auto lightCount = scene->getLightCount();
 	m_pEditorColdData->m_lightCount = lightCount;
 	auto &navMesh = scene->getNavMesh();
 
 	updateNavMeshBuffer(navMesh);
 
-	{
+	/*{
 		auto paramBuffer = m_objectManager.getBuffer("meshParamBuffer");
 		u32 count = scene->getMeshInstanceCount();
 		paramBuffer->subData(0, sizeof(u32), &count);
-	}
+	}*/
 
 	{
-		auto cmdBuffer = m_objectManager.getBuffer("lightCmdBuffer");
+		auto cmdBuffer = m_objectManager.getBuffer("editorLightCmdBuffer");
 		auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 		mappedCmdBuffer->count = lightCount;
+		mappedCmdBuffer.unmap();
 	}
 
 	auto spawnCount = scene->getSpawnCount();
@@ -1029,7 +1031,7 @@ void EditorRenderAspect::updateLightBuffer(const Light* lights, u32 count)
 	m_sceneRenderer.updateLights(lights, count);
 
 	{
-		auto cmdBuffer = m_objectManager.getBuffer("lightCmdBuffer");
+		auto cmdBuffer = m_objectManager.getBuffer("editorLightCmdBuffer");
 		auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 		mappedCmdBuffer->count = count;
 	}

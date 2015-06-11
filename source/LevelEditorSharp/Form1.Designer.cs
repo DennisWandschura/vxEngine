@@ -156,7 +156,7 @@ namespace LevelEditor
             this.viewToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1904, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(2544, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -287,9 +287,9 @@ namespace LevelEditor
             // 
             // panel_render
             // 
-            this.panel_render.Location = new System.Drawing.Point(64, 118);
+            this.panel_render.Location = new System.Drawing.Point(12, 118);
             this.panel_render.Name = "panel_render";
-            this.panel_render.Size = new System.Drawing.Size(1280, 720);
+            this.panel_render.Size = new System.Drawing.Size(1920, 1080);
             this.panel_render.TabIndex = 1;
             this.panel_render.Paint += new System.Windows.Forms.PaintEventHandler(this.panel_render_Paint);
             this.panel_render.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_render_MouseDown);
@@ -304,7 +304,7 @@ namespace LevelEditor
             // 
             // treeView_entities
             // 
-            this.treeView_entities.Location = new System.Drawing.Point(1365, 118);
+            this.treeView_entities.Location = new System.Drawing.Point(1977, 118);
             this.treeView_entities.Name = "treeView_entities";
             this.treeView_entities.Size = new System.Drawing.Size(280, 398);
             this.treeView_entities.TabIndex = 2;
@@ -571,7 +571,7 @@ namespace LevelEditor
             // groupBoxMesh
             // 
             this.groupBoxMesh.Controls.Add(this.flowLayoutPanel8);
-            this.groupBoxMesh.Location = new System.Drawing.Point(1380, 621);
+            this.groupBoxMesh.Location = new System.Drawing.Point(1977, 668);
             this.groupBoxMesh.Name = "groupBoxMesh";
             this.groupBoxMesh.Size = new System.Drawing.Size(419, 236);
             this.groupBoxMesh.TabIndex = 10;
@@ -700,7 +700,7 @@ namespace LevelEditor
             this.toolStripButtonCreateMeshInstance});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1904, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(2544, 25);
             this.toolStrip1.TabIndex = 11;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -829,7 +829,7 @@ namespace LevelEditor
             // groupBoxNavMesh
             // 
             this.groupBoxNavMesh.Controls.Add(this.flowLayoutPanel4);
-            this.groupBoxNavMesh.Location = new System.Drawing.Point(1386, 910);
+            this.groupBoxNavMesh.Location = new System.Drawing.Point(1983, 957);
             this.groupBoxNavMesh.Name = "groupBoxNavMesh";
             this.groupBoxNavMesh.Size = new System.Drawing.Size(398, 59);
             this.groupBoxNavMesh.TabIndex = 16;
@@ -839,7 +839,7 @@ namespace LevelEditor
             // groupBoxLight
             // 
             this.groupBoxLight.Controls.Add(this.flowLayoutPanel5);
-            this.groupBoxLight.Location = new System.Drawing.Point(1386, 975);
+            this.groupBoxLight.Location = new System.Drawing.Point(1983, 1022);
             this.groupBoxLight.Name = "groupBoxLight";
             this.groupBoxLight.Size = new System.Drawing.Size(398, 59);
             this.groupBoxLight.TabIndex = 17;
@@ -928,7 +928,7 @@ namespace LevelEditor
             // 
             // treeViewActionList
             // 
-            this.treeViewActionList.Location = new System.Drawing.Point(1683, 118);
+            this.treeViewActionList.Location = new System.Drawing.Point(2295, 118);
             this.treeViewActionList.Name = "treeViewActionList";
             this.treeViewActionList.Size = new System.Drawing.Size(209, 398);
             this.treeViewActionList.TabIndex = 18;
@@ -938,7 +938,7 @@ namespace LevelEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1904, 1041);
+            this.ClientSize = new System.Drawing.Size(2544, 1401);
             this.Controls.Add(this.treeViewActionList);
             this.Controls.Add(this.groupBoxLight);
             this.Controls.Add(this.groupBoxNavMesh);

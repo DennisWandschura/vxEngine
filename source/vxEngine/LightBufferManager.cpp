@@ -26,6 +26,7 @@ SOFTWARE.
 #include "gl/BufferBindingManager.h"
 #include <vxEngineLib/Light.h>
 #include "gl/ObjectManager.h"
+#include <vxEngineLib/debugPrint.h>
 
 void LightBufferManager::initialize(u32 maxLightCount, gl::ObjectManager* objectManager)
 {
@@ -50,11 +51,15 @@ void LightBufferManager::createLightDataBuffer(u32 maxLightCount, gl::ObjectMana
 
 void LightBufferManager::updateLightDataBuffer(const Light* lights, u32 count, gl::ObjectManager* objectManager)
 {
+	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "LightBufferManager::updateLightDataBuffer");
+	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "light count: %u", count);
+
 	VX_ASSERT(count <= 5);
 
 	LightDataBlock data;
 	for (auto i = 0u; i < count; ++i)
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "light: %f %f %f", lights[i].m_position.x, lights[i].m_position.y, lights[i].m_position.z);
 		data.u_lightData[i].position = lights[i].m_position;
 		data.u_lightData[i].falloff = lights[i].m_falloff;
 		data.u_lightData[i].direction = lights[i].m_direction;
