@@ -1,0 +1,12 @@
+Unity("Unity_vxEngine")
+	{
+		.UnityInputPath = ''
+		.UnityOutputPattern = 'Unity_vxEngine*.cpp'
+		.UnityOutputPath = 'unity'
+		.UnityInputExcludePath = 'unity'
+	}
+
+Alias('all')
+{
+	.Targets = { 'Unity_vxEngine' }
+}

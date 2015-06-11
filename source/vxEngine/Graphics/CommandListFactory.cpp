@@ -1,3 +1,4 @@
+/*
 The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
@@ -19,3 +20,35 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+
+#include "CommandListFactory.h"
+#include <vxEngineLib/ParserNode.h>
+#include "../SegmentFactory.h"
+#include "Segment.h"
+
+namespace Graphics
+{
+	void CommandListFactory::createFromFile(const char *file, const gl::ObjectManager &objectManager, const vx::gl::ShaderManager &shaderManager, CommandList* list)
+	{
+		Parser::Node root;
+		VX_ASSERT(root.createFromFile(file));
+
+		auto segmentsNode = root.get("segments");
+
+		list->initialize();
+
+		std::string segmentFile;
+		auto segmentCount = segmentsNode->size();
+		for (u32 i = 0; i < segmentCount; ++i)
+		{
+			segmentFile.clear();
+			segmentsNode->as(i, &segmentFile);
+			auto segment = Graphics::SegmentFactory::createFromFile(segmentFile.c_str(), objectManager, shaderManager);
+
+			list->pushSegment(segment, segmentFile.c_str());
+		}
+
+		//return std::move(list);
+	}
+}

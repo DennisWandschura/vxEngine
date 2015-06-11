@@ -1,3 +1,4 @@
+﻿/*
 The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
@@ -19,11 +20,35 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-Code Format Guide:
-See Code Format Guide.txt
+namespace LevelEditor
+{
+    class DecisionKeyUp : Decision
+    {
+        Form1 m_editorForm;
+        System.Windows.Forms.Keys m_key;
 
-Project Goals:
-Stealth game with one level.
-The player needs to reach the goal while evading the AI players.
-The AI should be able to react to its surroundings (previously open doors are closed, sounds, etc...) and communicate with each other.
+        public DecisionKeyUp(DecisionTreeNode trueNode, DecisionTreeNode falseNode, Form1 editorForm, System.Windows.Forms.Keys key)
+            : base(trueNode, falseNode)
+        {
+            m_editorForm = editorForm;
+            m_key = key;
+        }
+
+        public override DecisionTreeNode getBranch()
+        {
+            if (m_editorForm.isKeyUp(m_key))
+            {
+                return m_trueNode;
+            }
+
+            return m_falseNode;
+        }
+    }
+}
