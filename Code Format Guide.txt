@@ -1,0 +1,38 @@
+-Class names start with capital letter (exceptions are replacements for stl classes)
+-function names are lower case
+-variable names are lower case
+-names in general don't use  "_". example: "some_function" should be someFunction
+-names should describe the use/intend of the class/function
+-member variables start with "m_" (exceptions are Descriptors, internal classes/structs)
+-global variables start with "g_"
+-static variables start with "s_"
+
+-don't comment code, instead use better names for variable/function/class
+
+-Only use structs for:
+	-Function input Descriptions
+	-for things that should be publically accessable, like float3 vector
+	-used only inside a class
+
+-Functions have only a maximum of 2 input parameters
+-use const ref for input only, pointer for inout
+
+-functions that can fail should only return bool
+-don't use error codes
+-don't use exceptions
+-if you can't recover from failure, output error msg in log and crash the program
+
+-use msvc format
+
+-only use inheritance, virtual funtions, etc. when neccesseray
+-inheritance, only 1 level
+
+-use empty namespace for code in source file that does not belong to the class (namespace { your code })
+
+-Function input Description
+Used for functions that have more than 2 input parameters
+
+-raw pointers do not have ownership over the object
+
+-move as much code as possible into cpp file (this includes private member functions, see next point)
+-private member functions can be removed from the class/struct and replaced by normal "global functions" in the cpp file within the namespace "namespace FilenameCpp" (the namespace is neccessary because unity builds)
