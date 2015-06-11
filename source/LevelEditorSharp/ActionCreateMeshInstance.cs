@@ -55,5 +55,13 @@ namespace LevelEditor
         {
             return "ActionCreateMeshInstance";
         }
+
+        public override ActionNode toNode()
+        {
+            ActionNode root = new ActionNode(this.ToString());
+            root.Nodes.Add("Sid: " + m_instanceSid);
+
+            return root;
+        }
     }
 }

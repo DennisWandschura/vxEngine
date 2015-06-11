@@ -467,7 +467,7 @@ namespace LevelEditor
             var count = NativeMethods.getMaterialCount();
             for (uint i = 0; i < count; ++i)
             {
-                var name = NativeMethods.getMaterialName(i);
+                var name = NativeMethods.getMaterialNameIndex(i);
                 var sid = NativeMethods.getMaterialSid(i);
                 var nodeEntry = new EditorNodeEntry(sid, s_typeMaterial, name);
 
@@ -581,6 +581,7 @@ namespace LevelEditor
 
         void setNumericUpDownRotation(Float3 rotation)
         {
+            Console.WriteLine("setNumericUpDownRotation");
             numericUpDown_rot_x.Value = (decimal)rotation.x;
             numericUpDown_rot_y.Value = (decimal)rotation.y;
             numericUpDown_rot_z.Value = (decimal)rotation.z;
@@ -622,6 +623,10 @@ namespace LevelEditor
             if (m_sortedMeshes.TryGetValue(meshSid, out entry))
             {
                 meshInstanceComboBoxMesh.SelectedItem = entry;
+            }
+            else
+            {
+                Console.WriteLine("Error getting instance mesh name: {0}", meshSid);
             }
 
             if (m_sortedMaterials.TryGetValue(materialSid, out entry))
@@ -895,10 +900,11 @@ namespace LevelEditor
             if (clonedAction != null)
             {
                 ActionList actionList = new ActionList(clonedAction, m_actionListHead);
-
-                treeViewActionList.Nodes.Add(actionList.ToString());
                 m_actionListHead.setNext(actionList);
                 m_actionListHead = actionList;
+
+                var node = clonedAction.toNode();
+                treeViewActionList.Nodes.Add(node);
             }
         }
 
@@ -1218,12 +1224,7 @@ namespace LevelEditor
 
            if (materialSid != 0 && instanceSid != 0 && m_selectedMeshInstanceSid == instanceSid)
            {
-
               var oldSid = NativeMethods.getMeshInstanceMaterialSid(instanceSid);
-
-              Console.WriteLine("instance: {0}", instanceSid);
-              Console.WriteLine("old material: {0}", oldSid);
-              Console.WriteLine("new material: {0}", materialSid);
 
               var action = new ActionSetMeshInstanceMaterial(instanceSid, oldSid, materialSid);
               runAction(action);
@@ -1255,9 +1256,10 @@ namespace LevelEditor
 
                 if (newSid != oldSid)
                 {
-                    ActionRenameSelectedMeshInstance action = new ActionRenameSelectedMeshInstance(oldName, oldSid, newName, newSid, this);
+                    //ActionRenameSelectedMeshInstance action = new ActionRenameSelectedMeshInstance(oldName, oldSid, newName, newSid, this);
 
-                    runAction(action);
+                    //runAction(action);
+                    throw new Exception("not properly implemented yet");
                 }
             }
         }
@@ -1354,6 +1356,11 @@ namespace LevelEditor
                     runAction(action);
                 }
             }
+        }
+
+        private void treeViewActionList_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+
         }
     }
 }

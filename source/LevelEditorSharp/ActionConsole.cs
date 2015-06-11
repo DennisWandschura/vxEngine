@@ -59,5 +59,11 @@ namespace LevelEditor
         {
             return "ActionConsole";
         }
+
+        public override ActionNode toNode()
+        {
+            ActionNode root = new ActionNode(this.ToString());
+            return root;
+        }
     }
 }

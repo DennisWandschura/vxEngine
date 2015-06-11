@@ -86,5 +86,12 @@ namespace LevelEditor
         {
             return "ActionCreateNavMeshVertex";
         }
+
+        public override ActionNode toNode()
+        {
+            ActionNode root = new ActionNode(this.ToString());
+            root.Nodes.Add("position: " + m_vertexPosition.x + ", " + m_vertexPosition.y + ", " + m_vertexPosition.z);
+            return root;
+        }
     }
 }

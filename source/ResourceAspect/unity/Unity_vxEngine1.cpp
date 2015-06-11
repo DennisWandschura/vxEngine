@@ -6,6 +6,9 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/ResourceAspect/ConverterSceneFileToScene.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\ConverterSceneFileToScene.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/ResourceAspect/FbxFactory.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\FbxFactory.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/ResourceAspect/FileAspect.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\FileAspect.cpp"
 

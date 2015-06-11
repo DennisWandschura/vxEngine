@@ -425,7 +425,21 @@ namespace Editor
 		return g_pEditor->engine.getMaterialCount();
 	}
 
-	BSTR getMaterialName(u32 i)
+	BSTR getMaterialNameIndex(u32 i)
+	{
+		auto name = g_pEditor->engine.getMaterialNameIndex(i);
+
+		if (name)
+		{
+			return ANSItoBSTR(name);
+		}
+		else
+		{
+			return ::SysAllocString(L"unknownMaterial");
+		}
+	}
+
+	BSTR getMaterialName(u64 i)
 	{
 		auto name = g_pEditor->engine.getMaterialName(i);
 

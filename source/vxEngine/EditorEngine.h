@@ -188,6 +188,7 @@ public:
 	u64 getMeshSid(u32 i) const;
 
 	u32 getMaterialCount() const;
-	const char* getMaterialName(u32 i) const;
+	const char* getMaterialNameIndex(u32 i) const;
+	const char* getMaterialName(u64 sid) const;
 	u64 getMaterialSid(u32 i) const;
 };

@@ -3,11 +3,20 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/AABB.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\AABB.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/Animation.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\Animation.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/AnimationFile.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\AnimationFile.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/EditorScene.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\EditorScene.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/EventManager.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\EventManager.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/FileFactory.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\FileFactory.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/Light.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\Light.cpp"
@@ -47,6 +56,9 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/Timer.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\Timer.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/Transform.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\Transform.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/Triangle.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\Triangle.cpp"

@@ -238,7 +238,11 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.BStr)]
-        public unsafe static extern string getMaterialName(uint i);
+        public unsafe static extern string getMaterialNameIndex(uint i);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.BStr)]
+        public unsafe static extern string getMaterialName(ulong i);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern ulong getMaterialSid(uint i);

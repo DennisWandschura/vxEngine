@@ -108,7 +108,8 @@ namespace Editor
 	extern "C" DLL_EXPORT u64 getMeshSid(u32 i);
 
 	extern "C" DLL_EXPORT u32 getMaterialCount();
-	extern "C" DLL_EXPORT BSTR getMaterialName(u32 i);
+	extern "C" DLL_EXPORT BSTR getMaterialNameIndex(u32 i);
+	extern "C" DLL_EXPORT BSTR getMaterialName(u64 sid);
 	extern "C" DLL_EXPORT u64 getMaterialSid(u32 i);
 }
 #endif

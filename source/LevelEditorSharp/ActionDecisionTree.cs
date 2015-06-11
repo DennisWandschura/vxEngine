@@ -113,5 +113,21 @@ namespace LevelEditor
 
             return "ActionDecisionTree";
         }
+
+        public override ActionNode toNode()
+        {
+            ActionNode root = new ActionNode(this.ToString());
+
+            if (m_lastState != null)
+            {
+                var actions = m_lastState.getActions();
+                foreach (var action in actions)
+                {
+                    root.Nodes.Add(action.toNode());
+                }
+            }
+
+            return root;
+        }
     }
 }

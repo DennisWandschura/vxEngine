@@ -41,5 +41,7 @@ namespace LevelEditor
         public abstract Action clone();
 
         public abstract override string ToString();
+
+        public abstract ActionNode toNode();
     }
 }

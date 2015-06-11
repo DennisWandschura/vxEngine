@@ -34,6 +34,8 @@ SOFTWARE.
 #include <vxEngineLib/debugPrint.h>
 #include "developer.h"
 
+#include <DirectXMath.h>
+
 u32 g_editorTypeMesh{ 0xffffffff };
 u32 g_editorTypeMaterial{ 0xffffffff };
 u32 g_editorTypeScene{ 0xffffffff };
@@ -641,13 +643,14 @@ void EditorEngine::getMeshInstanceRotation(u64 sid, vx::float3* rotationDeg) con
 		auto transform = instance->getTransform();
 		auto q = transform.m_qRotation;
 
-		float rx = atan2(2 * (q.z * q.w + q.x * q.y), 1 - 2 * (q.y*q.y + q.z * q.z));
-		float ry = asin(2 * q.x * q.z - 2 * q.y * q.w);
-		float rz = atan2(2 * (q.x * q.w - q.y * q.z), 1 - 2 * q.w * q.w - 2 * q.z * q.z);
-		
-		rotationDeg->x = vx::radToDeg(rx);
-		rotationDeg->y = vx::radToDeg(ry);
-		rotationDeg->z = vx::radToDeg(rz);
+		__m128 axis;
+		f32 angle;
+		vx::quaternionToAxisAngle(vx::loadFloat4(q), &axis, &angle);
+		axis = vx::normalize3(axis);
+
+		vx::float4a tmpAxis = axis;
+		vx::angleAxisToEuler(tmpAxis, angle, rotationDeg);
+
 	}
 }
 
@@ -1093,7 +1096,7 @@ u32 EditorEngine::getMaterialCount() const
 	return count;
 }
 
-const char* EditorEngine::getMaterialName(u32 i) const
+const char* EditorEngine::getMaterialNameIndex(u32 i) const
 {
 	const char* name = nullptr;
 
@@ -1103,6 +1106,18 @@ const char* EditorEngine::getMaterialName(u32 i) const
 		auto sid = materials.keys()[i];
 
 		name = m_pEditorScene->getMaterialName(sid);
+	}
+
+	return name;
+}
+
+const char* EditorEngine::getMaterialName(u64 sid) const
+{
+	const char* name = nullptr;
+
+	if (m_pEditorScene)
+	{
+		name = m_pEditorScene->getMaterialName(vx::StringID(sid));
 	}
 
 	return name;

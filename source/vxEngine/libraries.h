@@ -49,6 +49,7 @@ SOFTWARE.
 #pragma comment(lib, "vxLib_s.lib")
 #pragma comment(lib, "vxEngineLib.lib")
 #pragma comment(lib, "ResourceAspect.lib")
+#pragma comment(lib, "libfbxsdk-mt.lib")
 
 #ifdef _VX_NOAUDIO
 #else

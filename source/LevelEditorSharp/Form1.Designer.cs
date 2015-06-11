@@ -605,6 +605,7 @@ namespace LevelEditor
             // 
             // textBoxMeshName
             // 
+            this.textBoxMeshName.Enabled = false;
             this.textBoxMeshName.Location = new System.Drawing.Point(47, 3);
             this.textBoxMeshName.MaxLength = 31;
             this.textBoxMeshName.Name = "textBoxMeshName";
@@ -931,6 +932,7 @@ namespace LevelEditor
             this.treeViewActionList.Name = "treeViewActionList";
             this.treeViewActionList.Size = new System.Drawing.Size(209, 398);
             this.treeViewActionList.TabIndex = 18;
+            this.treeViewActionList.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeViewActionList_AfterSelect);
             // 
             // Form1
             // 

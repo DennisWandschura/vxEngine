@@ -76,22 +76,18 @@ namespace LevelEditor
 
         public override Action clone()
         {
-           /* if (m_selectedMesh == false)
-                return null;
-
-            var action = new ActionSelectMesh(m_editorForm);
-            action.m_mouseX = m_mouseX;
-            action.m_mouseY = m_mouseY;
-            action.m_prevSelectedSid = m_prevSelectedSid;
-            action.m_selectedMesh = m_selectedMesh;
-
-            return action;*/
             return null;
         }
 
         public override string ToString()
         {
             return "ActionSelectMesh";
+        }
+
+        public override ActionNode toNode()
+        {
+            ActionNode root = new ActionNode(this.ToString());
+            return root;
         }
     }
 }

@@ -48,5 +48,16 @@ namespace LevelEditor
         {
             return "ActionSetMeshInstanceMaterial";
         }
+
+        public override ActionNode toNode()
+        {
+            var oldName = NativeMethods.getMaterialName(m_oldMaterialSid);
+            var newName = NativeMethods.getMaterialName(m_newMaterialSid);
+
+            ActionNode root = new ActionNode(this.ToString());
+            root.Nodes.Add("old material: " + oldName);
+            root.Nodes.Add("new material: " + newName);
+            return root;
+        }
     }
 }

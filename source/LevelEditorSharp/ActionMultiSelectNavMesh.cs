@@ -65,5 +65,11 @@ namespace LevelEditor
         {
             return "ActionMultiSelectNavMesh";
         }
+
+        public override ActionNode toNode()
+        {
+            ActionNode root = new ActionNode(this.ToString());
+            return root;
+        }
     }
 }

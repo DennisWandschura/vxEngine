@@ -77,6 +77,12 @@ namespace LevelEditor
         {
             return "ActionCallFunction";
         }
+
+        public override ActionNode toNode()
+        {
+            ActionNode root = new ActionNode(this.ToString());
+            return root;
+        }
     }
 
     class ActionCallFunctionReturnBool : Action
@@ -120,6 +126,12 @@ namespace LevelEditor
         public override string ToString()
         {
             return "ActionCallFunctionReturnBool";
+        }
+
+        public override ActionNode toNode()
+        {
+            ActionNode root = new ActionNode(this.ToString());
+            return root;
         }
     }
 }

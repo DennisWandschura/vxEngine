@@ -52,5 +52,14 @@ namespace LevelEditor
         {
             return "ActionSetMeshInstancePosition";
         }
+
+        public override ActionNode toNode()
+        {
+            ActionNode root = new ActionNode(this.ToString());
+            root.Nodes.Add("old position: " + m_oldPosition.x + ", " + m_oldPosition.y + ", " + m_oldPosition.z);
+            root.Nodes.Add("new position: " + m_newPosition.x + ", " + m_newPosition.y + ", " + m_newPosition.z);
+
+            return root;
+        }
     }
 }
