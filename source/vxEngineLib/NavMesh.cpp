@@ -76,6 +76,21 @@ NavMesh& NavMesh::operator = (NavMesh &&rhs)
 	return *this;
 }
 
+void NavMesh::reset()
+{
+	m_navMeshTriangles.reset();
+#if _VX_EDITOR
+	m_vertices.clear();
+	m_triangleIndices.clear();
+#else
+	m_vertices.reset();
+	m_triangleIndices.reset();
+#endif
+	m_bounds = AABB();
+	m_vertexCount = 0;
+	m_triangleCount = 0;
+}
+
 void NavMesh::copy(NavMesh* dst) const
 {
 #if _VX_EDITOR
@@ -99,6 +114,21 @@ void NavMesh::copy(NavMesh* dst) const
 	dst->m_bounds = m_bounds;
 	dst->m_vertexCount = m_vertexCount;
 	dst->m_triangleCount = m_triangleCount;
+}
+
+void NavMesh::swap(NavMesh &other)
+{
+#if _VX_EDITOR
+	std::swap(other.m_vertexBounds, m_vertexBounds);
+#endif
+
+	std::swap(other.m_vertices, m_vertices);
+	std::swap(other.m_triangleIndices, m_triangleIndices);
+
+	std::swap(other.m_navMeshTriangles, m_navMeshTriangles);
+	std::swap(other.m_bounds, m_bounds);
+	std::swap(other.m_vertexCount, m_vertexCount);
+	std::swap(other.m_triangleCount, m_triangleCount);
 }
 
 void NavMesh::saveToFile(vx::File *file) const
@@ -141,7 +171,7 @@ const u8* NavMesh::load(const u8 *ptr)
 		bounds.max = it + vx::float3(0.1f);
 
 		m_vertexBounds.push_back(bounds);
-	}
+}
 #else
 	m_vertices = vx::make_unique<vx::float3[]>(m_vertexCount);
 	m_triangleIndices = vx::make_unique<u16[]>(indexCount);
@@ -223,7 +253,7 @@ bool NavMesh::removeVertex(const vx::float3 &position)
 		m_vertexBounds.erase(m_vertexBounds.begin() + index);
 		m_vertices.erase(m_vertices.begin() + index);
 		--m_vertexCount;
-	}
+}
 
 	buildBounds();
 #endif
@@ -321,7 +351,7 @@ void NavMesh::removeVertex(u32 index)
 	--m_vertexCount;
 
 	buildBounds();
-	
+
 	findAndEraseVertexFromIndices(index);
 
 	fixVertexIndicesAfterErasedVertex(index);
@@ -348,7 +378,7 @@ void NavMesh::addTriangle(const u32(&selectedIndices)[3])
 		++m_triangleCount;
 
 		m_navMeshTriangles = createNavMeshTriangles();
-	}
+}
 	else
 	{
 		printf("not ccw !\n");
@@ -393,13 +423,13 @@ bool NavMesh::isValid() const
 	bool result = true;
 	/*for (u32 i = 0; i < m_triangleCount; ++i)
 	{
-		auto &it = m_navMeshTriangles[i];
+	auto &it = m_navMeshTriangles[i];
 
-		if (it.m_count == 0)
-		{
-			result = false;
-			break;
-		}
+	if (it.m_count == 0)
+	{
+	result = false;
+	break;
+	}
 	}*/
 
 	return result;
@@ -417,7 +447,7 @@ u32 NavMesh::testRayAgainstVertices(const Ray &ray)
 			result = i;
 			break;
 		}
-	}
+}
 #else
 	VX_UNREFERENCED_PARAMETER(ray);
 #endif
@@ -451,17 +481,17 @@ bool NavMesh::isCCW(const vx::float3 &p0, const vx::float3 &p1, const vx::float3
 	return det > 0.0f;
 }
 
-const vx::float3* NavMesh::getVertices() const 
+const vx::float3* NavMesh::getVertices() const
 {
 #if _VX_EDITOR
-	return m_vertices.data(); 
+	return m_vertices.data();
 #else
 	return m_vertices.get();
 #endif
 }
 
 const u16* NavMesh::getTriangleIndices() const
-{ 
+{
 #if _VX_EDITOR
 	return m_triangleIndices.data();
 #else

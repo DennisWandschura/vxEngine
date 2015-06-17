@@ -33,6 +33,11 @@ SOFTWARE.
 #include "EngineConfig.h"
 #include <vxEngineLib/debugPrint.h>
 #include "developer.h"
+#include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/Reference.h>
+#include <vxEngineLib/Material.h>
+
+#include <Dbghelp.h>
 
 u32 g_editorTypeMesh{ 0xffffffff };
 u32 g_editorTypeMaterial{ 0xffffffff };
@@ -45,7 +50,8 @@ EditorEngine::EditorEngine()
 	m_renderAspect(),
 	m_fileAspect(),
 	m_bRunFileThread(),
-	m_fileAspectThread()
+	m_fileAspectThread(),
+	m_previousSceneLoaded(false)
 {
 }
 
@@ -283,6 +289,18 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	else if (type == g_editorTypeScene)
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Scene);
+
+		if (m_previousSceneLoaded)
+		{
+			/*auto meshes = m_pEditorScene->getMeshes();
+			for (auto &it : meshes)
+			{
+				m_fileAspect.releaseFile();
+			}
+			m_pEditorScene->reset();*/
+			VX_ASSERT(false);
+		}
+
 		p = m_pEditorScene;
 	}
 	else if (type == g_editorTypeFbx)
@@ -467,7 +485,8 @@ u64 EditorEngine::getMeshInstanceMaterialSid(u64 instanceSid) const
 	auto meshInstance = m_pEditorScene->getMeshInstance(sid);
 	if (meshInstance)
 	{
-		sidValue = meshInstance->getMaterialSid().value;
+		auto &material = meshInstance->getMaterial();
+		sidValue = (*material).getSid().value;
 	}
 
 	return sidValue;
@@ -586,7 +605,7 @@ void EditorEngine::setMeshInstanceMaterial(u64 instanceSid, u64 materialSid)
 		{
 			if (m_renderAspect.setSelectedMeshInstanceMaterial(*it))
 			{
-				meshInstance->setMaterialSid(vx::StringID(materialSid));
+				meshInstance->setMaterial(*it);
 			}
 		}
 	}
@@ -962,7 +981,7 @@ void EditorEngine::deselectLight()
 	}
 }
 
-void EditorEngine::getSelectLightPosition(vx::float3* position)
+void EditorEngine::getSelectLightPosition(vx::float3* position) const
 {
 	if (m_pEditorScene &&
 		m_selected.m_type == SelectedType::Light &&
@@ -981,6 +1000,37 @@ void EditorEngine::setSelectLightPosition(const vx::float3 &position)
 	{
 		Light* ptr = (Light*)m_selected.m_item;
 		ptr->m_position = position;
+
+		m_pEditorScene->updateLightPositions();
+
+		auto lightCount = m_pEditorScene->getLightCount();
+		auto lights = m_pEditorScene->getLights();
+
+		m_renderAspect.updateLightBuffer(lights, lightCount);
+	}
+}
+
+float EditorEngine::getSelectLightFalloff() const
+{
+	f32 falloff = 0.0f;
+	if (m_pEditorScene &&
+		m_selected.m_type == SelectedType::Light &&
+		m_selected.m_item)
+	{
+		Light* ptr = (Light*)m_selected.m_item;
+		falloff = ptr->m_falloff;
+	}
+	return falloff;
+}
+
+void EditorEngine::setSelectLightFalloff(f32 falloff)
+{
+	if (m_pEditorScene &&
+		m_selected.m_type == SelectedType::Light &&
+		m_selected.m_item)
+	{
+		Light* ptr = (Light*)m_selected.m_item;
+		ptr->m_falloff = falloff;
 
 		m_pEditorScene->updateLightPositions();
 

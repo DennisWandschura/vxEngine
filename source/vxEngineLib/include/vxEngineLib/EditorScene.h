@@ -73,6 +73,7 @@ namespace Editor
 		vx::sorted_vector<vx::StringID, std::string> m_materialNames;
 		vx::sorted_vector<vx::StringID, std::string> m_meshNames;
 		vx::sorted_vector<vx::StringID, std::string> m_actorNames;
+		vx::sorted_vector<vx::StringID, std::string> m_animationNames;
 
 		void buildSelectableLights();
 		void buildSelectableWaypoints();
@@ -89,6 +90,7 @@ namespace Editor
 		Scene& operator = (const Scene &rhs) = delete;
 		Scene& operator = (Scene &&rhs);
 
+		void reset() override;
 		void copy(Scene* dst) const;
 
 		void sortMeshInstances() override;
@@ -100,7 +102,7 @@ namespace Editor
 		// returns 1 on insert, 0 if already present
 		u8 addMesh(vx::StringID sid, const char* name, const vx::MeshFile* pMesh);
 		// returns 1 on insert, 0 if already present
-		u8 addMaterial(vx::StringID sid, const char* name, Material* pMaterial);
+		u8 addMaterial(vx::StringID sid, const char* name, const Reference<Material> &material);
 		// returns 1 on insert, 0 if mesh or material is missing
 		void addWaypoint(const vx::float3 &position);
 		void removeWaypoint(const vx::float3 &position);
@@ -114,6 +116,7 @@ namespace Editor
 		const char* getMaterialName(const vx::StringID &sid) const;
 		const char* getMeshName(const vx::StringID &sid) const;
 		const char* getActorName(const vx::StringID &sid) const;
+		const char* getAnimationName(const vx::StringID &sid) const;
 
 		vx::StringID createMeshInstance();
 		void removeMeshInstance(const vx::StringID &sid);

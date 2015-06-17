@@ -80,21 +80,21 @@ void VoxelRenderer::createVoxelBuffer(gl::ObjectManager* objectManager)
 	const __m128 axisX = { 1, 0, 0, 0 };
 	const __m128 axisY = { 0, 1, 0, 0 };
 
-	const u32 sizeLod[voxelLodCount] = { 128, 64, 32, 16 };
-	const f32 gridsizeLod[voxelLodCount] = { 24, 24, 24, 24 };
+	const u32 sizeLod = m_voxelTextureSize;
+	const f32 gridsizeLod = 20;
 
 	VoxelBlock voxelBlock;
 	for (u32 i = 0; i < voxelLodCount; ++i)
 	{
-		auto halfDim = sizeLod[i] / 2;
-		auto gridHalfSize = gridsizeLod[i] / 2.0f;
+		auto halfDim = sizeLod / 2;
+		auto gridHalfSize = gridsizeLod / 2.0f;
 
 		auto gridCellSize = gridHalfSize / halfDim;
 		auto invGridCellSize = 1.0f / gridCellSize;
 
-		auto projectionMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, gridHalfSize, -gridHalfSize, gridHalfSize, 0.0f, -gridsizeLod[i]);
+		auto projectionMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, gridHalfSize, -gridHalfSize, gridHalfSize, 0.0f, -gridsizeLod);
 		voxelBlock.data[i].projectionMatrix = projectionMatrix * vx::MatrixTranslation(0, 0, gridHalfSize);
-		voxelBlock.data[i].dim = sizeLod[i];
+		voxelBlock.data[i].dim = sizeLod;
 		voxelBlock.data[i].halfDim = halfDim;
 		voxelBlock.data[i].gridCellSize = gridCellSize;
 		voxelBlock.data[i].invGridCellSize = invGridCellSize;
@@ -147,19 +147,16 @@ void VoxelRenderer::createVoxelTextures()
 	desc.format = vx::gl::TextureFormat::RGBA8;
 	desc.type = vx::gl::TextureType::Texture_3D;
 	desc.size = vx::ushort3(m_voxelTextureSize, m_voxelTextureSize, m_voxelTextureSize);
-	desc.miplevels = std::max((u8)1, m_mipcount);
+	desc.miplevels = 1;// std::max((u8)1, m_mipcount);
 
 	for (u32 i = 0; i < 6; ++i)
 	{
 		m_pColdData->m_voxelEmmitanceTextures[i].create(desc);
-		m_pColdData->m_voxelEmmitanceTextures[i].setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
+		m_pColdData->m_voxelEmmitanceTextures[i].setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE);
 		m_pColdData->m_voxelEmmitanceTextures[i].setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
 
 		m_pColdData->m_voxelEmmitanceTextures[i].makeTextureResident();
 		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(0, 1, 0), GL_WRITE_ONLY);
-		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(1, 1, 0), GL_WRITE_ONLY);
-		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(2, 1, 0), GL_WRITE_ONLY);
-		glMakeImageHandleResidentARB(m_pColdData->m_voxelEmmitanceTextures[i].getImageHandle(3, 1, 0), GL_WRITE_ONLY);
 
 		m_voxelEmmitanceTexturesId[i] = m_pColdData->m_voxelEmmitanceTextures[i].getId();
 

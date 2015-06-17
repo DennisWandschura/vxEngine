@@ -37,6 +37,9 @@ namespace vx
 	struct StringID;
 }
 
+template<typename T>
+class Reference;
+
 class Material;
 
 #include <vector>
@@ -46,7 +49,7 @@ namespace Factory
 	struct CreateSceneDescription
 	{
 		const vx::sorted_array<vx::StringID, vx::MeshFile*>* meshes;
-		const vx::sorted_array<vx::StringID, Material*>* materials;
+		const vx::sorted_array<vx::StringID, Reference<Material>>* materials;
 		const vx::sorted_vector<vx::StringID, std::string>* loadedFiles;
 		std::vector<vx::FileEntry>* pMissingFiles;
 	};

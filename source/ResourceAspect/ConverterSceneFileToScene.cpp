@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include <vxResourceAspect/ConverterSceneFileToScene.h>
-#include <vxResourceAspect/SceneFile.h>
+#include <vxEngineLib/SceneFile.h>
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Scene.h>
 #include <memory>
@@ -32,86 +32,55 @@ SOFTWARE.
 #include <vxEngineLib/Light.h>
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/Material.h>
+#include <vxEngineLib/MeshInstanceFile.h>
+#include <vxEngineLib/Reference.h>
 
 struct ConverterSceneFileToScene::CreateSceneMeshInstancesDesc
 {
 	const SceneFile *sceneFile;
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
 	MeshInstance* pMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
-	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
 };
 
 struct ConverterSceneFileToScene::CreateSceneActorsDesc
 {
 	const SceneFile *sceneFile;
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
-	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
 };
 
 bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc)
 {
-	if (desc.sceneFile->m_pMeshInstances)
+	for (auto i = 0u; i < desc.sceneFile->m_meshInstanceCount; ++i)
 	{
-		for (auto i = 0u; i < desc.sceneFile->m_meshInstanceCount; ++i)
+		auto &instance = desc.sceneFile->m_pMeshInstances[i];
+		auto name = instance.getName();
+		auto meshFile = instance.getMeshFile();
+		auto materialFile = instance.getMaterialFile();
+
+		auto sidName = vx::make_sid(name);
+		auto sidMesh = vx::make_sid(meshFile);
+		auto sidAnimation = vx::make_sid(instance.getAnimation());
+		auto itMesh = desc.sortedMeshes->find(sidMesh);
+		auto sidMaterial = vx::make_sid(materialFile);
+		auto itMaterial = desc.sortedMaterials->find(sidMaterial);
+
+		if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
 		{
-			auto &instance = desc.sceneFile->m_pMeshInstances[i];
-			auto name = instance.getName();
-			auto meshFile = instance.getMeshFile();
-			auto materialFile = instance.getMaterialFile();
-
-			auto sidName = vx::make_sid(name);
-			auto sidMesh = vx::make_sid(meshFile);
-			auto itMesh = desc.sortedMeshes->find(sidMesh);
-			auto sidMaterial = vx::make_sid(materialFile);
-			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
-
-			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
-			{
-				return false;
-			}
-
-			desc.sceneMeshes->insert(sidMesh, *itMesh);
-			desc.sceneMaterials->insert(sidMaterial, *itMaterial);
-
-			desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, sidMaterial, instance.getTransform());
+			return false;
 		}
+
+		desc.sceneMeshes->insert(sidMesh, *itMesh);
+		desc.sceneMaterials->insert(sidMaterial, *itMaterial);
+
+		desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, *itMaterial, sidAnimation, instance.getTransform());
 	}
-	else
-	{
-		for (auto i = 0u; i < desc.sceneFile->m_meshInstanceCount; ++i)
-		{
-			auto &instance = desc.sceneFile->m_pMeshInstancesOld[i];
-			auto name = instance.getName();
-			auto meshFile = instance.getMeshFile();
-			auto materialFile = instance.getMaterialFile();
-
-			auto sidName = vx::make_sid(name);
-			auto sidMesh = vx::make_sid(meshFile);
-			auto itMesh = desc.sortedMeshes->find(sidMesh);
-			auto sidMaterial = vx::make_sid(materialFile);
-			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
-
-			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
-			{
-				return false;
-			}
-
-			desc.sceneMeshes->insert(sidMesh, *itMesh);
-			desc.sceneMaterials->insert(sidMaterial, *itMaterial);
-
-			auto oldTransform = instance.getTransform();
-
-			vx::Transform transform;
-			oldTransform.convertTo(&transform);
-			desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, sidMaterial, transform);
-		}
-	}
-	
 
 	return true;
 }
@@ -152,9 +121,9 @@ bool ConverterSceneFileToScene::createSceneActors(const CreateSceneActorsDesc &d
 	return true;
 }
 
-bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes, const vx::sorted_array<vx::StringID, Material*> *sortedMaterials, const SceneFile &sceneFile, Scene* scene)
+bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes, const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials, const SceneFile &sceneFile, Scene* scene)
 {
-	vx::sorted_vector<vx::StringID, Material*> sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<Material>> sceneMaterials;
 	sceneMaterials.reserve(5);
 
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
@@ -218,7 +187,7 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 		pLights[i] = sceneFile.m_pLights[i];
 	}
 #endif
-	
+
 
 #if _VX_EDITOR
 	auto waypoints = std::vector<Waypoint>();

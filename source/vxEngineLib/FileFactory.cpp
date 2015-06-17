@@ -51,11 +51,23 @@ namespace vx
 	bool FileFactory::validate(const char* filename)
 	{
 		vx::File f;
-		f.open(filename, vx::FileAccess::Read);
+		if (!f.open(filename, vx::FileAccess::Read))
+			return false;
 
 		FileHeader headerTop;
-		f.read(headerTop);
+		if (!f.read(headerTop))
+			return false;
 
-		return headerTop.magic == FileHeader::s_magic;
+		if (!f.setEof())
+			return false;
+
+		s32 offset = -static_cast<s64>(sizeof(FileHeader));
+		f.seek(offset);
+
+		FileHeader headerBottom;
+		if (!f.read(headerBottom))
+			return false;
+
+		return headerBottom.isEqual(headerTop);
 	}
 }

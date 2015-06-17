@@ -52,13 +52,14 @@ class GpuProfiler;
 #include "RenderCommandFinalImage.h"
 #include "Graphics/CommandList.h"
 #include "DoubleBufferRaw.h"
+#include "Graphics/Frame.h"
 
 class VX_ALIGN(64) RenderAspect : public vx::EventListener
 {
 protected:
 	struct ColdData;
 
-	Graphics::CommandList m_commandList;
+	Graphics::Frame m_frame;
 	std::unique_ptr<Graphics::ShadowRenderer> m_shadowRenderer;
 	vx::uint2 m_resolution;
 	SceneRenderer m_sceneRenderer;
@@ -86,6 +87,8 @@ protected:
 
 	gl::ObjectManager m_objectManager;
 	std::unique_ptr<ColdData> m_pColdData;
+
+	virtual void createFrame();
 
 	bool createBuffers();
 	void createUniformBuffers();
@@ -130,8 +133,6 @@ protected:
 
 	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material);
 	u16 getActorGpuIndex();
-
-	void createRenderPassCreateShadowMaps();
 
 	void createColdData();
 	void provideRenderData(const EngineConfig* settings);

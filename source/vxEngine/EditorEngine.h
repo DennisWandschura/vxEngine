@@ -79,6 +79,7 @@ class EditorEngine : public vx::EventListener
 	Memory m_memory;
 	vx::uint2 m_resolution;
 	HWND m_panel;
+	bool m_previousSceneLoaded;
 
 	vx::sorted_vector<vx::StringID, std::pair<Editor::LoadFileCallback, u32>> m_requestedFiles;
 
@@ -170,8 +171,10 @@ public:
 	void createLight();
 	bool selectLight(s32 mouseX, s32 mouseY);
 	void deselectLight();
-	void getSelectLightPosition(vx::float3* position);
+	void getSelectLightPosition(vx::float3* position) const;
 	void setSelectLightPosition(const vx::float3 &position);
+	f32 getSelectLightFalloff() const;
+	void setSelectLightFalloff(f32 falloff);
 
 	SelectedType getSelectedItemType() const;
 	Editor::Scene* getEditorScene() const;

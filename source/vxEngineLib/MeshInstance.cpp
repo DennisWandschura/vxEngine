@@ -23,21 +23,76 @@ SOFTWARE.
 */
 #include <vxEngineLib/MeshInstance.h>
 #include <cstring>
+#include <vxEngineLib/Reference.h>
+#include <vxEngineLib/Material.h>
 
 MeshInstance::MeshInstance()
 	:m_nameSid(),
 	m_meshSid(),
-	m_materialSid(),
+	m_material(),
+	m_animationSid(),
 	m_transform()
 {
 }
 
-MeshInstance::MeshInstance(const vx::StringID &nameSid, const vx::StringID &meshSid, const vx::StringID &materialSid, const vx::Transform &transform)
+MeshInstance::MeshInstance(const MeshInstance &rhs)
+	:m_nameSid(rhs.m_nameSid),
+	m_meshSid(rhs.m_meshSid),
+	m_material(rhs.m_material),
+	m_animationSid(rhs.m_animationSid),
+	m_transform(rhs.m_transform)
+{
+
+}
+
+MeshInstance::MeshInstance(MeshInstance &&rhs)
+	:m_nameSid(std::move(rhs.m_nameSid)),
+	m_meshSid(std::move(rhs.m_meshSid)),
+	m_material(std::move(rhs.m_material)),
+	m_animationSid(std::move(rhs.m_animationSid)),
+	m_transform(std::move(rhs.m_transform))
+{
+
+}
+
+MeshInstance::MeshInstance(const vx::StringID &nameSid, const vx::StringID &meshSid, const Reference<Material> &material, const vx::StringID &animationSid, const vx::Transform &transform)
 	:m_nameSid(nameSid),
 	m_meshSid(meshSid),
-	m_materialSid(materialSid),
+	m_material(material),
+	m_animationSid(animationSid),
 	m_transform(transform)
 {
+}
+
+MeshInstance::~MeshInstance()
+{
+
+}
+
+MeshInstance& MeshInstance::operator = (const MeshInstance &rhs)
+{
+	if (this != &rhs)
+	{
+		m_nameSid = rhs.m_nameSid;
+		m_meshSid = rhs.m_meshSid;
+		m_material = rhs.m_material;
+		m_animationSid = rhs.m_animationSid;
+		m_transform = rhs.m_transform;
+	}
+	return *this;
+}
+
+MeshInstance& MeshInstance::operator = (MeshInstance &&rhs)
+{
+	if (this != &rhs)
+	{
+		m_nameSid = std::move(rhs.m_nameSid);
+		m_meshSid = std::move(rhs.m_meshSid);
+		m_material = std::move(rhs.m_material);
+		m_animationSid = std::move(rhs.m_animationSid);
+		m_transform = std::move(rhs.m_transform);
+	}
+	return *this;
 }
 
 void MeshInstance::setTranslation(const vx::float3 &translation)
@@ -45,67 +100,12 @@ void MeshInstance::setTranslation(const vx::float3 &translation)
 	m_transform.m_translation = translation;
 }
 
-MeshInstanceFile::MeshInstanceFile()
-	:m_name(),
-	m_mesh(),
-	m_material(),
-	m_transform()
-{
-}
-
-MeshInstanceFile::MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::Transform &transform)
-	:m_name(),
-	m_mesh(),
-	m_material(),
-	m_transform(transform)
-{
-	strcpy_s(m_name, instanceName);
-	strcpy_s(m_mesh, meshName);
-	strcpy_s(m_material, materialName);
-}
-
-const char* MeshInstanceFile::getMeshFile() const noexcept
-{
-	return m_mesh;
-}
-
-const char* MeshInstanceFile::getMaterialFile() const noexcept
+const Reference<Material>& MeshInstance::getMaterial() const noexcept
 {
 	return m_material;
 }
 
-///
-
-MeshInstanceFileOld::MeshInstanceFileOld()
-:m_name(),
-m_mesh(),
-m_material(),
-m_transform()
+void MeshInstance::setMaterial(const Reference<Material> &material)
 {
-}
-
-MeshInstanceFileOld::MeshInstanceFileOld(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::TransformOld &transform)
-:m_name(),
-m_mesh(),
-m_material(),
-m_transform(transform)
-{
-	strcpy_s(m_name, instanceName);
-	strcpy_s(m_mesh, meshName);
-	strcpy_s(m_material, materialName);
-}
-
-MeshInstanceFileOld::~MeshInstanceFileOld()
-{
-
-}
-
-const char* MeshInstanceFileOld::getMeshFile() const noexcept
-{
-	return m_mesh;
-}
-
-const char* MeshInstanceFileOld::getMaterialFile() const noexcept
-{
-	return m_material;
+	m_material = material;
 }

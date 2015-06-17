@@ -29,15 +29,17 @@ SOFTWARE.
 
 namespace vx
 {
-	AnimationFile::AnimationFile()
-		:m_animation(),
+	AnimationFile::AnimationFile(u32 version)
+		:Serializable(version),
+		m_animation(),
 		m_name()
 	{
 
 	}
 
-	AnimationFile::AnimationFile(Animation &&animation, const char* name)
-		:m_animation(std::move(animation)),
+	AnimationFile::AnimationFile(u32 version, Animation &&animation, const char* name)
+		:Serializable(version),
+		m_animation(std::move(animation)),
 		m_name()
 	{
 		strncpy(m_name, name, 32);
@@ -54,7 +56,7 @@ namespace vx
 		f->write(m_name);
 	}
 
-	const u8* AnimationFile::loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator)
+	const u8* AnimationFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator)
 	{
 		ptr = m_animation.loadFromMemory(ptr);
 		
@@ -93,7 +95,7 @@ namespace vx
 		return CityHash64((char*)memory.get(), totalSize);
 	}
 
-	u32 AnimationFile::getVersion() const
+	u32 AnimationFile::getGlobalVersion()
 	{
 		return 0;
 	}

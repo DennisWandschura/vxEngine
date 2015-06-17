@@ -38,6 +38,8 @@ namespace vx
 
 namespace Graphics
 {
+	class Segment;
+
 	class ShadowRenderer : public Renderer
 	{
 		std::unique_ptr<u32[]> m_shadowDepthTextureIds;
@@ -64,7 +66,7 @@ namespace Graphics
 		void updateDrawCmds();
 		void updateDrawCmd(const vx::gl::DrawElementsIndirectCommand &cmd, u32 index);
 
-		void getSegments(std::vector<std::pair<std::string, Segment>>* segments) override;
+		void getCommandList(CommandList* cmdList) override;
 
 		void clearData() override;
 		void bindBuffers() override;

@@ -42,7 +42,6 @@ namespace vx
 class FileFactory
 {
 public:
-	static bool load(const char* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
-	static bool load(vx::File* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
-	static bool load(const u8* ptr, u32 fileSize, SceneFile* data, vx::Allocator* allocator);
+	static SceneFile load(vx::File* file, bool* result, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator);
+	static SceneFile load(const u8* ptr, u32 fileSize, bool* result, vx::Allocator* allocator);
 };

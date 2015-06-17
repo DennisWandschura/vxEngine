@@ -116,6 +116,9 @@ namespace LevelEditor
             this.numericUpDownLightY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownLightZ = new System.Windows.Forms.NumericUpDown();
             this.treeViewActionList = new System.Windows.Forms.TreeView();
+            this.flowLayoutPanel10 = new System.Windows.Forms.FlowLayoutPanel();
+            this.label9 = new System.Windows.Forms.Label();
+            this.numericUpDownLightFalloff = new System.Windows.Forms.NumericUpDown();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_x)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_y)).BeginInit();
@@ -145,6 +148,8 @@ namespace LevelEditor
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightX)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightZ)).BeginInit();
+            this.flowLayoutPanel10.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightFalloff)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -838,10 +843,11 @@ namespace LevelEditor
             // 
             // groupBoxLight
             // 
+            this.groupBoxLight.Controls.Add(this.flowLayoutPanel10);
             this.groupBoxLight.Controls.Add(this.flowLayoutPanel5);
             this.groupBoxLight.Location = new System.Drawing.Point(1983, 1022);
             this.groupBoxLight.Name = "groupBoxLight";
-            this.groupBoxLight.Size = new System.Drawing.Size(398, 59);
+            this.groupBoxLight.Size = new System.Drawing.Size(398, 93);
             this.groupBoxLight.TabIndex = 17;
             this.groupBoxLight.TabStop = false;
             this.groupBoxLight.Text = "Lights";
@@ -934,6 +940,46 @@ namespace LevelEditor
             this.treeViewActionList.TabIndex = 18;
             this.treeViewActionList.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeViewActionList_AfterSelect);
             // 
+            // flowLayoutPanel10
+            // 
+            this.flowLayoutPanel10.Controls.Add(this.label9);
+            this.flowLayoutPanel10.Controls.Add(this.numericUpDownLightFalloff);
+            this.flowLayoutPanel10.Location = new System.Drawing.Point(12, 53);
+            this.flowLayoutPanel10.Name = "flowLayoutPanel10";
+            this.flowLayoutPanel10.Size = new System.Drawing.Size(380, 28);
+            this.flowLayoutPanel10.TabIndex = 15;
+            // 
+            // label9
+            // 
+            this.label9.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(3, 0);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(35, 26);
+            this.label9.TabIndex = 16;
+            this.label9.Text = "Falloff";
+            this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // numericUpDownLightFalloff
+            // 
+            this.numericUpDownLightFalloff.DecimalPlaces = 4;
+            this.numericUpDownLightFalloff.Location = new System.Drawing.Point(44, 3);
+            this.numericUpDownLightFalloff.Maximum = new decimal(new int[] {
+            50000,
+            0,
+            0,
+            0});
+            this.numericUpDownLightFalloff.Minimum = new decimal(new int[] {
+            50000,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownLightFalloff.Name = "numericUpDownLightFalloff";
+            this.numericUpDownLightFalloff.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownLightFalloff.TabIndex = 12;
+            this.numericUpDownLightFalloff.ValueChanged += new System.EventHandler(this.numericUpDownLightFalloff_ValueChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -955,6 +1001,7 @@ namespace LevelEditor
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Form1_KeyPress);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseMove);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_x)).EndInit();
@@ -995,6 +1042,9 @@ namespace LevelEditor
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightX)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightZ)).EndInit();
+            this.flowLayoutPanel10.ResumeLayout(false);
+            this.flowLayoutPanel10.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightFalloff)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1066,6 +1116,9 @@ namespace LevelEditor
         private System.Windows.Forms.ToolStripMenuItem undoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem redoToolStripMenuItem;
         private System.Windows.Forms.TreeView treeViewActionList;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel10;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.NumericUpDown numericUpDownLightFalloff;
     }
 }
 

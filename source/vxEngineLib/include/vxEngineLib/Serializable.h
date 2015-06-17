@@ -38,16 +38,34 @@ namespace vx
 
 	class Serializable
 	{
+		u32 m_version;
+
 	public:
+		explicit Serializable(u32 version) :m_version(version){}
+		Serializable(const Serializable &rhs) :m_version(rhs.m_version){}
+		Serializable(Serializable &&rhs) :m_version(rhs.m_version){}
+
 		virtual ~Serializable(){}
+
+		Serializable& operator=(const Serializable &rhs)
+		{
+			m_version = rhs.m_version;
+			return *this;
+		}
+
+		Serializable& operator=(Serializable &&rhs)
+		{
+			m_version = rhs.m_version;
+			return *this;
+		}
 
 		virtual void saveToFile(File* f) const = 0;
 
-		virtual const u8* loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator) = 0;
+		virtual const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) = 0;
 
 		virtual u64 getCrc() const = 0;
 
-		virtual u32 getVersion() const = 0;
+		u32 getVersion() const { return m_version; }
 	};
 }
 #endif

@@ -30,8 +30,9 @@ SOFTWARE.
 
 namespace vx
 {
-	MeshFile::MeshFile()
-		:m_mesh(),
+	MeshFile::MeshFile(u32 version)
+		:Serializable(version),
+		m_mesh(),
 		m_physxData(nullptr),
 		m_physxDataSize(0)
 	{
@@ -39,7 +40,8 @@ namespace vx
 	}
 
 	MeshFile::MeshFile(MeshFile &&rhs)
-		:m_mesh(std::move(rhs.m_mesh)),
+		:Serializable(std::move(rhs)),
+		m_mesh(std::move(rhs.m_mesh)),
 		m_physxData(rhs.m_physxData),
 		m_physxDataSize(rhs.m_physxDataSize)
 	{
@@ -47,8 +49,9 @@ namespace vx
 		rhs.m_physxDataSize = 0;
 	}
 
-	MeshFile::MeshFile(vx::Mesh &&mesh, const u8* physxData, u32 physxDataSize)
-		:m_mesh(std::move(mesh)),
+	MeshFile::MeshFile(u32 version, vx::Mesh &&mesh, const u8* physxData, u32 physxDataSize)
+		:Serializable(version), 
+		m_mesh(std::move(mesh)),
 		m_physxData(physxData),
 		m_physxDataSize(physxDataSize)
 	{
@@ -64,6 +67,7 @@ namespace vx
 	{
 		if (this != &rhs)
 		{
+			Serializable::operator=(std::move(rhs));
 			m_mesh.swap(rhs.m_mesh);
 			std::swap(m_physxData, rhs.m_physxData);
 			std::swap(m_physxDataSize, rhs.m_physxDataSize);
@@ -71,9 +75,10 @@ namespace vx
 		return *this;
 	}
 
-	const u8* MeshFile::loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator)
+	const u8* MeshFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator)
 	{
-		if (version != getVersion())
+		auto version = getVersion();
+		if (version != MeshFile::getGlobalVersion())
 		{
 			// convert old version to new version
 		}
@@ -156,7 +161,7 @@ namespace vx
 		return CityHash64((char*)ptr.get(), totalSize);
 	}
 
-	u32 MeshFile::getVersion() const
+	u32 MeshFile::getGlobalVersion()
 	{
 		return 0;
 	}

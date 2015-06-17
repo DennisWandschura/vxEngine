@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include <vxResourceAspect/FileFactory.h>
-#include <vxResourceAspect/SceneFile.h>
+#include <vxEngineLib/SceneFile.h>
 #include <vxResourceAspect/SceneFactory.h>
 #include <vxLib/File/File.h>
 #include <vxLib/File/FileHeader.h>
@@ -30,16 +30,7 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include <vxEngineLib/FileFactory.h>
 
-bool FileFactory::load(const char* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator)
-{
-	vx::File f;
-	if (!f.open(file, vx::FileAccess::Read))
-		return false;
-
-	return load(&f, data, scratchAllocator, allocator);
-}
-
-bool FileFactory::load(vx::File* file, SceneFile* data, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator)
+SceneFile FileFactory::load(vx::File* file, bool* result, vx::StackAllocator* scratchAllocator, vx::Allocator* allocator)
 {
 	auto fileSize = file->getSize();
 
@@ -51,31 +42,35 @@ bool FileFactory::load(vx::File* file, SceneFile* data, vx::StackAllocator* scra
 	};
 
 	u8* ptr = allocator->allocate(fileSize, 8);
-	if (!file->read(ptr, fileSize))
-		return false;
-
+	file->read(ptr, fileSize);
 	file->close();
 	
-	return load(ptr, fileSize, data, allocator);
+	return load(ptr, fileSize, result, allocator);
 }
 
-bool FileFactory::load(const u8* ptr, u32 fileSize, SceneFile* data, vx::Allocator* allocator)
+SceneFile FileFactory::load(const u8* ptr, u32 fileSize, bool* result, vx::Allocator* allocator)
 {
+	*result = false;
+
 	vx::FileHeader headerTop = *(vx::FileHeader*)ptr;
 
-	if (headerTop.magic != vx::FileHeader::s_magic)
-		return false;
+	SceneFile data(headerTop.version);
 
-	auto dataPtr = ptr + sizeof(vx::FileHeader);
-	ptr = data->loadFromMemory(dataPtr, fileSize, headerTop.version, allocator);
+	if (headerTop.isValid())
+	{
+		SceneFile tmpData(headerTop.version);
 
-	auto currentCrc = data->getCrc();
-	if (headerTop.crc != currentCrc)
-		return false;
+		auto dataPtr = ptr + sizeof(vx::FileHeader);
+		ptr = tmpData.loadFromMemory(dataPtr, fileSize, allocator);
 
-	vx::FileHeader headerBottom = *(vx::FileHeader*)ptr;
-	if (headerBottom.magic != vx::FileHeader::s_magic)
-		return false;
+		vx::FileHeader headerBottom = *(vx::FileHeader*)ptr;
 
-	return headerBottom.crc == currentCrc;
+		if (headerBottom.isEqual(headerTop))
+		{
+			data.swap(tmpData);
+			*result = true;
+		}
+	}
+
+	return data;
 }

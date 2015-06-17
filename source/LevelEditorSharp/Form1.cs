@@ -348,7 +348,11 @@ namespace LevelEditor
             Float3 position;
             position.x = position.y = position.z = 0;
             NativeMethods.getSelectLightPosition(ref position);
+           var falloff = NativeMethods.getSelectLightFalloff();
+
             setNumericUpDownLightPosition(position);
+            numericUpDownLightFalloff.Value = (decimal)falloff;
+
             groupBoxLight.Show();
         }
 
@@ -1361,6 +1365,17 @@ namespace LevelEditor
         private void treeViewActionList_AfterSelect(object sender, TreeViewEventArgs e)
         {
 
+        }
+
+        private void Form1_MouseMove(object sender, MouseEventArgs e)
+        {
+            updateStateMachine();
+        }
+
+        private void numericUpDownLightFalloff_ValueChanged(object sender, EventArgs e)
+        {
+            float value = (float)numericUpDownLightFalloff.Value;
+            NativeMethods.setSelectLightFalloff(value);
         }
     }
 }

@@ -71,7 +71,7 @@ namespace Graphics
 		pushCommand(data, dataSize);
 	}
 
-	void Segment::draw()
+	void Segment::draw() const
 	{
 		m_state.update();
 

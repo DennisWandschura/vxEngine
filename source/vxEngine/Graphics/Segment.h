@@ -64,7 +64,7 @@ namespace Graphics
 
 		void pushCommand(const ProgramUniformCommand &command, const u8* data);
 
-		void draw();
+		void draw() const;
 
 		bool isValid() const;
 	};

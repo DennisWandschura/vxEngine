@@ -34,6 +34,10 @@ SOFTWARE.
 #include <vxEngineLib/EventTypes.h>
 #include <vxLib/File/FileHeader.h>
 #include <vxEngineLib/debugPrint.h>
+#include <vxEngineLib/AnimationFile.h>
+#include <vxEngineLib/MeshFile.h>
+#include <vxEngineLib/Material.h>
+#include <vxEngineLib/FileEvents.h>
 
 char FileAspect::s_textureFolder[32] = { "data/textures/" };
 char FileAspect::s_materialFolder[32] = { "data/materials/" };
@@ -133,10 +137,11 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 
 	const u32 maxCount = 255;
 	m_sortedMeshes = vx::sorted_array<vx::StringID, vx::MeshFile*>(maxCount, pMainAllocator);
-	m_sortedMaterials = vx::sorted_array<vx::StringID, Material*>(maxCount, pMainAllocator);
+	m_sortedMaterials = vx::sorted_array<vx::StringID, Reference<Material>>(maxCount, pMainAllocator);
 
 	createPool(maxCount, &m_poolMesh, pMainAllocator);
 	createPool(maxCount, &m_poolMaterial, pMainAllocator);
+	createPool(maxCount, &m_poolAnimations, pMainAllocator);
 	m_textureFileManager.initialize(maxCount, pMainAllocator);
 
 	const u32 textureMemorySize = 10 MBYTE;
@@ -155,11 +160,11 @@ void FileAspect::shutdown()
 {
 	m_textureFileManager.shutdown();
 
-	destroyPool(&m_poolMaterial);
-	destroyPool(&m_poolMesh);
-
 	m_sortedMaterials.cleanup();
 	m_sortedMeshes.cleanup();
+
+	destroyPool(&m_poolMaterial);
+	destroyPool(&m_poolMesh);
 
 	m_logfile.close();
 	m_allocatorReadFile.release();
@@ -167,16 +172,18 @@ void FileAspect::shutdown()
 
 bool FileAspect::loadMesh(const LoadMeshDescription &desc)
 {
+	std::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
+
 	bool result = true;
 	auto it = m_sortedMeshes.find(desc.shared.sid);
 	if (it == m_sortedMeshes.end())
 	{
 		u16 index;
-		auto meshFilePtr = m_poolMesh.createEntry(&index);
+		auto meshFilePtr = m_poolMesh.createEntry(&index, desc.fileHeader->version);
 		VX_ASSERT(meshFilePtr != nullptr);
 
 		auto marker = m_allocatorMeshData.getMarker();
-		auto p = meshFilePtr->loadFromMemory(desc.fileData, desc.size, desc.fileHeader->version, &m_allocatorMeshData);
+		auto p = meshFilePtr->loadFromMemory(desc.fileData, desc.size, &m_allocatorMeshData);
 		if (p == nullptr)
 		{
 			m_allocatorMeshData.clear(marker);
@@ -232,14 +239,16 @@ bool FileAspect::loadFileScene(const LoadFileOfTypeDescription &desc, bool edito
 	return result;
 }
 
-Material* FileAspect::loadMaterial(const LoadMaterialDescription &desc)
+Reference<Material> FileAspect::loadMaterial(const LoadMaterialDescription &desc)
 {
-	Material *pResult = nullptr;
+	Reference<Material> result;
+
+	std::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
 
 	auto it = m_sortedMaterials.find(desc.shared.sid);
 	if (it == m_sortedMaterials.end())
 	{
-		Material material;
+		Material material(desc.shared.sid);
 
 		MaterialFactoryLoadDescription factoryDesc;
 		factoryDesc.fileNameWithPath = desc.fileNameWithPath;
@@ -254,9 +263,9 @@ Material* FileAspect::loadMaterial(const LoadMaterialDescription &desc)
 			auto materialPtr = m_poolMaterial.createEntry(&index, std::move(material));
 			VX_ASSERT(materialPtr != nullptr);
 
-			m_sortedMaterials.insert(desc.shared.sid, materialPtr);
+			m_sortedMaterials.insert(desc.shared.sid, Reference<Material>(*materialPtr));
 
-			pResult = materialPtr;
+			result = materialPtr;
 			*desc.shared.status = vx::FileStatus::Loaded;
 			LOG_ARGS(m_logfile, "Loaded Material '%s'\n", false, desc.shared.filename);
 		}
@@ -268,10 +277,10 @@ Material* FileAspect::loadMaterial(const LoadMaterialDescription &desc)
 	else
 	{
 		*desc.shared.status = vx::FileStatus::Exists;
-		pResult = (*it);
+		result = (*it);
 	}
 
-	return pResult;
+	return result;
 }
 
 void FileAspect::getFolderString(vx::FileType fileType, const char** folder)
@@ -404,8 +413,8 @@ void FileAspect::loadFileMaterial(const LoadFileOfTypeDescription &desc)
 	loadDesc.missingFiles = desc.missingFiles;
 	loadDesc.shared.status = &desc.result->status;
 
-	Material *pMaterial = loadMaterial(loadDesc);
-	if (pMaterial)
+	auto result = loadMaterial(loadDesc);
+	if (result.isValid())
 	{
 		desc.result->result = 1;
 		desc.result->type = vx::FileType::Material;
@@ -598,7 +607,7 @@ void FileAspect::handleSaveRequest(FileRequest* request)
 
 			LOG_WARNING_ARGS(m_logfile, "Warning: Retrying save request '%s'\n", false, request->m_fileEntry.getString());
 
-			std::lock_guard<std::mutex> guard(m_mutex);
+			std::lock_guard<std::mutex> guard(m_mutexFileRequests);
 			m_fileRequests.push_back(*request);
 		}
 	}
@@ -606,7 +615,7 @@ void FileAspect::handleSaveRequest(FileRequest* request)
 
 void FileAspect::retryLoadFile(const FileRequest &request, const std::vector<vx::FileEntry> &missingFiles)
 {
-	std::lock_guard<std::mutex> guard(m_mutex);
+	std::lock_guard<std::mutex> guard(m_mutexFileRequests);
 	m_fileRequests.push_back(request);
 
 	FileRequest loadRequest;
@@ -710,7 +719,7 @@ void FileAspect::handleRequest(FileRequest* request, std::vector<vx::FileEntry>*
 
 void FileAspect::update()
 {
-	std::unique_lock<std::mutex> lock(m_mutex, std::try_to_lock);
+	std::unique_lock<std::mutex> lock(m_mutexFileRequests, std::try_to_lock);
 	if (!lock.owns_lock())
 		return;
 
@@ -742,7 +751,7 @@ void FileAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 	request.userData = p;
 	request.m_openType = FileRequest::Load;
 
-	std::lock_guard<std::mutex> guard(m_mutex);
+	std::lock_guard<std::mutex> guard(m_mutexFileRequests);
 	m_fileRequests.push_back(request);
 }
 
@@ -754,41 +763,44 @@ void FileAspect::requestSaveFile(const vx::FileEntry &fileEntry, void* p)
 	request.m_openType = FileRequest::Save;
 
 	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "requesting save file");
-	std::lock_guard<std::mutex> guard(m_mutex);
+	std::lock_guard<std::mutex> guard(m_mutexFileRequests);
 	m_fileRequests.push_back(request);
 }
 
-const TextureFile* FileAspect::getTextureFile(vx::StringID sid) const noexcept
+const TextureFile* FileAspect::getTextureFile(const vx::StringID &sid) const noexcept
 {
 	return m_textureFileManager.getTextureFile(sid);
 }
 
-Material* FileAspect::getMaterial(vx::StringID sid) noexcept
+Reference<Material> FileAspect::getMaterial(const vx::StringID &sid) noexcept
 {
-	Material *p = nullptr;
+	Reference<Material> result;
 
+	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedMaterials.find(sid);
 	if (it != m_sortedMaterials.end())
-		p = *it;
+		result = *it;
 
-	return p;
+	return result;
 }
 
-const Material* FileAspect::getMaterial(vx::StringID sid) const noexcept
+Reference<Material> FileAspect::getMaterial(const vx::StringID &sid) const noexcept
 {
-	const Material *p = nullptr;
+	Reference<Material> result;
 
+	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedMaterials.find(sid);
 	if (it != m_sortedMaterials.end())
-		p = *it;
+		result = *it;
 
-	return p;
+	return result;
 }
 
-const vx::MeshFile* FileAspect::getMesh(vx::StringID sid) const noexcept
+const vx::MeshFile* FileAspect::getMesh(const vx::StringID &sid) const noexcept
 {
 	const vx::MeshFile *p = nullptr;
 
+	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedMeshes.find(sid);
 	if (it != m_sortedMeshes.end())
 		p = *it;
@@ -796,14 +808,50 @@ const vx::MeshFile* FileAspect::getMesh(vx::StringID sid) const noexcept
 	return p;
 }
 
-const char* FileAspect::getLoadedFileName(vx::StringID sid) const noexcept
+const char* FileAspect::getLoadedFileName(const vx::StringID &sid) const noexcept
 {
+	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
+
 	auto it = m_loadedFiles.find(sid);
 
 	const char* result = nullptr;
 	if (it != m_loadedFiles.end())
 	{
 		result = it->c_str();
+	}
+
+	return result;
+}
+
+bool FileAspect::releaseFile(const vx::StringID &sid, vx::FileType type)
+{
+	bool result = false;
+
+	std::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
+	switch (type)
+	{
+	case vx::FileType::Mesh:
+	{
+		auto it = m_sortedMeshes.find(sid);
+		if (it != m_sortedMeshes.end())
+		{
+			m_poolMesh.destroyEntry((*it));
+			result = true;
+		}
+	}break;
+	case vx::FileType::Material:
+	{
+		auto it = m_sortedMaterials.find(sid);
+		if (it != m_sortedMaterials.end())
+		{
+			m_poolMaterial.destroyEntry(it->get());
+			result = true;
+		}
+	}break;
+	case vx::FileType::Animation:
+		break;
+	default:
+		break;
 	}
 
 	return result;

@@ -27,6 +27,8 @@ SOFTWARE.
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/copy.h>
 #include <vxEngineLib/Waypoint.h>
+#include <vxEngineLib/Reference.h>
+#include <vxEngineLib/Material.h>
 
 SceneBaseParams::~SceneBaseParams()
 {
@@ -99,6 +101,28 @@ SceneBase::~SceneBase()
 {
 }
 
+void SceneBase::reset()
+{
+#if _VX_EDITOR
+	m_pLights.clear();
+	m_waypoints.clear();
+#else
+	m_pLights.reset();
+	m_waypoints.reset();
+#endif
+
+	m_materials.clear();
+	m_meshes.clear();
+	m_pSpawns.reset();
+	m_actors.clear();
+	m_navMesh.reset();
+	m_lightCount = 0;
+	m_vertexCount = 0;
+	m_indexCount = 0;
+	m_spawnCount = 0;
+	m_waypointCount=0;
+}
+
 void SceneBase::copy(SceneBase *dst) const
 {
 #if _VX_EDITOR
@@ -146,7 +170,7 @@ u32 SceneBase::getLightCount() const
 	return m_lightCount;
 }
 
-const vx::sorted_vector<vx::StringID, Material*>& SceneBase::getMaterials() const
+const vx::sorted_vector<vx::StringID, Reference<Material>>& SceneBase::getMaterials() const
 {
 	return m_materials;
 }

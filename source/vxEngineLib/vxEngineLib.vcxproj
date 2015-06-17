@@ -153,6 +153,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <PreprocessorDefinitions>_VX_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <InterproceduralOptimization>NoIPO</InterproceduralOptimization>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -222,8 +223,10 @@
     <ClInclude Include="include\vxEngineLib\Material.h" />
     <ClInclude Include="include\vxEngineLib\MeshFile.h" />
     <ClInclude Include="include\vxEngineLib\MeshInstance.h" />
+    <ClInclude Include="include\vxEngineLib\MeshInstanceFile.h" />
     <ClInclude Include="include\vxEngineLib\NavMesh.h" />
     <ClInclude Include="include\vxEngineLib\NavMeshTriangle.h" />
+    <ClInclude Include="include\vxEngineLib\OpenGLTypes.h" />
     <ClInclude Include="include\vxEngineLib\ParserConverter.h" />
     <ClInclude Include="include\vxEngineLib\ParserNode.h" />
     <ClInclude Include="include\vxEngineLib\Plane.h" />
@@ -232,8 +235,10 @@
     <ClInclude Include="include\vxEngineLib\Reference.h" />
     <ClInclude Include="include\vxEngineLib\Scene.h" />
     <ClInclude Include="include\vxEngineLib\SceneBase.h" />
+    <ClInclude Include="include\vxEngineLib\SceneFile.h" />
     <ClInclude Include="include\vxEngineLib\Serializable.h" />
     <ClInclude Include="include\vxEngineLib\Spawn.h" />
+    <ClInclude Include="include\vxEngineLib\SRWMutex.h" />
     <ClInclude Include="include\vxEngineLib\TextureFile.h" />
     <ClInclude Include="include\vxEngineLib\TextureRef.h" />
     <ClInclude Include="include\vxEngineLib\Timer.h" />
@@ -267,9 +272,8 @@
     <ClCompile Include="MeshFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="MeshInstance.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="MeshInstance.cpp" />
+    <ClCompile Include="MeshInstanceFile.cpp" />
     <ClCompile Include="NavMesh.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -285,6 +289,7 @@
     <ClCompile Include="SceneBase.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="SceneFile.cpp" />
     <ClCompile Include="TextureFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

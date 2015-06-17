@@ -12,6 +12,7 @@
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/FileFactory.h>
 #include <vxLib/util/CityHash.h>
+#include <vxEngineLib/AnimationFile.h>
 
 FbxFactory::FbxFactory()
 	:m_pFbxManager(nullptr),
@@ -181,18 +182,24 @@ void getAnimationLayers(FBXSDK_NAMESPACE::FbxAnimStack* animStack, FBXSDK_NAMESP
 
 		auto animFrames = std::make_unique<vx::AnimationSample[]>(frameCount);
 		u32 frameIndex = 0;
+		f32 frameRate = 30.0f;
 		for (auto &it : frameTimes)
 		{
+			frameRate = it.second.GetFrameRate(FBXSDK_NAMESPACE::FbxTime::EMode::eDefaultMode);
+
 			auto &transform = meshNode->EvaluateGlobalTransform(it.second);
 			auto translation = transform.GetT();
 			auto rotation = transform.GetR();
 
+			__m128 angles = { (f32)rotation[0], (f32)rotation[1], (f32)rotation[2], 0.0f };
+			angles = vx::degToRad(angles);
+			auto qRotation = vx::quaternionRotationRollPitchYawFromVector(angles);
 			//printf("frame: %d, framerate: %d\n", it.first, it.second.GetFrameRate(FBXSDK_NAMESPACE::FbxTime::EMode::eDefaultMode));
 			//printf("	translation: %f %f %f\n", translation[0], translation[1], translation[2]);
 			//printf("	rotation: %f %f %f\n", rotation[0], rotation[1], rotation[2]);
 
 			animFrames[frameIndex].transform.m_translation = vx::float3(translation[0], translation[1], translation[2]);
-			//animFrames[frameIndex].transform.m_rotation = vx::float3(rotation[0], rotation[1], rotation[2]);
+			vx::storeFloat4(&animFrames[frameIndex].transform.m_qRotation, qRotation);
 			animFrames[frameIndex].transform.m_scaling = 1.0f;
 			animFrames[frameIndex].frame = it.first;
 			++frameIndex;
@@ -202,7 +209,7 @@ void getAnimationLayers(FBXSDK_NAMESPACE::FbxAnimStack* animStack, FBXSDK_NAMESP
 		{
 			vx::AnimationLayer animLayer;
 			animLayer.frameCount = frameIndex;
-			animLayer.frameRate = 30;
+			animLayer.frameRate = frameRate;
 			animLayer.samples = std::move(animFrames);
 
 			layers.push_back(std::move(animLayer));
@@ -424,19 +431,32 @@ bool FbxFactory::loadFile(const char *fbxFile, physx::PxCooking* cooking)
 			printf("Error creating physx mesh\n");
 			return false;
 		}
-		printf("hash: %llu\n", CityHash64((char*)writeBuffer.getData(), writeBuffer.getSize()));
+	//	printf("hash: %llu\n", CityHash64((char*)writeBuffer.getData(), writeBuffer.getSize()));
 
-		vx::MeshFile meshFile(std::move(mesh), writeBuffer.getData(), writeBuffer.getSize());
+		vx::MeshFile meshFile(vx::MeshFile::getGlobalVersion(), std::move(mesh), writeBuffer.getData(), writeBuffer.getSize());
 
 		std::string fileName = pMesh->GetNode()->GetName();
-		fileName += ".mesh";
+		std::string meshFileName = fileName + ".mesh";
 
-		vx::FileFactory::saveToFile(fileName.c_str(), &meshFile);
+		vx::FileFactory::saveToFile(meshFileName.c_str(), &meshFile);
 
 
-		//std::unique_ptr<AnimationLayer[]> animationLayers;
-		//u32 animationLayerCount = 0;
-		//getAnimationLayers(animStack, meshNode, &animationLayers, &animationLayerCount);
+		std::unique_ptr<vx::AnimationLayer[]> animationLayers;
+		u32 animationLayerCount = 0;
+		getAnimationLayers(animStack, meshNode, &animationLayers, &animationLayerCount);
+
+		if (animationLayerCount)
+		{
+			std::string animFileName = fileName + ".animation";
+
+			vx::Animation animation;
+			animation.layerCount = animationLayerCount;
+			animation.layers = std::move(animationLayers);
+
+			vx::AnimationFile animationFile(vx::AnimationFile::getGlobalVersion(), std::move(animation), animFileName.c_str());
+
+			vx::FileFactory::saveToFile(animFileName.c_str(), &animationFile);
+		}
 
 		//printf("animation layers: %u\n", animationLayerCount);
 		printf("vertexCount: %u\n", vertexCount);

@@ -46,8 +46,8 @@ SOFTWARE.
 #include "Graphics/CommandListFactory.h"
 #include "EngineConfig.h"
 #include <vxEngineLib/Waypoint.h>
-
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/Material.h>
 
 struct VertexPositionColor
 {
@@ -852,13 +852,13 @@ void EditorRenderAspect::updateCamera()
 {
 	auto projectionMatrix = m_renderContext.getProjectionMatrix();
 
-	Camerablock block;
+	UniformCameraBufferBlock block;
 	m_camera.getViewMatrix(&block.viewMatrix);
 	block.pvMatrix = projectionMatrix * block.viewMatrix;
 	block.inversePVMatrix = vx::MatrixInverse(block.pvMatrix);
-	block.cameraPosition = m_camera.getPosition();
+	block.position = m_camera.getPosition();
 
-	m_cameraBuffer.subData(0, sizeof(Camerablock), &block);
+	m_cameraBuffer.subData(0, sizeof(UniformCameraBufferBlock), &block);
 }
 
 const vx::Camera& EditorRenderAspect::getCamera() const
@@ -895,7 +895,7 @@ void EditorRenderAspect::setSelectedMeshInstanceTransform(vx::Transform &transfo
 	}
 }
 
-bool EditorRenderAspect::setSelectedMeshInstanceMaterial(const Material* material) const
+bool EditorRenderAspect::setSelectedMeshInstanceMaterial(const Reference<Material> &material) const
 {
 	return m_sceneRenderer.setMeshInstanceMaterial(m_selectedInstance.ptr->getNameSid(), material);
 }

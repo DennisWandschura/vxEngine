@@ -47,12 +47,13 @@ namespace Editor
 
 		void setTranslation(const vx::float3 &translation){ m_meshInstance.setTranslation(translation); }
 		void setRotation(const vx::float4 &rotation){ m_meshInstance.setRotation(rotation); }
-		void setMaterialSid(const vx::StringID &sid) { m_meshInstance.setMaterialSid(sid); }
+		void setMaterial(const Reference<Material> &material) { m_meshInstance.setMaterial(material); }
 		void setMeshSid(const vx::StringID &sid) { m_meshInstance.setMeshSid(sid); }
 
 		vx::StringID getNameSid() const noexcept{ return m_meshInstance.getNameSid(); }
 		vx::StringID getMeshSid() const noexcept{ return m_meshInstance.getMeshSid(); }
-		vx::StringID getMaterialSid() const noexcept{ return m_meshInstance.getMaterialSid(); }
+		const Reference<Material>& getMaterial() const noexcept{ return m_meshInstance.getMaterial(); }
+		vx::StringID getAnimationSid() const noexcept{ return m_meshInstance.getAnimationSid(); }
 		const vx::Transform& getTransform() const noexcept{ return m_meshInstance.getTransform(); }
 	};
 }

@@ -29,17 +29,19 @@ SOFTWARE.
 
 class Material
 {
+	vx::StringID m_sid;
 	TextureRef m_albedo;
 	TextureRef m_normal;
 	TextureRef m_surface;
-	f32 m_staticFriction{ 1.0f };
-	f32 m_dynamicFriction{ 1.0f };
-	f32 m_restitution{ 0 };
+	f32 m_staticFriction;
+	f32 m_dynamicFriction;
+	f32 m_restitution;
 
 public:
 	vx::StringID m_textureSid[3];
 
 	Material();
+	explicit Material(const vx::StringID &sid);
 	Material(const Material&) = delete;
 	Material(Material &&rhs) noexcept;
 
@@ -51,6 +53,7 @@ public:
 	void setPhysx(f32 staticFriction, f32 dynamicFriction, f32 restitution);
 	void setTextures(TextureRef &&albedo, TextureRef &&normal, TextureRef &&surface);
 
+	const vx::StringID& getSid() const { return m_sid; }
 	const TextureRef& getAlbedoRef() const{ return m_albedo; }
 	const TextureRef& getNormalRef() const{ return m_normal; }
 	const TextureRef& getSurfaceRef() const{ return m_surface; }

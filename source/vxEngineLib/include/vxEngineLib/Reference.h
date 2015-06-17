@@ -30,9 +30,17 @@ template<typename T>
 class ReferenceCounted
 {
 	T m_data;
-	std::atomic_uint32_t m_refCount{ 0 };
+	std::atomic_uint32_t m_refCount;
 
 public:
+	ReferenceCounted() :m_data(), m_refCount() {}
+
+	template<typename ...Args>
+	ReferenceCounted(Args&& ...args) : m_data(std::forward<Args>(args)...), m_refCount() {}
+
+	ReferenceCounted(const ReferenceCounted&) = delete;
+	ReferenceCounted(ReferenceCounted &&rhs) :m_data(std::move(rhs.m_data)), m_refCount(std::move(rhs.m_refCount)){}
+
 	u32 increment()
 	{
 		return ++m_refCount;
@@ -57,6 +65,21 @@ public:
 	{
 		return m_data;
 	}
+
+	T& get()
+	{
+		return m_data;
+	}
+
+	const T& get() const
+	{
+		return m_data;
+	}
+
+	typename std::add_reference<T>::type operator*() const
+	{	// return reference to object
+		return m_data;
+	}
 };
 
 template<typename T>
@@ -75,17 +98,13 @@ class Reference
 		if (m_ptr)
 		{
 			auto refCount = m_ptr->decrement();
-			if (refCount == 0)
-			{
-				delete(m_ptr);
-			}
 		}
 	}
 
 public:
 	Reference() :m_ptr(nullptr){}
 
-	Reference(const ReferenceCounted<T> &ref) :m_ptr(&ref){ increment(); }
+	Reference(ReferenceCounted<T> &ref) :m_ptr(&ref){ increment(); }
 
 	Reference(const Reference &rhs)
 		:m_ptr(rhs.m_ptr)
@@ -109,7 +128,6 @@ public:
 	{
 		if (this != &rhs)
 		{
-			decrement();
 			m_ptr = rhs.m_ptr;
 			increment();
 		}
@@ -132,7 +150,17 @@ public:
 		return (*this->m_ptr);
 	}
 
-	T* operator->()
+	bool isValid() const
+	{
+		return (m_ptr != nullptr);
+	}
+
+	ReferenceCounted<T>* get()
+	{
+		return m_ptr;
+	}
+
+	const ReferenceCounted<T>* get() const
 	{
 		return m_ptr;
 	}

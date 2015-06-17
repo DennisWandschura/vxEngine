@@ -555,6 +555,21 @@
     <ClInclude Include="PseudoRandom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\common.h">
+      <Filter>Shaders\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformCameraBufferStatic.h">
+      <Filter>Shaders\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTransformBuffer.h">
+      <Filter>Shaders\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Frame.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformReflectionBuffer.h">
+      <Filter>Shaders\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -823,6 +838,9 @@
     </ClCompile>
     <ClCompile Include="LookWhereYoureGoing.cpp">
       <Filter>Source Files\AI\Steering</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Frame.cpp">
+      <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1115,6 +1133,30 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\shadowParaboloid.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\coneTrace.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\blurNew.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\UniformCameraBuffer.h">
+      <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxelizeLight.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxelizeLight.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\voxelizeLight.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\reflectionCubemap.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\reflectionCubemap.geom">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

@@ -43,7 +43,7 @@ namespace vx
 
 namespace Graphics
 {
-	class Segment;
+	class CommandList;
 
 	class Renderer
 	{
@@ -59,7 +59,7 @@ namespace Graphics
 
 		virtual void update() = 0;
 
-		virtual void getSegments(std::vector<std::pair<std::string, Segment>>* segments) = 0;
+		virtual void getCommandList(CommandList* cmdList) = 0;
 
 		virtual void clearData() = 0;
 		virtual void bindBuffers() = 0;

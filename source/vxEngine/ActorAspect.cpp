@@ -36,6 +36,7 @@ SOFTWARE.
 #include "NavNode.h"
 #include <vxLib/ScopeGuard.h>
 #include "EventsIngame.h"
+#include <vxEngineLib/FileEvents.h>
 
 ActorAspect::ActorAspect(const PhysicsAspect &physicsAspect)
 	:m_actionManager(),

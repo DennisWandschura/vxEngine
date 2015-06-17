@@ -35,6 +35,9 @@ namespace gl
 	class ObjectManager;
 }
 
+template<typename T>
+class Reference;
+
 namespace vx
 {
 	namespace gl
@@ -91,12 +94,12 @@ class SceneRenderer
 	void createMeshTransformBuffer();
 	void createMeshMaterialBuffer();
 
-	void createMaterial(Material* pMaterial);
+	void createMaterial(const Reference<Material> &material);
 
 	void setMeshParamBufferValue(u32 count);
 
 	void addMeshInstanceToBuffers(const MeshInstance &instance, const vx::gl::Buffer* cmdBuffer, const MeshEntry &meshEntry, u16 elementId, u32 materialIndex);
-	void writeMaterialToBuffer(const Material *pMaterial, u32 offset);
+	void writeMaterialToBuffer(const Reference<Material> &material, u32 offset);
 	void writeMeshToBuffer(const WriteMeshToBufferDesc &desc);
 	void writeMeshesToGpuBuffer(const WriteMeshesToGpuBufferDesc &desc);
 	void writeMeshInstanceIdBuffer(u32 elementId, u32 materialIndex) const;
@@ -116,11 +119,13 @@ public:
 	void initialize(u32 maxLightCount, gl::ObjectManager* objectManager, vx::StackAllocator *pAllocator);
 	bool initializeProfiler(const Font &font, u64 fontTextureHandle,const vx::uint2 &resolution, const vx::gl::ShaderManager &shaderManager, GpuProfiler* gpuProfiler, vx::StackAllocator *pAllocator);
 
+	void shutdown();
+
 	void loadScene(const void* scene, const gl::ObjectManager &objectManager);
 	TextureRef loadTexture(const char* file);
 
-	u32 getMaterialIndex(const Material* material) const;
-	bool setMeshInstanceMaterial(const vx::StringID &sid, const Material* material) const;
+	u32 getMaterialIndex(const Reference<Material> &material) const;
+	bool setMeshInstanceMaterial(const vx::StringID &sid, const Reference<Material> &material) const;
 	bool setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid);
 
 	u16 getActorGpuIndex();

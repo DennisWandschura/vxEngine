@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include <vxResourceAspect/SceneFactory.h>
-#include <vxResourceAspect/SceneFile.h>
+#include <vxEngineLib/SceneFile.h>
 #include <vxResourceAspect/ConverterSceneFileToScene.h>
 #include <vxResourceAspect/ConverterEditorSceneToSceneFile.h>
 #include <vxResourceAspect/FileFactory.h>
@@ -37,11 +37,14 @@ SOFTWARE.
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/EditorScene.h>
 #include <vxEngineLib/FileFactory.h>
+#include <vxEngineLib/MeshInstanceFile.h>
+#include <vxEngineLib/debugPrint.h>
+#include <vxEngineLib/Reference.h>
 
 struct SceneFactory::LoadSceneFileDescription
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*>* sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<Material>>* sortedMaterials;
 	std::vector<vx::FileEntry> *pMissingFiles;
 	SceneFile *pSceneFile;
 };
@@ -79,54 +82,12 @@ bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, cons
 	return result;
 }
 
-bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFileOld* instances, u32 count)
-{
-	bool result = true;
-	for (u32 i = 0; i < count; ++i)
-	{
-		auto meshFile = instances[i].getMeshFile();
-		auto meshSid = vx::make_sid(meshFile);
-
-		// check for mesh
-		auto itMesh = desc.sortedMeshes->find(meshSid);
-		if (itMesh == desc.sortedMeshes->end())
-		{
-			// request load
-			desc.pMissingFiles->push_back(vx::FileEntry(meshFile, vx::FileType::Mesh));
-
-			result = false;
-		}
-
-		// check for material
-		auto materialFile = instances[i].getMaterialFile();
-		auto materialSid = vx::make_sid(materialFile);
-		auto itMaterial = desc.sortedMaterials->find(materialSid);
-		if (itMaterial == desc.sortedMaterials->end())
-		{
-			desc.pMissingFiles->push_back(vx::FileEntry(materialFile, vx::FileType::Material));
-
-			result = false;
-		}
-	}
-
-	return result;
-}
-
 bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 {
 	auto pMeshInstances = desc.pSceneFile->getMeshInstances();
 	auto instanceCount = desc.pSceneFile->getNumMeshInstances();
 
-	bool result = true;
-	if (pMeshInstances)
-	{
-		result = checkMeshInstances(desc, pMeshInstances, instanceCount);
-	}
-	else
-	{
-		auto pMeshInstancesOld = desc.pSceneFile->getMeshInstancesOld();
-		result = checkMeshInstances(desc, pMeshInstancesOld, instanceCount);
-	}
+	bool result = checkMeshInstances(desc, pMeshInstances, instanceCount);
 
 	auto pActors = desc.pSceneFile->getActors();
 	auto actorCount = desc.pSceneFile->getActorCount();
@@ -162,11 +123,13 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 
 bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, Scene *pScene)
 {
-	SceneFile sceneFile;
-	auto result = FileFactory::load(ptr, fileSize, &sceneFile, nullptr);
+	bool result = false;
+	SceneFile sceneFile = FileFactory::load(ptr, fileSize, &result, nullptr);
 
 	if (result)
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded Scene File version %u", sceneFile.getVersion());
+
 		LoadSceneFileDescription loadDesc;
 		loadDesc.sortedMaterials = desc.materials;
 		loadDesc.sortedMeshes = desc.meshes;
@@ -199,8 +162,8 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 
 bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, Editor::Scene *pScene)
 {
-	SceneFile sceneFile;
-	auto result = FileFactory::load(file, &sceneFile, allocator, nullptr);
+	bool result = false;
+	SceneFile sceneFile = FileFactory::load(file, &result, allocator, nullptr);
 
 	if (result)
 	{
@@ -228,8 +191,8 @@ bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, v
 
 bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, Editor::Scene* pScene)
 {
-	SceneFile sceneFile;
-	auto result = FileFactory::load(ptr, fileSize, &sceneFile, nullptr);
+	bool result = false;
+	SceneFile sceneFile = FileFactory::load(ptr, fileSize, &result, nullptr);
 
 	if (result)
 	{
@@ -265,7 +228,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 
 void SceneFactory::saveToFile(const Editor::Scene &scene, vx::File* f)
 {
-	SceneFile sceneFile;
+	SceneFile sceneFile(SceneFile::getGlobalVersion());
 	convert(scene, &sceneFile);
 
 	vx::FileFactory::saveToFile(f, &sceneFile);

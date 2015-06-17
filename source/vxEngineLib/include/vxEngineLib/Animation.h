@@ -17,7 +17,7 @@ namespace vx
 	{
 		std::unique_ptr<AnimationSample[]> samples;
 		u32 frameCount;
-		u32 frameRate;
+		f32 frameRate;
 
 		AnimationLayer() :samples(), frameCount(0), frameRate(0) {}
 		AnimationLayer(const AnimationLayer&) = delete;

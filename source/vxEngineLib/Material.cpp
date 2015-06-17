@@ -26,15 +26,33 @@ SOFTWARE.
 #include <vxEngineLib/TextureFile.h>
 
 Material::Material()
-	:m_albedo(),
+	:m_sid(),
+	m_albedo(),
 	m_normal(),
 	m_surface(),
-	m_textureSid()
+	m_textureSid(),
+	m_staticFriction(1.0f),
+	m_dynamicFriction(1.0f),
+	m_restitution(0.0f)
 {
 }
 
+Material::Material(const vx::StringID &sid)
+	:m_sid(sid),
+	m_albedo(),
+	m_normal(),
+	m_surface(),
+	m_textureSid(),
+	m_staticFriction(1.0f),
+	m_dynamicFriction(1.0f),
+	m_restitution(0.0f)
+{
+
+}
+
 Material::Material(Material &&rhs) noexcept
-	:m_albedo(std::move(rhs.m_albedo)),
+	:m_sid(std::move(rhs.m_sid)),
+	m_albedo(std::move(rhs.m_albedo)),
 	m_normal(std::move(rhs.m_normal)),
 	m_surface(std::move(rhs.m_surface)),
 	m_staticFriction(rhs.m_staticFriction),
@@ -55,6 +73,7 @@ Material& Material::operator=(Material &&rhs) noexcept
 
 void Material::swap(Material &rhs) noexcept
 {
+	std::swap(m_sid, rhs.m_sid);
 	std::swap(m_albedo, rhs.m_albedo);
 	std::swap(m_normal, rhs.m_normal);
 	std::swap(m_surface, rhs.m_surface);

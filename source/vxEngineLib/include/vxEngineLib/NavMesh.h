@@ -73,7 +73,9 @@ public:
 	NavMesh& operator=(NavMesh &&rhs);
 	/////////////// operators
 
+	void reset();
 	void copy(NavMesh* dst) const;
+	void swap(NavMesh &other);
 
 	/////////////// loading
 	//void loadFromYAML(const YAML::Node &node);

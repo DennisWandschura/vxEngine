@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,25 +22,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/math/matrix.h>
 
-struct Camerablock
-{
-	vx::mat4 pvMatrix;
-	vx::mat4 viewMatrix;
-	vx::mat4 inversePVMatrix;
-	__m128 cameraPosition;
-	__m128 padding[3];
-};
-
-struct CamerablockStatic
-{
-	vx::mat4 invProjectionMatrix;
-	vx::mat4 projectionMatrix;
-	vx::mat4 orthoMatrix;
-};
+#include <UniformCameraBuffer.h>
+#include <UniformCameraBufferStatic.h>
+#include <UniformShadowTransformBuffer.h>
 
 struct VoxelData
 {
@@ -63,18 +50,6 @@ struct LightData
 	float lumen;
 };
 
-struct PointLightShadowTransform
-{
-	vx::mat4 projectionMatrix;
-	vx::mat4 viewMatrix[6];
-	vx::mat4 pvMatrices[6];
-};
-
-struct ShadowTransformBlock
-{
-	PointLightShadowTransform transforms[5];
-};
-
 struct UniformTextureBufferBlock
 {
 	u64 u_albedoSlice;
@@ -86,6 +61,7 @@ struct UniformTextureBufferBlock
 	u64 u_aabbTexture;
 	u64 u_ambientSlice;
 	u64 u_ambientImage;
+	u64 u_volumetricTexture;
 };
 
 struct UniformShadowTextureBufferBlock

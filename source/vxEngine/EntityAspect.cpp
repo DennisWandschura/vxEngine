@@ -47,6 +47,7 @@ SOFTWARE.
 #include "State.h"
 #include "EngineGlobals.h"
 #include "Transition.h"
+#include <vxEngineLib/FileEvents.h>
 
 #include "ConditionActorFollowingPath.h"
 #include "ConditionActorHasPath.h"

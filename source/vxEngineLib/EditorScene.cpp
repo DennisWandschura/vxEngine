@@ -28,6 +28,8 @@ SOFTWARE.
 #include <vxEngineLib/Light.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/copy.h>
+#include <vxEngineLib/Reference.h>
+#include <vxEngineLib/Material.h>
 
 namespace Editor
 {
@@ -131,6 +133,19 @@ namespace Editor
 		}
 	}
 
+	void Scene::reset()
+	{
+		SceneBase::reset();
+		m_meshInstances.clear();
+		m_selectableLights.clear();
+		m_selectableSpawns.clear();
+		m_selectableWaypoints.clear();
+		m_materialNames.clear();
+		m_meshNames.clear();
+		m_actorNames.clear();
+		m_animationNames.clear();
+	}
+
 	void Scene::copy(Scene* dst) const
 	{
 		SceneBase::copy(dst);
@@ -150,7 +165,7 @@ namespace Editor
 
 	void Scene::removeUnusedMaterials()
 	{
-		vx::sorted_vector<vx::StringID, Material*> newMaterials;
+	/*	vx::sorted_vector<vx::StringID, Reference<Material>> newMaterials;
 		newMaterials.reserve(m_materials.size());
 
 		for (auto &it : m_meshInstances)
@@ -162,7 +177,7 @@ namespace Editor
 			newMaterials.insert(materialSid, *materialIt);
 		}
 
-		newMaterials.swap(m_materials);
+		newMaterials.swap(m_materials);*/
 	}
 
 	void Scene::removeUnusedMeshes()
@@ -214,7 +229,7 @@ namespace Editor
 		return result;
 	}
 
-	u8 Scene::addMaterial(vx::StringID sid, const char* name, Material* pMaterial)
+	u8 Scene::addMaterial(vx::StringID sid, const char* name, const Reference<Material> &material)
 	{
 		u8 result = 0;
 		auto it = m_materials.find(sid);
@@ -223,7 +238,7 @@ namespace Editor
 			char buffer[32];
 			strcpy_s(buffer, name);
 			m_materialNames.insert(sid, buffer);
-			m_materials.insert(sid, pMaterial);
+			m_materials.insert(sid, material);
 			result = 1;
 		}
 
@@ -307,16 +322,25 @@ namespace Editor
 		return it->c_str();
 	}
 
+	const char* Scene::getAnimationName(const vx::StringID &sid) const
+	{
+		auto it = m_animationNames.find(sid);
+		if (it == m_animationNames.end())
+			return nullptr;
+
+		return it->c_str();
+	}
+
 	vx::StringID Scene::createMeshInstance()
 	{
 		std::string instanceName = "instance" + std::to_string(m_meshInstances.size());
 		auto nameSid = vx::make_sid(instanceName.c_str());
 
 		auto meshSid = *m_meshes.keys();
-		auto materialSid = *m_materials.keys();
+		auto material = m_materials[0];
 
 		vx::Transform transform;
-		::MeshInstance instance(nameSid, meshSid, materialSid, transform);
+		::MeshInstance instance(nameSid, meshSid, material, vx::StringID(), transform);
 		Editor::MeshInstance editorInstance(instance, std::move(instanceName));
 
 		m_meshInstances.insert(nameSid, editorInstance);
@@ -338,7 +362,7 @@ namespace Editor
 		if (it != m_meshInstances.end())
 		{
 			auto newSid = vx::make_sid(newName);
-			::MeshInstance newInstance(newSid, it->getMeshSid(), it->getMaterialSid(), it->getTransform());
+			::MeshInstance newInstance(newSid, it->getMeshSid(), it->getMaterial(), it->getAnimationSid(), it->getTransform());
 			Editor::MeshInstance editrInstance(newInstance, std::string(newName));
 
 			m_meshInstances.erase(it);

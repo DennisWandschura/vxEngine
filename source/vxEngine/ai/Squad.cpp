@@ -235,7 +235,7 @@ namespace ai
 				path.push_back(outNodes[i]);
 			}
 
-			printf("destination: %f %f %f\n", endPosition.x, endPosition.y, endPosition.z);
+			//printf("destination: %f %f %f\n", endPosition.x, endPosition.y, endPosition.z);
 			targetData->m_actorComponent->m_followingPath = 1;
 			targetData->m_actorComponent->m_data->targetCell = targetActorCellIndex;
 		}

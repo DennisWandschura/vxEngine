@@ -32,6 +32,9 @@ struct Actor;
 class SceneFile;
 struct Waypoint;
 
+template<typename T>
+class Reference;
+
 namespace vx
 {
 	class MeshFile;
@@ -49,7 +52,7 @@ struct SceneBaseParams
 #else
 	std::unique_ptr<Light[]> m_pLights;
 #endif
-	vx::sorted_vector<vx::StringID, Material*> m_materials;
+	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	std::unique_ptr<Spawn[]> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
@@ -76,8 +79,8 @@ protected:
 #else
 	std::unique_ptr<Light[]> m_pLights;
 #endif
-	vx::sorted_vector<vx::StringID, Material*> m_materials{};
-	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes{};
+	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	std::unique_ptr<Spawn[]> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 #if _VX_EDITOR
@@ -85,7 +88,7 @@ protected:
 #else
 	std::unique_ptr<Waypoint[]> m_waypoints;
 #endif
-	NavMesh m_navMesh{};
+	NavMesh m_navMesh;
 	u32 m_lightCount{ 0 };
 	u32 m_vertexCount{ 0 };
 	u32 m_indexCount{ 0 };
@@ -104,6 +107,8 @@ public:
 	SceneBase& operator = (const SceneBase&) = delete;
 	SceneBase& operator = (SceneBase &&rhs);
 
+	virtual void reset();
+
 	void copy(SceneBase *dst) const;
 
 	virtual void sortMeshInstances() = 0;
@@ -114,7 +119,7 @@ public:
 	const Light* getLights() const;
 	u32 getLightCount() const;
 
-	const vx::sorted_vector<vx::StringID, Material*>& getMaterials() const;
+	const vx::sorted_vector<vx::StringID, Reference<Material>>& getMaterials() const;
 	u32 getMaterialCount() const;
 
 	const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& getMeshes() const;

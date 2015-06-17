@@ -59,7 +59,7 @@ namespace Graphics
 
 		void set(const StateDescription &desc);
 
-		void update();
+		void update() const;
 
 		bool isValid() const;
 	};

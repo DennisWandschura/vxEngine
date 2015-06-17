@@ -28,12 +28,14 @@ SOFTWARE.
 #include <vxResourceAspect/ConverterEditorSceneToSceneFile.h>
 #include <vxEngineLib/EditorScene.h>
 #include <vxEngineLib/EditorMeshInstance.h>
+#include <vxEngineLib/MeshInstanceFile.h>
 #include <vxEngineLib/NavMesh.h>
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/Light.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/Waypoint.h>
-#include <vxResourceAspect/SceneFile.h>
+#include <vxEngineLib/SceneFile.h>
+#include <vxEngineLib/Material.h>
 
 void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneFile* sceneFile)
 {
@@ -73,22 +75,29 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 	for (u32 i = 0; i < meshInstanceCount; ++i)
 	{
 		auto &it = scene.m_meshInstances[i];
+		auto &material = it.getMaterial();
+		auto materialSid = (*material).getSid();
 
 		auto instanceName = scene.getMeshInstanceName(it.getNameSid());
 		auto instanceMeshName = scene.getMeshName(it.getMeshSid());
-		auto instanceMaterialName = scene.getMaterialName(it.getMaterialSid());
+		auto instanceMaterialName = scene.getMaterialName(materialSid);
+		auto instanceAnimationName = scene.getAnimationName(it.getAnimationSid());
 
-		char meshName[32];
+		char meshName[32] = {};
 		strncpy(meshName, instanceMeshName, 32);
 
-		char materialName[32];
+		char materialName[32] = {};
 		strncpy(materialName, instanceMaterialName, 32);
 
-		char name[32];
+		char name[32] = {};
 		strncpy(name, instanceName, 32);
 
+		char animation[32] = {};
+		if (instanceAnimationName)
+			strncpy(name, instanceAnimationName, 32);
+
 		auto transform = it.getTransform();
-		sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, transform);
+		sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, animation, transform);
 	}
 
 	auto spawns = scene.getSpawns();

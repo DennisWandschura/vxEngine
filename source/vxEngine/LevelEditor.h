@@ -95,6 +95,8 @@ namespace Editor
 	extern "C" DLL_EXPORT void deselectLight();
 	extern "C" DLL_EXPORT void getSelectLightPosition(vx::float3* position);
 	extern "C" DLL_EXPORT void setSelectLightPosition(const vx::float3 &position);
+	extern "C" DLL_EXPORT f32 getSelectLightFalloff();
+	extern "C" DLL_EXPORT void setSelectLightFalloff(f32 falloff);
 
 	extern "C" DLL_EXPORT void showNavmesh(bool b);
 	extern "C" DLL_EXPORT void showInfluenceMap(bool b);

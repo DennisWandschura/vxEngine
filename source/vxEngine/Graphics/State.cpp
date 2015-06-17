@@ -69,7 +69,7 @@ namespace Graphics
 		m_polygonOffsetFillState = desc.polygonOffsetFillState;
 	}
 
-	void State::update()
+	void State::update() const
 	{
 		g_capabilityFun[m_depthTestState](vx::gl::Capabilities::Depth_Test);
 		g_capabilityFun[m_blendState](vx::gl::Capabilities::Blend);

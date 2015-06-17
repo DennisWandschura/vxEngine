@@ -115,7 +115,7 @@ public:
 
 	bool setSelectedMeshInstance(const Editor::MeshInstance* instance);
 	void setSelectedMeshInstanceTransform(vx::Transform &transform);
-	bool setSelectedMeshInstanceMaterial(const Material* material) const;
+	bool setSelectedMeshInstanceMaterial(const Reference<Material> &material) const;
 	bool setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid);
 
 	void editorAddMeshInstance(const Editor::MeshInstance &instance);

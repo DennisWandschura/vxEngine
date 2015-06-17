@@ -35,6 +35,8 @@ SOFTWARE.
 #include <vxEngineLib/EventTypes.h>
 #include "Locator.h"
 #include <vxResourceAspect/FileAspect.h>
+#include <vxEngineLib/MeshFile.h>
+#include <vxEngineLib/FileEvents.h>
 
 UserErrorCallback PhysicsAspect::s_defaultErrorCallback{};
 physx::PxDefaultAllocator PhysicsAspect::s_defaultAllocatorCallback{};
@@ -277,7 +279,8 @@ void PhysicsAspect::editorSetStaticMeshInstanceMesh(const MeshInstance &meshInst
 		newTriangleMeshIt = m_physxMeshes.insert(meshSid, pResult);
 	}
 
-	auto itPhysxMaterial = m_physxMaterials.find(meshInstance.getMaterialSid());
+	auto &material = meshInstance.getMaterial();
+	auto itPhysxMaterial = m_physxMaterials.find((*material).getSid());
 	auto newShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*newTriangleMeshIt), *(*itPhysxMaterial));
 
 	auto shapeCount = (*rigidStaticIt)->getNbShapes();
@@ -306,7 +309,8 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 
 	assert(transform.isValid());
 
-	auto itPhysxMaterial = m_physxMaterials.find(meshInstance.getMaterialSid());
+	auto &material = meshInstance.getMaterial();
+	auto itPhysxMaterial = m_physxMaterials.find((*material).getSid());
 	auto pmat = *itPhysxMaterial;
 
 	physx::PxShape* shape = nullptr;
@@ -374,9 +378,10 @@ void PhysicsAspect::processScene(const void* ptr)
 	auto &sceneMaterials = pScene->getMaterials();
 	for (auto i = 0u; i < sceneMaterials.size(); ++i)
 	{
-		auto pCurrentMaterial = sceneMaterials[i];
+		auto &currentMaterial = sceneMaterials[i];
+
 		auto sid = sceneMaterials.keys()[i];
-		auto pMaterial = m_pPhysics->createMaterial(pCurrentMaterial->getStaticFriction(), pCurrentMaterial->getDynamicFriction(), pCurrentMaterial->getRestitution());
+		auto pMaterial = m_pPhysics->createMaterial((*currentMaterial).getStaticFriction(), (*currentMaterial).getDynamicFriction(), (*currentMaterial).getRestitution());
 		assert(pMaterial);
 		m_physxMaterials.insert(sid, pMaterial);
 	}

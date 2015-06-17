@@ -34,6 +34,7 @@ SOFTWARE.
 #include <vxEngineLib/Timer.h>
 #include <csignal>
 #include <vxEngineLib/Scene.h>
+#include <vxEngineLib/debugPrint.h>
 
 #include "SmallObjAllocator.h"
 #include "SmallObject.h"
@@ -172,16 +173,12 @@ int main()
 
 	Scene scene;
 	Engine engine;
-
 	g_engine = &engine;
-	{
-		//SceneFile sceneFile;
-		//sceneFile.loadFromYAML("data/scenes/scene5.scene.yaml");
-	//	sceneFile.saveToFile("data/scenes/scene5.scene");
-	}
+	vx::activateChannel(vx::debugPrint::Channel_FileAspect);
 
 	SCOPE_EXIT
 	{
+		scene.reset();
 		engine.shutdown();
 		LOG(mainLogfile, "Shutting down Engine", false);
 		mainLogfile.close();
@@ -200,11 +197,19 @@ int main()
 		return 1;
 	}
 
-	engine.requestLoadFile(vx::FileEntry("test11.scene", vx::FileType::Scene), &scene);
+	engine.requestLoadFile(vx::FileEntry("test13.scene", vx::FileType::Scene), &scene);
 
 	LOG(mainLogfile, "Starting", false);
 
 	engine.start();
+
+	std::atomic_int sizeFront;
+	int sizeBack = 0;
+
+	std::atomic<void*> ptr;
+	void* ptrBack;
+
+	__cplusplus;
 
 	return 0;
 }

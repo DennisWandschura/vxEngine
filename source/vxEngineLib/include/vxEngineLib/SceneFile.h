@@ -31,10 +31,12 @@ struct Actor;
 struct Spawn;
 struct Waypoint;
 
-struct MeshInstanceFileOld;
 class MeshInstance;
 class Material;
 class Scene;
+
+template<typename T>
+class Reference;
 
 namespace Editor
 {
@@ -59,14 +61,14 @@ namespace vx
 struct CreateSceneDescription
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*, std::less<vx::StringID>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<Material>, std::less<vx::StringID>> *sortedMaterials;
 	Scene *pScene;
 };
 
 struct CreateEditorSceneDescription
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*, std::less<vx::StringID>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<Material>, std::less<vx::StringID>> *sortedMaterials;
 	const vx::sorted_vector<vx::StringID, std::string> *loadedFiles;
 	Editor::Scene *pScene;
 };
@@ -81,7 +83,6 @@ class SceneFile : public vx::Serializable
 	struct CreateSceneShared;
 
 	std::unique_ptr<MeshInstanceFile[]> m_pMeshInstances;
-	std::unique_ptr<MeshInstanceFileOld[]> m_pMeshInstancesOld;
 	std::unique_ptr<Light[]> m_pLights;
 	std::unique_ptr<SpawnFile[]> m_pSpawns;
 	std::unique_ptr<ActorFile[]> m_pActors;
@@ -98,21 +99,27 @@ class SceneFile : public vx::Serializable
 
 	bool createSceneShared(const CreateSceneShared &desc);
 
-	const u8* loadVersion2(const u8 *ptr, const u8* last, vx::Allocator* allocator);
 	const u8* loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+	const u8* loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+
+	u64 getCrcVersion3() const;
+	u64 getCrcVersion4() const;
 
 public:
-	SceneFile();
+	explicit SceneFile(u32 version);
+	SceneFile(const SceneFile&) = delete;
+	SceneFile(SceneFile &&rhs);
 	~SceneFile();
 
-	const u8* loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator) override;
+	void swap(SceneFile &other);
+
+	const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) override;
 	//void loadFromYAML(const char *file);
 
 	void saveToFile(vx::File *file) const override;
 	//void saveToYAML(const char *file) const;
 
 	const MeshInstanceFile* getMeshInstances() const noexcept;
-	const MeshInstanceFileOld* getMeshInstancesOld() const noexcept;
 	u32 getNumMeshInstances() const noexcept;
 
 	u8 createScene(const CreateSceneDescription &desc);
@@ -123,5 +130,5 @@ public:
 
 	u64 getCrc() const override;
 
-	u32 getVersion() const override;
+	static u32 getGlobalVersion();
 };

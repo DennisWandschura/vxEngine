@@ -23,41 +23,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class MeshInstance;
-struct Waypoint;
+#include <vxLib/types.h>
 
-#include "SceneBase.h"
-
-struct SceneParams
+namespace vx
 {
-	SceneBaseParams m_baseParams;
-	std::unique_ptr<MeshInstance[]> m_pMeshInstances;
-	u32 m_meshInstanceCount;
+	enum class FileEvent : u16
+	{
+		// arg1 contains sid of filename, arg2 contains ptr to scene
+		Scene_Loaded,
+		// arg1 contains sid to file, arg2 contains ptr
+		Texture_Loaded,
+		// arg1 contains sid to file, arg2 userdata
+		Material_Loaded,
+		// arg1 contains sid to file, arg2 userdata
+		Mesh_Loaded,
+		Wav_Loaded,
+		Animation_Loaded,
 
-	~SceneParams();
-};
-
-class Scene : public SceneBase
-{
-	std::unique_ptr<MeshInstance[]> m_pMeshInstances;
-	u32 m_meshInstanceCount{ 0 };
-
-public:
-	Scene();
-	Scene(SceneParams &params);
-
-	Scene(const Scene&) = delete;
-	Scene(Scene &&rhs);
-	~Scene();
-
-	void reset() override;
-
-	Scene& operator=(const Scene&) = delete;
-	Scene& operator=(Scene &&rhs);
-
-	// sorts by material type, then by mesh
-	void sortMeshInstances() override;
-
-	const MeshInstance* getMeshInstances() const override;
-	u32 getMeshInstanceCount() const override;
-};
+		Scene_Existing,
+		Texture_Existing,
+		Material_Existing,
+		Mesh_Existing
+	};
+}

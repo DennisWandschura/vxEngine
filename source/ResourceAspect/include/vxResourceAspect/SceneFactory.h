@@ -48,7 +48,6 @@ namespace Editor
 class Scene;
 class SceneFile;
 class Material;
-class MeshInstanceFileOld;
 class MeshInstanceFile;
 
 namespace Factory
@@ -64,7 +63,6 @@ class SceneFactory
 	struct LoadSceneFileDescription;
 
 	static bool checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFile* instances, u32 count);
-	static bool checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFileOld* instances, u32 count);
 	static bool checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc);
 
 public:

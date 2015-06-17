@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,41 +24,70 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class MeshInstance;
-struct Waypoint;
+#include <Windows.h>
+#include <mutex>
 
-#include "SceneBase.h"
-
-struct SceneParams
+namespace vx
 {
-	SceneBaseParams m_baseParams;
-	std::unique_ptr<MeshInstance[]> m_pMeshInstances;
-	u32 m_meshInstanceCount;
+	class SRWMutex
+	{
+		SRWLOCK m_lock;
 
-	~SceneParams();
-};
+	public:
+		SRWMutex() :m_lock(){ InitializeSRWLock(&m_lock); }
 
-class Scene : public SceneBase
-{
-	std::unique_ptr<MeshInstance[]> m_pMeshInstances;
-	u32 m_meshInstanceCount{ 0 };
+		void lockShared()
+		{
+			AcquireSRWLockShared(&m_lock);
+		}
 
-public:
-	Scene();
-	Scene(SceneParams &params);
+		bool tryLockShared()
+		{
+			return TryAcquireSRWLockShared(&m_lock) != 0;
+		}
 
-	Scene(const Scene&) = delete;
-	Scene(Scene &&rhs);
-	~Scene();
+		void lock()
+		{
+			AcquireSRWLockExclusive(&m_lock);
+		}
 
-	void reset() override;
+		bool tryLock()
+		{
+			return TryAcquireSRWLockExclusive(&m_lock) != 0;
+		}
 
-	Scene& operator=(const Scene&) = delete;
-	Scene& operator=(Scene &&rhs);
+		void unlockShared()
+		{
+			ReleaseSRWLockShared(&m_lock);
+		}
 
-	// sorts by material type, then by mesh
-	void sortMeshInstances() override;
+		void unlock()
+		{
+			ReleaseSRWLockExclusive(&m_lock);
+		}
+	};
 
-	const MeshInstance* getMeshInstances() const override;
-	u32 getMeshInstanceCount() const override;
-};
+	template<class _Mutex>
+	class shared_lock_guard
+	{	// class with destructor that unlocks mutex
+	public:
+		typedef _Mutex mutex_type;
+
+		explicit shared_lock_guard(_Mutex& _Mtx)
+			: _MyMutex(_Mtx)
+		{	// construct and lock
+			_MyMutex.lockShared();
+		}
+
+		~shared_lock_guard() _NOEXCEPT
+		{	// unlock
+			_MyMutex.unlockShared();
+		}
+
+		shared_lock_guard(const shared_lock_guard&) = delete;
+		shared_lock_guard& operator=(const shared_lock_guard&) = delete;
+
+	private:
+		_Mutex& _MyMutex;
+	};
+}

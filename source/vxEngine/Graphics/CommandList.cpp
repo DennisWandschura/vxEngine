@@ -131,7 +131,7 @@ namespace Graphics
 		m_coldData->m_inactiveSegmentIndices.clear();
 	}
 
-	void CommandList::draw()
+	void CommandList::draw() const
 	{
 		for (auto &it : m_sortedSegments)
 		{

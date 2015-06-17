@@ -221,7 +221,7 @@ bool AStar::pathfind(const PathFindDescription &desc)
 	}
 
 	auto time = timer.getTimeInMs();
-	printf("Astar time: %f ms\n", time);
+	//printf("Astar time: %f ms\n", time);
 
 	return result;
 }

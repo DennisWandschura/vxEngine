@@ -45,10 +45,20 @@ SOFTWARE.
 #include "CpuProfiler.h"
 #include "developer.h"
 #include <vxEngineLib/debugPrint.h>
+#include <vxEngineLib/Material.h>
+#include <vxEngineLib/Reference.h>
 
 namespace SceneRendererCpp
 {
-	void getShadowTransform(const Light &light, PointLightShadowTransform* shadowTransform)
+	struct MaterialCmp
+	{
+		bool operator()(const Reference<Material> &lhs, const Reference<Material> &rhs) const
+		{
+			return lhs.get() < rhs.get();
+		}
+	};
+
+	void getShadowTransform(const Light &light, ShadowTransform* shadowTransform)
 	{
 		auto lightPos = vx::loadFloat3(light.m_position);
 		auto projectionMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, 0.1f, light.m_falloff);
@@ -83,7 +93,7 @@ namespace SceneRendererCpp
 		for (u32 i = 0; i < 6; ++i)
 		{
 			shadowTransform->viewMatrix[i] = viewMatrices[i];
-			shadowTransform->pvMatrices[i] = projectionMatrix * viewMatrices[i];
+			shadowTransform->pvMatrix[i] = projectionMatrix * viewMatrices[i];
 		}
 	}
 }
@@ -103,7 +113,7 @@ struct SceneRenderer::ColdData
 	u32 m_dynamicMeshIndexCount{ 0 };
 	vx::StackAllocator m_scratchAllocator;
 	TextureManager m_textureManager;
-	vx::sorted_vector<const Material*, u32> m_materialIndices;
+	vx::sorted_vector<Reference<Material>, u32, SceneRendererCpp::MaterialCmp> m_materialIndices;
 	vx::sorted_vector<vx::StringID, MeshEntry> m_meshEntries;
 	vx::sorted_vector<vx::StringID, vx::gl::DrawElementsIndirectCommand> m_instanceCmds;
 	vx::sorted_vector<u64, u32> m_texturesGPU;
@@ -317,33 +327,40 @@ bool SceneRenderer::initializeProfiler(const Font &font, u64 fontTextureHandle, 
 	return true;
 }
 
-void SceneRenderer::createMaterial(Material* pMaterial)
+void SceneRenderer::shutdown()
 {
-	assert(pMaterial);
+	m_pObjectManager = nullptr;
+	m_staticMeshInstanceCount = 0;
+	m_dynamicMeshInstanceCount = 0;
+	m_meshInstanceCount = 0;
+	m_coldData.reset();
+}
 
+void SceneRenderer::createMaterial(const Reference<Material> &material)
+{
 	auto fileAspect = Locator::getFileAspect();
 	VX_ASSERT(fileAspect);
 
-	auto pAlbedoTex = fileAspect->getTextureFile(pMaterial->m_textureSid[0]);
+	auto pAlbedoTex = fileAspect->getTextureFile((*material).m_textureSid[0]);
 	VX_ASSERT(pAlbedoTex);
 
 	auto albedoRef = m_coldData->m_textureManager.load(*pAlbedoTex, 1, 1);
 	VX_ASSERT(albedoRef.isValid());
 
-	auto pNormalTex = fileAspect->getTextureFile(pMaterial->m_textureSid[1]);
+	auto pNormalTex = fileAspect->getTextureFile((*material).m_textureSid[1]);
 	VX_ASSERT(pNormalTex);
 	VX_ASSERT(pNormalTex->getChannels() == 3);
 
 	auto normalRef = m_coldData->m_textureManager.load(*pNormalTex, 1, 0);
 	VX_ASSERT(normalRef.isValid());
 
-	auto pSurfaceTex = fileAspect->getTextureFile(pMaterial->m_textureSid[2]);
+	auto pSurfaceTex = fileAspect->getTextureFile((*material).m_textureSid[2]);
 	VX_ASSERT(pSurfaceTex);
 
 	auto surfaceRef = m_coldData->m_textureManager.load(*pSurfaceTex, 1, 1);
 	VX_ASSERT(surfaceRef.isValid());
 
-	pMaterial->setTextures(std::move(albedoRef), std::move(normalRef), std::move(surfaceRef));
+	(*material).setTextures(std::move(albedoRef), std::move(normalRef), std::move(surfaceRef));
 }
 
 u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &material, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex)
@@ -446,7 +463,7 @@ void SceneRenderer::updateLights(const Light* lights, u32 count)
 	m_coldData->m_lightBufferManager.updateLightDataBuffer(lights, count, m_pObjectManager);
 }
 
-void SceneRenderer::writeMaterialToBuffer(const Material *pMaterial, u32 offset)
+void SceneRenderer::writeMaterialToBuffer(const Reference<Material> &material, u32 offset)
 {
 	auto getTextureGpuEntry = [&](const TextureRef &ref)
 	{
@@ -461,9 +478,9 @@ void SceneRenderer::writeMaterialToBuffer(const Material *pMaterial, u32 offset)
 		return entry;
 	};
 
-	auto &albedoRef = pMaterial->getAlbedoRef();
-	auto &normalRef = pMaterial->getNormalRef();
-	auto &surfaceRef = pMaterial->getSurfaceRef();
+	auto &albedoRef = (*material).getAlbedoRef();
+	auto &normalRef = (*material).getNormalRef();
+	auto &surfaceRef = (*material).getSurfaceRef();
 
 	u32 hasNormalmap = (normalRef.isValid());
 
@@ -602,18 +619,20 @@ void SceneRenderer::updateLightBuffer(const Light *pLights, u32 lightCount, cons
 {
 	assert(lightCount <= 5);
 
-	ShadowTransformBlock shadowTransforms;
+	ShadowTransformBufferBlock shadowTransforms;
 
 	for (auto i = 0u; i < lightCount; ++i)
 	{
-		SceneRendererCpp::getShadowTransform(pLights[i], &shadowTransforms.transforms[i]);
+		SceneRendererCpp::getShadowTransform(pLights[i], &shadowTransforms.u_shadowTransforms[i]);
 	}
 
 	m_coldData->m_lightBufferManager.updateLightDataBuffer(pLights, lightCount, m_pObjectManager);
 
-	auto pShadowTransformBuffer = objectManager.getBuffer("ShadowTransformBuffer");
-	auto shadowTransformsMappedBuffer = pShadowTransformBuffer->map<ShadowTransformBlock>(vx::gl::Map::Write_Only);
-	vx::memcpy(shadowTransformsMappedBuffer.get(), shadowTransforms);
+	{
+		auto pShadowTransformBuffer = objectManager.getBuffer("ShadowTransformBuffer");
+		auto shadowTransformsMappedBuffer = pShadowTransformBuffer->map<ShadowTransformBufferBlock>(vx::gl::Map::Write_Only);
+		vx::memcpy(shadowTransformsMappedBuffer.get(), shadowTransforms);
+	}
 }
 
 void SceneRenderer::writeMeshInstanceIdBuffer(u32 elementId, u32 materialIndex) const
@@ -674,8 +693,8 @@ void SceneRenderer::updateBuffersWithMeshInstance(const MeshInstance &instance, 
 	auto currentMeshSid = instance.getMeshSid();
 	auto meshEntry = m_coldData->m_meshEntries.find(currentMeshSid);
 
-	auto pCurrentMaterial = pFileAspect->getMaterial(instance.getMaterialSid());
-	auto materialIndex = *m_coldData->m_materialIndices.find(pCurrentMaterial);
+	auto currentMaterial = instance.getMaterial();
+	auto materialIndex = *m_coldData->m_materialIndices.find(currentMaterial);
 
 	addMeshInstanceToBuffers(instance, cmdBuffer, *meshEntry, elementId, materialIndex);
 }
@@ -724,12 +743,12 @@ void SceneRenderer::loadScene(const void* ptr, const gl::ObjectManager &objectMa
 	m_coldData->m_materialIndices.reserve(numMaterials);
 	for (auto i = 0u; i < numMaterials; ++i)
 	{
-		auto pMaterial = sceneMaterial[i];
-		createMaterial(pMaterial);
+		auto &material = sceneMaterial[i];
+		createMaterial(material);
 
-		writeMaterialToBuffer(pMaterial, m_coldData->m_materialCount);
+		writeMaterialToBuffer(material, m_coldData->m_materialCount);
 
-		m_coldData->m_materialIndices.insert(pMaterial, m_coldData->m_materialCount);
+		m_coldData->m_materialIndices.insert(material, m_coldData->m_materialCount);
 		++m_coldData->m_materialCount;
 	}
 
@@ -764,7 +783,7 @@ TextureRef SceneRenderer::loadTexture(const char* file)
 	return ref;
 }
 
-u32 SceneRenderer::getMaterialIndex(const Material* material) const
+u32 SceneRenderer::getMaterialIndex(const Reference<Material> &material) const
 {
 	u32 index = 0;
 
@@ -777,7 +796,7 @@ u32 SceneRenderer::getMaterialIndex(const Material* material) const
 	return index;
 }
 
-bool SceneRenderer::setMeshInstanceMaterial(const vx::StringID &sid, const Material* material) const
+bool SceneRenderer::setMeshInstanceMaterial(const vx::StringID &sid, const Reference<Material> &material) const
 {
 	auto materialIndex = getMaterialIndex(material);
 	bool result = false;
@@ -914,8 +933,8 @@ void SceneRenderer::editorAddMeshInstance(const MeshInstance &newInstance)
 	auto currentMeshSid = newInstance.getMeshSid();
 	auto meshEntry = m_coldData->m_meshEntries.find(currentMeshSid);
 
-	auto pCurrentMaterial = pFileAspect->getMaterial(newInstance.getMaterialSid());
-	auto materialIndex = *m_coldData->m_materialIndices.find(pCurrentMaterial);
+	auto currentMaterial = newInstance.getMaterial();
+	auto materialIndex = *m_coldData->m_materialIndices.find(currentMaterial);
 
 	u16 elementId = m_staticMeshInstanceCount;
 

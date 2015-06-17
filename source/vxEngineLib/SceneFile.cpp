@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include <vxResourceAspect/SceneFile.h>
+#include <vxEngineLib/SceneFile.h>
 #include <vxLib/File/File.h>
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/Material.h>
@@ -37,35 +37,36 @@ SOFTWARE.
 #include <vxLib/util/CityHash.h>
 #include <vxEngineLib/memcpy.h>
 #include <vxEngineLib/Waypoint.h>
+#include <vxEngineLib/MeshInstanceFile.h>
 
 struct SceneFile::CreateSceneMeshInstancesDesc
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
 	MeshInstance* pMeshInstances;
 	vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
-	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
 	vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 };
 
 struct SceneFile::CreateSceneActorsDesc
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
-	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
 };
 
 struct SceneFile::CreateSceneShared
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
 	MeshInstance* pMeshInstances;
 	vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
-	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
 	vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 	Spawn* sceneSpawns;
@@ -73,8 +74,9 @@ struct SceneFile::CreateSceneShared
 	u32* indexCount;
 };
 
-SceneFile::SceneFile()
-	:m_meshInstanceCount(0),
+SceneFile::SceneFile(u32 version)
+	:Serializable(version),
+	m_meshInstanceCount(0),
 	m_lightCount(0),
 	m_spawnCount(0),
 	m_actorCount(0),
@@ -86,7 +88,25 @@ SceneFile::~SceneFile()
 {
 }
 
-const u8* SceneFile::loadVersion2(const u8 *ptr, const u8* last, vx::Allocator* allocator)
+void SceneFile::swap(SceneFile &other)
+{
+	if (this != &other)
+	{
+		std::swap(m_pMeshInstances, other.m_pMeshInstances);
+		std::swap(m_pLights, other.m_pLights);
+		std::swap(m_pSpawns, other.m_pSpawns);
+		std::swap(m_pActors, other.m_pActors);
+		std::swap(m_waypoints, other.m_waypoints);
+		m_navMesh.swap(other.m_navMesh);
+		std::swap(m_meshInstanceCount, other.m_meshInstanceCount);
+		std::swap(m_lightCount, other.m_lightCount);
+		std::swap(m_spawnCount, other.m_spawnCount);
+		std::swap(m_actorCount, other.m_actorCount);
+		std::swap(m_waypointCount, other.m_waypointCount);
+	}
+}
+
+const u8* SceneFile::loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* allocator)
 {
 	ptr = vx::read(m_meshInstanceCount, ptr);
 	ptr = vx::read(m_lightCount, ptr);
@@ -94,11 +114,11 @@ const u8* SceneFile::loadVersion2(const u8 *ptr, const u8* last, vx::Allocator* 
 	ptr = vx::read(m_actorCount, ptr);
 	ptr = vx::read(m_waypointCount, ptr);
 
-	m_pMeshInstancesOld = vx::make_unique<MeshInstanceFileOld[]>(m_meshInstanceCount);
+	auto meshInstances = vx::make_unique<MeshInstanceFileOld[]>(m_meshInstanceCount);
 	m_pLights = vx::make_unique<Light[]>(m_lightCount);
 	m_pSpawns = vx::make_unique<SpawnFile[]>(m_spawnCount);
 
-	ptr = vx::read(m_pMeshInstancesOld.get(), ptr, m_meshInstanceCount);
+	ptr = vx::read(meshInstances.get(), ptr, m_meshInstanceCount);
 	ptr = vx::read(m_pLights.get(), ptr, m_lightCount);
 	ptr = vx::read(m_pSpawns.get(), ptr, m_spawnCount);
 
@@ -116,6 +136,12 @@ const u8* SceneFile::loadVersion2(const u8 *ptr, const u8* last, vx::Allocator* 
 		ptr = vx::read(m_waypoints.get(), ptr, m_waypointCount);
 	}
 
+	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
+	for (u32 i = 0; i < m_meshInstanceCount; ++i)
+	{
+		meshInstances[i].convertTo(&m_pMeshInstances[i]);
+	}
+
 	VX_ASSERT(ptr < last);
 
 	ptr = m_navMesh.load(ptr);
@@ -125,7 +151,7 @@ const u8* SceneFile::loadVersion2(const u8 *ptr, const u8* last, vx::Allocator* 
 	return ptr;
 }
 
-const u8* SceneFile::loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* allocator)
+const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator)
 {
 	ptr = vx::read(m_meshInstanceCount, ptr);
 	ptr = vx::read(m_lightCount, ptr);
@@ -164,33 +190,30 @@ const u8* SceneFile::loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* 
 	return ptr;
 }
 
-const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator)
+const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator)
 {
+	auto version = getVersion();
 	auto last = ptr + size;
 
-	if (version == 2)
+	const u8* result = nullptr;
+	if (version == 3)
 	{
-		return loadVersion2(ptr, last,  allocator);
+		result = loadVersion3(ptr, last, allocator);
 	}
-	else if (version == 3)
+	else if (version == 4)
 	{
-		return loadVersion3(ptr, last, allocator);
-	}
-	else if (version < 2)
-	{
-		VX_ASSERT(false);
+		result = loadVersion4(ptr, last, allocator);
 	}
 	else
 	{
 		VX_ASSERT(false);
 	}
 
-	return nullptr;
+	return result;
 }
 
 void SceneFile::saveToFile(vx::File *file) const
 {
-	//SceneFileCpp::printRotations(m_pMeshInstances.get(), m_meshInstanceCount);
 	file->write(m_meshInstanceCount);
 	file->write(m_lightCount);
 	file->write(m_spawnCount);
@@ -209,11 +232,6 @@ void SceneFile::saveToFile(vx::File *file) const
 const MeshInstanceFile* SceneFile::getMeshInstances() const noexcept
 {
 	return m_pMeshInstances.get();
-}
-
-const MeshInstanceFileOld* SceneFile::getMeshInstancesOld() const noexcept
-{
-	return m_pMeshInstancesOld.get();
 }
 
 u32 SceneFile::getNumMeshInstances() const noexcept
@@ -266,8 +284,6 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 
 	for (auto i = 0u; i < m_meshInstanceCount; ++i)
 	{
-		if (m_pMeshInstances.get())
-		{
 			std::string genName = "instance" + std::to_string(i);
 
 			auto &instanceFile = m_pMeshInstances[i];
@@ -280,6 +296,7 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 
 			auto sidName = vx::make_sid(name);
 			auto sidMesh = vx::make_sid(meshFile);
+			auto sidAnimation = vx::make_sid(instanceFile.getAnimation());
 			auto itMesh = desc.sortedMeshes->find(sidMesh);
 			auto sidMaterial = vx::make_sid(materialFile);
 			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
@@ -294,53 +311,13 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 
 			auto transform = instanceFile.getTransform();
 
-			auto instance = MeshInstance(sidName, sidMesh, sidMaterial, transform);
+			auto instance = MeshInstance(sidName, sidMesh, *itMaterial, sidAnimation, transform);
 			instanceInserter(instance, i, name);
 
 			if (desc.sceneMeshInstanceNames)
 			{
 				desc.sceneMeshInstanceNames->insert(sidName, std::string(name));
 			}
-		}
-		else
-		{
-			std::string genName = "instance" + std::to_string(i);
-
-			auto &instanceFile = m_pMeshInstancesOld[i];
-			auto name = instanceFile.getName();
-			auto meshFile = instanceFile.getMeshFile();
-			auto materialFile = instanceFile.getMaterialFile();
-
-			if (name[0] == '\0')
-				name = genName.c_str();
-
-			auto sidName = vx::make_sid(name);
-			auto sidMesh = vx::make_sid(meshFile);
-			auto itMesh = desc.sortedMeshes->find(sidMesh);
-			auto sidMaterial = vx::make_sid(materialFile);
-			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
-
-			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
-			{
-				return false;
-			}
-
-			desc.sceneMeshes->insert(sidMesh, *itMesh);
-			desc.sceneMaterials->insert(sidMaterial, *itMaterial);
-
-			auto oldTransform = instanceFile.getTransform();
-
-			vx::Transform transform;
-			oldTransform.convertTo(&transform);
-
-			auto instance = MeshInstance(sidName, sidMesh, sidMaterial, transform);
-			instanceInserter(instance, i, name);
-
-			if (desc.sceneMeshInstanceNames)
-			{
-				desc.sceneMeshInstanceNames->insert(sidName, std::string(name));
-			}
-		}
 	}
 
 	return true;
@@ -426,7 +403,7 @@ bool SceneFile::createSceneShared(const CreateSceneShared &desc)
 
 u8 SceneFile::createScene(const CreateSceneDescription &desc)
 {
-	vx::sorted_vector<vx::StringID, Material*> sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<Material>> sceneMaterials;
 	sceneMaterials.reserve(5);
 
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
@@ -493,7 +470,7 @@ u8 SceneFile::createScene(const CreateSceneDescription &desc)
 
 u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 {
-	vx::sorted_vector<vx::StringID, Material*> sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<Material>> sceneMaterials;
 	sceneMaterials.reserve(5);
 
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
@@ -611,23 +588,19 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	return 1;
 }
 
-u64 SceneFile::getCrc() const
+u64 SceneFile::getCrcVersion3() const
 {
 	auto navMeshVertexSize = sizeof(vx::float3) * m_navMesh.getVertexCount();
 	auto navMeshTriangleSize = sizeof(u16) * m_navMesh.getTriangleCount() * 3;
 	auto navMeshSize = navMeshVertexSize + navMeshTriangleSize;
 
-	u32 meshInstanceSize = 0;
-	const u8* meshinstances = nullptr;
-	if (m_pMeshInstances.get())
+	u32 meshInstanceSize = sizeof(MeshInstanceFileOld) * m_meshInstanceCount;
+	auto meshInstancesOld = std::make_unique<MeshInstanceFileOld[]>(m_meshInstanceCount);
+	for (u32 i = 0; i < m_meshInstanceCount; ++i)
 	{
-		meshInstanceSize = sizeof(MeshInstanceFile) * m_meshInstanceCount;
-		meshinstances = (u8*)m_pMeshInstances.get();
-	}
-	else
-	{
-		meshInstanceSize = sizeof(MeshInstanceFileOld) * m_meshInstanceCount;
-		meshinstances = (u8*)m_pMeshInstancesOld.get();
+		auto &it = m_pMeshInstances[i];
+
+		meshInstancesOld[i] = MeshInstanceFileOld(it);
 	}
 
 	auto lightSize = sizeof(Light) * m_lightCount;
@@ -638,7 +611,7 @@ u64 SceneFile::getCrc() const
 	auto ptr = vx::make_unique<u8[]>(totalSize);
 
 	auto offset = 0;
-	::memcpy(ptr.get() + offset, meshinstances, meshInstanceSize);
+	::memcpy(ptr.get() + offset, meshInstancesOld.get(), meshInstanceSize);
 	offset += meshInstanceSize;
 
 	::memcpy(ptr.get() + offset, m_pLights.get(), lightSize);
@@ -659,7 +632,57 @@ u64 SceneFile::getCrc() const
 	return CityHash64((char*)ptr.get(), totalSize);
 }
 
-u32 SceneFile::getVersion() const
+u64 SceneFile::getCrcVersion4() const
 {
-	return 3;
+	auto navMeshVertexSize = sizeof(vx::float3) * m_navMesh.getVertexCount();
+	auto navMeshTriangleSize = sizeof(u16) * m_navMesh.getTriangleCount() * 3;
+	auto navMeshSize = navMeshVertexSize + navMeshTriangleSize;
+
+	u32 meshInstanceSize = sizeof(MeshInstanceFile) * m_meshInstanceCount;
+
+	auto lightSize = sizeof(Light) * m_lightCount;
+	auto spawnSize = sizeof(SpawnFile) * m_spawnCount;
+	auto actorSize = sizeof(ActorFile) * m_actorCount;
+
+	auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize;
+	auto ptr = vx::make_unique<u8[]>(totalSize);
+
+	auto offset = 0;
+	::memcpy(ptr.get() + offset, m_pMeshInstances.get(), meshInstanceSize);
+	offset += meshInstanceSize;
+
+	::memcpy(ptr.get() + offset, m_pLights.get(), lightSize);
+	offset += lightSize;
+
+	::memcpy(ptr.get() + offset, m_pSpawns.get(), spawnSize);
+	offset += spawnSize;
+
+	::memcpy(ptr.get() + offset, m_pActors.get(), actorSize);
+	offset += actorSize;
+
+	::memcpy(ptr.get() + offset, m_navMesh.getVertices(), navMeshVertexSize);
+	offset += navMeshVertexSize;
+
+	::memcpy(ptr.get() + offset, m_navMesh.getTriangleIndices(), navMeshTriangleSize);
+	offset += navMeshTriangleSize;
+
+	return CityHash64((char*)ptr.get(), totalSize);
+}
+
+u64 SceneFile::getCrc() const
+{
+	auto currentVersion = getVersion();
+
+	u64 crc = 0;
+	if (currentVersion == 3)
+		crc = getCrcVersion3();
+	else if (currentVersion == 4)
+		crc = getCrcVersion4();
+	
+	return crc;
+}
+
+u32 SceneFile::getGlobalVersion()
+{
+	return 4;
 }

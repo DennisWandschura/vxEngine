@@ -35,6 +35,7 @@ SOFTWARE.
 #include "../GpuStructs.h"
 #include "../gl/BufferBindingManager.h"
 #include "Commands/ProgramUniformCommand.h"
+#include "CommandList.h"
 
 namespace Graphics
 {
@@ -84,7 +85,7 @@ namespace Graphics
 		const char textureDepthName[] = "shadowDepthTexture";
 		const auto textureDepthNameSize = sizeof(textureDepthName);
 
-		char depthNameBuffer[24];
+		char depthNameBuffer[32];
 
 		memcpy(depthNameBuffer, textureDepthName, textureDepthNameSize);
 
@@ -93,7 +94,6 @@ namespace Graphics
 		for (u32 i = 0; i < m_textureCount; ++i)
 		{
 			sprintf(depthNameBuffer + textureDepthNameSize - 1, "%u", i);
-
 			auto depthTextureSid = s_objectManager->createTexture(depthNameBuffer, depthDesc);
 			VX_ASSERT(depthTextureSid.value != 0u);
 
@@ -111,12 +111,6 @@ namespace Graphics
 
 			mappedBuffer->u_shadowTextures[i] = depthTexture->getTextureHandle();
 		}
-
-		//auto colorTex = s_objectManager->getTexture("shadowParaboloidTexture");
-		//colorTex->makeTextureResident();
-
-		//mappedBuffer->u_shadowTex = colorTex->getTextureHandle();
-		//mappedBuffer->u_shadowTex[1] = colorTexBack->getTextureHandle();
 	}
 
 	void ShadowRenderer::createFramebuffer()
@@ -219,36 +213,6 @@ namespace Graphics
 
 	void ShadowRenderer::initialize()
 	{
-		/*{
-			auto textureCount = s_settings->m_maxActiveLights * 2;
-			auto textureResolution = s_settings->m_shadowMapResolution;
-			vx::gl::TextureDescription desc = {};
-			desc.format = vx::gl::TextureFormat::R32F;
-			desc.miplevels = 1;
-			desc.size = vx::ushort3(textureResolution, textureResolution, textureCount);
-			desc.sparse = 0;
-			desc.type = vx::gl::TextureType::Texture_2D_Array;
-
-			auto texSid = s_objectManager->createTexture("shadowParaboloidTexture", desc);
-			auto colorTexFront = s_objectManager->getTexture(texSid);
-			colorTexFront->setWrapMode2D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
-
-			desc.format = vx::gl::TextureFormat::DEPTH32F;
-			s_objectManager->createTexture("shadowParaboloidTextureDepth", desc);
-		}
-
-		{
-			auto fboSid = s_objectManager->createFramebuffer("shadowParaboloidFbo");
-
-			auto fbo = s_objectManager->getFramebuffer(fboSid);
-			auto colorTexFront = s_objectManager->getTexture("shadowParaboloidTexture");
-			auto depthTex = s_objectManager->getTexture("shadowParaboloidTextureDepth");
-
-			fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexFront, 0);
-			fbo->attachTexture(vx::gl::Attachment::Depth, *depthTex, 0);
-
-		}*/
-
 		createShadowTextureBuffer();
 		createShadowTextures();
 		createFramebuffer();
@@ -296,13 +260,10 @@ namespace Graphics
 		}
 	}
 
-	void ShadowRenderer::getSegments(std::vector<std::pair<std::string, Segment>>* segments)
+	void ShadowRenderer::getCommandList(CommandList* cmdList)
 	{
 		auto segmentResetLightCmdBuffer = createSegmentResetCmdBuffer();
-		segments->push_back(std::make_pair(std::string("segmentResetLightCmdBuffer"),segmentResetLightCmdBuffer));
-
 		auto segmentCullMeshes = createSegmentCullMeshes();
-		segments->push_back(std::make_pair(std::string("segmentLightCullMeshes"), segmentCullMeshes));
 
 		auto maxMeshInstances = s_settings->m_maxMeshInstances;
 		auto resolution = s_settings->m_shadowMapResolution;
@@ -372,7 +333,13 @@ namespace Graphics
 			cmdOffset += cmdSizeInBytes;
 		}
 
-		segments->push_back(std::make_pair(std::string("segmentCreateShadowmap"),segmentCreateShadowmap));
+		//CommandList cmdList;
+		//cmdList.initialize();
+		cmdList->pushSegment(segmentResetLightCmdBuffer, "segmentResetLightCmdBuffer");
+		cmdList->pushSegment(segmentCullMeshes, "segmentCullMeshes");
+		cmdList->pushSegment(segmentCreateShadowmap, "segmentCreateShadowmap");
+
+		//return std::move(cmdList);
 	}
 
 	void ShadowRenderer::clearData()

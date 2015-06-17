@@ -37,22 +37,22 @@ namespace vx
 		u32 m_physxDataSize;
 
 	public:
-		MeshFile();
+		explicit MeshFile(u32 version);
 		MeshFile(const MeshFile&) = delete;
 		MeshFile(MeshFile &&rhs);
-		MeshFile(vx::Mesh &&mesh, const u8* physxData, u32 physxDataSize);
+		MeshFile(u32 version, vx::Mesh &&mesh, const u8* physxData, u32 physxDataSize);
 		~MeshFile();
 
 		MeshFile& operator=(const MeshFile&) = delete;
 		MeshFile& operator=(MeshFile &&rhs);
 
-		const u8* loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator) override;
+		const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) override;
 
 		void saveToFile(vx::File* file) const override;
 
 		u64 getCrc() const override;
 
-		u32 getVersion() const override;
+		static u32 getGlobalVersion();
 
 		const vx::Mesh& getMesh() const { return m_mesh; }
 		u32 getPhysxDataSize() const { return m_physxDataSize; }

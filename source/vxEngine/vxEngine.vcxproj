@@ -57,18 +57,18 @@
     <OutDir>..\..\game\bin\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
-    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxAudioAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\game\data\shaders\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxAudioAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
     <LibraryPath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\lib;E:\dev\libraries\openal-soft-1.16.0-bin\libs\Win64;E:\dev\libraries\libogg\bin\x64\intel;E:\dev\libraries\libvorbis-1.3.3\bin\x64\intel;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc11win64;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLL Debug|x64'">
     <OutDir>..\..\lib\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\game\data\shaders\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
     <LibraryPath>E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc11win64;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\lib;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\game\data\shaders\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\release;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\lib;E:\dev\libraries\openal-soft-1.16.0-bin\libs\Win64;E:\dev\libraries\libogg\bin\x64\intel;E:\dev\libraries\libvorbis-1.3.3\bin\x64\intel;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc11win64;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\lib;$(LibraryPath)</LibraryPath>
     <OutDir>..\..\game\bin\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
@@ -166,6 +166,10 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\game\data\shaders\include\common.h" />
+    <ClInclude Include="..\..\game\data\shaders\include\UniformReflectionBuffer.h" />
+    <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTransformBuffer.h" />
+    <ClInclude Include="..\..\game\data\shaders\include\UniformCameraBufferStatic.h" />
     <ClInclude Include="ActionActorCreatePath.h" />
     <ClInclude Include="ActionFollowPath.h" />
     <ClInclude Include="ActionManager.h" />
@@ -208,6 +212,7 @@
     <ClInclude Include="Graphics\Commands\PolygonOffsetCommand.h" />
     <ClInclude Include="Graphics\Commands\ProgramUniformCommand.h" />
     <ClInclude Include="Graphics\Commands\ViewportCommand.h" />
+    <ClInclude Include="Graphics\Frame.h" />
     <ClInclude Include="Graphics\Renderer.h" />
     <ClInclude Include="Graphics\Segment.h" />
     <ClInclude Include="Graphics\ShadowRenderer.h" />
@@ -398,6 +403,7 @@
     <ClCompile Include="Graphics\Commands\ViewportCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Graphics\Frame.cpp" />
     <ClCompile Include="LookWhereYoureGoing.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -603,11 +609,14 @@
     <None Include="..\..\game\data\shaders\include\math.glsl" />
     <None Include="..\..\game\data\shaders\include\mesh.glsl" />
     <None Include="..\..\game\data\shaders\include\structs.glsl" />
+    <None Include="..\..\game\data\shaders\include\UniformCameraBuffer.h" />
     <None Include="..\..\game\data\shaders\include\uniform_buffers.glsl" />
     <None Include="..\..\game\data\shaders\influenceMap.pipe" />
     <None Include="..\..\game\data\shaders\navmesh.pipe" />
+    <None Include="..\..\game\data\shaders\programs\blurNew.frag" />
     <None Include="..\..\game\data\shaders\programs\blurpass.frag" />
     <None Include="..\..\game\data\shaders\programs\blurpass2.frag" />
+    <None Include="..\..\game\data\shaders\programs\coneTrace.frag" />
     <None Include="..\..\game\data\shaders\programs\coneTrace.vert" />
     <None Include="..\..\game\data\shaders\programs\createConeTraceList.frag" />
     <None Include="..\..\game\data\shaders\programs\createConeTraceList.geom" />
@@ -647,6 +656,8 @@
     <None Include="..\..\game\data\shaders\programs\influenceMap.vert" />
     <None Include="..\..\game\data\shaders\programs\navmesh.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\navmesh.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\reflectionCubemap.frag" />
+    <None Include="..\..\game\data\shaders\programs\reflectionCubemap.geom" />
     <None Include="..\..\game\data\shaders\programs\resetLightCmdBuffer.vert" />
     <None Include="..\..\game\data\shaders\programs\screenquad.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\screenquad.gs.glsl" />
@@ -662,6 +673,9 @@
     <None Include="..\..\game\data\shaders\programs\voxelize.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\voxelize.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\voxelize.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\voxelizeLight.frag" />
+    <None Include="..\..\game\data\shaders\programs\voxelizeLight.geom" />
+    <None Include="..\..\game\data\shaders\programs\voxelizeLight.vert" />
     <None Include="..\..\game\data\shaders\programs\voxelMipmap.comp" />
     <None Include="..\..\game\data\shaders\programs\voxelMipmap.vert" />
     <None Include="..\..\game\data\shaders\programs\voxel_debug.fs.glsl" />

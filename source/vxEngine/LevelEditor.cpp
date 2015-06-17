@@ -371,6 +371,16 @@ namespace Editor
 		g_pEditor->engine.setSelectLightPosition(position);
 	}
 
+	f32 getSelectLightFalloff()
+	{
+		return g_pEditor->engine.getSelectLightFalloff();
+	}
+
+	void setSelectLightFalloff(f32 falloff)
+	{
+		g_pEditor->engine.setSelectLightFalloff(falloff);
+	}
+
 	void showNavmesh(bool b)
 	{
 		g_pEditor->engine.showNavmesh(b);

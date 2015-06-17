@@ -35,15 +35,15 @@ namespace vx
 		char m_name[32];
 
 	public:
-		AnimationFile();
-		AnimationFile(Animation &&animation, const char* name);
+		explicit AnimationFile(u32 version);
+		AnimationFile(u32 version, Animation &&animation, const char* name);
 		~AnimationFile();
 
 		void saveToFile(File* f) const override;
 
-		const u8* loadFromMemory(const u8 *ptr, u32 size, u32 version, vx::Allocator* allocator) override;
+		const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) override;
 
 		u64 getCrc() const override;
-		u32 getVersion() const override;
+		static u32 getGlobalVersion();
 	};
 }

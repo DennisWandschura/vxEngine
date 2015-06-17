@@ -25,6 +25,7 @@ SOFTWARE.
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Waypoint.h>
 #include <algorithm>
+#include <vxEngineLib/Material.h>
 
 SceneParams::~SceneParams()
 {
@@ -52,6 +53,13 @@ Scene::Scene(Scene &&rhs)
 Scene::~Scene()
 {
 
+}
+
+void Scene::reset()
+{
+	SceneBase::reset();
+	m_pMeshInstances.reset();
+	m_meshInstanceCount = 0;
 }
 
 Scene& Scene::operator = (Scene &&rhs)

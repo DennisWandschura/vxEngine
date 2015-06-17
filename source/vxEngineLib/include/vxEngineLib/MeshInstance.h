@@ -37,65 +37,35 @@ namespace YAML
 
 #include <vxLib/StringID.h>
 #include "Transform.h"
+#include <vxEngineLib/Reference.h>
 
 class MeshInstance
 {
 	vx::StringID m_nameSid;
 	vx::StringID m_meshSid;
-	vx::StringID m_materialSid;
+	Reference<Material> m_material;
+	vx::StringID m_animationSid;
 	vx::Transform m_transform;
 
 public:
 	MeshInstance();
-	MeshInstance(const vx::StringID &nameSid, const vx::StringID &meshSid, const vx::StringID &materialSid, const vx::Transform &transform);
+	MeshInstance(const MeshInstance &rhs);
+	MeshInstance(MeshInstance &&rhs);
+	MeshInstance(const vx::StringID &nameSid, const vx::StringID &meshSid, const Reference<Material> &material, const vx::StringID &animationSid, const vx::Transform &transform);
+	~MeshInstance();
+
+	MeshInstance& operator=(const MeshInstance &rhs);
+	MeshInstance& operator=(MeshInstance &&rhs);
 
 	vx::StringID getNameSid() const noexcept{ return m_nameSid; }
 	vx::StringID getMeshSid() const noexcept { return m_meshSid; }
-	vx::StringID getMaterialSid() const noexcept { return m_materialSid; }
+	const Reference<Material>& getMaterial() const noexcept;
+	vx::StringID getAnimationSid() const noexcept{ return m_animationSid; }
 	const vx::Transform& getTransform() const noexcept { return m_transform; }
 
 	void setTranslation(const vx::float3 &translation);
 	void setRotation(const vx::float4 &qRotation) { m_transform.m_qRotation = qRotation; }
-	void setMaterialSid(const vx::StringID &sid) { m_materialSid = sid; }
+	void setMaterial(const Reference<Material> &material);
 	void setNameSid(const vx::StringID &sid) { m_nameSid = sid; }
 	void setMeshSid(const vx::StringID &sid) { m_meshSid = sid; }
-};
-
-class MeshInstanceFileOld
-{
-	using Buffer = char[32];
-
-	Buffer m_name;
-	Buffer m_mesh;
-	Buffer m_material;
-	vx::TransformOld m_transform;
-
-public:
-	MeshInstanceFileOld();
-	MeshInstanceFileOld(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::TransformOld &transform);
-	~MeshInstanceFileOld();
-
-	const char* getName() const noexcept{ return m_name; }
-	const char* getMeshFile() const noexcept;
-	const char* getMaterialFile() const noexcept;
-	const vx::TransformOld& getTransform() const noexcept{ return m_transform; }
-};
-
-class MeshInstanceFile
-{
-	using Buffer = char[32];
-
-	Buffer m_name;
-	Buffer m_mesh;
-	Buffer m_material;
-	vx::Transform m_transform;
-
-public:
-	MeshInstanceFile();
-	MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::Transform &transform);
-
-	const char* getName() const noexcept{ return m_name; }
-	const char* getMeshFile() const noexcept;
-	const char* getMaterialFile() const noexcept;
-	const vx::Transform& getTransform() const noexcept{ return m_transform; }
 };

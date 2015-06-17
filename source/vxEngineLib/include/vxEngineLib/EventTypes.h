@@ -34,23 +34,4 @@ namespace vx
 		AI_Event = 1 << 2,
 		Editor_Event = 1 << 3
 	};
-
-	enum class FileEvent : u16
-	{
-		// arg1 contains sid of filename, arg2 contains ptr to scene
-		Scene_Loaded,
-		// arg1 contains sid to file, arg2 contains ptr
-		Texture_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Material_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Mesh_Loaded,
-		Wav_Loaded,
-
-		Scene_Existing,
-		Texture_Existing,
-		Material_Existing,
-		Mesh_Existing
-	};
-
 }

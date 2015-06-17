@@ -26,6 +26,7 @@ SOFTWARE.
 class CoreAspect;
 class MeshInstance;
 class Scene;
+class Material;
 
 namespace Editor
 {
@@ -37,6 +38,8 @@ namespace vx
 	struct FileHeader; 
 	class EventManager;
 	class FileEntry;
+	class MeshFile;
+	class AnimationFile;
 }
 
 #include "FileEntry.h"
@@ -46,14 +49,13 @@ namespace vx
 #include <vxEngineLib/Logfile.h>
 #include <vxEngineLib/Timer.h>
 #include <vxLib/Container/sorted_array.h>
-#include <mutex>
 #include <vxLib/StringID.h>
 #include "TextureFileManager.h"
-#include <vxEngineLib/Material.h>
 #include <vxLib\Graphics\Mesh.h>
 #include <vxEngineLib/EventTypesFwd.h>
 #include <vxEngineLib/Pool.h>
-#include <vxEngineLib/MeshFile.h>
+#include <vxEngineLib/SRWMutex.h>
+#include <vxEngineLib/Reference.h>
 
 class VX_ALIGN(64) FileAspect
 {
@@ -74,16 +76,18 @@ class VX_ALIGN(64) FileAspect
 	VX_ALIGN(64) struct
 	{
 		std::vector<FileRequest> m_fileRequests;
-		std::mutex m_mutex;
+		std::mutex m_mutexFileRequests;
+		mutable vx::SRWMutex m_mutexLoadedFiles;
 	};
 	Logfile m_logfile;
 	vx::StackAllocator m_allocatorReadFile;
 	vx::StackAllocator m_allocatorMeshData;
 	Timer m_timer;
 	vx::sorted_array<vx::StringID, vx::MeshFile*> m_sortedMeshes;
-	vx::sorted_array<vx::StringID, Material*> m_sortedMaterials;
+	vx::sorted_array<vx::StringID, Reference<Material>> m_sortedMaterials;
 	vx::Pool<vx::MeshFile> m_poolMesh;
-	vx::Pool<Material> m_poolMaterial;
+	vx::Pool<ReferenceCounted<Material>> m_poolMaterial;
+	vx::Pool<vx::AnimationFile> m_poolAnimations;
 	TextureFileManager m_textureFileManager;
 	vx::EventManager* m_eventManager;
 
@@ -96,7 +100,7 @@ class VX_ALIGN(64) FileAspect
 
 	LoadFileReturnType loadFile(const vx::FileEntry &file, std::vector<vx::FileEntry>* missingFiles, void* pUserData);
 	bool loadMesh(const LoadMeshDescription &desc);
-	Material* loadMaterial(const LoadMaterialDescription &desc);
+	Reference<Material> loadMaterial(const LoadMaterialDescription &desc);
 
 	LoadFileReturnType saveFile(const FileRequest &request, vx::Variant* p);
 
@@ -120,16 +124,20 @@ public:
 	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager);
 	void shutdown();
 
+	void reset();
+
 	void update();
 
 	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
 	void requestSaveFile(const vx::FileEntry &fileEntry, void* p);
 
-	const TextureFile* getTextureFile(vx::StringID sid) const noexcept;
-	Material* getMaterial(vx::StringID sid) noexcept;
-	const Material* getMaterial(vx::StringID id) const noexcept;
+	const TextureFile* getTextureFile(const vx::StringID &sid) const noexcept;
+	Reference<Material> getMaterial(const vx::StringID &sid) noexcept;
+	Reference<Material> getMaterial(const vx::StringID &id) const noexcept;
 
-	const vx::MeshFile* getMesh(vx::StringID sid) const noexcept;
+	const vx::MeshFile* getMesh(const vx::StringID &sid) const noexcept;
 
-	const char* getLoadedFileName(vx::StringID sid) const noexcept;
+	const char* getLoadedFileName(const vx::StringID &sid) const noexcept;
+
+	bool releaseFile(const vx::StringID &sid, vx::FileType type);
 };

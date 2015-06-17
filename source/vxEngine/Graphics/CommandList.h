@@ -64,6 +64,6 @@ namespace Graphics
 
 		void clear();
 
-		void draw();
+		void draw() const;
 	};
 }
