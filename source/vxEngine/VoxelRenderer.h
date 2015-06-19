@@ -73,4 +73,6 @@ public:
 	void debug(const vx::gl::VertexArray &vao, vx::uint2 &resolution);
 
 	u32 getVoxelTextureSize() const { return m_voxelTextureSize; }
+
+	const u32* getVoxelTextureIDs() const { return m_voxelEmmitanceTexturesId; }
 };

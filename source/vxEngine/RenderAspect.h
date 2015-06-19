@@ -53,6 +53,7 @@ class GpuProfiler;
 #include "Graphics/CommandList.h"
 #include "DoubleBufferRaw.h"
 #include "Graphics/Frame.h"
+#include "opencl/context.h"
 
 class VX_ALIGN(64) RenderAspect : public vx::EventListener
 {
@@ -82,6 +83,7 @@ protected:
 	vx::gl::ShaderManager m_shaderManager;
 	vx::gl::RenderContext m_renderContext;
 	vx::Camera m_camera;
+	cl::Context m_context;
 	
 	vx::StackAllocator m_allocator;
 
@@ -136,6 +138,8 @@ protected:
 
 	void createColdData();
 	void provideRenderData(const EngineConfig* settings);
+
+	void createOpenCL();
 
 public:
 	RenderAspect();

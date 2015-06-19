@@ -197,7 +197,7 @@ int main()
 		return 1;
 	}
 
-	engine.requestLoadFile(vx::FileEntry("test13.scene", vx::FileType::Scene), &scene);
+	engine.requestLoadFile(vx::FileEntry("test14.scene", vx::FileType::Scene), &scene);
 
 	LOG(mainLogfile, "Starting", false);
 

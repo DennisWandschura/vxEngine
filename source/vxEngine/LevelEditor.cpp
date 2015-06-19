@@ -244,7 +244,7 @@ namespace Editor
 
 	BSTR getMeshInstanceName(u64 sid)
 	{
-		auto meshInstanceName = g_pEditor->engine.getMeshInstanceName(sid);
+		auto meshInstanceName = g_pEditor->engine.getMeshInstanceName(vx::StringID(sid));
 
 		if (meshInstanceName)
 		{

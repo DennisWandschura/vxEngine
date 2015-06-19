@@ -208,6 +208,7 @@
     <ClInclude Include="include\vxEngineLib\Actor.h" />
     <ClInclude Include="include\vxEngineLib\Animation.h" />
     <ClInclude Include="include\vxEngineLib\AnimationFile.h" />
+    <ClInclude Include="include\vxEngineLib\ArrayAllocator.h" />
     <ClInclude Include="include\vxEngineLib\copy.h" />
     <ClInclude Include="include\vxEngineLib\debugPrint.h" />
     <ClInclude Include="include\vxEngineLib\EditorMeshInstance.h" />
@@ -220,7 +221,9 @@
     <ClInclude Include="include\vxEngineLib\FileFactory.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />
+    <ClInclude Include="include\vxEngineLib\managed_ptr.h" />
     <ClInclude Include="include\vxEngineLib\Material.h" />
+    <ClInclude Include="include\vxEngineLib\memory.h" />
     <ClInclude Include="include\vxEngineLib\MeshFile.h" />
     <ClInclude Include="include\vxEngineLib\MeshInstance.h" />
     <ClInclude Include="include\vxEngineLib\MeshInstanceFile.h" />
@@ -253,6 +256,7 @@
     </ClCompile>
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="AnimationFile.cpp" />
+    <ClCompile Include="ArrayAllocator.cpp" />
     <ClCompile Include="EditorScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -266,6 +270,7 @@
     <ClCompile Include="Logfile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="managed_ptr.cpp" />
     <ClCompile Include="Material.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

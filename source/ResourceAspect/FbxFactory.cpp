@@ -108,6 +108,9 @@ void loadAnimLayer(FBXSDK_NAMESPACE::FbxAnimStack* animStack, int index)
 
 void getKeys(const FBXSDK_NAMESPACE::FbxAnimCurve* animCurve, FBXSDK_NAMESPACE::FbxNode* meshNode, std::map<int, FBXSDK_NAMESPACE::FbxTime>* frameTimes)
 {
+	if (animCurve == nullptr)
+		return;
+
 	auto keyCount = animCurve->KeyGetCount();
 	//printf("	keyCount: %d\n", keyCount);
 	for (int i = 0; i < keyCount; ++i)
@@ -445,7 +448,7 @@ bool FbxFactory::loadFile(const char *fbxFile, physx::PxCooking* cooking)
 		u32 animationLayerCount = 0;
 		getAnimationLayers(animStack, meshNode, &animationLayers, &animationLayerCount);
 
-		if (animationLayerCount)
+		if (animationLayerCount != 0)
 		{
 			std::string animFileName = fileName + ".animation";
 

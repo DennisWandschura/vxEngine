@@ -133,6 +133,9 @@
     <Filter Include="Source Files\Render\Graphics\Commands">
       <UniqueIdentifier>{807e9711-a7a0-4e5f-8e32-7d17c27ac795}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\OpenCL">
+      <UniqueIdentifier>{dc0df685-46ec-4c9a-914e-58ceb15f2fe3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -569,6 +572,18 @@
     </ClInclude>
     <ClInclude Include="..\..\game\data\shaders\include\UniformReflectionBuffer.h">
       <Filter>Shaders\include</Filter>
+    </ClInclude>
+    <ClInclude Include="opencl\Platform.h">
+      <Filter>Header Files\OpenCL</Filter>
+    </ClInclude>
+    <ClInclude Include="opencl\Image.h">
+      <Filter>Header Files\OpenCL</Filter>
+    </ClInclude>
+    <ClInclude Include="opencl\Context.h">
+      <Filter>Header Files\OpenCL</Filter>
+    </ClInclude>
+    <ClInclude Include="opencl\Device.h">
+      <Filter>Header Files\OpenCL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

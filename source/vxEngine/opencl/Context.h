@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,68 +24,63 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <CL/opencl.h>
 
-#include <UniformCameraBuffer.h>
-#include <UniformCameraBufferStatic.h>
-#include <UniformShadowTransformBuffer.h>
-
-struct VoxelData
+namespace cl
 {
-	vx::mat4 projectionMatrix;
-	u32 dim;
-	u32 halfDim;
-	float gridCellSize;
-	float invGridCellSize;
-};
+	class Device;
 
-struct VoxelBlock
-{
-	VoxelData data[4];
-};
+	class Context
+	{
+		cl_context m_context;
 
-struct LightData
-{
-	vx::float3 position; 
-	float falloff; 
-	vx::float3 direction;
-	float lumen;
-};
+	public:
+		Context() :m_context(nullptr){}
+		Context(const Context&) = delete;
+		Context(Context &&rhs) :m_context(rhs.m_context){ rhs.m_context = 0; }
+		~Context(){ destroy(); }
 
-struct UniformTextureBufferBlock
-{
-	u64 u_albedoSlice;
-	u64 u_normalSlice;
-	u64 u_surfaceSlice;
-	u64 u_tangentSlice;
-	u64 u_bitangentSlice;
-	u64 u_depthSlice;
-	u64 u_aabbTexture;
-	u64 u_ambientSlice;
-	u64 u_ambientImage;
-	u64 u_volumetricTexture;
-	u64 u_particleTexture;
-};
+		Context& operator=(const Context&) = delete;
 
-struct UniformShadowTextureBufferBlock
-{
-	u64 u_shadowTextures[5];
-};
+		Context& operator=(Context &&rhs)
+		{
+			if (this != &rhs)
+			{
+				auto tmp = m_context;
+				m_context = rhs.m_context;
+				rhs.m_context = tmp;
+			}
 
-struct LightDataBlock
-{
-	LightData u_lightData[5];
-	u32 size;
-};
+			return *this;
+		}
 
-struct MaterialGPU
-{
-	u32 indexAlbedo;
-	u32 indexNormal;
-	u32 indexSurface;
-	u32 hasNormalMap;
-};
+		operator cl_context&()
+		{
+			return m_context;
+		}
 
-struct RenderSettingsBlock
-{
-	vx::uint2 resolution;
-};
+		operator const cl_context&() const
+		{
+			return m_context;
+		}
+
+		cl_int create(const cl_context_properties *properties, cl_uint deviceCount, const Device* devices)
+		{
+			cl_int error = CL_SUCCESS;
+			if (m_context == nullptr)
+			{
+				m_context = clCreateContext(properties, deviceCount, (cl_device_id*)devices, nullptr, nullptr, &error);
+			}
+			return error;
+		}
+
+		void destroy()
+		{
+			if (m_context)
+			{
+				if (clReleaseContext(m_context) == CL_SUCCESS)
+					m_context = nullptr;
+			}
+		}
+	};
+}

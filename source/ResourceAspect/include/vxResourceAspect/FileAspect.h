@@ -80,6 +80,7 @@ class VX_ALIGN(64) FileAspect
 		mutable vx::SRWMutex m_mutexLoadedFiles;
 	};
 	Logfile m_logfile;
+	vx::StackAllocator m_scratchAllocator;
 	vx::StackAllocator m_allocatorReadFile;
 	vx::StackAllocator m_allocatorMeshData;
 	Timer m_timer;

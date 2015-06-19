@@ -66,10 +66,10 @@ class SceneFactory
 	static bool checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc);
 
 public:
-	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, Scene *pScene);
+	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene);
 
-	static bool createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, Editor::Scene *pScene);
-	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, Editor::Scene *pScene);
+	static bool createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
+	static bool createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
 
 	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
 

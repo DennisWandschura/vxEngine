@@ -26,6 +26,7 @@ SOFTWARE.
 namespace vx
 {
 	class File;
+	class Allocator;
 }
 struct NavMeshTriangle;
 

@@ -144,6 +144,15 @@
     <ClInclude Include="include\vxEngineLib\SRWMutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\ArrayAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\managed_ptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">
@@ -216,6 +225,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MeshInstance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="managed_ptr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

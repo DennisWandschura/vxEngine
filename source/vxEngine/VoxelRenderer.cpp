@@ -194,8 +194,6 @@ void VoxelRenderer::clearTextures()
 
 			glClearTexImage(m_voxelOpacityTextureId[j], 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		}
-
-		
 	//}
 }
 

@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -22,69 +21,52 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include <vxEngineLib/managed_ptr.h>
+#include <vxEngineLib/ArrayAllocator.h>
 
-
-#include <UniformCameraBuffer.h>
-#include <UniformCameraBufferStatic.h>
-#include <UniformShadowTransformBuffer.h>
-
-struct VoxelData
+managed_ptr_base::managed_ptr_base(managed_ptr_base &&rhs)
+	:m_ptr(rhs.m_ptr),
+	entryIndex(rhs.entryIndex),
+	alloc(rhs.alloc)
 {
-	vx::mat4 projectionMatrix;
-	u32 dim;
-	u32 halfDim;
-	float gridCellSize;
-	float invGridCellSize;
-};
+	updateAllocator();
 
-struct VoxelBlock
-{
-	VoxelData data[4];
-};
+	rhs.m_ptr = nullptr;
+	rhs.alloc = nullptr;
+}
 
-struct LightData
+managed_ptr_base& managed_ptr_base::operator = (managed_ptr_base &&rhs)
 {
-	vx::float3 position; 
-	float falloff; 
-	vx::float3 direction;
-	float lumen;
-};
+	if (this != &rhs)
+	{
+		auto tmp = m_ptr;
+		auto tmpIndex = entryIndex;
+		auto tmpAlloc = alloc;
 
-struct UniformTextureBufferBlock
-{
-	u64 u_albedoSlice;
-	u64 u_normalSlice;
-	u64 u_surfaceSlice;
-	u64 u_tangentSlice;
-	u64 u_bitangentSlice;
-	u64 u_depthSlice;
-	u64 u_aabbTexture;
-	u64 u_ambientSlice;
-	u64 u_ambientImage;
-	u64 u_volumetricTexture;
-	u64 u_particleTexture;
-};
+		m_ptr = rhs.m_ptr;
+		entryIndex = rhs.entryIndex;
+		alloc = rhs.alloc;
 
-struct UniformShadowTextureBufferBlock
-{
-	u64 u_shadowTextures[5];
-};
+		rhs.m_ptr = tmp;
+		rhs.entryIndex = tmpIndex;
+		rhs.alloc = tmpAlloc;
 
-struct LightDataBlock
-{
-	LightData u_lightData[5];
-	u32 size;
-};
+		updateAllocator();
+		rhs.updateAllocator();
+	}
 
-struct MaterialGPU
-{
-	u32 indexAlbedo;
-	u32 indexNormal;
-	u32 indexSurface;
-	u32 hasNormalMap;
-};
+	return *this;
+}
 
-struct RenderSettingsBlock
+void managed_ptr_base::updateAllocator()
 {
-	vx::uint2 resolution;
-};
+	if (alloc != nullptr)
+	{
+		alloc->updateEntry(entryIndex, this);
+	}
+}
+
+unsigned managed_ptr_base::getEntrySize() const
+{
+	return alloc->getEntrySize(entryIndex);
+}

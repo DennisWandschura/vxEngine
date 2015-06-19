@@ -263,34 +263,56 @@ void PhysicsAspect::editorSetStaticMeshInstanceMesh(const MeshInstance &meshInst
 
 	auto meshSid = meshInstance.getMeshSid();
 	auto newTriangleMeshIt = m_physxMeshes.find(meshSid);
-	if (newTriangleMeshIt == m_physxMeshes.end())
+	auto newConvexMeshIt = m_physxConvexMeshes.find(meshSid);
+
+	bool foundMesh = newTriangleMeshIt != m_physxMeshes.end() &&
+		newConvexMeshIt != m_physxConvexMeshes.end();
+
+	bool isTriangleMesh = false;
+	if (!foundMesh)
 	{
+		puts("process mesh begin");
 		auto fileAspect = Locator::getFileAspect();
 		auto pMeshFile = fileAspect->getMesh(meshSid);
 
-		auto pResult = processMesh(pMeshFile);
-		if (!pResult)
+		if (!processMesh(meshSid, pMeshFile, &isTriangleMesh))
 		{
+			printf("error processing mesh\n");
 			VX_ASSERT(false);
 		}
 
-		// need to lock because we are modifying the vector
-		std::lock_guard<std::mutex> guard(m_mutex);
-		newTriangleMeshIt = m_physxMeshes.insert(meshSid, pResult);
+		newTriangleMeshIt = m_physxMeshes.find(meshSid);
+		newConvexMeshIt = m_physxConvexMeshes.find(meshSid);
+
+		puts("process mesh end");
 	}
 
 	auto &material = meshInstance.getMaterial();
 	auto itPhysxMaterial = m_physxMaterials.find((*material).getSid());
-	auto newShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*newTriangleMeshIt), *(*itPhysxMaterial));
+
+	puts("create shape begin");
+	physx::PxShape* newShape = nullptr;
+	if (isTriangleMesh)
+	{
+		newShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*newTriangleMeshIt), *(*itPhysxMaterial));
+	}
+	else
+	{
+		VX_ASSERT(newConvexMeshIt != m_physxConvexMeshes.end());
+		newShape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(*newConvexMeshIt), *(*itPhysxMaterial));
+	}
+	puts("create shape end");
 
 	auto shapeCount = (*rigidStaticIt)->getNbShapes();
 	VX_ASSERT(shapeCount == 1);
 
-	physx::PxShape* oldShape;
+	physx::PxShape* oldShape = nullptr;;
 	(*rigidStaticIt)->getShapes(&oldShape, 1);
 
+	puts("attach shape begin");
 	(*rigidStaticIt)->attachShape(*newShape);
 	(*rigidStaticIt)->detachShape(*oldShape);
+	puts("end shape begin");
 }
 
 void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
@@ -348,23 +370,15 @@ void PhysicsAspect::processScene(const void* ptr)
 #endif
 
 	auto &meshes = pScene->getMeshes();
+	auto keys = meshes.keys();
 
 	for (auto i = 0u; i < meshes.size(); ++i)
 	{
+		bool isTriangleMesh = false;
 		auto pMeshFile = meshes[i];
-		auto pResult = processMesh(pMeshFile);
-		if (!pResult)
+		if (!processMesh(keys[i], pMeshFile, &isTriangleMesh))
 		{
-			puts("error processing mesh");
-			auto result = processMeshConvex(pMeshFile);
-			std::lock_guard<std::mutex> guard(m_mutex);
-			m_physxConvexMeshes.insert(meshes.keys()[i], result);
-		}
-		else
-		{
-			// need to lock because we are modifying the vector
-			std::lock_guard<std::mutex> guard(m_mutex);
-			m_physxMeshes.insert(meshes.keys()[i], pResult);
+			VX_ASSERT(false);
 		}
 	}
 
@@ -398,7 +412,7 @@ void PhysicsAspect::processScene(const void* ptr)
 	m_pScene->unlockWrite();
 }
 
-physx::PxTriangleMesh* PhysicsAspect::processMesh(const vx::MeshFile* pMesh)
+physx::PxTriangleMesh* PhysicsAspect::processTriangleMesh(const vx::MeshFile* pMesh)
 {
 	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)pMesh->getPhysxData(), pMesh->getPhysxDataSize());
 
@@ -410,6 +424,35 @@ physx::PxConvexMesh* PhysicsAspect::processMeshConvex(const vx::MeshFile* pMesh)
 	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)pMesh->getPhysxData(), pMesh->getPhysxDataSize());
 
 	return m_pPhysics->createConvexMesh(readBuffer);
+}
+
+bool PhysicsAspect::processMesh(const vx::StringID &sid, const vx::MeshFile* pMeshFile, bool* isTriangleMesh)
+{
+	bool result = false;
+	*isTriangleMesh = false;
+
+	auto resultTriangleMesh = processTriangleMesh(pMeshFile);
+	if (resultTriangleMesh)
+	{
+		// need to lock because we are modifying the vector
+		std::lock_guard<std::mutex> guard(m_mutex);
+		m_physxMeshes.insert(sid, resultTriangleMesh);
+		result = true;
+		*isTriangleMesh = true;
+	}
+	else
+	{
+		auto resultConvexMesh = processMeshConvex(pMeshFile);
+		if (resultConvexMesh)
+		{
+			std::lock_guard<std::mutex> guard(m_mutex);
+			m_physxConvexMeshes.insert(sid, resultConvexMesh);
+			result = true;
+		}
+	}
+
+	return result;
+	
 }
 
 physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f32 height)

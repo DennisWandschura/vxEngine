@@ -68,6 +68,7 @@ SOFTWARE.
 #endif
 
 #pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "OpenCL.lib")
 #pragma comment(lib, "Shlwapi.lib")
 
 #ifdef _PHYSX_CHECKED

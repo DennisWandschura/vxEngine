@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,68 +24,63 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <vxLib/types.h>
 
-#include <UniformCameraBuffer.h>
-#include <UniformCameraBufferStatic.h>
-#include <UniformShadowTransformBuffer.h>
-
-struct VoxelData
+class ArrayAllocator
 {
-	vx::mat4 projectionMatrix;
-	u32 dim;
-	u32 halfDim;
-	float gridCellSize;
-	float invGridCellSize;
-};
+	static const u32 s_maxEntrieCount = 128;
 
-struct VoxelBlock
-{
-	VoxelData data[4];
-};
+	friend class managed_ptr_base;
 
-struct LightData
-{
-	vx::float3 position; 
-	float falloff; 
-	vx::float3 direction;
-	float lumen;
-};
+	struct Entry
+	{
+		u8* ptr;
+		managed_ptr_base* managedPtr;
+		u32 size;
+		u16 alignment;
+		u16 nextFreeEntry;
 
-struct UniformTextureBufferBlock
-{
-	u64 u_albedoSlice;
-	u64 u_normalSlice;
-	u64 u_surfaceSlice;
-	u64 u_tangentSlice;
-	u64 u_bitangentSlice;
-	u64 u_depthSlice;
-	u64 u_aabbTexture;
-	u64 u_ambientSlice;
-	u64 u_ambientImage;
-	u64 u_volumetricTexture;
-	u64 u_particleTexture;
-};
+		Entry() :ptr(nullptr), managedPtr(nullptr), size(0), alignment(0), nextFreeEntry(0){}
+	};
 
-struct UniformShadowTextureBufferBlock
-{
-	u64 u_shadowTextures[5];
-};
+	struct DebugCheck
+	{
+		static const u8 s_magicCleared = 0x31;
+		static const u64 s_magicSet = 0x1337b0b;
 
-struct LightDataBlock
-{
-	LightData u_lightData[5];
-	u32 size;
-};
+		u64 magic;
+	};
 
-struct MaterialGPU
-{
-	u32 indexAlbedo;
-	u32 indexNormal;
-	u32 indexSurface;
-	u32 hasNormalMap;
-};
+	u8* m_memory;
+	u8* m_head;
+	u32 m_totalSize;
+	u16 m_freeEntries;
+	u16 m_firstFreeEntry;
+	Entry m_entries[s_maxEntrieCount];
+	u32 m_memoryUsed;
 
-struct RenderSettingsBlock
-{
-	vx::uint2 resolution;
+	void updateEntries();
+
+	void updateEntry(u32 index, managed_ptr_base* p);
+
+	u32 getEntrySize(u32 index) const;
+
+	void fixHead(u8* p, u32 size);
+
+public:
+	ArrayAllocator();
+
+	~ArrayAllocator();
+
+	void create(u32 totalSize);
+
+	managed_ptr_base allocate(u32 size, u8 alignment);
+
+	void deallocate(managed_ptr_base* p);
+
+	bool update();
+
+	void update(u32 maxIterations);
+
+	u32 getMemoryUsed() const { return m_memoryUsed; }
 };

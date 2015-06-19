@@ -177,7 +177,7 @@ int wmain()
 	physics = pPhysics.get();
 
 	FbxFactory factory;
-	factory.loadFile("door_animated.fbx", cooking);
+	factory.loadFile("cube_test.fbx", cooking);
 
 	return 0;
 }

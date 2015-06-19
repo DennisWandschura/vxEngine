@@ -49,6 +49,10 @@ SOFTWARE.
 #include <vxEngineLib/FileEvents.h>
 #include <UniformReflectionBuffer.h>
 
+#include "opencl/device.h"
+#include "opencl/image.h"
+#include <random>
+
 RenderAspect* g_renderAspect{ nullptr };
 
 namespace
@@ -135,6 +139,46 @@ bool RenderAspect::createBuffers()
 		m_objectManager.createBuffer("ShaderStoragePixelListCmdBuffer", desc);
 	}
 
+	{
+		const u32 particleCount = 20000;
+
+		vx::float3 center = { 0.0, 1.5, 1.5 };
+		vx::float3 radius = { 1.0, 1.5, 1.0 };
+
+		std::mt19937_64 gen;
+		std::uniform_real_distribution<f32> dist_x(center.x - radius.x, center.x + radius.x);
+		std::uniform_real_distribution<f32> dist_y(center.y - radius.y, center.y + radius.y);
+		std::uniform_real_distribution<f32> dist_z(center.z - radius.z, center.z + radius.z);
+
+		auto particles = std::make_unique<vx::float4[]>(particleCount);
+		for (u32 i = 0; i < particleCount; ++i)
+		{
+			particles[i].x = dist_x(gen);
+			particles[i].y = dist_y(gen);
+			particles[i].z = dist_z(gen);
+			particles[i].w = 0.5f;
+		}
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Array_Buffer;
+		desc.size = particleCount * sizeof(vx::float4);
+		desc.immutable = 1;
+		desc.flags = 0;
+		desc.pData = particles.get();
+
+		auto vboSid = m_objectManager.createBuffer("particleVbo", desc);
+		auto vbo = m_objectManager.getBuffer(vboSid);
+
+		auto sid = m_objectManager.createVertexArray("particleVao");
+		auto vao = m_objectManager.getVertexArray(sid);
+
+		vao->enableArrayAttrib(0);
+		vao->arrayAttribFormatF(0, 4, 0, 0);
+		vao->arrayAttribBinding(0, 0);
+
+		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(vx::float4));
+	}
+
 	return true;
 }
 
@@ -177,6 +221,7 @@ void RenderAspect::createUniformBuffers()
 
 	{
 		auto volumetrixTextuzre = m_objectManager.getTexture("volumetricFogTexture");
+		auto particleTexture = m_objectManager.getTexture("particleTexture");
 
 		UniformTextureBufferBlock data;
 		data.u_albedoSlice = m_pColdData->m_gbufferAlbedoSlice.getTextureHandle();
@@ -189,6 +234,7 @@ void RenderAspect::createUniformBuffers()
 		data.u_ambientSlice = m_pColdData->m_ambientColorTexture.getTextureHandle();
 		data.u_ambientImage = m_pColdData->m_ambientColorTexture.getImageHandle(0, 0, 0);
 		data.u_volumetricTexture = volumetrixTextuzre->getTextureHandle();
+		data.u_particleTexture = particleTexture->getTextureHandle();
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -212,39 +258,58 @@ void RenderAspect::createUniformBuffers()
 		m_objectManager.createBuffer("RenderSettingsBufferBlock", desc);
 	}
 
-	{
+	const __m128 lookAt = { 0, 0, -1, 0 };
+	const __m128 up = { 0, 1, 0, 0 };
+	__m128 qRotation = vx::quaternionRotationRollPitchYawFromVector(vx::float4a(vx::degToRad(90.f), 0, 0, 0));
+	auto viewDir = vx::quaternionRotation(lookAt, qRotation);
+	auto upDir = vx::quaternionRotation(up, qRotation);
+	viewDir = vx::quaternionRotation(lookAt, qRotation);
 
+	{
 		auto getTransform = [](const __m128 &position, f32 radius, UniformReflectionBufferBlock *data)
 		{
 			auto projectionMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, 0.1f, radius);
 
-			vx::mat4 viewMatrices[6];
-			// X+
-			vx::float4 up = { 0, -1, 0, 0 };
-			vx::float4 dir = { 1, 0, 0, 0 };
-			viewMatrices[0] = vx::MatrixLookToRH(position, vx::loadFloat4(dir), vx::loadFloat4(up));
-			// X-
-			up = { 0, -1, 0, 0 };
-			dir = { -1, 0, 0, 0 };
-			viewMatrices[1] = vx::MatrixLookToRH(position, vx::loadFloat4(dir), vx::loadFloat4(up));
-			// Y+
-			up = { 0, 0, 1, 0 };
-			dir = vx::float4(0, 1, 0, 0);
-			viewMatrices[3] = vx::MatrixLookToRH(position, vx::loadFloat4(dir), vx::loadFloat4(up));
-			// Y-
-			up = { 0, 0, -1, 0 };
-			dir = vx::float4(0, -1, 0, 0);
-			viewMatrices[2] = vx::MatrixLookToRH(position, vx::loadFloat4(dir), vx::loadFloat4(up));
-			// Z+
-			up = { 0, -1, 0, 0 };
-			dir = vx::float4(0, 0, 1, 0);
-			viewMatrices[4] = vx::MatrixLookToRH(position, vx::loadFloat4(dir), vx::loadFloat4(up));
-			// Z-
-			up = { 0, -1, 0, 0 };
-			dir = vx::float4(0, 0, -1, 0);
-			viewMatrices[5] = vx::MatrixLookToRH(position, vx::loadFloat4(dir), vx::loadFloat4(up));
+			__m128 upAxis[6] =
+			{
+				// x+
+				{ 0, -1, 0, 0 },
+				// x-
+				{ 0, -1, 0, 0 },
+				// y+
+				{ 0, 0, 1, 0 },
+				// y-
+				{ 0, 0, -1, 0 },
+				// z+
+				{ 0, -1, 0, 0 },
+				// z-
+				{ 0, -1, 0, 0 }
+			};
 
-			data->position = position;
+			__m128 dir[6] =
+			{
+				// x+
+				{ 1, 0, 0, 0 },
+				// x-
+				{ -1, 0, 0, 0 },
+				// y+
+				{ 0, 1, 0, 0 },
+				// y-
+				{ 0, -1, 0, 0 },
+				// z+
+				{ 0, 0, 1, 0 },
+				// z-
+				{ 0, 0, -1, 0 }
+			};
+
+			vx::mat4 viewMatrices[6];
+			for (u32 i = 0; i < 6; ++i)
+			{
+				viewMatrices[i] = vx::MatrixLookToRH(position, dir[i], upAxis[i]);
+			}
+
+			data->positionRadius = position;
+			data->positionRadius.f[3] = radius;
 			data->projectionMatrix = projectionMatrix;
 			for (u32 i = 0; i < 6; ++i)
 			{
@@ -252,9 +317,9 @@ void RenderAspect::createUniformBuffers()
 			}
 		};
 
-		__m128 position = { -9, 1.5f, 1, 0 };
+		__m128 position = { 0, 1.8f, -4, 0 };
 		UniformReflectionBufferBlock block;
-		getTransform(position, 2.0f, &block);
+		getTransform(position, 2.5f, &block);
 
 		auto texture = m_objectManager.getTexture("reflectionTexture");
 
@@ -395,17 +460,29 @@ void RenderAspect::createTextures()
 		vx::gl::TextureDescription desc;
 		desc.type = vx::gl::TextureType::Texture_Cubemap;
 		desc.format = vx::gl::TextureFormat::RGB16F;
-		desc.size = vx::ushort3(1024, 1024, 6);
+		desc.size = vx::ushort3(512, 512, 6);
 		desc.miplevels = 1;
 
 		m_objectManager.createTexture("reflectionTexture", desc);
 
 		auto texture = m_objectManager.getTexture("reflectionTexture");
-		texture->setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
+		//texture->setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
 		texture->makeTextureResident();
 
 		desc.format = vx::gl::TextureFormat::DEPTH16;
 		m_objectManager.createTexture("reflectionTextureDepth", desc);
+	}
+
+	{
+		vx::gl::TextureDescription desc;
+		desc.type = vx::gl::TextureType::Texture_2D;
+		desc.format = vx::gl::TextureFormat::RGB16F;
+		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
+		desc.miplevels = 1;
+
+		auto sid = m_objectManager.createTexture("particleTexture", desc);
+		auto tex = m_objectManager.getTexture(sid);
+		tex->makeTextureResident();
 	}
 }
 
@@ -457,6 +534,15 @@ void RenderAspect::createFrameBuffers()
 
 		glNamedFramebufferDrawBuffer(fbo->getId(), GL_COLOR_ATTACHMENT0);
 	}
+
+	{
+		auto colorTexture = m_objectManager.getTexture("particleTexture");
+		auto sid = m_objectManager.createFramebuffer("particleFbo");
+		auto fbo = m_objectManager.getFramebuffer(sid);
+
+		fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexture, 0);
+		fbo->attachTexture(vx::gl::Attachment::Depth, m_pColdData->m_gbufferDepthTexture, 0);
+	}
 }
 
 void RenderAspect::createColdData()
@@ -467,6 +553,31 @@ void RenderAspect::createColdData()
 void RenderAspect::provideRenderData(const EngineConfig* settings)
 {
 	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, settings);
+}
+
+void RenderAspect::createOpenCL()
+{
+	auto platformCount = cl::Platform::getPlatformCount();
+
+	auto platforms = vx::make_unique<cl::Platform[]>(platformCount);
+	cl::Platform::getPlatforms(platformCount, platforms.get());
+
+	auto &platform = platforms[0];
+	auto platformName = platform.getInfo(cl::PlatformInfo::Name);
+
+	auto deviceCount = cl::Device::getDeviceCount(platform, cl::DeviceType::Gpu);
+	cl::Device device;
+	cl::Device::getDevices(platform, cl::DeviceType::Gpu, 1, &device);
+
+	auto glcon = wglGetCurrentContext();
+
+	cl_context_properties properties[] =
+	{
+		CL_CONTEXT_PLATFORM, (cl_context_properties)platform.get(),
+		0
+	};
+
+	auto error = m_context.create(properties, 1, &device);
 }
 
 bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings)
@@ -493,6 +604,8 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	auto result = initializeImpl(dataDir, desc.resolution, desc.debug, desc.pAllocator);
 	if (!result)
 		return false;
+
+	createOpenCL();
 
 	createFrame();
 
@@ -835,13 +948,42 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
-	CpuProfiler::pushMarker("reflection");
+	/*CpuProfiler::pushMarker("particles");
+	gpuProfiler->pushGpuMarker("particles");
+	{
+		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+		vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
+		//vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE);
+
+		auto vao = m_objectManager.getVertexArray("particleVao");
+		auto fbo = m_objectManager.getFramebuffer("particleFbo");
+		auto pPipeline = m_shaderManager.getPipeline("particles.pipe");
+
+		vx::gl::StateManager::bindFrameBuffer(*fbo);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		vx::gl::StateManager::bindPipeline(pPipeline->getId());
+		vx::gl::StateManager::bindVertexArray(*vao);
+
+		glPointSize(10.0f);
+		glDrawArrays(GL_POINTS, 0, 20000);
+
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	}
+	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();*/
+
+	/*CpuProfiler::pushMarker("reflection");
 	gpuProfiler->pushGpuMarker("reflection");
 	{
 		auto fbo = m_objectManager.getFramebuffer("reflectionFbo");
 		auto pipeline = m_shaderManager.getPipeline("reflectionCubemap.pipe");
 
-		vx::gl::StateManager::setViewport(0, 0, 1024, 1024);
+		vx::gl::StateManager::setViewport(0, 0, 512, 512);
 
 		vx::gl::StateManager::bindPipeline(*pipeline);
 		vx::gl::StateManager::bindVertexArray(*meshVao);
@@ -853,7 +995,7 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
 	}
 	gpuProfiler->popGpuMarker();
-	CpuProfiler::popMarker();
+	CpuProfiler::popMarker();*/
 
 	CpuProfiler::pushMarker("voxelize");
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);

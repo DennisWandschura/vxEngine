@@ -121,10 +121,11 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, Scene *pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator,Scene *pScene)
 {
+	auto marker = scratchAllocator->getMarker();
 	bool result = false;
-	SceneFile sceneFile = FileFactory::load(ptr, fileSize, &result, nullptr);
+	SceneFile sceneFile = FileFactory::load(ptr, fileSize, &result, scratchAllocator);
 
 	if (result)
 	{
@@ -157,13 +158,15 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 		printf("Error converting SceneFile to Scene\n");
 	}
 
+	scratchAllocator->clear(marker);
+
 	return result;
 }
 
-bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* allocator, Editor::Scene *pScene)
+bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene)
 {
 	bool result = false;
-	SceneFile sceneFile = FileFactory::load(file, &result, allocator, nullptr);
+	SceneFile sceneFile = FileFactory::load(file, &result, scratchAllocator, nullptr);
 
 	if (result)
 	{
@@ -189,10 +192,11 @@ bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, v
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, Editor::Scene* pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene* pScene)
 {
+	auto marker = scratchAllocator->getMarker();
 	bool result = false;
-	SceneFile sceneFile = FileFactory::load(ptr, fileSize, &result, nullptr);
+	SceneFile sceneFile = FileFactory::load(ptr, fileSize, &result, scratchAllocator);
 
 	if (result)
 	{
@@ -214,6 +218,8 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 		createSceneDescriptionDesc.loadedFiles = desc.loadedFiles;
 		result = sceneFile.createScene(createSceneDescriptionDesc);
 	}
+
+	scratchAllocator->clear(marker);
 
 	return result;
 }

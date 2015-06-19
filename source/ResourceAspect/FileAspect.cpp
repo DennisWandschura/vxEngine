@@ -131,7 +131,11 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	if (!pFileMemory)
 		return false;
 
+	m_scratchAllocator = vx::StackAllocator(pMainAllocator->allocate(fileMemorySize, 16), fileMemorySize);
 	m_allocatorReadFile = vx::StackAllocator(pFileMemory, fileMemorySize);
+
+	const u32 textureMemorySize = 10 MBYTE;
+	m_allocatorMeshData = vx::StackAllocator(pMainAllocator->allocate(textureMemorySize, 64), textureMemorySize);
 
 	m_logfile.create("filelog.xml");
 
@@ -143,10 +147,6 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	createPool(maxCount, &m_poolMaterial, pMainAllocator);
 	createPool(maxCount, &m_poolAnimations, pMainAllocator);
 	m_textureFileManager.initialize(maxCount, pMainAllocator);
-
-	const u32 textureMemorySize = 10 MBYTE;
-
-	m_allocatorMeshData = vx::StackAllocator(pMainAllocator->allocate(textureMemorySize, 64), textureMemorySize);
 
 	strcpy_s(s_textureFolder, (dataDir + "textures/").c_str());
 	strcpy_s(s_materialFolder, (dataDir + "materials/").c_str());
@@ -217,11 +217,11 @@ bool FileAspect::loadFileScene(const LoadFileOfTypeDescription &desc, bool edito
 		bool created = false;
 		if (editor)
 		{
-			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, desc.fileSize, (Editor::Scene*)desc.pUserData);
+			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, desc.fileSize, &m_scratchAllocator, (Editor::Scene*)desc.pUserData);
 		}
 		else
 		{
-			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, desc.fileSize, (Scene*)desc.pUserData);
+			created = SceneFactory::createFromMemory(factoryDesc, desc.fileData, desc.fileSize, &m_scratchAllocator, (Scene*)desc.pUserData);
 		}
 
 		if (created)

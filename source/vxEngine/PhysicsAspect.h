@@ -88,8 +88,9 @@ class PhysicsAspect : public vx::EventListener
 	physx::PxDefaultCpuDispatcher* m_pCpuDispatcher;
 	physx::PxCooking* m_pCooking;
 
-	physx::PxTriangleMesh* processMesh(const vx::MeshFile* pMesh);
+	physx::PxTriangleMesh* processTriangleMesh(const vx::MeshFile* pMesh);
 	physx::PxConvexMesh* processMeshConvex(const vx::MeshFile* pMesh);
+	bool processMesh(const vx::StringID &sid, const vx::MeshFile* pMesh, bool* isTriangleMesh);
 	void processScene(const void* pScene);
 
 	//////////////// handle Events

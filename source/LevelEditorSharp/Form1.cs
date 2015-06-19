@@ -348,7 +348,7 @@ namespace LevelEditor
             Float3 position;
             position.x = position.y = position.z = 0;
             NativeMethods.getSelectLightPosition(ref position);
-           var falloff = NativeMethods.getSelectLightFalloff();
+            var falloff = NativeMethods.getSelectLightFalloff();
 
             setNumericUpDownLightPosition(position);
             numericUpDownLightFalloff.Value = (decimal)falloff;
@@ -438,8 +438,9 @@ namespace LevelEditor
 
                 m_sortedMeshInstances.Add(entry.sid, entry);
                 m_meshInstanceNode.Nodes.Add(entry);
-               // addMeshInstance(meshInstanceSid);
             }
+
+            m_meshInstanceNode.TreeView.Sort();
         }
 
         public void addMeshInstance(ulong sid)
@@ -450,12 +451,14 @@ namespace LevelEditor
 
             m_sortedMeshInstances.Add(entry.sid, entry);
             m_meshInstanceNode.Nodes.Add(entry);
+
+            m_meshInstanceNode.TreeView.Sort();
         }
 
         public void removeMeshInstance(ulong sid)
         {
             EditorNodeEntry entry;
-            if(m_sortedMeshInstances.TryGetValue(sid, out entry))
+            if (m_sortedMeshInstances.TryGetValue(sid, out entry))
             {
                 m_sortedMeshInstances.Remove(sid);
                 m_meshInstanceNode.Nodes.Remove(entry);
@@ -487,7 +490,7 @@ namespace LevelEditor
         void addMesh(ulong sid, string name)
         {
             EditorEntry entry;
-            if(!m_sortedMeshes.TryGetValue(sid, out entry))
+            if (!m_sortedMeshes.TryGetValue(sid, out entry))
             {
                 var meshEntry = new EditorNodeEntry(sid, s_typeMesh, name);
                 entry = new EditorEntry(name, sid);
@@ -511,7 +514,7 @@ namespace LevelEditor
                 }
                 else if (type == s_typeMaterial)
                 {
-                   // m_materialNode.Nodes.Add(new EditorNodeEntry(sid, s_typeMaterial, str));
+                    // m_materialNode.Nodes.Add(new EditorNodeEntry(sid, s_typeMaterial, str));
                 }
                 else if (type == s_typeScene)
                 {
@@ -637,7 +640,7 @@ namespace LevelEditor
             {
                 meshInstanceComboBoxMaterial.SelectedItem = entry;
             }
-            else 
+            else
             {
                 Console.WriteLine("Error getting instance material name: {0}", materialSid);
             }
@@ -1097,7 +1100,7 @@ namespace LevelEditor
             {
                 m_editorState = EditorState.EditSpawns;
             }
-            else if(selectedString == s_textEditWaypoints)
+            else if (selectedString == s_textEditWaypoints)
             {
                 m_editorState = EditorState.EditWaypoints;
             }
@@ -1224,15 +1227,15 @@ namespace LevelEditor
 
         void setMeshInstanceMaterial(ulong materialSid)
         {
-           var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
+            var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
 
-           if (materialSid != 0 && instanceSid != 0 && m_selectedMeshInstanceSid == instanceSid)
-           {
-              var oldSid = NativeMethods.getMeshInstanceMaterialSid(instanceSid);
+            if (materialSid != 0 && instanceSid != 0 && m_selectedMeshInstanceSid == instanceSid)
+            {
+                var oldSid = NativeMethods.getMeshInstanceMaterialSid(instanceSid);
 
-              var action = new ActionSetMeshInstanceMaterial(instanceSid, oldSid, materialSid);
-              runAction(action);
-           }
+                var action = new ActionSetMeshInstanceMaterial(instanceSid, oldSid, materialSid);
+                runAction(action);
+            }
         }
 
         public void onRenameMeshInstance(ulong oldSid, ulong newSid, string newName)
@@ -1350,11 +1353,11 @@ namespace LevelEditor
 
         void setMeshInstanceMesh(ulong meshInstanceSid, ulong newMeshSid)
         {
-            if(m_selectedMeshInstanceSid == meshInstanceSid)
+            if (m_selectedMeshInstanceSid == meshInstanceSid)
             {
                 var oldMeshSid = NativeMethods.getMeshInstanceMeshSid(meshInstanceSid);
 
-                if(oldMeshSid != newMeshSid)
+                if (oldMeshSid != newMeshSid)
                 {
                     var action = new ActionSetMeshInstanceMesh(meshInstanceSid, oldMeshSid, newMeshSid);
                     runAction(action);
