@@ -120,7 +120,9 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	g_engineConfig.m_vsync = false;
 	g_engineConfig.m_zNear = 0.1f;
 
-	if (!m_renderAspect.initialize(dataDir, panel, tmp, &m_allocator, &g_engineConfig))
+	g_rendererOptions.m_shadows = 0;
+	g_rendererOptions.m_voxelGI = 0;
+	if (!m_renderAspect.initialize(dataDir, panel, tmp, &m_allocator, &g_engineConfig, g_rendererOptions))
 	{
 		puts("Error initializing Renderer");
 		return false;
@@ -509,6 +511,9 @@ bool EditorEngine::selectMeshInstance(s32 x, s32 y)
 		auto sid = raytraceAgainstStaticMeshes(x, y, &p);
 		if (sid.value != 0)
 		{
+			auto debugName = getMeshInstanceName(sid);
+			printf("%s\n", debugName);
+
 			auto ptr = m_pEditorScene->getMeshInstance(sid);
 			m_renderAspect.setSelectedMeshInstance(ptr);
 			m_selected.m_type = SelectedType::MeshInstance;

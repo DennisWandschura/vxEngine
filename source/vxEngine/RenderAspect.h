@@ -36,6 +36,7 @@ namespace Editor
 
 struct EngineConfig;
 class GpuProfiler;
+struct RendererOptions;
 
 #include "RenderAspectDescription.h"
 #include <vxEngineLib/EventListener.h>
@@ -103,7 +104,7 @@ protected:
 	void createFrameBuffers();
 
 	bool initializeCommon(const vx::gl::ContextDescription &desc, const EngineConfig* settings);
-	bool initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, vx::StackAllocator *pAllocator);
+	bool initializeImpl(const std::string &dataDir, const EngineConfig* settings, vx::StackAllocator *pAllocator);
 
 	////////////// Event handling
 	void handleFileEvent(const vx::Event &evt);
@@ -145,7 +146,7 @@ public:
 	RenderAspect();
 	virtual ~RenderAspect();
 
-	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings);
+	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, const RendererOptions &options);
 	void shutdown(const HWND hwnd);
 
 	bool initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocator* allocator);

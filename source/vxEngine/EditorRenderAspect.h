@@ -101,7 +101,7 @@ class EditorRenderAspect : public RenderAspect
 public:
 	EditorRenderAspect();
 
-	bool initialize(const std::string &dataDir, HWND panel, HWND tmp, vx::StackAllocator *pAllocator, const EngineConfig* settings);
+	bool initialize(const std::string &dataDir, HWND panel, HWND tmp, vx::StackAllocator *pAllocator, const EngineConfig* settings, const RendererOptions &options);
 
 	void update();
 	void render();

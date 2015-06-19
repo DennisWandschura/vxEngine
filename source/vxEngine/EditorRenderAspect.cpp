@@ -68,56 +68,30 @@ EditorRenderAspect::EditorRenderAspect()
 {
 }
 
-bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND tmp, vx::StackAllocator *pAllocator, const EngineConfig* settings)
+bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND tmp, vx::StackAllocator *pAllocator, const EngineConfig* engineConfig, const RendererOptions &options)
 {
-	/*RenderAspect::createColdData();
-	RenderAspect::provideRenderData(settings);
-
-	if (!m_renderContext.initializeExtensions(tmp))
-	{
-		puts("Error initializing Extensions");
-		return false;
-	}
-
 	vx::gl::OpenGLDescription glDescription;
-	glDescription.bDebugMode = debug;
-	glDescription.bVsync = vsync;
-	glDescription.farZ = zFar;
-	glDescription.fovRad = vx::degToRad(fovDeg);
+	glDescription.bDebugMode = engineConfig->m_renderDebug;
+	glDescription.bVsync = engineConfig->m_vsync;
+	glDescription.farZ = engineConfig->m_zFar;
+	glDescription.fovRad = vx::degToRad(engineConfig->m_fov);
 	glDescription.hwnd = panel;
 	glDescription.majVersion = 4;
 	glDescription.minVersion = 5;
-	glDescription.nearZ = zNear;
-	glDescription.resolution = windowResolution;
+	glDescription.nearZ = engineConfig->m_zNear;
+	glDescription.resolution = engineConfig->m_resolution;
 
-	//vx::gl::OpenGLDescription glDesc = vx::gl::OpenGLDescription::create(panel, windowResolution, , zNear, zFar, 4, 5, vsync, debug);
-	if (!m_renderContext.initializeOpenGl(glDescription))
-	{
-		puts("Error initializing Context");
-		return false;
-	}*/
-
-
-	vx::gl::OpenGLDescription glDescription;
-	glDescription.bDebugMode = settings->m_renderDebug;
-	glDescription.bVsync = settings->m_vsync;
-	glDescription.farZ = settings->m_zFar;
-	glDescription.fovRad = vx::degToRad(settings->m_fov);
-	glDescription.hwnd = panel;
-	glDescription.majVersion = 4;
-	glDescription.minVersion = 5;
-	glDescription.nearZ = settings->m_zNear;
-	glDescription.resolution = settings->m_resolution;
 	vx::gl::ContextDescription contextDesc;
 	contextDesc.tmpHwnd = tmp;
 	contextDesc.glParams = glDescription;
 
-	if (!initializeCommon(contextDesc, settings))
+	if (!initializeCommon(contextDesc, engineConfig))
 		return false;
 
 	m_pEditorColdData = vx::make_unique<EditorColdData>();
 
-	auto result = initializeImpl(dataDir, settings->m_resolution, settings->m_renderDebug, pAllocator);
+	m_shaderManager.addParameter("maxShadowLights", 5);
+	auto result = initializeImpl(dataDir, engineConfig, pAllocator);
 	if (!result)
 		return false;
 

@@ -44,7 +44,9 @@ struct EngineConfig
 	f32 m_zNear{0.1f};
 	f32 m_zFar{1000.0f};
 	u32 m_maxActiveLights{ 5 };
+	u32 m_maxShadowCastingLights{ 5 };
 	u32 m_maxMeshInstances{150};
+	u32 m_threads{1};
 	u8 m_voxelGiMode{0};
 	bool m_vsync{false};
 	bool m_renderDebug{false};
@@ -54,4 +56,11 @@ struct EngineConfig
 	RenderAspectDescription getRenderAspectDescription(const vx::Window* window, vx::StackAllocator* allocator) const;
 };
 
+struct RendererOptions
+{
+	u8 m_shadows;
+	u8 m_voxelGI;
+};
+
 extern EngineConfig g_engineConfig;
+extern RendererOptions g_rendererOptions;

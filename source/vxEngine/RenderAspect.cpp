@@ -48,6 +48,7 @@ SOFTWARE.
 #include "Graphics/CommandListFactory.h"
 #include <vxEngineLib/FileEvents.h>
 #include <UniformReflectionBuffer.h>
+#include "EngineConfig.h"
 
 #include "opencl/device.h"
 #include "opencl/image.h"
@@ -580,7 +581,7 @@ void RenderAspect::createOpenCL()
 	auto error = m_context.create(properties, 1, &device);
 }
 
-bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings)
+bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, const RendererOptions &options)
 {
 	vx::gl::OpenGLDescription glDescription;
 	glDescription.bDebugMode = desc.debug;
@@ -601,9 +602,21 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	if (!initializeCommon(contextDesc, settings))
 		return false;
 
-	auto result = initializeImpl(dataDir, desc.resolution, desc.debug, desc.pAllocator);
+	m_shaderManager.addParameter("maxShadowLights", settings->m_maxShadowCastingLights);
+
+	auto result = initializeImpl(dataDir, settings, desc.pAllocator);
 	if (!result)
 		return false;
+
+	if (options.m_shadows != 0)
+	{
+		// create shadow renderer
+	}
+
+	if (options.m_voxelGI != 0)
+	{
+		// create voxel gi renderer
+	}
 
 	createOpenCL();
 
@@ -626,13 +639,13 @@ bool RenderAspect::initializeCommon(const vx::gl::ContextDescription &contextDes
 	return true;
 }
 
-bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &windowResolution, bool debug, vx::StackAllocator *pAllocator)
+bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig* settings, vx::StackAllocator *pAllocator)
 {
-	m_resolution = windowResolution;
+	m_resolution = settings->m_resolution;
 
 	m_allocator = vx::StackAllocator(pAllocator->allocate(5 MBYTE, 64), 5 MBYTE);
 
-	if (debug)
+	if (settings->m_renderDebug)
 	{
 		vx::gl::Debug::initialize();
 		vx::gl::Debug::setHighSeverityCallback(::debugCallback);
@@ -642,7 +655,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Framebuffer_sRGB);
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Texture_Cube_Map_Seamless);
 	vx::gl::StateManager::setClearColor(0, 0, 0, 1);
-	vx::gl::StateManager::setViewport(0, 0, windowResolution.x, windowResolution.y);
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 
 	m_objectManager.initialize(50, 20, 20, 20, &m_allocator);
 
@@ -669,7 +682,7 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const vx::uint2 &w
 	m_pColdData->m_voxelRenderer.initialize(128, m_shaderManager, &m_objectManager);
 
 	{
-		auto pShadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
+		auto pShadowRenderer = vx::make_unique<Graphics::ShadowRenderer>(settings->m_maxShadowCastingLights, settings->m_maxMeshInstances, vx::uint2(settings->m_shadowMapResolution));
 		pShadowRenderer->initialize();
 
 		m_shadowRenderer = std::move(pShadowRenderer);
@@ -923,9 +936,13 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 
 	CpuProfiler::pushMarker("shadow");
 	gpuProfiler->pushGpuMarker("shadow mapping");
+	glCullFace(GL_FRONT);
+	glDepthRange(1, 0);
 	m_frame.draw();
 	gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
+	glDepthRange(0, 1);
+	glCullFace(GL_BACK);
 
 	CpuProfiler::pushMarker("gbuffer");
 	gpuProfiler->pushGpuMarker("gbuffer");
@@ -948,68 +965,12 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
-	/*CpuProfiler::pushMarker("particles");
-	gpuProfiler->pushGpuMarker("particles");
-	{
-		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-		vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
-		//vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
-
-		glBlendEquation(GL_FUNC_ADD);
-		glBlendFunc(GL_ONE, GL_ONE);
-
-		auto vao = m_objectManager.getVertexArray("particleVao");
-		auto fbo = m_objectManager.getFramebuffer("particleFbo");
-		auto pPipeline = m_shaderManager.getPipeline("particles.pipe");
-
-		vx::gl::StateManager::bindFrameBuffer(*fbo);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		vx::gl::StateManager::bindPipeline(pPipeline->getId());
-		vx::gl::StateManager::bindVertexArray(*vao);
-
-		glPointSize(10.0f);
-		glDrawArrays(GL_POINTS, 0, 20000);
-
-		vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
-	}
-	gpuProfiler->popGpuMarker();
-	CpuProfiler::popMarker();*/
-
-	/*CpuProfiler::pushMarker("reflection");
-	gpuProfiler->pushGpuMarker("reflection");
-	{
-		auto fbo = m_objectManager.getFramebuffer("reflectionFbo");
-		auto pipeline = m_shaderManager.getPipeline("reflectionCubemap.pipe");
-
-		vx::gl::StateManager::setViewport(0, 0, 512, 512);
-
-		vx::gl::StateManager::bindPipeline(*pipeline);
-		vx::gl::StateManager::bindVertexArray(*meshVao);
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, *meshCmdBuffer);
-		vx::gl::StateManager::bindFrameBuffer(*fbo);
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
-	}
-	gpuProfiler->popGpuMarker();
-	CpuProfiler::popMarker();*/
-
 	CpuProfiler::pushMarker("voxelize");
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	gpuProfiler->pushGpuMarker("voxelize");
 	voxelize(*meshVao, *meshCmdBuffer, *meshParamBuffer);
 	gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
-
-	/*glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	CpuProfiler::pushMarker("pixel list");
-	gpuProfiler->pushGpuMarker("pixel list");
-	createConeTracePixelList();
-	gpuProfiler->popGpuMarker();
-	CpuProfiler::popMarker();*/
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);

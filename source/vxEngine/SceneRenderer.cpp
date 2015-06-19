@@ -60,8 +60,11 @@ namespace SceneRendererCpp
 
 	void getShadowTransform(const Light &light, ShadowTransform* shadowTransform)
 	{
+		auto n = 0.1f;
+		auto f = light.m_falloff;
+
 		auto lightPos = vx::loadFloat3(light.m_position);
-		auto projectionMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, 0.1f, light.m_falloff);
+		auto projectionMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, f, n);
 
 		vx::mat4 viewMatrices[6];
 		// X+

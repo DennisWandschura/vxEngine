@@ -24,8 +24,11 @@ SOFTWARE.
 #include "EngineConfig.h"
 #include "RenderAspectDescription.h"
 #include <vxEngineLib/ParserNode.h>
+#include <thread>
 
 EngineConfig g_engineConfig{};
+
+RendererOptions g_rendererOptions{0, 0};
 
 bool EngineConfig::loadFromFile(const char* file)
 {
@@ -37,10 +40,13 @@ bool EngineConfig::loadFromFile(const char* file)
 	m_root.get("z_near")->as(&m_zNear);
 	m_root.get("z_far")->as(&m_zFar);
 	m_root.get("maxActiveLights")->as(&m_maxActiveLights);
+	m_root.get("maxShadowCastingLights")->as(&m_maxShadowCastingLights);
 	m_root.get("maxMeshInstances")->as(&m_maxMeshInstances);
 	m_root.get("voxel_gi_mode")->as(&m_voxelGiMode);
 	m_root.get("vsync")->as(&m_vsync);
 	m_root.get("debug")->as(&m_renderDebug);
+
+	m_threads = std::thread::hardware_concurrency();
 
 	return true;
 }

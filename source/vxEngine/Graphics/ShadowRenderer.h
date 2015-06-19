@@ -35,6 +35,7 @@ namespace vx
 #include "Renderer.h"
 #include <vxLib/memory.h>
 #include <vxLib/StringID.h>
+#include <vxLib/math/Vector.h>
 
 namespace Graphics
 {
@@ -44,7 +45,9 @@ namespace Graphics
 	{
 		std::unique_ptr<u32[]> m_shadowDepthTextureIds;
 		vx::StringID m_lightCmdBufferSid;
-		u32 m_textureCount;
+		u32 m_maxShadowLights;
+		u32 m_maxMeshInstanceCount;
+		vx::uint2 m_shadowMapResolution;
 
 		void createShadowTextureBuffer();
 		void createShadowTextures();
@@ -56,7 +59,7 @@ namespace Graphics
 		Segment createSegmentCullMeshes() const;
 
 	public:
-		ShadowRenderer();
+		ShadowRenderer(u32 maxShadowLights, u32 maxMeshInstances, const vx::uint2 &shadowMapResolution);
 		~ShadowRenderer();
 
 		void initialize() override;

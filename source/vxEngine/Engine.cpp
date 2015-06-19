@@ -267,21 +267,23 @@ bool Engine::initialize()
 {
 	const std::string dataDir("../data/");
 
-	if (!initializeImpl(dataDir))
-		return false;
-
 	if (!g_engineConfig.loadFromFile("settings.txt"))
 	{
 		printf("could not load 'settings.txt'\n");
 		return false;
 	}
 
+	if (!initializeImpl(dataDir))
+		return false;
+
 	if (!m_systemAspect.initialize(g_engineConfig, ::callbackKeyPressed, ::handleInput))
 		return false;
 
 	RenderAspectDescription renderAspectDesc = g_engineConfig.getRenderAspectDescription(&m_systemAspect.getWindow(), &m_allocator);
 
-	if (!m_renderAspect.initialize(dataDir, renderAspectDesc, &g_engineConfig))
+	g_rendererOptions.m_shadows = 1;
+	g_rendererOptions.m_voxelGI = 1;
+	if (!m_renderAspect.initialize(dataDir, renderAspectDesc, &g_engineConfig, g_rendererOptions))
 		return false;
 
 	m_renderAspect.makeCurrent(false);

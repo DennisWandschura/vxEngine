@@ -439,8 +439,6 @@ namespace LevelEditor
                 m_sortedMeshInstances.Add(entry.sid, entry);
                 m_meshInstanceNode.Nodes.Add(entry);
             }
-
-            m_meshInstanceNode.TreeView.Sort();
         }
 
         public void addMeshInstance(ulong sid)

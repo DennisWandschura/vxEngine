@@ -24,7 +24,6 @@ SOFTWARE.
 
 #include "ShadowRenderer.h"
 #include "../gl/ObjectManager.h"
-#include "../EngineConfig.h"
 #include <vxLib/gl/gl.h>
 #include <string>
 #include "Segment.h"
@@ -39,8 +38,10 @@ SOFTWARE.
 
 namespace Graphics
 {
-	ShadowRenderer::ShadowRenderer()
-		:m_textureCount(0)
+	ShadowRenderer::ShadowRenderer(u32 maxShadowLights, u32 maxMeshInstances, const vx::uint2 &shadowMapResolution)
+		:m_maxShadowLights(maxShadowLights),
+		m_maxMeshInstanceCount(maxMeshInstances),
+		m_shadowMapResolution(shadowMapResolution)
 	{
 
 	}
@@ -68,17 +69,14 @@ namespace Graphics
 
 	void ShadowRenderer::createShadowTextures()
 	{
-		m_textureCount = s_settings->m_maxActiveLights;
-		auto textureResolution = s_settings->m_shadowMapResolution;
-
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
 
-		m_shadowDepthTextureIds = vx::make_unique<u32[]>(m_textureCount);
+		m_shadowDepthTextureIds = vx::make_unique<u32[]>(m_maxShadowLights);
 
 		vx::gl::TextureDescription depthDesc;
 		depthDesc.format = vx::gl::TextureFormat::DEPTH32F;
 		depthDesc.type = vx::gl::TextureType::Texture_Cubemap;
-		depthDesc.size = vx::ushort3(textureResolution, textureResolution, 6);
+		depthDesc.size = vx::ushort3(m_shadowMapResolution.x, m_shadowMapResolution.y, 6);
 		depthDesc.miplevels = 1;
 		depthDesc.sparse = 0;
 
@@ -91,7 +89,7 @@ namespace Graphics
 
 		auto mappedBuffer = shadowTexBuffer->map<UniformShadowTextureBufferBlock>(vx::gl::Map::Write_Only);
 
-		for (u32 i = 0; i < m_textureCount; ++i)
+		for (u32 i = 0; i < m_maxShadowLights; ++i)
 		{
 			sprintf(depthNameBuffer + textureDepthNameSize - 1, "%u", i);
 			auto depthTextureSid = s_objectManager->createTexture(depthNameBuffer, depthDesc);
@@ -126,7 +124,7 @@ namespace Graphics
 
 	void ShadowRenderer::createLightDrawCommandBuffers()
 	{
-		auto cmdCount = s_settings->m_maxMeshInstances * s_settings->m_maxActiveLights;
+		auto cmdCount = m_maxMeshInstanceCount * m_maxShadowLights;
 		auto commands = vx::make_unique<vx::gl::DrawElementsIndirectCommand[]>(cmdCount);
 		for (u32 i = 0; i < cmdCount; ++i)
 		{
@@ -168,7 +166,7 @@ namespace Graphics
 		segment.setState(state);
 
 		DrawArraysCommand drawCmd;
-		drawCmd.set(GL_POINTS, 0, s_settings->m_maxMeshInstances * s_settings->m_maxActiveLights);
+		drawCmd.set(GL_POINTS, 0, m_maxMeshInstanceCount * m_maxShadowLights);
 		segment.pushCommand(drawCmd);
 
 		return segment;
@@ -198,7 +196,7 @@ namespace Graphics
 		Segment segment;
 		segment.setState(state);
 
-		auto maxMeshInstances = s_settings->m_maxMeshInstances;
+		auto maxMeshInstances = m_maxMeshInstanceCount;
 
 		Graphics::BarrierCommand barrierCmd;
 		barrierCmd.set(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -230,9 +228,9 @@ namespace Graphics
 		auto cmdBuffer = s_objectManager->getBuffer(m_lightCmdBufferSid);
 
 		auto offset = sizeof(vx::gl::DrawElementsIndirectCommand) * index;
-		auto offsetPerLight = sizeof(vx::gl::DrawElementsIndirectCommand) * s_settings->m_maxMeshInstances;
+		auto offsetPerLight = sizeof(vx::gl::DrawElementsIndirectCommand) * m_maxMeshInstanceCount;
 
-		for (u32 i = 0; i < s_settings->m_maxActiveLights; ++i)
+		for (u32 i = 0; i < m_maxShadowLights; ++i)
 		{
 			auto mappedCmd = cmdBuffer->mapRange<vx::gl::DrawElementsIndirectCommand>(offset, sizeof(vx::gl::DrawElementsIndirectCommand), vx::gl::MapRange::Write);
 			*mappedCmd = cmd;
@@ -248,9 +246,9 @@ namespace Graphics
 		auto meshCmds = meshCmdBuffer->map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Read_Only);
 		auto lightCmdBuffer = s_objectManager->getBuffer(m_lightCmdBufferSid);
 
-		auto sizeInBytes = sizeof(vx::gl::DrawElementsIndirectCommand) * s_settings->m_maxMeshInstances;
+		auto sizeInBytes = sizeof(vx::gl::DrawElementsIndirectCommand) * m_maxMeshInstanceCount;
 		u32 offset = 0;
-		for (u32 i = 0; i < s_settings->m_maxActiveLights; ++i)
+		for (u32 i = 0; i < m_maxShadowLights; ++i)
 		{
 			auto mappedCmd = lightCmdBuffer->mapRange<vx::gl::DrawElementsIndirectCommand>(offset, sizeof(vx::gl::DrawElementsIndirectCommand), vx::gl::MapRange::Write);
 			memcpy(mappedCmd.get(), meshCmds.get(), sizeInBytes);
@@ -265,8 +263,8 @@ namespace Graphics
 		auto segmentResetLightCmdBuffer = createSegmentResetCmdBuffer();
 		auto segmentCullMeshes = createSegmentCullMeshes();
 
-		auto maxMeshInstances = s_settings->m_maxMeshInstances;
-		auto resolution = s_settings->m_shadowMapResolution;
+		auto maxMeshInstances = m_maxMeshInstanceCount;
+		auto resolution = m_shadowMapResolution;
 
 		auto lightCmdBuffer = s_objectManager->getBuffer(m_lightCmdBufferSid);
 
@@ -291,16 +289,16 @@ namespace Graphics
 		state.set(stateDesc);
 
 		Graphics::ViewportCommand viewportCmd;
-		viewportCmd.set(vx::uint2(0), vx::uint2(resolution, resolution));
+		viewportCmd.set(vx::uint2(0), m_shadowMapResolution);
 
-		Graphics::PolygonOffsetCommand polyCmd;
-		polyCmd.set(2.5f, 10.0f);
+		//Graphics::PolygonOffsetCommand polyCmd;
+		//polyCmd.set(2.5f, 10.0f);
 
 		Graphics::Segment segmentCreateShadowmap;
 		segmentCreateShadowmap.setState(state);
 
 		segmentCreateShadowmap.pushCommand(viewportCmd);
-		segmentCreateShadowmap.pushCommand(polyCmd);
+		//segmentCreateShadowmap.pushCommand(polyCmd);
 
 		Graphics::BarrierCommand barrierCmd;
 		barrierCmd.set(GL_COMMAND_BARRIER_BIT);
@@ -309,10 +307,10 @@ namespace Graphics
 		Graphics::ProgramUniformCommand uniformCmd;
 		uniformCmd.set(gsShader, 0, 1, vx::gl::DataType::Unsigned_Int);
 
-		auto cmdSizeInBytes = sizeof(vx::gl::DrawElementsIndirectCommand) * s_settings->m_maxMeshInstances;
+		auto cmdSizeInBytes = sizeof(vx::gl::DrawElementsIndirectCommand) * m_maxMeshInstanceCount;
 		u32 cmdOffset = 0;
 
-		auto maxLightCount = s_settings->m_maxActiveLights;
+		auto maxLightCount = m_maxShadowLights;
 		for (u32 i = 0; i < maxLightCount; ++i)
 		{
 			const auto ll = GL_UNSIGNED_INT;
