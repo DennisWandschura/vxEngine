@@ -33,6 +33,11 @@ namespace Editor
 	class Scene;
 }
 
+namespace physx
+{
+	class PxCooking;
+}
+
 namespace vx
 {
 	struct FileHeader; 
@@ -91,6 +96,7 @@ class VX_ALIGN(64) FileAspect
 	vx::Pool<vx::AnimationFile> m_poolAnimations;
 	TextureFileManager m_textureFileManager;
 	vx::EventManager* m_eventManager;
+	physx::PxCooking* m_cooking;
 
 	vx::sorted_vector<vx::StringID, std::string> m_loadedFiles;
 
@@ -105,6 +111,7 @@ class VX_ALIGN(64) FileAspect
 
 	LoadFileReturnType saveFile(const FileRequest &request, vx::Variant* p);
 
+	bool loadFileFbx(const LoadFileOfTypeDescription &desc);
 	bool loadFileScene(const LoadFileOfTypeDescription &desc, bool editor);
 	bool loadFileMesh(const LoadFileOfTypeDescription &desc);
 	void loadFileTexture(const LoadFileOfTypeDescription &desc);
@@ -122,7 +129,7 @@ public:
 	FileAspect();
 	~FileAspect();
 
-	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager);
+	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager, physx::PxCooking* cooking);
 	void shutdown();
 
 	void reset();

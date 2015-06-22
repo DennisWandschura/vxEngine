@@ -1,4 +1,5 @@
 #include <vxResourceAspect/FbxFactory.h>
+#if _VX_EDITOR
 #include <fbxsdk.h>
 #include <memory>
 
@@ -13,25 +14,31 @@
 #include <vxEngineLib/FileFactory.h>
 #include <vxLib/util/CityHash.h>
 #include <vxEngineLib/AnimationFile.h>
+#include <vxEngineLib/debugPrint.h>
+#endif
 
 FbxFactory::FbxFactory()
 	:m_pFbxManager(nullptr),
 	m_pIOSettings(nullptr)
 {
+#if _VX_EDITOR
 	m_pFbxManager = FBXSDK_NAMESPACE::FbxManager::Create();
 
 	m_pIOSettings = FBXSDK_NAMESPACE::FbxIOSettings::Create(m_pFbxManager, IOSROOT);
 	m_pFbxManager->SetIOSettings(m_pIOSettings);
+#endif
 }
 
 FbxFactory::~FbxFactory()
 {
+#if _VX_EDITOR
 	m_pIOSettings = nullptr;
 
 	m_pFbxManager->Destroy();
 	m_pFbxManager = nullptr;
+#endif
 }
-
+#if _VX_EDITOR
 /*void FbxFactory::loadMesh(const char *name, const FBXSDK_NAMESPACE::FbxMesh *pMesh, sorted_vector<Node, NodeCmp> *pNodes)
 {
 	//Node meshNode(, Node::ACTIVE);
@@ -229,7 +236,7 @@ void getAnimationLayers(FBXSDK_NAMESPACE::FbxAnimStack* animStack, FBXSDK_NAMESP
 
 bool createPhysXMesh(const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer, physx::PxCooking* cooking)
 {
-	/*physx::PxTriangleMeshDesc meshDesc;
+	physx::PxTriangleMeshDesc meshDesc;
 	meshDesc.points.count = vertexCount;
 	meshDesc.points.stride = sizeof(vx::float3);
 	meshDesc.points.data = positions;
@@ -238,19 +245,19 @@ bool createPhysXMesh(const vx::float3* positions, u32 vertexCount, const u32* in
 	meshDesc.triangles.stride = 3 * sizeof(u32);
 	meshDesc.triangles.data = indices;
 
-	return cooking->cookTriangleMesh(meshDesc, *writeBuffer);*/
+	return cooking->cookTriangleMesh(meshDesc, *writeBuffer);
 
-	physx::PxConvexMeshDesc convexDesc;
+	/*physx::PxConvexMeshDesc convexDesc;
 	convexDesc.points.count = vertexCount;
 	convexDesc.points.stride = sizeof(vx::float3);
 	convexDesc.points.data = positions;
 	convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
 	convexDesc.vertexLimit = 256;
 
-	return cooking->cookConvexMesh(convexDesc, *writeBuffer);
+	return cooking->cookConvexMesh(convexDesc, *writeBuffer);*/
 }
 
-bool FbxFactory::loadFile(const char *fbxFile, physx::PxCooking* cooking)
+bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, physx::PxCooking* cooking, std::vector<vx::FileHandle>* files)
 {
 	FbxImporter* lImporter = FbxImporter::Create(m_pFbxManager, "");
 
@@ -440,9 +447,11 @@ bool FbxFactory::loadFile(const char *fbxFile, physx::PxCooking* cooking)
 
 		std::string fileName = pMesh->GetNode()->GetName();
 		std::string meshFileName = fileName + ".mesh";
+		auto meshFileNameWithPath = saveDir + meshFileName;
 
-		vx::FileFactory::saveToFile(meshFileName.c_str(), &meshFile);
-
+		vx::FileFactory::saveToFile(meshFileNameWithPath.c_str(), &meshFile);
+		files->push_back(vx::FileHandle(meshFileName.c_str()));
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Converted fbx to mesh %s\n", meshFileNameWithPath.c_str());
 
 		std::unique_ptr<vx::AnimationLayer[]> animationLayers;
 		u32 animationLayerCount = 0;
@@ -467,3 +476,9 @@ bool FbxFactory::loadFile(const char *fbxFile, physx::PxCooking* cooking)
 
 	return true;
 }
+#else
+bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, physx::PxCooking* cooking, std::vector<vx::FileHandle>* files)
+{
+	return false;
+}
+#endif

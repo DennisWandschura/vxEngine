@@ -121,4 +121,6 @@ public:
 	void editorSetStaticMeshInstanceTransform(const MeshInstance &meshInstance, const vx::StringID &sid);
 	void editorAddMeshInstance(const MeshInstance &instance);
 	void editorSetStaticMeshInstanceMesh(const MeshInstance &instance);
+
+	physx::PxCooking* getCooking() { return m_pCooking; }
 };

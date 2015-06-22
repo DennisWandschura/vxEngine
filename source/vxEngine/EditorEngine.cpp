@@ -89,7 +89,7 @@ bool EditorEngine::initializeImpl(const std::string &dataDir)
 
 	m_eventManager.initialize(&m_allocator, 256);
 
-	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_eventManager))
+	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_eventManager, m_physicsAspect.getCooking()))
 		return false;
 
 	Locator::provide(&m_fileAspect);
@@ -112,6 +112,11 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	m_pEditorScene = pScene;
 	m_resolution = resolution;
 	m_panel = panel;
+
+	if (!m_physicsAspect.initialize())
+	{
+		return false;
+	}
 
 	if (!initializeImpl(dataDir))
 		return false;
@@ -138,11 +143,6 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	RenderUpdateTask task;
 	task.type = RenderUpdateTask::Type::ToggleRenderMode;
 	m_renderAspect.queueUpdateTask(task);
-
-	if (!m_physicsAspect.initialize())
-	{
-		return false;
-	}
 
 	Locator::provide(&m_physicsAspect);
 
@@ -217,12 +217,14 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 
 		if (call_editorCallback(sid))
 		{
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded mesh %llu %s", sid.value, pStr->c_str());
 			auto meshFile = m_fileAspect.getMesh(sid);
 
 			m_pEditorScene->addMesh(sid, pStr->c_str(), meshFile);
-		}
 
+		}
 		delete(pStr);
+
 	}break;
 	case vx::FileEvent::Texture_Loaded:
 		break;
@@ -232,11 +234,12 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
 		if (call_editorCallback(sid))
 		{
-			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded material %s", pStr->c_str());
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded material %llu  %s", sid.value, pStr->c_str());
 			auto material = m_fileAspect.getMaterial(sid);
 			m_pEditorScene->addMaterial(sid, pStr->c_str(), material);
 		}
 		delete(pStr);
+
 	}break;
 	case vx::FileEvent::Scene_Loaded:
 	{
@@ -247,7 +250,8 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 	}break;
 	default:
-		break;
+	{
+	}break;
 	}
 }
 
@@ -293,11 +297,15 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Mesh);
 		p = new std::string(filename);
+
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Trying to load mesh %llu '%s'", fileEntry.getSid().value, filename);
 	}
 	else if (type == g_editorTypeMaterial)
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Material);
 		p = new std::string(filename);
+
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Trying to load material %llu '%s'", fileEntry.getSid().value, filename);
 	}
 	else if (type == g_editorTypeScene)
 	{
@@ -327,7 +335,7 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	}
 
 	std::lock_guard<std::mutex> guard(m_editorMutex);
-	m_requestedFiles.insert(vx::make_sid(filename), std::make_pair(f, type));
+	m_requestedFiles.insert(fileEntry.getSid(), std::make_pair(f, type));
 
 	m_fileAspect.requestLoadFile(fileEntry, p);
 }
@@ -523,7 +531,7 @@ bool EditorEngine::selectMeshInstance(s32 x, s32 y)
 		if (sid.value != 0)
 		{
 			auto debugName = getMeshInstanceName(sid);
-			printf("%s\n", debugName);
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "selected instance %s", debugName);
 
 			auto ptr = m_pEditorScene->getMeshInstance(sid);
 			m_renderAspect.setSelectedMeshInstance(ptr);
@@ -1156,7 +1164,7 @@ void EditorEngine::addSpawn()
 
 		auto count = m_pEditorScene->getSpawnCount();
 		auto spawns = m_pEditorScene->getSpawns();
-
+		printf("spawns: %u\n", count);
 		m_renderAspect.updateSpawns(spawns, count);
 	}
 }
@@ -1199,6 +1207,19 @@ u32 EditorEngine::getSpawnType(u32 id) const
 	}
 
 	return result;
+}
+
+void EditorEngine::setSpawnPosition(u32 id, const vx::float3 &position)
+{
+	auto spawns = m_pEditorScene->getSpawns();
+	auto count = m_pEditorScene->getSpawnCount();
+	m_pEditorScene->setSpawnPosition(id, position);
+	m_renderAspect.updateSpawns(spawns, count);
+}
+
+void EditorEngine::setSpawnType(u32 id, u32 type)
+{
+	m_pEditorScene->setSpawnType(id, type);
 }
 
 u32 EditorEngine::getMeshCount() const

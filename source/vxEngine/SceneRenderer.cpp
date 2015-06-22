@@ -939,15 +939,35 @@ void SceneRenderer::editorAddMeshInstance(const MeshInstance &newInstance)
 {
 	auto pFileAspect = Locator::getFileAspect();
 	auto currentMeshSid = newInstance.getMeshSid();
-	auto meshEntry = m_coldData->m_meshEntries.find(currentMeshSid);
+	auto meshEntryIt = m_coldData->m_meshEntries.find(currentMeshSid);
+	if (meshEntryIt == m_coldData->m_meshEntries.end())
+	{
+		auto fileAspect = Locator::getFileAspect();
+		auto meshFile = fileAspect->getMesh(currentMeshSid);
+
+		updateMeshBuffer(&meshFile, &currentMeshSid, 1);
+		meshEntryIt = m_coldData->m_meshEntries.find(currentMeshSid);
+	}
+	VX_ASSERT(meshEntryIt != m_coldData->m_meshEntries.end());
 
 	auto currentMaterial = newInstance.getMaterial();
-	auto materialIndex = *m_coldData->m_materialIndices.find(currentMaterial);
+
+	auto materialIndexIter = m_coldData->m_materialIndices.find(currentMaterial);
+	if (materialIndexIter == m_coldData->m_materialIndices.end())
+	{
+		createMaterial(currentMaterial);
+		writeMaterialToBuffer(currentMaterial, m_coldData->m_materialCount);
+
+		materialIndexIter = m_coldData->m_materialIndices.insert(currentMaterial, m_coldData->m_materialCount);
+		++m_coldData->m_materialCount;
+	}
+	VX_ASSERT(materialIndexIter != m_coldData->m_materialIndices.end());
+	auto materialIndex = *materialIndexIter;
 
 	u16 elementId = m_staticMeshInstanceCount;
 
 	auto cmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
-	addMeshInstanceToBuffers(newInstance, cmdBuffer, *meshEntry, elementId, materialIndex);
+	addMeshInstanceToBuffers(newInstance, cmdBuffer, *meshEntryIt, elementId, materialIndex);
 
 	++m_staticMeshInstanceCount;
 

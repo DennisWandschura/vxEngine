@@ -31,6 +31,11 @@ SOFTWARE.
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
 
+namespace EditorSceneCpp
+{
+	const u32 g_invalidId = 0xffffffff;
+}
+
 namespace Editor
 {
 	SceneParams::~SceneParams()
@@ -40,7 +45,7 @@ namespace Editor
 
 	Scene::Scene()
 		:m_meshInstances(),
-		m_spawnHumanId(0xffffffff)
+		m_spawnHumanId(EditorSceneCpp::g_invalidId)
 	{
 
 	}
@@ -128,8 +133,8 @@ namespace Editor
 			auto &waypoint = m_waypoints[i];
 
 			AABB bounds;
-			bounds.max = waypoint.position + vx::float3(0.1f);
-			bounds.min = waypoint.position - vx::float3(0.1f);
+			bounds.max = waypoint.position + vx::float3(0.05f);
+			bounds.min = waypoint.position - vx::float3(0.05f);
 
 			SelectableWrapper<Waypoint> selectLight;
 			selectLight.m_bounds = bounds;
@@ -137,6 +142,29 @@ namespace Editor
 
 			m_selectableWaypoints.push_back(selectLight);
 		}
+	}
+
+	void Scene::buildSelectableSpawns()
+	{
+#if _VX_EDITOR
+		m_selectableSpawns.clear();
+		m_selectableSpawns.reserve(m_spawnCount);
+
+		for (u32 i = 0; i < m_spawnCount; ++i)
+		{
+			auto &spawn = m_pSpawns[i];
+
+			AABB bounds;
+			bounds.max = spawn.position + vx::float3(0.1f);
+			bounds.min = spawn.position - vx::float3(0.1f);
+
+			std::pair<AABB, u32> selected;
+			selected.first = bounds;
+			selected.second = spawn.id;
+
+			m_selectableSpawns.push_back(selected);
+		}
+#endif
 	}
 
 	void Scene::reset()
@@ -415,6 +443,7 @@ namespace Editor
 	{
 #if _VX_EDITOR
 		auto it = m_pSpawns.insert(newSpawn.id, std::move(newSpawn));
+		++m_spawnCount;
 
 		AABB bounds;
 		bounds.max = it->position + vx::float3(0.1f);
@@ -430,7 +459,7 @@ namespace Editor
 
 	u32 Scene::getSpawnId(const Ray &ray) const
 	{
-		u32 result = 0xffffffff;
+		u32 result = EditorSceneCpp::g_invalidId;
 
 		f32 a, b;
 		for (auto &it : m_selectableSpawns)
@@ -455,6 +484,41 @@ namespace Editor
 			result = &*it;
 #endif
 		return result;
+	}
+
+	void Scene::setSpawnPosition(u32 id, const vx::float3 &position)
+	{
+#if _VX_EDITOR
+		auto it = m_pSpawns.find(id);
+		if (it != m_pSpawns.end())
+		{
+			it->position = position;
+
+			buildSelectableSpawns();
+		}
+#endif
+	}
+
+	void Scene::setSpawnType(u32 id, u32 type)
+	{
+#if _VX_EDITOR
+		auto it = m_pSpawns.find(id);
+		if (it != m_pSpawns.end())
+		{
+			auto playerType = (PlayerType)type;
+			it->type = playerType;
+
+			auto otherId = it->id;
+
+			if (playerType == PlayerType::Human && m_spawnHumanId != EditorSceneCpp::g_invalidId && m_spawnHumanId != otherId)
+			{
+				it = m_pSpawns.find(m_spawnHumanId);
+				it->type = PlayerType::AI;
+
+				m_spawnHumanId = otherId;
+			}
+		}
+#endif
 	}
 
 	u32 Scene::getSpawnHumanId() const

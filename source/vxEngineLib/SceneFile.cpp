@@ -38,6 +38,7 @@ SOFTWARE.
 #include <vxEngineLib/memcpy.h>
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/MeshInstanceFile.h>
+#include <vxLib/File/FileHandle.h>
 
 struct SceneFile::CreateSceneMeshInstancesDesc
 {
@@ -76,6 +77,12 @@ struct SceneFile::CreateSceneShared
 
 SceneFile::SceneFile(u32 version)
 	:Serializable(version),
+	m_pMeshInstances(),
+	m_pLights(),
+	m_pSpawns(),
+	m_pActors(),
+	m_waypoints(),
+	m_navMesh(),
 	m_meshInstanceCount(0),
 	m_lightCount(0),
 	m_spawnCount(0),
@@ -294,29 +301,29 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 			if (name[0] == '\0')
 				name = genName.c_str();
 
-			auto sidName = vx::make_sid(name);
-			auto sidMesh = vx::make_sid(meshFile);
-			auto sidAnimation = vx::make_sid(instanceFile.getAnimation());
-			auto itMesh = desc.sortedMeshes->find(sidMesh);
-			auto sidMaterial = vx::make_sid(materialFile);
-			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
+			auto sidName = vx::FileHandle(name);
+			auto sidMesh = vx::FileHandle(meshFile);
+			auto sidAnimation = vx::FileHandle(instanceFile.getAnimation());
+			auto itMesh = desc.sortedMeshes->find(sidMesh.m_sid);
+			auto sidMaterial = vx::FileHandle(materialFile);
+			auto itMaterial = desc.sortedMaterials->find(sidMaterial.m_sid);
 
 			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
 			{
 				return false;
 			}
 
-			desc.sceneMeshes->insert(sidMesh, *itMesh);
-			desc.sceneMaterials->insert(sidMaterial, *itMaterial);
+			desc.sceneMeshes->insert(sidMesh.m_sid, *itMesh);
+			desc.sceneMaterials->insert(sidMaterial.m_sid, *itMaterial);
 
 			auto transform = instanceFile.getTransform();
 
-			auto instance = MeshInstance(sidName, sidMesh, *itMaterial, sidAnimation, transform);
+			auto instance = MeshInstance(sidName.m_sid, sidMesh.m_sid, *itMaterial, sidAnimation.m_sid, transform);
 			instanceInserter(instance, i, name);
 
 			if (desc.sceneMeshInstanceNames)
 			{
-				desc.sceneMeshInstanceNames->insert(sidName, std::string(name));
+				desc.sceneMeshInstanceNames->insert(sidName.m_sid, std::string(name));
 			}
 	}
 
@@ -333,25 +340,25 @@ bool SceneFile::createSceneActors(const CreateSceneActorsDesc &desc)
 		{
 			auto &actor = m_pActors[i];
 
-			auto sidMesh = vx::make_sid(actor.m_mesh);
-			auto itMesh = desc.sortedMeshes->find(sidMesh);
+			auto sidMesh = vx::FileHandle(actor.m_mesh);
+			auto itMesh = desc.sortedMeshes->find(sidMesh.m_sid);
 
-			auto sidMaterial = vx::make_sid(actor.m_material);
-			auto itMaterial = desc.sortedMaterials->find(sidMaterial);
+			auto sidMaterial = vx::FileHandle(actor.m_material);
+			auto itMaterial = desc.sortedMaterials->find(sidMaterial.m_sid);
 
 			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
 			{
 				return false;
 			}
 
-			desc.sceneMeshes->insert(sidMesh, *itMesh);
-			desc.sceneMaterials->insert(sidMaterial, *itMaterial);
+			desc.sceneMeshes->insert(sidMesh.m_sid, *itMesh);
+			desc.sceneMaterials->insert(sidMaterial.m_sid, *itMaterial);
 
 			auto sidName = vx::make_sid(actor.m_name);
 
 			Actor a;
-			a.m_mesh = sidMesh;
-			a.m_material = sidMaterial;
+			a.m_mesh = sidMesh.m_sid;
+			a.m_material = sidMaterial.m_sid;
 			desc.sceneActors->insert(sidName, a);
 		}
 	}
@@ -370,7 +377,10 @@ bool SceneFile::createSceneShared(const CreateSceneShared &desc)
 	createMeshInstancesDesc.sortedMeshes = desc.sortedMeshes;
 	createMeshInstancesDesc.sceneMeshInstanceNames = desc.sceneMeshInstanceNames;
 	if (!createSceneMeshInstances(createMeshInstancesDesc))
+	{
+		printf("SceneFile::createSceneShared::createSceneMeshInstances error\n");
 		return false;
+	}
 
 	CreateSceneActorsDesc createActorDesc;
 	createActorDesc.sceneActors = desc.sceneActors;
@@ -380,13 +390,16 @@ bool SceneFile::createSceneShared(const CreateSceneShared &desc)
 	createActorDesc.sortedMeshes = desc.sortedMeshes;
 
 	if (!createSceneActors(createActorDesc))
+	{
+		printf("SceneFile::createSceneShared::createSceneActors error\n");
 		return false;
+	}
 
 	for (auto i = 0u; i < m_spawnCount; ++i)
 	{
 		desc.sceneSpawns[i].type = m_pSpawns[i].type;
 		desc.sceneSpawns[i].position = m_pSpawns[i].position;
-		desc.sceneSpawns[i].sid = vx::make_sid(m_pSpawns[i].actor);
+		desc.sceneSpawns[i].sid = vx::FileHandle(m_pSpawns[i].actor).m_sid;
 	}
 
 	*desc.vertexCount = 0;
@@ -502,7 +515,10 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sharedDesc.indexCount = &indexCount;
 	sharedDesc.sceneMeshInstanceNames = &sceneMeshInstanceNames;
 	if (!createSceneShared(sharedDesc))
+	{
+		printf("SceneFile::createScene error\n");
 		return 0;
+	}
 
 	auto materialCount = sceneMaterials.size();
 	vx::sorted_vector<vx::StringID, std::string> materialNames;
@@ -540,12 +556,12 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	{
 		auto &actorFile = m_pActors[i];
 		
-		auto sid = vx::make_sid(actorFile.m_name);
+		auto sid = vx::FileHandle(actorFile.m_name);
 
 		//char str[32];
 	//	strncpy(str, actorFile.m_name, 32);
 
-		actorNames.insert(sid, actorFile.m_name);
+		actorNames.insert(sid.m_sid, actorFile.m_name);
 	}
 
 	Editor::SceneParams sceneParams;
@@ -661,23 +677,41 @@ u64 SceneFile::getCrcVersion4() const
 	auto ptr = vx::make_unique<u8[]>(totalSize);
 
 	auto offset = 0;
-	::memcpy(ptr.get() + offset, m_pMeshInstances.get(), meshInstanceSize);
-	offset += meshInstanceSize;
+	if (meshInstanceSize != 0)
+	{
+		::memcpy(ptr.get() + offset, m_pMeshInstances.get(), meshInstanceSize);
+		offset += meshInstanceSize;
+	}
 
-	::memcpy(ptr.get() + offset, m_pLights.get(), lightSize);
-	offset += lightSize;
+	if (lightSize != 0)
+	{
+		::memcpy(ptr.get() + offset, m_pLights.get(), lightSize);
+		offset += lightSize;
+	}
 
-	::memcpy(ptr.get() + offset, m_pSpawns.get(), spawnSize);
-	offset += spawnSize;
+	if (spawnSize != 0)
+	{
+		::memcpy(ptr.get() + offset, m_pSpawns.get(), spawnSize);
+		offset += spawnSize;
+	}
 
-	::memcpy(ptr.get() + offset, m_pActors.get(), actorSize);
-	offset += actorSize;
+	if (actorSize != 0)
+	{
+		::memcpy(ptr.get() + offset, m_pActors.get(), actorSize);
+		offset += actorSize;
+	}
 
-	::memcpy(ptr.get() + offset, m_navMesh.getVertices(), navMeshVertexSize);
-	offset += navMeshVertexSize;
+	if (navMeshVertexSize != 0)
+	{
+		::memcpy(ptr.get() + offset, m_navMesh.getVertices(), navMeshVertexSize);
+		offset += navMeshVertexSize;
+	}
 
-	::memcpy(ptr.get() + offset, m_navMesh.getTriangleIndices(), navMeshTriangleSize);
-	offset += navMeshTriangleSize;
+	if (navMeshTriangleSize != 0)
+	{
+		::memcpy(ptr.get() + offset, m_navMesh.getTriangleIndices(), navMeshTriangleSize);
+		offset += navMeshTriangleSize;
+	}
 
 	return CityHash64((char*)ptr.get(), totalSize);
 }

@@ -30,6 +30,7 @@ SOFTWARE.
 template<typename K, typename T>
 void copySortedVector(vx::sorted_vector<K, T>* dst, const vx::sorted_vector<K, T> &src)
 {
+	dst->clear();
 	auto size = src.size();
 	dst->reserve(size);
 
@@ -44,9 +45,12 @@ void copySortedVector(vx::sorted_vector<K, T>* dst, const vx::sorted_vector<K, T
 template<typename K>
 void copyUniquePtr(std::unique_ptr<K[]>* dst, const std::unique_ptr<K[]> &src, u32 size)
 {
-	*dst = vx::make_unique<K[]>(size);
+
+	auto ptr = vx::make_unique<K[]>(size);
 	for (u32 i = 0; i < size; ++i)
 	{
-		(*dst)[i] = src[i];
+		ptr[i] = src[i];
 	}
+
+	dst->swap(ptr);
 }

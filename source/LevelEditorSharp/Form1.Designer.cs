@@ -101,6 +101,7 @@ namespace LevelEditor
             this.comboBox_selectEditorMode = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripButtonCreateLight = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCreateMeshInstance = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonCreateSpawn = new System.Windows.Forms.ToolStripButton();
             this.openFileDialog1_loadScene = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog_scene = new System.Windows.Forms.SaveFileDialog();
             this.numericUpDownNavmeshPositionZ = new System.Windows.Forms.NumericUpDown();
@@ -118,20 +119,19 @@ namespace LevelEditor
             this.numericUpDownLightX = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownLightY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownLightZ = new System.Windows.Forms.NumericUpDown();
-            this.treeViewActionList = new System.Windows.Forms.TreeView();
             this.flowLayoutPanel11 = new System.Windows.Forms.FlowLayoutPanel();
             this.label10 = new System.Windows.Forms.Label();
             this.numericUpDownLightLumen = new System.Windows.Forms.NumericUpDown();
-            this.toolStripButtonCreateSpawn = new System.Windows.Forms.ToolStripButton();
+            this.treeViewActionList = new System.Windows.Forms.TreeView();
             this.groupBoxSpawn = new System.Windows.Forms.GroupBox();
+            this.flowLayoutPanel13 = new System.Windows.Forms.FlowLayoutPanel();
+            this.label12 = new System.Windows.Forms.Label();
+            this.numericUpDownSpawnType = new System.Windows.Forms.NumericUpDown();
             this.flowLayoutPanel12 = new System.Windows.Forms.FlowLayoutPanel();
             this.label11 = new System.Windows.Forms.Label();
             this.numericUpDownSpawnPosX = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosZ = new System.Windows.Forms.NumericUpDown();
-            this.flowLayoutPanel13 = new System.Windows.Forms.FlowLayoutPanel();
-            this.label12 = new System.Windows.Forms.Label();
-            this.numericUpDownSpawnType = new System.Windows.Forms.NumericUpDown();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_x)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_y)).BeginInit();
@@ -166,12 +166,12 @@ namespace LevelEditor
             this.flowLayoutPanel11.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightLumen)).BeginInit();
             this.groupBoxSpawn.SuspendLayout();
+            this.flowLayoutPanel13.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnType)).BeginInit();
             this.flowLayoutPanel12.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnPosX)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnPosY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnPosZ)).BeginInit();
-            this.flowLayoutPanel13.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnType)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -326,7 +326,7 @@ namespace LevelEditor
             // 
             // openFileDialog_importAsset
             // 
-            this.openFileDialog_importAsset.Filter = "mesh|*.mesh|material|*.material";
+            this.openFileDialog_importAsset.Filter = "mesh|*.mesh|material|*.material|fbx|*.fbx";
             this.openFileDialog_importAsset.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog_import_FileOk);
             // 
             // treeView_entities
@@ -762,6 +762,17 @@ namespace LevelEditor
             this.toolStripButtonCreateMeshInstance.Visible = false;
             this.toolStripButtonCreateMeshInstance.Click += new System.EventHandler(this.toolStripButtonCreateMeshInstance_Click);
             // 
+            // toolStripButtonCreateSpawn
+            // 
+            this.toolStripButtonCreateSpawn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonCreateSpawn.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCreateSpawn.Image")));
+            this.toolStripButtonCreateSpawn.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonCreateSpawn.Name = "toolStripButtonCreateSpawn";
+            this.toolStripButtonCreateSpawn.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonCreateSpawn.Text = "Create Spawn";
+            this.toolStripButtonCreateSpawn.Visible = false;
+            this.toolStripButtonCreateSpawn.Click += new System.EventHandler(this.toolStripButtonCreateSpawn_Click);
+            // 
             // openFileDialog1_loadScene
             // 
             this.openFileDialog1_loadScene.FileName = "openFileDialog1";
@@ -996,14 +1007,6 @@ namespace LevelEditor
             this.numericUpDownLightZ.TabIndex = 14;
             this.numericUpDownLightZ.ValueChanged += new System.EventHandler(this.numericUpDownLightZ_ValueChanged);
             // 
-            // treeViewActionList
-            // 
-            this.treeViewActionList.Location = new System.Drawing.Point(2295, 118);
-            this.treeViewActionList.Name = "treeViewActionList";
-            this.treeViewActionList.Size = new System.Drawing.Size(209, 398);
-            this.treeViewActionList.TabIndex = 18;
-            this.treeViewActionList.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeViewActionList_AfterSelect);
-            // 
             // flowLayoutPanel11
             // 
             this.flowLayoutPanel11.Controls.Add(this.label10);
@@ -1039,14 +1042,13 @@ namespace LevelEditor
             this.numericUpDownLightLumen.TabIndex = 12;
             this.numericUpDownLightLumen.ValueChanged += new System.EventHandler(this.numericUpDownLightLumen_ValueChanged);
             // 
-            // toolStripButtonCreateSpawn
+            // treeViewActionList
             // 
-            this.toolStripButtonCreateSpawn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonCreateSpawn.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCreateSpawn.Image")));
-            this.toolStripButtonCreateSpawn.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonCreateSpawn.Name = "toolStripButtonCreateSpawn";
-            this.toolStripButtonCreateSpawn.Size = new System.Drawing.Size(23, 22);
-            this.toolStripButtonCreateSpawn.Text = "toolStripButton1";
+            this.treeViewActionList.Location = new System.Drawing.Point(2295, 118);
+            this.treeViewActionList.Name = "treeViewActionList";
+            this.treeViewActionList.Size = new System.Drawing.Size(209, 398);
+            this.treeViewActionList.TabIndex = 18;
+            this.treeViewActionList.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeViewActionList_AfterSelect);
             // 
             // groupBoxSpawn
             // 
@@ -1058,6 +1060,40 @@ namespace LevelEditor
             this.groupBoxSpawn.TabIndex = 17;
             this.groupBoxSpawn.TabStop = false;
             this.groupBoxSpawn.Text = "Spawn";
+            // 
+            // flowLayoutPanel13
+            // 
+            this.flowLayoutPanel13.Controls.Add(this.label12);
+            this.flowLayoutPanel13.Controls.Add(this.numericUpDownSpawnType);
+            this.flowLayoutPanel13.Location = new System.Drawing.Point(12, 53);
+            this.flowLayoutPanel13.Name = "flowLayoutPanel13";
+            this.flowLayoutPanel13.Size = new System.Drawing.Size(380, 28);
+            this.flowLayoutPanel13.TabIndex = 18;
+            // 
+            // label12
+            // 
+            this.label12.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(3, 0);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(31, 26);
+            this.label12.TabIndex = 16;
+            this.label12.Text = "Type";
+            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // numericUpDownSpawnType
+            // 
+            this.numericUpDownSpawnType.Location = new System.Drawing.Point(40, 3);
+            this.numericUpDownSpawnType.Maximum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            this.numericUpDownSpawnType.Name = "numericUpDownSpawnType";
+            this.numericUpDownSpawnType.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownSpawnType.TabIndex = 12;
+            this.numericUpDownSpawnType.ValueChanged += new System.EventHandler(this.numericUpDownSpawnType_ValueChanged);
             // 
             // flowLayoutPanel12
             // 
@@ -1099,6 +1135,7 @@ namespace LevelEditor
             this.numericUpDownSpawnPosX.Name = "numericUpDownSpawnPosX";
             this.numericUpDownSpawnPosX.Size = new System.Drawing.Size(100, 20);
             this.numericUpDownSpawnPosX.TabIndex = 12;
+            this.numericUpDownSpawnPosX.ValueChanged += new System.EventHandler(this.numericUpDownSpawnPosX_ValueChanged);
             // 
             // numericUpDownSpawnPosY
             // 
@@ -1117,6 +1154,7 @@ namespace LevelEditor
             this.numericUpDownSpawnPosY.Name = "numericUpDownSpawnPosY";
             this.numericUpDownSpawnPosY.Size = new System.Drawing.Size(100, 20);
             this.numericUpDownSpawnPosY.TabIndex = 13;
+            this.numericUpDownSpawnPosY.ValueChanged += new System.EventHandler(this.numericUpDownSpawnPosY_ValueChanged);
             // 
             // numericUpDownSpawnPosZ
             // 
@@ -1135,39 +1173,7 @@ namespace LevelEditor
             this.numericUpDownSpawnPosZ.Name = "numericUpDownSpawnPosZ";
             this.numericUpDownSpawnPosZ.Size = new System.Drawing.Size(100, 20);
             this.numericUpDownSpawnPosZ.TabIndex = 14;
-            // 
-            // flowLayoutPanel13
-            // 
-            this.flowLayoutPanel13.Controls.Add(this.label12);
-            this.flowLayoutPanel13.Controls.Add(this.numericUpDownSpawnType);
-            this.flowLayoutPanel13.Location = new System.Drawing.Point(12, 53);
-            this.flowLayoutPanel13.Name = "flowLayoutPanel13";
-            this.flowLayoutPanel13.Size = new System.Drawing.Size(380, 28);
-            this.flowLayoutPanel13.TabIndex = 18;
-            // 
-            // label12
-            // 
-            this.label12.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(3, 0);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(31, 26);
-            this.label12.TabIndex = 16;
-            this.label12.Text = "Type";
-            this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // numericUpDownSpawnType
-            // 
-            this.numericUpDownSpawnType.Location = new System.Drawing.Point(40, 3);
-            this.numericUpDownSpawnType.Maximum = new decimal(new int[] {
-            2,
-            0,
-            0,
-            0});
-            this.numericUpDownSpawnType.Name = "numericUpDownSpawnType";
-            this.numericUpDownSpawnType.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDownSpawnType.TabIndex = 12;
+            this.numericUpDownSpawnPosZ.ValueChanged += new System.EventHandler(this.numericUpDownSpawnPosZ_ValueChanged);
             // 
             // Form1
             // 
@@ -1239,14 +1245,14 @@ namespace LevelEditor
             this.flowLayoutPanel11.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLightLumen)).EndInit();
             this.groupBoxSpawn.ResumeLayout(false);
+            this.flowLayoutPanel13.ResumeLayout(false);
+            this.flowLayoutPanel13.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnType)).EndInit();
             this.flowLayoutPanel12.ResumeLayout(false);
             this.flowLayoutPanel12.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnPosX)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnPosY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnPosZ)).EndInit();
-            this.flowLayoutPanel13.ResumeLayout(false);
-            this.flowLayoutPanel13.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSpawnType)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

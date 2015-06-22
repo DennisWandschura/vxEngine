@@ -246,6 +246,9 @@ InfluenceMap::~InfluenceMap()
 
 void InfluenceMap::initialize(const NavMesh &navMesh, const Waypoint* waypoints, u32 count)
 {
+	if (count == 0)
+		return;
+
 	auto triangles = navMesh.getNavMeshTriangles();
 	auto triangleCount = navMesh.getTriangleCount();
 

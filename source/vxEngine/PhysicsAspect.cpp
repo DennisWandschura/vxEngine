@@ -332,20 +332,57 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 	assert(transform.isValid());
 
 	auto &material = meshInstance.getMaterial();
-	auto itPhysxMaterial = m_physxMaterials.find((*material).getSid());
+	auto materialSid = (*material).getSid();
+	auto itPhysxMaterial = m_physxMaterials.find(materialSid);
+	if (itPhysxMaterial == m_physxMaterials.end())
+	{
+		auto pMaterial = m_pPhysics->createMaterial((*material).getStaticFriction(), (*material).getDynamicFriction(), (*material).getRestitution());
+		VX_ASSERT(pMaterial);
+		itPhysxMaterial = m_physxMaterials.insert(materialSid, pMaterial);
+	}
+	VX_ASSERT(itPhysxMaterial != m_physxMaterials.end());
 	auto pmat = *itPhysxMaterial;
 
-	physx::PxShape* shape = nullptr;
 	auto itPhysxTriangleMesh = m_physxMeshes.find(meshSid);
-	if (itPhysxTriangleMesh != m_physxMeshes.end())
+	auto itConvexMesh = m_physxConvexMeshes.find(meshSid);
+
+	bool isTriangleMesh = false;
+	if (itPhysxTriangleMesh == m_physxMeshes.end() &&
+		itConvexMesh == m_physxConvexMeshes.end())
+	{
+		auto fileAspect = Locator::getFileAspect();
+		auto pMeshFile = fileAspect->getMesh(meshSid);
+
+		if (processMesh(meshSid, pMeshFile, &isTriangleMesh))
+		{
+			if (isTriangleMesh)
+			{
+				itPhysxTriangleMesh = m_physxMeshes.find(meshSid);
+			}
+			else
+			{
+				itConvexMesh = m_physxConvexMeshes.find(meshSid);
+			}
+		}
+		else
+		{
+			// error processing mesh
+			VX_ASSERT(false);
+		}
+	}
+	else
+	{
+		isTriangleMesh = (itPhysxTriangleMesh != m_physxMeshes.end());
+	}
+
+	physx::PxShape* shape = nullptr;
+	if (isTriangleMesh)
 	{
 		shape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*itPhysxTriangleMesh), *pmat);
 	}
 	else
 	{
-		auto it = m_physxConvexMeshes.find(meshSid);
-		VX_ASSERT(it != m_physxConvexMeshes.end());
-		shape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(*it), *pmat);
+		shape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(*itConvexMesh), *pmat);
 	}
 
 	auto pRigidStatic = m_pPhysics->createRigidStatic(transform);

@@ -99,6 +99,7 @@
     <Compile Include="ActionDeselectNavMesh.cs" />
     <Compile Include="ActionList.cs" />
     <Compile Include="ActionNode.cs" />
+    <Compile Include="ActionRemoveNavMeshVertex.cs" />
     <Compile Include="ActionRenameSelectedMeshInstance.cs" />
     <Compile Include="ActionSetMeshInstanceMaterial.cs" />
     <Compile Include="ActionSetMeshInstanceMesh.cs" />

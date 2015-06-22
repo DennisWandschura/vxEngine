@@ -38,11 +38,17 @@ SOFTWARE.
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/FileEvents.h>
+#include <vxResourceAspect/FbxFactory.h>
 
 char FileAspect::s_textureFolder[32] = { "data/textures/" };
 char FileAspect::s_materialFolder[32] = { "data/materials/" };
 char FileAspect::s_sceneFolder[32] = { "data/scenes/" };
 char FileAspect::s_meshFolder[32] = { "data/mesh/" };
+
+namespace FileAspectCpp
+{
+	char g_assetFolder[32] = {"../assets/"};
+}
 
 namespace
 {
@@ -115,7 +121,8 @@ FileAspect::FileAspect()
 	m_poolMesh(),
 	m_poolMaterial(),
 	m_textureFileManager(),
-	m_eventManager(nullptr)
+	m_eventManager(nullptr),
+	m_cooking(nullptr)
 {
 }
 
@@ -123,7 +130,7 @@ FileAspect::~FileAspect()
 {
 }
 
-bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager)
+bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager, physx::PxCooking* cooking)
 {
 	m_eventManager = evtManager;
 	const auto fileMemorySize = 5 MBYTE;
@@ -148,10 +155,15 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	createPool(maxCount, &m_poolAnimations, pMainAllocator);
 	m_textureFileManager.initialize(maxCount, pMainAllocator);
 
+	m_cooking = cooking;
+
 	strcpy_s(s_textureFolder, (dataDir + "textures/").c_str());
 	strcpy_s(s_materialFolder, (dataDir + "materials/").c_str());
 	strcpy_s(s_sceneFolder, (dataDir + "scenes/").c_str());
 	strcpy_s(s_meshFolder, (dataDir + "mesh/").c_str());
+
+	strcpy_s(FileAspectCpp::g_assetFolder, (dataDir + "../../assets/").c_str());
+	
 
 	return true;
 }
@@ -299,6 +311,9 @@ void FileAspect::getFolderString(vx::FileType fileType, const char** folder)
 	case vx::FileType::Scene:
 		*folder = s_sceneFolder;
 		break;
+	case vx::FileType::Fbx:
+		*folder = FileAspectCpp::g_assetFolder;
+		break;
 	default:
 		break;
 	}
@@ -340,6 +355,23 @@ void FileAspect::pushFileEvent(vx::FileEvent code, vx::Variant arg1, vx::Variant
 	m_eventManager->addEvent(e);
 }
 
+bool FileAspect::loadFileFbx(const LoadFileOfTypeDescription &desc)
+{
+	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Trying to load file %s\n", desc.fileNameWithPath);
+
+	std::vector<vx::FileHandle> files;
+	FbxFactory factory;
+	factory.loadFile(desc.fileNameWithPath, std::string(s_meshFolder), m_cooking, &files);
+
+	for (auto &it : files)
+	{
+		vx::FileEntry fileEntry(it.m_string, vx::FileType::Mesh);
+		requestLoadFile(fileEntry, desc.pUserData);
+	}
+
+	return true;
+}
+
 bool FileAspect::loadFileMesh(const LoadFileOfTypeDescription &desc)
 {
 	vx::FileHeader header;
@@ -349,6 +381,7 @@ bool FileAspect::loadFileMesh(const LoadFileOfTypeDescription &desc)
 	if (header.magic != header.s_magic)
 	{
 		desc.result->result = 0;
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error loading mesh '%s'", desc.fileName);
 		return false;
 	}
 
@@ -374,6 +407,12 @@ bool FileAspect::loadFileMesh(const LoadFileOfTypeDescription &desc)
 
 		pushFileEvent(vx::FileEvent::Mesh_Loaded, arg1, arg2);
 		result = true;
+
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded mesh '%s' %llu", desc.fileName, desc.sid.value);
+	}
+	else
+	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error loading mesh '%s'", desc.fileName);
 	}
 
 	return result;
@@ -426,6 +465,12 @@ void FileAspect::loadFileMaterial(const LoadFileOfTypeDescription &desc)
 		arg2.ptr = desc.pUserData;
 
 		pushFileEvent(vx::FileEvent::Material_Loaded, arg1, arg2);
+
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded material '%s'", desc.fileName);
+	}
+	else
+	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error loading material '%s'", desc.fileName);
 	}
 }
 
@@ -468,8 +513,11 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 	}break;
 	case vx::FileType::Fbx:
 	{
-		// not implemented yet
-		VX_ASSERT(false);
+		if (loadFileFbx(desc))
+		{
+			desc.result->result = 1;
+			desc.result->type = vx::FileType::Fbx;
+		}
 	}break;
 	default:
 		break;
@@ -523,7 +571,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	const char* fileName = request.m_fileEntry.getString();
 	auto fileType = request.m_fileEntry.getType();
 
-	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Trying to save file %s\n", fileName);
+	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Trying to save file %s", fileName);
 
 	p->u64 = request.m_fileEntry.getSid().value;
 
@@ -564,6 +612,8 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	case vx::FileType::Scene:
 	{
 		auto scene = (Editor::Scene*)request.userData;
+		VX_ASSERT(scene != nullptr);
+
 		SceneFactory::saveToFile(*scene, &f);
 
 		saveResult = 1;

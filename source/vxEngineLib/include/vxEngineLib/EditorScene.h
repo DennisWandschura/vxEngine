@@ -78,6 +78,7 @@ namespace Editor
 
 		void buildSelectableLights();
 		void buildSelectableWaypoints();
+		void buildSelectableSpawns();
 
 		const ::MeshInstance* getMeshInstances() const override { return nullptr; }
 
@@ -127,6 +128,9 @@ namespace Editor
 		u32 getSpawnId(const Ray &ray) const;
 		u32 getSpawnHumanId() const;
 		const Spawn* getSpawn(u32 id) const;
+
+		void setSpawnPosition(u32 id, const vx::float3 &position);
+		void setSpawnType(u32 id, u32 type);
 
 		Light* getLight(const Ray &ray);
 

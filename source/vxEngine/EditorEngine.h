@@ -193,6 +193,9 @@ public:
 	void getSpawnPosition(u32 id, vx::float3* position) const;
 	u32 getSpawnType(u32 id) const;
 
+	void setSpawnPosition(u32 id, const vx::float3 &position);
+	void setSpawnType(u32 id, u32 type);
+
 	u32 getMeshCount() const;
 	const char* getMeshName(u32 i) const;
 	u64 getMeshSid(u32 i) const;

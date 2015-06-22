@@ -134,7 +134,9 @@ namespace Editor
 
 	u64 getSid(const char *str)
 	{
-		return vx::make_sid(str).value;
+		auto tmp =vx::FileHandle(str);
+
+		return tmp.m_sid.value;
 	}
 
 	void saveScene(const char* name)
@@ -434,6 +436,16 @@ namespace Editor
 	u32 getSpawnType(u32 id)
 	{
 		return g_pEditor->engine.getSpawnType(id);
+	}
+
+	void setSpawnPosition(u32 id, const vx::float3 &position)
+	{
+		g_pEditor->engine.setSpawnPosition(id, position);
+	}
+
+	void setSpawnType(u32 id, u32 type)
+	{
+		return g_pEditor->engine.setSpawnType(id, type);
 	}
 
 	u32 getMeshCount()

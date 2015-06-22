@@ -12,14 +12,17 @@ namespace physx
 	class PxCooking;
 }
 
+#include <vxLib/File/FileHandle.h>
+#include <vector>
+
 class FbxFactory
 {
-	FBXSDK_NAMESPACE::FbxManager *m_pFbxManager;
-	FBXSDK_NAMESPACE::FbxIOSettings *m_pIOSettings;
+	FBXSDK_NAMESPACE::FbxManager* m_pFbxManager;
+	FBXSDK_NAMESPACE::FbxIOSettings* m_pIOSettings;
 
 public:
 	FbxFactory();
 	~FbxFactory();
 
-	bool loadFile(const char *fbxFile, physx::PxCooking* cooking);
+	bool loadFile(const char *fbxFile, const std::string &saveDir, physx::PxCooking* cooking, std::vector<vx::FileHandle>* files);
 };

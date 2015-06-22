@@ -58,7 +58,7 @@ namespace Graphics
 	{
 		auto data = vx::make_unique<u64[]>(m_maxShadowLights);
 		auto sizeInBytes = sizeof(u64) * m_maxShadowLights;
-		memset(&data, 0, sizeInBytes);
+		memset(data.get(), 0, sizeInBytes);
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;

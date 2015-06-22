@@ -78,6 +78,7 @@ namespace LevelEditor
         Dictionary<ulong, EditorEntry> m_sortedMaterials;
         Dictionary<Keys, bool> m_keys;
         ActionList m_actionListHead;
+        uint m_selectedSpawn;
 
         public Form1()
         {
@@ -107,6 +108,7 @@ namespace LevelEditor
             m_mouseX = 0;
             m_mouseY = 0;
             m_selectedMeshInstanceSid = 0;
+            m_selectedSpawn = 0;
 
             m_actionListHead = new ActionList(null, null);
 
@@ -187,6 +189,7 @@ namespace LevelEditor
         private State createStateEditNavMesh()
         {
             ActionDeselectNavMesh actionDeselectNavMesh = new ActionDeselectNavMesh(this);
+            ActionRemoveNavMeshVertex actionRemoveNavMeshVertex = new ActionRemoveNavMeshVertex();
 
             State stateEditNavMesh = new State();
 
@@ -197,10 +200,15 @@ namespace LevelEditor
             TargetState stateKeyUp = new TargetState(stateEditNavMesh, "stateCreateNavMeshTriangle");
             stateKeyUp.addAction(actionCreateNavMeshTriangle);
 
-            DecisionSelectedNavMesh decisionSelectedNavMesh = new DecisionSelectedNavMesh(stateKeyUp, null);
-            DecisionKeyUp decKeyUp = new DecisionKeyUp(decisionSelectedNavMesh, null, this, Keys.C);
+            TargetState stateRemoveVertex = new TargetState(stateEditNavMesh, "stateRemoveNavMeshTriangle");
+            stateRemoveVertex.addAction(actionRemoveNavMeshVertex);
 
-            ActionDecisionTree actionKeyUp = new ActionDecisionTree(decKeyUp);
+            //DecisionKeyUp decisionDelKeyDown = new DecisionKeyUp(stateRemoveVertex, null, this, Keys.Delete);
+
+            DecisionSelectedNavMesh decisionSelectedNavMesh = new DecisionSelectedNavMesh(stateKeyUp, null);
+            DecisionKeyUp decKeyUpC = new DecisionKeyUp(decisionSelectedNavMesh, null, this, Keys.C);
+
+            ActionDecisionTree actionKeyUp = new ActionDecisionTree(decKeyUpC);
 
             stateEditNavMesh.addAction(actionKeyUp);
             stateEditNavMesh.addAction(actionOnMouseClick);
@@ -441,6 +449,8 @@ namespace LevelEditor
 
                 numericUpDownSpawnType.Value = (decimal)spawnType;
 
+                m_selectedSpawn = id;
+
                 groupBoxSpawn.Show();
             }
         }
@@ -604,6 +614,7 @@ namespace LevelEditor
                 }
                 else if (type == s_typeMaterial)
                 {
+                    addMaterial(sid, str);
                     // m_materialNode.Nodes.Add(new EditorNodeEntry(sid, s_typeMaterial, str));
                 }
                 else if (type == s_typeScene)
@@ -616,6 +627,10 @@ namespace LevelEditor
                 {
                     Console.Write("loaded unknown file type\n");
                 }
+            }
+            else
+            {
+                Console.Write("could not find file {0}\n", sid);
             }
         }
 
@@ -666,6 +681,12 @@ namespace LevelEditor
                 m_requestedFiles.Add(sid, filename);
 
                 NativeMethods.loadFile(filename, s_typeMaterial, Form1.loadFileCallback);
+            }
+            else if (ext == ".fbx")
+            {
+                m_requestedFiles.Add(sid, filename);
+
+                NativeMethods.loadFile(filename, s_typeFbx, Form1.loadFileCallback);
             }
         }
 
@@ -1084,8 +1105,13 @@ namespace LevelEditor
             }
             else if (e.KeyCode == Keys.Delete)
             {
-                //if (m_editorState == EditorState.EditNavMesh)
-                //   NativeMethods.removeSelectedNavMeshVertex();
+                if (m_editorState == EditorState.EditNavMesh)
+                {
+                    Float3 position;
+                    position.x = position.y = position.z = 0;
+                    NativeMethods.getSelectNavMeshVertexPosition(ref position);
+                    NativeMethods.removeNavMeshVertex(ref position);
+                }
             }
 
             if (e.Alt)
@@ -1475,6 +1501,47 @@ namespace LevelEditor
         {
             float value = (float)numericUpDownLightLumen.Value;
             NativeMethods.setSelectLightLumen(value);
+        }
+
+        private void numericUpDownSpawnType_ValueChanged(object sender, EventArgs e)
+        {
+            if(m_editorState == EditorState.EditSpawns)
+            {
+                var value = numericUpDownSpawnType.Value;
+                NativeMethods.setSpawnType(m_selectedSpawn, (uint)value);
+            }
+        }
+
+        void setSpawnPosition()
+        {
+            if (m_editorState == EditorState.EditSpawns)
+            {
+                Float3 position;
+                position.x = (float)numericUpDownSpawnPosX.Value;
+                position.y = (float)numericUpDownSpawnPosY.Value;
+                position.z = (float)numericUpDownSpawnPosZ.Value;
+                NativeMethods.setSpawnPosition(m_selectedSpawn, ref position);
+            }
+        }
+
+        private void numericUpDownSpawnPosX_ValueChanged(object sender, EventArgs e)
+        {
+            setSpawnPosition();
+        }
+
+        private void numericUpDownSpawnPosY_ValueChanged(object sender, EventArgs e)
+        {
+            setSpawnPosition();
+        }
+
+        private void numericUpDownSpawnPosZ_ValueChanged(object sender, EventArgs e)
+        {
+            setSpawnPosition();
+        }
+
+        private void toolStripButtonCreateSpawn_Click(object sender, EventArgs e)
+        {
+            NativeMethods.addSpawn();
         }
     }
 }

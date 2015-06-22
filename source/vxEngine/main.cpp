@@ -115,7 +115,7 @@ int main()
 		return 1;
 	}
 
-	const __m128 qRotations_normal[6] =
+	/*const __m128 qRotations_normal[6] =
 	{
 		{ 0.382683426, 0.000000000, 0.000000000, 0.923879504 },
 		{ -0.382683426, 0.000000000, 0.000000000, 0.923879504 },
@@ -141,7 +141,7 @@ int main()
 	const auto mask = 0xffffffff;
 
 	const auto fil = 1 << 1;
-	const auto resl = mask & fil;
+	const auto resl = mask & fil;*/
 
 	HANDLE hLogFile = nullptr;
 	hLogFile = CreateFileA("log.txt", GENERIC_WRITE,
@@ -167,18 +167,24 @@ int main()
 		return 1;
 	}
 
+	vx::float3 p0 = {-1.3f, 0, 1.9f};
+	vx::float3 p1 = { 1.14f, 0, 1.98 };
+	vx::float3 p2 = { 0.09, 0, 0.89 };
+	const vx::float3 forward = { 0, 0, -1 };
+
+	auto normal = vx::cross(p1 - p0, p2 - p0);
+	auto det = vx::dot(normal, forward);
+
 	_CrtMemState state;
 	// create a checkpoint to for current memory state
 	_CrtMemCheckpoint(&state);
 
-	Scene scene;
 	Engine engine;
 	g_engine = &engine;
 	vx::activateChannel(vx::debugPrint::Channel_FileAspect);
 
 	SCOPE_EXIT
 	{
-		scene.reset();
 		engine.shutdown();
 		LOG(mainLogfile, "Shutting down Engine", false);
 		mainLogfile.close();
@@ -196,8 +202,6 @@ int main()
 		LOG_ERROR(mainLogfile, "Error initializing Engine !", false);
 		return 1;
 	}
-
-	engine.requestLoadFile(vx::FileEntry("test14.scene", vx::FileType::Scene), &scene);
 
 	LOG(mainLogfile, "Starting", false);
 

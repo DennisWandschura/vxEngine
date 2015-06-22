@@ -109,7 +109,10 @@ void NavMesh::copy(NavMesh* dst) const
 	copyUniquePtr(&dst->m_triangleIndices, m_triangleIndices, indexCount);
 #endif
 
-	copyUniquePtr(&dst->m_navMeshTriangles, m_navMeshTriangles, m_triangleCount);
+	if (m_triangleCount != 0)
+	{
+		copyUniquePtr(&dst->m_navMeshTriangles, m_navMeshTriangles, m_triangleCount);
+	}
 
 	dst->m_bounds = m_bounds;
 	dst->m_vertexCount = m_vertexCount;
@@ -167,8 +170,8 @@ const u8* NavMesh::load(const u8 *ptr)
 	for (auto &it : m_vertices)
 	{
 		AABB bounds;
-		bounds.min = it - vx::float3(0.1f);
-		bounds.max = it + vx::float3(0.1f);
+		bounds.min = it - vx::float3(0.05f);
+		bounds.max = it + vx::float3(0.05f);
 
 		m_vertexBounds.push_back(bounds);
 }
@@ -193,8 +196,8 @@ void NavMesh::addVertex(const vx::float3 &vertex)
 	m_bounds = AABB::merge(m_bounds, vertex);
 
 	AABB bounds;
-	bounds.min = vertex - vx::float3(0.1f);
-	bounds.max = vertex + vx::float3(0.1f);
+	bounds.min = vertex - vx::float3(0.05f);
+	bounds.max = vertex + vx::float3(0.05f);
 
 	m_vertexBounds.push_back(bounds);
 #else
@@ -369,16 +372,23 @@ void NavMesh::addTriangle(const u32(&selectedIndices)[3])
 	auto v1 = m_vertices[selectedIndices[1]];
 	auto v2 = m_vertices[selectedIndices[2]];
 
+	printf("%u %u %u\n", selectedIndices[0], selectedIndices[1], selectedIndices[2]);
+	printf("%f %f %f\n", v0.x, v0.y, v0.z);
+	printf("%f %f %f\n", v1.x, v1.y, v1.z);
+	printf("%f %f %f\n", v2.x, v2.y, v2.z);
+
 	if (isCCW(v0, v1, v2))
 	{
+		printf("derpoo2\n");
 		m_triangleIndices.push_back(selectedIndices[0]);
 		m_triangleIndices.push_back(selectedIndices[1]);
 		m_triangleIndices.push_back(selectedIndices[2]);
 
 		++m_triangleCount;
 
+		printf("derpoo3\n");
 		m_navMeshTriangles = createNavMeshTriangles();
-}
+	}
 	else
 	{
 		printf("not ccw !\n");
@@ -406,8 +416,8 @@ void NavMesh::setVertexPosition(u32 i, const vx::float3 &position)
 {
 #if _VX_EDITOR
 	m_vertices[i] = position;
-	m_vertexBounds[i].min = position - vx::float3(0.1f);
-	m_vertexBounds[i].max = position + vx::float3(0.1f);
+	m_vertexBounds[i].min = position - vx::float3(0.05f);
+	m_vertexBounds[i].max = position + vx::float3(0.05f);
 
 	buildBounds();
 
@@ -476,9 +486,13 @@ bool NavMesh::getIndex(const vx::float3 &position, u32* index) const
 
 bool NavMesh::isCCW(const vx::float3 &p0, const vx::float3 &p1, const vx::float3 &p2) const
 {
-	auto det = p0.x * p1.y * p2.z - p0.x * p2.y * p1.z - p1.x * p0.y * p2.z + p1.x * p2.y * p0.z + p2.x * p0.y * p1.z - p2.x * p1.y * p0.z;
+	const vx::float3 n = { 1, 1, 1 };
 
-	return det > 0.0f;
+	auto normal = vx::cross(p1 - p0, p2 - p0);
+	auto det = vx::dot(normal, n);
+	printf("%f\n",det);
+
+	return (det > 0.0f);
 }
 
 const vx::float3* NavMesh::getVertices() const

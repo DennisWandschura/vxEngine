@@ -105,6 +105,7 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	m_shaderManager.loadPipeline(vx::FileHandle("editorDrawMesh.pipe"), "editorDrawMesh.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("navmesh.pipe"), "navmesh.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("editorDrawNavmeshConnection.pipe"), "editorDrawNavmeshConnection.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("editorSelectedMesh.pipe"), "editorSelectedMesh.pipe", &m_allocator);
 
 	{
 		vx::gl::BufferDescription navmeshVertexVboDesc;
@@ -851,9 +852,12 @@ bool EditorRenderAspect::setSelectedMeshInstance(const Editor::MeshInstance* ins
 		}
 
 		m_selectedInstance.cmd = cmd;
+		m_selectedInstance.ptr = instance;
 	}
-
-	m_selectedInstance.ptr = instance;
+	else
+	{
+		m_selectedInstance.ptr = nullptr;
+	}
 
 	return true;
 }
@@ -892,6 +896,9 @@ void EditorRenderAspect::updateInfluenceCellBuffer(const InfluenceMap &influence
 {
 	auto influenceCells = influenceMap.getCells();
 	auto cellCount = influenceMap.getCellCount();
+	if (cellCount == 0)
+		return;
+
 	auto triangles = influenceMap.getTriangles();
 	printf("InfluenceCellsNew: %u\n", cellCount);
 
@@ -952,6 +959,9 @@ void EditorRenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMe
 {
 	auto nodes = navMeshGraph.getNodes();
 	auto nodeCount = navMeshGraph.getNodeCount();
+
+	if (nodeCount == 0)
+		return;
 
 	auto src = vx::make_unique < vx::float3[]>(nodeCount);
 	for (u32 i = 0; i < nodeCount; ++i)

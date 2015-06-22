@@ -53,7 +53,8 @@ Engine::Engine()
 	m_bRun(0),
 	m_fileAspect(),
 	m_bRunFileThread(),
-	m_fileAspectThread()
+	m_fileAspectThread(),
+	m_scene()
 {
 	g_pEngine = this;
 }
@@ -253,7 +254,7 @@ bool Engine::initializeImpl(const std::string &dataDir)
 	m_eventManager.initialize(&m_allocator, 255);
 	Locator::provide(&m_eventManager);
 
-	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_eventManager))
+	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_eventManager, nullptr))
 		return false;
 
 	return true;
@@ -321,6 +322,8 @@ void Engine::shutdown()
 	m_fileAspectThread.join();
 	m_renderThread.join();
 
+	m_scene.reset();
+
 #if _VX_AUDIO
 	m_audioAspect.shutdown();
 #endif
@@ -343,6 +346,12 @@ void Engine::start()
 {
 	m_fileAspectThread = vx::thread(&Engine::loopFileThread, this);
 	m_renderThread = vx::thread(&Engine::renderLoop, this);
+
+	std::string level;
+	g_engineConfig.m_root.get("level")->as(&level);
+
+	requestLoadFile(vx::FileEntry(level.c_str(), vx::FileType::Scene), &m_scene);
+
 	mainLoop();
 }
 

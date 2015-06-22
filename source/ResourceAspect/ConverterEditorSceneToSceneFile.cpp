@@ -41,63 +41,84 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 {
 	auto actorCount = scene.m_actors.size();
 	sceneFile->m_actorCount = actorCount;
-	sceneFile->m_pActors = vx::make_unique<ActorFile[]>(actorCount);
-	for (u32 i = 0; i < actorCount; ++i)
+
+	if (actorCount != 0)
 	{
-		auto sidActor = scene.m_actors.keys()[i];
-		auto &it = scene.m_actors[i];
+		sceneFile->m_pActors = vx::make_unique<ActorFile[]>(actorCount);
+		for (u32 i = 0; i < actorCount; ++i)
+		{
+			auto sidActor = scene.m_actors.keys()[i];
+			auto &it = scene.m_actors[i];
 
-		vx::StringID sidMaterial = it.m_material;
-		vx::StringID sidMesh = it.m_mesh;
+			vx::StringID sidMaterial = it.m_material;
+			vx::StringID sidMesh = it.m_mesh;
 
-		auto actorNameIt = scene.m_actorNames.find(sidActor);
-		auto meshNameIt = scene.m_meshNames.find(sidMesh);
-		auto materialNameIt = scene.m_materialNames.find(sidMaterial);
+			auto actorNameIt = scene.m_actorNames.find(sidActor);
+			auto meshNameIt = scene.m_meshNames.find(sidMesh);
+			auto materialNameIt = scene.m_materialNames.find(sidMaterial);
 
-		strncpy(sceneFile->m_pActors[i].m_material, materialNameIt->c_str(), 32);
-		strncpy(sceneFile->m_pActors[i].m_mesh, meshNameIt->c_str(), 32);
-		strncpy(sceneFile->m_pActors[i].m_name, actorNameIt->c_str(), 32);
+			strncpy(sceneFile->m_pActors[i].m_material, materialNameIt->c_str(), 32);
+			strncpy(sceneFile->m_pActors[i].m_mesh, meshNameIt->c_str(), 32);
+			strncpy(sceneFile->m_pActors[i].m_name, actorNameIt->c_str(), 32);
+		}
 	}
 
 	sceneFile->m_lightCount = scene.m_lightCount;
-	sceneFile->m_pLights = vx::make_unique<Light[]>(scene.m_lightCount);
-	for (u32 i = 0; i < scene.m_lightCount; ++i)
+	if (scene.m_lightCount != 0)
 	{
-		sceneFile->m_pLights[i] = scene.m_pLights[i];
+
+		sceneFile->m_pLights = vx::make_unique<Light[]>(scene.m_lightCount);
+		for (u32 i = 0; i < scene.m_lightCount; ++i)
+		{
+			sceneFile->m_pLights[i] = scene.m_pLights[i];
+		}
 	}
 
 	scene.m_navMesh.copy(&sceneFile->m_navMesh);
 
 	auto meshInstanceCount = scene.m_meshInstances.size();
-
 	sceneFile->m_meshInstanceCount = meshInstanceCount;
-	sceneFile->m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(meshInstanceCount);
-	for (u32 i = 0; i < meshInstanceCount; ++i)
+	if (meshInstanceCount != 0)
 	{
-		auto &it = scene.m_meshInstances[i];
-		auto &material = it.getMaterial();
-		auto materialSid = (*material).getSid();
+		sceneFile->m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(meshInstanceCount);
+		for (u32 i = 0; i < meshInstanceCount; ++i)
+		{
+			auto &it = scene.m_meshInstances[i];
+			auto &material = it.getMaterial();
+			auto materialSid = (*material).getSid();
 
-		auto instanceName = scene.getMeshInstanceName(it.getNameSid());
-		auto instanceMeshName = scene.getMeshName(it.getMeshSid());
-		auto instanceMaterialName = scene.getMaterialName(materialSid);
-		auto instanceAnimationName = scene.getAnimationName(it.getAnimationSid());
+			auto instanceName = scene.getMeshInstanceName(it.getNameSid());
+			auto instanceMeshName = scene.getMeshName(it.getMeshSid());
+			auto instanceMaterialName = scene.getMaterialName(materialSid);
+			auto instanceAnimationName = scene.getAnimationName(it.getAnimationSid());
 
-		char meshName[32] = {};
-		strncpy(meshName, instanceMeshName, 32);
+			char meshName[32] = {};
+			if (instanceMeshName)
+			{
+				strncpy(meshName, instanceMeshName, 32);
+			}
 
-		char materialName[32] = {};
-		strncpy(materialName, instanceMaterialName, 32);
+			char materialName[32] = {};
+			if (instanceMaterialName)
+			{
+				strncpy(materialName, instanceMaterialName, 32);
+			}
 
-		char name[32] = {};
-		strncpy(name, instanceName, 32);
+			char name[32] = {};
+			if (instanceName)
+			{
+				strncpy(name, instanceName, 32);
+			}
 
-		char animation[32] = {};
-		if (instanceAnimationName)
-			strncpy(name, instanceAnimationName, 32);
+			char animation[32] = {};
+			if (instanceAnimationName)
+			{
+				strncpy(name, instanceAnimationName, 32);
+			}
 
-		auto transform = it.getTransform();
-		sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, animation, transform);
+			auto transform = it.getTransform();
+			sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, animation, transform);
+		}
 	}
 
 	auto spawns = scene.getSpawns();
@@ -127,9 +148,12 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 	}
 
 	sceneFile->m_waypointCount = scene.m_waypointCount;
-	sceneFile->m_waypoints = vx::make_unique<Waypoint[]>(scene.m_waypointCount);
-	for (u32 i = 0; i < scene.m_waypointCount; ++i)
+	if (scene.m_waypointCount != 0)
 	{
-		sceneFile->m_waypoints[i] = scene.m_waypoints[i];
+		sceneFile->m_waypoints = vx::make_unique<Waypoint[]>(scene.m_waypointCount);
+		for (u32 i = 0; i < scene.m_waypointCount; ++i)
+		{
+			sceneFile->m_waypoints[i] = scene.m_waypoints[i];
+		}
 	}
 }
