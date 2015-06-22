@@ -48,14 +48,14 @@ namespace LevelEditor
     {
         public uint x, y, z;
 
-         public uint3(uint x, uint y, uint z) { this.x = x; this.y = y; this.z = z; }
+        public uint3(uint x, uint y, uint z) { this.x = x; this.y = y; this.z = z; }
 
-         public void zero()
-         {
-             this.x = 0;
-             this.y = 0;
-             this.z = 0;
-         }
+        public void zero()
+        {
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+        }
     }
 
     static class NativeMethods
@@ -228,6 +228,24 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void setSelectLightFalloff(float falloff);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern float getSelectLightLumen();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setSelectLightLumen(float lumen);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void addSpawn();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern bool selectSpawn(int mouseX, int mouseY, ref uint id);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void getSpawnPosition(uint id, ref Float3 position);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern uint getSpawnType(uint id);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern uint getMeshCount();

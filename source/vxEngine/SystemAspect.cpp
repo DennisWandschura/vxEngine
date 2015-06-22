@@ -58,7 +58,8 @@ void SystemAspect::update(const f32 dt)
 
 	auto newMouse = vx::RawInput::getMouse();
 
-	m_handleInput(newMouse, keyboard, dt);
+	if (m_handleInput)
+		m_handleInput(newMouse, keyboard, dt);
 	//m_entityAspect.handleMouse(newMouse, dt);
 //	g_renderAspect.handleMouse(m_mouseOffset);
 }

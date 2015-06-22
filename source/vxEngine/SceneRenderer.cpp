@@ -48,6 +48,8 @@ SOFTWARE.
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/Reference.h>
 
+//#include <DirectXMath.h>
+
 namespace SceneRendererCpp
 {
 	struct MaterialCmp
@@ -64,7 +66,10 @@ namespace SceneRendererCpp
 		auto f = light.m_falloff;
 
 		auto lightPos = vx::loadFloat3(light.m_position);
-		auto projectionMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, f, n);
+		auto projectionMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, n, f);
+
+	//	auto pp = DirectX::XMMatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, n, f);
+		//memcpy(&projectionMatrix, &pp, sizeof(vx::mat4));
 
 		vx::mat4 viewMatrices[6];
 		// X+

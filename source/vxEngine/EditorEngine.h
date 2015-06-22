@@ -175,6 +175,8 @@ public:
 	void setSelectLightPosition(const vx::float3 &position);
 	f32 getSelectLightFalloff() const;
 	void setSelectLightFalloff(f32 falloff);
+	f32 getSelectLightLumen() const;
+	void setSelectLightLumen(f32 lumen);
 
 	SelectedType getSelectedItemType() const;
 	Editor::Scene* getEditorScene() const;
@@ -185,6 +187,11 @@ public:
 	bool addWaypoint(s32 mouseX, s32 mouseY, vx::float3* position);
 	void addWaypoint(const vx::float3 &position);
 	void removeWaypoint(const vx::float3 &position);
+
+	void addSpawn();
+	bool selectSpawn(s32 mouseX, s32 mouseY, u32* id);
+	void getSpawnPosition(u32 id, vx::float3* position) const;
+	u32 getSpawnType(u32 id) const;
 
 	u32 getMeshCount() const;
 	const char* getMeshName(u32 i) const;

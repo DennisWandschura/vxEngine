@@ -25,6 +25,7 @@ SOFTWARE.
 
 namespace Graphics
 {
+	struct RendererSettings;
 	class Renderer;
 	class ShadowRenderer;
 }
@@ -36,14 +37,12 @@ namespace Editor
 
 struct EngineConfig;
 class GpuProfiler;
-struct RendererOptions;
 
 #include "RenderAspectDescription.h"
 #include <vxEngineLib/EventListener.h>
 #include <vxLib\gl\RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
 #include "SceneRenderer.h"
-#include "VoxelRenderer.h"
 #include "Font.h"
 #include "RenderUpdateTask.h"
 #include "gl/ObjectManager.h"
@@ -62,7 +61,7 @@ protected:
 	struct ColdData;
 
 	Graphics::Frame m_frame;
-	std::unique_ptr<Graphics::ShadowRenderer> m_shadowRenderer;
+	std::vector<std::unique_ptr<Graphics::Renderer>> m_renderer;
 	vx::uint2 m_resolution;
 	SceneRenderer m_sceneRenderer;
 	RenderCommand* m_pRenderPassFinalImage;
@@ -70,6 +69,7 @@ protected:
 	std::vector<RenderUpdateTask> m_tasks;
 	RenderUpdateCameraData m_updateCameraData;
 	DoubleBufferRaw m_doubleBuffer;
+	Graphics::ShadowRenderer* m_shadowRenderer;
 
 	vx::gl::Buffer m_cameraBuffer;
 	
@@ -94,7 +94,7 @@ protected:
 	virtual void createFrame();
 
 	bool createBuffers();
-	void createUniformBuffers();
+	void createUniformBuffers(f32 znear, f32 zfar);
 
 	void takeScreenshot();
 
@@ -103,7 +103,7 @@ protected:
 	void createTextures();
 	void createFrameBuffers();
 
-	bool initializeCommon(const vx::gl::ContextDescription &desc, const EngineConfig* settings);
+	bool initializeCommon(const vx::gl::ContextDescription &desc, const Graphics::RendererSettings &options);
 	bool initializeImpl(const std::string &dataDir, const EngineConfig* settings, vx::StackAllocator *pAllocator);
 
 	////////////// Event handling
@@ -118,8 +118,6 @@ protected:
 
 	void voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, const vx::gl::Buffer &paramBuffer);
 	void voxelDebug();
-
-	void createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer);
 
 	void createConeTracePixelList();
 	void coneTrace();
@@ -138,7 +136,7 @@ protected:
 	u16 getActorGpuIndex();
 
 	void createColdData();
-	void provideRenderData(const EngineConfig* settings);
+	void provideRenderData(const Graphics::RendererSettings* settings);
 
 	void createOpenCL();
 
@@ -146,7 +144,7 @@ public:
 	RenderAspect();
 	virtual ~RenderAspect();
 
-	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, const RendererOptions &options);
+	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings);
 	void shutdown(const HWND hwnd);
 
 	bool initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocator* allocator);

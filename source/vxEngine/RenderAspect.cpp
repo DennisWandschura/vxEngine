@@ -42,17 +42,36 @@ SOFTWARE.
 #include <vxEngineLib/EventManager.h>
 #include "Graphics/Renderer.h"
 #include "Graphics/ShadowRenderer.h"
+#include "Graphics/VoxelRenderer.h"
 #include "Graphics/Segment.h"
 #include <vxLib/Window.h>
 #include "CpuProfiler.h"
 #include "Graphics/CommandListFactory.h"
 #include <vxEngineLib/FileEvents.h>
-#include <UniformReflectionBuffer.h>
 #include "EngineConfig.h"
+#include <vxLib/File/FileHandle.h>
+#include "Graphics/RendererSettings.h"
 
 #include "opencl/device.h"
 #include "opencl/image.h"
 #include <random>
+
+struct PlaneSimd
+{
+	__m128 n_d;
+
+	static PlaneSimd create(__m128 a, __m128 b, __m128 c)
+	{
+		auto normal = vx::normalize3(vx::cross3(_mm_sub_ps(b,a), _mm_sub_ps(c, a)));
+		auto d = vx::dot3(normal, a);
+
+		PlaneSimd plane;
+		plane.n_d = normal;
+		plane.n_d.f[3] = d.f[0];
+
+		return plane;
+	}
+};
 
 RenderAspect* g_renderAspect{ nullptr };
 
@@ -66,7 +85,6 @@ namespace
 
 struct RenderAspect::ColdData
 {
-	VoxelRenderer m_voxelRenderer;
 	vx::gl::Texture m_gbufferDepthTexture;
 	// albedoSlice : rgb8
 	vx::gl::Texture m_gbufferAlbedoSlice;
@@ -88,7 +106,8 @@ struct RenderAspect::ColdData
 };
 
 RenderAspect::RenderAspect()
-	:m_shaderManager(),
+	: m_shadowRenderer(nullptr), 
+	m_shaderManager(),
 	m_renderContext(),
 	m_camera(),
 	m_pColdData()
@@ -140,50 +159,10 @@ bool RenderAspect::createBuffers()
 		m_objectManager.createBuffer("ShaderStoragePixelListCmdBuffer", desc);
 	}
 
-	{
-		const u32 particleCount = 20000;
-
-		vx::float3 center = { 0.0, 1.5, 1.5 };
-		vx::float3 radius = { 1.0, 1.5, 1.0 };
-
-		std::mt19937_64 gen;
-		std::uniform_real_distribution<f32> dist_x(center.x - radius.x, center.x + radius.x);
-		std::uniform_real_distribution<f32> dist_y(center.y - radius.y, center.y + radius.y);
-		std::uniform_real_distribution<f32> dist_z(center.z - radius.z, center.z + radius.z);
-
-		auto particles = std::make_unique<vx::float4[]>(particleCount);
-		for (u32 i = 0; i < particleCount; ++i)
-		{
-			particles[i].x = dist_x(gen);
-			particles[i].y = dist_y(gen);
-			particles[i].z = dist_z(gen);
-			particles[i].w = 0.5f;
-		}
-
-		vx::gl::BufferDescription desc;
-		desc.bufferType = vx::gl::BufferType::Array_Buffer;
-		desc.size = particleCount * sizeof(vx::float4);
-		desc.immutable = 1;
-		desc.flags = 0;
-		desc.pData = particles.get();
-
-		auto vboSid = m_objectManager.createBuffer("particleVbo", desc);
-		auto vbo = m_objectManager.getBuffer(vboSid);
-
-		auto sid = m_objectManager.createVertexArray("particleVao");
-		auto vao = m_objectManager.getVertexArray(sid);
-
-		vao->enableArrayAttrib(0);
-		vao->arrayAttribFormatF(0, 4, 0, 0);
-		vao->arrayAttribBinding(0, 0);
-
-		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(vx::float4));
-	}
-
 	return true;
 }
 
-void RenderAspect::createUniformBuffers()
+void RenderAspect::createUniformBuffers(f32 znear, f32 zfar)
 {
 	{
 		vx::gl::BufferDescription cameraDesc;
@@ -198,7 +177,7 @@ void RenderAspect::createUniformBuffers()
 		UniformCameraBufferStaticBlock cameraBlockStatic;
 		cameraBlockStatic.invProjectionMatrix = vx::MatrixInverse(m_renderContext.getProjectionMatrix());
 		cameraBlockStatic.projectionMatrix = m_renderContext.getProjectionMatrix();
-		cameraBlockStatic.orthoMatrix = m_renderContext.getOrthoMatrix();
+		cameraBlockStatic.orthoMatrix = vx::MatrixOrthographicRHDX(m_resolution.x, m_resolution.y, znear, zfar);
 
 		vx::gl::BufferDescription cameraDesc;
 		cameraDesc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -221,8 +200,7 @@ void RenderAspect::createUniformBuffers()
 	}
 
 	{
-		auto volumetrixTextuzre = m_objectManager.getTexture("volumetricFogTexture");
-		auto particleTexture = m_objectManager.getTexture("particleTexture");
+		auto volumeTexture = m_objectManager.getTexture("volumeTexture");
 
 		UniformTextureBufferBlock data;
 		data.u_albedoSlice = m_pColdData->m_gbufferAlbedoSlice.getTextureHandle();
@@ -234,8 +212,7 @@ void RenderAspect::createUniformBuffers()
 		data.u_aabbTexture = m_pColdData->m_aabbTexture.getTextureHandle();
 		data.u_ambientSlice = m_pColdData->m_ambientColorTexture.getTextureHandle();
 		data.u_ambientImage = m_pColdData->m_ambientColorTexture.getImageHandle(0, 0, 0);
-		data.u_volumetricTexture = volumetrixTextuzre->getTextureHandle();
-		data.u_particleTexture = particleTexture->getTextureHandle();
+		data.u_volumetricTexture = volumeTexture->getTextureHandle();
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -259,7 +236,7 @@ void RenderAspect::createUniformBuffers()
 		m_objectManager.createBuffer("RenderSettingsBufferBlock", desc);
 	}
 
-	const __m128 lookAt = { 0, 0, -1, 0 };
+	/*const __m128 lookAt = { 0, 0, -1, 0 };
 	const __m128 up = { 0, 1, 0, 0 };
 	__m128 qRotation = vx::quaternionRotationRollPitchYawFromVector(vx::float4a(vx::degToRad(90.f), 0, 0, 0));
 	auto viewDir = vx::quaternionRotation(lookAt, qRotation);
@@ -310,7 +287,7 @@ void RenderAspect::createUniformBuffers()
 			}
 
 			data->positionRadius = position;
-			data->positionRadius.f[3] = radius;
+			data->positionRadius.w = radius;
 			data->projectionMatrix = projectionMatrix;
 			for (u32 i = 0; i < 6; ++i)
 			{
@@ -333,7 +310,7 @@ void RenderAspect::createUniformBuffers()
 		desc.pData = &block;
 
 		m_objectManager.createBuffer("UniformReflectionBuffer", desc);
-	}
+	}*/
 }
 
 void RenderAspect::createTextures()
@@ -457,7 +434,7 @@ void RenderAspect::createTextures()
 		texture->makeTextureResident();
 	}
 
-	{
+	/*{
 		vx::gl::TextureDescription desc;
 		desc.type = vx::gl::TextureType::Texture_Cubemap;
 		desc.format = vx::gl::TextureFormat::RGB16F;
@@ -472,9 +449,9 @@ void RenderAspect::createTextures()
 
 		desc.format = vx::gl::TextureFormat::DEPTH16;
 		m_objectManager.createTexture("reflectionTextureDepth", desc);
-	}
+	}*/
 
-	{
+	/*{
 		vx::gl::TextureDescription desc;
 		desc.type = vx::gl::TextureType::Texture_2D;
 		desc.format = vx::gl::TextureFormat::RGB16F;
@@ -482,6 +459,18 @@ void RenderAspect::createTextures()
 		desc.miplevels = 1;
 
 		auto sid = m_objectManager.createTexture("particleTexture", desc);
+		auto tex = m_objectManager.getTexture(sid);
+		tex->makeTextureResident();
+	}*/
+
+	{
+		vx::gl::TextureDescription desc;
+		desc.type = vx::gl::TextureType::Texture_2D;
+		desc.format = vx::gl::TextureFormat::R16F;
+		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
+		desc.miplevels = 1;
+
+		auto sid = m_objectManager.createTexture("volumeTexture", desc);
 		auto tex = m_objectManager.getTexture(sid);
 		tex->makeTextureResident();
 	}
@@ -523,7 +512,7 @@ void RenderAspect::createFrameBuffers()
 		}
 	}
 
-	{
+	/*{
 		auto colorTexture = m_objectManager.getTexture("reflectionTexture");
 		auto depthTexture = m_objectManager.getTexture("reflectionTextureDepth");
 
@@ -534,11 +523,20 @@ void RenderAspect::createFrameBuffers()
 		fbo->attachTexture(vx::gl::Attachment::Depth, *depthTexture, 0);
 
 		glNamedFramebufferDrawBuffer(fbo->getId(), GL_COLOR_ATTACHMENT0);
-	}
+	}*/
 
-	{
+	/*{
 		auto colorTexture = m_objectManager.getTexture("particleTexture");
 		auto sid = m_objectManager.createFramebuffer("particleFbo");
+		auto fbo = m_objectManager.getFramebuffer(sid);
+
+		fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexture, 0);
+		fbo->attachTexture(vx::gl::Attachment::Depth, m_pColdData->m_gbufferDepthTexture, 0);
+	}*/
+
+	{
+		auto colorTexture = m_objectManager.getTexture("volumeTexture");
+		auto sid = m_objectManager.createFramebuffer("volumeFbo");
 		auto fbo = m_objectManager.getFramebuffer(sid);
 
 		fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexture, 0);
@@ -551,7 +549,7 @@ void RenderAspect::createColdData()
 	m_pColdData = vx::make_unique<ColdData>();
 }
 
-void RenderAspect::provideRenderData(const EngineConfig* settings)
+void RenderAspect::provideRenderData(const Graphics::RendererSettings* settings)
 {
 	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, settings);
 }
@@ -581,7 +579,7 @@ void RenderAspect::createOpenCL()
 	auto error = m_context.create(properties, 1, &device);
 }
 
-bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, const RendererOptions &options)
+bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings)
 {
 	vx::gl::OpenGLDescription glDescription;
 	glDescription.bDebugMode = desc.debug;
@@ -599,23 +597,33 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	contextDesc.hInstance = desc.window->getHinstance();
 	contextDesc.windowClass = desc.window->getClassName();
 
-	if (!initializeCommon(contextDesc, settings))
+	if (!initializeCommon(contextDesc, settings->m_rendererSettings))
 		return false;
 
-	m_shaderManager.addParameter("maxShadowLights", settings->m_maxShadowCastingLights);
+	glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
+	m_shaderManager.addParameter("maxShadowLights", settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
 
 	auto result = initializeImpl(dataDir, settings, desc.pAllocator);
 	if (!result)
 		return false;
 
-	if (options.m_shadows != 0)
+	if (settings->m_rendererSettings.m_shadowMode != 0)
 	{
-		// create shadow renderer
+		auto shadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
+		shadowRenderer->initialize(&settings->m_rendererSettings);
+
+		m_shadowRenderer = shadowRenderer.get();
+		m_renderer.push_back(std::move(shadowRenderer));
 	}
 
-	if (options.m_voxelGI != 0)
+	// create gbuffer
+
+	if (settings->m_rendererSettings.m_voxelGIMode != 0)
 	{
-		// create voxel gi renderer
+		auto voxelRenderer = vx::make_unique<Graphics::VoxelRenderer >();
+		voxelRenderer->initialize(&settings->m_rendererSettings);
+		m_renderer.push_back(std::move(voxelRenderer));
 	}
 
 	createOpenCL();
@@ -627,25 +635,25 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	return result;
 }
 
-bool RenderAspect::initializeCommon(const vx::gl::ContextDescription &contextDesc, const EngineConfig* settings)
+bool RenderAspect::initializeCommon(const vx::gl::ContextDescription &contextDesc, const Graphics::RendererSettings &options)
 {
 	createColdData();
 
 	if (!m_renderContext.initialize(contextDesc))
 		return false;
 
-	provideRenderData(settings);
+	provideRenderData(&options);
 
 	return true;
 }
 
-bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig* settings, vx::StackAllocator *pAllocator)
+bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig* engineConfig, vx::StackAllocator *pAllocator)
 {
-	m_resolution = settings->m_resolution;
+	m_resolution = engineConfig->m_resolution;
 
 	m_allocator = vx::StackAllocator(pAllocator->allocate(5 MBYTE, 64), 5 MBYTE);
 
-	if (settings->m_renderDebug)
+	if (engineConfig->m_renderDebug)
 	{
 		vx::gl::Debug::initialize();
 		vx::gl::Debug::setHighSeverityCallback(::debugCallback);
@@ -661,13 +669,27 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 
 	m_camera.setPosition(0, 2.5f, 15);
 
-	//m_shaderManager.addParameter("lightInvo", 6u);
-	//m_shaderManager.addParameter("maxLightCount", 5u);
-	if (!m_shaderManager.initialize(dataDir, &m_allocator, true))
+	if (!m_shaderManager.initialize(dataDir, &m_allocator, false))
 	{
 		puts("Error initializing Shadermanager");
 		return false;
 	}
+
+	m_shaderManager.loadPipeline(vx::FileHandle("draw_final_image.pipe"), "draw_final_image.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageAlbedo.pipe"), "drawFinalImageAlbedo.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageNormals.pipe"), "drawFinalImageNormals.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("drawMeshToGBuffer.pipe"), "drawMeshToGBuffer.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("voxelize.pipe"), "voxelize.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("voxelizeLight.pipe"), "voxelizeLight.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("coneTrace.pipe"), "coneTrace.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("resetLightCmdBuffer.pipe"), "resetLightCmdBuffer.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("createLightCmdBuffer.pipe"), "createLightCmdBuffer.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("shadow.pipe"), "shadow.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("blurpass.pipe"), "blurpass.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("blurpass2.pipe"), "blurpass2.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("text.pipe"), "text.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("screenquad.pipe"), "screenquad.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("volume.pipe"), "volume.pipe", &m_allocator);
 
 	const auto doubleBufferSizeInBytes = 5 KBYTE;
 	m_doubleBuffer = DoubleBufferRaw(&m_allocator, doubleBufferSizeInBytes);
@@ -675,18 +697,10 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 	createTextures();
 	createFrameBuffers();
 
-	createUniformBuffers();
+	createUniformBuffers(engineConfig->m_zNear, engineConfig->m_zFar);
 	createBuffers();
 
 	m_sceneRenderer.initialize(10, &m_objectManager, pAllocator);
-	m_pColdData->m_voxelRenderer.initialize(128, m_shaderManager, &m_objectManager);
-
-	{
-		auto pShadowRenderer = vx::make_unique<Graphics::ShadowRenderer>(settings->m_maxShadowCastingLights, settings->m_maxMeshInstances, vx::uint2(settings->m_shadowMapResolution));
-		pShadowRenderer->initialize();
-
-		m_shadowRenderer = std::move(pShadowRenderer);
-	}
 
 	{
 		auto file = (dataDir + "textures/verdana.png");
@@ -701,8 +715,10 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 
 	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
 	m_renderpassFinalImageFullShading.initialize(*emptyVao, *m_shaderManager.getPipeline("draw_final_image.pipe"), m_resolution);
-	m_renderpassFinalImageAlbedo.initialize(*emptyVao, *m_shaderManager.getPipeline("drawFinalImageAlbedo.pipe"), m_resolution);
-	m_renderpassFinalImageNormals.initialize(*emptyVao, *m_shaderManager.getPipeline("drawFinalImageNormals.pipe"), m_resolution);
+	auto pipeline = m_shaderManager.getPipeline("drawFinalImageAlbedo.pipe");
+	m_renderpassFinalImageAlbedo.initialize(*emptyVao, *pipeline, m_resolution);
+	pipeline = m_shaderManager.getPipeline("drawFinalImageNormals.pipe");
+	m_renderpassFinalImageNormals.initialize(*emptyVao, *pipeline, m_resolution);
 
 	m_pRenderPassFinalImage = &m_renderpassFinalImageFullShading;
 
@@ -711,6 +727,8 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 
 void RenderAspect::createFrame()
 {
+	m_frame.clear();
+
 	Graphics::CommandList cmdList;
 	cmdList.initialize();
 	m_shadowRenderer->getCommandList(&cmdList);
@@ -727,6 +745,11 @@ bool RenderAspect::initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocat
 
 void RenderAspect::shutdown(const HWND hwnd)
 {
+	for (auto &it : m_renderer)
+	{
+		it->shutdown();
+	}
+
 	m_tasks.clear();
 	m_sceneRenderer.shutdown();
 	m_objectManager.shutdown();
@@ -852,7 +875,8 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
 	buffer->subData(0, sizeof(u32), &count);
 
-	m_shadowRenderer->updateDrawCmds();
+	if (m_shadowRenderer)
+		m_shadowRenderer->updateDrawCmds();
 
 	*offset += sizeof(Scene*);
 }
@@ -936,13 +960,13 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 
 	CpuProfiler::pushMarker("shadow");
 	gpuProfiler->pushGpuMarker("shadow mapping");
-	glCullFace(GL_FRONT);
-	glDepthRange(1, 0);
+	//glCullFace(GL_FRONT);
+	//glDepthRange(1, 0);
 	m_frame.draw();
 	gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
-	glDepthRange(0, 1);
-	glCullFace(GL_BACK);
+	//glDepthRange(0, 1);
+	//glCullFace(GL_BACK);
 
 	CpuProfiler::pushMarker("gbuffer");
 	gpuProfiler->pushGpuMarker("gbuffer");
@@ -980,6 +1004,40 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
+	//__m128 angles = { 0, vx::degToRad(-90), 0, 0 };
+	//auto matrix = vx::MatrixRotationRollPitchYaw(angles);
+
+	CpuProfiler::pushMarker("volumetric light");
+	gpuProfiler->pushGpuMarker("volumetric light");
+	{
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Cull_Face);
+
+		glDepthMask(GL_FALSE);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE);
+
+		auto pPipeline = m_shaderManager.getPipeline("volume.pipe");
+		auto fbo = m_objectManager.getFramebuffer("volumeFbo");
+		auto vao = m_objectManager.getVertexArray("emptyVao");
+
+		vx::gl::StateManager::bindFrameBuffer(fbo->getId());
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		vx::gl::StateManager::bindVertexArray(vao->getId());
+		vx::gl::StateManager::bindPipeline(pPipeline->getId());
+
+		glDrawArrays(GL_POINTS, 0, 1);
+
+
+		glDepthMask(GL_TRUE);
+		vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
+		vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	}
+	gpuProfiler->popGpuMarker();
+	CpuProfiler::popMarker();
+
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	CpuProfiler::pushMarker("blur");
 	gpuProfiler->pushGpuMarker("blur");
@@ -1014,7 +1072,10 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 
 void RenderAspect::bindBuffers()
 {
-	m_shadowRenderer->bindBuffers();
+	for (auto &it : m_renderer)
+	{
+		it->bindBuffers();
+	}
 
 	auto pShadowTransformBuffer = m_objectManager.getBuffer("ShadowTransformBuffer");
 	auto pTextureBuffer = m_objectManager.getBuffer("TextureBuffer");
@@ -1023,41 +1084,36 @@ void RenderAspect::bindBuffers()
 	auto shaderStoragePixelListCmdBuffer = m_objectManager.getBuffer("ShaderStoragePixelListCmdBuffer");
 	auto shaderStorageConetracePixelListBuffer = m_objectManager.getBuffer("ShaderStorageConetracePixelListBuffer");
 	auto renderSettingsBufferBlock = m_objectManager.getBuffer("RenderSettingsBufferBlock");
-	auto pVoxelBuffer = m_objectManager.getBuffer("VoxelBuffer");
-	auto pVoxelTextureBuffer = m_objectManager.getBuffer("VoxelTextureBuffer");
+
 	auto transformBuffer = m_objectManager.getBuffer("transformBuffer");
 	auto materialBlockBuffer = m_objectManager.getBuffer("materialBlockBuffer");
 	auto lightDataBuffer = m_objectManager.getBuffer("lightDataBuffer");
-	auto lightCmdBuffer = m_objectManager.getBuffer("lightCmdBuffer");
 	auto meshCmdIndexBuffer = m_objectManager.getBuffer("meshCmdIndexBuffer");
-	auto uniformReflectionBuffer = m_objectManager.getBuffer("UniformReflectionBuffer");
+//	auto uniformReflectionBuffer = m_objectManager.getBuffer("UniformReflectionBuffer");
 
 	gl::BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
 	gl::BufferBindingManager::bindBaseUniform(1, lightDataBuffer->getId());
 	gl::BufferBindingManager::bindBaseUniform(2, pCameraBufferStatic->getId());
 	gl::BufferBindingManager::bindBaseUniform(3, pUniformTextureBuffer->getId());
 	gl::BufferBindingManager::bindBaseUniform(5, pShadowTransformBuffer->getId());
-	gl::BufferBindingManager::bindBaseUniform(6, pVoxelBuffer->getId());
-	gl::BufferBindingManager::bindBaseUniform(7, pVoxelTextureBuffer->getId());
+
 	gl::BufferBindingManager::bindBaseUniform(10, renderSettingsBufferBlock->getId());
-	gl::BufferBindingManager::bindBaseUniform(11, uniformReflectionBuffer->getId());
+	//gl::BufferBindingManager::bindBaseUniform(11, uniformReflectionBuffer->getId());
 
 	gl::BufferBindingManager::bindBaseShaderStorage(0, transformBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(1, materialBlockBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(3, shaderStorageConetracePixelListBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(4, shaderStoragePixelListCmdBuffer->getId());
-	gl::BufferBindingManager::bindBaseShaderStorage(5, lightCmdBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(6, meshCmdIndexBuffer->getId());
 }
 
 void RenderAspect::clearTextures()
 {
-	m_pColdData->m_voxelRenderer.clearTextures();
-
-	//m_pColdData->m_ambientColorTexture.clearImage(0, GL_RGBA, GL_UNSIGNED_SHORT, nullptr);
-
-	m_shadowRenderer->clearData();
+	for (auto &it : m_renderer)
+	{
+		it->clearData();
+	}
 }
 
 void RenderAspect::clearBuffers()
@@ -1070,27 +1126,6 @@ void RenderAspect::clearBuffers()
 	//shaderStoragePixelListCmdBuffer->subData(0,sizeof(u32), &count);
 }
 
-void RenderAspect::createGBuffer(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer)
-{
-	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");
-
-	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
-	vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-
-	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer);
-	vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, *meshParamBuffer);
-	vx::gl::StateManager::bindFrameBuffer(m_gbufferFB);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	auto pPipeline = m_shaderManager.getPipeline("create_gbuffer.pipe");
-	vx::gl::StateManager::bindPipeline(pPipeline->getId());
-
-	vx::gl::StateManager::bindVertexArray(vao);
-
-	glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
-}
-
 void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, const vx::gl::Buffer &paramBuffer)
 {
 	auto voxelFB = m_objectManager.getFramebuffer("voxelFB");
@@ -1098,7 +1133,7 @@ void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer
 	auto pipeline = m_shaderManager.getPipeline("voxelize.pipe");
 	auto voxelizeLightPipeline = m_shaderManager.getPipeline("voxelizeLight.pipe");
 
-	auto voxelSize = m_pColdData->m_voxelRenderer.getVoxelTextureSize();
+	auto voxelSize = 128;
 
 	auto lightCount = m_sceneRenderer.getLightCount();
 
@@ -1133,13 +1168,13 @@ void RenderAspect::voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer
 
 void RenderAspect::voxelDebug()
 {
-	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
-	m_pColdData->m_voxelRenderer.debug(*emptyVao, m_resolution);
+	//auto emptyVao = m_objectManager.getVertexArray("emptyVao");
+	//m_pColdData->m_voxelRenderer.debug(*emptyVao, m_resolution);
 }
 
 void RenderAspect::createConeTracePixelList()
 {
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	/*glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
 
@@ -1152,7 +1187,7 @@ void RenderAspect::createConeTracePixelList()
 	vx::gl::StateManager::bindPipeline(pPipeline->getId());
 	vx::gl::StateManager::bindVertexArray(emptyVao->getId());
 
-	glDrawArrays(GL_POINTS, 0, 1);
+	glDrawArrays(GL_POINTS, 0, 1);*/
 }
 
 void RenderAspect::coneTrace()

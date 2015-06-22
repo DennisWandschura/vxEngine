@@ -39,7 +39,8 @@ namespace Editor
 	}
 
 	Scene::Scene()
-		:m_meshInstances()
+		:m_meshInstances(),
+		m_spawnHumanId(0xffffffff)
 	{
 
 	}
@@ -52,6 +53,7 @@ namespace Editor
 		m_meshNames(std::move(params.m_meshNames)),
 		m_actorNames(std::move(params.m_actorNames))
 	{
+#if _VX_EDITOR
 		buildSelectableLights();
 
 		m_selectableSpawns.reserve(m_spawnCount);
@@ -63,12 +65,16 @@ namespace Editor
 			bounds.max = spawn.position + vx::float3(0.1f);
 			bounds.min = spawn.position - vx::float3(0.1f);
 
-			SelectableWrapper<Spawn> selected;
-			selected.m_bounds = bounds;
-			selected.m_ptr = &spawn;
+			std::pair<AABB, u32> selected;
+			selected.first = bounds;
+			selected.second = spawn.id;
 
 			m_selectableSpawns.push_back(selected);
+
+			if (spawn.type == PlayerType::Human)
+				m_spawnHumanId = spawn.id;
 		}
+#endif
 	}
 
 	Scene::~Scene()
@@ -405,21 +411,55 @@ namespace Editor
 		return m_meshInstances.size();
 	}
 
-	Spawn* Scene::getSpawn(const Ray &ray)
+	void Scene::addSpawn(Spawn &&newSpawn)
 	{
-		Spawn* result = nullptr;
+#if _VX_EDITOR
+		auto it = m_pSpawns.insert(newSpawn.id, std::move(newSpawn));
+
+		AABB bounds;
+		bounds.max = it->position + vx::float3(0.1f);
+		bounds.min = it->position - vx::float3(0.1f);
+
+		std::pair<AABB, u32> selected;
+		selected.first = bounds;
+		selected.second = it->id;
+
+		m_selectableSpawns.push_back(selected);
+#endif
+	}
+
+	u32 Scene::getSpawnId(const Ray &ray) const
+	{
+		u32 result = 0xffffffff;
 
 		f32 a, b;
 		for (auto &it : m_selectableSpawns)
 		{
-			if (it.m_bounds.intersects(ray, &a, &b))
+			if (it.first.intersects(ray, &a, &b))
 			{
-				result = it.m_ptr;
+				result = it.second;
 				break;
 			}
 		}
 
 		return result;
+	}
+
+	const Spawn* Scene::getSpawn(u32 id) const
+	{
+		const Spawn* result = nullptr;
+
+#if _VX_EDITOR
+		auto it = m_pSpawns.find(id);
+		if (it != m_pSpawns.end())
+			result = &*it;
+#endif
+		return result;
+	}
+
+	u32 Scene::getSpawnHumanId() const
+	{
+		return m_spawnHumanId;
 	}
 
 	Light* Scene::getLight(const Ray &ray)

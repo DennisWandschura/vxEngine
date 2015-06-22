@@ -97,6 +97,8 @@ namespace Editor
 	extern "C" DLL_EXPORT void setSelectLightPosition(const vx::float3 &position);
 	extern "C" DLL_EXPORT f32 getSelectLightFalloff();
 	extern "C" DLL_EXPORT void setSelectLightFalloff(f32 falloff);
+	extern "C" DLL_EXPORT f32 getSelectLightLumen();
+	extern "C" DLL_EXPORT void setSelectLightLumen(f32 lumen);
 
 	extern "C" DLL_EXPORT void showNavmesh(bool b);
 	extern "C" DLL_EXPORT void showInfluenceMap(bool b);
@@ -104,6 +106,11 @@ namespace Editor
 	extern "C" DLL_EXPORT bool addWaypoint(s32 x, s32 y, vx::float3* position);
 	extern "C" DLL_EXPORT void addWaypointPosition(const vx::float3 &position);
 	extern "C" DLL_EXPORT void removeWaypoint(const vx::float3 &position);
+
+	extern "C" DLL_EXPORT void addSpawn();
+	extern "C" DLL_EXPORT bool selectSpawn(s32 mouseX, s32 mouseY, u32* id);
+	extern "C" DLL_EXPORT void getSpawnPosition(u32 id, vx::float3* position);
+	extern "C" DLL_EXPORT u32 getSpawnType(u32 id);
 
 	extern "C" DLL_EXPORT u32 getMeshCount();
 	extern "C" DLL_EXPORT BSTR getMeshName(u32 i);

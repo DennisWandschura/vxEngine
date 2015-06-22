@@ -35,13 +35,16 @@ SOFTWARE.
 #include "../gl/BufferBindingManager.h"
 #include "Commands/ProgramUniformCommand.h"
 #include "CommandList.h"
+#include "Commands/CullFaceCommand.h"
+#include "Commands/DepthRangeCommand.h"
+#include "RendererSettings.h"
 
 namespace Graphics
 {
-	ShadowRenderer::ShadowRenderer(u32 maxShadowLights, u32 maxMeshInstances, const vx::uint2 &shadowMapResolution)
-		:m_maxShadowLights(maxShadowLights),
-		m_maxMeshInstanceCount(maxMeshInstances),
-		m_shadowMapResolution(shadowMapResolution)
+	ShadowRenderer::ShadowRenderer()
+		:m_maxShadowLights(0),
+		m_maxMeshInstanceCount(0),
+		m_shadowMapResolution()
 	{
 
 	}
@@ -53,15 +56,16 @@ namespace Graphics
 
 	void ShadowRenderer::createShadowTextureBuffer()
 	{
-		UniformShadowTextureBufferBlock data;
-		memset(&data, 0, sizeof(UniformShadowTextureBufferBlock));
+		auto data = vx::make_unique<u64[]>(m_maxShadowLights);
+		auto sizeInBytes = sizeof(u64) * m_maxShadowLights;
+		memset(&data, 0, sizeInBytes);
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
 		desc.flags = vx::gl::BufferStorageFlags::Write;
 		desc.immutable = 1;
 		desc.pData = &data;
-		desc.size = sizeof(UniformShadowTextureBufferBlock);
+		desc.size = sizeInBytes;
 
 		auto sid = s_objectManager->createBuffer("uniformShadowTextureBuffer", desc);
 		VX_ASSERT(sid.value != 0);
@@ -76,7 +80,7 @@ namespace Graphics
 		vx::gl::TextureDescription depthDesc;
 		depthDesc.format = vx::gl::TextureFormat::DEPTH32F;
 		depthDesc.type = vx::gl::TextureType::Texture_Cubemap;
-		depthDesc.size = vx::ushort3(m_shadowMapResolution.x, m_shadowMapResolution.y, 6);
+		depthDesc.size = vx::ushort3(m_shadowMapResolution, m_shadowMapResolution, 6);
 		depthDesc.miplevels = 1;
 		depthDesc.sparse = 0;
 
@@ -87,7 +91,7 @@ namespace Graphics
 
 		memcpy(depthNameBuffer, textureDepthName, textureDepthNameSize);
 
-		auto mappedBuffer = shadowTexBuffer->map<UniformShadowTextureBufferBlock>(vx::gl::Map::Write_Only);
+		auto mappedBuffer = shadowTexBuffer->map<u64>(vx::gl::Map::Write_Only);
 
 		for (u32 i = 0; i < m_maxShadowLights; ++i)
 		{
@@ -107,7 +111,7 @@ namespace Graphics
 
 			depthTexture->makeTextureResident();
 
-			mappedBuffer->u_shadowTextures[i] = depthTexture->getTextureHandle();
+			mappedBuffer[i] = depthTexture->getTextureHandle();
 		}
 	}
 
@@ -209,13 +213,23 @@ namespace Graphics
 		return segment;
 	}
 
-	void ShadowRenderer::initialize()
+	void ShadowRenderer::initialize(const void* p)
 	{
+		RendererSettings* settings = (RendererSettings*)p;
+		m_maxShadowLights = settings->m_shadowSettings.m_maxShadowCastingLights;
+		m_maxMeshInstanceCount = settings->m_maxMeshInstances;
+		m_shadowMapResolution = settings->m_shadowSettings.m_shadowMapResolution;
+
 		createShadowTextureBuffer();
 		createShadowTextures();
 		createFramebuffer();
 
 		createLightDrawCommandBuffers();
+	}
+
+	void ShadowRenderer::shutdown()
+	{
+
 	}
 
 	void ShadowRenderer::update()
@@ -288,17 +302,16 @@ namespace Graphics
 		Graphics::State state;
 		state.set(stateDesc);
 
-		Graphics::ViewportCommand viewportCmd;
-		viewportCmd.set(vx::uint2(0), m_shadowMapResolution);
-
-		//Graphics::PolygonOffsetCommand polyCmd;
-		//polyCmd.set(2.5f, 10.0f);
-
 		Graphics::Segment segmentCreateShadowmap;
 		segmentCreateShadowmap.setState(state);
 
+		Graphics::ViewportCommand viewportCmd;
+		viewportCmd.set(vx::uint2(0), vx::uint2(m_shadowMapResolution));
 		segmentCreateShadowmap.pushCommand(viewportCmd);
-		//segmentCreateShadowmap.pushCommand(polyCmd);
+
+		Graphics::CullFaceCommand cullFaceCommand;
+		cullFaceCommand.set(GL_FRONT);
+		segmentCreateShadowmap.pushCommand(cullFaceCommand);
 
 		Graphics::BarrierCommand barrierCmd;
 		barrierCmd.set(GL_COMMAND_BARRIER_BIT);
@@ -331,13 +344,12 @@ namespace Graphics
 			cmdOffset += cmdSizeInBytes;
 		}
 
-		//CommandList cmdList;
-		//cmdList.initialize();
+		cullFaceCommand.set(GL_BACK);
+		segmentCreateShadowmap.pushCommand(cullFaceCommand);
+
 		cmdList->pushSegment(segmentResetLightCmdBuffer, "segmentResetLightCmdBuffer");
 		cmdList->pushSegment(segmentCullMeshes, "segmentCullMeshes");
 		cmdList->pushSegment(segmentCreateShadowmap, "segmentCreateShadowmap");
-
-		//return std::move(cmdList);
 	}
 
 	void ShadowRenderer::clearData()
@@ -347,7 +359,11 @@ namespace Graphics
 	void ShadowRenderer::bindBuffers()
 	{
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
+		auto lightCmdBuffer = s_objectManager->getBuffer("lightCmdBuffer");
+
 		gl::BufferBindingManager::bindBaseUniform(9, shadowTexBuffer->getId());
+
+		gl::BufferBindingManager::bindBaseShaderStorage(5, lightCmdBuffer->getId());
 	}
 
 	const u32* ShadowRenderer::getTextureIds() const

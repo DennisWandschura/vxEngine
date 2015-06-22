@@ -283,8 +283,8 @@ void GpuProfiler::writeGpuMarkers(f32 textureSlice, const vx::uint2a &textureSiz
 		//cursorPos->x = fmaf(it.layer, 20.0f, cursorPos->x);
 
 		auto currentPos = *cursorPos;
-
 		currentPos.x += layerOffset;
+
 		writeBuffer(strSize, buffer, position_x_texSlice, textureSize, vInvTexSize, vColor, bufferIndex, &currentPos);
 
 		strSize = sprintf_s(buffer, "%.6f ms", entry.time * 1.0e-6);

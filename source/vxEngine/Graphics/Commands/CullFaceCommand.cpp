@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -22,64 +21,38 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include "CullFaceCommand.h"
+#include <vxLib/gl/gl.h>
+#include "../Segment.h"
+#include <vxEngineLib/ParserNode.h>
+#include "../CommandFactory.h"
 
-
-#include <UniformCameraBuffer.h>
-#include <UniformCameraBufferStatic.h>
-#include <UniformShadowTransformBuffer.h>
-
-struct VoxelData
+namespace Graphics
 {
-	vx::mat4 projectionMatrix;
-	u32 dim;
-	u32 halfDim;
-	float gridCellSize;
-	float invGridCellSize;
-};
+	void createFromNodeCullFaceCommand(const Parser::Node &node, Segment* segment, void*)
+	{
+		auto paramsNode = node.get("params");
 
-struct VoxelBlock
-{
-	VoxelData data[4];
-};
+		u32 params[1];
+		paramsNode->as(0, &params[0]);
 
-struct LightData
-{
-	vx::float3 position; 
-	float falloff; 
-	vx::float3 direction;
-	float lumen;
-};
+		CullFaceCommand command;
+		command.set(params[0]);
 
-struct UniformTextureBufferBlock
-{
-	u64 u_albedoSlice;
-	u64 u_normalSlice;
-	u64 u_surfaceSlice;
-	u64 u_tangentSlice;
-	u64 u_bitangentSlice;
-	u64 u_depthSlice;
-	u64 u_aabbTexture;
-	u64 u_ambientSlice;
-	u64 u_ambientImage;
-	u64 u_volumetricTexture;
-	u64 u_particleTexture;
-};
+		segment->pushCommand(command);
+	}
 
-struct LightDataBlock
-{
-	LightData u_lightData[5];
-	u32 size;
-};
+	REGISTER_COMMANDFACTORY(CullFaceCommand, createFromNodeCullFaceCommand);
 
-struct MaterialGPU
-{
-	u32 indexAlbedo;
-	u32 indexNormal;
-	u32 indexSurface;
-	u32 hasNormalMap;
-};
+	void CullFaceCommand::set(u32 cullFace)
+	{
+		m_cullFace = cullFace;
+	}
 
-struct RenderSettingsBlock
-{
-	vx::uint2 resolution;
-};
+	void CullFaceCommand::execute(u32* offset)
+	{
+		glCullFace(m_cullFace);
+
+		*offset += sizeof(CullFaceCommand);
+	}
+}

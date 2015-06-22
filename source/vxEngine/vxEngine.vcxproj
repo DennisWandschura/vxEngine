@@ -167,7 +167,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\game\data\shaders\include\common.h" />
+    <ClInclude Include="..\..\game\data\shaders\include\UniformFrustumBuffer.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformReflectionBuffer.h" />
+    <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTextureBuffer.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTransformBuffer.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformCameraBufferStatic.h" />
     <ClInclude Include="ActionActorCreatePath.h" />
@@ -191,6 +193,7 @@
     <ClInclude Include="EditorObjectColors.h" />
     <ClInclude Include="EngineConfig.h" />
     <ClInclude Include="EngineGlobals.h" />
+    <ClInclude Include="Frustum.h" />
     <ClInclude Include="gl\BufferBindingManager.h" />
     <ClInclude Include="gl\BufferManager.h" />
     <ClInclude Include="gl\ObjectManager.h" />
@@ -202,6 +205,8 @@
     <ClInclude Include="Graphics\Commands\ClearColorCommand.h" />
     <ClInclude Include="Graphics\Commands\ClearCommand.h" />
     <ClInclude Include="Graphics\Commands\Command.h" />
+    <ClInclude Include="Graphics\Commands\CullFaceCommand.h" />
+    <ClInclude Include="Graphics\Commands\DepthRangeCommand.h" />
     <ClInclude Include="Graphics\Commands\DrawArraysCommand.h" />
     <ClInclude Include="Graphics\Commands\DrawArraysIndirectCommand.h" />
     <ClInclude Include="Graphics\Commands\DrawElementsIndirectCommand.h" />
@@ -213,12 +218,15 @@
     <ClInclude Include="Graphics\Commands\ProgramUniformCommand.h" />
     <ClInclude Include="Graphics\Commands\ViewportCommand.h" />
     <ClInclude Include="Graphics\Frame.h" />
+    <ClInclude Include="Graphics\GBufferRenderer.h" />
     <ClInclude Include="Graphics\Renderer.h" />
+    <ClInclude Include="Graphics\RendererSettings.h" />
     <ClInclude Include="Graphics\Segment.h" />
     <ClInclude Include="Graphics\ShadowRenderer.h" />
     <ClInclude Include="Graphics\State.h" />
     <ClInclude Include="Graphics\StaticMeshRenderer.h" />
     <ClInclude Include="Graphics\Surface.h" />
+    <ClInclude Include="Graphics\VoxelRenderer.h" />
     <ClInclude Include="input\Keys.h" />
     <ClInclude Include="LookWhereYoureGoing.h" />
     <ClInclude Include="opencl\Context.h" />
@@ -254,7 +262,6 @@
     <ClInclude Include="ScreenshotFactory.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="SegmentFactory.h" />
-    <ClInclude Include="VoxelRenderer.h" />
     <ClInclude Include="SmallObjAllocator.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Component.h" />
@@ -380,6 +387,8 @@
     <ClCompile Include="Graphics\Commands\ClearCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Graphics\Commands\CullFaceCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\DepthRangeCommand.cpp" />
     <ClCompile Include="Graphics\Commands\DrawArraysCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -408,6 +417,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Graphics\Frame.cpp" />
+    <ClCompile Include="Graphics\GBufferRenderer.cpp" />
+    <ClCompile Include="Graphics\VoxelRenderer.cpp" />
     <ClCompile Include="LookWhereYoureGoing.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -515,9 +526,6 @@
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DLL Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="VoxelRenderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="SmallObjAllocator.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -674,6 +682,9 @@
     <None Include="..\..\game\data\shaders\programs\shadowParaboloid.geom" />
     <None Include="..\..\game\data\shaders\programs\text.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\text.vs.glsl" />
+    <None Include="..\..\game\data\shaders\programs\volume.frag" />
+    <None Include="..\..\game\data\shaders\programs\volume.geom" />
+    <None Include="..\..\game\data\shaders\programs\volume.vert" />
     <None Include="..\..\game\data\shaders\programs\voxelize.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\voxelize.gs.glsl" />
     <None Include="..\..\game\data\shaders\programs\voxelize.vs.glsl" />
@@ -689,6 +700,7 @@
     <None Include="..\..\game\data\shaders\shadow.pipe" />
     <None Include="..\..\game\data\shaders\shadowVsm.pipe" />
     <None Include="..\..\game\data\shaders\text.pipe" />
+    <None Include="..\..\game\data\shaders\volume.pipe" />
     <None Include="..\..\game\data\shaders\voxelize.pipe" />
     <None Include="..\..\game\data\shaders\voxelMipmap.pipe" />
     <None Include="..\..\game\data\shaders\voxel_debug.pipe" />

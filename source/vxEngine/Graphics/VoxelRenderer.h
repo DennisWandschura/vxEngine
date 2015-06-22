@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -27,52 +28,50 @@ namespace vx
 {
 	namespace gl
 	{
-		class ProgramPipeline;
-		class Buffer;
 		class VertexArray;
-		class ShaderManager;
 	}
 }
 
-namespace gl
+#include "Renderer.h"
+#include <memory>
+#include <vxLib/math/Vector.h>
+
+namespace Graphics
 {
-	class ObjectManager;
+	class Segment;
+
+	class VoxelRenderer : public Renderer
+	{
+		struct ColdData;
+
+		u32 m_voxelEmmitanceTexturesIDs[6];
+		u32 m_voxelOpacityTextureIDs[6];
+		u32 m_voxelTextureSize;
+		u32 m_voxelGridDim;
+		std::unique_ptr<ColdData> m_coldData;
+
+		void createVoxelTextures();
+		void createVoxelTextureBuffer();
+		void createVoxelBuffer();
+		void createFrameBuffer();
+
+		Segment createSegmentVoxelize();
+		Segment createSegmentConeTrace();
+
+	public:
+		VoxelRenderer();
+		~VoxelRenderer();
+
+		void initialize(const void*) override;
+		void shutdown() override;
+
+		void update() override;
+
+		void getCommandList(CommandList* cmdList) override;
+
+		void clearData() override;
+		void bindBuffers() override;
+
+		void debug(const vx::gl::VertexArray &vao, const vx::uint2 &resolution);
+	};
 }
-
-#include <vxLib/gl/Framebuffer.h>
-#include <vxLib/gl/Texture.h>
-#include <vxLib/gl/Buffer.h>
-#include <vxLib/memory.h>
-
-class VoxelRenderer
-{
-	struct ColdData;
-
-	u32 m_pipelineDebug{0};
-	u32 m_pipelineMipmap{ 0 };
-	u16 m_voxelTextureSize{0};
-	u8 m_mipcount{ 1 };
-	u32 m_voxelEmmitanceTexturesId[6];
-	u32 m_voxelOpacityTextureId[6];
-
-	std::unique_ptr<ColdData> m_pColdData;
-
-	void createVoxelBuffer(gl::ObjectManager* objectManager);
-	void createVoxelTextureBuffer(gl::ObjectManager* objectManager);
-	void createVoxelTextures();
-	void createFrameBuffer(gl::ObjectManager* objectManager);
-
-public:
-	VoxelRenderer();
-	~VoxelRenderer();
-
-	void initialize(u16 voxelTextureSize, const vx::gl::ShaderManager &shaderManager, gl::ObjectManager* objectManager);
-
-	void clearTextures();
-
-	void debug(const vx::gl::VertexArray &vao, vx::uint2 &resolution);
-
-	u32 getVoxelTextureSize() const { return m_voxelTextureSize; }
-
-	const u32* getVoxelTextureIDs() const { return m_voxelEmmitanceTexturesId; }
-};

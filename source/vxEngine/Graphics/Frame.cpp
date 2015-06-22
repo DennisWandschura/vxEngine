@@ -13,6 +13,11 @@ namespace Graphics
 
 	}
 
+	void Frame::clear()
+	{
+		m_commandLists.clear();
+	}
+
 	void Frame::pushCommandList(CommandList &&cmdList)
 	{
 		m_commandLists.push_back(std::move(cmdList));

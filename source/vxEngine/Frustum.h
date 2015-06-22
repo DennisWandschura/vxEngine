@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,63 +24,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <vxLib/math/matrix.h>
 
-#include <UniformCameraBuffer.h>
-#include <UniformCameraBufferStatic.h>
-#include <UniformShadowTransformBuffer.h>
-
-struct VoxelData
+struct Frustum
 {
-	vx::mat4 projectionMatrix;
-	u32 dim;
-	u32 halfDim;
-	float gridCellSize;
-	float invGridCellSize;
-};
+	enum FrustumPlanes{ Left, Right, Top, Bottom, Near, Far };
 
-struct VoxelBlock
-{
-	VoxelData data[4];
-};
+	__m128 planes[6];
 
-struct LightData
-{
-	vx::float3 position; 
-	float falloff; 
-	vx::float3 direction;
-	float lumen;
-};
+	Frustum() :planes(){}
 
-struct UniformTextureBufferBlock
-{
-	u64 u_albedoSlice;
-	u64 u_normalSlice;
-	u64 u_surfaceSlice;
-	u64 u_tangentSlice;
-	u64 u_bitangentSlice;
-	u64 u_depthSlice;
-	u64 u_aabbTexture;
-	u64 u_ambientSlice;
-	u64 u_ambientImage;
-	u64 u_volumetricTexture;
-	u64 u_particleTexture;
-};
+	void update(const vx::mat4 &pvMatrix)
+	{
+		auto matrix = vx::MatrixTranspose(pvMatrix);
 
-struct LightDataBlock
-{
-	LightData u_lightData[5];
-	u32 size;
-};
+		auto tmpPlane = _mm_add_ps(matrix.c[0], matrix.c[3]);
+		auto tmp = vx::length3(tmpPlane);
+		planes[FrustumPlanes::Left] = _mm_div_ps(tmpPlane, tmp);
 
-struct MaterialGPU
-{
-	u32 indexAlbedo;
-	u32 indexNormal;
-	u32 indexSurface;
-	u32 hasNormalMap;
-};
+		tmpPlane = _mm_sub_ps(matrix.c[3], matrix.c[0]);
+		tmp = vx::length3(tmpPlane);
+		planes[FrustumPlanes::Right] = _mm_div_ps(tmpPlane, tmp);
 
-struct RenderSettingsBlock
-{
-	vx::uint2 resolution;
+		tmpPlane = _mm_add_ps(matrix.c[1], matrix.c[3]);
+		tmp = vx::length3(tmpPlane);
+		planes[FrustumPlanes::Bottom] = _mm_div_ps(tmpPlane, tmp);
+
+		tmpPlane = _mm_sub_ps(matrix.c[3], matrix.c[1]);
+		tmp = vx::length3(tmpPlane);
+		planes[FrustumPlanes::Top] = _mm_div_ps(tmpPlane, tmp);
+
+		tmpPlane = _mm_add_ps(matrix.c[2], matrix.c[3]);
+		tmp = vx::length3(tmpPlane);
+		planes[FrustumPlanes::Near] = _mm_div_ps(tmpPlane, tmp);
+
+		tmpPlane = _mm_sub_ps(matrix.c[3], matrix.c[2]);
+		tmp = vx::length3(tmpPlane);
+		planes[FrustumPlanes::Far] = _mm_div_ps(tmpPlane, tmp);
+	}
 };

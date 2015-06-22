@@ -28,23 +28,54 @@ SOFTWARE.
 
 EngineConfig g_engineConfig{};
 
-RendererOptions g_rendererOptions{0, 0};
-
 bool EngineConfig::loadFromFile(const char* file)
 {
 	m_root.createFromFile(file);
 
 	m_root.get("resolution")->as(&m_resolution);
-	m_root.get("shadow_map_resolution")->as(&m_shadowMapResolution);
 	m_root.get("fov")->as(&m_fov);
 	m_root.get("z_near")->as(&m_zNear);
 	m_root.get("z_far")->as(&m_zFar);
-	m_root.get("maxActiveLights")->as(&m_maxActiveLights);
-	m_root.get("maxShadowCastingLights")->as(&m_maxShadowCastingLights);
-	m_root.get("maxMeshInstances")->as(&m_maxMeshInstances);
-	m_root.get("voxel_gi_mode")->as(&m_voxelGiMode);
+	m_root.get("voxel_gi_mode")->as(&m_rendererSettings.m_voxelGIMode);
 	m_root.get("vsync")->as(&m_vsync);
 	m_root.get("debug")->as(&m_renderDebug);
+
+	auto rendererSettings = m_root.get("renderer");
+	u32 shadowMode;
+	rendererSettings->get("shadowMode")->as(&shadowMode);
+
+	m_rendererSettings.m_shadowMode = shadowMode;
+
+	switch (shadowMode)
+	{
+	case 0:
+	{
+	}break;
+	case 1:
+	{
+		auto shadowSettings = rendererSettings->get("shadow_low");
+		shadowSettings->get("shadow_map_resolution")->as(&m_rendererSettings.m_shadowSettings.m_shadowMapResolution);
+		shadowSettings->get("maxShadowCastingLights")->as(&m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
+	}break;
+	case 2:
+	{
+		auto shadowSettings = rendererSettings->get("shadow_medium");
+		shadowSettings->get("shadow_map_resolution")->as(&m_rendererSettings.m_shadowSettings.m_shadowMapResolution);
+		shadowSettings->get("maxShadowCastingLights")->as(&m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
+	}break;
+	case 3:
+	{
+		auto shadowSettings = rendererSettings->get("shadow_high");
+		shadowSettings->get("shadow_map_resolution")->as(&m_rendererSettings.m_shadowSettings.m_shadowMapResolution);
+		shadowSettings->get("maxShadowCastingLights")->as(&m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
+	}break;
+	default:
+		break;
+	}
+
+	rendererSettings->get("maxMeshInstances")->as(&m_rendererSettings.m_maxMeshInstances);
+	rendererSettings->get("maxActiveLights")->as(&m_rendererSettings.m_maxActiveLights);
+
 
 	m_threads = std::thread::hardware_concurrency();
 

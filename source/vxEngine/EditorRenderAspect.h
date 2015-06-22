@@ -33,6 +33,7 @@ struct VertexPositionColor;
 class InfluenceMap;
 class NavMeshGraph;
 struct Waypoint;
+struct Spawn;
 
 #include "RenderAspect.h"
 #include <vxLib/Variant.h>
@@ -101,7 +102,7 @@ class EditorRenderAspect : public RenderAspect
 public:
 	EditorRenderAspect();
 
-	bool initialize(const std::string &dataDir, HWND panel, HWND tmp, vx::StackAllocator *pAllocator, const EngineConfig* settings, const RendererOptions &options);
+	bool initialize(const std::string &dataDir, HWND panel, HWND tmp, vx::StackAllocator *pAllocator, const EngineConfig* settings);
 
 	void update();
 	void render();
@@ -131,6 +132,8 @@ public:
 	void updateLightBuffer(const Light* lights, u32 count);
 
 	void updateWaypoints(const Waypoint* w, u32 count);
+
+	void updateSpawns(const Spawn* spawns, u32 count);
 
 	void showNavmesh(bool b);
 	void showInfluenceMap(bool b);

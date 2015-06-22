@@ -106,14 +106,15 @@ void SceneBase::reset()
 #if _VX_EDITOR
 	m_pLights.clear();
 	m_waypoints.clear();
+	m_pSpawns.clear();
 #else
 	m_pLights.reset();
 	m_waypoints.reset();
+	m_pSpawns.reset();
 #endif
 
 	m_materials.clear();
 	m_meshes.clear();
-	m_pSpawns.reset();
 	m_actors.clear();
 	m_navMesh.reset();
 	m_lightCount = 0;
@@ -135,11 +136,15 @@ void SceneBase::copy(SceneBase *dst) const
 	copySortedVector(&dst->m_meshes, m_meshes);
 	copySortedVector(&dst->m_actors, m_actors);
 
+#if _VX_EDITOR
+	dst->m_pSpawns = m_pSpawns;
+#else
 	dst->m_pSpawns = vx::make_unique<Spawn[]>(m_spawnCount);
 	for (u32 i = 0; i < m_spawnCount; ++i)
 	{
 		dst->m_pSpawns[i] = m_pSpawns[i];
 	}
+#endif
 
 #if _VX_EDITOR
 	dst->m_waypoints = m_waypoints;
@@ -192,7 +197,11 @@ u32 SceneBase::getVertexCount() const
 
 const Spawn* SceneBase::getSpawns() const
 {
+#if _VX_EDITOR
+	return m_pSpawns.data();
+#else
 	return m_pSpawns.get();
+#endif
 }
 
 u32 SceneBase::getSpawnCount() const

@@ -38,6 +38,7 @@ namespace Graphics
 		Frame();
 		~Frame();
 
+		void clear();
 		void pushCommandList(CommandList &&cmdList);
 
 		void draw() const;

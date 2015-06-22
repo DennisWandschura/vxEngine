@@ -48,6 +48,7 @@ SOFTWARE.
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/FileEvents.h>
 #include <vxEngineLib/Material.h>
+#include <vxLib/File/FileHandle.h>
 
 struct VertexPositionColor
 {
@@ -68,7 +69,7 @@ EditorRenderAspect::EditorRenderAspect()
 {
 }
 
-bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND tmp, vx::StackAllocator *pAllocator, const EngineConfig* engineConfig, const RendererOptions &options)
+bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND tmp, vx::StackAllocator *pAllocator, const EngineConfig* engineConfig)
 {
 	vx::gl::OpenGLDescription glDescription;
 	glDescription.bDebugMode = engineConfig->m_renderDebug;
@@ -85,15 +86,25 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	contextDesc.tmpHwnd = tmp;
 	contextDesc.glParams = glDescription;
 
-	if (!initializeCommon(contextDesc, engineConfig))
+	if (!initializeCommon(contextDesc, engineConfig->m_rendererSettings))
 		return false;
 
 	m_pEditorColdData = vx::make_unique<EditorColdData>();
 
+	m_shaderManager.setDefine("NOSHADOWS");
 	m_shaderManager.addParameter("maxShadowLights", 5);
 	auto result = initializeImpl(dataDir, engineConfig, pAllocator);
 	if (!result)
 		return false;
+
+	m_shaderManager.loadPipeline(vx::FileHandle("editorDrawSpawn.pipe"), "editorDrawSpawn.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("editorDrawPointColor.pipe"), "editorDrawPointColor.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("editorDrawPoint.pipe"), "editorDrawPoint.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("editorDrawInfluenceCell.pipe"), "editorDrawInfluenceCell.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("editorDrawLights.pipe"), "editorDrawLights.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("editorDrawMesh.pipe"), "editorDrawMesh.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("navmesh.pipe"), "navmesh.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("editorDrawNavmeshConnection.pipe"), "editorDrawNavmeshConnection.pipe", &m_allocator);
 
 	{
 		vx::gl::BufferDescription navmeshVertexVboDesc;
@@ -706,19 +717,7 @@ void EditorRenderAspect::handleLoadScene(const vx::Event &evt)
 
 	auto spawnCount = scene->getSpawnCount();
 	auto spawns = scene->getSpawns();
-	{
-		auto cmdBuffer = m_objectManager.getBuffer("spawnPointCmdBuffer");
-		auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
-		mappedCmdBuffer->count = spawnCount;
-		mappedCmdBuffer.unmap();
-
-		auto spawnPointVbo = m_objectManager.getBuffer("spawnPointVbo");
-		auto mappedVbo = spawnPointVbo->map<vx::float3>(vx::gl::Map::Write_Only);
-		for (u32 i = 0; i < spawnCount; ++i)
-		{
-			mappedVbo[i] = spawns[i].position;
-		}
-	}
+	updateSpawns(spawns, spawnCount);
 }
 
 void EditorRenderAspect::handleLoadMesh(const vx::Event &evt)
@@ -1025,6 +1024,21 @@ void EditorRenderAspect::updateWaypoints(const Waypoint* w, u32 count)
 	mappedVbo.unmap();
 
 	cmd->subData(0, sizeof(u32), &count);
+}
+
+void EditorRenderAspect::updateSpawns(const Spawn* spawns, u32 count)
+{
+	auto cmdBuffer = m_objectManager.getBuffer("spawnPointCmdBuffer");
+	auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+	mappedCmdBuffer->count = count;
+	mappedCmdBuffer.unmap();
+
+	auto spawnPointVbo = m_objectManager.getBuffer("spawnPointVbo");
+	auto mappedVbo = spawnPointVbo->map<vx::float3>(vx::gl::Map::Write_Only);
+	for (u32 i = 0; i < count; ++i)
+	{
+		mappedVbo[i] = spawns[i].position;
+	}
 }
 
 void EditorRenderAspect::showNavmesh(bool b)

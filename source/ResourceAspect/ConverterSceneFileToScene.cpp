@@ -153,6 +153,19 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 	if (!createSceneActors(createSceneActorsDesc))
 		return 0;
 
+#if _VX_EDITOR
+	vx::sorted_vector<u32, Spawn> spawns;
+	spawns.reserve(sceneFile.m_spawnCount);
+	for (auto i = 0u; i < sceneFile.m_spawnCount; ++i)
+	{
+		Spawn spawn;
+		spawn.type = sceneFile.m_pSpawns[i].type;
+		spawn.position = sceneFile.m_pSpawns[i].position;
+		spawn.sid = vx::make_sid(sceneFile.m_pSpawns[i].actor);
+
+		spawns.insert(std::move(spawn.id),std::move(spawn));
+	}
+#else
 	auto spawns = vx::make_unique<Spawn[]>(sceneFile.m_spawnCount);
 	for (auto i = 0u; i < sceneFile.m_spawnCount; ++i)
 	{
@@ -160,6 +173,7 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 		spawns[i].position = sceneFile.m_pSpawns[i].position;
 		spawns[i].sid = vx::make_sid(sceneFile.m_pSpawns[i].actor);
 	}
+#endif
 
 	u32 vertexCount = 0;
 	auto indexCount = 0u;

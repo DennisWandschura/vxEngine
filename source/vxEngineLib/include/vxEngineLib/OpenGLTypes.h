@@ -9,7 +9,8 @@ typedef vx::mat4 mat4;
 typedef vx::uint2a uvec2;
 
 typedef vx::float2a vec2;
-typedef __m128 vec4;
+typedef vx::float3 vec3;
+typedef vx::float4a vec4;
 
 typedef u64 sampler2D;
 typedef u64 sampler2DArray;

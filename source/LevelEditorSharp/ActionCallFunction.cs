@@ -35,14 +35,10 @@ namespace LevelEditor
         public delegate void ActionCallFunctionProc();
 
         ActionCallFunctionProc m_fun;
-        ActionCallFunctionProc m_undoFun;
-        bool m_clone;
 
-        public ActionCallFunction(ActionCallFunctionProc fn, ActionCallFunctionProc undoFun, bool clone)
+        public ActionCallFunction(ActionCallFunctionProc fn)
         {
             m_fun = fn;
-            m_undoFun = undoFun;
-            m_clone = clone;
         }
 
         public override void run()
@@ -52,12 +48,10 @@ namespace LevelEditor
 
         public override void undo()
         {
-            m_undoFun();
         }
 
         public override void redo()
         {
-            m_fun();
         }
 
         public override bool isComplete()
@@ -67,65 +61,12 @@ namespace LevelEditor
 
         public override Action clone()
         {
-            if (!m_clone)
-                return null;
-
-            return new ActionCallFunction(m_fun, m_undoFun, m_clone);
+            return null;
         }
 
         public override string ToString()
         {
             return "ActionCallFunction";
-        }
-
-        public override ActionNode toNode()
-        {
-            ActionNode root = new ActionNode(this.ToString());
-            return root;
-        }
-    }
-
-    class ActionCallFunctionReturnBool : Action
-    {
-        public delegate bool ActionCallFunctionProc();
-
-        ActionCallFunctionProc m_fun;
-        ActionCallFunctionProc m_undoFun;
-
-        public ActionCallFunctionReturnBool(ActionCallFunctionProc fn, ActionCallFunctionProc undoFn)
-        {
-            m_fun = fn;
-            m_undoFun = undoFn;
-        }
-
-        public override void run()
-        {
-            m_fun();
-        }
-
-        public override void undo()
-        {
-            m_undoFun();
-        }
-
-        public override void redo()
-        {
-            m_fun();
-        }
-
-        public override bool isComplete()
-        {
-            return true;
-        }
-
-        public override Action clone()
-        {
-            return new ActionCallFunctionReturnBool(m_fun, m_undoFun);
-        }
-
-        public override string ToString()
-        {
-            return "ActionCallFunctionReturnBool";
         }
 
         public override ActionNode toNode()

@@ -36,6 +36,9 @@ SOFTWARE.
 #include <vxEngineLib/FileEvents.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
+#include "Graphics/RendererSettings.h"
+#include <vxEngineLib/Spawn.h>
+#include <vxEngineLib/Actor.h>
 
 #include <Dbghelp.h>
 
@@ -120,9 +123,11 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	g_engineConfig.m_vsync = false;
 	g_engineConfig.m_zNear = 0.1f;
 
-	g_rendererOptions.m_shadows = 0;
-	g_rendererOptions.m_voxelGI = 0;
-	if (!m_renderAspect.initialize(dataDir, panel, tmp, &m_allocator, &g_engineConfig, g_rendererOptions))
+	g_engineConfig.m_rendererSettings.m_shadowMode = 0;
+	g_engineConfig.m_rendererSettings.m_voxelGIMode = 0;
+	g_engineConfig.m_rendererSettings.m_maxMeshInstances = 150;
+
+	if (!m_renderAspect.initialize(dataDir, panel, tmp, &m_allocator, &g_engineConfig))
 	{
 		puts("Error initializing Renderer");
 		return false;
@@ -223,8 +228,15 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		break;
 	case vx::FileEvent::Material_Loaded:
 	{
-		//auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
-		//delete(pStr);
+		auto sid = vx::StringID(evt.arg1.u64);
+		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
+		if (call_editorCallback(sid))
+		{
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded material %s", pStr->c_str());
+			auto material = m_fileAspect.getMaterial(sid);
+			m_pEditorScene->addMaterial(sid, pStr->c_str(), material);
+		}
+		delete(pStr);
 	}break;
 	case vx::FileEvent::Scene_Loaded:
 	{
@@ -284,9 +296,8 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	}
 	else if (type == g_editorTypeMaterial)
 	{
-		//fileEntry = FileEntry(filename, FileType::Material);
-		//p = new std::string(filename);
-		assert(false);
+		fileEntry = vx::FileEntry(filename, vx::FileType::Material);
+		p = new std::string(filename);
 	}
 	else if (type == g_editorTypeScene)
 	{
@@ -1028,6 +1039,39 @@ float EditorEngine::getSelectLightFalloff() const
 	return falloff;
 }
 
+f32 EditorEngine::getSelectLightLumen() const
+{
+	f32 value = 0.0f;
+
+	if (m_pEditorScene &&
+		m_selected.m_type == SelectedType::Light &&
+		m_selected.m_item)
+	{
+		Light* ptr = (Light*)m_selected.m_item;
+		value = ptr->m_lumen;
+	}
+
+	return value;
+}
+
+void EditorEngine::setSelectLightLumen(f32 lumen)
+{
+	if (m_pEditorScene &&
+		m_selected.m_type == SelectedType::Light &&
+		m_selected.m_item)
+	{
+		Light* ptr = (Light*)m_selected.m_item;
+		ptr->m_lumen = lumen;
+
+		m_pEditorScene->updateLightPositions();
+
+		auto lightCount = m_pEditorScene->getLightCount();
+		auto lights = m_pEditorScene->getLights();
+
+		m_renderAspect.updateLightBuffer(lights, lightCount);
+	}
+}
+
 void EditorEngine::setSelectLightFalloff(f32 falloff)
 {
 	if (m_pEditorScene &&
@@ -1098,6 +1142,63 @@ void EditorEngine::removeWaypoint(const vx::float3 &position)
 {
 	m_pEditorScene->removeWaypoint(position);
 	m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
+}
+
+void EditorEngine::addSpawn()
+{
+	if (m_pEditorScene)
+	{
+		Spawn spawn;
+		spawn.type = PlayerType::AI;
+		spawn.position = {0, 0, 0};
+
+		m_pEditorScene->addSpawn(std::move(spawn));
+
+		auto count = m_pEditorScene->getSpawnCount();
+		auto spawns = m_pEditorScene->getSpawns();
+
+		m_renderAspect.updateSpawns(spawns, count);
+	}
+}
+
+bool EditorEngine::selectSpawn(s32 mouseX, s32 mouseY, u32* id)
+{
+	bool result = false;
+
+	if (m_pEditorScene)
+	{
+		auto ray = getRay(mouseX, mouseY);
+		auto spawnId = m_pEditorScene->getSpawnId(ray);
+		if (spawnId != 0xffffffff)
+		{
+			result = true;
+			*id = spawnId;
+		}
+	}
+
+	return result;
+}
+
+void EditorEngine::getSpawnPosition(u32 id, vx::float3* position) const
+{
+	auto spawn = m_pEditorScene->getSpawn(id);
+	if (spawn)
+	{
+		*position = spawn->position;
+	}
+}
+
+u32 EditorEngine::getSpawnType(u32 id) const
+{
+	u32 result = 0xffffffff;
+
+	auto spawn = m_pEditorScene->getSpawn(id);
+	if (spawn)
+	{
+		result = (u32)spawn->type;
+	}
+
+	return result;
 }
 
 u32 EditorEngine::getMeshCount() const

@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,63 +24,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <vxLib/math/Vector.h>
 
-#include <UniformCameraBuffer.h>
-#include <UniformCameraBufferStatic.h>
-#include <UniformShadowTransformBuffer.h>
-
-struct VoxelData
+namespace Graphics
 {
-	vx::mat4 projectionMatrix;
-	u32 dim;
-	u32 halfDim;
-	float gridCellSize;
-	float invGridCellSize;
-};
+	struct ShadowRendererSettings
+	{
+		u32 m_maxShadowCastingLights;
+		u32 m_shadowMapResolution;
+	};
 
-struct VoxelBlock
-{
-	VoxelData data[4];
-};
+	struct VoxelRendererSettings
+	{
+		u32 m_voxelTextureSize;
+		u32 m_voxelGridDim;
+	};
 
-struct LightData
-{
-	vx::float3 position; 
-	float falloff; 
-	vx::float3 direction;
-	float lumen;
-};
+	struct RendererSettings
+	{
+		u8 m_shadowMode;
+		u8 m_voxelGIMode;
+		u32 m_maxActiveLights;
+		ShadowRendererSettings m_shadowSettings;
+		VoxelRendererSettings m_voxelSettings;
 
-struct UniformTextureBufferBlock
-{
-	u64 u_albedoSlice;
-	u64 u_normalSlice;
-	u64 u_surfaceSlice;
-	u64 u_tangentSlice;
-	u64 u_bitangentSlice;
-	u64 u_depthSlice;
-	u64 u_aabbTexture;
-	u64 u_ambientSlice;
-	u64 u_ambientImage;
-	u64 u_volumetricTexture;
-	u64 u_particleTexture;
-};
-
-struct LightDataBlock
-{
-	LightData u_lightData[5];
-	u32 size;
-};
-
-struct MaterialGPU
-{
-	u32 indexAlbedo;
-	u32 indexNormal;
-	u32 indexSurface;
-	u32 hasNormalMap;
-};
-
-struct RenderSettingsBlock
-{
-	vx::uint2 resolution;
-};
+		u32 m_maxMeshInstances;
+	};
+}

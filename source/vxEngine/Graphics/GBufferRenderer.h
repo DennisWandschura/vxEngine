@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,63 +24,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include "Renderer.h"
 
-#include <UniformCameraBuffer.h>
-#include <UniformCameraBufferStatic.h>
-#include <UniformShadowTransformBuffer.h>
-
-struct VoxelData
+namespace Graphics
 {
-	vx::mat4 projectionMatrix;
-	u32 dim;
-	u32 halfDim;
-	float gridCellSize;
-	float invGridCellSize;
-};
+	class GBufferRenderer : public Renderer
+	{
+	public:
+		GBufferRenderer();
+		~GBufferRenderer();
 
-struct VoxelBlock
-{
-	VoxelData data[4];
-};
+		void initialize(const void* p) override;
+		void shutdown() override;
 
-struct LightData
-{
-	vx::float3 position; 
-	float falloff; 
-	vx::float3 direction;
-	float lumen;
-};
+		void update() override;
 
-struct UniformTextureBufferBlock
-{
-	u64 u_albedoSlice;
-	u64 u_normalSlice;
-	u64 u_surfaceSlice;
-	u64 u_tangentSlice;
-	u64 u_bitangentSlice;
-	u64 u_depthSlice;
-	u64 u_aabbTexture;
-	u64 u_ambientSlice;
-	u64 u_ambientImage;
-	u64 u_volumetricTexture;
-	u64 u_particleTexture;
-};
+		void getCommandList(CommandList* cmdList) override;
 
-struct LightDataBlock
-{
-	LightData u_lightData[5];
-	u32 size;
-};
-
-struct MaterialGPU
-{
-	u32 indexAlbedo;
-	u32 indexNormal;
-	u32 indexSurface;
-	u32 hasNormalMap;
-};
-
-struct RenderSettingsBlock
-{
-	vx::uint2 resolution;
-};
+		void clearData() override;
+		void bindBuffers() override;
+	};
+}

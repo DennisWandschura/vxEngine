@@ -31,6 +31,7 @@ SOFTWARE.
 #include "EngineGlobals.h"
 #include "CpuProfiler.h"
 #include <vxEngineLib/EventTypes.h>
+#include "Graphics/RendererSettings.h"
 
 Engine* g_pEngine{ nullptr };
 
@@ -39,11 +40,6 @@ namespace
 	void callbackKeyPressed(u16 key)
 	{
 		g_pEngine->keyPressed(key);
-	}
-
-	void handleInput(const vx::Mouse &m, const vx::Keyboard &k, f32 dt)
-	{
-		//g_pEngine->handleInput(m, k, dt);
 	}
 }
 
@@ -276,14 +272,15 @@ bool Engine::initialize()
 	if (!initializeImpl(dataDir))
 		return false;
 
-	if (!m_systemAspect.initialize(g_engineConfig, ::callbackKeyPressed, ::handleInput))
+	if (!m_systemAspect.initialize(g_engineConfig, ::callbackKeyPressed, nullptr))
 		return false;
 
 	RenderAspectDescription renderAspectDesc = g_engineConfig.getRenderAspectDescription(&m_systemAspect.getWindow(), &m_allocator);
 
-	g_rendererOptions.m_shadows = 1;
-	g_rendererOptions.m_voxelGI = 1;
-	if (!m_renderAspect.initialize(dataDir, renderAspectDesc, &g_engineConfig, g_rendererOptions))
+	g_engineConfig.m_rendererSettings.m_voxelSettings.m_voxelGridDim = 24;
+	g_engineConfig.m_rendererSettings.m_voxelSettings.m_voxelTextureSize = 128;
+
+	if (!m_renderAspect.initialize(dataDir, renderAspectDesc, &g_engineConfig))
 		return false;
 
 	m_renderAspect.makeCurrent(false);

@@ -147,6 +147,9 @@ namespace LevelEditor
 
             groupBoxLight.Hide();
             groupBoxLight.Location = p;
+
+            groupBoxSpawn.Hide();
+            groupBoxSpawn.Location = p;
         }
 
         ~Form1()
@@ -226,8 +229,8 @@ namespace LevelEditor
 
         private State createStateEditLights()
         {
-            ActionCallFunction actionDeselectLight = new ActionCallFunction(deselectLight, selectLight, true);
-            ActionCallFunction actionSelectLight = new ActionCallFunction(selectLight, deselectLight, true);
+            ActionCallFunction actionDeselectLight = new ActionCallFunction(deselectLight);
+            ActionCallFunction actionSelectLight = new ActionCallFunction(selectLight);
             State stateEditLights = new State();
 
             TargetState stateSelectLight = new TargetState(stateEditLights, "stateSelectLight");
@@ -240,8 +243,8 @@ namespace LevelEditor
             DecisionEditorMouseButtonPressed decisionMouseLeftButton = new DecisionEditorMouseButtonPressed(stateSelectLight, decisionMouseRightButton, this, MouseButtons.Left);
             ActionDecisionTree actionOnMouseClick = new ActionDecisionTree(decisionMouseLeftButton);
 
-            ActionCallFunction actionShowGui = new ActionCallFunction(showLightGui, hideLightGui, false);
-            ActionCallFunction actionHideGui = new ActionCallFunction(hideLightGui, showLightGui, false);
+            ActionCallFunction actionShowGui = new ActionCallFunction(showLightGui);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideLightGui);
 
             stateEditLights.addEntryAction(actionShowGui);
             stateEditLights.addAction(actionOnMouseClick);
@@ -255,8 +258,8 @@ namespace LevelEditor
         {
             ActionDeselectMesh actionDeselectMesh = new ActionDeselectMesh(this);
 
-            ActionCallFunction actionShowGui = new ActionCallFunction(showMeshGui, hideMeshGui, false);
-            ActionCallFunction actionHideGui = new ActionCallFunction(hideMeshGui, showMeshGui, false);
+            ActionCallFunction actionShowGui = new ActionCallFunction(showMeshGui);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideMeshGui);
 
             State stateEditMesh = new State();
 
@@ -289,6 +292,33 @@ namespace LevelEditor
             return stateEditWaypoints;
         }
 
+        State createStateEditSpawns()
+        {
+            State state = new State();
+
+            ActionCallFunction actionShowGui = new ActionCallFunction(showSpawnGui);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideSpawnGui);
+
+            ActionCallFunction actionSelectSpawn = new ActionCallFunction(selectSpawn);
+            ActionCallFunction actionDeselectSpawn = new ActionCallFunction(deselectSpawn);
+
+            TargetState stateSelectSpawn = new TargetState(state, "stateSelectSpawn");
+            stateSelectSpawn.addAction(actionSelectSpawn);
+
+            TargetState stateDeselectSpawn = new TargetState(state, "stateDeselectSpawn");
+            stateDeselectSpawn.addAction(actionDeselectSpawn);
+
+            DecisionEditorMouseButtonPressed decisionMouseRightButton = new DecisionEditorMouseButtonPressed(stateDeselectSpawn, null, this, MouseButtons.Right);
+            DecisionEditorMouseButtonPressed decisionMouseLeftButton = new DecisionEditorMouseButtonPressed(stateSelectSpawn, decisionMouseRightButton, this, MouseButtons.Left);
+            ActionDecisionTree actionOnMouseClick = new ActionDecisionTree(decisionMouseLeftButton);
+
+            state.addEntryAction(actionShowGui);
+            state.addExitAction(actionHideGui);
+            state.addAction(actionOnMouseClick);
+
+            return state;
+        }
+
         void createStateMachine()
         {
             m_selectItemStateMachine = new StateMachine();
@@ -297,38 +327,51 @@ namespace LevelEditor
             ConditionEditorState conditionEditorStateEditLights = new ConditionEditorState(this, EditorState.EditLights);
             ConditionEditorState conditionEditorStateEditNavMesh = new ConditionEditorState(this, EditorState.EditNavMesh);
             ConditionEditorState conditionEditorStateEditWaypoints = new ConditionEditorState(this, EditorState.EditWaypoints);
+            ConditionEditorState conditionEditorStateEditSpawns = new ConditionEditorState(this, EditorState.EditSpawns);
 
             var stateEditNavMesh = createStateEditNavMesh();
             var stateEditMesh = createStateEditMesh();
             var stateEditLights = createStateEditLights();
             var stateEditWaypoints = createStateEditWaypoints();
+            var stateEditSpawns = createStateEditSpawns();
 
             Transition transitionEditMesh = new Transition(conditionEditorStateEditMesh, stateEditMesh, "transitionEditMesh");
             Transition transitionEditNavMesh = new Transition(conditionEditorStateEditNavMesh, stateEditNavMesh, "transitionEditNavMesh");
             Transition transitionEditLights = new Transition(conditionEditorStateEditLights, stateEditLights, "transitionEditLights");
             Transition transitionEditWaypoints = new Transition(conditionEditorStateEditWaypoints, stateEditWaypoints, "transitionEditWaypoints");
+            Transition transitionEditSpawns = new Transition(conditionEditorStateEditSpawns, stateEditSpawns, "transitionEditSpawns");
 
             stateEditNavMesh.addTransition(transitionEditMesh);
             stateEditNavMesh.addTransition(transitionEditLights);
             stateEditNavMesh.addTransition(transitionEditWaypoints);
+            stateEditNavMesh.addTransition(transitionEditSpawns);
 
             stateEditMesh.addTransition(transitionEditNavMesh);
             stateEditMesh.addTransition(transitionEditLights);
             stateEditMesh.addTransition(transitionEditWaypoints);
+            stateEditMesh.addTransition(transitionEditSpawns);
 
             stateEditLights.addTransition(transitionEditNavMesh);
             stateEditLights.addTransition(transitionEditMesh);
             stateEditLights.addTransition(transitionEditWaypoints);
+            stateEditLights.addTransition(transitionEditSpawns);
 
             stateEditWaypoints.addTransition(transitionEditMesh);
             stateEditWaypoints.addTransition(transitionEditNavMesh);
             stateEditWaypoints.addTransition(transitionEditLights);
+            stateEditWaypoints.addTransition(transitionEditSpawns);
+
+            stateEditSpawns.addTransition(transitionEditMesh);
+            stateEditSpawns.addTransition(transitionEditNavMesh);
+            stateEditSpawns.addTransition(transitionEditLights);
+            stateEditSpawns.addTransition(transitionEditWaypoints);
 
             State emptyState = new State();
             emptyState.addTransition(transitionEditMesh);
             emptyState.addTransition(transitionEditNavMesh);
             emptyState.addTransition(transitionEditLights);
             emptyState.addTransition(transitionEditWaypoints);
+            emptyState.addTransition(transitionEditSpawns);
 
             m_selectItemStateMachine.setCurrentState(emptyState);
         }
@@ -343,15 +386,27 @@ namespace LevelEditor
             toolStripButtonCreateLight.Visible = false;
         }
 
-        void getSelectedLightPosition()
+        void showSpawnGui()
+        {
+            toolStripButtonCreateSpawn.Visible = true;
+        }
+
+        void hideSpawnGui()
+        {
+            toolStripButtonCreateSpawn.Visible = false;
+        }
+
+        void getLightData()
         {
             Float3 position;
             position.x = position.y = position.z = 0;
             NativeMethods.getSelectLightPosition(ref position);
             var falloff = NativeMethods.getSelectLightFalloff();
+            var lumen = NativeMethods.getSelectLightLumen();
 
             setNumericUpDownLightPosition(position);
             numericUpDownLightFalloff.Value = (decimal)falloff;
+            numericUpDownLightLumen.Value = (decimal)lumen;
 
             groupBoxLight.Show();
         }
@@ -360,7 +415,7 @@ namespace LevelEditor
         {
             if (NativeMethods.selectLight(m_mouseX, m_mouseY))
             {
-                getSelectedLightPosition();
+                getLightData();
             }
         }
 
@@ -368,6 +423,31 @@ namespace LevelEditor
         {
             NativeMethods.deselectLight();
             groupBoxLight.Hide();
+        }
+
+        void selectSpawn()
+        {
+            uint id = 0;
+            if (NativeMethods.selectSpawn(m_mouseX, m_mouseY, ref id))
+            {
+                Float3 position;
+                position.x = position.y = position.z = 0;
+                NativeMethods.getSpawnPosition(id, ref position);
+                var spawnType = NativeMethods.getSpawnType(id);
+
+                numericUpDownSpawnPosX.Value = (decimal)position.x;
+                numericUpDownSpawnPosY.Value = (decimal)position.y;
+                numericUpDownSpawnPosZ.Value = (decimal)position.z;
+
+                numericUpDownSpawnType.Value = (decimal)spawnType;
+
+                groupBoxSpawn.Show();
+            }
+        }
+
+        void deselectSpawn()
+        {
+            groupBoxSpawn.Hide();
         }
 
         void setNumericUpDownLightPosition(Float3 position)
@@ -413,12 +493,26 @@ namespace LevelEditor
                 var meshName = NativeMethods.getMeshName(i);
                 var meshSid = NativeMethods.getMeshSid(i);
 
-                var meshEntry = new EditorNodeEntry(meshSid, s_typeMesh, meshName);
-                EditorEntry entry = new EditorEntry(meshName, meshSid);
+                insertMesh(meshSid, meshName);
+            }
+        }
 
-                m_meshNode.Nodes.Add(meshEntry);
-                meshInstanceComboBoxMesh.Items.Add(entry);
-                m_sortedMeshes.Add(meshEntry.sid, entry);
+        void insertMesh(ulong sid, string name)
+        {
+            var meshEntry = new EditorNodeEntry(sid, s_typeMesh, name);
+            EditorEntry entry = new EditorEntry(name, sid);
+
+            m_meshNode.Nodes.Add(meshEntry);
+            meshInstanceComboBoxMesh.Items.Add(entry);
+            m_sortedMeshes.Add(meshEntry.sid, entry);
+        }
+
+        void addMesh(ulong sid, string name)
+        {
+            EditorEntry entry;
+            if (!m_sortedMeshes.TryGetValue(sid, out entry))
+            {
+                insertMesh(sid, name);
             }
         }
 
@@ -431,26 +525,25 @@ namespace LevelEditor
             for (uint i = 0; i < meshInstanceCount; ++i)
             {
                 var sid = NativeMethods.getMeshInstanceSid(i);
-
                 var meshInstanceName = NativeMethods.getMeshInstanceNameIndex(i);
 
-                var entry = new EditorNodeEntry(sid, s_typeMeshInstance, meshInstanceName);
-
-                m_sortedMeshInstances.Add(entry.sid, entry);
-                m_meshInstanceNode.Nodes.Add(entry);
+                insertMeshInstance(sid, meshInstanceName);
             }
+        }
+
+        void insertMeshInstance(ulong sid, string name)
+        {
+            var entry = new EditorNodeEntry(sid, s_typeMeshInstance, name);
+
+            m_sortedMeshInstances.Add(entry.sid, entry);
+            m_meshInstanceNode.Nodes.Add(entry);
         }
 
         public void addMeshInstance(ulong sid)
         {
             var meshInstanceName = NativeMethods.getMeshInstanceName(sid);
 
-            var entry = new EditorNodeEntry(sid, s_typeMeshInstance, meshInstanceName);
-
-            m_sortedMeshInstances.Add(entry.sid, entry);
-            m_meshInstanceNode.Nodes.Add(entry);
-
-            m_meshInstanceNode.TreeView.Sort();
+            insertMeshInstance(sid, meshInstanceName);
         }
 
         public void removeMeshInstance(ulong sid)
@@ -474,28 +567,27 @@ namespace LevelEditor
             {
                 var name = NativeMethods.getMaterialNameIndex(i);
                 var sid = NativeMethods.getMaterialSid(i);
-                var nodeEntry = new EditorNodeEntry(sid, s_typeMaterial, name);
 
-                m_materialNode.Nodes.Add(nodeEntry);
-
-                EditorEntry test = new EditorEntry(name, sid);
-
-                meshInstanceComboBoxMaterial.Items.Add(test);
-                m_sortedMaterials.Add(nodeEntry.sid, test);
+                insertMaterial(sid, name);
             }
         }
 
-        void addMesh(ulong sid, string name)
+        void insertMaterial(ulong sid, string name)
+        {
+            var nodeEntry = new EditorNodeEntry(sid, s_typeMaterial, name);
+            var entry = new EditorEntry(name, sid);
+
+            m_materialNode.Nodes.Add(nodeEntry);
+            meshInstanceComboBoxMaterial.Items.Add(entry);
+            m_sortedMaterials.Add(nodeEntry.sid, entry);
+        }
+
+        void addMaterial(ulong sid, string name)
         {
             EditorEntry entry;
-            if (!m_sortedMeshes.TryGetValue(sid, out entry))
+            if (!m_sortedMaterials.TryGetValue(sid, out entry))
             {
-                var meshEntry = new EditorNodeEntry(sid, s_typeMesh, name);
-                entry = new EditorEntry(name, sid);
-
-                m_meshNode.Nodes.Add(meshEntry);
-                meshInstanceComboBoxMesh.Items.Add(entry);
-                m_sortedMeshes.Add(meshEntry.sid, entry);
+                insertMaterial(sid, name);
             }
         }
 
@@ -1213,7 +1305,7 @@ namespace LevelEditor
         private void toolStripButtonCreateLight_Click(object sender, EventArgs e)
         {
             NativeMethods.createLight();
-            getSelectedLightPosition();
+            getLightData();
         }
 
         private void meshInstanceComboBoxMaterial_SelectedIndexChanged(object sender, EventArgs e)
@@ -1377,6 +1469,12 @@ namespace LevelEditor
         {
             float value = (float)numericUpDownLightFalloff.Value;
             NativeMethods.setSelectLightFalloff(value);
+        }
+
+        private void numericUpDownLightLumen_ValueChanged(object sender, EventArgs e)
+        {
+            float value = (float)numericUpDownLightLumen.Value;
+            NativeMethods.setSelectLightLumen(value);
         }
     }
 }

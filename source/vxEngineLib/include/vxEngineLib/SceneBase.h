@@ -54,11 +54,12 @@ struct SceneBaseParams
 #endif
 	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
-	std::unique_ptr<Spawn[]> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 #if _VX_EDITOR
+	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	std::vector<Waypoint> m_waypoints;
 #else
+	std::unique_ptr<Spawn[]> m_pSpawns;
 	std::unique_ptr<Waypoint[]> m_waypoints;
 #endif
 	NavMesh m_navMesh;
@@ -81,7 +82,11 @@ protected:
 #endif
 	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
+#if _VX_EDITOR
+	vx::sorted_vector<u32, Spawn> m_pSpawns;
+#else
 	std::unique_ptr<Spawn[]> m_pSpawns;
+#endif
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 #if _VX_EDITOR
 	std::vector<Waypoint> m_waypoints;

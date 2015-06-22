@@ -47,7 +47,7 @@ namespace Graphics
 		vx::StringID m_lightCmdBufferSid;
 		u32 m_maxShadowLights;
 		u32 m_maxMeshInstanceCount;
-		vx::uint2 m_shadowMapResolution;
+		u32 m_shadowMapResolution;
 
 		void createShadowTextureBuffer();
 		void createShadowTextures();
@@ -59,10 +59,11 @@ namespace Graphics
 		Segment createSegmentCullMeshes() const;
 
 	public:
-		ShadowRenderer(u32 maxShadowLights, u32 maxMeshInstances, const vx::uint2 &shadowMapResolution);
+		ShadowRenderer();
 		~ShadowRenderer();
 
-		void initialize() override;
+		void initialize(const void* p) override;
+		void shutdown() override;
 
 		void update() override;
 

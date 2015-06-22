@@ -31,10 +31,39 @@ enum class PlayerType : u32;
 
 struct Spawn
 {
+#if _VX_EDITOR
+	static u32 s_id;
+
+	Spawn() :type(),
+		position(),
+		sid(),
+		id(s_id++)
+	{}
+
+	Spawn(const Spawn &rhs)
+		:type(rhs.type),
+		position(rhs.position),
+		sid(rhs.sid),
+		id(rhs.id)
+	{
+	}
+
+	Spawn(Spawn &&rhs)
+		:type(rhs.type),
+		position(rhs.position),
+		sid(rhs.sid),
+		id(rhs.id)
+	{
+	}
+#endif
+
 	PlayerType type;
 	vx::float3 position;
 	// actor id, not used for human
 	vx::StringID sid;
+#if _VX_EDITOR
+	u32 id;
+#endif
 };
 
 struct SpawnFile
@@ -48,7 +77,4 @@ struct SpawnFile
 	{
 		actor[0] = '\0';
 	}
-
-//	static std::vector<SpawnFile> loadFromYaml(const YAML::Node &n);
-	//static YAML::Node saveToYaml(const SpawnFile* spawns, u32 count);
 };

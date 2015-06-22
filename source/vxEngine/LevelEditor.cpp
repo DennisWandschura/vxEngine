@@ -376,6 +376,16 @@ namespace Editor
 		return g_pEditor->engine.getSelectLightFalloff();
 	}
 
+	void setSelectLightLumen(f32 lumen)
+	{
+		g_pEditor->engine.setSelectLightLumen(lumen);
+	}
+
+	f32 getSelectLightLumen()
+	{
+		return g_pEditor->engine.getSelectLightLumen();
+	}
+
 	void setSelectLightFalloff(f32 falloff)
 	{
 		g_pEditor->engine.setSelectLightFalloff(falloff);
@@ -404,6 +414,26 @@ namespace Editor
 	void removeWaypoint(const vx::float3 &position)
 	{
 		g_pEditor->engine.removeWaypoint(position);
+	}
+
+	void addSpawn()
+	{
+		g_pEditor->engine.addSpawn();
+	}
+
+	bool selectSpawn(s32 mouseX, s32 mouseY, u32* id)
+	{
+		return g_pEditor->engine.selectSpawn(mouseX, mouseY, id);
+	}
+
+	void getSpawnPosition(u32 id, vx::float3* position)
+	{
+		g_pEditor->engine.getSpawnPosition(id, position);
+	}
+
+	u32 getSpawnType(u32 id)
+	{
+		return g_pEditor->engine.getSpawnType(id);
 	}
 
 	u32 getMeshCount()

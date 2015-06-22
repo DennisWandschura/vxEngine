@@ -34,20 +34,19 @@ namespace vx
 
 #include <vxLib/math/Vector.h>
 #include <vxEngineLib/ParserNode.h>
+#include "Graphics/RendererSettings.h"
 
 struct EngineConfig
 {
 	Parser::Node m_root;
+	Graphics::RendererSettings m_rendererSettings;
+
 	vx::uint2 m_resolution{1920, 1080};
-	u32 m_shadowMapResolution{2048};
+
 	f32 m_fov{66.0f};
 	f32 m_zNear{0.1f};
 	f32 m_zFar{1000.0f};
-	u32 m_maxActiveLights{ 5 };
-	u32 m_maxShadowCastingLights{ 5 };
-	u32 m_maxMeshInstances{150};
 	u32 m_threads{1};
-	u8 m_voxelGiMode{0};
 	bool m_vsync{false};
 	bool m_renderDebug{false};
 
@@ -56,11 +55,4 @@ struct EngineConfig
 	RenderAspectDescription getRenderAspectDescription(const vx::Window* window, vx::StackAllocator* allocator) const;
 };
 
-struct RendererOptions
-{
-	u8 m_shadows;
-	u8 m_voxelGI;
-};
-
 extern EngineConfig g_engineConfig;
-extern RendererOptions g_rendererOptions;

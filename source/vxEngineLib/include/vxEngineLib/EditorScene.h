@@ -67,13 +67,14 @@ namespace Editor
 
 		vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
 		std::vector<SelectableWrapper<Light>> m_selectableLights;
-		std::vector<SelectableWrapper<Spawn>> m_selectableSpawns;
+		std::vector<std::pair<AABB, u32>> m_selectableSpawns;
 		std::vector<SelectableWrapper<Waypoint>> m_selectableWaypoints;
 
 		vx::sorted_vector<vx::StringID, std::string> m_materialNames;
 		vx::sorted_vector<vx::StringID, std::string> m_meshNames;
 		vx::sorted_vector<vx::StringID, std::string> m_actorNames;
 		vx::sorted_vector<vx::StringID, std::string> m_animationNames;
+		u32 m_spawnHumanId;
 
 		void buildSelectableLights();
 		void buildSelectableWaypoints();
@@ -122,7 +123,11 @@ namespace Editor
 		void removeMeshInstance(const vx::StringID &sid);
 		bool renameMeshInstance(const vx::StringID &sid, const char* newName);
 
-		Spawn* getSpawn(const Ray &ray);
+		void addSpawn(Spawn &&spawn);
+		u32 getSpawnId(const Ray &ray) const;
+		u32 getSpawnHumanId() const;
+		const Spawn* getSpawn(u32 id) const;
+
 		Light* getLight(const Ray &ray);
 
 		void updateLightPositions();

@@ -136,6 +136,12 @@
     <Filter Include="Header Files\OpenCL">
       <UniqueIdentifier>{dc0df685-46ec-4c9a-914e-58ceb15f2fe3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Render\Graphics\Renderer">
+      <UniqueIdentifier>{4392a2e0-b8d7-403e-b25e-c6fd98f58fcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Render\Graphics\Renderer">
+      <UniqueIdentifier>{f65076da-8f3d-49f2-be86-02265c9aa636}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -336,9 +342,6 @@
     <ClInclude Include="ProfilerGraph.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="VoxelRenderer.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="RenderUpdateTask.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
@@ -399,9 +402,6 @@
     <ClInclude Include="Graphics\Commands.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Renderer.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\StaticMeshRenderer.h">
       <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
@@ -413,9 +413,6 @@
     </ClInclude>
     <ClInclude Include="gl\BufferBindingManager.h">
       <Filter>Header Files\Render\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\ShadowRenderer.h">
-      <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="RenderCommand.h">
       <Filter>Header Files\Render</Filter>
@@ -585,6 +582,36 @@
     <ClInclude Include="opencl\Device.h">
       <Filter>Header Files\OpenCL</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\VoxelRenderer.h">
+      <Filter>Header Files\Render\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\DepthRangeCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\CullFaceCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GBufferRenderer.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\RendererSettings.h">
+      <Filter>Header Files\Render\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Renderer.h">
+      <Filter>Header Files\Render\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ShadowRenderer.h">
+      <Filter>Header Files\Render\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Frustum.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformFrustumBuffer.h">
+      <Filter>Shaders\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTextureBuffer.h">
+      <Filter>Shaders\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -698,9 +725,6 @@
     <ClCompile Include="PlayerController.cpp">
       <Filter>Source Files\Entity</Filter>
     </ClCompile>
-    <ClCompile Include="VoxelRenderer.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
     <ClCompile Include="LightBufferManager.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
@@ -746,9 +770,6 @@
     <ClCompile Include="Graphics\CommandList.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\Renderer.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="gl\BufferBindingManager.cpp">
       <Filter>Source Files\Render\gl</Filter>
     </ClCompile>
@@ -757,9 +778,6 @@
     </ClCompile>
     <ClCompile Include="gl\ObjectManager.cpp">
       <Filter>Source Files\Render\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\ShadowRenderer.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="ActionUpdateGpuTransform.cpp">
       <Filter>Source Files\Actions</Filter>
@@ -856,6 +874,24 @@
     </ClCompile>
     <ClCompile Include="Graphics\Frame.cpp">
       <Filter>Source Files\Render\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Renderer.cpp">
+      <Filter>Source Files\Render\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\ShadowRenderer.cpp">
+      <Filter>Source Files\Render\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\VoxelRenderer.cpp">
+      <Filter>Source Files\Render\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\DepthRangeCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\CullFaceCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GBufferRenderer.cpp">
+      <Filter>Source Files\Render\Graphics\Renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1172,6 +1208,18 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\..\game\data\shaders\programs\reflectionCubemap.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\volume.pipe">
+      <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\volume.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\volume.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\volume.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

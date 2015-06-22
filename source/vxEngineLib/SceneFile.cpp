@@ -443,10 +443,16 @@ u8 SceneFile::createScene(const CreateSceneDescription &desc)
 	{
 		sceneParams.m_baseParams.m_pLights.push_back(m_pLights[i]);
 	}
+
+	sceneParams.m_baseParams.m_pSpawns.reserve(m_spawnCount);
+	for (u32 i = 0; i < m_spawnCount; ++i)
+	{
+		sceneParams.m_baseParams.m_pSpawns.insert(std::move(sceneSpawns[i].id), std::move(sceneSpawns[i]));
+	}
 #else
 	sceneParams.m_baseParams.m_pLights = std::move(m_pLights);
-#endif
 	sceneParams.m_baseParams.m_pSpawns = std::move(sceneSpawns);
+#endif
 	sceneParams.m_baseParams.m_spawnCount = m_spawnCount;
 	sceneParams.m_baseParams.m_vertexCount = vertexCount;
 	sceneParams.m_meshInstanceCount = m_meshInstanceCount;
@@ -556,10 +562,17 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	{
 		sceneParams.m_baseParams.m_pLights.push_back(m_pLights[i]);
 	}
+
+	sceneParams.m_baseParams.m_pSpawns.reserve(m_spawnCount);
+	for (u32 i = 0; i < m_lightCount; ++i)
+	{
+		sceneParams.m_baseParams.m_pSpawns.insert(std::move(sceneSpawns[i].id), std::move(sceneSpawns[i]));
+	}
 #else
 	sceneParams.m_baseParams.m_pLights = std::move(m_pLights);
-#endif
 	sceneParams.m_baseParams.m_pSpawns = std::move(sceneSpawns);
+#endif
+
 	sceneParams.m_baseParams.m_spawnCount = m_spawnCount;
 	sceneParams.m_baseParams.m_vertexCount = vertexCount;
 	sceneParams.m_meshInstances = std::move(meshInstances);
