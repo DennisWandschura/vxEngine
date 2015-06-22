@@ -729,6 +729,8 @@ void EditorEngine::removeNavMeshVertex(const vx::float3 &position)
 	{
 		auto &navMesh = m_pEditorScene->getNavMesh();
 		navMesh.removeVertex(position);
+
+		buildNavGraph();
 		m_renderAspect.updateNavMeshBuffer(navMesh);
 	}
 }

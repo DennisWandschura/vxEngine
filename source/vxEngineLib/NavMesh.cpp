@@ -253,12 +253,9 @@ bool NavMesh::removeVertex(const vx::float3 &position)
 
 	if (found)
 	{
-		m_vertexBounds.erase(m_vertexBounds.begin() + index);
-		m_vertices.erase(m_vertices.begin() + index);
-		--m_vertexCount;
-}
+		removeVertex(index);
+	}
 
-	buildBounds();
 #endif
 	return found;
 }
