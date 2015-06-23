@@ -612,6 +612,9 @@
     <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTextureBuffer.h">
       <Filter>Shaders\include</Filter>
     </ClInclude>
+    <ClInclude Include="EditorPhysicsAspect.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -892,6 +895,9 @@
     </ClCompile>
     <ClCompile Include="Graphics\GBufferRenderer.cpp">
       <Filter>Source Files\Render\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorPhysicsAspect.cpp">
+      <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -40,7 +40,7 @@ struct SceneParams
 class Scene : public SceneBase
 {
 	std::unique_ptr<MeshInstance[]> m_pMeshInstances;
-	u32 m_meshInstanceCount{ 0 };
+	u32 m_meshInstanceCount;
 
 public:
 	Scene();

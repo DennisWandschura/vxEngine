@@ -24,9 +24,6 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/ResourceAspect/SceneFactory.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\SceneFactory.cpp"
 
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/ResourceAspect/SceneFile.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\SceneFile.cpp"
-
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/ResourceAspect/TextureFileManager.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\TextureFileManager.cpp"
 

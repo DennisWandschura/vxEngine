@@ -23,18 +23,13 @@ SOFTWARE.
 */
 #include "PhysicsAspect.h"
 #include <PxPhysicsAPI.h>
-#include <vxLib/Graphics/Mesh.h>
-#include <vxEngineLib/Scene.h>
-#include <vxEngineLib/EditorMeshInstance.h>
-#include <Windows.h>
-#include <vxEngineLib/Material.h>
-#include <vxEngineLib/EditorScene.h>
-#include <extensions/PxDefaultSimulationFilterShader.h>
-#include "PhysicsDefines.h"
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/MeshInstance.h>
 #include "Locator.h"
+#include <vxEngineLib/Material.h>
 #include <vxResourceAspect/FileAspect.h>
+#include <vxEngineLib/Scene.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/FileEvents.h>
 
@@ -49,10 +44,9 @@ void UserErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* m
 	printf("Physx Error: %d, %s %s %d\n", code, message, file, line);
 }
 
-PhysicsAspect::PhysicsAspect(FileAspect &fileAspect)
+PhysicsAspect::PhysicsAspect()
 	:m_pScene(nullptr),
 	m_pControllerManager(nullptr),
-	m_fileAspect(fileAspect),
 	m_pActorMaterial(nullptr),
 	m_pPhysics(nullptr),
 	m_mutex(),
@@ -62,6 +56,10 @@ PhysicsAspect::PhysicsAspect(FileAspect &fileAspect)
 	m_pFoundation(nullptr),
 	m_pCpuDispatcher(nullptr),
 	m_pCooking(nullptr)
+{
+}
+
+PhysicsAspect::~PhysicsAspect()
 {
 }
 
@@ -177,7 +175,7 @@ void PhysicsAspect::handleFileEvent(const vx::Event &evt)
 	switch (fileEvent)
 	{
 	case vx::FileEvent::Scene_Loaded:
-		processScene(evt.arg2.ptr);
+		processScene((Scene*)evt.arg2.ptr);
 		break;
 	default:
 		break;
@@ -211,108 +209,6 @@ vx::StringID PhysicsAspect::raycast_static(const vx::float4a &origin, const vx::
 	}
 
 	return sid;
-}
-
-bool PhysicsAspect::editorGetStaticMeshInstancePosition(const vx::StringID &sid, vx::float3* p) const
-{
-	bool result = false;
-
-	auto it = m_staticMeshInstances.find(sid);
-	if (it != m_staticMeshInstances.end())
-	{
-		physx::PxTransform transform = (*it)->getGlobalPose();
-
-		p->x = transform.p.x;
-		p->y = transform.p.y;
-		p->z = transform.p.z;
-
-		result = true;
-	}
-
-	return result;
-}
-
-void PhysicsAspect::editorSetStaticMeshInstanceTransform(const MeshInstance &meshInstance, const vx::StringID &sid)
-{
-	auto it = m_staticMeshInstances.find(sid);
-	if (it != m_staticMeshInstances.end())
-	{
-		auto instanceTransform = meshInstance.getTransform();
-
-		auto qRotation = vx::loadFloat4(instanceTransform.m_qRotation);
-
-		physx::PxTransform transform;
-		transform.p.x = instanceTransform.m_translation.x;
-		transform.p.y = instanceTransform.m_translation.y;
-		transform.p.z = instanceTransform.m_translation.z;
-		_mm_storeu_ps(&transform.q.x, qRotation);
-
-		(*it)->setGlobalPose(transform);
-	}
-}
-
-void PhysicsAspect::editorAddMeshInstance(const MeshInstance &instance)
-{
-	addMeshInstance(instance);
-}
-
-void PhysicsAspect::editorSetStaticMeshInstanceMesh(const MeshInstance &meshInstance)
-{
-	auto sid = meshInstance.getNameSid();
-	auto rigidStaticIt = m_staticMeshInstances.find(sid);
-
-	auto meshSid = meshInstance.getMeshSid();
-	auto newTriangleMeshIt = m_physxMeshes.find(meshSid);
-	auto newConvexMeshIt = m_physxConvexMeshes.find(meshSid);
-
-	bool foundMesh = newTriangleMeshIt != m_physxMeshes.end() &&
-		newConvexMeshIt != m_physxConvexMeshes.end();
-
-	bool isTriangleMesh = false;
-	if (!foundMesh)
-	{
-		puts("process mesh begin");
-		auto fileAspect = Locator::getFileAspect();
-		auto pMeshFile = fileAspect->getMesh(meshSid);
-
-		if (!processMesh(meshSid, pMeshFile, &isTriangleMesh))
-		{
-			printf("error processing mesh\n");
-			VX_ASSERT(false);
-		}
-
-		newTriangleMeshIt = m_physxMeshes.find(meshSid);
-		newConvexMeshIt = m_physxConvexMeshes.find(meshSid);
-
-		puts("process mesh end");
-	}
-
-	auto &material = meshInstance.getMaterial();
-	auto itPhysxMaterial = m_physxMaterials.find((*material).getSid());
-
-	puts("create shape begin");
-	physx::PxShape* newShape = nullptr;
-	if (isTriangleMesh)
-	{
-		newShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*newTriangleMeshIt), *(*itPhysxMaterial));
-	}
-	else
-	{
-		VX_ASSERT(newConvexMeshIt != m_physxConvexMeshes.end());
-		newShape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(*newConvexMeshIt), *(*itPhysxMaterial));
-	}
-	puts("create shape end");
-
-	auto shapeCount = (*rigidStaticIt)->getNbShapes();
-	VX_ASSERT(shapeCount == 1);
-
-	physx::PxShape* oldShape = nullptr;;
-	(*rigidStaticIt)->getShapes(&oldShape, 1);
-
-	puts("attach shape begin");
-	(*rigidStaticIt)->attachShape(*newShape);
-	(*rigidStaticIt)->detachShape(*oldShape);
-	puts("end shape begin");
 }
 
 void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
@@ -396,15 +292,11 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 	m_pScene->addActor(*pRigidStatic);
 }
 
-void PhysicsAspect::processScene(const void* ptr)
+void PhysicsAspect::processScene(const Scene* ptr)
 {
 	m_pScene->lockWrite();
 
-#if _VX_EDITOR
-	auto pScene = (Editor::Scene*)ptr;
-#else
 	auto pScene = (Scene*)ptr;
-#endif
 
 	auto &meshes = pScene->getMeshes();
 	auto keys = meshes.keys();
@@ -420,11 +312,7 @@ void PhysicsAspect::processScene(const void* ptr)
 	}
 
 	auto numInstances = pScene->getMeshInstanceCount();
-#if _VX_EDITOR
-	auto pMeshInstances = pScene->getMeshInstancesEditor();
-#else
 	auto pMeshInstances = pScene->getMeshInstances();
-#endif
 
 	auto &sceneMaterials = pScene->getMaterials();
 	for (auto i = 0u; i < sceneMaterials.size(); ++i)
@@ -439,11 +327,7 @@ void PhysicsAspect::processScene(const void* ptr)
 
 	for (auto i = 0u; i < numInstances; ++i)
 	{
-#if _VX_EDITOR
-		addMeshInstance(pMeshInstances[i].getMeshInstance());
-#else
 		addMeshInstance(pMeshInstances[i]);
-#endif
 	}
 
 	m_pScene->unlockWrite();
@@ -492,6 +376,16 @@ bool PhysicsAspect::processMesh(const vx::StringID &sid, const vx::MeshFile* pMe
 	
 }
 
+physx::PxController* PhysicsAspect::createActor(const vx::StringID &mesh, const vx::float3 &translation)
+{
+	auto it = m_physxMeshes.find(mesh);
+
+	auto bounds = (*it)->getLocalBounds();
+	auto extend = bounds.getExtents();
+
+	return createActor(translation, extend.z);
+}
+
 physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f32 height)
 {
 	physx::PxCapsuleControllerDesc desc;
@@ -528,9 +422,4 @@ void PhysicsAspect::move(const vx::float4a &velocity, f32 dt, physx::PxControlle
 	v.z = velocity.z;
 
 	pController->move(v, 0.0001f, dt, filters);
-}
-
-void PhysicsAspect::setPosition(const vx::float3 &position, physx::PxController* pController)
-{
-	pController->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
 }

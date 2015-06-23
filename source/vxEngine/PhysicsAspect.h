@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 namespace physx
 {
@@ -74,9 +74,9 @@ class PhysicsAspect : public vx::EventListener
 	static UserErrorCallback s_defaultErrorCallback;
 	static physx::PxDefaultAllocator s_defaultAllocatorCallback;
 
+protected:
 	physx::PxScene* m_pScene;
 	physx::PxControllerManager* m_pControllerManager;
-	FileAspect &m_fileAspect;
 	physx::PxMaterial* m_pActorMaterial{ nullptr };
 	physx::PxPhysics *m_pPhysics;
 	std::mutex m_mutex;
@@ -91,7 +91,7 @@ class PhysicsAspect : public vx::EventListener
 	physx::PxTriangleMesh* processTriangleMesh(const vx::MeshFile* pMesh);
 	physx::PxConvexMesh* processMeshConvex(const vx::MeshFile* pMesh);
 	bool processMesh(const vx::StringID &sid, const vx::MeshFile* pMesh, bool* isTriangleMesh);
-	void processScene(const void* pScene);
+	void processScene(const Scene* pScene);
 
 	//////////////// handle Events
 	void handleFileEvent(const vx::Event &evt);
@@ -100,7 +100,8 @@ class PhysicsAspect : public vx::EventListener
 	void addMeshInstance(const MeshInstance &instance);
 
 public:
-	explicit PhysicsAspect(FileAspect &fileAspect);
+	PhysicsAspect();
+	virtual ~PhysicsAspect();
 
 	bool initialize();
 	void shutdown();
@@ -108,19 +109,12 @@ public:
 	void fetch();
 	void update(const f32 dt);
 
-	void handleEvent(const vx::Event &evt);
+	virtual void handleEvent(const vx::Event &evt) override;
 
+	physx::PxController* createActor(const vx::StringID &mesh, const vx::float3 &translation);
 	physx::PxController* createActor(const vx::float3 &translation, f32 height);
 
 	void move(const vx::float4a &velocity, f32 dt, physx::PxController* pController);
-	void setPosition(const vx::float3 &position, physx::PxController* pController);
-
+	
 	vx::StringID raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition) const;
-
-	bool editorGetStaticMeshInstancePosition(const vx::StringID &sid, vx::float3* p) const;
-	void editorSetStaticMeshInstanceTransform(const MeshInstance &meshInstance, const vx::StringID &sid);
-	void editorAddMeshInstance(const MeshInstance &instance);
-	void editorSetStaticMeshInstanceMesh(const MeshInstance &instance);
-
-	physx::PxCooking* getCooking() { return m_pCooking; }
 };

@@ -24,6 +24,8 @@ SOFTWARE.
 #include "rtti.h"
 #include <vxLib\math\Vector.h>
 #include <vxLib/Graphics/Mesh.h>
+#include <vxEngineLib/Scene.h>
+#include <vxEngineLib/EditorScene.h>
 
 RTTI_TYPE(bool){}
 
@@ -68,3 +70,11 @@ RTTI_TYPE(vx::float4)
 }
 
 RTTI_TYPE(vx::Mesh){}
+
+RTTI_TYPE(Scene)
+{
+}
+
+RTTI_TYPE(Editor::Scene)
+{
+}

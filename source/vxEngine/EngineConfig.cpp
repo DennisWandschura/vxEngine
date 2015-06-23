@@ -36,46 +36,31 @@ bool EngineConfig::loadFromFile(const char* file)
 	m_root.get("fov")->as(&m_fov);
 	m_root.get("z_near")->as(&m_zNear);
 	m_root.get("z_far")->as(&m_zFar);
-	m_root.get("voxel_gi_mode")->as(&m_rendererSettings.m_voxelGIMode);
 	m_root.get("vsync")->as(&m_vsync);
 	m_root.get("debug")->as(&m_renderDebug);
 
 	auto rendererSettings = m_root.get("renderer");
+
+	auto shadowSettings = rendererSettings->get("shadow");
+
 	u32 shadowMode;
-	rendererSettings->get("shadowMode")->as(&shadowMode);
+	shadowSettings->get("mode")->as(&shadowMode);
+	if (shadowMode != 0)
+	{
+		u32 index = shadowMode - 1;
 
-	m_rendererSettings.m_shadowMode = shadowMode;
-
-	switch (shadowMode)
-	{
-	case 0:
-	{
-	}break;
-	case 1:
-	{
-		auto shadowSettings = rendererSettings->get("shadow_low");
-		shadowSettings->get("shadow_map_resolution")->as(&m_rendererSettings.m_shadowSettings.m_shadowMapResolution);
-		shadowSettings->get("maxShadowCastingLights")->as(&m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
-	}break;
-	case 2:
-	{
-		auto shadowSettings = rendererSettings->get("shadow_medium");
-		shadowSettings->get("shadow_map_resolution")->as(&m_rendererSettings.m_shadowSettings.m_shadowMapResolution);
-		shadowSettings->get("maxShadowCastingLights")->as(&m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
-	}break;
-	case 3:
-	{
-		auto shadowSettings = rendererSettings->get("shadow_high");
-		shadowSettings->get("shadow_map_resolution")->as(&m_rendererSettings.m_shadowSettings.m_shadowMapResolution);
-		shadowSettings->get("maxShadowCastingLights")->as(&m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
-	}break;
-	default:
-		break;
+		shadowSettings->get("resolution")->as(index, &m_rendererSettings.m_shadowSettings.m_shadowMapResolution);
+		shadowSettings->get("lights")->as(&m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
 	}
+	m_rendererSettings.m_shadowMode = shadowMode;
 
 	rendererSettings->get("maxMeshInstances")->as(&m_rendererSettings.m_maxMeshInstances);
 	rendererSettings->get("maxActiveLights")->as(&m_rendererSettings.m_maxActiveLights);
 
+	auto voxelSettings = rendererSettings->get("voxel_gi");
+	voxelSettings->get("mode")->as(&m_rendererSettings.m_voxelGIMode);
+	voxelSettings->get("resolution")->as(&m_rendererSettings.m_voxelSettings.m_voxelTextureSize);
+	voxelSettings->get("grid")->as(&m_rendererSettings.m_voxelSettings.m_voxelGridDim);
 
 	m_threads = std::thread::hardware_concurrency();
 

@@ -46,7 +46,7 @@ namespace
 Engine::Engine()
 	:m_eventManager(),
 	m_systemAspect(),
-	m_physicsAspect(m_fileAspect),
+	m_physicsAspect(),
 	m_actorAspect(m_physicsAspect),
 	m_renderAspect(),
 	m_entityAspect(m_physicsAspect, m_renderAspect),
@@ -277,9 +277,6 @@ bool Engine::initialize()
 		return false;
 
 	RenderAspectDescription renderAspectDesc = g_engineConfig.getRenderAspectDescription(&m_systemAspect.getWindow(), &m_allocator);
-
-	g_engineConfig.m_rendererSettings.m_voxelSettings.m_voxelGridDim = 24;
-	g_engineConfig.m_rendererSettings.m_voxelSettings.m_voxelTextureSize = 128;
 
 	if (!m_renderAspect.initialize(dataDir, renderAspectDesc, &g_engineConfig))
 		return false;

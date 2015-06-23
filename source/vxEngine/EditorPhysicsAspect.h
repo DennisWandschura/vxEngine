@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -22,8 +24,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxEngineLib/Spawn.h>
+#include "PhysicsAspect.h"
 
-#if _VX_EDITOR
-u32 Spawn::s_id{ 0 };
-#endif
+namespace Editor
+{
+	class Scene;
+
+	class PhysicsAspect : public ::PhysicsAspect
+	{
+		void handleFileEvent(const vx::Event &evt);
+
+		void processScene(const Editor::Scene* pScene);
+
+	public:
+		PhysicsAspect();
+		~PhysicsAspect();
+
+		void handleEvent(const vx::Event &evt) override;
+
+		void setPosition(const vx::float3 &position, physx::PxController* pController);
+
+		bool editorGetStaticMeshInstancePosition(const vx::StringID &sid, vx::float3* p) const;
+		void editorSetStaticMeshInstanceTransform(const ::MeshInstance &meshInstance, const vx::StringID &sid);
+		void editorAddMeshInstance(const ::MeshInstance &instance);
+		void editorSetStaticMeshInstanceMesh(const ::MeshInstance &instance);
+
+		physx::PxCooking* getCooking() { return m_pCooking; }
+	};
+}

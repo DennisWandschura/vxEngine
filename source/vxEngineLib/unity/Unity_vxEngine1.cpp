@@ -9,6 +9,9 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/AnimationFile.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\AnimationFile.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/ArrayAllocator.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\ArrayAllocator.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/EditorScene.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\EditorScene.cpp"
 
@@ -24,6 +27,9 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/Logfile.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\Logfile.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/managed_ptr.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\managed_ptr.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/Material.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\Material.cpp"
 
@@ -32,6 +38,9 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/MeshInstance.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\MeshInstance.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/MeshInstanceFile.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\MeshInstanceFile.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/NavMesh.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\NavMesh.cpp"
@@ -47,6 +56,9 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/SceneBase.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\SceneBase.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/SceneFile.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\SceneFile.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngineLib/TextureFile.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\TextureFile.cpp"

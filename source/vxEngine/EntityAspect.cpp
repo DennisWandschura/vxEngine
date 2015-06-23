@@ -48,6 +48,7 @@ SOFTWARE.
 #include "EngineGlobals.h"
 #include "Transition.h"
 #include <vxEngineLib/FileEvents.h>
+#include "EventsIngame.h"
 
 #include "ConditionActorFollowingPath.h"
 #include "ConditionActorHasPath.h"
@@ -103,6 +104,14 @@ void EntityAspect::shutdown()
 	m_poolEntity.release();
 	m_poolRender.release();
 	m_poolInput.release();
+}
+
+void EntityAspect::createComponentPhysics(const vx::StringID &mesh, const vx::float3 &position, u16 entityIndex)
+{
+	auto pActor = m_physicsAspect.createActor(mesh, position);
+
+	m_poolEntity[entityIndex].position = position;
+	m_poolEntity[entityIndex].pRigidActor = pActor;
 }
 
 void EntityAspect::createComponentPhysics(const vx::float3 &position, u16 entityIndex, f32 height)
@@ -165,7 +174,7 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 	}
 }
 
-void EntityAspect::createActorEntity(const vx::float3 &position, f32 height, u32 gpuIndex)
+void EntityAspect::createActorEntity(const vx::StringID &mesh, const vx::float3 &position, f32 height, u32 gpuIndex)
 {
 	u16 entityIndex;
 	auto pEntity = m_poolEntity.createEntry(&entityIndex);
@@ -173,6 +182,7 @@ void EntityAspect::createActorEntity(const vx::float3 &position, f32 height, u32
 	pInput->entityIndex = entityIndex;
 
 	createComponentPhysics(position, entityIndex, height);
+	//createComponentPhysics(mesh, position, entityIndex);
 
 	auto pRender = m_poolRender.createEntry(&pEntity->render);
 	pRender->entityIndex = entityIndex;
@@ -350,7 +360,7 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 			}
 			else
 			{
-				auto evtManager = Locator::getEventManager();
+				//auto evtManager = Locator::getEventManager();
 
 			//	it.position, it.sid, 2.0f, gpuIndex
 
@@ -358,24 +368,28 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 				auto itActor = actors.find(it.sid);
 
 				CreateActorData data;
+				data.controller = nullptr;
 				data.material = itActor->m_material;
 				data.mesh = itActor->m_mesh;
 				data.transform.m_qRotation = vx::float4(0, 0, 0, 1);
 				data.transform.m_scaling = 1.0f;
 				data.transform.m_translation = it.position;
-				data.index = i;
+				data.spawnIndex = i;
+				data.gpuIndex = 0;
 
 				RenderUpdateTask task;
 				task.type = RenderUpdateTask::Type::CreateActorGpuIndex;
 
 				m_renderAspect.queueUpdateTask(task, (u8*)&data, sizeof(CreateActorData));
+
+				vx::EventType::Ingame_Event;
+				IngameEvent::Created_Actor_Physx;
 			}
 		}
 
 	}break;
 	case IngameEvent::Created_InfluenceMap:
 	{
-		//m_pInfluenceMap = (InfluenceMap*)evt.arg1.ptr;
 	}break;
 	case IngameEvent::Created_Actor_GPU:
 	{
@@ -384,7 +398,7 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 		auto gpuIndex = evt.arg2.u32;
 
 		auto &it = spawns[spawnIndex];
-		createActorEntity(it.position, 2.0f, gpuIndex);
+		createActorEntity(vx::StringID(), it.position, 2.0f, gpuIndex);
 	}break;
 	default:
 		break;

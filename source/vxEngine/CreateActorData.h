@@ -25,13 +25,20 @@ SOFTWARE.
 
 class Scene;
 
+namespace physx
+{
+	class PxController;
+}
+
 #include <vxLib/StringID.h>
 #include <vxEngineLib/Transform.h>
 
 struct CreateActorData
 {
+	physx::PxController* controller;
 	vx::Transform transform;
 	vx::StringID mesh;
 	vx::StringID material;
-	u32 index;
+	u32 spawnIndex;
+	u32 gpuIndex;
 };

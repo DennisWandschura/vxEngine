@@ -31,6 +31,8 @@ enum class IngameEvent : u16
 	Created_NavGraph,
 	Created_InfluenceMap,
 	Create_Actor,
+	Create_Actor_Physx,
 	Created_Actor,
-	Created_Actor_GPU
+	Created_Actor_GPU,
+	Created_Actor_Physx
 };

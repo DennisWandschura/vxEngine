@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-const f32 g_heightStanding = 1.8f;
+const f32 g_heightStanding = 1.7f;
 const f32 g_heightCrouching = 0.45f;
 const f32 g_gravity = -9.81f;
 

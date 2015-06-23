@@ -33,6 +33,8 @@ SceneParams::~SceneParams()
 }
 
 Scene::Scene()
+	:m_pMeshInstances(),
+	m_meshInstanceCount(0)
 {
 }
 

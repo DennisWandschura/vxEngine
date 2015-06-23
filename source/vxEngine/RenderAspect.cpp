@@ -914,7 +914,7 @@ void RenderAspect::taskCreateActorGpuIndex(u8* p, u32* offset)
 	auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material);
 
 	vx::Event e;
-	e.arg1.u32 = data->index;
+	e.arg1.u32 = data->spawnIndex;
 	e.arg2.u32 = (u32)gpuIndex;
 	e.code = (u32)IngameEvent::Created_Actor_GPU;
 	e.type = vx::EventType::Ingame_Event;

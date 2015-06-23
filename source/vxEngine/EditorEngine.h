@@ -31,7 +31,7 @@ namespace Editor
 #include <vxEngineLib/EventManager.h>
 #include "SystemAspect.h"
 #include "EditorRenderAspect.h"
-#include "PhysicsAspect.h"
+#include "EditorPhysicsAspect.h"
 #include <vxResourceAspect/FileAspect.h>
 #include "thread.h"
 #include "memory.h"
@@ -61,7 +61,7 @@ class EditorEngine : public vx::EventListener
 	};
 
 	vx::EventManager m_eventManager;
-	PhysicsAspect m_physicsAspect;
+	Editor::PhysicsAspect m_physicsAspect;
 	EditorRenderAspect m_renderAspect;
 	Editor::Scene* m_pEditorScene{ nullptr };
 	InfluenceMap m_influenceMap;

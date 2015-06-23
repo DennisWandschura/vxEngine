@@ -21,6 +21,12 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/ClearCommand.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\ClearCommand.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/CullFaceCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\CullFaceCommand.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/DepthRangeCommand.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\DepthRangeCommand.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Commands/DrawArraysCommand.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Commands\DrawArraysCommand.cpp"
 
@@ -60,6 +66,12 @@
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/CommandListFactory.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\CommandListFactory.cpp"
 
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Frame.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Frame.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/GBufferRenderer.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\GBufferRenderer.cpp"
+
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Renderer.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Renderer.cpp"
 
@@ -74,6 +86,9 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/Surface.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\Surface.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Graphics/VoxelRenderer.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Graphics\VoxelRenderer.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/ActionActorCreatePath.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\ActionActorCreatePath.cpp"
@@ -143,6 +158,9 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/EditorEngine.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\EditorEngine.cpp"
+
+#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/EditorPhysicsAspect.cpp" )
+#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\EditorPhysicsAspect.cpp"
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/EditorRenderAspect.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\EditorRenderAspect.cpp"
@@ -263,8 +281,5 @@
 
 #pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/Vertex.cpp" )
 #include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\Vertex.cpp"
-
-#pragma message( "D:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/source/vxEngine/VoxelRenderer.cpp" )
-#include "D:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngine\VoxelRenderer.cpp"
 
 

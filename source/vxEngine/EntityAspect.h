@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 namespace vx
 {
@@ -29,6 +29,7 @@ namespace vx
 	struct Keyboard;
 	struct Mouse;
 	class Camera;
+	struct StringID;
 }
 
 class PhysicsAspect;
@@ -66,9 +67,10 @@ class EntityAspect : public vx::EventListener
 	std::unique_ptr<ColdData> m_coldData;
 
 	Component::Actor* createComponentActor(u16 entityIndex, EntityActor* entity, Component::Input* componentInput, u16* actorIndex);
+	void createComponentPhysics(const vx::StringID &mesh, const vx::float3 &position, u16 entityIndex);
 	void createComponentPhysics(const vx::float3 &position, u16 entityIndex, f32 height);
 
-	void createActorEntity(const vx::float3 &position, f32 height, u32 gpuIndex);
+	void createActorEntity(const vx::StringID &mesh, const vx::float3 &position, f32 height, u32 gpuIndex);
 
 	//////////////////
 

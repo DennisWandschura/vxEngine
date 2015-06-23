@@ -49,7 +49,7 @@ u32 g_editorTypeFbx{ 0xffffffff };
 
 EditorEngine::EditorEngine()
 	:m_eventManager(),
-	m_physicsAspect(m_fileAspect),
+	m_physicsAspect(),
 	m_renderAspect(),
 	m_fileAspect(),
 	m_bRunFileThread(),

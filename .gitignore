@@ -11,6 +11,7 @@
 *.frag
 *.pipe
 *.exe
+*.fdb
 
 game/
 
