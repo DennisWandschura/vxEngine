@@ -909,19 +909,20 @@ void RenderAspect::taskToggleRenderMode()
 void RenderAspect::taskCreateActorGpuIndex(u8* p, u32* offset)
 {
 	auto evtManager = Locator::getEventManager();
+	std::size_t* address = (std::size_t*)p;
 
-	CreateActorData* data = (CreateActorData*)p;
-	auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material);
+	CreateActorData* data = (CreateActorData*)(*address);
+	auto gpuIndex = addActorToBuffer(data->getTransform(), data->getMeshSid(), data->getMaterialSid());
+	data->setGpu(gpuIndex);
 
 	vx::Event e;
-	e.arg1.u32 = data->spawnIndex;
-	e.arg2.u32 = (u32)gpuIndex;
+	e.arg1.ptr = data;
 	e.code = (u32)IngameEvent::Created_Actor_GPU;
 	e.type = vx::EventType::Ingame_Event;
 
 	evtManager->addEvent(e);
 
-	*offset += sizeof(CreateActorData);
+	*offset += sizeof(std::size_t);
 }
 
 void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
@@ -1405,35 +1406,6 @@ void RenderAspect::handleFileEvent(const vx::Event &evt)
 	}break;
 	default:
 		break;
-	}
-}
-
-void RenderAspect::handleIngameEvent(const vx::Event &evt)
-{
-	auto type = (IngameEvent)evt.code;
-
-	if (type == IngameEvent::Created_NavGraph)
-	{
-		//NavGraph* pGraph = (NavGraph*)evt.arg1.ptr;
-
-		//m_navMeshRenderer.updateBuffer(*pGraph);
-	}
-	else if (type == IngameEvent::Create_Actor)
-	{
-		auto evtManager = Locator::getEventManager();
-
-		CreateActorData* data = (CreateActorData*)evt.arg2.ptr;
-		auto gpuIndex = addActorToBuffer(data->transform, data->mesh, data->material);
-
-		delete(data);
-
-		vx::Event e;
-		e.arg1 = evt.arg1;
-		e.arg2.u32 = (u32)gpuIndex;
-		e.code = (u32)IngameEvent::Created_Actor_GPU;
-		e.type = vx::EventType::Ingame_Event;
-
-		evtManager->addEvent(e);
 	}
 }
 

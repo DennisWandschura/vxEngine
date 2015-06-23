@@ -32,6 +32,9 @@ SOFTWARE.
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/FileEvents.h>
+#include "EventsIngame.h"
+#include "CreateActorData.h"
+#include <vxEngineLib/EventManager.h>
 
 UserErrorCallback PhysicsAspect::s_defaultErrorCallback{};
 physx::PxDefaultAllocator PhysicsAspect::s_defaultAllocatorCallback{};
@@ -98,7 +101,7 @@ bool PhysicsAspect::initialize()
 		return false;
 	}
 
-	m_pCpuDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
+	m_pCpuDispatcher = physx::PxDefaultCpuDispatcherCreate(0);
 
 	physx::PxSceneDesc sceneDesc(toleranceScale);
 	sceneDesc.cpuDispatcher = m_pCpuDispatcher;
@@ -161,6 +164,9 @@ void PhysicsAspect::handleEvent(const vx::Event &evt)
 {
 	switch (evt.type)
 	{
+	case(vx::EventType::Ingame_Event) :
+		handleIngameEvent(evt);
+		break;
 	case(vx::EventType::File_Event) :
 		handleFileEvent(evt);
 		break;
@@ -179,6 +185,28 @@ void PhysicsAspect::handleFileEvent(const vx::Event &evt)
 		break;
 	default:
 		break;
+	}
+}
+
+void PhysicsAspect::handleIngameEvent(const vx::Event &evt)
+{
+	auto ingameEvent = (IngameEvent)evt.code;
+
+	if (ingameEvent == IngameEvent::Create_Actor_Physx)
+	{
+		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
+
+		auto transform = data->getTransform();
+		auto controller = createActor(transform.m_translation, data->getHeight());
+		data->setPhysx(controller);
+
+		vx::Event evt;
+		evt.type = vx::EventType::Ingame_Event;
+		evt.code = (u32)IngameEvent::Created_Actor_Physx;
+		evt.arg1.ptr = data;
+
+		auto evtManager = Locator::getEventManager();
+		evtManager->addEvent(evt);
 	}
 }
 

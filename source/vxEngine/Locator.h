@@ -29,12 +29,14 @@ namespace vx
 }
 class PhysicsAspect;
 class FileAspect;
+class RenderAspect;
 
 class Locator
 {
 	static vx::EventManager* s_pEventManager;
 	static PhysicsAspect* s_pPhysicsAspect;
 	static FileAspect* s_pFileAspect;
+	static RenderAspect* s_pRenderAspect;
 
 public:
 	static void provide(vx::EventManager* p);
@@ -45,6 +47,9 @@ public:
 
 	static void provide(FileAspect* p);
 	static FileAspect* getFileAspect();
+
+	static void provide(RenderAspect* p);
+	static RenderAspect* getRenderAspect();
 
 	static void reset();
 };

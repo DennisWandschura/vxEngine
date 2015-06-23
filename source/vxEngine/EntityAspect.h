@@ -36,6 +36,7 @@ class PhysicsAspect;
 class RenderAspect;
 struct EntityActor;
 class Scene;
+class CreateActorData;
 
 #include <vxEngineLib/EventListener.h>
 #include <vxEngineLib/Pool.h>
@@ -60,17 +61,14 @@ class EntityAspect : public vx::EventListener
 	PlayerController m_playerController;
 	vx::Pool<Component::Render> m_poolRender;
 	vx::Pool<Component::Input> m_poolInput;
-	PhysicsAspect &m_physicsAspect;
 	vx:: Pool<EntityActor> m_poolEntity;
-	RenderAspect &m_renderAspect;
 	vx::StackAllocator m_allocator;
 	std::unique_ptr<ColdData> m_coldData;
 
 	Component::Actor* createComponentActor(u16 entityIndex, EntityActor* entity, Component::Input* componentInput, u16* actorIndex);
-	void createComponentPhysics(const vx::StringID &mesh, const vx::float3 &position, u16 entityIndex);
-	void createComponentPhysics(const vx::float3 &position, u16 entityIndex, f32 height);
+	void createComponentPhysics(const CreateActorData &data, u16 entityIndex);
 
-	void createActorEntity(const vx::StringID &mesh, const vx::float3 &position, f32 height, u32 gpuIndex);
+	void createActorEntity(const CreateActorData &data);
 
 	//////////////////
 
@@ -80,7 +78,7 @@ class EntityAspect : public vx::EventListener
 	//////////////////
 
 public:
-	EntityAspect(PhysicsAspect &physicsAspect, RenderAspect &renderAspect);
+	EntityAspect();
 
 	//////////////////
 

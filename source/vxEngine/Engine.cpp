@@ -49,7 +49,7 @@ Engine::Engine()
 	m_physicsAspect(),
 	m_actorAspect(m_physicsAspect),
 	m_renderAspect(),
-	m_entityAspect(m_physicsAspect, m_renderAspect),
+	m_entityAspect(),
 	m_bRun(0),
 	m_fileAspect(),
 	m_bRunFileThread(),
@@ -97,12 +97,15 @@ void Engine::update()
 
 	CpuProfiler::pushMarker("physics");
 	m_entityAspect.updatePhysics_linear(g_dt);
-	m_physicsAspect.update(g_dt);
 	CpuProfiler::popMarker();
 
 	CpuProfiler::pushMarker("actor position");
 	m_entityAspect.updatePlayerPositionCamera();
 	m_entityAspect.updateActorTransforms();
+	CpuProfiler::popMarker();
+
+	CpuProfiler::pushMarker("physx");
+	m_physicsAspect.update(g_dt);
 	CpuProfiler::popMarker();
 }
 
@@ -297,10 +300,11 @@ bool Engine::initialize()
 	m_actorAspect.initialize(m_entityAspect, &m_allocator);
 
 	Locator::provide(&m_physicsAspect);
+	Locator::provide(&m_renderAspect);
 
 	// register aspects that receive events
 	m_eventManager.registerListener(&m_renderAspect, 3, (u8)vx::EventType::File_Event);
-	m_eventManager.registerListener(&m_physicsAspect, 2, (u8)vx::EventType::File_Event);
+	m_eventManager.registerListener(&m_physicsAspect, 2, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event);
 	m_eventManager.registerListener(&m_entityAspect, 1, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event);
 	m_eventManager.registerListener(&m_actorAspect, 2, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event | (u8)vx::EventType::AI_Event);
 

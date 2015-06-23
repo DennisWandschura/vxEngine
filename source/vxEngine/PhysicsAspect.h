@@ -95,6 +95,7 @@ protected:
 
 	//////////////// handle Events
 	void handleFileEvent(const vx::Event &evt);
+	void handleIngameEvent(const vx::Event &evt);
 	////////////////
 
 	void addMeshInstance(const MeshInstance &instance);

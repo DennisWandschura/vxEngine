@@ -108,7 +108,6 @@ protected:
 
 	////////////// Event handling
 	void handleFileEvent(const vx::Event &evt);
-	void handleIngameEvent(const vx::Event &evt);
 	//////////////
 
 	void bindBuffers();

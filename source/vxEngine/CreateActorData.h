@@ -33,12 +33,80 @@ namespace physx
 #include <vxLib/StringID.h>
 #include <vxEngineLib/Transform.h>
 
-struct CreateActorData
+class CreateActorData
 {
-	physx::PxController* controller;
-	vx::Transform transform;
-	vx::StringID mesh;
-	vx::StringID material;
-	u32 spawnIndex;
-	u32 gpuIndex;
+	physx::PxController* m_controller;
+	vx::Transform m_transform;
+	vx::StringID m_mesh;
+	vx::StringID m_material;
+	f32 m_height;
+	u16 m_spawnIndex;
+	u16 m_gpuIndex;
+	u8 m_flags;
+
+public:
+	CreateActorData(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &materialSid, f32 height, u16 spawnIndex)
+		:m_controller(nullptr),
+		m_transform(transform),
+		m_mesh(meshSid),
+		m_material(materialSid),
+		m_height(height),
+		m_spawnIndex(spawnIndex),
+		m_gpuIndex(0),
+		m_flags(0)
+	{
+	}
+
+	void setPhysx(physx::PxController* controller)
+	{
+		const auto flag = 1 << 0;
+
+		VX_ASSERT(controller);
+		m_controller = controller;
+
+		m_flags |= flag;
+	}
+
+	void setGpu(u16 gpuIndex)
+	{
+		const auto flag = 1 << 1;
+
+		m_gpuIndex = gpuIndex;
+
+		m_flags |= flag;
+	}
+
+	f32 getHeight() const { return m_height; }
+
+	bool isValid() const
+	{
+		const auto flag = 1 << 0 | 1 << 1;
+
+		return ((m_flags & flag) == flag);
+	}
+
+	const vx::Transform& getTransform() const
+	{
+		return m_transform;
+	}
+
+	const vx::StringID& getMeshSid() const
+	{
+		return m_mesh;
+	}
+
+	const vx::StringID& getMaterialSid() const
+	{
+		return m_material;
+	}
+
+	physx::PxController* getController() const
+	{
+		return m_controller;
+	}
+
+	u16 getGpuIndex() const
+	{
+		return m_gpuIndex;
+	}
 };
