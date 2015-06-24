@@ -47,13 +47,13 @@ class GpuProfiler;
 #include "RenderUpdateTask.h"
 #include "gl/ObjectManager.h"
 #include <vxLib/gl/ShaderManager.h>
-#include <mutex>
 #include <vector>
 #include "RenderCommandFinalImage.h"
 #include "Graphics/CommandList.h"
 #include "DoubleBufferRaw.h"
 #include "Graphics/Frame.h"
 #include "opencl/context.h"
+#include <vxEngineLib/mutex.h>
 
 class VX_ALIGN(64) RenderAspect : public vx::EventListener
 {
@@ -65,7 +65,7 @@ protected:
 	vx::uint2 m_resolution;
 	SceneRenderer m_sceneRenderer;
 	RenderCommand* m_pRenderPassFinalImage;
-	std::mutex m_updateMutex;
+	vx::mutex m_updateMutex;
 	std::vector<RenderUpdateTask> m_tasks;
 	RenderUpdateCameraData m_updateCameraData;
 	DoubleBufferRaw m_doubleBuffer;

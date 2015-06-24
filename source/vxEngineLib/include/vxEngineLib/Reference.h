@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 #include <atomic>
+#include <algorithm>
 
 template<typename T>
 class ReferenceCounted
@@ -76,7 +77,12 @@ public:
 		return m_data;
 	}
 
-	typename std::add_reference<T>::type operator*() const
+	T& operator*()
+	{	// return reference to object
+		return m_data;
+	}
+
+	const T& operator*() const
 	{	// return reference to object
 		return m_data;
 	}
@@ -145,7 +151,12 @@ public:
 		return *this;
 	}
 
-	typename std::add_reference<T>::type operator*() const
+	T& operator*()
+	{	// return reference to object
+		return (*this->m_ptr);
+	}
+
+	const T& operator*() const
 	{	// return reference to object
 		return (*this->m_ptr);
 	}

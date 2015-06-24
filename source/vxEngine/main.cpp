@@ -181,7 +181,10 @@ int main()
 
 	Engine engine;
 	g_engine = &engine;
+
+#ifndef _RELEASE_STATIC_BUILD
 	vx::activateChannel(vx::debugPrint::Channel_FileAspect);
+#endif
 
 	SCOPE_EXIT
 	{

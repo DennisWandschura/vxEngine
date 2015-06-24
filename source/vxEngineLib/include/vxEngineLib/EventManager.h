@@ -29,11 +29,10 @@ namespace vx
 	class EventListener;
 }
 
-#include <vxLib/types.h>
 #include <vector>
 #include <vxLib/Container/sorted_array.h>
-#include <mutex>
 #include <vxLib/Container/DoubleBuffer.h>
+#include <vxEngineLib/mutex.h>
 
 namespace vx
 {
@@ -45,7 +44,7 @@ namespace vx
 			u32 mask;
 		};
 
-		std::mutex m_evtMutex;
+		vx::mutex m_evtMutex;
 		DoubleBuffer<vx::Event> m_events;
 		std::vector<std::pair<u64, Listener>> m_eventListeners;
 

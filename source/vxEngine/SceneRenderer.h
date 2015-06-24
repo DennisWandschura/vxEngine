@@ -94,7 +94,7 @@ class SceneRenderer
 	void createMeshTransformBuffer();
 	void createMeshMaterialBuffer();
 
-	void createMaterial(const Reference<Material> &material);
+	void createMaterial(Reference<Material> &material);
 
 	void setMeshParamBufferValue(u32 count);
 

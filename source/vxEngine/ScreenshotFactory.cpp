@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "ScreenshotFactory.h"
-#include <future>
 #include <vxLib/stb_image_write.h>
 #include <vxLib/memory.h>
+#include <time.h>
 
 namespace
 {
@@ -65,5 +65,5 @@ namespace
 
 void ScreenshotFactory::writeScreenshotToFile(const vx::uint2 &resolution, vx::float4a* data)
 {
-	std::async(::writeScreenshotToFile, resolution, data);
+//	std::async(::writeScreenshotToFile, resolution, data);
 }

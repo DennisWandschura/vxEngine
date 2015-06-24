@@ -25,7 +25,7 @@ SOFTWARE.
 */
 
 #include <Windows.h>
-#include <mutex>
+#include <vxEngineLib/mutex.h>
 
 namespace vx
 {

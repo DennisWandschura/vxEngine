@@ -649,7 +649,7 @@ void EditorRenderAspect::updateInstance(const vx::StringID &sid)
 
 void EditorRenderAspect::updateEditor()
 {
-	std::lock_guard<std::mutex> guard(m_updateDataMutex);
+	vx::lock_guard<vx::mutex> guard(m_updateDataMutex);
 	/*for (auto &it : m_updateData)
 	{
 	switch (it.second)

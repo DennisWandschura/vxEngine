@@ -125,6 +125,7 @@ public:
 	u32 getLightCount() const;
 
 	const vx::sorted_vector<vx::StringID, Reference<Material>>& getMaterials() const;
+	vx::sorted_vector<vx::StringID, Reference<Material>>& getMaterials();
 	u32 getMaterialCount() const;
 
 	const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& getMeshes() const;

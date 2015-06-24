@@ -32,8 +32,7 @@ SOFTWARE.
 #include <vxLib/gl/gl.h>
 #include <vxLib/gl/ProgramPipeline.h>
 #include <vxLib/gl/StateManager.h>
-#include <mutex>
-#include <atomic>
+#include <vxEngineLib/mutex.h>
 
 namespace CpuProfilerCpp
 {
@@ -94,7 +93,7 @@ namespace CpuProfilerCpp
 		std::unique_ptr<Entry[]> m_entries;
 		std::unique_ptr<Vertex[]> m_pVertices;
 		const Font* m_pFont;
-		std::mutex m_mutex;
+		vx::mutex m_mutex;
 		vx::float2 m_position;
 
 		inline void	incrementCycle(s32* pval, size_t array_size)
@@ -318,7 +317,7 @@ namespace CpuProfilerCpp
 
 				vx::uint2 bufferIndex = { 0, 0 };
 				vx::float2 position = m_position;
-				std::lock_guard<std::mutex> lock(m_mutex);
+				vx::lock_guard<vx::mutex> lock(m_mutex);
 				writeGpuMarkers(textureSlice, textureSize, vInvTexSize, &bufferIndex, &position);
 
 				//glNamedBufferSubData(m_vbo.getId(), 0, sizeof(Vertex) * bufferIndex.x, m_pVertices.get());
@@ -379,7 +378,7 @@ namespace CpuProfilerCpp
 			return m_indexCount;
 		}
 
-		std::mutex& getMutex()
+		vx::mutex& getMutex()
 		{
 			return m_mutex;
 		}
@@ -402,7 +401,7 @@ namespace CpuProfilerCpp
 		vx::gl::Buffer m_vbo;
 		vx::gl::Buffer m_ibo;
 		vx::float2 m_position;
-		std::mutex m_mutex;
+		vx::mutex m_mutex;
 
 		void createVbo()
 		{
@@ -493,7 +492,7 @@ namespace CpuProfilerCpp
 			{
 				auto &mutex = it->getMutex();
 
-				std::lock_guard<std::mutex> guard(mutex);
+				vx::lock_guard<vx::mutex> guard(mutex);
 				auto vertices = it->getVertices();
 				auto vertexCount = it->getVertexCount();
 				auto indexCount = it->getIndexCount();
@@ -544,7 +543,7 @@ namespace CpuProfilerCpp
 			return m_profilers.size();
 		}
 
-		std::mutex& getMutex()
+		vx::mutex& getMutex()
 		{
 			return m_mutex;
 		}
@@ -579,7 +578,7 @@ void CpuProfiler::initialize(const Font* font)
 			;
 
 		auto &mutex = CpuProfilerCpp::s_renderer.load()->getMutex();
-		std::lock_guard<std::mutex> guard(mutex);
+		vx::lock_guard<vx::mutex> guard(mutex);
 
 		CpuProfilerCpp::s_renderer.load()->registerProfiler(CpuProfilerCpp::s_profiler);
 		CpuProfilerCpp::s_renderer.load()->updatePosition();
@@ -625,7 +624,7 @@ void CpuProfiler::render()
 void CpuProfiler::setPosition(const vx::float2 &position)
 {
 	auto &mutex = CpuProfilerCpp::s_renderer.load()->getMutex();
-	std::lock_guard<std::mutex> guard(mutex);
+	vx::lock_guard<vx::mutex> guard(mutex);
 	CpuProfilerCpp::s_renderer.load()->setPosition(position);
 }
 

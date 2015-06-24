@@ -37,7 +37,6 @@ struct Spawn;
 
 #include "RenderAspect.h"
 #include <vxLib/Variant.h>
-#include <atomic>
 #include "Graphics/CommandList.h"
 
 class EditorRenderAspect : public RenderAspect
@@ -64,7 +63,7 @@ class EditorRenderAspect : public RenderAspect
 	u32 m_navMeshGraphNodesCount{0};
 
 	SelectedMeshInstance m_selectedInstance{};
-	std::mutex m_updateDataMutex{};
+	vx::mutex m_updateDataMutex{};
 	std::atomic_uint m_updateEditor{ 0 };
 	std::vector<std::pair<vx::Variant, EditorUpdate>> m_updateData;
 	std::unique_ptr<EditorColdData> m_pEditorColdData;

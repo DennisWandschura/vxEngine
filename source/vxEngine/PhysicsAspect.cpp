@@ -52,7 +52,6 @@ PhysicsAspect::PhysicsAspect()
 	m_pControllerManager(nullptr),
 	m_pActorMaterial(nullptr),
 	m_pPhysics(nullptr),
-	m_mutex(),
 	m_physxMeshes(),
 	m_physxMaterials(),
 	m_staticMeshInstances(),
@@ -383,8 +382,6 @@ bool PhysicsAspect::processMesh(const vx::StringID &sid, const vx::MeshFile* pMe
 	auto resultTriangleMesh = processTriangleMesh(pMeshFile);
 	if (resultTriangleMesh)
 	{
-		// need to lock because we are modifying the vector
-		std::lock_guard<std::mutex> guard(m_mutex);
 		m_physxMeshes.insert(sid, resultTriangleMesh);
 		result = true;
 		*isTriangleMesh = true;
@@ -394,7 +391,6 @@ bool PhysicsAspect::processMesh(const vx::StringID &sid, const vx::MeshFile* pMe
 		auto resultConvexMesh = processMeshConvex(pMeshFile);
 		if (resultConvexMesh)
 		{
-			std::lock_guard<std::mutex> guard(m_mutex);
 			m_physxConvexMeshes.insert(sid, resultConvexMesh);
 			result = true;
 		}

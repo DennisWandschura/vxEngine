@@ -62,14 +62,13 @@ namespace vx
 
 	void EventManager::update()
 	{
-		std::unique_lock<std::mutex> lck(m_evtMutex);
+		vx::unique_lock<vx::mutex> lck(m_evtMutex);
 		m_events.swapBuffers();
 		lck.unlock();
 
 		auto evtCount = m_events.sizeBack();
 		for (auto &a : m_eventListeners)
 		{
-			//for (auto &it : events)
 			for (u32 i = 0; i < evtCount; ++i)
 			{
 				auto &it = m_events.getItemFromBackBuffer(i);
@@ -84,7 +83,7 @@ namespace vx
 
 	void EventManager::addEvent(const vx::Event &evt)
 	{
-		std::lock_guard<std::mutex> g(m_evtMutex);
+		vx::lock_guard<vx::mutex> g(m_evtMutex);
 		auto result = m_events.push(evt);
 
 		VX_ASSERT(result);

@@ -81,7 +81,7 @@ class VX_ALIGN(64) FileAspect
 	VX_ALIGN(64) struct
 	{
 		std::vector<FileRequest> m_fileRequests;
-		std::mutex m_mutexFileRequests;
+		vx::mutex m_mutexFileRequests;
 		mutable vx::SRWMutex m_mutexLoadedFiles;
 	};
 	Logfile m_logfile;

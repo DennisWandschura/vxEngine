@@ -33,7 +33,7 @@ SOFTWARE.
 #pragma comment(lib, "vxEngineLib_editor_d.lib")
 #pragma comment(lib, "libfbxsdk-mt.lib")
 #else
-#pragma comment(lib, "ResourceAspect_d.lib")
+#pragma comment(lib, "vxResourceAspect_d.lib")
 #pragma comment(lib, "vxEngineLib_d.lib")
 #endif
 

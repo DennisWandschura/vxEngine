@@ -65,8 +65,8 @@ class EditorEngine : public vx::EventListener
 	EditorRenderAspect m_renderAspect;
 	Editor::Scene* m_pEditorScene{ nullptr };
 	InfluenceMap m_influenceMap;
-	std::mutex m_editorMutex;
-	VX_ALIGN(64) struct
+	vx::mutex m_editorMutex;
+	struct VX_ALIGN(64)
 	{
 		FileAspect m_fileAspect;
 		std::atomic_uint m_bRunFileThread;

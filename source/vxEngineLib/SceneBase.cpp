@@ -180,6 +180,11 @@ const vx::sorted_vector<vx::StringID, Reference<Material>>& SceneBase::getMateri
 	return m_materials;
 }
 
+vx::sorted_vector<vx::StringID, Reference<Material>>& SceneBase::getMaterials()
+{
+	return m_materials;
+}
+
 u32 SceneBase::getMaterialCount() const
 {
 	return m_materials.size();

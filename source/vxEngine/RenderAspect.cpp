@@ -764,13 +764,13 @@ void RenderAspect::makeCurrent(bool b)
 
 void RenderAspect::queueUpdateTask(const RenderUpdateTask &task)
 {
-	std::lock_guard<std::mutex> lck(m_updateMutex);
+	vx::lock_guard<vx::mutex> lck(m_updateMutex);
 	m_tasks.push_back(task);
 }
 
 void RenderAspect::queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize)
 {
-	std::lock_guard<std::mutex> lck(m_updateMutex);
+	vx::lock_guard<vx::mutex> lck(m_updateMutex);
 
 	if (m_doubleBuffer.memcpy(data, dataSize))
 	{
@@ -788,7 +788,7 @@ void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 	RenderUpdateTask task;
 	task.type = RenderUpdateTask::Type::UpdateCamera;
 
-	std::lock_guard<std::mutex> lck(m_updateMutex);
+	vx::lock_guard<vx::mutex> lck(m_updateMutex);
 	m_updateCameraData = data;
 
 	m_tasks.push_back(task);
@@ -796,7 +796,7 @@ void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 
 void RenderAspect::update()
 {
-	std::lock_guard<std::mutex> lck(m_updateMutex);
+	vx::lock_guard<vx::mutex> lck(m_updateMutex);
 	m_doubleBuffer.swapBuffers();
 
 	auto backBuffer = m_doubleBuffer.getBackBuffer();

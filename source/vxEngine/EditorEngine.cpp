@@ -334,7 +334,7 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 		assert(false);
 	}
 
-	std::lock_guard<std::mutex> guard(m_editorMutex);
+	vx::lock_guard<vx::mutex> guard(m_editorMutex);
 	m_requestedFiles.insert(fileEntry.getSid(), std::make_pair(f, type));
 
 	m_fileAspect.requestLoadFile(fileEntry, p);
@@ -363,7 +363,7 @@ bool EditorEngine::call_editorCallback(const vx::StringID &sid)
 {
 	bool result = false;
 
-	std::lock_guard<std::mutex> guard(m_editorMutex);
+	vx::lock_guard<vx::mutex> guard(m_editorMutex);
 	auto it = m_requestedFiles.find(sid);
 	if (it != m_requestedFiles.end())
 	{

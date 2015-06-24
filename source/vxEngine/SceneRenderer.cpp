@@ -344,7 +344,7 @@ void SceneRenderer::shutdown()
 	m_coldData.reset();
 }
 
-void SceneRenderer::createMaterial(const Reference<Material> &material)
+void SceneRenderer::createMaterial(Reference<Material> &material)
 {
 	auto fileAspect = Locator::getFileAspect();
 	VX_ASSERT(fileAspect);
@@ -737,9 +737,9 @@ void SceneRenderer::updateBuffers(const void* ptr, u32 instanceCount)
 void SceneRenderer::loadScene(const void* ptr, const gl::ObjectManager &objectManager)
 {
 #if _VX_EDITOR
-	auto scene = (const Editor::Scene*)ptr;
+	auto scene = (Editor::Scene*)ptr;
 #else
-	auto scene = (const Scene*)ptr;
+	auto scene = (Scene*)ptr;
 #endif
 
 	auto &sceneMaterial = scene->getMaterials();

@@ -184,7 +184,7 @@ void FileAspect::shutdown()
 
 bool FileAspect::loadMesh(const LoadMeshDescription &desc)
 {
-	std::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
+	vx::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
 
 	bool result = true;
 	auto it = m_sortedMeshes.find(desc.shared.sid);
@@ -255,7 +255,7 @@ Reference<Material> FileAspect::loadMaterial(const LoadMaterialDescription &desc
 {
 	Reference<Material> result;
 
-	std::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
+	vx::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
 
 	auto it = m_sortedMaterials.find(desc.shared.sid);
 	if (it == m_sortedMaterials.end())
@@ -657,7 +657,7 @@ void FileAspect::handleSaveRequest(FileRequest* request)
 
 			LOG_WARNING_ARGS(m_logfile, "Warning: Retrying save request '%s'\n", false, request->m_fileEntry.getString());
 
-			std::lock_guard<std::mutex> guard(m_mutexFileRequests);
+			vx::lock_guard<vx::mutex> guard(m_mutexFileRequests);
 			m_fileRequests.push_back(*request);
 		}
 	}
@@ -665,7 +665,7 @@ void FileAspect::handleSaveRequest(FileRequest* request)
 
 void FileAspect::retryLoadFile(const FileRequest &request, const std::vector<vx::FileEntry> &missingFiles)
 {
-	std::lock_guard<std::mutex> guard(m_mutexFileRequests);
+	vx::lock_guard<vx::mutex> guard(m_mutexFileRequests);
 	m_fileRequests.push_back(request);
 
 	FileRequest loadRequest;
@@ -769,7 +769,7 @@ void FileAspect::handleRequest(FileRequest* request, std::vector<vx::FileEntry>*
 
 void FileAspect::update()
 {
-	std::unique_lock<std::mutex> lock(m_mutexFileRequests, std::try_to_lock);
+	vx::unique_lock<vx::mutex> lock(m_mutexFileRequests, vx::try_to_lock);
 	if (!lock.owns_lock())
 		return;
 
@@ -801,7 +801,7 @@ void FileAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 	request.userData = p;
 	request.m_openType = FileRequest::Load;
 
-	std::lock_guard<std::mutex> guard(m_mutexFileRequests);
+	vx::lock_guard<vx::mutex> guard(m_mutexFileRequests);
 	m_fileRequests.push_back(request);
 }
 
@@ -813,7 +813,7 @@ void FileAspect::requestSaveFile(const vx::FileEntry &fileEntry, void* p)
 	request.m_openType = FileRequest::Save;
 
 	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "requesting save file");
-	std::lock_guard<std::mutex> guard(m_mutexFileRequests);
+	vx::lock_guard<vx::mutex> guard(m_mutexFileRequests);
 	m_fileRequests.push_back(request);
 }
 
@@ -877,7 +877,7 @@ bool FileAspect::releaseFile(const vx::StringID &sid, vx::FileType type)
 {
 	bool result = false;
 
-	std::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
+	vx::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
 	switch (type)
 	{
 	case vx::FileType::Mesh:

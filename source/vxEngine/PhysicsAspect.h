@@ -56,11 +56,9 @@ class MeshInstance;
 #include <vxEngineLib/EventListener.h>
 #include <foundation/PxErrorCallback.h>
 #include <extensions/PxDefaultAllocator.h>
-#include <mutex>
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
 #include <vxLib/math/Vector.h>
-#include <atomic>
 #include <vector>
 
 class UserErrorCallback : public physx::PxErrorCallback
@@ -79,7 +77,6 @@ protected:
 	physx::PxControllerManager* m_pControllerManager;
 	physx::PxMaterial* m_pActorMaterial{ nullptr };
 	physx::PxPhysics *m_pPhysics;
-	std::mutex m_mutex;
 	vx::sorted_vector<vx::StringID, physx::PxConvexMesh*> m_physxConvexMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxTriangleMesh*> m_physxMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxMaterial*> m_physxMaterials;
