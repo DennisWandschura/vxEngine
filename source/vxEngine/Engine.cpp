@@ -23,14 +23,13 @@ SOFTWARE.
 */
 #include "Engine.h"
 #include <vxEngineLib/Timer.h>
-#include "EngineConfig.h"
-#include "Locator.h"
+#include <vxEngineLib/EngineConfig.h>
+#include <vxEngineLib\/Locator.h>
 #include "developer.h"
-#include "DebugRenderSettings.h"
+//#include "DebugRenderSettings.h"
 #include "EngineGlobals.h"
 #include "CpuProfiler.h"
 #include <vxEngineLib/EventTypes.h>
-#include "Graphics/RendererSettings.h"
 
 Engine* g_pEngine{ nullptr };
 
@@ -88,24 +87,24 @@ void Engine::update()
 
 	//////////////
 
-	CpuProfiler::pushMarker("actor");
+	//CpuProfiler::pushMarker("actor");
 	m_actorAspect.update();
-	CpuProfiler::popMarker();
+	//CpuProfiler::popMarker();
 
 	//////////////
 
-	CpuProfiler::pushMarker("physics");
+	//CpuProfiler::pushMarker("physics");
 	m_entityAspect.updatePhysics_linear(g_dt);
-	CpuProfiler::popMarker();
+	//CpuProfiler::popMarker();
 
-	CpuProfiler::pushMarker("actor position");
+	//CpuProfiler::pushMarker("actor position");
 	m_entityAspect.updatePlayerPositionCamera();
 	m_entityAspect.updateActorTransforms();
-	CpuProfiler::popMarker();
+	//CpuProfiler::popMarker();
 
-	CpuProfiler::pushMarker("physx");
+	//CpuProfiler::pushMarker("physx");
 	m_physicsAspect.update(g_dt);
-	CpuProfiler::popMarker();
+	//CpuProfiler::popMarker();
 }
 
 void Engine::renderLoop()
@@ -120,9 +119,9 @@ void Engine::renderLoop()
 	auto frequency = Timer::getFrequency();
 	const f64 invFrequency = 1.0 / frequency;
 
-	CpuProfiler::setPosition(vx::float2(0, 500));
+	//CpuProfiler::setPosition(vx::float2(0, 500));
 
-	CpuProfiler::initialize(&m_renderAspect.getProfilerFont());
+	//CpuProfiler::initialize(&m_renderAspect.getProfilerFont());
 
 	//Video video;
 	//video.initialize("test.video");
@@ -142,28 +141,28 @@ void Engine::renderLoop()
 
 		accum += frameTime;
 
-		CpuProfiler::frame();
+		//CpuProfiler::frame();
 
-		CpuProfiler::pushMarker("frame"); // frame begin
+		//CpuProfiler::pushMarker("frame"); // frame begin
 
 		while (accum >= g_dt)
 		{
 			m_renderAspect.updateProfiler(g_dt);
-			CpuProfiler::update();
-			CpuProfiler::updateRenderer();
+			//CpuProfiler::update();
+			//CpuProfiler::updateRenderer();
 
 			accum -= g_dt;
 		}
 
-		CpuProfiler::pushMarker("update");
+		//CpuProfiler::pushMarker("update");
 		m_renderAspect.update();
-		CpuProfiler::popMarker();
+		//CpuProfiler::popMarker();
 
-		CpuProfiler::pushMarker("render");
+		//CpuProfiler::pushMarker("render");
 		m_renderAspect.render();
-		CpuProfiler::popMarker();
+		//CpuProfiler::popMarker();
 
-		CpuProfiler::popMarker(); // frame end
+		//CpuProfiler::popMarker(); // frame end
 
 		last = current;
 	}
@@ -180,7 +179,7 @@ void Engine::mainLoop()
 	QueryPerformanceCounter(&last);
 
 	auto &font = m_renderAspect.getProfilerFont();
-	CpuProfiler::initialize(&font);
+	//CpuProfiler::initialize(&font);
 
 	f32 accum = 0.0f;
 	while (m_bRun != 0)
@@ -194,7 +193,7 @@ void Engine::mainLoop()
 
 		accum += frameTime;
 
-		CpuProfiler::frame();
+		//CpuProfiler::frame();
 		//m_profileGraph.frame(frameTime);
 		//m_profiler.frame();
 
@@ -204,16 +203,16 @@ void Engine::mainLoop()
 
 		while (accum >= g_dt)
 		{
-			CpuProfiler::pushMarker("update");
+			//CpuProfiler::pushMarker("update");
 			//m_profiler.pushCpuMarker("update()");
 			update();
 			//m_profiler.popCpuMarker();
 
 			accum -= g_dt;
 
-			CpuProfiler::popMarker();
+			//CpuProfiler::popMarker();
 
-			CpuProfiler::update();
+			//CpuProfiler::update();
 
 			//	m_profiler.update(g_dt);
 			//m_profileGraph.update();
@@ -276,9 +275,19 @@ bool Engine::initialize()
 	if (!m_systemAspect.initialize(g_engineConfig, ::callbackKeyPressed, nullptr))
 		return false;
 
-	RenderAspectDescription renderAspectDesc = g_engineConfig.getRenderAspectDescription(&m_systemAspect.getWindow(), &m_allocator);
+	RenderAspectDescription renderAspectDesc =
+	{
+		&m_systemAspect.getWindow() ,
+		&m_allocator,
+		g_engineConfig.m_resolution,
+		vx::degToRad(g_engineConfig.m_fov),
+		g_engineConfig.m_zNear,
+		g_engineConfig.m_zFar,
+		g_engineConfig.m_vsync,
+		g_engineConfig.m_renderDebug
+	};
 
-	if (!m_renderAspect.initialize(dataDir, renderAspectDesc, &g_engineConfig))
+	if (!m_renderAspect.initialize(dataDir, renderAspectDesc, &g_engineConfig, &m_fileAspect, &m_eventManager))
 		return false;
 
 	m_renderAspect.makeCurrent(false);
@@ -298,6 +307,7 @@ bool Engine::initialize()
 
 	Locator::provide(&m_physicsAspect);
 	Locator::provide(&m_renderAspect);
+	Locator::provide(&m_fileAspect);
 
 	// register aspects that receive events
 	m_eventManager.registerListener(&m_renderAspect, 3, (u8)vx::EventType::File_Event);
@@ -309,8 +319,6 @@ bool Engine::initialize()
 	m_bRunFileThread.store(1);
 	m_bRunRenderThread.store(1);
 	m_shutdown = 0;
-
-	Locator::provide(&m_fileAspect);
 
 	return true;
 }
@@ -334,7 +342,7 @@ void Engine::shutdown()
 
 	Locator::reset();
 
-	CpuProfiler::shutdown();
+	//CpuProfiler::shutdown();
 
 	m_allocator.release();
 	m_memory.clear();

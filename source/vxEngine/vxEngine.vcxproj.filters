@@ -49,24 +49,6 @@
     <Filter Include="Source Files\Container">
       <UniqueIdentifier>{e10c45c8-c6fe-469f-994f-5cd6fe516894}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Render">
-      <UniqueIdentifier>{ffc072b1-65d1-4165-aaae-7cc01f059d6e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Render\Graphics">
-      <UniqueIdentifier>{49652880-1e00-4464-8090-59064e240e18}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Render\gl">
-      <UniqueIdentifier>{5614856d-6358-42ee-b5ed-64e0e21022ce}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Render">
-      <UniqueIdentifier>{5ee99ac7-fbec-41cc-a575-2f0bd9a57729}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Render\gl">
-      <UniqueIdentifier>{a4e231ce-fef3-49eb-b69e-d6f142882c8c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Render\Graphics">
-      <UniqueIdentifier>{23e969ac-2d1d-477e-8f6a-a8188031e271}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\AI">
       <UniqueIdentifier>{24c38349-713d-426b-8d3f-9d59cd8fcdd0}</UniqueIdentifier>
     </Filter>
@@ -103,14 +85,8 @@
     <Filter Include="Source Files\Editor">
       <UniqueIdentifier>{633544a4-e453-4b42-bc26-a5f6ede6c1ab}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Render\Graphics\Profiler">
-      <UniqueIdentifier>{4aebb6e8-175d-4166-88f5-cb6093379c59}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Navigation">
       <UniqueIdentifier>{2c0367ea-7bb1-4975-8778-859b7f2a54ac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Render\Graphics\Commands">
-      <UniqueIdentifier>{1d0a9662-c3ff-48c0-a84f-1d210a2f147a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Input">
       <UniqueIdentifier>{30930ff3-e05e-497c-9e5f-a16b9dd1588c}</UniqueIdentifier>
@@ -130,18 +106,6 @@
     <Filter Include="Source Files\unity">
       <UniqueIdentifier>{7250a31e-9de9-4e53-99b2-f1ad7b3aa74b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Render\Graphics\Commands">
-      <UniqueIdentifier>{807e9711-a7a0-4e5f-8e32-7d17c27ac795}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\OpenCL">
-      <UniqueIdentifier>{dc0df685-46ec-4c9a-914e-58ceb15f2fe3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Render\Graphics\Renderer">
-      <UniqueIdentifier>{4392a2e0-b8d7-403e-b25e-c6fd98f58fcd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Render\Graphics\Renderer">
-      <UniqueIdentifier>{f65076da-8f3d-49f2-be86-02265c9aa636}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -156,12 +120,6 @@
     <ClInclude Include="Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexArray.h">
-      <Filter>Header Files\Render\gl</Filter>
-    </ClInclude>
     <ClInclude Include="libraries.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -173,9 +131,6 @@
     </ClInclude>
     <ClInclude Include="MeshFactory.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SharedFramebuffer.h">
-      <Filter>Header Files\Render\gl</Filter>
     </ClInclude>
     <ClInclude Include="VirtualBaseClass.h">
       <Filter>Header Files\util</Filter>
@@ -192,26 +147,11 @@
     <ClInclude Include="thread_save_vector.h">
       <Filter>Header Files\Container</Filter>
     </ClInclude>
-    <ClInclude Include="FontAtlas.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Text.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Font.h">
-      <Filter>Header Files\Render\gl</Filter>
-    </ClInclude>
     <ClInclude Include="PhysicsAspect.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="TextureManager.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="memory.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vxFile.h">
-      <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>Header Files\Entity</Filter>
@@ -233,9 +173,6 @@
     </ClInclude>
     <ClInclude Include="BVH.h">
       <Filter>Header Files\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderAspect.h">
-      <Filter>Header Files\Render</Filter>
     </ClInclude>
     <ClInclude Include="ComponentRender.h">
       <Filter>Header Files\Entity</Filter>
@@ -291,9 +228,6 @@
     <ClInclude Include="Arrive.h">
       <Filter>Header Files\AI\Steering</Filter>
     </ClInclude>
-    <ClInclude Include="Locator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Heap.h">
       <Filter>Header Files\Container</Filter>
     </ClInclude>
@@ -336,92 +270,14 @@
     <ClInclude Include="EditorRenderAspect.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="ImageBindingManager.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="ProfilerGraph.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderUpdateTask.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneRenderer.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="LightBufferManager.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuFunctions.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="ScreenshotFactory.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="Editor.h">
       <Filter>Header Files\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuProfiler.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuStructs.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineConfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderAspectDescription.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugRenderSettings.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="DrawCommand.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="ProgramUniformBinding.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="DDS_File.h">
-      <Filter>Header Files\Render\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="CreateActorData.h">
       <Filter>Header Files\Events</Filter>
     </ClInclude>
     <ClInclude Include="Primitive.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\State.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Segment.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\CommandList.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\StaticMeshRenderer.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="gl\ObjectManager.h">
-      <Filter>Header Files\Render\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="gl\BufferManager.h">
-      <Filter>Header Files\Render\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="gl\BufferBindingManager.h">
-      <Filter>Header Files\Render\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderCommand.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderCommandFinalImage.h">
-      <Filter>Header Files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\ProgramUniformCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
     </ClInclude>
     <ClInclude Include="EntityAspect.h">
       <Filter>Header Files\Entity</Filter>
@@ -459,12 +315,6 @@
     <ClInclude Include="DecisionTreeTransition.h">
       <Filter>Header Files\AI\State Machine</Filter>
     </ClInclude>
-    <ClInclude Include="dds.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Surface.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="ActionFollowPath.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
@@ -492,62 +342,11 @@
     <ClInclude Include="CpuProfiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DoubleBufferRaw.h">
-      <Filter>Header Files\Container</Filter>
-    </ClInclude>
     <ClInclude Include="ActionManager.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
     <ClInclude Include="EditorObjectColors.h">
       <Filter>Header Files\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="SegmentFactory.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\CommandFactory.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\ViewportCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\Command.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\PointSizeCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\DrawArraysIndirectCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\DrawElementsIndirectCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\ClearColorCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\FramebufferTextureCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\PolygonOffsetCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\ClearCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\BarrierCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\CommandListFactory.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\DrawArraysCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
     </ClInclude>
     <ClInclude Include="LookWhereYoureGoing.h">
       <Filter>Header Files\AI\Steering</Filter>
@@ -564,47 +363,8 @@
     <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTransformBuffer.h">
       <Filter>Shaders\include</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Frame.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\game\data\shaders\include\UniformReflectionBuffer.h">
       <Filter>Shaders\include</Filter>
-    </ClInclude>
-    <ClInclude Include="opencl\Platform.h">
-      <Filter>Header Files\OpenCL</Filter>
-    </ClInclude>
-    <ClInclude Include="opencl\Image.h">
-      <Filter>Header Files\OpenCL</Filter>
-    </ClInclude>
-    <ClInclude Include="opencl\Context.h">
-      <Filter>Header Files\OpenCL</Filter>
-    </ClInclude>
-    <ClInclude Include="opencl\Device.h">
-      <Filter>Header Files\OpenCL</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\VoxelRenderer.h">
-      <Filter>Header Files\Render\Graphics\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\DepthRangeCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\CullFaceCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GBufferRenderer.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\RendererSettings.h">
-      <Filter>Header Files\Render\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Renderer.h">
-      <Filter>Header Files\Render\Graphics\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\ShadowRenderer.h">
-      <Filter>Header Files\Render\Graphics\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Frustum.h">
-      <Filter>Header Files\Render</Filter>
     </ClInclude>
     <ClInclude Include="..\..\game\data\shaders\include\UniformFrustumBuffer.h">
       <Filter>Shaders\include</Filter>
@@ -614,12 +374,6 @@
     </ClInclude>
     <ClInclude Include="EditorPhysicsAspect.h">
       <Filter>Header Files\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\GpuProfileCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Commands\CpuProfileCommand.h">
-      <Filter>Header Files\Render\Graphics\Commands</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -638,35 +392,17 @@
     <ClCompile Include="rtti_defines.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vertex.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MeshFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FontAtlas.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Text.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Font.cpp">
-      <Filter>Source Files\Render\gl</Filter>
-    </ClCompile>
     <ClCompile Include="PhysicsAspect.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="TextureManager.cpp">
-      <Filter>Source Files\Render\gl</Filter>
-    </ClCompile>
     <ClCompile Include="BVH.cpp">
       <Filter>Source Files\Container</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderAspect.cpp">
-      <Filter>Source Files\Render</Filter>
     </ClCompile>
     <ClCompile Include="StateMachine.cpp">
       <Filter>Source Files\AI</Filter>
@@ -691,9 +427,6 @@
     </ClCompile>
     <ClCompile Include="Arrive.cpp">
       <Filter>Source Files\AI\Steering</Filter>
-    </ClCompile>
-    <ClCompile Include="Locator.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SmallObject.cpp">
       <Filter>Source Files</Filter>
@@ -728,65 +461,11 @@
     <ClCompile Include="EditorRenderAspect.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="ImageBindingManager.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerController.cpp">
       <Filter>Source Files\Entity</Filter>
     </ClCompile>
-    <ClCompile Include="LightBufferManager.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneRenderer.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuFunctions.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="ScreenshotFactory.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineConfig.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderCommand.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderCommandFinalImage.cpp">
-      <Filter>Source Files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="DrawCommand.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuProfiler.cpp">
-      <Filter>Source Files\Render\Graphics\Profiler</Filter>
-    </ClCompile>
-    <ClCompile Include="ProfilerGraph.cpp">
-      <Filter>Source Files\Render\Graphics\Profiler</Filter>
-    </ClCompile>
-    <ClCompile Include="DDS_File.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="NavMeshGraph.cpp">
       <Filter>Source Files\AI</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\State.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Segment.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\CommandList.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="gl\BufferBindingManager.cpp">
-      <Filter>Source Files\Render\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="gl\BufferManager.cpp">
-      <Filter>Source Files\Render\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="gl\ObjectManager.cpp">
-      <Filter>Source Files\Render\gl</Filter>
     </ClCompile>
     <ClCompile Include="ActionUpdateGpuTransform.cpp">
       <Filter>Source Files\Actions</Filter>
@@ -799,9 +478,6 @@
     </ClCompile>
     <ClCompile Include="ai\Squad.cpp">
       <Filter>Source Files\AI</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Surface.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="ActionFollowPath.cpp">
       <Filter>Source Files\Actions</Filter>
@@ -827,89 +503,11 @@
     <ClCompile Include="CpuProfiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DoubleBufferRaw.cpp">
-      <Filter>Source Files\Container</Filter>
-    </ClCompile>
-    <ClCompile Include="SegmentFactory.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\CommandFactory.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\ViewportCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\ProgramUniformCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\DrawElementsIndirectCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\ClearColorCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\FramebufferTextureCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\PolygonOffsetCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\BarrierCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\ClearCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\PointSizeCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\CommandListFactory.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\DrawArraysCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
     <ClCompile Include="LookWhereYoureGoing.cpp">
       <Filter>Source Files\AI\Steering</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\Frame.cpp">
-      <Filter>Source Files\Render\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Renderer.cpp">
-      <Filter>Source Files\Render\Graphics\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\ShadowRenderer.cpp">
-      <Filter>Source Files\Render\Graphics\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\VoxelRenderer.cpp">
-      <Filter>Source Files\Render\Graphics\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\DepthRangeCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\CullFaceCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\GBufferRenderer.cpp">
-      <Filter>Source Files\Render\Graphics\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="EditorPhysicsAspect.cpp">
       <Filter>Source Files\Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\GpuProfileCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\Commands\CpuProfileCommand.cpp">
-      <Filter>Source Files\Render\Graphics\Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

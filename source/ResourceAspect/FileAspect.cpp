@@ -311,6 +311,9 @@ void FileAspect::getFolderString(vx::FileType fileType, const char** folder)
 	case vx::FileType::Scene:
 		*folder = s_sceneFolder;
 		break;
+	case vx::FileType::EditorScene:
+			*folder = s_sceneFolder;
+		break;
 	case vx::FileType::Fbx:
 		*folder = FileAspectCpp::g_assetFolder;
 		break;
@@ -408,11 +411,11 @@ bool FileAspect::loadFileMesh(const LoadFileOfTypeDescription &desc)
 		pushFileEvent(vx::FileEvent::Mesh_Loaded, arg1, arg2);
 		result = true;
 
-		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded mesh '%s' %llu", desc.fileName, desc.sid.value);
+		//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded mesh '%s' %llu", desc.fileName, desc.sid.value);
 	}
 	else
 	{
-		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error loading mesh '%s'", desc.fileName);
+		//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error loading mesh '%s'", desc.fileName);
 	}
 
 	return result;
@@ -466,11 +469,11 @@ void FileAspect::loadFileMaterial(const LoadFileOfTypeDescription &desc)
 
 		pushFileEvent(vx::FileEvent::Material_Loaded, arg1, arg2);
 
-		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded material '%s'", desc.fileName);
+		//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded material '%s'", desc.fileName);
 	}
 	else
 	{
-		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error loading material '%s'", desc.fileName);
+		//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error loading material '%s'", desc.fileName);
 	}
 }
 
@@ -493,11 +496,7 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 	break;
 	case vx::FileType::Scene:
 	{
-#if _VX_EDITOR
-		if (loadFileScene(desc, true))
-#else
 		if (loadFileScene(desc, false))
-#endif
 		{
 			vx::Variant arg1;
 			arg1.u64 = desc.sid.value;
@@ -509,6 +508,22 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 
 			desc.result->result = 1;
 			desc.result->type = vx::FileType::Scene;
+		}
+	}break;
+	case vx::FileType::EditorScene:
+	{
+		if (loadFileScene(desc, true))
+		{
+			vx::Variant arg1;
+			arg1.u64 = desc.sid.value;
+
+			vx::Variant arg2;
+			arg2.ptr = desc.pUserData;
+
+			pushFileEvent(vx::FileEvent::EditorScene_Loaded, arg1, arg2);
+
+			desc.result->result = 1;
+			desc.result->type = vx::FileType::EditorScene;
 		}
 	}break;
 	case vx::FileType::Fbx:
@@ -583,7 +598,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 
 	switch (fileType)
 	{
-	case vx::FileType::Scene:
+	case vx::FileType::EditorScene:
 		folder = s_sceneFolder;
 		break;
 	default:
@@ -609,7 +624,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	u8 saveResult = 0;
 	switch (fileType)
 	{
-	case vx::FileType::Scene:
+	case vx::FileType::EditorScene:
 	{
 		auto scene = (Editor::Scene*)request.userData;
 		VX_ASSERT(scene != nullptr);
@@ -720,6 +735,9 @@ void FileAspect::onExistingFile(const FileRequest* request, const vx::StringID &
 		fileEvent = vx::FileEvent::Material_Existing;
 		break;
 	case vx::FileType::Scene:
+		fileEvent = vx::FileEvent::Scene_Existing;
+		break;
+	case vx::FileType::EditorScene:
 		fileEvent = vx::FileEvent::Scene_Existing;
 		break;
 	default:

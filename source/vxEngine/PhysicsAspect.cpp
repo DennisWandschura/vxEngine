@@ -26,14 +26,14 @@ SOFTWARE.
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/MeshInstance.h>
-#include "Locator.h"
+#include <vxEngineLib/Locator.h>
 #include <vxEngineLib/Material.h>
 #include <vxResourceAspect/FileAspect.h>
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/FileEvents.h>
-#include "EventsIngame.h"
-#include "CreateActorData.h"
+#include <vxEngineLib/EventsIngame.h>
+#include <vxEngineLib/CreateActorData.h>
 #include <vxEngineLib/EventManager.h>
 
 UserErrorCallback PhysicsAspect::s_defaultErrorCallback{};

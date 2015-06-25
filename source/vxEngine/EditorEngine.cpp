@@ -21,7 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "EditorEngine.h"
+
+/*#include "EditorEngine.h"
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
 #include "Locator.h"
@@ -314,12 +315,6 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 
 		if (m_previousSceneLoaded)
 		{
-			/*auto meshes = m_pEditorScene->getMeshes();
-			for (auto &it : meshes)
-			{
-				m_fileAspect.releaseFile();
-			}
-			m_pEditorScene->reset();*/
 			VX_ASSERT(false);
 		}
 
@@ -1314,4 +1309,4 @@ u64 EditorEngine::getMaterialSid(u32 i) const
 	}
 
 	return sidValue;
-}
+}*/

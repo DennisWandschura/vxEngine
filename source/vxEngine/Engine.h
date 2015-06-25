@@ -28,7 +28,7 @@ SOFTWARE.
 #include <atomic>
 #include <vxLib/Allocator/StackAllocator.h>
 #include "SystemAspect.h"
-#include "RenderAspect.h"
+#include <vxRenderAspect/RenderAspect.h>
 #include "PhysicsAspect.h"
 #include <vxResourceAspect/FileAspect.h>
 #include "memory.h"

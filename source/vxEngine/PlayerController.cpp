@@ -26,6 +26,7 @@ SOFTWARE.
 #include "ActionPlayerLookAround.h"
 #include "ActionPlayerMove.h"
 #include "ActionUpdateGpuTransform.h"
+#include <vxLib/memory.h>
 
 #include <vxLib/math/Vector.h>
 #include <vxLib/RawInput.h>
@@ -35,7 +36,6 @@ SOFTWARE.
 #include "EntityAspect.h"
 #include "ComponentInput.h"
 #include "PhysicsDefines.h"
-#include "RenderAspect.h"
 
 PlayerController::PlayerController()
 {

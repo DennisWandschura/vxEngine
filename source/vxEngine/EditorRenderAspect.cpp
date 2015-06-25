@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "EditorRenderAspect.h"
+/*#include "EditorRenderAspect.h"
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/EditorScene.h>
@@ -345,18 +345,6 @@ void EditorRenderAspect::createIndirectCmdBuffers()
 
 		m_objectManager.createBuffer("navmeshCmdBuffer", desc);
 	}
-
-	/*{
-		u32 drawCount = 0;
-		vx::gl::BufferDescription desc;
-		desc.bufferType = vx::gl::BufferType::Parameter_Buffer;
-		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
-		desc.immutable = 1;
-		desc.pData = &drawCount;
-		desc.size = sizeof(u32);
-
-		m_objectManager.createBuffer("meshParamBuffer", desc);
-	}*/
 }
 
 void EditorRenderAspect::createCommandList()
@@ -510,11 +498,6 @@ void EditorRenderAspect::handleEvent(const vx::Event &evt)
 void EditorRenderAspect::addMesh(const vx::StringID &sid)
 {
 	VX_UNREFERENCED_PARAMETER(sid);
-	/*auto &sceneMeshes = m_pCurrentScene->getMeshes();
-	auto it = sceneMeshes.find(sid);
-	assert(it != sceneMeshes.end());
-
-	const vx::Mesh* pMesh = *it;*/
 
 	assert(false);
 
@@ -526,120 +509,11 @@ void EditorRenderAspect::addMesh(const vx::StringID &sid)
 void EditorRenderAspect::addMaterial(const vx::StringID &sid)
 {
 	VX_UNREFERENCED_PARAMETER(sid);
-	/*auto &sceneMaterials = m_pCurrentScene->getMaterials();
-
-	auto it = sceneMaterials.find(sid);
-	assert(it != sceneMaterials.end());
-
-	Material* pMaterial = *it;
-	VX_ASSERT(pMaterial != nullptr, "Material == nullptr");
-
-	auto materialIndex = m_editorData.addMaterial(sid, pMaterial);
-
-	createMaterial(pMaterial);
-	writeMaterialToBuffer(pMaterial, materialIndex);*/
 }
 
 void EditorRenderAspect::addMeshInstanceToBuffers()
 {
 	VX_ASSERT(false);
-	/*auto instanceCount = m_pCurrentScene->getMeshInstanceCount();
-	if (instanceCount == 0)
-	return;
-
-	u32 batchIndexStart = 0;
-	u32 batchInstanceCount = 0;
-	u32 batchInstanceStart = 0;
-	u32 totalInstanceCount = 0;
-
-	m_editorMeshInstanceIndices.clear();
-
-	std::vector<std::pair<vx::StringID, const MeshInstance*>> meshInstances;
-	meshInstances.reserve(instanceCount);
-
-	auto &sceneMeshInstances = m_pCurrentScene->getMeshInstancesSortedByName();
-	for (auto i = 0u; i < instanceCount; ++i)
-	{
-	meshInstances.push_back(
-	std::make_pair(sceneMeshInstances.keys()[i], sceneMeshInstances.data() + i)
-	);
-	}
-
-	auto &sceneMaterials = m_pCurrentScene->getMaterials();
-	std::sort(meshInstances.begin(), meshInstances.end(), [&](const std::pair<vx::StringID, const MeshInstance*> &lhs, const std::pair<vx::StringID, const MeshInstance*> &rhs)
-	{
-	Material &lhsMaterial = **sceneMaterials.find(lhs.second->getMaterialSid());
-	Material &rhsMaterial = **sceneMaterials.find(rhs.second->getMaterialSid());
-
-	return (lhsMaterial < rhsMaterial) ||
-	(lhsMaterial == rhsMaterial && lhs.second->getMeshSid() < rhs.second->getMeshSid());
-	});
-
-	auto batchMeshSid = meshInstances[0].second->getMeshSid();
-
-	u32 drawCount = 0;
-	u32 batchIndexCount = m_editorMeshEntries.find(batchMeshSid)->indexCount;
-
-	for (auto i = 0u; i < instanceCount; ++i)
-	{
-	auto currentMeshSid = meshInstances[i].second->getMeshSid();
-	auto meshEntry = m_editorMeshEntries.find(currentMeshSid);
-	auto pCurrentMaterial = m_fileAspect.getMaterial(meshInstances[i].second->getMaterialSid());
-	auto materialIndex = *m_editorMaterialIndices.find(pCurrentMaterial);
-
-	if (currentMeshSid != batchMeshSid)
-	{
-	vx::gl::DrawElementsIndirectCommand cmd;
-	cmd.count = batchIndexCount;
-	cmd.instanceCount = batchInstanceCount;
-	cmd.firstIndex = batchIndexStart;
-	cmd.baseVertex = 0;
-	cmd.baseInstance = batchInstanceStart;
-
-	auto pCmd = (vx::gl::DrawElementsIndirectCommand*)m_meshIndirectBuffer.map(vx::gl::Map::Write_Only);
-	pCmd[drawCount] = cmd;
-	m_meshIndirectBuffer.unmap();
-
-	++drawCount;
-
-	batchIndexStart += batchIndexCount;
-	batchInstanceStart += batchInstanceCount;
-	batchInstanceCount = 0;
-	batchMeshSid = currentMeshSid;
-	batchIndexCount = meshEntry->indexCount;
-	}
-
-	writeMeshInstanceTransform(meshInstances[i].second, i);
-	writeMeshInstanceIdBuffer(i, materialIndex);
-	writeMeshInstanceToCommandBuffer(*meshEntry, i);
-
-	m_editorMeshInstanceIndices.insert(meshInstances[i].first, i);
-
-	++batchInstanceCount;
-	++totalInstanceCount;
-	}
-
-	vx::gl::DrawElementsIndirectCommand cmd;
-	cmd.count = batchIndexCount;
-	cmd.instanceCount = batchInstanceCount;
-	cmd.firstIndex = batchIndexStart;
-	cmd.baseVertex = 0;
-	cmd.baseInstance = batchInstanceStart;
-
-	vx::gl::DrawElementsIndirectCommand *pCmd = (vx::gl::DrawElementsIndirectCommand*)m_meshIndirectBuffer.map(vx::gl::Map::Write_Only);
-	pCmd[drawCount] = cmd;
-	m_meshIndirectBuffer.unmap();
-
-	++drawCount;
-
-	m_stageVoxelize.setDrawCount(drawCount);
-	m_stageForwardRender.setDrawCount(totalInstanceCount);
-	m_stageUpdateAABB.setDrawCount(drawCount);
-
-	m_drawCount = drawCount;
-	m_meshInstanceCount = totalInstanceCount;
-
-	printf("drawcount: %u, totalInstanceCount: %u\n", m_drawCount, totalInstanceCount);*/
 }
 
 void EditorRenderAspect::updateInstance(const vx::StringID &sid)
@@ -650,26 +524,6 @@ void EditorRenderAspect::updateInstance(const vx::StringID &sid)
 void EditorRenderAspect::updateEditor()
 {
 	vx::lock_guard<vx::mutex> guard(m_updateDataMutex);
-	/*for (auto &it : m_updateData)
-	{
-	switch (it.second)
-	{
-	case EditorUpdate::Update_Mesh:
-	editor_addMesh(it.first.sid);
-	break;
-	case EditorUpdate::Update_Material:
-	editor_addMaterial(it.first.sid);
-	break;
-	case EditorUpdate::Editor_Added_Instance:
-	editor_addMeshInstanceToBuffers();
-	break;
-	case EditorUpdate::Editor_Update_Instance:
-	editor_updateInstance(it.first.sid);
-	break;
-	default:
-	break;
-	}
-	}*/
 	m_updateData.clear();
 }
 
@@ -699,12 +553,6 @@ void EditorRenderAspect::handleLoadScene(const vx::Event &evt)
 	auto &navMesh = scene->getNavMesh();
 
 	updateNavMeshBuffer(navMesh);
-
-	/*{
-		auto paramBuffer = m_objectManager.getBuffer("meshParamBuffer");
-		u32 count = scene->getMeshInstanceCount();
-		paramBuffer->subData(0, sizeof(u32), &count);
-	}*/
 
 	{
 		auto cmdBuffer = m_objectManager.getBuffer("editorLightCmdBuffer");
@@ -1071,4 +919,4 @@ void EditorRenderAspect::showInfluenceMap(bool b)
 		m_commandList.disableSegment("segmentDrawInfluenceCell.txt");
 
 	}
-}
+}*/

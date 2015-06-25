@@ -25,7 +25,7 @@ SOFTWARE.
 #include <PxPhysicsAPI.h>
 #include <vxEngineLib/MeshInstance.h>
 #include <vxResourceAspect/FileAspect.h>
-#include "Locator.h"
+#include <vxEngineLib/Locator.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/Event.h>

@@ -24,7 +24,7 @@ SOFTWARE.
 #pragma once
 
 #include <vxLib/types.h>
-#include "DebugRenderSettings.h"
+//#include "DebugRenderSettings.h"
 
 namespace dev
 {
@@ -32,5 +32,5 @@ namespace dev
 	extern u8 g_showNavGraph;
 	extern u8 g_toggleRender;
 	extern u8 g_record;
-	extern DebugRenderSettings g_debugRenderSettings;
+	//extern DebugRenderSettings g_debugRenderSettings;
 }

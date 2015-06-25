@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "CpuProfiler.h"
+/*#include "CpuProfiler.h"
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
 #include <vxLib/memory.h>
@@ -646,4 +646,4 @@ void CpuProfiler::pushMarker(const char* id)
 void CpuProfiler::popMarker()
 {
 	CpuProfilerCpp::s_profiler->popMarker();
-}
+}*/

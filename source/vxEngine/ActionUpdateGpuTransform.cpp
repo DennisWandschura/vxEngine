@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include "ActionUpdateGpuTransform.h"
 #include "Entity.h"
-#include "RenderAspect.h"
+#include <vxRenderAspect/RenderAspect.h>
 
 ActionUpdateGpuTransform::ActionUpdateGpuTransform()
 	:m_playerEntity(nullptr),

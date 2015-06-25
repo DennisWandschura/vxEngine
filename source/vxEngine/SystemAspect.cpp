@@ -23,8 +23,7 @@ SOFTWARE.
 */
 #include "SystemAspect.h"
 #include "Engine.h"
-#include "RenderAspect.h"
-#include "EngineConfig.h"
+#include <vxEngineLib/EngineConfig.h>
 
 SystemAspect::SystemAspect()
 	:m_window(),

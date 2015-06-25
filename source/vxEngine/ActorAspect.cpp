@@ -24,7 +24,7 @@ SOFTWARE.
 #include "ActorAspect.h"
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/Event.h>
-#include "Locator.h"
+#include <vxEngineLib/Locator.h>
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/EventManager.h>
 #include <vxEngineLib/Pool.h>
@@ -35,7 +35,7 @@ SOFTWARE.
 #include "AStar.h"
 #include "NavNode.h"
 #include <vxLib/ScopeGuard.h>
-#include "EventsIngame.h"
+#include <vxEngineLib/EventsIngame.h>
 #include <vxEngineLib/FileEvents.h>
 
 ActorAspect::ActorAspect(const PhysicsAspect &physicsAspect)

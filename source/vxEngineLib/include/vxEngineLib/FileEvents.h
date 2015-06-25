@@ -31,6 +31,7 @@ namespace vx
 	{
 		// arg1 contains sid of filename, arg2 contains ptr to scene
 		Scene_Loaded,
+		EditorScene_Loaded,
 		// arg1 contains sid to file, arg2 contains ptr
 		Texture_Loaded,
 		// arg1 contains sid to file, arg2 userdata

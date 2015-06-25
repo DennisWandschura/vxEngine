@@ -31,40 +31,58 @@ enum class PlayerType : u32;
 
 struct Spawn
 {
-#if _VX_EDITOR
-	static u32 s_id;
-
-	Spawn() :type(),
+	Spawn() 
+		:type(),
 		position(),
-		sid(),
-		id(s_id++)
+		sid()
 	{}
 
 	Spawn(const Spawn &rhs)
 		:type(rhs.type),
 		position(rhs.position),
-		sid(rhs.sid),
-		id(rhs.id)
+		sid(rhs.sid)
 	{
 	}
 
 	Spawn(Spawn &&rhs)
 		:type(rhs.type),
 		position(rhs.position),
-		sid(rhs.sid),
-		id(rhs.id)
+		sid(rhs.sid)
 	{
 	}
-#endif
 
 	PlayerType type;
 	vx::float3 position;
 	// actor id, not used for human
 	vx::StringID sid;
-#if _VX_EDITOR
-	u32 id;
-#endif
 };
+
+namespace Editor
+{
+	struct Spawn : public ::Spawn
+	{
+		static u32 s_id;
+
+		Spawn() 
+			: ::Spawn(),
+			id(s_id++)
+		{}
+
+		Spawn(const Spawn &rhs)
+			: ::Spawn(rhs),
+			id(rhs.id)
+		{
+		}
+
+		Spawn(Spawn &&rhs)
+			: ::Spawn(std::move(rhs)),
+			id(rhs.id)
+		{
+		}
+
+		u32 id;
+	};
+}
 
 struct SpawnFile
 {

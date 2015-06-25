@@ -29,5 +29,5 @@ namespace dev
 	u8 g_showNavGraph{ 0 };
 	u8 g_toggleRender{ 0 };
 	u8 g_record{ 0 };
-	DebugRenderSettings g_debugRenderSettings{};
+	//DebugRenderSettings g_debugRenderSettings{};
 }

@@ -28,6 +28,7 @@ SOFTWARE.
 #pragma comment(lib, "vxLib_sd.lib")
 #pragma comment(lib, "vxGL_sd.lib")
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
+#pragma comment(lib, "vxRenderAspectGL_d.lib")
 
 #if _VX_EDITOR
 #pragma comment(lib, "ResourceAspect_editor_d.lib")

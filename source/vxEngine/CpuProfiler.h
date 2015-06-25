@@ -26,7 +26,7 @@ SOFTWARE.
 #include <vxLib/math/Vector.h>
 #include <vector>
 
-class Font;
+/*class Font;
 
 namespace vx
 {
@@ -53,4 +53,4 @@ public:
 	static void updateRenderer();
 	static void render();
 	static void setPosition(const vx::float2 &position);
-};
+};*/

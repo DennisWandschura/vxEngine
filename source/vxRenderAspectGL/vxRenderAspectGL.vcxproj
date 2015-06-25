@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\DDS_File.cpp" />
+    <ClCompile Include="source\DoubleBufferRaw.cpp" />
+    <ClCompile Include="source\Font.cpp" />
+    <ClCompile Include="source\FontAtlas.cpp" />
+    <ClCompile Include="source\gl\BufferBindingManager.cpp" />
+    <ClCompile Include="source\gl\BufferManager.cpp" />
+    <ClCompile Include="source\gl\ObjectManager.cpp" />
+    <ClCompile Include="source\GpuProfiler.cpp" />
+    <ClCompile Include="source\Graphics\CommandFactory.cpp" />
+    <ClCompile Include="source\Graphics\CommandList.cpp" />
+    <ClCompile Include="source\Graphics\CommandListFactory.cpp" />
+    <ClCompile Include="source\Graphics\Commands\BarrierCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\ClearColorCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\ClearCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\CpuProfileCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\CullFaceCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\DepthRangeCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\DrawArraysCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\DrawArraysIndirectCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\DrawElementsIndirectCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\FramebufferTextureCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\GpuProfileCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\PointSizeCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\PolygonOffsetCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\ProgramUniformCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\ViewportCommand.cpp" />
+    <ClCompile Include="source\Graphics\Frame.cpp" />
+    <ClCompile Include="source\Graphics\GBufferRenderer.cpp" />
+    <ClCompile Include="source\Graphics\Renderer.cpp" />
+    <ClCompile Include="source\Graphics\Segment.cpp" />
+    <ClCompile Include="source\Graphics\ShadowRenderer.cpp" />
+    <ClCompile Include="source\Graphics\State.cpp" />
+    <ClCompile Include="source\Graphics\Surface.cpp" />
+    <ClCompile Include="source\Graphics\VoxelRenderer.cpp" />
+    <ClCompile Include="source\LightBufferManager.cpp" />
+    <ClCompile Include="source\RenderAspect.cpp" />
+    <ClCompile Include="source\RenderCommand.cpp" />
+    <ClCompile Include="source\RenderCommandFinalImage.cpp" />
+    <ClCompile Include="source\SceneRenderer.cpp" />
+    <ClCompile Include="source\SegmentFactory.cpp" />
+    <ClCompile Include="source\TextureManager.cpp" />
+    <ClCompile Include="source\Vertex.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\vxRenderAspect\dds.h" />
+    <ClInclude Include="include\vxRenderAspect\DDS_File.h" />
+    <ClInclude Include="include\vxRenderAspect\DebugRenderSettings.h" />
+    <ClInclude Include="include\vxRenderAspect\DoubleBufferRaw.h" />
+    <ClInclude Include="include\vxRenderAspect\Font.h" />
+    <ClInclude Include="include\vxRenderAspect\FontAtlas.h" />
+    <ClInclude Include="include\vxRenderAspect\Frustum.h" />
+    <ClInclude Include="include\vxRenderAspect\gl\BufferBindingManager.h" />
+    <ClInclude Include="include\vxRenderAspect\gl\BufferManager.h" />
+    <ClInclude Include="include\vxRenderAspect\gl\ObjectManager.h" />
+    <ClInclude Include="include\vxRenderAspect\GpuFunctions.h" />
+    <ClInclude Include="include\vxRenderAspect\GpuProfiler.h" />
+    <ClInclude Include="include\vxRenderAspect\GpuStructs.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\CommandFactory.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\CommandList.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\CommandListFactory.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BarrierCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearColorCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\Command.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\CpuProfileCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\CullFaceCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DepthRangeCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawArraysCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawArraysIndirectCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawElementsIndirectCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\FramebufferTextureCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\GpuProfileCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawArraysIndirectCountCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawElementsIndirectCountCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PointSizeCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PolygonOffsetCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ProgramUniformCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ViewportCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Frame.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\GBufferRenderer.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Renderer.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Segment.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\ShadowRenderer.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\State.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\StaticMeshRenderer.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Surface.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\VoxelRenderer.h" />
+    <ClInclude Include="include\vxRenderAspect\LightBufferManager.h" />
+    <ClInclude Include="include\vxRenderAspect\opencl\Context.h" />
+    <ClInclude Include="include\vxRenderAspect\opencl\Device.h" />
+    <ClInclude Include="include\vxRenderAspect\opencl\Image.h" />
+    <ClInclude Include="include\vxRenderAspect\opencl\Platform.h" />
+    <ClInclude Include="include\vxRenderAspect\RenderAspect.h" />
+    <ClInclude Include="include\vxRenderAspect\RenderAspectDescription.h" />
+    <ClInclude Include="include\vxRenderAspect\RenderCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\RenderCommandFinalImage.h" />
+    <ClInclude Include="include\vxRenderAspect\RenderUpdateTask.h" />
+    <ClInclude Include="include\vxRenderAspect\SceneRenderer.h" />
+    <ClInclude Include="include\vxRenderAspect\SegmentFactory.h" />
+    <ClInclude Include="include\vxRenderAspect\TextureManager.h" />
+    <ClInclude Include="include\vxRenderAspect\Vertex.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6B2488E5-F44A-46C6-9F8D-AD76C95DAC54}</ProjectGuid>
+    <RootNamespace>vxRenderAspectGL</RootNamespace>
+    <TargetPlatformVersion>10.0.10069.0</TargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxRenderAspectGL\include;C:\Intel\INDE\code_builder_5.1.0.25\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\game\data\shaders\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <TargetName>$(ProjectName)_d</TargetName>
+    <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <OutDir>..\..\lib\</OutDir>
+    <LibraryPath>C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs2015;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_VX_WINDOWS;_DEBUG;VX_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>false</ExceptionHandling>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;vxlib_sd.lib;vxGL_sd.lib;vxEngineLib_d.lib;opencl.lib;vxResourceAspect_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -35,9 +35,9 @@ class NavMeshGraph;
 struct Waypoint;
 struct Spawn;
 
-#include "RenderAspect.h"
+#include <vxRenderAspect/RenderAspect.h>
 #include <vxLib/Variant.h>
-#include "Graphics/CommandList.h"
+//#include "Graphics/CommandList.h"
 
 class EditorRenderAspect : public RenderAspect
 {
@@ -58,7 +58,7 @@ class EditorRenderAspect : public RenderAspect
 		u32 m_navMeshVertexCount{ 0 };
 	};
 
-	Graphics::CommandList m_commandList;
+	//Graphics::CommandList m_commandList;
 
 	u32 m_navMeshGraphNodesCount{0};
 
