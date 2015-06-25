@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "PointSizeCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
@@ -49,9 +49,10 @@ namespace Graphics
 		m_pointSize = pointSize;
 	}
 
-	void PointSizeCommand::execute(u32* offset)
+	void PointSizeCommand::execute(const u8* p, u32* offset)
 	{
-		glPointSize(m_pointSize);
+		auto ptr = (PointSizeCommand*)p;
+		glPointSize(ptr->m_pointSize);
 
 		*offset += sizeof(PointSizeCommand);
 	}

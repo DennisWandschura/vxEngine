@@ -29,15 +29,5 @@ namespace Graphics
 {
 	class Segment;
 
-	struct Command
-	{
-		virtual ~Command(){}
-
-		virtual void execute(u32* offset) = 0;
-
-		static void handleCommand(Command* header, u32* offset)
-		{
-			header->execute(offset);
-		}
-	};
+	typedef void(*CommandFunctionType)(const u8*, u32*);
 }

@@ -24,12 +24,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/gl/Base.h>
+#include <vxGL/Base.h>
 #include "Command.h"
 
 namespace Graphics
 {
-	struct ProgramUniformCommand : public Command
+	struct ProgramUniformCommand
 	{
 		u32 m_program;
 		vx::gl::DataType m_dataType;
@@ -39,7 +39,7 @@ namespace Graphics
 
 		void set(u32 program, u32 location, u32 count, vx::gl::DataType dataType);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 
 	private:
 		void programUniformFloat(u32* offset);

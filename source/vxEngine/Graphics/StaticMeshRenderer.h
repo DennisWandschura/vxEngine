@@ -24,8 +24,8 @@ SOFTWARE.
 #pragma once
 
 #include "Renderer.h"
-#include <vxLib/gl/VertexArray.h>
-#include <vxLib/gl/Buffer.h>
+#include <vxGL/VertexArray.h>
+#include <vxGL/Buffer.h>
 
 namespace Graphics
 {

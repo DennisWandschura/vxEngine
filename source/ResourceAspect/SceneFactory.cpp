@@ -64,7 +64,7 @@ bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, cons
 			// request load
 			desc.pMissingFiles->push_back(meshFileEntry);
 
-			printf("could not find mesh: %s %llu\n", meshFile, meshFileEntry.getSid());
+			//printf("could not find mesh: %s %llu\n", meshFile, meshFileEntry.getSid());
 
 			result = false;
 		}
@@ -78,7 +78,7 @@ bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, cons
 		if (itMaterial == desc.sortedMaterials->end())
 		{
 			desc.pMissingFiles->push_back(materialFileEntry);
-			printf("could not find material: %s\n", materialFile);
+			//printf("could not find material: %s\n", materialFile);
 
 			result = false;
 		}
@@ -92,17 +92,17 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	auto pMeshInstances = desc.pSceneFile->getMeshInstances();
 	auto instanceCount = desc.pSceneFile->getNumMeshInstances();
 
-	printf("checking mesh instances\n");
+	//printf("checking mesh instances\n");
 	bool result = checkMeshInstances(desc, pMeshInstances, instanceCount);
 	if (!result)
 	{
-		printf("missing instance assets\n");
+		//printf("missing instance assets\n");
 	}
 
 	auto pActors = desc.pSceneFile->getActors();
 	auto actorCount = desc.pSceneFile->getActorCount();
 
-	printf("checking actors: %u\n", actorCount);
+	//printf("checking actors: %u\n", actorCount);
 	for (u32 i = 0; i < actorCount; ++i)
 	{
 		auto &actor = pActors[i];
@@ -153,7 +153,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 	}
 	else
 	{
-		printf("Failed loading scene file (wrong header/crc)\n");
+		//printf("Failed loading scene file (wrong header/crc)\n");
 	}
 
 	if (result)
@@ -162,12 +162,12 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 	}
 	else
 	{
-		printf("Scene missing dependencies\n");
+		//printf("Scene missing dependencies\n");
 	}
 
 	if (!result)
 	{
-		printf("Error converting SceneFile to Scene\n");
+		//printf("Error converting SceneFile to Scene\n");
 	}
 
 	scratchAllocator->clear(marker);
@@ -212,7 +212,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 
 	if (result)
 	{
-		printf("SceneFactory::createFromMemory: create scene file\n");
+		//printf("SceneFactory::createFromMemory: create scene file\n");
 		LoadSceneFileDescription loadDesc;
 		loadDesc.sortedMaterials = desc.materials;
 		loadDesc.sortedMeshes = desc.meshes;
@@ -224,7 +224,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 
 	if (result)
 	{
-		printf("SceneFactory::createFromMemory: try to create scene\n");
+		//printf("SceneFactory::createFromMemory: try to create scene\n");
 		CreateEditorSceneDescription createSceneDescriptionDesc;
 		createSceneDescriptionDesc.pScene = pScene;
 		createSceneDescriptionDesc.sortedMaterials = desc.materials;
@@ -234,7 +234,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 	}
 	else
 	{
-		printf("SceneFactory::createFromMemory: error, missing assets\n");
+		//printf("SceneFactory::createFromMemory: error, missing assets\n");
 	}
 
 	scratchAllocator->clear(marker);

@@ -25,9 +25,9 @@ SOFTWARE.
 */
 
 #include "BufferManager.h"
-#include <vxLib/gl/VertexArray.h>
-#include <vxLib/gl/Framebuffer.h>
-#include <vxLib/gl/Texture.h>
+#include <vxGL/VertexArray.h>
+#include <vxGL/Framebuffer.h>
+#include <vxGL/Texture.h>
 
 namespace gl
 {
@@ -62,7 +62,7 @@ namespace gl
 		const vx::gl::Buffer* getBuffer(const vx::StringID &sid) const;
 		const vx::gl::Buffer* getBuffer(const char* id) const;
 
-		vx::StringID createTexture(const char* id, const vx::gl::TextureDescription &desc);
+		vx::StringID createTexture(const char* id, const vx::gl::TextureDescription &desc, bool makeResident = false);
 		const vx::gl::Texture* getTexture(const vx::StringID &sid) const;
 		const vx::gl::Texture* getTexture(const char* id) const;
 	};

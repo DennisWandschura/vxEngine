@@ -30,11 +30,16 @@ namespace gl
 
 namespace vx
 {
+	class StackAllocator;
+
 	namespace gl
 	{
 		class  ShaderManager;
 	}
 }
+
+struct EngineConfig;
+class GpuProfiler;
 
 #include <vector>
 #include <vxLib/types.h>
@@ -42,19 +47,19 @@ namespace vx
 namespace Graphics
 {
 	class CommandList;
-	struct RendererSettings;
 
 	class Renderer
 	{
 	protected:
 		static vx::gl::ShaderManager* s_shaderManager;
 		static gl::ObjectManager* s_objectManager;
-		static const RendererSettings* s_settings;
+		static const EngineConfig* s_settings;
+		static GpuProfiler* s_gpuProfiler;
 
 	public:
 		virtual ~Renderer(){}
 
-		virtual void initialize(const void*) = 0;
+		virtual void initialize(vx::StackAllocator* scratchAllocator) = 0;
 		virtual void shutdown() = 0;
 
 		virtual void update() = 0;
@@ -64,6 +69,6 @@ namespace Graphics
 		virtual void clearData() = 0;
 		virtual void bindBuffers() = 0;
 
-		static void provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, const RendererSettings* settings);
+		static void provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, const EngineConfig* settings, GpuProfiler* gpuProfiler);
 	};
 }

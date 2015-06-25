@@ -28,13 +28,13 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct DepthRangeCommand : public Command
+	struct DepthRangeCommand
 	{
 		f32 m_n;
 		f32 m_f;
 
 		void set(f32 n, f32 f);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

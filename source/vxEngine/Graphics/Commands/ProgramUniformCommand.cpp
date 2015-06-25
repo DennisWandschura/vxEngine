@@ -23,11 +23,11 @@ SOFTWARE.
 */
 
 #include "ProgramUniformCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
-#include <vxLib/gl/ProgramPipeline.h>
+#include <vxGL/ProgramPipeline.h>
 
 namespace Graphics
 {
@@ -142,15 +142,17 @@ namespace Graphics
 		m_location = location;
 	}
 
-	void ProgramUniformCommand::execute(u32* offset)
+	void ProgramUniformCommand::execute(const u8* p, u32* offset)
 	{
-		switch (m_dataType)
+		auto ptr = (ProgramUniformCommand*)p;
+
+		switch (ptr->m_dataType)
 		{
 		case vx::gl::DataType::Float:
-			programUniformFloat(offset);
+			ptr->programUniformFloat(offset);
 			break;
 		case vx::gl::DataType::Unsigned_Int:
-			programUniformUInt(offset);
+			ptr->programUniformUInt(offset);
 			break;
 		default:
 			VX_ASSERT(false);

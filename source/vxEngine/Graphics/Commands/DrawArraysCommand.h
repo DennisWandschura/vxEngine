@@ -27,7 +27,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct DrawArraysCommand : public Command
+	struct DrawArraysCommand
 	{
 		u32 m_mode;
 		u32 m_first;
@@ -35,6 +35,6 @@ namespace Graphics
 
 		void set(u32 mode, u32 first, u32 count);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

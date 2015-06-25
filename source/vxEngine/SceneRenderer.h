@@ -50,8 +50,8 @@ namespace vx
 	class MeshFile;
 }
 
-#include <vxLib/gl/Buffer.h>
-#include <vxLib/gl/VertexArray.h>
+#include <vxGL/Buffer.h>
+#include <vxGL/VertexArray.h>
 #include "TextureManager.h"
 #include "LightBufferManager.h"
 #include <vxLib/Allocator/StackAllocator.h>

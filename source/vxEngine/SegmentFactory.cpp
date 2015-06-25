@@ -24,9 +24,9 @@ SOFTWARE.
 #include "SegmentFactory.h"
 #include "Graphics/Segment.h"
 #include "gl/ObjectManager.h"
-#include <vxLib/gl/ShaderManager.h>
-#include <vxLib/gl/ProgramPipeline.h>
-#include <vxLib/gl/Buffer.h>
+#include <vxGL/ShaderManager.h>
+#include <vxGL/ProgramPipeline.h>
+#include <vxGL/Buffer.h>
 #include <vxEngineLib/ParserNode.h>
 #include "Graphics/CommandFactory.h"
 

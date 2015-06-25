@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "MultiDrawElementsIndirectCountCommand.h"
-#include <vxLib/gl/gl.h>
-#include <vxLib/gl/Base.h>
+#include <vxGL/gl.h>
+#include <vxGL/Base.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
@@ -58,9 +58,11 @@ namespace Graphics
 		m_maxdrawcount = maxDrawCount;
 	}
 
-	void MultiDrawElementsIndirectCountCommand::execute(u32* offset)
+	void MultiDrawElementsIndirectCountCommand::execute(const u8* p, u32* offset)
 	{
-		glMultiDrawElementsIndirectCountARB(m_mode, m_type, m_indirectOffset, m_parameterBufferOffset, m_maxdrawcount, sizeof(vx::gl::DrawElementsIndirectCommand));
+		auto ptr = (MultiDrawElementsIndirectCountCommand*)p;
+
+		glMultiDrawElementsIndirectCountARB(ptr->m_mode, ptr->m_type, ptr->m_indirectOffset, ptr->m_parameterBufferOffset, ptr->m_maxdrawcount, sizeof(vx::gl::DrawElementsIndirectCommand));
 
 		*offset += sizeof(MultiDrawElementsIndirectCountCommand);
 	}

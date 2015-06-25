@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "DDS_File.h"
 #include <cstdio>
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include <assert.h>
 #include "dds.h"
 

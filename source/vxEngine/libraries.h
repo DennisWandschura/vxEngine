@@ -26,6 +26,7 @@ SOFTWARE.
 #if defined(_DEBUG_STATIC_BUILD)
 
 #pragma comment(lib, "vxLib_sd.lib")
+#pragma comment(lib, "vxGL_sd.lib")
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
 
 #if _VX_EDITOR
@@ -48,6 +49,7 @@ SOFTWARE.
 
 #elif defined(_RELEASE_STATIC_BUILD)
 #pragma comment(lib, "vxLib_s.lib")
+#pragma comment(lib, "vxGL_s.lib")
 #pragma comment(lib, "vxEngineLib.lib")
 #pragma comment(lib, "ResourceAspect.lib")
 

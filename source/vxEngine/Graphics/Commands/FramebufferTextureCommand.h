@@ -27,7 +27,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct FramebufferTextureCommand : public Command
+	struct FramebufferTextureCommand
 	{
 		u32 m_framebufferId;
 		u32 m_attachment;
@@ -36,6 +36,6 @@ namespace Graphics
 
 		void set(u32 framebufferId, u32 attachment, u32 texture, u32 level);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

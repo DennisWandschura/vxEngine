@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "ImageBindingManager.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 
 ImageBindingManager::Binding ImageBindingManager::s_bindings[s_maxBindings]{};
 

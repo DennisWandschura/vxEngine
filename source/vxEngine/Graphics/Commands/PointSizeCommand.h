@@ -27,12 +27,12 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct PointSizeCommand : public Command
+	struct PointSizeCommand
 	{
 		f32 m_pointSize;
 
 		void set(f32 pointSize);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

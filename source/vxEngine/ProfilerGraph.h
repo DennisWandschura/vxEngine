@@ -34,8 +34,8 @@ namespace vx
 }
 
 #include <vxLib/math/Vector.h>
-#include <vxLib/gl/Buffer.h>
-#include <vxLib/gl/VertexArray.h>
+#include <vxGL/Buffer.h>
+#include <vxGL/VertexArray.h>
 
 class ProfilerGraph
 {

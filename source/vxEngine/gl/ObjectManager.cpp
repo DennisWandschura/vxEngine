@@ -142,18 +142,26 @@ namespace gl
 		return m_bufferManager.getBuffer(id);
 	}
 
-	vx::StringID ObjectManager::createTexture(const char* id, const vx::gl::TextureDescription &desc)
+	vx::StringID ObjectManager::createTexture(const char* id, const vx::gl::TextureDescription &desc, bool makeResident)
 	{
-		vx::StringID sid = vx::make_sid(id);
-		auto it = m_textures.find(sid);
+		auto tmpSid = vx::make_sid(id);
+		auto it = m_textures.find(tmpSid);
 		VX_ASSERT(it == m_textures.end());
 
 		vx::gl::Texture texture;
 		texture.create(desc);
 
-		it = m_textures.insert(std::move(sid), std::move(texture));
-		if (it == m_textures.end())
-			sid = 0;
+		vx::StringID sid{};
+
+		it = m_textures.insert(std::move(tmpSid), std::move(texture));
+		if (it != m_textures.end())
+		{
+			if (makeResident)
+			{
+				it->makeTextureResident();
+			}
+			sid = tmpSid;
+		}
 
 		return sid;
 	}

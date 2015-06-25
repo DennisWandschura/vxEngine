@@ -40,13 +40,13 @@ class GpuProfiler;
 
 #include "RenderAspectDescription.h"
 #include <vxEngineLib/EventListener.h>
-#include <vxLib\gl\RenderContext.h>
+#include <vxGL/RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
 #include "SceneRenderer.h"
 #include "Font.h"
 #include "RenderUpdateTask.h"
 #include "gl/ObjectManager.h"
-#include <vxLib/gl/ShaderManager.h>
+#include <vxGL/ShaderManager.h>
 #include <vector>
 #include "RenderCommandFinalImage.h"
 #include "Graphics/CommandList.h"
@@ -54,6 +54,7 @@ class GpuProfiler;
 #include "Graphics/Frame.h"
 #include "opencl/context.h"
 #include <vxEngineLib/mutex.h>
+#include "GpuProfiler.h"
 
 class VX_ALIGN(64) RenderAspect : public vx::EventListener
 {
@@ -70,6 +71,7 @@ protected:
 	RenderUpdateCameraData m_updateCameraData;
 	DoubleBufferRaw m_doubleBuffer;
 	Graphics::ShadowRenderer* m_shadowRenderer;
+	std::unique_ptr<GpuProfiler> m_gpuProfiler;
 
 	vx::gl::Buffer m_cameraBuffer;
 	
@@ -103,7 +105,7 @@ protected:
 	void createTextures();
 	void createFrameBuffers();
 
-	bool initializeCommon(const vx::gl::ContextDescription &desc, const Graphics::RendererSettings &options);
+	bool initializeCommon(const vx::gl::ContextDescription &desc, const EngineConfig* settings);
 	bool initializeImpl(const std::string &dataDir, const EngineConfig* settings, vx::StackAllocator *pAllocator);
 
 	////////////// Event handling
@@ -122,7 +124,7 @@ protected:
 	void coneTrace();
 	void blurAmbientColor();
 
-	void renderProfiler(GpuProfiler* gpuProfiler);
+	void renderProfiler();
 
 	void taskUpdateCamera();
 	void taskTakeScreenshot();
@@ -135,7 +137,7 @@ protected:
 	u16 getActorGpuIndex();
 
 	void createColdData();
-	void provideRenderData(const Graphics::RendererSettings* settings);
+	void provideRenderData(const EngineConfig* settings, GpuProfiler* gpuProfiler);
 
 	void createOpenCL();
 
@@ -146,7 +148,7 @@ public:
 	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings);
 	void shutdown(const HWND hwnd);
 
-	bool initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocator* allocator);
+	bool initializeProfiler();
 
 	void makeCurrent(bool b);
 
@@ -155,7 +157,9 @@ public:
 	void queueUpdateCamera(const RenderUpdateCameraData &data);
 	void update();
 
-	void render(GpuProfiler* gpuProfiler);
+	void updateProfiler(f32 dt);
+
+	void render();
 
 	virtual void handleEvent(const vx::Event &evt) override;
 

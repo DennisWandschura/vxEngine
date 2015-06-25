@@ -37,8 +37,8 @@ namespace vx
 }
 
 #include <vxLib/math/Vector.h>
-#include <vxLib/gl/Buffer.h>
-#include <vxLib/gl/VertexArray.h>
+#include <vxGL/Buffer.h>
+#include <vxGL/VertexArray.h>
 #include <vxLib/Container/sorted_array.h>
 #include <vxLib/StringID.h>
 #include <vector>

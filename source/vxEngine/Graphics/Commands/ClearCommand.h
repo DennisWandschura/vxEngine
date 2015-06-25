@@ -27,12 +27,12 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct ClearCommand : public Command
+	struct ClearCommand
 	{
 		u32 m_bits;
 
 		void set(u32 bits);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

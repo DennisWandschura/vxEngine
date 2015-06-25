@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "BarrierCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
@@ -49,9 +49,12 @@ namespace Graphics
 		m_barrierBits = barrierBits;
 	}
 
-	void BarrierCommand::execute(u32* offset)
+	void BarrierCommand::execute(const u8* p, u32* offset)
 	{
-		glMemoryBarrier(m_barrierBits);
+		BarrierCommand* cmd = (BarrierCommand*)p;
+
+		glMemoryBarrier(cmd->m_barrierBits);
+
 		*offset += sizeof(BarrierCommand);
 	}
 }

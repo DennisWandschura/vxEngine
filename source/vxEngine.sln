@@ -1,14 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vxEngine", "vxEngine\vxEngine.vcxproj", "{EE543022-4EBB-4008-9102-A2A850668833}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MeshImporter", "MeshImporter\MeshImporter.vcxproj", "{6C4221CE-2423-49B2-BEDF-34AA9CA00392}"
-	ProjectSection(ProjectDependencies) = postProject
-		{EE543022-4EBB-4008-9102-A2A850668833} = {EE543022-4EBB-4008-9102-A2A850668833}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LevelEditor", "LevelEditorSharp\LevelEditor.csproj", "{BBD8B049-AF98-4658-8784-44CBE00F6A23}"
 EndProject
@@ -63,26 +58,6 @@ Global
 		{EE543022-4EBB-4008-9102-A2A850668833}.Release|Win32.ActiveCfg = Release|x64
 		{EE543022-4EBB-4008-9102-A2A850668833}.Release|x64.ActiveCfg = Release|x64
 		{EE543022-4EBB-4008-9102-A2A850668833}.Release|x64.Build.0 = Release|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug Editor|Any CPU.ActiveCfg = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug Editor|Mixed Platforms.ActiveCfg = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug Editor|Mixed Platforms.Build.0 = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug Editor|Win32.ActiveCfg = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug Editor|x64.ActiveCfg = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug|Mixed Platforms.Build.0 = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug|Win32.ActiveCfg = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Debug|x64.ActiveCfg = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.fbx test|Any CPU.ActiveCfg = Release|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.fbx test|Mixed Platforms.ActiveCfg = Release|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.fbx test|Mixed Platforms.Build.0 = Release|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.fbx test|Win32.ActiveCfg = Release|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.fbx test|x64.ActiveCfg = Debug|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Release|Any CPU.ActiveCfg = Release|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Release|Mixed Platforms.ActiveCfg = Release|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Release|Mixed Platforms.Build.0 = Release|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Release|Win32.ActiveCfg = Release|x64
-		{6C4221CE-2423-49B2-BEDF-34AA9CA00392}.Release|x64.ActiveCfg = Release|x64
 		{BBD8B049-AF98-4658-8784-44CBE00F6A23}.Debug Editor|Any CPU.ActiveCfg = Debug|x64
 		{BBD8B049-AF98-4658-8784-44CBE00F6A23}.Debug Editor|Mixed Platforms.ActiveCfg = Debug|x64
 		{BBD8B049-AF98-4658-8784-44CBE00F6A23}.Debug Editor|Mixed Platforms.Build.0 = Debug|x64

@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "CullFaceCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
@@ -49,9 +49,11 @@ namespace Graphics
 		m_cullFace = cullFace;
 	}
 
-	void CullFaceCommand::execute(u32* offset)
+	void CullFaceCommand::execute(const u8* p, u32* offset)
 	{
-		glCullFace(m_cullFace);
+		auto ptr = (CullFaceCommand*)p;
+
+		glCullFace(ptr->m_cullFace);
 
 		*offset += sizeof(CullFaceCommand);
 	}

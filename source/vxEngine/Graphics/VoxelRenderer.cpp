@@ -1,13 +1,13 @@
 #include "VoxelRenderer.h"
-#include <vxLib/gl/Buffer.h>
+#include <vxGL/Buffer.h>
 #include "../GpuStructs.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../gl/ObjectManager.h"
-#include <vxLib/gl/StateManager.h>
+#include <vxGL/StateManager.h>
 #include "../gl/BufferBindingManager.h"
 #include "Segment.h"
 #include "CommandList.h"
-#include "RendererSettings.h"
+#include "../EngineConfig.h"
 
 /*
 The MIT License (MIT)
@@ -54,12 +54,10 @@ namespace Graphics
 
 	}
 
-	void VoxelRenderer::initialize(const void* p)
+	void VoxelRenderer::initialize(vx::StackAllocator* scratchAllocator)
 	{
-		RendererSettings* settings = (RendererSettings*)p;
-
-		m_voxelTextureSize = settings->m_voxelSettings.m_voxelTextureSize;
-		m_voxelGridDim = settings->m_voxelSettings.m_voxelGridDim;
+		m_voxelTextureSize = s_settings->m_rendererSettings.m_voxelSettings.m_voxelTextureSize;
+		m_voxelGridDim = s_settings->m_rendererSettings.m_voxelSettings.m_voxelGridDim;
 
 		m_coldData = std::make_unique<ColdData>();
 
@@ -157,8 +155,8 @@ namespace Graphics
 		auto segmentVoxelize = createSegmentVoxelize();
 		auto segmentConeTrace = createSegmentConeTrace();
 
-		cmdList->pushSegment(segmentVoxelize, "voxelize");
-		cmdList->pushSegment(segmentConeTrace, "coneTrace");
+		//cmdList->pushSegment(segmentVoxelize, "voxelize");
+		//cmdList->pushSegment(segmentConeTrace, "coneTrace");
 	}
 
 	void VoxelRenderer::clearData()
@@ -261,14 +259,14 @@ namespace Graphics
 			m_coldData->m_voxelEmmitanceTextures[i].setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
 
 			m_coldData->m_voxelEmmitanceTextures[i].makeTextureResident();
-			glMakeImageHandleResidentARB(m_coldData->m_voxelEmmitanceTextures[i].getImageHandle(0, 1, 0), GL_WRITE_ONLY);
+			m_coldData->m_voxelEmmitanceTextures[i].makeImageResident(0, 1, 0, vx::gl::TextureAccess::Write);
 
 			m_voxelEmmitanceTexturesIDs[i] = m_coldData->m_voxelEmmitanceTextures[i].getId();
 
 			m_coldData->m_voxelOpacityTextures[i].create(desc);
 			m_coldData->m_voxelOpacityTextures[i].setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
 			m_coldData->m_voxelOpacityTextures[i].makeTextureResident();
-			glMakeImageHandleResidentARB(m_coldData->m_voxelOpacityTextures[i].getImageHandle(0, 1, 0), GL_READ_WRITE);
+			m_coldData->m_voxelOpacityTextures[i].makeImageResident(0, 1, 0, vx::gl::TextureAccess::Write);
 			m_voxelOpacityTextureIDs[i] = m_coldData->m_voxelOpacityTextures[i].getId();
 		}
 	}
@@ -286,7 +284,8 @@ namespace Graphics
 		auto voxelFB = s_objectManager->getFramebuffer(voxelFBSid);
 
 		voxelFB->attachTexture(vx::gl::Attachment::Color0, m_coldData->m_voxelFbTexture, 0);
-		glNamedFramebufferDrawBuffer(voxelFB->getId(), GL_COLOR_ATTACHMENT0);
+		voxelFB->drawBuffer(vx::gl::Attachment::Color0);
+		//glNamedFramebufferDrawBuffer(voxelFB->getId(), GL_COLOR_ATTACHMENT0);
 	}
 
 	void VoxelRenderer::debug(const vx::gl::VertexArray &vao, const vx::uint2 &resolution)

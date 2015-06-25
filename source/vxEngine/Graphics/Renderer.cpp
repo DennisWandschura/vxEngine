@@ -27,12 +27,14 @@ namespace Graphics
 {
 	vx::gl::ShaderManager* Renderer::s_shaderManager{nullptr};
 	gl::ObjectManager* Renderer::s_objectManager{nullptr};
-	const RendererSettings* Renderer::s_settings{ nullptr };
+	const EngineConfig* Renderer::s_settings{ nullptr };
+	GpuProfiler* Renderer::s_gpuProfiler{nullptr};
 
-	void Renderer::provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, const RendererSettings* settings)
+	void Renderer::provide(vx::gl::ShaderManager* shaderManager, gl::ObjectManager* objectManager, const EngineConfig* settings, GpuProfiler* gpuProfiler)
 	{
 		s_shaderManager = shaderManager;
 		s_objectManager = objectManager;
 		s_settings = settings;
+		s_gpuProfiler = gpuProfiler;
 	}
 }

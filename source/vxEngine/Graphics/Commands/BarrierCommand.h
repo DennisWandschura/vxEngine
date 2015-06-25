@@ -27,12 +27,12 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct BarrierCommand : public Command
+	struct BarrierCommand
 	{
 		u32 m_barrierBits;
 
 		void set(u32 barrierBits);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

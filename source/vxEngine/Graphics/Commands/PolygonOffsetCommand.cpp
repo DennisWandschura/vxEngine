@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "PolygonOffsetCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
@@ -51,9 +51,10 @@ namespace Graphics
 		m_units = units;
 	}
 
-	void PolygonOffsetCommand::execute(u32* offset)
+	void PolygonOffsetCommand::execute(const u8* p, u32* offset)
 	{
-		glPolygonOffset(m_factor, m_units);
+		auto ptr = (PolygonOffsetCommand*)p;
+		glPolygonOffset(ptr->m_factor, ptr->m_units);
 
 		*offset += sizeof(PolygonOffsetCommand);
 	}

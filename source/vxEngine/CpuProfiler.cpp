@@ -27,11 +27,11 @@ SOFTWARE.
 #include <vxLib/memory.h>
 #include <Windows.h>
 #include "Font.h"
-#include <vxLib/gl/Buffer.h>
-#include <vxLib/gl/VertexArray.h>
-#include <vxLib/gl/gl.h>
-#include <vxLib/gl/ProgramPipeline.h>
-#include <vxLib/gl/StateManager.h>
+#include <vxGL/Buffer.h>
+#include <vxGL/VertexArray.h>
+#include <vxGL/gl.h>
+#include <vxGL/ProgramPipeline.h>
+#include <vxGL/StateManager.h>
 #include <vxEngineLib/mutex.h>
 
 namespace CpuProfilerCpp

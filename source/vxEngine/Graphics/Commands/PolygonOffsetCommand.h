@@ -27,13 +27,13 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct PolygonOffsetCommand : public Command
+	struct PolygonOffsetCommand
 	{
 		f32 m_factor;
 		f32 m_units;
 
 		void set(f32 factor, f32 units);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

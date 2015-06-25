@@ -615,6 +615,12 @@
     <ClInclude Include="EditorPhysicsAspect.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\Commands\GpuProfileCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\CpuProfileCommand.h">
+      <Filter>Header Files\Render\Graphics\Commands</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -898,6 +904,12 @@
     </ClCompile>
     <ClCompile Include="EditorPhysicsAspect.cpp">
       <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\GpuProfileCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Commands\CpuProfileCommand.cpp">
+      <Filter>Source Files\Render\Graphics\Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -30,11 +30,13 @@ namespace Graphics
 {
 	class GBufferRenderer : public Renderer
 	{
+		void createTextures();
+
 	public:
 		GBufferRenderer();
 		~GBufferRenderer();
 
-		void initialize(const void* p) override;
+		void initialize(vx::StackAllocator* scratchAllocator) override;
 		void shutdown() override;
 
 		void update() override;

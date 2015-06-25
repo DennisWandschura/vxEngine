@@ -30,7 +30,7 @@ namespace gl
 	class ObjectManager;
 }
 
-#include <vxLib/gl/Buffer.h>
+#include <vxGL/Buffer.h>
 
 class LightBufferManager
 {

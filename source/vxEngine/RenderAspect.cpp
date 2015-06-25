@@ -23,12 +23,12 @@ SOFTWARE.
 */
 #include "RenderAspect.h"
 #include "GpuStructs.h"
-#include <vxLib/gl/gl.h>
-#include <vxLib/gl/Debug.h>
-#include <vxLib/gl/StateManager.h>
+#include <vxGL/gl.h>
+#include <vxGL/Debug.h>
+#include <vxGL/StateManager.h>
 #include "gl/BufferBindingManager.h"
 #include "developer.h"
-#include <vxLib/gl/ProgramPipeline.h>
+#include <vxGL/ProgramPipeline.h>
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
 #include "EventsIngame.h"
@@ -51,6 +51,7 @@ SOFTWARE.
 #include "EngineConfig.h"
 #include <vxLib/File/FileHandle.h>
 #include "Graphics/RendererSettings.h"
+#include "Graphics/GBufferRenderer.h"
 
 #include "opencl/device.h"
 #include "opencl/image.h"
@@ -85,16 +86,6 @@ namespace
 
 struct RenderAspect::ColdData
 {
-	vx::gl::Texture m_gbufferDepthTexture;
-	// albedoSlice : rgb8
-	vx::gl::Texture m_gbufferAlbedoSlice;
-	// normalSlice : rgb10a2
-	vx::gl::Texture m_gbufferNormalSlice;
-	// surface : rgba8
-	vx::gl::Texture m_gbufferSurfaceSlice;
-	// surface : rgbaf16
-	vx::gl::Texture m_gbufferTangentSlice;
-	vx::gl::Texture m_gbufferBitangentSlice;
 	vx::gl::Texture m_aabbTexture;
 	vx::gl::Buffer m_screenshotBuffer;
 
@@ -107,6 +98,7 @@ struct RenderAspect::ColdData
 
 RenderAspect::RenderAspect()
 	: m_shadowRenderer(nullptr), 
+	m_gpuProfiler(),
 	m_shaderManager(),
 	m_renderContext(),
 	m_camera(),
@@ -203,12 +195,6 @@ void RenderAspect::createUniformBuffers(f32 znear, f32 zfar)
 		auto volumeTexture = m_objectManager.getTexture("volumeTexture");
 
 		UniformTextureBufferBlock data;
-		data.u_albedoSlice = m_pColdData->m_gbufferAlbedoSlice.getTextureHandle();
-		data.u_normalSlice = m_pColdData->m_gbufferNormalSlice.getTextureHandle();
-		data.u_surfaceSlice = m_pColdData->m_gbufferSurfaceSlice.getTextureHandle();
-		data.u_tangentSlice = m_pColdData->m_gbufferTangentSlice.getTextureHandle();
-		data.u_bitangentSlice = m_pColdData->m_gbufferBitangentSlice.getTextureHandle();
-		data.u_depthSlice = m_pColdData->m_gbufferDepthTexture.getTextureHandle();
 		data.u_aabbTexture = m_pColdData->m_aabbTexture.getTextureHandle();
 		data.u_ambientSlice = m_pColdData->m_ambientColorTexture.getTextureHandle();
 		data.u_ambientImage = m_pColdData->m_ambientColorTexture.getImageHandle(0, 0, 0);
@@ -315,38 +301,7 @@ void RenderAspect::createUniformBuffers(f32 znear, f32 zfar)
 
 void RenderAspect::createTextures()
 {
-	{
-		vx::gl::TextureDescription desc;
-		desc.type = vx::gl::TextureType::Texture_2D;
-		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
-		desc.miplevels = 1;
-		desc.sparse = 0;
 
-		desc.format = vx::gl::TextureFormat::RGB8;
-		m_pColdData->m_gbufferAlbedoSlice.create(desc);
-		m_pColdData->m_gbufferAlbedoSlice.makeTextureResident();
-
-		desc.format = vx::gl::TextureFormat::RGBA16F;
-		m_pColdData->m_gbufferNormalSlice.create(desc);
-		m_pColdData->m_gbufferNormalSlice.makeTextureResident();
-
-		desc.format = vx::gl::TextureFormat::RGBA8;
-		m_pColdData->m_gbufferSurfaceSlice.create(desc);
-		m_pColdData->m_gbufferSurfaceSlice.makeTextureResident();
-
-		desc.format = vx::gl::TextureFormat::RGBA16F;
-		m_pColdData->m_gbufferTangentSlice.create(desc);
-		m_pColdData->m_gbufferTangentSlice.makeTextureResident();
-
-		m_pColdData->m_gbufferBitangentSlice.create(desc);
-		m_pColdData->m_gbufferBitangentSlice.makeTextureResident();
-
-		desc.format = vx::gl::TextureFormat::DEPTH32;
-		desc.type = vx::gl::TextureType::Texture_2D;
-		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
-		m_pColdData->m_gbufferDepthTexture.create(desc);
-		m_pColdData->m_gbufferDepthTexture.makeTextureResident();
-	}
 
 	{
 		vx::gl::TextureDescription desc;
@@ -479,19 +434,6 @@ void RenderAspect::createTextures()
 void RenderAspect::createFrameBuffers()
 {
 	{
-		m_gbufferFB.create();
-		m_gbufferFB.attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_gbufferAlbedoSlice, 0);
-		m_gbufferFB.attachTexture(vx::gl::Attachment::Color1, m_pColdData->m_gbufferNormalSlice, 0);
-		m_gbufferFB.attachTexture(vx::gl::Attachment::Color2, m_pColdData->m_gbufferSurfaceSlice, 0);
-		m_gbufferFB.attachTexture(vx::gl::Attachment::Color3, m_pColdData->m_gbufferTangentSlice, 0);
-		m_gbufferFB.attachTexture(vx::gl::Attachment::Color4, m_pColdData->m_gbufferBitangentSlice, 0);
-		m_gbufferFB.attachTexture(vx::gl::Attachment::Depth, m_pColdData->m_gbufferDepthTexture, 0);
-
-		GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
-		glNamedFramebufferDrawBuffers(m_gbufferFB.getId(), 4, buffers);
-	}
-
-	{
 		m_aabbFB.create();
 		m_aabbFB.attachTexture(vx::gl::Attachment::Color0, m_pColdData->m_aabbTexture, 0);
 		glNamedFramebufferDrawBuffer(m_aabbFB.getId(), GL_COLOR_ATTACHMENT0);
@@ -513,35 +455,14 @@ void RenderAspect::createFrameBuffers()
 	}
 
 	/*{
-		auto colorTexture = m_objectManager.getTexture("reflectionTexture");
-		auto depthTexture = m_objectManager.getTexture("reflectionTextureDepth");
-
-		auto sid = m_objectManager.createFramebuffer("reflectionFbo");
-		auto fbo = m_objectManager.getFramebuffer(sid);
-
-		fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexture, 0);
-		fbo->attachTexture(vx::gl::Attachment::Depth, *depthTexture, 0);
-
-		glNamedFramebufferDrawBuffer(fbo->getId(), GL_COLOR_ATTACHMENT0);
-	}*/
-
-	/*{
-		auto colorTexture = m_objectManager.getTexture("particleTexture");
-		auto sid = m_objectManager.createFramebuffer("particleFbo");
-		auto fbo = m_objectManager.getFramebuffer(sid);
-
-		fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexture, 0);
-		fbo->attachTexture(vx::gl::Attachment::Depth, m_pColdData->m_gbufferDepthTexture, 0);
-	}*/
-
-	{
 		auto colorTexture = m_objectManager.getTexture("volumeTexture");
+		auto depthTexture = m_objectManager.getTexture("gbufferDepthSlice");
 		auto sid = m_objectManager.createFramebuffer("volumeFbo");
 		auto fbo = m_objectManager.getFramebuffer(sid);
 
 		fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexture, 0);
-		fbo->attachTexture(vx::gl::Attachment::Depth, m_pColdData->m_gbufferDepthTexture, 0);
-	}
+		fbo->attachTexture(vx::gl::Attachment::Depth, *depthTexture, 0);
+	}*/
 }
 
 void RenderAspect::createColdData()
@@ -549,9 +470,9 @@ void RenderAspect::createColdData()
 	m_pColdData = vx::make_unique<ColdData>();
 }
 
-void RenderAspect::provideRenderData(const Graphics::RendererSettings* settings)
+void RenderAspect::provideRenderData(const EngineConfig* settings, GpuProfiler* gpuProfiler)
 {
-	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, settings);
+	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, settings, gpuProfiler);
 }
 
 void RenderAspect::createOpenCL()
@@ -597,7 +518,9 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	contextDesc.hInstance = desc.window->getHinstance();
 	contextDesc.windowClass = desc.window->getClassName();
 
-	if (!initializeCommon(contextDesc, settings->m_rendererSettings))
+	m_gpuProfiler = vx::make_unique<GpuProfiler>();
+
+	if (!initializeCommon(contextDesc, settings))
 		return false;
 
 	glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
@@ -608,10 +531,14 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	if (!result)
 		return false;
 
+	auto gbufferRenderer = vx::make_unique<Graphics::GBufferRenderer>();
+	gbufferRenderer->initialize(&m_allocator);
+	m_renderer.push_back(std::move(gbufferRenderer));
+
 	if (settings->m_rendererSettings.m_shadowMode != 0)
 	{
 		auto shadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
-		shadowRenderer->initialize(&settings->m_rendererSettings);
+		shadowRenderer->initialize(&m_allocator);
 
 		m_shadowRenderer = shadowRenderer.get();
 		m_renderer.push_back(std::move(shadowRenderer));
@@ -622,7 +549,7 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	if (settings->m_rendererSettings.m_voxelGIMode != 0)
 	{
 		auto voxelRenderer = vx::make_unique<Graphics::VoxelRenderer >();
-		voxelRenderer->initialize(&settings->m_rendererSettings);
+		voxelRenderer->initialize(&m_allocator);
 		m_renderer.push_back(std::move(voxelRenderer));
 	}
 
@@ -635,14 +562,14 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	return result;
 }
 
-bool RenderAspect::initializeCommon(const vx::gl::ContextDescription &contextDesc, const Graphics::RendererSettings &options)
+bool RenderAspect::initializeCommon(const vx::gl::ContextDescription &contextDesc, const EngineConfig* settings)
 {
 	createColdData();
 
 	if (!m_renderContext.initialize(contextDesc))
 		return false;
 
-	provideRenderData(&options);
+	provideRenderData(settings, m_gpuProfiler.get());
 
 	return true;
 }
@@ -678,7 +605,6 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 	m_shaderManager.loadPipeline(vx::FileHandle("draw_final_image.pipe"), "draw_final_image.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageAlbedo.pipe"), "drawFinalImageAlbedo.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageNormals.pipe"), "drawFinalImageNormals.pipe", &m_allocator);
-	m_shaderManager.loadPipeline(vx::FileHandle("drawMeshToGBuffer.pipe"), "drawMeshToGBuffer.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("voxelize.pipe"), "voxelize.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("voxelizeLight.pipe"), "voxelizeLight.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("coneTrace.pipe"), "coneTrace.pipe", &m_allocator);
@@ -725,22 +651,32 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 	return true;
 }
 
+bool RenderAspect::initializeProfiler()
+{
+	auto fontHandle = glGetTextureHandleARB(m_pColdData->m_font.getTextureEntry().getTextureId());
+	auto profiler = m_gpuProfiler.get();
+	if (!m_sceneRenderer.initializeProfiler(m_pColdData->m_font, fontHandle, m_resolution, m_shaderManager, profiler, &m_allocator))
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void RenderAspect::createFrame()
 {
 	m_frame.clear();
 
-	Graphics::CommandList cmdList;
-	cmdList.initialize();
-	m_shadowRenderer->getCommandList(&cmdList);
+	for (auto &it : m_renderer)
+	{
+		Graphics::CommandList cmdList;
+		cmdList.initialize();
+		it->getCommandList(&cmdList);
 
-	m_frame.pushCommandList(std::move(cmdList));
-}
+		m_frame.pushCommandList(std::move(cmdList));
+	}
 
-bool RenderAspect::initializeProfiler(GpuProfiler* gpuProfiler, vx::StackAllocator* allocator)
-{
-	auto fontHandle = glGetTextureHandleARB(m_pColdData->m_font.getTextureEntry().getTextureId());
-
-	return m_sceneRenderer.initializeProfiler(m_pColdData->m_font, fontHandle, m_resolution, m_shaderManager, gpuProfiler, allocator);
+	//m_shadowRenderer->getCommandList(&cmdList);
 }
 
 void RenderAspect::shutdown(const HWND hwnd)
@@ -750,6 +686,7 @@ void RenderAspect::shutdown(const HWND hwnd)
 		it->shutdown();
 	}
 
+	m_gpuProfiler.reset(nullptr);
 	m_tasks.clear();
 	m_sceneRenderer.shutdown();
 	m_objectManager.shutdown();
@@ -834,6 +771,11 @@ void RenderAspect::update()
 	m_tasks.clear();
 
 	VX_ASSERT(offset == backBufferSize);
+}
+
+void RenderAspect::updateProfiler(f32 dt)
+{
+	m_gpuProfiler->update(dt);
 }
 
 void RenderAspect::taskUpdateCamera()
@@ -941,13 +883,15 @@ void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
 	*offset += sizeof(RenderUpdateDataTransforms) + (sizeof(vx::TransformGpu) + sizeof(u32)) * count;
 }
 
-void RenderAspect::render(GpuProfiler* gpuProfiler)
+void RenderAspect::render()
 {
+	m_gpuProfiler->frame();
+
 	CpuProfiler::pushMarker("clear");
-	gpuProfiler->pushGpuMarker("clear");
+	m_gpuProfiler->pushGpuMarker("clear");
 	clearTextures();
 	clearBuffers();
-	gpuProfiler->popGpuMarker();
+	m_gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
@@ -959,56 +903,31 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");
 	auto lightCount = m_sceneRenderer.getLightCount();
 
-	CpuProfiler::pushMarker("shadow");
-	gpuProfiler->pushGpuMarker("shadow mapping");
-	//glCullFace(GL_FRONT);
-	//glDepthRange(1, 0);
+	CpuProfiler::pushMarker("frame");
+	m_gpuProfiler->pushGpuMarker("frame");
 	m_frame.draw();
-	gpuProfiler->popGpuMarker();
-	CpuProfiler::popMarker();
-	//glDepthRange(0, 1);
-	//glCullFace(GL_BACK);
-
-	CpuProfiler::pushMarker("gbuffer");
-	gpuProfiler->pushGpuMarker("gbuffer");
-	{
-		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-		vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
-
-		vx::gl::StateManager::bindFrameBuffer(m_gbufferFB);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, *meshParamBuffer);
-
-		auto pPipeline = m_shaderManager.getPipeline("drawMeshToGBuffer.pipe");
-		vx::gl::StateManager::bindPipeline(pPipeline->getId());
-		vx::gl::StateManager::bindVertexArray(*meshVao);
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, *meshCmdBuffer);
-		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
-	}
-	gpuProfiler->popGpuMarker();
+	m_gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
 	CpuProfiler::pushMarker("voxelize");
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
-	gpuProfiler->pushGpuMarker("voxelize");
+	m_gpuProfiler->pushGpuMarker("voxelize");
 	voxelize(*meshVao, *meshCmdBuffer, *meshParamBuffer);
-	gpuProfiler->popGpuMarker();
+	m_gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	CpuProfiler::pushMarker("cone trace");
-	gpuProfiler->pushGpuMarker("cone trace");
+	m_gpuProfiler->pushGpuMarker("cone trace");
 	coneTrace();
-	gpuProfiler->popGpuMarker();
+	m_gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
 	//__m128 angles = { 0, vx::degToRad(-90), 0, 0 };
 	//auto matrix = vx::MatrixRotationRollPitchYaw(angles);
 
-	CpuProfiler::pushMarker("volumetric light");
+	/*CpuProfiler::pushMarker("volumetric light");
 	gpuProfiler->pushGpuMarker("volumetric light");
 	{
 		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
@@ -1037,13 +956,13 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 		vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 	}
 	gpuProfiler->popGpuMarker();
-	CpuProfiler::popMarker();
+	CpuProfiler::popMarker();*/
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	CpuProfiler::pushMarker("blur");
-	gpuProfiler->pushGpuMarker("blur");
+	m_gpuProfiler->pushGpuMarker("blur");
 	blurAmbientColor();
-	gpuProfiler->popGpuMarker();
+	m_gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
 	vx::gl::StateManager::setClearColor(0.1f, 0.1f, 0.1f, 1);
@@ -1053,14 +972,14 @@ void RenderAspect::render(GpuProfiler* gpuProfiler)
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
 	CpuProfiler::pushMarker("final");
-	gpuProfiler->pushGpuMarker("final");
+	m_gpuProfiler->pushGpuMarker("final");
 	m_pRenderPassFinalImage->render(1);
-	gpuProfiler->popGpuMarker();
+	m_gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();
 
 	//voxelDebug();
 
-	renderProfiler(gpuProfiler);
+	renderProfiler();
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
@@ -1099,7 +1018,6 @@ void RenderAspect::bindBuffers()
 	gl::BufferBindingManager::bindBaseUniform(5, pShadowTransformBuffer->getId());
 
 	gl::BufferBindingManager::bindBaseUniform(10, renderSettingsBufferBlock->getId());
-	//gl::BufferBindingManager::bindBaseUniform(11, uniformReflectionBuffer->getId());
 
 	gl::BufferBindingManager::bindBaseShaderStorage(0, transformBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(1, materialBlockBuffer->getId());
@@ -1300,7 +1218,7 @@ void RenderAspect::blurAmbientColor()
 	//glDrawArrays(GL_POINTS, 0, 1);*/
 }
 
-void RenderAspect::renderProfiler(GpuProfiler* gpuProfiler)
+void RenderAspect::renderProfiler()
 {
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 
@@ -1310,7 +1228,7 @@ void RenderAspect::renderProfiler(GpuProfiler* gpuProfiler)
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	gpuProfiler->render();
+	m_gpuProfiler->render();
 
 	CpuProfiler::render();
 

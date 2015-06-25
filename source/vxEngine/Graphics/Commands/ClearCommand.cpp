@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "ClearCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
@@ -49,9 +49,11 @@ namespace Graphics
 		m_bits = bits;
 	}
 
-	void ClearCommand::execute(u32* offset)
+	void ClearCommand::execute(const u8* ptr, u32* offset)
 	{
-		glClear(m_bits);
+		auto data = (ClearCommand*)ptr;
+
+		glClear(data->m_bits);
 
 		*offset += sizeof(ClearCommand);
 	}

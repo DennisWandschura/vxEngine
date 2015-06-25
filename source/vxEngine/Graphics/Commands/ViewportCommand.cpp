@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "ViewportCommand.h"
-#include <vxLib/gl/StateManager.h>
+#include <vxGL/StateManager.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
@@ -56,9 +56,10 @@ namespace Graphics
 		m_size = size;
 	}
 
-	void ViewportCommand::execute(u32* offset)
+	void ViewportCommand::execute(const u8* p, u32* offset)
 	{
-		vx::gl::StateManager::setViewport(m_offset.x, m_offset.y, m_size.x, m_size.y);
+		auto ptr = (ViewportCommand*)p;
+		vx::gl::StateManager::setViewport(ptr->m_offset.x, ptr->m_offset.y, ptr->m_size.x, ptr->m_size.y);
 
 		*offset += sizeof(ViewportCommand);
 

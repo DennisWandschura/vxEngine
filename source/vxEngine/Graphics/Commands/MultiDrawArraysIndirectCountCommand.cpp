@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "MultiDrawArraysIndirectCountCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../Segment.h"
-#include <vxLib/gl/Base.h>
+#include <vxGL/Base.h>
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
 
@@ -56,9 +56,11 @@ namespace Graphics
 		m_maxdrawcount = maxDrawCount;
 	}
 
-	void MultiDrawArraysIndirectCountCommand::execute(u32* offset)
+	void MultiDrawArraysIndirectCountCommand::execute(const u8* p, u32* offset)
 	{
-		glMultiDrawArraysIndirectCountARB(m_mode, m_indirectOffset, m_parameterBufferOffset, m_maxdrawcount, sizeof(vx::gl::DrawArraysIndirectCommand));
+		auto ptr = (MultiDrawArraysIndirectCountCommand*)p;
+
+		glMultiDrawArraysIndirectCountARB(ptr->m_mode, ptr->m_indirectOffset, ptr->m_parameterBufferOffset, ptr->m_maxdrawcount, sizeof(vx::gl::DrawArraysIndirectCommand));
 
 		*offset += sizeof(MultiDrawArraysIndirectCountCommand);
 	}

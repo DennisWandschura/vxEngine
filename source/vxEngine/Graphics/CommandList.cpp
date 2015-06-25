@@ -80,6 +80,7 @@ namespace Graphics
 
 	void CommandList::pushSegment(const Segment &segment, const char* id)
 	{
+		VX_ASSERT(segment.isValid());
 		u32 slot = m_sortedSegments.size();
 		auto sid = vx::make_sid(id);
 

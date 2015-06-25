@@ -22,42 +22,62 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "DrawArraysIndirectCommand.h"
-#include <vxGL/gl.h>
-#include "../Segment.h"
-#include <vxEngineLib/ParserNode.h>
+#include "CpuProfileCommand.h"
+#include "../../CpuProfiler.h"
 #include "../CommandFactory.h"
+#include <vxEngineLib/ParserNode.h>
+#include "../Segment.h"
 
 namespace Graphics
 {
-	void createFromNodeDrawArraysIndirectCommand(const Parser::Node &node, Segment* segment, void*)
+	void createFromNodeCpuProfilePushCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
-		u32 params[2];
-		paramsNode->as(0, &params[0]);
-		paramsNode->as(1, &params[1]);
+		std::string param;
+		paramsNode->as(0, &param);
 
-		DrawArraysIndirectCommand command;
-		command.set(params[0], params[1]);
+		CpuProfilePushCommand command;
+		command.set(param.c_str());
 
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(DrawArraysIndirectCommand, createFromNodeDrawArraysIndirectCommand);
-
-	void DrawArraysIndirectCommand::set(u32 mode, u32 offset)
+	void createFromNodeCpuProfilePopCommand(const Parser::Node &node, Segment* segment, void*)
 	{
-		m_mode = mode;
-		m_offset = offset;
+		auto paramsNode = node.get("params");
+
+		std::string param;
+		paramsNode->as(0, &param);
+
+		CpuProfilePopCommand command;
+
+		segment->pushCommand(command);
 	}
 
-	void DrawArraysIndirectCommand::execute(const u8* p, u32* offset)
+	REGISTER_COMMANDFACTORY(CpuProfilePushCommand, createFromNodeCpuProfilePushCommand);
+	REGISTER_COMMANDFACTORY(CpuProfilePopCommand, createFromNodeCpuProfilePopCommand);
+
+	void CpuProfilePushCommand::set(const char* name)
 	{
-		auto ptr = (DrawArraysIndirectCommand*)p;
+		auto size = strlen(name);
+		size = std::min(size, 31llu);
 
-		glDrawArraysIndirect(ptr->m_mode, (void*)ptr->m_offset);
+		strncpy(m_name, name, size);
+		m_name[size] = '\0';
+	}
 
-		*offset += sizeof(DrawArraysIndirectCommand);
+	void CpuProfilePushCommand::execute(const u8* p, u32* offset)
+	{
+		auto ptr = (CpuProfilePushCommand*)p;
+
+		CpuProfiler::pushMarker(ptr->m_name);
+		*offset = sizeof(CpuProfilePushCommand);
+	}
+
+	void CpuProfilePopCommand::execute(const u8*, u32* offset)
+	{
+		CpuProfiler::popMarker();
+		*offset = sizeof(CpuProfilePopCommand);
 	}
 }

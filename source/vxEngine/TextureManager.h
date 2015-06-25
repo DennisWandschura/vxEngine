@@ -25,7 +25,7 @@ SOFTWARE.
 
 class TextureFile;
 
-#include <vxLib\gl\Texture.h>
+#include <vxGL/Texture.h>
 #include <vxLib/memory.h>
 #include <vxLib\Container\sorted_vector.h>
 #include <vxEngineLib/TextureRef.h>

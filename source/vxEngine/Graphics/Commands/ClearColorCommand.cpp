@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "ClearColorCommand.h"
-#include <vxLib/gl/StateManager.h>
+#include <vxGL/StateManager.h>
 #include "../Segment.h"
 #include "../CommandFactory.h"
 #include <vxEngineLib/ParserNode.h>
@@ -56,9 +56,10 @@ namespace Graphics
 		m_clearColor = clearColor;
 	}
 
-	void ClearColorCommand::execute(u32* offset)
+	void ClearColorCommand::execute(const u8* p, u32* offset)
 	{
-		vx::gl::StateManager::setClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
+		auto data = (ClearColorCommand*)p;
+		vx::gl::StateManager::setClearColor(data->m_clearColor.x, data->m_clearColor.y, data->m_clearColor.z, data->m_clearColor.w);
 
 		*offset += sizeof(ClearColorCommand);
 	}

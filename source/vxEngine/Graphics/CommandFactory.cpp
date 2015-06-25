@@ -26,7 +26,7 @@ SOFTWARE.
 #include "CommandFactory.h"
 #include "Segment.h"
 #include "Commands/ProgramUniformCommand.h"
-#include <vxLib/gl/ProgramPipeline.h>
+#include <vxGL/ProgramPipeline.h>
 #include <vxLib/Singleton.h>
 
 namespace Graphics

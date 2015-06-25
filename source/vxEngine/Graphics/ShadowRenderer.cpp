@@ -24,20 +24,20 @@ SOFTWARE.
 
 #include "ShadowRenderer.h"
 #include "../gl/ObjectManager.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include <string>
 #include "Segment.h"
 #include "Commands.h"
-#include <vxLib/gl/ShaderManager.h>
-#include <vxLib/gl/ProgramPipeline.h>
-#include <vxLib/gl/Buffer.h>
+#include <vxGL/ShaderManager.h>
+#include <vxGL/ProgramPipeline.h>
+#include <vxGL/Buffer.h>
 #include "../GpuStructs.h"
 #include "../gl/BufferBindingManager.h"
 #include "Commands/ProgramUniformCommand.h"
 #include "CommandList.h"
 #include "Commands/CullFaceCommand.h"
 #include "Commands/DepthRangeCommand.h"
-#include "RendererSettings.h"
+#include "../EngineConfig.h"
 
 namespace Graphics
 {
@@ -213,12 +213,11 @@ namespace Graphics
 		return segment;
 	}
 
-	void ShadowRenderer::initialize(const void* p)
+	void ShadowRenderer::initialize(vx::StackAllocator* scratchAllocator)
 	{
-		RendererSettings* settings = (RendererSettings*)p;
-		m_maxShadowLights = settings->m_shadowSettings.m_maxShadowCastingLights;
-		m_maxMeshInstanceCount = settings->m_maxMeshInstances;
-		m_shadowMapResolution = settings->m_shadowSettings.m_shadowMapResolution;
+		m_maxShadowLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+		m_maxMeshInstanceCount = s_settings->m_rendererSettings.m_maxMeshInstances;
+		m_shadowMapResolution = s_settings->m_rendererSettings.m_shadowSettings.m_shadowMapResolution;
 
 		createShadowTextureBuffer();
 		createShadowTextures();
@@ -305,6 +304,18 @@ namespace Graphics
 		Graphics::Segment segmentCreateShadowmap;
 		segmentCreateShadowmap.setState(state);
 
+		GpuProfilePushCommand gpuPushCmd;
+		gpuPushCmd.set(s_gpuProfiler, "shadow");
+		GpuProfilePopCommand gpuPopCmd;
+		gpuPopCmd.set(s_gpuProfiler);
+
+		CpuProfilePushCommand cpuPushCmd;
+		cpuPushCmd.set("shadow");
+		CpuProfilePopCommand cpuPopCmd;
+
+		segmentCreateShadowmap.pushCommand(cpuPushCmd);
+		segmentCreateShadowmap.pushCommand(gpuPushCmd);
+
 		Graphics::ViewportCommand viewportCmd;
 		viewportCmd.set(vx::uint2(0), vx::uint2(m_shadowMapResolution));
 		segmentCreateShadowmap.pushCommand(viewportCmd);
@@ -346,6 +357,8 @@ namespace Graphics
 
 		cullFaceCommand.set(GL_BACK);
 		segmentCreateShadowmap.pushCommand(cullFaceCommand);
+		segmentCreateShadowmap.pushCommand(gpuPopCmd);
+		segmentCreateShadowmap.pushCommand(cpuPopCmd);
 
 		cmdList->pushSegment(segmentResetLightCmdBuffer, "segmentResetLightCmdBuffer");
 		cmdList->pushSegment(segmentCullMeshes, "segmentCullMeshes");

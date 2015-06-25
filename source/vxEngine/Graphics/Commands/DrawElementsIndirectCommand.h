@@ -27,7 +27,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct DrawElementsIndirectCommand : public Command
+	struct DrawElementsIndirectCommand 
 	{
 		u32 m_mode;
 		u32 m_type;
@@ -35,6 +35,6 @@ namespace Graphics
 
 		void set(u32 mode, u32 type, u32 offset = 0);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

@@ -30,14 +30,17 @@ namespace Graphics
 {
 	struct StateDescription
 	{
-		u32 fbo{0};
-		u32 vao{0};
-		u32 pipeline{0};
-		u32 indirectBuffer{0};
-		u32 paramBuffer{0};
-		bool depthState{true};
-		bool blendState{false};
-		bool polygonOffsetFillState{false};
+		u32 fbo;
+		u32 vao;
+		u32 pipeline;
+		u32 indirectBuffer;
+		u32 paramBuffer;
+		bool depthState;
+		bool blendState;
+		bool polygonOffsetFillState;
+
+		StateDescription() :fbo(0), vao(0), pipeline(0), indirectBuffer(0), paramBuffer(0), depthState(true), blendState(false), polygonOffsetFillState(false) {}
+		StateDescription(u32 f, u32 v, u32 p, u32 cmd, u32 param, bool depth, bool blend, bool polyOffsetState) :fbo(f), vao(v), pipeline(p), indirectBuffer(cmd), paramBuffer(param), depthState(depth), blendState(blend), polygonOffsetFillState(polyOffsetState) {}
 	};
 
 	class State

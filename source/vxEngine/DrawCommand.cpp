@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "DrawCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 
 namespace Graphics
 {

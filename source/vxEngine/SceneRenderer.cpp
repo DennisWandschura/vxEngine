@@ -36,10 +36,10 @@ SOFTWARE.
 #include "gl/ObjectManager.h"
 #include "gl/BufferBindingManager.h"
 #include <vxEngineLib/Light.h>
-#include <vxLib/gl/StateManager.h>
-#include <vxLib/gl/gl.h>
+#include <vxGL/StateManager.h>
+#include <vxGL/gl.h>
 #include "GpuProfiler.h"
-#include <vxLib/gl/ShaderManager.h>
+#include <vxGL/ShaderManager.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxLib/algorithm.h>
 #include "CpuProfiler.h"
@@ -326,11 +326,12 @@ void SceneRenderer::initialize(u32 maxLightCount, gl::ObjectManager* objectManag
 
 bool SceneRenderer::initializeProfiler(const Font &font, u64 fontTextureHandle, const vx::uint2 &resolution, const vx::gl::ShaderManager &shaderManager, GpuProfiler* gpuProfiler, vx::StackAllocator *pAllocator)
 {
+	auto pipeline = shaderManager.getPipeline("text.pipe");
 	auto textureIndex = *m_coldData->m_texturesGPU.find(fontTextureHandle);
-	if (!gpuProfiler->initialize(&font, shaderManager.getPipeline("text.pipe"), textureIndex, resolution, pAllocator))
+	if (!gpuProfiler->initialize(&font, pipeline, textureIndex, resolution, pAllocator))
 		return false;
 
-	CpuProfiler::initializeRenderer(shaderManager.getPipeline("text.pipe"), textureIndex, resolution);
+	CpuProfiler::initializeRenderer(pipeline, textureIndex, resolution);
 
 	return true;
 }

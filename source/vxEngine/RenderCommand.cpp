@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "RenderCommand.h"
-#include <vxLib/gl/ProgramPipeline.h>
-#include <vxLib/gl/VertexArray.h>
+#include <vxGL/ProgramPipeline.h>
+#include <vxGL/VertexArray.h>
 
 void RenderCommand::initialize(const vx::gl::VertexArray &vao, const vx::gl::ProgramPipeline &pipeline, const vx::uint2 &resolution)
 {

@@ -25,7 +25,7 @@ SOFTWARE.
 #include <vxLib/stb_image.h>
 #include <fstream>
 #include <algorithm>
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 
 TextureFile::TextureFile()
 	:m_pData(nullptr),

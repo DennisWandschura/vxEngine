@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "DrawElementsIndirectCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
 #include "../Segment.h"
@@ -53,9 +53,11 @@ namespace Graphics
 		m_offset = offset;
 	}
 
-	void DrawElementsIndirectCommand::execute(u32* offset)
+	void DrawElementsIndirectCommand::execute(const u8* p, u32* offset)
 	{
-		glDrawElementsIndirect(m_mode, m_type, (void*)m_offset);
+		auto ptr = (DrawElementsIndirectCommand*)p;
+
+		glDrawElementsIndirect(ptr->m_mode, ptr->m_type, (void*)ptr->m_offset);
 
 		*offset += sizeof(DrawElementsIndirectCommand);
 	}

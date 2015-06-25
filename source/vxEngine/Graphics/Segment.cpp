@@ -54,9 +54,14 @@ namespace Graphics
 
 	void Segment::pushCommand(const ProgramUniformCommand &command, const u8* data)
 	{
-		static_assert(__alignof(ProgramUniformCommand) == 8, "");
+		static_assert(__alignof(ProgramUniformCommand) == 4, "");
 
-		u8* ptr = (u8*)&command;
+		CommandFunctionType fn = &ProgramUniformCommand::execute;
+		std::size_t address = (std::size_t)fn;
+		const u8* ptr = (const u8*)&address;
+		pushCommand(ptr, sizeof(std::size_t));
+
+		ptr = (const u8*)&command;
 		pushCommand(ptr, sizeof(ProgramUniformCommand));
 
 		u8 bytePerItem = 4;
@@ -78,10 +83,15 @@ namespace Graphics
 		auto count = m_commmands.size();
 		for (u32 i = 0; i < count;)
 		{
-			Command* header = (Command*)&m_commmands[i];
-			u32 offset = 0;
+			std::size_t* fnAddress = (std::size_t*)&m_commmands[i];
+			CommandFunctionType fn = (CommandFunctionType)(*fnAddress);
 
-			Command::handleCommand(header, &offset);
+			i += sizeof(std::size_t);
+
+			u32 offset = 0;
+			const u8* ptr = &m_commmands[i];
+			fn(ptr, &offset);
+
 			VX_ASSERT(offset != 0);
 
 			i += offset;

@@ -27,7 +27,6 @@ SOFTWARE.
 #include "Locator.h"
 #include "developer.h"
 #include "DebugRenderSettings.h"
-#include "GpuProfiler.h"
 #include "EngineGlobals.h"
 #include "CpuProfiler.h"
 #include <vxEngineLib/EventTypes.h>
@@ -112,12 +111,14 @@ void Engine::update()
 void Engine::renderLoop()
 {
 	m_renderAspect.makeCurrent(true);
+	if (!m_renderAspect.initializeProfiler())
+	{
+		VX_ASSERT(false);
+		return;
+	}
 
 	auto frequency = Timer::getFrequency();
 	const f64 invFrequency = 1.0 / frequency;
-
-	GpuProfiler gpuProfiler;
-	m_renderAspect.initializeProfiler(&gpuProfiler, &m_allocator);
 
 	CpuProfiler::setPosition(vx::float2(0, 500));
 
@@ -141,15 +142,13 @@ void Engine::renderLoop()
 
 		accum += frameTime;
 
-		gpuProfiler.frame();
 		CpuProfiler::frame();
 
 		CpuProfiler::pushMarker("frame"); // frame begin
 
 		while (accum >= g_dt)
 		{
-			gpuProfiler.update(g_dt);
-
+			m_renderAspect.updateProfiler(g_dt);
 			CpuProfiler::update();
 			CpuProfiler::updateRenderer();
 
@@ -161,9 +160,7 @@ void Engine::renderLoop()
 		CpuProfiler::popMarker();
 
 		CpuProfiler::pushMarker("render");
-		gpuProfiler.pushGpuMarker("render()");
-		m_renderAspect.render(&gpuProfiler);
-		gpuProfiler.popGpuMarker();
+		m_renderAspect.render();
 		CpuProfiler::popMarker();
 
 		CpuProfiler::popMarker(); // frame end

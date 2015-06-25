@@ -27,12 +27,12 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct ClearColorCommand : public Command
+	struct ClearColorCommand
 	{
 		vx::float4 m_clearColor;
 
 		void set(const vx::float4 &clearColor);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

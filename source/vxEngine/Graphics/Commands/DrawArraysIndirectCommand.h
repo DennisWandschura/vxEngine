@@ -27,13 +27,13 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct DrawArraysIndirectCommand : public Command
+	struct DrawArraysIndirectCommand
 	{
 		u32 m_mode;
 		u32 m_offset;
 
 		void set(u32 mode, u32 offset = 0);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

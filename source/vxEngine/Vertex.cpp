@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Vertex.h"
-#include <vxLib\gl\gl.h>
+#include <vxGL/gl.h>
 #include <cstring>
-#include <vxLib/gl/VertexArray.h>
-#include <vxLib/gl/Buffer.h>
+#include <vxGL/VertexArray.h>
+#include <vxGL/Buffer.h>
 
 namespace detail
 {

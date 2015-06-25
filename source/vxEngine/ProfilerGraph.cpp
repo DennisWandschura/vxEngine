@@ -23,11 +23,11 @@ SOFTWARE.
 */
 #include "ProfilerGraph.h"
 #include <algorithm>
-#include <vxLib/gl/ShaderManager.h>
-#include <vxLib/gl/gl.h>
-#include <vxLib/gl/StateManager.h>
+#include <vxGL/ShaderManager.h>
+#include <vxGL/gl.h>
+#include <vxGL/StateManager.h>
 #include <Windows.h>
-#include <vxLib/gl/ProgramPipeline.h>
+#include <vxGL/ProgramPipeline.h>
 
 s64 ProfilerGraph::s_frequency{ 1 };
 

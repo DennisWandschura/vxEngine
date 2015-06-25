@@ -27,13 +27,13 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct ViewportCommand : public Command
+	struct ViewportCommand
 	{
 		vx::uint2 m_offset;
 		vx::uint2 m_size;
 
 		void set(const vx::uint2 &offset, const vx::uint2 &size);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

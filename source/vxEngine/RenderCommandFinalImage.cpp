@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "RenderCommandFinalImage.h"
-#include <vxLib/gl/gl.h>
-#include <vxLib/gl/StateManager.h>
+#include <vxGL/gl.h>
+#include <vxGL/StateManager.h>
 
 void RenderCommandFinalImage::render(u32 count)
 {

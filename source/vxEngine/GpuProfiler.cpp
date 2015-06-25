@@ -23,9 +23,9 @@ SOFTWARE.
 */
 #include "GpuProfiler.h"
 #include "Font.h"
-#include <vxLib/gl/ProgramPipeline.h>
-#include <vxLib/gl/StateManager.h>
-#include <vxLib/gl/gl.h>
+#include <vxGL/ProgramPipeline.h>
+#include <vxGL/StateManager.h>
+#include <vxGL/gl.h>
 #include <Windows.h>
 #include <vxLib/memory.h>
 

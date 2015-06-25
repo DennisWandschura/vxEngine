@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "DepthRangeCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
@@ -51,9 +51,11 @@ namespace Graphics
 		m_f = f;
 	}
 
-	void DepthRangeCommand::execute(u32* offset)
+	void DepthRangeCommand::execute(const u8* p, u32* offset)
 	{
-		glDepthRangef(m_n, m_f);
+		auto ptr = (DepthRangeCommand*)p;
+
+		glDepthRangef(ptr->m_n, ptr->m_f);
 
 		*offset += sizeof(DepthRangeCommand);
 	}

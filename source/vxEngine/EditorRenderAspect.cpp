@@ -25,9 +25,9 @@ SOFTWARE.
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/EditorScene.h>
-#include <vxLib/gl/gl.h>
-#include <vxLib/gl/StateManager.h>
-#include <vxLib/gl/ProgramPipeline.h>
+#include <vxGL/gl.h>
+#include <vxGL/StateManager.h>
+#include <vxGL/ProgramPipeline.h>
 #include <vxLib/util/DebugPrint.h>
 #include "developer.h"
 #include "GpuStructs.h"
@@ -86,7 +86,7 @@ bool EditorRenderAspect::initialize(const std::string &dataDir, HWND panel, HWND
 	contextDesc.tmpHwnd = tmp;
 	contextDesc.glParams = glDescription;
 
-	if (!initializeCommon(contextDesc, engineConfig->m_rendererSettings))
+	if (!initializeCommon(contextDesc, engineConfig))
 		return false;
 
 	m_pEditorColdData = vx::make_unique<EditorColdData>();

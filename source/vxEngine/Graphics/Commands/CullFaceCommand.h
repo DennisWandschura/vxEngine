@@ -28,12 +28,12 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct CullFaceCommand : public Command
+	struct CullFaceCommand
 	{
 		u32 m_cullFace;
 
 		void set(u32 cullFace);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

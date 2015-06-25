@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "State.h"
-#include <vxLib/gl/StateManager.h>
-#include <vxLib/gl/gl.h>
+#include <vxGL/StateManager.h>
+#include <vxGL/gl.h>
 
 namespace
 {

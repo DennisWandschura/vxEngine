@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "FramebufferTextureCommand.h"
 #include "../Segment.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
 
@@ -55,9 +55,11 @@ namespace Graphics
 		m_level = level;
 	}
 
-	void FramebufferTextureCommand::execute(u32* offset)
+	void FramebufferTextureCommand::execute(const u8* p, u32* offset)
 	{
-		glNamedFramebufferTexture(m_framebufferId, m_attachment, m_texture, m_level);
+		auto ptr = (FramebufferTextureCommand*)p;
+
+		glNamedFramebufferTexture(ptr->m_framebufferId, ptr->m_attachment, ptr->m_texture, ptr->m_level);
 
 		*offset += sizeof(FramebufferTextureCommand);
 	}

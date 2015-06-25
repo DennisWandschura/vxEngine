@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 #include "DrawArraysCommand.h"
-#include <vxLib/gl/gl.h>
+#include <vxGL/gl.h>
 #include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
@@ -54,9 +54,11 @@ namespace Graphics
 		m_count = count;
 	}
 
-	void DrawArraysCommand::execute(u32* offset)
+	void DrawArraysCommand::execute(const u8* p, u32* offset)
 	{
-		glDrawArrays(m_mode, m_first, m_count);
+		auto ptr = (DrawArraysCommand*)p;
+
+		glDrawArrays(ptr->m_mode, ptr->m_first, ptr->m_count);
 
 		*offset += sizeof(DrawArraysCommand);
 	}

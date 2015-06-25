@@ -39,6 +39,7 @@ SOFTWARE.
 #include "Graphics/RendererSettings.h"
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/Actor.h>
+#include "EngineGlobals.h"
 
 #include <Dbghelp.h>
 

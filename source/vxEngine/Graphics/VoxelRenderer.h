@@ -62,7 +62,7 @@ namespace Graphics
 		VoxelRenderer();
 		~VoxelRenderer();
 
-		void initialize(const void*) override;
+		void initialize(vx::StackAllocator* scratchAllocator) override;
 		void shutdown() override;
 
 		void update() override;

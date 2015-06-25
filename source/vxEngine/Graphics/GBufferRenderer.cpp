@@ -23,6 +23,17 @@ SOFTWARE.
 */
 
 #include "GBufferRenderer.h"
+#include "../EngineConfig.h"
+#include "Segment.h"
+#include "Commands.h"
+#include "../gl/ObjectManager.h"
+#include <vxGL/ShaderManager.h>
+#include <vxGL/ProgramPipeline.h>
+#include <vxGL/Buffer.h>
+#include "CommandList.h"
+#include "../GpuStructs.h"
+#include "../gl/BufferBindingManager.h"
+#include <vxLib/File/FileHandle.h>
 
 namespace Graphics
 {
@@ -36,9 +47,76 @@ namespace Graphics
 
 	}
 
-	void GBufferRenderer::initialize(const void* p)
+	void GBufferRenderer::createTextures()
 	{
+		auto resolution = s_settings->m_resolution;
+		vx::gl::TextureDescription desc;
+		desc.type = vx::gl::TextureType::Texture_2D;
+		desc.size = vx::ushort3(resolution.x, resolution.y, 1);
+		desc.miplevels = 1;
+		desc.sparse = 0;
 
+		desc.format = vx::gl::TextureFormat::RGB8;
+		s_objectManager->createTexture("gbufferAlbedoSlice", desc, true);
+
+		desc.format = vx::gl::TextureFormat::RGBA16F;
+		s_objectManager->createTexture("gbufferNormalSlice", desc, true);
+
+		desc.format = vx::gl::TextureFormat::RGBA8;
+		s_objectManager->createTexture("gbufferSurfaceSlice", desc, true);
+
+		desc.format = vx::gl::TextureFormat::RGBA16F;
+		s_objectManager->createTexture("gbufferTangentSlice", desc, true);
+
+		s_objectManager->createTexture("gbufferBitangentSlice", desc, true);
+
+		desc.format = vx::gl::TextureFormat::DEPTH32;
+		desc.type = vx::gl::TextureType::Texture_2D;
+		desc.size = vx::ushort3(resolution.x, resolution.y, 1);
+		s_objectManager->createTexture("gbufferDepthSlice", desc, true);
+	}
+
+	void GBufferRenderer::initialize(vx::StackAllocator* scratchAllocator)
+	{
+		createTextures();
+
+		auto tex0 = s_objectManager->getTexture("gbufferAlbedoSlice");
+		auto tex1 = s_objectManager->getTexture("gbufferNormalSlice");
+		auto tex2 = s_objectManager->getTexture("gbufferSurfaceSlice");
+		auto tex3 = s_objectManager->getTexture("gbufferTangentSlice");
+		auto tex4 = s_objectManager->getTexture("gbufferBitangentSlice");
+		auto depth = s_objectManager->getTexture("gbufferDepthSlice");
+
+		s_objectManager->createFramebuffer("gbufferFB");
+		auto fbo = s_objectManager->getFramebuffer("gbufferFB");
+		fbo->attachTexture(vx::gl::Attachment::Color0, *tex0, 0);
+		fbo->attachTexture(vx::gl::Attachment::Color1, *tex1, 0);
+		fbo->attachTexture(vx::gl::Attachment::Color2, *tex2, 0);
+		fbo->attachTexture(vx::gl::Attachment::Color3, *tex3, 0);
+		fbo->attachTexture(vx::gl::Attachment::Color4, *tex4, 0);
+		fbo->attachTexture(vx::gl::Attachment::Depth, *depth, 0);
+
+		vx::gl::Attachment buffers[] = {vx::gl::Attachment::Color0, vx::gl::Attachment::Color1,vx::gl::Attachment::Color2,vx::gl::Attachment::Color3, vx::gl::Attachment::Color4 };
+		const auto bufferCount = sizeof(buffers) / sizeof(vx::gl::Attachment);
+		fbo->drawBuffers(buffers, bufferCount);
+
+		UniformGBufferBlock block;
+		block.u_albedoSlice = tex0->getTextureHandle();
+		block.u_normalSlice = tex1->getTextureHandle();
+		block.u_surfaceSlice = tex2->getTextureHandle();
+		block.u_tangentSlice = tex3->getTextureHandle();
+		block.u_bitangentSlice = tex4->getTextureHandle();
+		block.u_depthSlice = depth->getTextureHandle();
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
+		desc.size = sizeof(UniformGBufferBlock);
+		desc.immutable = 1;
+		desc.pData = &block;
+
+		s_objectManager->createBuffer("UniformGBufferBuffer", desc);
+
+		s_shaderManager->loadPipeline(vx::FileHandle("drawMeshToGBuffer.pipe"), "drawMeshToGBuffer.pipe", scratchAllocator);
 	}
 
 	void GBufferRenderer::shutdown()
@@ -53,22 +131,50 @@ namespace Graphics
 
 	void GBufferRenderer::getCommandList(CommandList* cmdList)
 	{
-		/*
-		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-		vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+		auto fbo = s_objectManager->getFramebuffer("gbufferFB");
+		auto pipeline = s_shaderManager->getPipeline("drawMeshToGBuffer.pipe");
+		auto cmdbuffer = s_objectManager->getBuffer("meshCmdBuffer");
+		auto vao = s_objectManager->getVertexArray("meshVao");
+		auto meshParamBuffer = s_objectManager->getBuffer("meshParamBuffer");
 
-		vx::gl::StateManager::bindFrameBuffer(m_gbufferFB);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		StateDescription stateDesc = { fbo->getId(), vao->getId(), pipeline->getId(), cmdbuffer->getId(), meshParamBuffer->getId(), true, false, false };
+		State state;
+		state.set(stateDesc);
 
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, *meshParamBuffer);
+		GpuProfilePushCommand gpuPushCmd;
+		gpuPushCmd.set(s_gpuProfiler, "gbuffer");
+		GpuProfilePopCommand gpuPopCmd;
+		gpuPopCmd.set(s_gpuProfiler);
 
-		auto pPipeline = m_shaderManager.getPipeline("drawMeshToGBuffer.pipe");
-		vx::gl::StateManager::bindPipeline(pPipeline->getId());
-		vx::gl::StateManager::bindVertexArray(*meshVao);
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, *meshCmdBuffer);
-		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
-		*/
+		CpuProfilePushCommand cpuPushCmd;
+		cpuPushCmd.set("gbuffer");
+		CpuProfilePopCommand cpuPopCmd;
+
+		ViewportCommand viewportCmd;
+		viewportCmd.set(vx::uint2(), s_settings->m_resolution);
+
+		ClearColorCommand clearColorCmd;
+		clearColorCmd.set(vx::float4(0, 0, 0, 0));
+
+		ClearCommand clearCmd;
+		clearCmd.set(vx::gl::ClearBufferBit_Color | vx::gl::ClearBufferBit_Depth);
+
+		MultiDrawElementsIndirectCountCommand drawCmd;
+		drawCmd.set((u32)vx::gl::PrimitveType::Triangles, (u32)vx::gl::DataType::Unsigned_Int, s_settings->m_rendererSettings.m_maxMeshInstances);
+
+		Segment segmentCreateGBuffer;
+		segmentCreateGBuffer.setState(state);
+		segmentCreateGBuffer.pushCommand(cpuPushCmd);
+		segmentCreateGBuffer.pushCommand(gpuPushCmd);
+		segmentCreateGBuffer.pushCommand(viewportCmd);
+		segmentCreateGBuffer.pushCommand(clearColorCmd);
+		segmentCreateGBuffer.pushCommand(clearCmd);
+		segmentCreateGBuffer.pushCommand(drawCmd);
+		segmentCreateGBuffer.pushCommand(gpuPopCmd);
+		segmentCreateGBuffer.pushCommand(cpuPopCmd);
+
+		cmdList->clear();
+		cmdList->pushSegment(segmentCreateGBuffer, "segmentCreateGBuffer");
 	}
 
 	void GBufferRenderer::clearData()
@@ -78,6 +184,8 @@ namespace Graphics
 
 	void GBufferRenderer::bindBuffers()
 	{
+		auto buffer = s_objectManager->getBuffer("UniformGBufferBuffer");
 
+		gl::BufferBindingManager::bindBaseUniform(11, buffer->getId());
 	}
 }

@@ -50,9 +50,15 @@ namespace Graphics
 		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
 		pushCommand(const T &command)
 		{
-			static_assert(__alignof(T) == 8u, "");
-			const u8* ptr = (u8*)&command;
+			static_assert(sizeof(T) >= 4u, "");
 
+			CommandFunctionType fn = &T::execute;
+			auto address = std::size_t(fn);
+
+			const u8* ptr = (u8*)&address;
+			pushCommand(ptr, sizeof(std::size_t));
+
+			ptr = (u8*)&command;
 			pushCommand(ptr, sizeof(T));
 		}
 

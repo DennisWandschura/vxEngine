@@ -27,7 +27,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	struct MultiDrawArraysIndirectCountCommand : public Command
+	struct MultiDrawArraysIndirectCountCommand
 	{
 		u32 m_mode;
 		u32 m_indirectOffset;
@@ -36,6 +36,6 @@ namespace Graphics
 
 		void set(u32 mode, u32 maxDrawCount, u32 indirectOffset = 0, u32 paramOffset = 0);
 
-		void execute(u32* offset) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }
