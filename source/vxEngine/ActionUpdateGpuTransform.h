@@ -25,18 +25,18 @@ SOFTWARE.
 */
 
 struct EntityActor;
-class RenderAspect;
+class RenderAspectInterface;
 
 #include "Action.h"
 
 class ActionUpdateGpuTransform : public Action
 {
 	EntityActor* m_playerEntity;
-	RenderAspect* m_pRenderAspect;
+	RenderAspectInterface* m_pRenderAspect;
 
 public:
 	ActionUpdateGpuTransform();
-	ActionUpdateGpuTransform(EntityActor* playerEntity,RenderAspect* pRenderAspect);
+	ActionUpdateGpuTransform(EntityActor* playerEntity, RenderAspectInterface* pRenderAspect);
 	~ActionUpdateGpuTransform();
 
 	void run() override;

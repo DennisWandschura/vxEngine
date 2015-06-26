@@ -30,7 +30,7 @@ SOFTWARE.
 #include "vxRenderAspect/Vertex.h"
 #include "vxRenderAspect/GpuStructs.h"
 #include <vxEngineLib/Transform.h>
-#include "vxRenderAspect/GpuFunctions.h"
+#include <vxEngineLib/GpuFunctions.h>
 #include <vxLib/ScopeGuard.h>
 #include "vxRenderAspect/gl/ObjectManager.h"
 #include "vxRenderAspect/gl/BufferBindingManager.h"

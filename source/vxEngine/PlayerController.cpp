@@ -52,7 +52,7 @@ void PlayerController::initialize(vx::StackAllocator* allocator)
 	m_scratchAllocator = vx::StackAllocator(allocator->allocate(allocSize, 8), allocSize);
 }
 
-void PlayerController::initializePlayer(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspect* renderAspect)
+void PlayerController::initializePlayer(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspectInterface* renderAspect)
 {
 
 	m_actions.push_back(vx::make_unique<ActionPlayerLookAround>(pPlayerInputComponent, dt));

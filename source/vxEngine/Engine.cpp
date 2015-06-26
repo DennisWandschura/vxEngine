@@ -46,13 +46,14 @@ Engine::Engine()
 	m_systemAspect(),
 	m_physicsAspect(),
 	m_actorAspect(m_physicsAspect),
-	m_renderAspect(),
+	m_renderAspect(nullptr),
 	m_entityAspect(),
 	m_bRun(0),
 	m_fileAspect(),
 	m_bRunFileThread(),
 	m_fileAspectThread(),
-	m_scene()
+	m_scene(),
+	m_renderAspectDll(nullptr)
 {
 	g_pEngine = this;
 }
@@ -109,8 +110,8 @@ void Engine::update()
 
 void Engine::renderLoop()
 {
-	m_renderAspect.makeCurrent(true);
-	if (!m_renderAspect.initializeProfiler())
+	m_renderAspect->makeCurrent(true);
+	if (!m_renderAspect->initializeProfiler())
 	{
 		VX_ASSERT(false);
 		return;
@@ -147,7 +148,7 @@ void Engine::renderLoop()
 
 		while (accum >= g_dt)
 		{
-			m_renderAspect.updateProfiler(g_dt);
+			m_renderAspect->updateProfiler(g_dt);
 			//CpuProfiler::update();
 			//CpuProfiler::updateRenderer();
 
@@ -155,11 +156,11 @@ void Engine::renderLoop()
 		}
 
 		//CpuProfiler::pushMarker("update");
-		m_renderAspect.update();
+		m_renderAspect->update();
 		//CpuProfiler::popMarker();
 
 		//CpuProfiler::pushMarker("render");
-		m_renderAspect.render();
+		m_renderAspect->render();
 		//CpuProfiler::popMarker();
 
 		//CpuProfiler::popMarker(); // frame end
@@ -178,7 +179,7 @@ void Engine::mainLoop()
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
 
-	auto &font = m_renderAspect.getProfilerFont();
+	auto &font = m_renderAspect->getProfilerFont();
 	//CpuProfiler::initialize(&font);
 
 	f32 accum = 0.0f;
@@ -259,6 +260,29 @@ bool Engine::initializeImpl(const std::string &dataDir)
 	return true;
 }
 
+bool Engine::createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc)
+{
+	auto handle = LoadLibrary(L"../../lib/vxRenderAspectGL_d.dll");
+	if (handle == nullptr)
+		return false;
+
+	auto proc = (CreateRenderAspectFunction)GetProcAddress(handle, "createRenderAspect");
+	if (proc == nullptr)
+		return false;
+
+	auto renderAspect = proc(dataDir, desc, &g_engineConfig, &m_fileAspect, &m_eventManager);
+	if (renderAspect == nullptr)
+		return false;
+
+	m_renderAspect = renderAspect;
+	m_renderAspectDll = handle;
+
+	//if (!m_renderAspect->initialize(dataDir, desc, &g_engineConfig, &m_fileAspect, &m_eventManager))
+	//	return false;
+
+	return true;
+}
+
 bool Engine::initialize()
 {
 	const std::string dataDir("../data/");
@@ -287,10 +311,13 @@ bool Engine::initialize()
 		g_engineConfig.m_renderDebug
 	};
 
-	if (!m_renderAspect.initialize(dataDir, renderAspectDesc, &g_engineConfig, &m_fileAspect, &m_eventManager))
-		return false;
 
-	m_renderAspect.makeCurrent(false);
+	if (!createRenderAspectGL(dataDir, renderAspectDesc))
+	{
+		return false;
+	}
+
+	m_renderAspect->makeCurrent(false);
 
 	if (!m_physicsAspect.initialize())
 		return false;
@@ -306,11 +333,11 @@ bool Engine::initialize()
 	m_actorAspect.initialize(m_entityAspect, &m_allocator);
 
 	Locator::provide(&m_physicsAspect);
-	Locator::provide(&m_renderAspect);
+	Locator::provide(m_renderAspect);
 	Locator::provide(&m_fileAspect);
 
 	// register aspects that receive events
-	m_eventManager.registerListener(&m_renderAspect, 3, (u8)vx::EventType::File_Event);
+	m_eventManager.registerListener(m_renderAspect, 3, (u8)vx::EventType::File_Event);
 	m_eventManager.registerListener(&m_physicsAspect, 2, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event);
 	m_eventManager.registerListener(&m_entityAspect, 1, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event);
 	m_eventManager.registerListener(&m_actorAspect, 2, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event | (u8)vx::EventType::AI_Event);
@@ -335,7 +362,7 @@ void Engine::shutdown()
 #endif
 	m_entityAspect.shutdown();
 	m_physicsAspect.shutdown();
-	m_renderAspect.shutdown(m_systemAspect.getWindow().getHwnd());
+	m_renderAspect->shutdown(m_systemAspect.getWindow().getHwnd());
 	m_systemAspect.shutdown();
 	m_fileAspect.shutdown();
 	m_shutdown = 1;
@@ -345,6 +372,13 @@ void Engine::shutdown()
 	//CpuProfiler::shutdown();
 
 	m_allocator.release();
+
+	if (m_renderAspectDll != nullptr)
+	{
+		FreeLibrary(m_renderAspectDll);
+		m_renderAspectDll = nullptr;
+	}
+
 	m_memory.clear();
 }
 
@@ -389,6 +423,6 @@ void Engine::keyPressed(u16 key)
 	}*/
 	else
 	{
-		m_renderAspect.keyPressed(key);
+		m_renderAspect->keyPressed(key);
 	}
 }

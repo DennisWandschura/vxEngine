@@ -30,7 +30,6 @@ SOFTWARE.
 #include "PhysicsDefines.h"
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/Transform.h>
-#include <vxRenderAspect/RenderAspect.h>
 #include "ComponentRender.h"
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/Event.h>
@@ -42,12 +41,13 @@ SOFTWARE.
 #include <vxEngineLib/EventsIngame.h>
 #include <vxLib/ScopeGuard.h>
 #include <vxEngineLib/Spawn.h>
-#include <vxRenderAspect/GpuFunctions.h>
 #include <vxEngineLib/CreateActorData.h>
 #include "State.h"
 #include "EngineGlobals.h"
 #include "Transition.h"
 #include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/RenderAspectInterface.h>
+#include <vxEngineLib/GpuFunctions.h>
 
 #include "ConditionActorFollowingPath.h"
 #include "ConditionActorHasPath.h"
@@ -224,8 +224,6 @@ void EntityAspect::updateInput(f32 dt)
 
 void EntityAspect::updatePhysics_linear(f32 dt)
 {
-	UNREFERENCED_PARAMETER(dt);
-
 	auto p = m_poolEntity.first();
 	while (p != nullptr)
 	{

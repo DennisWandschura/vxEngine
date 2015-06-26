@@ -27,7 +27,7 @@ SOFTWARE.
 vx::EventManager* Locator::s_pEventManager{ nullptr };
 PhysicsAspect* Locator::s_pPhysicsAspect{ nullptr };
 FileAspect* Locator::s_pFileAspect{ nullptr };
-RenderAspect* Locator::s_pRenderAspect{nullptr};
+RenderAspectInterface* Locator::s_pRenderAspect{nullptr};
 
 void Locator::provide(vx::EventManager* p)
 {
@@ -63,12 +63,12 @@ FileAspect* Locator::getFileAspect()
 }
 
 
-void Locator::provide(RenderAspect* p)
+void Locator::provide(RenderAspectInterface* p)
 {
 	s_pRenderAspect = p;
 }
 
-RenderAspect* Locator::getRenderAspect()
+RenderAspectInterface* Locator::getRenderAspect()
 {
 	VX_ASSERT(s_pRenderAspect);
 	return s_pRenderAspect;

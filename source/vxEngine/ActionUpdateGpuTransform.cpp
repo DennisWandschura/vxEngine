@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include "ActionUpdateGpuTransform.h"
 #include "Entity.h"
-#include <vxRenderAspect/RenderAspect.h>
+#include <vxEngineLib/RenderAspectInterface.h>
 
 ActionUpdateGpuTransform::ActionUpdateGpuTransform()
 	:m_playerEntity(nullptr),
@@ -33,7 +33,7 @@ ActionUpdateGpuTransform::ActionUpdateGpuTransform()
 
 }
 
-ActionUpdateGpuTransform::ActionUpdateGpuTransform(EntityActor* playerEntity, RenderAspect* pRenderAspect)
+ActionUpdateGpuTransform::ActionUpdateGpuTransform(EntityActor* playerEntity, RenderAspectInterface* pRenderAspect)
 	:m_playerEntity(playerEntity),
 	m_pRenderAspect(pRenderAspect)
 {

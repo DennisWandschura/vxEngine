@@ -35,22 +35,15 @@ namespace Editor
 	class Scene;
 }
 
-namespace vx
-{
-	class EventManager;
-}
-
-struct EngineConfig;
 class GpuProfiler;
-class FileAspect;
 
+#include <vxEngineLib/RenderAspectInterface.h>
 #include "RenderAspectDescription.h"
 #include <vxEngineLib/EventListener.h>
 #include <vxGL/RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
 #include "SceneRenderer.h"
 #include "Font.h"
-#include "RenderUpdateTask.h"
 #include "gl/ObjectManager.h"
 #include <vxGL/ShaderManager.h>
 #include <vector>
@@ -62,7 +55,7 @@ class FileAspect;
 #include <vxEngineLib/mutex.h>
 //#include "GpuProfiler.h"
 
-class VX_ALIGN(64) __declspec(dllexport) RenderAspect : public vx::EventListener
+class VX_ALIGN(64) RenderAspect : public RenderAspectInterface
 {
 protected:
 	struct ColdData;
@@ -153,27 +146,27 @@ public:
 	RenderAspect();
 	virtual ~RenderAspect();
 
-	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, FileAspect* fileAspect, vx::EventManager* evtManager);
-	void shutdown(const HWND hwnd);
+	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, FileAspect* fileAspect, vx::EventManager* evtManager) override;
+	void shutdown(void* hwnd) override;
 
-	bool initializeProfiler();
+	bool initializeProfiler() override;
 
-	void makeCurrent(bool b);
+	void makeCurrent(bool b) override;
 
-	void queueUpdateTask(const RenderUpdateTask &task);
-	void queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize);
-	void queueUpdateCamera(const RenderUpdateCameraData &data);
-	void update();
+	void queueUpdateTask(const RenderUpdateTask &task) override;
+	void queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize) override;
+	void queueUpdateCamera(const RenderUpdateCameraData &data) override;
+	void update() override;
 
-	void updateProfiler(f32 dt);
+	void updateProfiler(f32 dt) override;
 
-	void render();
+	void render() override;
 
 	virtual void handleEvent(const vx::Event &evt) override;
 
-	void keyPressed(u16 key);
+	void keyPressed(u16 key) override;
 
-	const vx::gl::ShaderManager& getShaderManager() const { return m_shaderManager; }
-	void getProjectionMatrix(vx::mat4* m);
-	const Font& getProfilerFont() const;
+	const vx::gl::ShaderManager& getShaderManager() const override { return m_shaderManager; }
+	void getProjectionMatrix(vx::mat4* m) override;
+	const Font& getProfilerFont() const override;
 };

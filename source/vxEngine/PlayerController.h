@@ -37,7 +37,7 @@ namespace Component
 
 struct EntityActor;
 class EntityAspect;
-class RenderAspect;
+class RenderAspectInterface;
 
 #include <vxLib/types.h>
 #include "StateMachine.h"
@@ -58,7 +58,7 @@ public:
 	~PlayerController();
 
 	void initialize( vx::StackAllocator* allocator);
-	void initializePlayer(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspect* renderAspect);
+	void initializePlayer(Component::Input* pPlayerInputComponent, f32 dt, EntityActor* playerEntity, RenderAspectInterface* renderAspect);
 
 	void update();
 };

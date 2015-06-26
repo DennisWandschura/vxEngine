@@ -221,6 +221,7 @@
     <ClInclude Include="include\vxEngineLib\EventTypes.h" />
     <ClInclude Include="include\vxEngineLib\EventTypesFwd.h" />
     <ClInclude Include="include\vxEngineLib\FileFactory.h" />
+    <ClInclude Include="include\vxEngineLib\GpuFunctions.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Locator.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />
@@ -240,7 +241,9 @@
     <ClInclude Include="include\vxEngineLib\Pool.h" />
     <ClInclude Include="include\vxEngineLib\Ray.h" />
     <ClInclude Include="include\vxEngineLib\Reference.h" />
+    <ClInclude Include="include\vxEngineLib\RenderAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\RendererSettings.h" />
+    <ClInclude Include="include\vxEngineLib\RenderUpdateTask.h" />
     <ClInclude Include="include\vxEngineLib\Scene.h" />
     <ClInclude Include="include\vxEngineLib\SceneBase.h" />
     <ClInclude Include="include\vxEngineLib\SceneFile.h" />
@@ -318,6 +321,7 @@
     <ClCompile Include="SceneFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Spawn.cpp" />
     <ClCompile Include="TextureFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

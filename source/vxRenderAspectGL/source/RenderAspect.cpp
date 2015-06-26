@@ -688,7 +688,7 @@ void RenderAspect::createFrame()
 	//m_shadowRenderer->getCommandList(&cmdList);
 }
 
-void RenderAspect::shutdown(const HWND hwnd)
+void RenderAspect::shutdown(void* hwnd)
 {
 	for (auto &it : m_renderer)
 	{
@@ -700,7 +700,7 @@ void RenderAspect::shutdown(const HWND hwnd)
 	m_sceneRenderer.shutdown();
 	m_objectManager.shutdown();
 	m_pColdData.reset(nullptr);
-	m_renderContext.shutdown(hwnd);
+	m_renderContext.shutdown((HWND)hwnd);
 }
 
 void RenderAspect::makeCurrent(bool b)

@@ -31,58 +31,61 @@ enum class PlayerType : u32;
 
 struct Spawn
 {
+	static u32 s_id;
+
 	Spawn() 
 		:type(),
 		position(),
-		sid()
+		sid(),
+		id(s_id++)
 	{}
 
 	Spawn(const Spawn &rhs)
 		:type(rhs.type),
 		position(rhs.position),
-		sid(rhs.sid)
+		sid(rhs.sid),
+		id(rhs.id)
 	{
 	}
 
 	Spawn(Spawn &&rhs)
 		:type(rhs.type),
 		position(rhs.position),
-		sid(rhs.sid)
+		sid(rhs.sid),
+		id(rhs.id)
 	{
+	}
+
+	Spawn& operator=(const Spawn &rhs)
+	{
+		if (this != &rhs)
+		{
+			type = rhs.type;
+			position = rhs.position;
+			sid = rhs.sid;
+			id = rhs.id;
+		}
+		return *this;
+	}
+
+	Spawn& operator=(Spawn &&rhs)
+	{
+		if (this != &rhs)
+		{
+			std::swap(type, rhs.type);
+			std::swap(position, rhs.position);
+			std::swap(sid ,rhs.sid);
+			std::swap(id,rhs.id);
+		}
+		return *this;
 	}
 
 	PlayerType type;
 	vx::float3 position;
 	// actor id, not used for human
 	vx::StringID sid;
+	u32 id;
 };
-
-namespace Editor
-{
-	struct Spawn : public ::Spawn
-	{
-		static u32 s_id;
-
-		Spawn() 
-			: ::Spawn(),
-			id(s_id++)
-		{}
-
-		Spawn(const Spawn &rhs)
-			: ::Spawn(rhs),
-			id(rhs.id)
-		{
-		}
-
-		Spawn(Spawn &&rhs)
-			: ::Spawn(std::move(rhs)),
-			id(rhs.id)
-		{
-		}
-
-		u32 id;
-	};
-}
 
 struct SpawnFile
 {

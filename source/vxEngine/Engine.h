@@ -28,7 +28,7 @@ SOFTWARE.
 #include <atomic>
 #include <vxLib/Allocator/StackAllocator.h>
 #include "SystemAspect.h"
-#include <vxRenderAspect/RenderAspect.h>
+#include <vxEngineLib/RenderAspectInterface.h>
 #include "PhysicsAspect.h"
 #include <vxResourceAspect/FileAspect.h>
 #include "memory.h"
@@ -47,7 +47,7 @@ class Engine
 	SystemAspect m_systemAspect;
 	PhysicsAspect m_physicsAspect;
 	ActorAspect m_actorAspect;
-	RenderAspect m_renderAspect;
+	RenderAspectInterface* m_renderAspect;
 	EntityAspect m_entityAspect;
 	u32 m_bRun;
 	FileAspect m_fileAspect;
@@ -61,7 +61,10 @@ class Engine
 	vx::AudioAspect m_audioAspect;
 #endif
 	Scene m_scene;
+	HMODULE m_renderAspectDll;
 	Memory m_memory;
+
+	bool createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc);
 
 	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);

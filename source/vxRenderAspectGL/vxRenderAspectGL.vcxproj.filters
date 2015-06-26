@@ -168,15 +168,15 @@
     <ClCompile Include="source\gl\BufferBindingManager.cpp">
       <Filter>Source Files\gl</Filter>
     </ClCompile>
+    <ClCompile Include="source\dllExport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxRenderAspect\RenderCommand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\RenderCommandFinalImage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxRenderAspect\RenderUpdateTask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\SceneRenderer.h">
@@ -210,9 +210,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\Frustum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxRenderAspect\GpuFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\GpuProfiler.h">
@@ -343,6 +340,9 @@
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\gl\BufferBindingManager.h">
       <Filter>Header Files\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\dllExport.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

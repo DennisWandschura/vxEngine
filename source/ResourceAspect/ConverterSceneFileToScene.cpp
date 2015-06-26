@@ -34,7 +34,6 @@ SOFTWARE.
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/MeshInstanceFile.h>
 #include <vxEngineLib/Reference.h>
-#include <vxEngineLib/EditorScene.h>
 
 struct ConverterSceneFileToScene::CreateSceneMeshInstancesDesc
 {
@@ -154,7 +153,6 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 	if (!createSceneActors(createSceneActorsDesc))
 		return 0;
 
-#if _VX_EDITOR
 	vx::sorted_vector<u32, Spawn> spawns;
 	spawns.reserve(sceneFile.m_spawnCount);
 	for (auto i = 0u; i < sceneFile.m_spawnCount; ++i)
@@ -166,15 +164,6 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 
 		spawns.insert(std::move(spawn.id),std::move(spawn));
 	}
-#else
-	auto spawns = vx::make_unique<Spawn[]>(sceneFile.m_spawnCount);
-	for (auto i = 0u; i < sceneFile.m_spawnCount; ++i)
-	{
-		spawns[i].type = sceneFile.m_pSpawns[i].type;
-		spawns[i].position = sceneFile.m_pSpawns[i].position;
-		spawns[i].sid = vx::make_sid(sceneFile.m_pSpawns[i].actor);
-	}
-#endif
 
 	u32 vertexCount = 0;
 	auto indexCount = 0u;
@@ -188,36 +177,20 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 	NavMesh navMesh;
 	sceneFile.m_navMesh.copy(&navMesh);
 
-#if _VX_EDITOR
 	auto pLights = std::vector<Light>();
 	pLights.reserve(sceneFile.m_lightCount);
 	for (u32 i = 0; i < sceneFile.m_lightCount; ++i)
 	{
 		pLights.push_back(sceneFile.m_pLights[i]);
 	}
-#else
-	auto pLights = vx::make_unique<Light[]>(sceneFile.m_lightCount);
-	for (u32 i = 0; i < sceneFile.m_lightCount; ++i)
-	{
-		pLights[i] = sceneFile.m_pLights[i];
-	}
-#endif
 
 
-#if _VX_EDITOR
 	auto waypoints = std::vector<Waypoint>();
 	waypoints.reserve(sceneFile.m_waypointCount);
 	for (u32 i = 0; i < sceneFile.m_waypointCount; ++i)
 	{
 		waypoints.push_back(sceneFile.m_waypoints[i]);
 	}
-#else
-	auto waypoints = vx::make_unique<Waypoint[]>(sceneFile.m_waypointCount);
-	for (u32 i = 0; i < sceneFile.m_waypointCount; ++i)
-	{
-		waypoints[i] = sceneFile.m_waypoints[i];
-	}
-#endif
 
 	SceneParams sceneParams;
 	sceneParams.m_baseParams.m_actors = std::move(sceneActors);
@@ -236,99 +209,6 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx:
 	sceneParams.m_baseParams.m_waypoints = std::move(waypoints);
 
 	*scene = Scene(sceneParams);
-	scene->sortMeshInstances();
-
-	return 1;
-}
-
-bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes, const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials, const SceneFile &sceneFile, Editor::Scene* scene)
-{
-	vx::sorted_vector<vx::StringID, Reference<Material>> sceneMaterials;
-	sceneMaterials.reserve(5);
-
-	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
-
-	auto pMeshInstances = vx::make_unique<MeshInstance[]>(sceneFile.m_meshInstanceCount);
-
-	CreateSceneMeshInstancesDesc desc;
-	desc.pMeshInstances = pMeshInstances.get();
-	desc.sceneFile = &sceneFile;
-	desc.sceneMaterials = &sceneMaterials;
-	desc.sceneMeshes = &sceneMeshes;
-	desc.sortedMaterials = sortedMaterials;
-	desc.sortedMeshes = sortedMeshes;
-
-	if (!createSceneMeshInstances(desc))
-		return 0;
-
-	vx::sorted_vector<vx::StringID, Actor> sceneActors;
-
-	CreateSceneActorsDesc createSceneActorsDesc;
-	createSceneActorsDesc.sceneActors = &sceneActors;
-	createSceneActorsDesc.sceneFile = &sceneFile;
-	createSceneActorsDesc.sceneMaterials = &sceneMaterials;
-	createSceneActorsDesc.sceneMeshes = &sceneMeshes;
-	createSceneActorsDesc.sortedMaterials = sortedMaterials;
-	createSceneActorsDesc.sortedMeshes = sortedMeshes;
-	if (!createSceneActors(createSceneActorsDesc))
-		return 0;
-
-	vx::sorted_vector<u32, Spawn> spawns;
-	spawns.reserve(sceneFile.m_spawnCount);
-	for (auto i = 0u; i < sceneFile.m_spawnCount; ++i)
-	{
-		Editor::Spawn spawn;
-		spawn.type = sceneFile.m_pSpawns[i].type;
-		spawn.position = sceneFile.m_pSpawns[i].position;
-		spawn.sid = vx::make_sid(sceneFile.m_pSpawns[i].actor);
-
-		spawns.insert(std::move(spawn.id), std::move(spawn));
-	}
-
-	u32 vertexCount = 0;
-	auto indexCount = 0u;
-	for (auto &it : sceneMeshes)
-	{
-		auto &mesh = it->getMesh();
-		vertexCount += mesh.getVertexCount();
-		indexCount += mesh.getIndexCount();
-	}
-
-	NavMesh navMesh;
-	sceneFile.m_navMesh.copy(&navMesh);
-
-	auto pLights = std::vector<Light>();
-	pLights.reserve(sceneFile.m_lightCount);
-	for (u32 i = 0; i < sceneFile.m_lightCount; ++i)
-	{
-		pLights.push_back(sceneFile.m_pLights[i]);
-	}
-
-
-	auto waypoints = std::vector<Waypoint>();
-	waypoints.reserve(sceneFile.m_waypointCount);
-	for (u32 i = 0; i < sceneFile.m_waypointCount; ++i)
-	{
-		waypoints.push_back(sceneFile.m_waypoints[i]);
-	}
-
-	Editor::SceneParams sceneParams;
-	sceneParams.m_baseParams.m_actors = std::move(sceneActors);
-	sceneParams.m_baseParams.m_indexCount = indexCount;
-	sceneParams.m_baseParams.m_lightCount = sceneFile.m_lightCount;
-	sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
-	sceneParams.m_baseParams.m_meshes = std::move(sceneMeshes);
-	sceneParams.m_baseParams.m_navMesh = std::move(navMesh);
-	sceneParams.m_baseParams.m_pLights = std::move(pLights);
-	sceneParams.m_baseParams.m_pSpawns = std::move(spawns);
-	sceneParams.m_baseParams.m_spawnCount = sceneFile.m_spawnCount;
-	sceneParams.m_baseParams.m_vertexCount = vertexCount;
-	sceneParams.m_meshInstanceCount = sceneFile.m_meshInstanceCount;
-	sceneParams.m_pMeshInstances = std::move(pMeshInstances);
-	sceneParams.m_baseParams.m_waypointCount = sceneFile.m_waypointCount;
-	sceneParams.m_baseParams.m_waypoints = std::move(waypoints);
-
-	*scene = Editor::Scene(sceneParams);
 	scene->sortMeshInstances();
 
 	return true;

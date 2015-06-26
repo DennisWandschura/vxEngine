@@ -441,7 +441,6 @@ namespace Editor
 
 	void Scene::addSpawn(Spawn &&newSpawn)
 	{
-#if _VX_EDITOR
 		auto it = m_pSpawns.insert(newSpawn.id, std::move(newSpawn));
 		++m_spawnCount;
 
@@ -454,7 +453,6 @@ namespace Editor
 		selected.second = it->id;
 
 		m_selectableSpawns.push_back(selected);
-#endif
 	}
 
 	u32 Scene::getSpawnId(const Ray &ray) const
@@ -478,17 +476,14 @@ namespace Editor
 	{
 		const Spawn* result = nullptr;
 
-#if _VX_EDITOR
 		auto it = m_pSpawns.find(id);
 		if (it != m_pSpawns.end())
 			result = &*it;
-#endif
 		return result;
 	}
 
 	void Scene::setSpawnPosition(u32 id, const vx::float3 &position)
 	{
-#if _VX_EDITOR
 		auto it = m_pSpawns.find(id);
 		if (it != m_pSpawns.end())
 		{
@@ -496,7 +491,6 @@ namespace Editor
 
 			buildSelectableSpawns();
 		}
-#endif
 	}
 
 	void Scene::setSpawnType(u32 id, u32 type)

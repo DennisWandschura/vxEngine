@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\DDS_File.cpp" />
+    <ClCompile Include="source\dllExport.cpp" />
     <ClCompile Include="source\DoubleBufferRaw.cpp" />
     <ClCompile Include="source\Font.cpp" />
     <ClCompile Include="source\FontAtlas.cpp" />
@@ -68,6 +69,7 @@
     <ClInclude Include="include\vxRenderAspect\dds.h" />
     <ClInclude Include="include\vxRenderAspect\DDS_File.h" />
     <ClInclude Include="include\vxRenderAspect\DebugRenderSettings.h" />
+    <ClInclude Include="include\vxRenderAspect\dllExport.h" />
     <ClInclude Include="include\vxRenderAspect\DoubleBufferRaw.h" />
     <ClInclude Include="include\vxRenderAspect\Font.h" />
     <ClInclude Include="include\vxRenderAspect\FontAtlas.h" />
@@ -75,7 +77,6 @@
     <ClInclude Include="include\vxRenderAspect\gl\BufferBindingManager.h" />
     <ClInclude Include="include\vxRenderAspect\gl\BufferManager.h" />
     <ClInclude Include="include\vxRenderAspect\gl\ObjectManager.h" />
-    <ClInclude Include="include\vxRenderAspect\GpuFunctions.h" />
     <ClInclude Include="include\vxRenderAspect\GpuProfiler.h" />
     <ClInclude Include="include\vxRenderAspect\GpuStructs.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\CommandFactory.h" />
@@ -118,7 +119,6 @@
     <ClInclude Include="include\vxRenderAspect\RenderAspectDescription.h" />
     <ClInclude Include="include\vxRenderAspect\RenderCommand.h" />
     <ClInclude Include="include\vxRenderAspect\RenderCommandFinalImage.h" />
-    <ClInclude Include="include\vxRenderAspect\RenderUpdateTask.h" />
     <ClInclude Include="include\vxRenderAspect\SceneRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\SegmentFactory.h" />
     <ClInclude Include="include\vxRenderAspect\TextureManager.h" />

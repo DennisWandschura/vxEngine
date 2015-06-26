@@ -44,24 +44,16 @@ namespace vx
 #include <memory>
 #include "NavMesh.h"
 #include <vxLib/StringID.h>
+#include <vector>
 
 struct SceneBaseParams
 {
-#if _VX_EDITOR
 	std::vector<Light> m_pLights;
-#else
-	std::unique_ptr<Light[]> m_pLights;
-#endif
 	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
-#if _VX_EDITOR
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	std::vector<Waypoint> m_waypoints;
-#else
-	std::unique_ptr<Spawn[]> m_pSpawns;
-	std::unique_ptr<Waypoint[]> m_waypoints;
-#endif
 	NavMesh m_navMesh;
 	u32 m_lightCount;
 	u32 m_vertexCount;
@@ -75,24 +67,12 @@ struct SceneBaseParams
 class SceneBase
 {
 protected:
-#if _VX_EDITOR
 	std::vector<Light> m_pLights;
-#else
-	std::unique_ptr<Light[]> m_pLights;
-#endif
 	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
-#if _VX_EDITOR
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
-#else
-	std::unique_ptr<Spawn[]> m_pSpawns;
-#endif
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
-#if _VX_EDITOR
 	std::vector<Waypoint> m_waypoints;
-#else
-	std::unique_ptr<Waypoint[]> m_waypoints;
-#endif
 	NavMesh m_navMesh;
 	u32 m_lightCount{ 0 };
 	u32 m_vertexCount{ 0 };

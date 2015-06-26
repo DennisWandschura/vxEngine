@@ -25,20 +25,7 @@ SOFTWARE.
 
 namespace vx
 {
-	class Window;
-	class StackAllocator;
 }
 
 #include <vxLib/math/Vector.h>
 
-struct RenderAspectDescription
-{
-	const vx::Window* window;
-	vx::StackAllocator* pAllocator;
-	vx::uint2 resolution;
-	f32 fovRad;
-	f32 z_near;
-	f32 z_far;
-	bool vsync;
-	bool debug;
-};

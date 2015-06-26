@@ -34,31 +34,36 @@ class InfluenceMap;
 class NavMeshGraph;
 struct Waypoint;
 struct Spawn;
+class Material;
+struct Light;
 
-#include <vxRenderAspect/RenderAspect.h>
+#include <vxEngineLib/RenderAspectInterface.h>
 #include <vxLib/Variant.h>
+#include <vxLib/Graphics/Camera.h>
+#include <vxLib/StringID.h>
+#include <vxEngineLib/Reference.h>
 //#include "Graphics/CommandList.h"
 
-class EditorRenderAspect : public RenderAspect
+class EditorRenderAspect
 {
 	enum class EditorUpdate : u32;
 
 	struct SelectedMeshInstance
 	{
 		const Editor::MeshInstance* ptr{nullptr};
-		vx::gl::DrawElementsIndirectCommand cmd;
+		//vx::gl::DrawElementsIndirectCommand cmd;
 	};
 
 	struct EditorColdData
 	{
-		vx::gl::Texture m_editorTextures;
+		//vx::gl::Texture m_editorTextures;
 
 		u32 m_lightCount{ 0 };
 		u32 m_navMeshIndexCount{ 0 };
 		u32 m_navMeshVertexCount{ 0 };
 	};
 
-	//Graphics::CommandList m_commandList;
+	RenderAspectInterface* m_renderer;
 
 	u32 m_navMeshGraphNodesCount{0};
 
@@ -109,7 +114,7 @@ public:
 	void editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ);
 	void VX_CALLCONV editor_rotateCamera(const __m128 rotation);
 
-	void handleEvent(const vx::Event &evt) override;
+	void handleEvent(const vx::Event &evt);
 
 	const vx::Camera& getCamera() const;
 

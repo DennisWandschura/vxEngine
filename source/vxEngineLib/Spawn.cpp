@@ -21,38 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-class Scene;
-class SceneFile;
-class Material;
-class MeshInstance;
-struct Actor;
+#include <vxEngineLib/Spawn.h>
 
-template<typename T>
-class Reference;
-
-namespace vx
-{
-	class MeshFile;
-}
-
-namespace Editor
-{
-	class Scene;
-}
-
-#include <vxLib/Container/sorted_array.h>
-#include <vxLib/StringID.h>
-
-class ConverterSceneFileToScene
-{
-	struct CreateSceneMeshInstancesDesc;
-	struct CreateSceneActorsDesc;
-
-	static bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc);
-	static bool createSceneActors(const CreateSceneActorsDesc &desc);
-
-public:
-	static bool convert(const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes, const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials, const SceneFile &sceneFile, Scene* scene);
-};
+u32 Spawn::s_id{0};
