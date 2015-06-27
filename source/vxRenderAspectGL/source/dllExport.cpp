@@ -1,12 +1,12 @@
 #include <vxRenderAspect/dllExport.h>
 #include <vxRenderAspect/RenderAspect.h>
 
-RenderAspectInterface* createRenderAspect(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, FileAspect* fileAspect, vx::EventManager* evtManager)
+RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc)
 {
 	auto result = (RenderAspect*)_aligned_malloc(sizeof(RenderAspect), __alignof(RenderAspect));
 	new (result) RenderAspect{};
 
-	if(!result->initialize(dataDir, desc, settings, fileAspect, evtManager))
+	if(!result->initialize(desc))
 	{
 		result->~RenderAspect();
 		_aligned_free(result);
@@ -14,4 +14,14 @@ RenderAspectInterface* createRenderAspect(const std::string &dataDir, const Rend
 	}
 
 	return result;
+}
+
+void destroyRenderAspect(RenderAspectInterface *p)
+{
+	if (p != nullptr)
+	{
+		auto ptr = (RenderAspect*)p;
+		ptr->~RenderAspect();
+		_aligned_free(ptr);
+	}
 }

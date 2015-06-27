@@ -44,6 +44,7 @@ class CreateActorData;
 #include "ComponentsForward.h"
 #include <vxLib/math/Vector.h>
 #include <vxLib/Allocator/StackAllocator.h>
+#include "QuadTree.h"
 
 enum class PlayerType : u32;
 enum class FileType : u8;
@@ -62,6 +63,7 @@ class EntityAspect : public vx::EventListener
 	vx::Pool<Component::Render> m_poolRender;
 	vx::Pool<Component::Input> m_poolInput;
 	vx:: Pool<EntityActor> m_poolEntity;
+	QuadTree m_quadTree;
 	vx::StackAllocator m_allocator;
 	std::unique_ptr<ColdData> m_coldData;
 
@@ -84,6 +86,8 @@ public:
 
 	bool initialize(vx::StackAllocator* pAllocator);
 	void shutdown();
+
+	void builEntityQuadTree();
 
 	//////////////////
 

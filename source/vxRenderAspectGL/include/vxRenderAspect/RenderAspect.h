@@ -146,7 +146,7 @@ public:
 	RenderAspect();
 	virtual ~RenderAspect();
 
-	bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, FileAspect* fileAspect, vx::EventManager* evtManager) override;
+	bool initialize(const RenderAspectDescription &desc) override;
 	void shutdown(void* hwnd) override;
 
 	bool initializeProfiler() override;
@@ -169,4 +169,8 @@ public:
 	const vx::gl::ShaderManager& getShaderManager() const override { return m_shaderManager; }
 	void getProjectionMatrix(vx::mat4* m) override;
 	const Font& getProfilerFont() const override;
+
+	void getTotalVRam(u32* totalVram) const override;
+	void getTotalAvailableVRam(u32* totalAvailableVram) const override;
+	void getAvailableVRam(u32* usedVram) const override;
 };

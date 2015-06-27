@@ -26,4 +26,5 @@ SOFTWARE.
 
 #include <vxEngineLib/RenderAspectInterface.h>
 
-extern "C" __declspec(dllexport) RenderAspectInterface* createRenderAspect(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, FileAspect* fileAspect, vx::EventManager* evtManager);
+extern "C" __declspec(dllexport) RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc);
+extern "C" __declspec(dllexport) void destroyRenderAspect(RenderAspectInterface *p);

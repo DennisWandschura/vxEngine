@@ -1,6 +1,6 @@
 #pragma once
-/*
-The MIT License (MIT)
+
+/* The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
 
@@ -20,41 +20,49 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
-namespace Component
-{
-	struct Input;
-	struct Actor;
-}
+SOFTWARE.*/
 
 struct EntityActor;
 
-#include "Action.h"
-#include <vector>
 #include <vxLib/math/Vector.h>
-#include "Arrive.h"
-#include "LookWhereYoureGoing.h"
-#include "CollisionAvoidance.h"
+#include <vxEngineLib/AABB.h>
+#include <vector>
 
-class ActionFollowPath : public Action
+struct QuadTreeData
 {
-	Component::Input* m_componentInput;
-	EntityActor* m_entity;
-	Arrive m_arrive;
-	LookWhereYoureGoing m_lookWhereYoureGoing;
-	Component::Actor* m_actor;
-	CollisionAvoidance  m_avoidance;
+	EntityActor* entity;
+	vx::float3 position;
+	vx::float3 velocity;
+};
 
-	bool m_arrived;
+class QuadTree
+{
+	struct Cell
+	{
+		u32 m_dataOffset;
+		u32 m_count;
+	};
+
+	AABB m_bounds;
+	std::vector<Cell> m_cells;
+	vx::float2a m_invGridDim;
+	vx::uint2a m_dim;
+	std::vector<QuadTreeData> m_data;
+	u32 m_capacity;
+	u32 m_size;
+
+	void getDataLinear(const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
+	void getDataLinear(const EntityActor* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
 
 public:
-	ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actorData, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius);
+	QuadTree();
+	~QuadTree();
 
-	void run() override;
+	void initialize(const AABB &bounds, const vx::uint2 &dim, u32 capacity);
 
-	bool isComplete() const override;
+	void clear();
+	void insert(const QuadTreeData* data, u32 count);
 
-	void setTarget(const vx::float3 &target);
+	void getData(const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
+	void getData(const EntityActor* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
 };

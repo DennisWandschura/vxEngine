@@ -103,6 +103,37 @@ void EntityAspect::shutdown()
 	m_poolInput.release();
 }
 
+void EntityAspect::builEntityQuadTree()
+{
+	auto size = m_poolEntity.size();
+	if (size == 0)
+		return;
+
+	std::vector<QuadTreeData> data;
+	data.reserve(size);
+
+	auto current = m_poolInput.first();
+	while (current != nullptr)
+	{
+		auto &entity = m_poolEntity[current->entityIndex];
+
+		QuadTreeData tmp;
+		tmp.entity = &entity;
+		tmp.position = entity.position;
+		tmp.position.y = entity.footPositionY;
+		tmp.velocity.x = current->velocity.x;
+		tmp.velocity.y = current->velocity.y;
+		tmp.velocity.z = current->velocity.z;
+
+		data.push_back(tmp);
+
+		current = m_poolInput.next_nocheck(current);
+	}
+
+	m_quadTree.clear();
+	m_quadTree.insert(data.data(), data.size());
+}
+
 void EntityAspect::createComponentPhysics(const CreateActorData &data, u16 entityIndex)
 {
 
@@ -119,7 +150,7 @@ Component::Actor* EntityAspect::createComponentActor(u16 entityIndex, EntityActo
 	pActor->m_busy = 0;
 	pActor->m_followingPath = 0;
 
-	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, componentInput, pActor);
+	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, componentInput, pActor, &m_quadTree, 0.2f, 2.0f);
 	ActionSetFollowPath* actionSetFollowPath = new ActionSetFollowPath(actionFollowPath, pActor->m_data.get());
 
 	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(pActor);
@@ -209,9 +240,6 @@ void EntityAspect::updateInput(f32 dt)
 
 		//__m128 vVelocity = { p->velocity.x, 0, p->velocity.z, 0.0f };
 		__m128 vVelocity = vx::loadFloat4(p->velocity);
-		p->velocity.x = 0.0f;
-		p->velocity.y = 0.0f;
-		p->velocity.z = 0.0f;
 
 		vVelocity = _mm_and_ps(vVelocity, velocityMask);
 		vVelocity = _mm_add_ps(vVelocity, vGravity);
@@ -326,6 +354,12 @@ void EntityAspect::handleFileEvent(const vx::Event &evt)
 		pEvtManager->addEvent(e);
 
 		m_coldData->m_pCurrentScene = (const Scene*)evt.arg2.ptr;
+
+		auto bounds = m_coldData->m_pCurrentScene->getNavMesh().getBounds();
+		bounds.min.y -= 0.1f;
+		bounds.max.y += 0.1f;
+
+		m_quadTree.initialize(bounds, vx::uint2(5), 64);
 	}
 }
 

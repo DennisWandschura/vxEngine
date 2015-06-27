@@ -166,12 +166,6 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\game\data\shaders\include\common.h" />
-    <ClInclude Include="..\..\game\data\shaders\include\UniformFrustumBuffer.h" />
-    <ClInclude Include="..\..\game\data\shaders\include\UniformReflectionBuffer.h" />
-    <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTextureBuffer.h" />
-    <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTransformBuffer.h" />
-    <ClInclude Include="..\..\game\data\shaders\include\UniformCameraBufferStatic.h" />
     <ClInclude Include="ActionActorCreatePath.h" />
     <ClInclude Include="ActionFollowPath.h" />
     <ClInclude Include="ActionManager.h" />
@@ -182,6 +176,7 @@
     <ClInclude Include="ActionUpdateGpuTransform.h" />
     <ClInclude Include="ActorAspect.h" />
     <ClInclude Include="ai\Squad.h" />
+    <ClInclude Include="CollisionAvoidance.h" />
     <ClInclude Include="ConditionActorFollowingPath.h" />
     <ClInclude Include="ConditionActorHasPath.h" />
     <ClInclude Include="CpuProfiler.h" />
@@ -206,6 +201,7 @@
     <ClInclude Include="EventsIngame.h" />
     <ClInclude Include="NavMeshGraph.h" />
     <ClInclude Include="Primitive.h" />
+    <ClInclude Include="QuadTree.h" />
     <ClInclude Include="SmallObjAllocator.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Component.h" />
@@ -299,6 +295,7 @@
     <ClCompile Include="BVH.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="CollisionAvoidance.cpp" />
     <ClCompile Include="CpuProfiler.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -339,6 +336,7 @@
     <ClCompile Include="NavMeshGraph.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="QuadTree.cpp" />
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DLL Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -392,117 +390,6 @@
     <ClCompile Include="thread.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <None Include="..\..\game\data\shaders\blurpass.pipe" />
-    <None Include="..\..\game\data\shaders\blurpass2.pipe" />
-    <None Include="..\..\game\data\shaders\blurShadowY.pipe" />
-    <None Include="..\..\game\data\shaders\coneTrace.pipe" />
-    <None Include="..\..\game\data\shaders\createConeTraceList.pipe" />
-    <None Include="..\..\game\data\shaders\drawFinalImageAlbedo.pipe" />
-    <None Include="..\..\game\data\shaders\drawFinalImageNormals.pipe" />
-    <None Include="..\..\game\data\shaders\drawMeshToGBuffer.pipe" />
-    <None Include="..\..\game\data\shaders\draw_aabb.pipe" />
-    <None Include="..\..\game\data\shaders\draw_final_image.pipe" />
-    <None Include="..\..\game\data\shaders\editorDrawMesh.pipe" />
-    <None Include="..\..\game\data\shaders\editorDrawNavmeshConnection.pipe" />
-    <None Include="..\..\game\data\shaders\editorDrawPointColor.pipe" />
-    <None Include="..\..\game\data\shaders\editorDrawLights.pipe" />
-    <None Include="..\..\game\data\shaders\editorDrawSpawn.pipe" />
-    <None Include="..\..\game\data\shaders\editorDrawPoint.pipe" />
-    <None Include="..\..\game\data\shaders\editorDrawInfluenceCell.pipe" />
-    <None Include="..\..\game\data\shaders\editorSelectedMesh.pipe" />
-    <None Include="..\..\game\data\shaders\forward_render.pipe" />
-    <None Include="..\..\game\data\shaders\graph.pipe" />
-    <None Include="..\..\game\data\shaders\include\atomicCounters.glsl" />
-    <None Include="..\..\game\data\shaders\include\math.glsl" />
-    <None Include="..\..\game\data\shaders\include\mesh.glsl" />
-    <None Include="..\..\game\data\shaders\include\structs.glsl" />
-    <None Include="..\..\game\data\shaders\include\UniformCameraBuffer.h" />
-    <None Include="..\..\game\data\shaders\include\uniform_buffers.glsl" />
-    <None Include="..\..\game\data\shaders\influenceMap.pipe" />
-    <None Include="..\..\game\data\shaders\navmesh.pipe" />
-    <None Include="..\..\game\data\shaders\programs\blurNew.frag" />
-    <None Include="..\..\game\data\shaders\programs\blurpass.frag" />
-    <None Include="..\..\game\data\shaders\programs\blurpass2.frag" />
-    <None Include="..\..\game\data\shaders\programs\coneTrace.frag" />
-    <None Include="..\..\game\data\shaders\programs\coneTrace.vert" />
-    <None Include="..\..\game\data\shaders\programs\createConeTraceList.frag" />
-    <None Include="..\..\game\data\shaders\programs\createConeTraceList.geom" />
-    <None Include="..\..\game\data\shaders\programs\createLightCmdBuffer.vert" />
-    <None Include="..\..\game\data\shaders\programs\drawDynamicMesh.vert" />
-    <None Include="..\..\game\data\shaders\programs\drawMesh.vert" />
-    <None Include="..\..\game\data\shaders\programs\drawMeshToGBuffer.frag" />
-    <None Include="..\..\game\data\shaders\programs\create_aabb.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\create_aabb.gs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\create_aabb.vs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\drawFinalImageAlbedo.frag" />
-    <None Include="..\..\game\data\shaders\programs\drawFinalImageNormals.frag" />
-    <None Include="..\..\game\data\shaders\programs\draw_aabb.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\draw_aabb.gs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\draw_aabb.vs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\draw_final_image.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\editor.frag" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawMesh.frag" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawMesh.vert" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawLights.frag" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawLights.geom" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawLights.vert" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawPointColor.frag" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawPointColor.vert" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawPoint.frag" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawPoint.vert" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.frag" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.geom" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.vert" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.frag" />
-    <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.vert" />
-    <None Include="..\..\game\data\shaders\programs\editorSelectedMesh.frag" />
-    <None Include="..\..\game\data\shaders\programs\graph.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\graph.vs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\influenceMap.frag" />
-    <None Include="..\..\game\data\shaders\programs\influenceMap.geom" />
-    <None Include="..\..\game\data\shaders\programs\influenceMap.vert" />
-    <None Include="..\..\game\data\shaders\programs\navmesh.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\navmesh.vs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\reflectionCubemap.frag" />
-    <None Include="..\..\game\data\shaders\programs\reflectionCubemap.geom" />
-    <None Include="..\..\game\data\shaders\programs\resetLightCmdBuffer.vert" />
-    <None Include="..\..\game\data\shaders\programs\screenquad.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\screenquad.gs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\screenquad.vs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\screenquadRay.gs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\shadow.frag" />
-    <None Include="..\..\game\data\shaders\programs\shadow.gs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\shadow.vs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\shadowParaboloid.frag" />
-    <None Include="..\..\game\data\shaders\programs\shadowParaboloid.geom" />
-    <None Include="..\..\game\data\shaders\programs\text.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\text.vs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\volume.frag" />
-    <None Include="..\..\game\data\shaders\programs\volume.geom" />
-    <None Include="..\..\game\data\shaders\programs\volume.vert" />
-    <None Include="..\..\game\data\shaders\programs\voxelize.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\voxelize.gs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\voxelize.vs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\voxelizeLight.frag" />
-    <None Include="..\..\game\data\shaders\programs\voxelizeLight.geom" />
-    <None Include="..\..\game\data\shaders\programs\voxelizeLight.vert" />
-    <None Include="..\..\game\data\shaders\programs\voxelMipmap.comp" />
-    <None Include="..\..\game\data\shaders\programs\voxelMipmap.vert" />
-    <None Include="..\..\game\data\shaders\programs\voxel_debug.fs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\voxel_debug.gs.glsl" />
-    <None Include="..\..\game\data\shaders\programs\voxel_debug.vs.glsl" />
-    <None Include="..\..\game\data\shaders\resetLightCmdBuffer.pipe" />
-    <None Include="..\..\game\data\shaders\shadow.pipe" />
-    <None Include="..\..\game\data\shaders\shadowVsm.pipe" />
-    <None Include="..\..\game\data\shaders\text.pipe" />
-    <None Include="..\..\game\data\shaders\volume.pipe" />
-    <None Include="..\..\game\data\shaders\voxelize.pipe" />
-    <None Include="..\..\game\data\shaders\voxelMipmap.pipe" />
-    <None Include="..\..\game\data\shaders\voxel_debug.pipe" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\game\data\shaders\include\buffers.glsl" />
-    <None Include="..\..\game\data\shaders\include\quaternion.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ResourceAspect\ResourceAspect.vcxproj">

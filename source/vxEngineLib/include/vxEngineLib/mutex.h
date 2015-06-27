@@ -43,7 +43,7 @@ namespace vx
 
 		bool try_lock()
 		{
-			return m_flag.test_and_set();
+			return !m_flag.test_and_set();
 		}
 
 		void unlock()
@@ -89,7 +89,10 @@ namespace vx
 
 		~unique_lock() noexcept
 		{	// clean up
-			unlock();
+			if (m_owns)
+			{
+				m_mutex->unlock();
+			}
 		}
 
 		unique_lock& operator=(const unique_lock&) = delete;
@@ -104,28 +107,26 @@ namespace vx
 
 		void lock()
 		{
-			if (!m_owns)
-			{
-				m_mutex->lock();
-				m_owns = true;
-			}
+			VX_ASSERT(!m_owns);
+
+			m_mutex->lock();
+			m_owns = true;
 		}
 
 		bool try_lock()
 		{	// try to lock the mutex
-			if(!m_owns)
-				m_owns = m_mutex->try_lock();
+			VX_ASSERT(!m_owns);
 
+			m_owns = m_mutex->try_lock();
 			return (m_owns);
 		}
 
 		void unlock()
 		{
-			if (m_mutex && m_owns)
-			{
-				m_mutex->unlock();
-				m_owns = false;
-			}
+			VX_ASSERT(m_owns);
+
+			m_mutex->unlock();
+			m_owns = false;
 		}
 
 		void swap(unique_lock &other)

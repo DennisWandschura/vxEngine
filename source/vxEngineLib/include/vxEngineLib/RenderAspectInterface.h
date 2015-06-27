@@ -47,14 +47,12 @@ namespace vx
 
 struct RenderAspectDescription
 {
+	const std::string &dataDir;
 	const vx::Window* window;
 	vx::StackAllocator* pAllocator;
-	vx::uint2 resolution;
-	f32 fovRad;
-	f32 z_near;
-	f32 z_far;
-	bool vsync;
-	bool debug;
+	const EngineConfig* settings;
+	FileAspect* fileAspect;
+	vx::EventManager* evtManager;
 };
 
 class RenderAspectInterface : public vx::EventListener
@@ -62,7 +60,7 @@ class RenderAspectInterface : public vx::EventListener
 public:
 	virtual ~RenderAspectInterface() {}
 
-	virtual bool initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, FileAspect* fileAspect, vx::EventManager* evtManager) = 0;
+	virtual bool initialize(const RenderAspectDescription &desc) = 0;
 	virtual void shutdown(void* hwnd) = 0;
 
 	virtual bool initializeProfiler() = 0;
@@ -85,6 +83,11 @@ public:
 	virtual const vx::gl::ShaderManager& getShaderManager() const = 0;
 	virtual void getProjectionMatrix(vx::mat4* m) = 0;
 	virtual const Font& getProfilerFont() const = 0;
+
+	virtual void getTotalVRam(u32* totalVram) const = 0;
+	virtual void getTotalAvailableVRam(u32* totalAvailableVram) const = 0;
+	virtual void getAvailableVRam(u32* availableVram) const = 0;
 };
 
-typedef RenderAspectInterface* (*CreateRenderAspectFunction)(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, FileAspect* fileAspect, vx::EventManager* evtManager);
+typedef RenderAspectInterface* (*CreateRenderAspectFunction)(const RenderAspectDescription &desc);
+typedef void(*DestroyRenderAspectFunction)(RenderAspectInterface *p);

@@ -26,12 +26,13 @@ SOFTWARE.
 #include "ComponentInput.h"
 #include "ComponentActor.h"
 
-ActionFollowPath::ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actor)
+ActionFollowPath::ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actor, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius)
 	:m_componentInput(componentInput),
 	m_entity(entity),
 	m_arrive(),
 	m_lookWhereYoureGoing(componentInput),
 	m_actor(actor),
+	m_avoidance(quadTree, actorRadius, queryRadius, 0.1f),
 	m_arrived(false)
 {
 }
@@ -42,8 +43,12 @@ void ActionFollowPath::run()
 	{
 		SteeringOutput steering;
 		auto currentPosition = m_entity->position;
-		currentPosition.y = m_entity->footPositionY;
-		if (!m_arrive.getSteering(currentPosition, &steering))
+
+		auto positionFoot = currentPosition;
+		positionFoot.y = m_entity->footPositionY;
+
+		vx::float4 velocity;
+		if (!m_arrive.getSteering(positionFoot, &steering))
 		{
 			if (m_actor->m_data->path.empty())
 			{
@@ -59,16 +64,26 @@ void ActionFollowPath::run()
 		}
 		else
 		{
-			m_componentInput->velocity.x = steering.velocity.x;
-			m_componentInput->velocity.y = steering.velocity.y;
-			m_componentInput->velocity.z = steering.velocity.z;
+			velocity.x = steering.velocity.x;
+			velocity.y = steering.velocity.y;
+			velocity.z = steering.velocity.z;
 
 			m_lookWhereYoureGoing.getSteering(&steering);
 
-			//memcpy(&m_componentInput->velocity, &steering.velocity, sizeof(vx::float3));
+			vx::float3 outVelocity;
+			if (m_avoidance.getSteering(m_entity, positionFoot, velocity, &outVelocity))
+			{
+				velocity.x = outVelocity.x;
+				//velocity.y = outVelocity.y;
+				velocity.z = outVelocity.z;
+
+				//puts("avoid");
+			}
 
 			m_componentInput->orientation.x = steering.angular;
 		}
+
+		m_componentInput->velocity = velocity;
 	}
 }
 

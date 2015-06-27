@@ -115,34 +115,6 @@ int main()
 		return 1;
 	}
 
-	/*const __m128 qRotations_normal[6] =
-	{
-		{ 0.382683426, 0.000000000, 0.000000000, 0.923879504 },
-		{ -0.382683426, 0.000000000, 0.000000000, 0.923879504 },
-		{ 0.000000000, 0.382683426, 0.000000000, 0.923879504 },
-		{ 0.000000000, -0.382683426, 0.000000000, 0.923879504 },
-		{ 0.000000000, 0.000000000, 0.382683426, 0.923879504 },
-		{ 0.000000000, 0.000000000, -0.382683426, 0.923879504 }
-	};
-
-	__m128 normal = {1, 0, 0, 0};
-
-	const int kll = 1 << 0 | 1 << 1 | 1 << 2 | 1 << 3 | 1 << 4 | 1 << 5 | 1 << 6 | 1 << 7 |
-		1 << 8 | 1 << 9 | 1 << 10 | 1 << 11 | 1 << 12 | 1 << 13 | 1 << 14;
-
-	auto n1 = vx::quaternionRotation(normal, qRotations_normal[0]);
-	auto n2 = vx::quaternionRotation(normal, qRotations_normal[1]);
-	auto n3 = vx::quaternionRotation(normal, qRotations_normal[2]);
-
-	auto n4 = vx::quaternionRotation(normal, qRotations_normal[3]);
-	auto n5 = vx::quaternionRotation(normal, qRotations_normal[4]);
-	auto n6 = vx::quaternionRotation(normal, qRotations_normal[5]);
-
-	const auto mask = 0xffffffff;
-
-	const auto fil = 1 << 1;
-	const auto resl = mask & fil;*/
-
 	HANDLE hLogFile = nullptr;
 	hLogFile = CreateFileA("log.txt", GENERIC_WRITE,
 		FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,

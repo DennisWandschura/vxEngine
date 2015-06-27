@@ -506,37 +506,37 @@ void RenderAspect::createOpenCL()
 	auto error = m_context.create(properties, 1, &device);
 }
 
-bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDescription &desc, const EngineConfig* settings, FileAspect* fileAspect, vx::EventManager* evtManager)
+bool RenderAspect::initialize(const RenderAspectDescription &desc)
 {
 	vx::gl::OpenGLDescription glDescription;
-	glDescription.bDebugMode = desc.debug;
-	glDescription.bVsync = desc.vsync;
-	glDescription.farZ = desc.z_far;
-	glDescription.fovRad = desc.fovRad;
+	glDescription.bDebugMode = desc.settings->m_renderDebug;
+	glDescription.bVsync = desc.settings->m_vsync;
+	glDescription.farZ = desc.settings->m_zFar;
+	glDescription.fovRad = vx::degToRad(desc.settings->m_fov);
 	glDescription.hwnd = desc.window->getHwnd();
 	glDescription.majVersion = 4;
 	glDescription.minVersion = 5;
-	glDescription.nearZ = desc.z_near;
-	glDescription.resolution = desc.resolution;
+	glDescription.nearZ = desc.settings->m_zNear;
+	glDescription.resolution = desc.settings->m_resolution;
 
 	vx::gl::ContextDescription contextDesc;
 	contextDesc.glParams = glDescription;
 	contextDesc.hInstance = desc.window->getHinstance();
 	contextDesc.windowClass = desc.window->getClassName();
 
-	m_fileAspect = fileAspect;
-	m_evtManager = evtManager;
+	m_fileAspect = desc.fileAspect;
+	m_evtManager = desc.evtManager;
 
 	//m_gpuProfiler = vx::make_unique<GpuProfiler>();
 
-	if (!initializeCommon(contextDesc, settings))
+	if (!initializeCommon(contextDesc, desc.settings))
 		return false;
 
 	glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
-	m_shaderManager.addParameter("maxShadowLights", settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
+	m_shaderManager.addParameter("maxShadowLights", desc.settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
 
-	auto result = initializeImpl(dataDir, settings, desc.pAllocator);
+	auto result = initializeImpl(desc.dataDir, desc.settings, desc.pAllocator);
 	if (!result)
 		return false;
 
@@ -544,7 +544,7 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 	gbufferRenderer->initialize(&m_allocator);
 	m_renderer.push_back(std::move(gbufferRenderer));
 
-	if (settings->m_rendererSettings.m_shadowMode != 0)
+	if (desc.settings->m_rendererSettings.m_shadowMode != 0)
 	{
 		auto shadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
 		shadowRenderer->initialize(&m_allocator);
@@ -555,7 +555,7 @@ bool RenderAspect::initialize(const std::string &dataDir, const RenderAspectDesc
 
 	// create gbuffer
 
-	if (settings->m_rendererSettings.m_voxelGIMode != 0)
+	if (desc.settings->m_rendererSettings.m_voxelGIMode != 0)
 	{
 		auto voxelRenderer = vx::make_unique<Graphics::VoxelRenderer >();
 		voxelRenderer->initialize(&m_allocator);
@@ -1369,4 +1369,19 @@ u16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::Str
 const Font& RenderAspect::getProfilerFont() const
 {
 	return m_pColdData->m_font;
+}
+
+void RenderAspect::getTotalVRam(u32* totalVram) const
+{
+	glGetIntegerv(GL_GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, (s32*)totalVram);
+}
+
+void RenderAspect::getTotalAvailableVRam(u32* totalAvailableVram) const
+{
+	glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, (s32*)totalAvailableVram);
+}
+
+void RenderAspect::getAvailableVRam(u32* usedVram) const
+{
+	glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, (s32*)usedVram);
 }

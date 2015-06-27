@@ -1,5 +1,5 @@
-/*
-The MIT License (MIT)
+#pragma once
+/* The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
 
@@ -19,9 +19,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-#pragma once
+SOFTWARE.*/
 
 #include <vxLib/types.h>
 #include "thread.h"
@@ -62,9 +60,10 @@ class Engine
 #endif
 	Scene m_scene;
 	HMODULE m_renderAspectDll;
+	DestroyRenderAspectFunction m_destroyFn;
 	Memory m_memory;
 
-	bool createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc);
+	bool createRenderAspectGL(const RenderAspectDescription &desc);
 
 	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);

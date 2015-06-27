@@ -53,7 +53,8 @@ Engine::Engine()
 	m_bRunFileThread(),
 	m_fileAspectThread(),
 	m_scene(),
-	m_renderAspectDll(nullptr)
+	m_renderAspectDll(nullptr),
+	m_destroyFn(nullptr)
 {
 	g_pEngine = this;
 }
@@ -81,18 +82,11 @@ void Engine::update()
 
 	m_systemAspect.update(g_dt);
 
+	m_actorAspect.update();
+
+	m_entityAspect.builEntityQuadTree();
 	m_entityAspect.updateInput(g_dt);
 
-	//m_profiler.popCpuMarker();
-	//////////////
-
-	//////////////
-
-	//CpuProfiler::pushMarker("actor");
-	m_actorAspect.update();
-	//CpuProfiler::popMarker();
-
-	//////////////
 
 	//CpuProfiler::pushMarker("physics");
 	m_entityAspect.updatePhysics_linear(g_dt);
@@ -260,22 +254,24 @@ bool Engine::initializeImpl(const std::string &dataDir)
 	return true;
 }
 
-bool Engine::createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc)
+bool Engine::createRenderAspectGL(const RenderAspectDescription &desc)
 {
 	auto handle = LoadLibrary(L"../../lib/vxRenderAspectGL_d.dll");
 	if (handle == nullptr)
 		return false;
 
 	auto proc = (CreateRenderAspectFunction)GetProcAddress(handle, "createRenderAspect");
-	if (proc == nullptr)
+	auto procDestroy = (DestroyRenderAspectFunction)GetProcAddress(handle, "destroyRenderAspect");
+	if (proc == nullptr || procDestroy == nullptr)
 		return false;
 
-	auto renderAspect = proc(dataDir, desc, &g_engineConfig, &m_fileAspect, &m_eventManager);
+	auto renderAspect = proc(desc);
 	if (renderAspect == nullptr)
 		return false;
 
 	m_renderAspect = renderAspect;
 	m_renderAspectDll = handle;
+	m_destroyFn = procDestroy;
 
 	//if (!m_renderAspect->initialize(dataDir, desc, &g_engineConfig, &m_fileAspect, &m_eventManager))
 	//	return false;
@@ -301,18 +297,16 @@ bool Engine::initialize()
 
 	RenderAspectDescription renderAspectDesc =
 	{
-		&m_systemAspect.getWindow() ,
+		dataDir,
+		&m_systemAspect.getWindow(),
 		&m_allocator,
-		g_engineConfig.m_resolution,
-		vx::degToRad(g_engineConfig.m_fov),
-		g_engineConfig.m_zNear,
-		g_engineConfig.m_zFar,
-		g_engineConfig.m_vsync,
-		g_engineConfig.m_renderDebug
+		&g_engineConfig,
+		&m_fileAspect,
+		&m_eventManager
 	};
 
 
-	if (!createRenderAspectGL(dataDir, renderAspectDesc))
+	if (!createRenderAspectGL(renderAspectDesc))
 	{
 		return false;
 	}
@@ -362,7 +356,15 @@ void Engine::shutdown()
 #endif
 	m_entityAspect.shutdown();
 	m_physicsAspect.shutdown();
-	m_renderAspect->shutdown(m_systemAspect.getWindow().getHwnd());
+
+	if (m_renderAspect)
+	{
+		m_renderAspect->shutdown(m_systemAspect.getWindow().getHwnd());
+		m_destroyFn(m_renderAspect);
+		m_renderAspect = nullptr;
+		m_destroyFn = nullptr;
+	}
+
 	m_systemAspect.shutdown();
 	m_fileAspect.shutdown();
 	m_shutdown = 1;

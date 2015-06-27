@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,38 +24,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace Component
-{
-	struct Input;
-	struct Actor;
-}
-
 struct EntityActor;
+class QuadTree;
 
-#include "Action.h"
-#include <vector>
 #include <vxLib/math/Vector.h>
-#include "Arrive.h"
-#include "LookWhereYoureGoing.h"
-#include "CollisionAvoidance.h"
 
-class ActionFollowPath : public Action
+class CollisionAvoidance
 {
-	Component::Input* m_componentInput;
-	EntityActor* m_entity;
-	Arrive m_arrive;
-	LookWhereYoureGoing m_lookWhereYoureGoing;
-	Component::Actor* m_actor;
-	CollisionAvoidance  m_avoidance;
-
-	bool m_arrived;
+	const QuadTree* m_quadTree;
+	f32 m_actorRadius;
+	f32 m_queryRadius;
+	f32 m_maxAccel;
 
 public:
-	ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actorData, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius);
+	CollisionAvoidance(const QuadTree* quadTree, f32 actorRadius, f32 queryRadius, f32 maxAccel):m_quadTree(quadTree), m_actorRadius(actorRadius), m_queryRadius(queryRadius), m_maxAccel(maxAccel){}
+	~CollisionAvoidance();
 
-	void run() override;
-
-	bool isComplete() const override;
-
-	void setTarget(const vx::float3 &target);
+	bool getSteering(EntityActor* currentEntity, const vx::float3 &currentPosition, const vx::float4 &inVelocity, vx::float3* outVelocity);
 };
