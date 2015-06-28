@@ -121,6 +121,23 @@ void Engine::renderLoop()
 	//Video video;
 	//video.initialize("test.video");
 
+	u32 totalVRam = 0, availableVRam = 0;
+	m_renderAspect->getTotalAvailableVRam(&totalVRam);
+	m_renderAspect->getAvailableVRam(&availableVRam);
+
+	f32 usedVRam = (totalVRam - availableVRam) / 1024.0f;
+
+	RenderUpdateTask task;
+	task.type = RenderUpdateTask::Type::UpdateText;
+
+	char buffer[32] = {};
+	sprintf(buffer, "Available VRAM: %.2f GB", availableVRam / 1024.f);
+
+	RenderUpdateTextData data;
+	memcpy(data.text, buffer, 32);
+	data.position = {-900, 500};
+	data.color = {1, 0, 0};
+
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
 
@@ -142,6 +159,7 @@ void Engine::renderLoop()
 
 		while (accum >= g_dt)
 		{
+			m_renderAspect->queueUpdateTask(task, reinterpret_cast<u8*>(&data), sizeof(RenderUpdateTextData));
 			m_renderAspect->updateProfiler(g_dt);
 			//CpuProfiler::update();
 			//CpuProfiler::updateRenderer();
@@ -290,6 +308,8 @@ bool Engine::initialize()
 		return false;
 	}
 
+	g_engineConfig.m_editor = false;
+
 	if (!initializeImpl(dataDir))
 		return false;
 
@@ -303,9 +323,8 @@ bool Engine::initialize()
 		&m_allocator,
 		&g_engineConfig,
 		&m_fileAspect,
-		&m_eventManager
+		&m_eventManager,
 	};
-
 
 	if (!createRenderAspectGL(renderAspectDesc))
 	{

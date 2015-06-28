@@ -62,8 +62,6 @@ namespace Graphics
 		virtual void initialize(vx::StackAllocator* scratchAllocator, const void* p) = 0;
 		virtual void shutdown() = 0;
 
-		virtual void update() = 0;
-
 		virtual void getCommandList(CommandList* cmdList) = 0;
 
 		virtual void clearData() = 0;

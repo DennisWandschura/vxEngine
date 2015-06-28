@@ -65,5 +65,7 @@ namespace Graphics
 		void clear();
 
 		void draw() const;
+
+		u32 size() const;
 	};
 }

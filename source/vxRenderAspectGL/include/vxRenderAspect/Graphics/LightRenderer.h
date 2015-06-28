@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,28 +23,47 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 struct Light;
 
-namespace gl
+namespace vx
 {
-	class ObjectManager;
+	class Camera;
 }
 
-#include <vxGL/Buffer.h>
-
-class LightBufferManager
+namespace Gpu
 {
-	u32 m_lightCount{ 0 };
-	u32 m_maxLightCount{ 0 };
-
-	void createLightDataBuffer(u32 maxLightCount, gl::ObjectManager* objectManager);
-
-public:
-	void initialize(u32 maxLightCount, gl::ObjectManager* objectManager);
-
-	void updateLightDataBuffer(const Light* lights, u32 count, gl::ObjectManager* objectManager);
-
-	u32 getLightCount() const { return m_lightCount; }
+	struct LightData;
 };
+
+#include <vxRenderAspect/Graphics/Renderer.h>
+#include <vxLib/memory.h>
+
+namespace Graphics
+{
+	class LightRenderer : public Renderer
+	{
+		std::unique_ptr<Gpu::LightData[]> m_lights;
+		std::unique_ptr<Gpu::LightData[]> m_activeLights;
+		std::unique_ptr<std::pair<f32, u32>[]> m_lightDistances;
+		u32 m_lightCount;
+		u32 m_maxActiveLights;
+		u32 m_activeLightCount;
+
+	public:
+		LightRenderer();
+		~LightRenderer();
+
+		void initialize(vx::StackAllocator* scratchAllocator, const void* p);
+		void shutdown();
+
+		void getCommandList(CommandList* cmdList);
+
+		void clearData();
+		void bindBuffers();
+
+		void setLights(const Light* lights, u32 count);
+
+		void cullLights(const vx::Camera &camera);
+	};
+}

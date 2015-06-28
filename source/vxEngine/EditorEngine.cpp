@@ -22,22 +22,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/*#include "EditorEngine.h"
+#include "EditorEngine.h"
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
-#include "Locator.h"
+#include <vxEngineLib/Locator.h>
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/Ray.h>
 #include <vxEngineLib/EditorScene.h>
 #include <vxEngineLib/Light.h>
 #include "NavMeshGraph.h"
-#include "EngineConfig.h"
+#include <vxEngineLib/EngineConfig.h>
 #include <vxEngineLib/debugPrint.h>
 #include "developer.h"
 #include <vxEngineLib/FileEvents.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
-#include "Graphics/RendererSettings.h"
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/Actor.h>
 #include "EngineGlobals.h"
@@ -99,8 +98,26 @@ bool EditorEngine::initializeImpl(const std::string &dataDir)
 	return true;
 }
 
-void EditorEngine::createStateMachine()
+bool EditorEngine::createRenderAspectGL(const RenderAspectDescription &desc)
 {
+	auto handle = LoadLibrary(L"../../lib/vxRenderAspectGL_d.dll");
+	if (handle == nullptr)
+		return false;
+
+	auto proc = (CreateEditorRenderAspectFunction)GetProcAddress(handle, "createEditorRenderAspect");
+	auto procDestroy = (DestroyEditorRenderAspectFunction)GetProcAddress(handle, "destroyEditorRenderAspect");
+	if (proc == nullptr || procDestroy == nullptr)
+		return false;
+
+	auto renderAspect = proc(desc);
+	if (renderAspect == nullptr)
+		return false;
+
+	m_renderAspect = renderAspect;
+	m_renderAspectDll = handle;
+	m_destroyFn = procDestroy;
+
+	return true;
 }
 
 bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene)
@@ -124,39 +141,48 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 		return false;
 
 	g_engineConfig.m_fov = 66.0f;
-	g_engineConfig.m_zFar = 1000.0f;
+	g_engineConfig.m_zFar = 250.0f;
 	g_engineConfig.m_renderDebug = true;
 	g_engineConfig.m_resolution = resolution;
 	g_engineConfig.m_vsync = false;
 	g_engineConfig.m_zNear = 0.1f;
+	g_engineConfig.m_editor = true;
 
 	g_engineConfig.m_rendererSettings.m_shadowMode = 0;
 	g_engineConfig.m_rendererSettings.m_voxelGIMode = 0;
 	g_engineConfig.m_rendererSettings.m_maxMeshInstances = 150;
 
-	if (!m_renderAspect.initialize(dataDir, panel, tmp, &m_allocator, &g_engineConfig))
+	RenderAspectDescription renderAspectDesc =
 	{
-		puts("Error initializing Renderer");
+		dataDir,
+		nullptr,
+		&m_allocator,
+		&g_engineConfig,
+		&m_fileAspect,
+		&m_eventManager
+	};
+	renderAspectDesc.hwnd = m_panel;
+
+	if (!createRenderAspectGL(renderAspectDesc))
+	{
 		return false;
 	}
 
-	dev::g_debugRenderSettings.setVoxelize(0);
-	dev::g_debugRenderSettings.setShadingMode(ShadingMode::Albedo);
+	//dev::g_debugRenderSettings.setVoxelize(0);
+	//dev::g_debugRenderSettings.setShadingMode(ShadingMode::Albedo);
 	RenderUpdateTask task;
 	task.type = RenderUpdateTask::Type::ToggleRenderMode;
-	m_renderAspect.queueUpdateTask(task);
+	//m_renderAspect->queueUpdateTask(task);
 
 	Locator::provide(&m_physicsAspect);
 
-	m_eventManager.registerListener(&m_renderAspect, 1, (u8)vx::EventType::File_Event);
+	//m_eventManager.registerListener(&m_renderAspect, 1, (u8)vx::EventType::File_Event);
 	m_eventManager.registerListener(&m_physicsAspect, 1, (u8)vx::EventType::File_Event);
 	m_eventManager.registerListener(this, 1, (u8)vx::EventType::File_Event);
 
 	//m_bRun = 1;
 	m_bRunFileThread.store(1);
 	m_shutdown = 0;
-
-	createStateMachine();
 
 	memset(&m_selected, 0, sizeof(m_selected));
 
@@ -169,7 +195,11 @@ void EditorEngine::shutdownEditor()
 	m_fileAspect.shutdown();
 
 	m_physicsAspect.shutdown();
-	m_renderAspect.shutdown(m_panel);
+	if (m_renderAspect)
+	{
+		m_renderAspect->shutdown(m_panel);
+		m_destroyFn(m_renderAspect);
+	}
 	m_panel = nullptr;
 
 	m_shutdown = 1;
@@ -190,8 +220,8 @@ void EditorEngine::buildNavGraph()
 	NavMeshGraph graph;
 	graph.initialize(navMesh);
 
-	m_renderAspect.updateInfluenceCellBuffer(m_influenceMap);
-	m_renderAspect.updateNavMeshGraphNodesBuffer(graph);
+	m_renderAspect->updateInfluenceCellBuffer(m_influenceMap);
+	m_renderAspect->updateNavMeshGraphNodesBuffer(graph);
 }
 
 void EditorEngine::handleEvent(const vx::Event &evt)
@@ -249,7 +279,7 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		call_editorCallback(vx::StringID(evt.arg1.u64));
 
 		buildNavGraph();
-		m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
+		m_renderAspect->updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 	}break;
 	default:
 	{
@@ -286,9 +316,11 @@ void EditorEngine::editor_render()
 {
 	m_eventManager.update();
 
-	m_renderAspect.update();
+	m_renderAspect->update();
 
-	m_renderAspect.render();
+	m_renderAspect->submitCommands();
+
+	m_renderAspect->endFrame();
 }
 
 void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f)
@@ -338,7 +370,7 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 
 void EditorEngine::editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ)
 {
-	m_renderAspect.editor_moveCamera(dirX, dirY, dirZ);
+	m_renderAspect->moveCamera(dirX, dirY, dirZ);
 }
 
 void EditorEngine::editor_rotateCamera(f32 dirX, f32 dirY, f32)
@@ -352,7 +384,7 @@ void EditorEngine::editor_rotateCamera(f32 dirX, f32 dirY, f32)
 	vx::float4a rot(y, x, 0, 0);
 	auto v = vx::quaternionRotationRollPitchYawFromVector(rot);
 
-	m_renderAspect.editor_rotateCamera(v);
+	m_renderAspect->rotateCamera(v);
 }
 
 bool EditorEngine::call_editorCallback(const vx::StringID &sid)
@@ -380,7 +412,7 @@ vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY)
 	ndc_y = 1.0f - ndc_y * 2.0f;
 
 	vx::mat4 projMatrix;
-	m_renderAspect.getProjectionMatrix(&projMatrix);
+	m_renderAspect->getProjectionMatrix(&projMatrix);
 	projMatrix = vx::MatrixInverse(projMatrix);
 
 	vx::float4a ray_clip(ndc_x, ndc_y, -1, 1);
@@ -389,7 +421,7 @@ vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY)
 	ray_eye.w = 0.0f;
 
 	vx::mat4 viewMatrix;
-	m_renderAspect.getCamera().getViewMatrix(&viewMatrix);
+	m_renderAspect->getCamera().getViewMatrix(&viewMatrix);
 	auto inverseViewMatrix = vx::MatrixInverse(viewMatrix);
 	vx::float4a ray_world = vx::Vector4Transform(inverseViewMatrix, ray_eye);
 	ray_world = vx::normalize3(ray_world);
@@ -401,7 +433,7 @@ vx::StringID EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, v
 {
 	auto ray_world = getRayDir(mouseX, mouseY);
 
-	auto cameraPosition = m_renderAspect.getCamera().getPosition();
+	auto cameraPosition = m_renderAspect->getCamera().getPosition();
 
 	vx::float4a tmp = cameraPosition;
 
@@ -487,7 +519,7 @@ void EditorEngine::setMeshInstanceMeshSid(u64 instanceSid, u64 meshSid)
 	auto meshInstance = m_pEditorScene->getMeshInstance(vx::StringID(instanceSid));
 	if (meshInstance != nullptr)
 	{
-		m_renderAspect.setMeshInstanceMesh(vx::StringID(instanceSid), vx::StringID(meshSid));
+		m_renderAspect->setMeshInstanceMesh(vx::StringID(instanceSid), vx::StringID(meshSid));
 		meshInstance->setMeshSid(vx::StringID(meshSid));
 
 		m_physicsAspect.editorSetStaticMeshInstanceMesh(meshInstance->getMeshInstance());
@@ -530,7 +562,7 @@ bool EditorEngine::selectMeshInstance(s32 x, s32 y)
 			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "selected instance %s", debugName);
 
 			auto ptr = m_pEditorScene->getMeshInstance(sid);
-			m_renderAspect.setSelectedMeshInstance(ptr);
+			m_renderAspect->setSelectedMeshInstance(ptr);
 			m_selected.m_type = SelectedType::MeshInstance;
 			m_selected.m_item = (void*)ptr;
 
@@ -548,7 +580,7 @@ bool EditorEngine::selectMeshInstance(u32 i)
 	{
 		auto instances = m_pEditorScene->getMeshInstancesEditor();
 
-		m_renderAspect.setSelectedMeshInstance(&instances[i]);
+		m_renderAspect->setSelectedMeshInstance(&instances[i]);
 		m_selected.m_type = SelectedType::MeshInstance;
 		m_selected.m_item = (void*)&instances[i];
 
@@ -585,7 +617,7 @@ u64 EditorEngine::deselectMeshInstance()
 		{
 			result = selectedInstance->getNameSid().value;
 
-			m_renderAspect.setSelectedMeshInstance(nullptr);
+			m_renderAspect->setSelectedMeshInstance(nullptr);
 			m_selected.m_item = nullptr;
 		}
 	}
@@ -597,7 +629,7 @@ vx::StringID EditorEngine::createMeshInstance()
 {
 	auto instanceSid = m_pEditorScene->createMeshInstance();
 	auto instance = m_pEditorScene->getMeshInstance(instanceSid);
-	m_renderAspect.editorAddMeshInstance(*instance);
+	m_renderAspect->addMeshInstance(*instance);
 
 	m_physicsAspect.editorAddMeshInstance(instance->getMeshInstance());
 
@@ -609,7 +641,7 @@ void EditorEngine::removeMeshInstance(u64 sid)
 	if (m_pEditorScene)
 	{
 		m_pEditorScene->removeMeshInstance(vx::StringID(sid));
-		m_renderAspect.removeMeshInstance(vx::StringID(sid));
+		m_renderAspect->removeMeshInstance(vx::StringID(sid));
 	}
 }
 
@@ -623,7 +655,7 @@ void EditorEngine::setMeshInstanceMaterial(u64 instanceSid, u64 materialSid)
 		auto it = sceneMaterials.find(vx::StringID(materialSid));
 		if (it != sceneMaterials.end())
 		{
-			if (m_renderAspect.setSelectedMeshInstanceMaterial(*it))
+			if (m_renderAspect->setSelectedMeshInstanceMaterial(*it))
 			{
 				meshInstance->setMaterial(*it);
 			}
@@ -642,7 +674,7 @@ void EditorEngine::setMeshInstancePosition(u64 sid, const vx::float3 &p)
 
 		auto transform = instance->getTransform();
 
-		m_renderAspect.setSelectedMeshInstanceTransform(transform);
+		m_renderAspect->setSelectedMeshInstanceTransform(transform);
 		m_physicsAspect.editorSetStaticMeshInstanceTransform(instance->getMeshInstance(), instanceSid);
 	}
 }
@@ -665,7 +697,7 @@ void EditorEngine::setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDe
 
 		auto transform = instance->getTransform();
 
-		m_renderAspect.setSelectedMeshInstanceTransform(transform);
+		m_renderAspect->setSelectedMeshInstanceTransform(transform);
 		m_physicsAspect.editorSetStaticMeshInstanceTransform(instance->getMeshInstance(), instanceSid);
 	}
 }
@@ -711,7 +743,7 @@ bool EditorEngine::addNavMeshVertex(s32 mouseX, s32 mouseY, vx::float3* position
 		auto ptr = m_pEditorScene->getMeshInstance(sid);
 		auto &navMesh = m_pEditorScene->getNavMesh();
 		navMesh.addVertex(hitPos);
-		m_renderAspect.updateNavMeshBuffer(navMesh);
+		m_renderAspect->updateNavMeshBuffer(navMesh);
 
 		*position = hitPos;
 	}
@@ -727,7 +759,7 @@ void EditorEngine::removeNavMeshVertex(const vx::float3 &position)
 		navMesh.removeVertex(position);
 
 		buildNavGraph();
-		m_renderAspect.updateNavMeshBuffer(navMesh);
+		m_renderAspect->updateNavMeshBuffer(navMesh);
 	}
 }
 
@@ -739,14 +771,14 @@ void EditorEngine::removeSelectedNavMeshVertex()
 		auto &navMesh = m_pEditorScene->getNavMesh();
 		navMesh.removeVertex(index);
 
-		m_renderAspect.updateNavMeshBuffer(navMesh);
+		m_renderAspect->updateNavMeshBuffer(navMesh);
 	}
 }
 
 Ray EditorEngine::getRay(s32 mouseX, s32 mouseY)
 {
 	auto rayDir = getRayDir(mouseX, mouseY);
-	auto cameraPosition = m_renderAspect.getCamera().getPosition();
+	auto cameraPosition = m_renderAspect->getCamera().getPosition();
 
 	Ray ray;
 	vx::storeFloat3(&ray.o, cameraPosition);
@@ -778,7 +810,7 @@ bool EditorEngine::selectNavMeshVertex(s32 mouseX, s32 mouseY)
 			m_selected.m_navMeshVertices.m_vertices[0] = selectedIndex;
 			m_selected.m_navMeshVertices.m_count = 1;
 			m_selected.m_type = SelectedType::NavMeshVertex;
-			m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+			m_renderAspect->updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
 
 			result = true;
 		}
@@ -797,7 +829,7 @@ bool EditorEngine::selectNavMeshVertexIndex(u32 index)
 		m_selected.m_navMeshVertices.m_vertices[0] = index;
 		m_selected.m_navMeshVertices.m_count = 1;
 		m_selected.m_type = SelectedType::NavMeshVertex;
-		m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+		m_renderAspect->updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
 
 		result = true;
 	}
@@ -818,7 +850,7 @@ bool EditorEngine::selectNavMeshVertexPosition(const vx::float3 &position)
 			m_selected.m_navMeshVertices.m_vertices[0] = index;
 			m_selected.m_navMeshVertices.m_count = 1;
 			m_selected.m_type = SelectedType::NavMeshVertex;
-			m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+			m_renderAspect->updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
 
 			result = true;
 		}
@@ -844,7 +876,7 @@ bool EditorEngine::multiSelectNavMeshVertex(s32 mouseX, s32 mouseY)
 			m_selected.m_navMeshVertices.m_count = std::min(m_selected.m_navMeshVertices.m_count, (u8)3u);
 
 			m_selected.m_type = SelectedType::NavMeshVertex;
-			m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+			m_renderAspect->updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
 
 			result = true;
 		}
@@ -859,7 +891,7 @@ u32 EditorEngine::deselectNavMeshVertex()
 	if (m_pEditorScene)
 	{
 		auto &navMesh = m_pEditorScene->getNavMesh();
-		m_renderAspect.updateNavMeshBuffer(navMesh);
+		m_renderAspect->updateNavMeshBuffer(navMesh);
 
 		index = m_selected.m_navMeshVertices.m_vertices[0];
 		m_selected.m_navMeshVertices.m_count = 0;
@@ -880,7 +912,7 @@ bool EditorEngine::createNavMeshTriangleFromSelectedVertices(vx::uint3* selected
 
 		buildNavGraph();
 
-		m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+		m_renderAspect->updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
 
 		selected->x = m_selected.m_navMeshVertices.m_vertices[0];
 		selected->y = m_selected.m_navMeshVertices.m_vertices[1];
@@ -913,7 +945,7 @@ void EditorEngine::removeNavMeshTriangle()
 		auto &navMesh = m_pEditorScene->getNavMesh();
 		navMesh.removeTriangle();
 
-		m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+		m_renderAspect->updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
 		buildNavGraph();
 	}
 }
@@ -932,7 +964,7 @@ void EditorEngine::setSelectedNavMeshVertexPosition(const vx::float3 &position)
 		auto selectedIndex = m_selected.m_navMeshVertices.m_vertices[0];
 		navMesh.setVertexPosition(selectedIndex, position);
 
-		m_renderAspect.updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
+		m_renderAspect->updateNavMeshBuffer(navMesh, m_selected.m_navMeshVertices.m_vertices, m_selected.m_navMeshVertices.m_count);
 		buildNavGraph();
 	}
 }
@@ -968,7 +1000,7 @@ void EditorEngine::createLight()
 		auto lightCount = m_pEditorScene->getLightCount();
 		auto lights = m_pEditorScene->getLights();
 
-		m_renderAspect.updateLightBuffer(lights, lightCount);
+		m_renderAspect->updateLightBuffer(lights, lightCount);
 	}
 }
 
@@ -1028,7 +1060,7 @@ void EditorEngine::setSelectLightPosition(const vx::float3 &position)
 		auto lightCount = m_pEditorScene->getLightCount();
 		auto lights = m_pEditorScene->getLights();
 
-		m_renderAspect.updateLightBuffer(lights, lightCount);
+		m_renderAspect->updateLightBuffer(lights, lightCount);
 	}
 }
 
@@ -1074,7 +1106,7 @@ void EditorEngine::setSelectLightLumen(f32 lumen)
 		auto lightCount = m_pEditorScene->getLightCount();
 		auto lights = m_pEditorScene->getLights();
 
-		m_renderAspect.updateLightBuffer(lights, lightCount);
+		m_renderAspect->updateLightBuffer(lights, lightCount);
 	}
 }
 
@@ -1092,7 +1124,7 @@ void EditorEngine::setSelectLightFalloff(f32 falloff)
 		auto lightCount = m_pEditorScene->getLightCount();
 		auto lights = m_pEditorScene->getLights();
 
-		m_renderAspect.updateLightBuffer(lights, lightCount);
+		m_renderAspect->updateLightBuffer(lights, lightCount);
 	}
 }
 
@@ -1108,12 +1140,12 @@ Editor::Scene* EditorEngine::getEditorScene() const
 
 void EditorEngine::showNavmesh(bool b)
 {
-	m_renderAspect.showNavmesh(b);
+	//m_renderAspect->showNavmesh(b);
 }
 
 void EditorEngine::showInfluenceMap(bool b)
 {
-	m_renderAspect.showInfluenceMap(b);
+	//m_renderAspect->showInfluenceMap(b);
 }
 
 bool EditorEngine::addWaypoint(s32 mouseX, s32 mouseY, vx::float3* position)
@@ -1128,7 +1160,7 @@ bool EditorEngine::addWaypoint(s32 mouseX, s32 mouseY, vx::float3* position)
 		if (navMesh.contains(hitPos))
 		{
 			m_pEditorScene->addWaypoint(hitPos);
-			m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
+			m_renderAspect->updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 
 			*position = hitPos;
 			result = true;
@@ -1141,13 +1173,13 @@ bool EditorEngine::addWaypoint(s32 mouseX, s32 mouseY, vx::float3* position)
 void EditorEngine::addWaypoint(const vx::float3 &position)
 {
 	m_pEditorScene->addWaypoint(position);
-	m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
+	m_renderAspect->updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 }
 
 void EditorEngine::removeWaypoint(const vx::float3 &position)
 {
 	m_pEditorScene->removeWaypoint(position);
-	m_renderAspect.updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
+	m_renderAspect->updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 }
 
 void EditorEngine::addSpawn()
@@ -1163,7 +1195,7 @@ void EditorEngine::addSpawn()
 		auto count = m_pEditorScene->getSpawnCount();
 		auto spawns = m_pEditorScene->getSpawns();
 		printf("spawns: %u\n", count);
-		m_renderAspect.updateSpawns(spawns, count);
+		m_renderAspect->updateSpawns(spawns, count);
 	}
 }
 
@@ -1212,7 +1244,7 @@ void EditorEngine::setSpawnPosition(u32 id, const vx::float3 &position)
 	auto spawns = m_pEditorScene->getSpawns();
 	auto count = m_pEditorScene->getSpawnCount();
 	m_pEditorScene->setSpawnPosition(id, position);
-	m_renderAspect.updateSpawns(spawns, count);
+	m_renderAspect->updateSpawns(spawns, count);
 }
 
 void EditorEngine::setSpawnType(u32 id, u32 type)
@@ -1309,4 +1341,4 @@ u64 EditorEngine::getMaterialSid(u32 i) const
 	}
 
 	return sidValue;
-}*/
+}

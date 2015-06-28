@@ -114,6 +114,7 @@
     <ClCompile Include="source\Graphics\GBufferRenderer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="source\Graphics\LightRenderer.cpp" />
     <ClCompile Include="source\Graphics\Renderer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -131,9 +132,6 @@
     </ClCompile>
     <ClCompile Include="source\Graphics\TextRenderer.cpp" />
     <ClCompile Include="source\Graphics\VoxelRenderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\LightBufferManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="source\RenderAspect.cpp">
@@ -210,6 +208,7 @@
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ViewportCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Frame.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\GBufferRenderer.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\LightRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Renderer.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Segment.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\ShadowRenderer.h" />
@@ -217,7 +216,6 @@
     <ClInclude Include="include\vxRenderAspect\Graphics\Surface.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\TextRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\VoxelRenderer.h" />
-    <ClInclude Include="include\vxRenderAspect\LightBufferManager.h" />
     <ClInclude Include="include\vxRenderAspect\opencl\Context.h" />
     <ClInclude Include="include\vxRenderAspect\opencl\Device.h" />
     <ClInclude Include="include\vxRenderAspect\opencl\Image.h" />

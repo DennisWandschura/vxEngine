@@ -224,6 +224,7 @@
     <ClInclude Include="include\vxEngineLib\EventTypesFwd.h" />
     <ClInclude Include="include\vxEngineLib\FileFactory.h" />
     <ClInclude Include="include\vxEngineLib\GpuFunctions.h" />
+    <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Locator.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />

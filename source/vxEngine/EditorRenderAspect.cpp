@@ -25,21 +25,12 @@ SOFTWARE.
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/EditorScene.h>
-#include <vxGL/gl.h>
-#include <vxGL/StateManager.h>
-#include <vxGL/ProgramPipeline.h>
 #include <vxLib/util/DebugPrint.h>
 #include "developer.h"
-#include "GpuStructs.h"
 #include "InfluenceMap.h"
 #include "NavMeshGraph.h"
 #include <vxLib/algorithm.h>
-#include "Graphics/Segment.h"
-#include "DDS_File.h"
 #include <vxEngineLib/Spawn.h>
-#include "Graphics/Commands.h"
-#include "Graphics/Segment.h"
-#include "Graphics/Commands/ProgramUniformCommand.h"
 #include <vxEngineLib/NavMeshTriangle.h>
 #include <vxEngineLib/EditorMeshInstance.h>
 #include "SegmentFactory.h"
@@ -65,7 +56,6 @@ struct InfluenceCellVertex
 enum class EditorRenderAspect::EditorUpdate : u32{ Update_None, Update_Mesh, Update_Material, Editor_Added_Instance, Editor_Update_Instance, Editor_Set_Scene };
 
 EditorRenderAspect::EditorRenderAspect()
-	:RenderAspect()
 {
 }
 

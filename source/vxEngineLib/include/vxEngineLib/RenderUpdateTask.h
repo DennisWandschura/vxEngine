@@ -27,7 +27,7 @@ SOFTWARE.
 
 struct RenderUpdateTask
 {
-	enum class Type{ LoadScene, UpdateCamera, UpdateDynamicTransforms, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex };
+	enum class Type{ UpdateCamera, UpdateDynamicTransforms, UpdateText, LoadScene, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex };
 
 	Type type;
 };
@@ -42,4 +42,11 @@ struct VX_ALIGN(16) RenderUpdateDataTransforms
 {
 	u32 count;
 	u32 padding[3];
+};
+
+struct RenderUpdateTextData
+{
+	char text[32];
+	vx::float2 position;
+	vx::float3 color;
 };

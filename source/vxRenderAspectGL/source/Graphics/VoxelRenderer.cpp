@@ -1,14 +1,3 @@
-#include "vxRenderAspect/Graphics/VoxelRenderer.h"
-#include <vxGL/Buffer.h>
-#include "vxRenderAspect/GpuStructs.h"
-#include <vxGL/gl.h>
-#include "vxRenderAspect/gl/ObjectManager.h"
-#include <vxGL/StateManager.h>
-#include "vxRenderAspect/gl/BufferBindingManager.h"
-#include <vxRenderAspect/Graphics/Segment.h>
-#include "vxRenderAspect/Graphics/CommandList.h"
-#include <vxEngineLib/EngineConfig.h>
-
 /*
 The MIT License (MIT)
 
@@ -32,6 +21,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include "vxRenderAspect/Graphics/VoxelRenderer.h"
+#include <vxGL/Buffer.h>
+#include "vxRenderAspect/GpuStructs.h"
+#include <vxGL/gl.h>
+#include "vxRenderAspect/gl/ObjectManager.h"
+#include <vxGL/StateManager.h>
+#include "vxRenderAspect/gl/BufferBindingManager.h"
+#include <vxRenderAspect/Graphics/Segment.h>
+#include "vxRenderAspect/Graphics/CommandList.h"
+#include <vxEngineLib/EngineConfig.h>
+#include <vxGL/ShaderManager.h>
+#include <vxLib/File/FileHandle.h>
+#include <vxGL/ProgramPipeline.h>
+#include <vxRenderAspect/Graphics/Commands.h>
 
 namespace Graphics
 {
@@ -56,6 +59,9 @@ namespace Graphics
 
 	void VoxelRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
+		s_shaderManager->loadPipeline(vx::FileHandle("voxelize.pipe"), "voxelize.pipe", scratchAllocator);
+		s_shaderManager->loadPipeline(vx::FileHandle("voxelizeLight.pipe"), "voxelizeLight.pipe", scratchAllocator);
+
 		m_voxelTextureSize = s_settings->m_rendererSettings.m_voxelSettings.m_voxelTextureSize;
 		m_voxelGridDim = s_settings->m_rendererSettings.m_voxelSettings.m_voxelGridDim;
 
@@ -72,20 +78,18 @@ namespace Graphics
 		m_coldData.reset(nullptr);
 	}
 
-	void VoxelRenderer::update()
-	{
-
-	}
-
 	Segment VoxelRenderer::createSegmentVoxelize()
 	{
-		/*
-		auto voxelFB = m_objectManager.getFramebuffer("voxelFB");
-		auto emptyVao = m_objectManager.getVertexArray("emptyVao");
-		auto pipeline = m_shaderManager.getPipeline("voxelize.pipe");
-		auto voxelizeLightPipeline = m_shaderManager.getPipeline("voxelizeLight.pipe");
+		auto voxelFB = s_objectManager->getFramebuffer("voxelFB");
+		auto emptyVao = s_objectManager->getVertexArray("emptyVao");
+		auto pipeline = s_shaderManager->getPipeline("voxelize.pipe");
+		auto voxelizeLightPipeline = s_shaderManager->getPipeline("voxelizeLight.pipe");
 
-		auto voxelSize = 128;
+		auto meshCmdBuffer = s_objectManager->getBuffer("meshCmdBuffer");
+		auto meshVao = s_objectManager->getVertexArray("meshVao");
+		auto meshParamBuffer = s_objectManager->getBuffer("meshParamBuffer");
+
+		/*auto voxelSize = 128;
 
 		auto lightCount = m_sceneRenderer.getLightCount();
 
@@ -113,11 +117,36 @@ namespace Graphics
 		glDrawArrays(GL_POINTS, 0, lightCount);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glDepthMask(GL_TRUE);
+		glDepthMask(GL_TRUE);*/
 
-		vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
-		*/
+	//	vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
+
+		StateDescription stateDesc = { voxelFB->getId(), meshVao->getId(), pipeline->getId(), meshCmdBuffer->getId(), meshParamBuffer->getId(), false, false, false, false};
+		State state;
+		state.set(stateDesc);
+
+		//BarrierCommand barrierCmd;
+		//barrierCmd.set();
+
+		ViewportCommand viewportCmd;
+		viewportCmd.set(vx::uint2(0), vx::uint2(s_settings->m_rendererSettings.m_voxelSettings.m_voxelTextureSize));
+
+		ClearColorCommand clearColorCmd;
+		clearColorCmd.set(vx::float4(0));
+
+		ClearCommand clearCmd;
+		clearCmd.set(GL_COLOR_BUFFER_BIT);
+
+		MultiDrawElementsIndirectCountCommand drawCmd;
+		drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT, s_settings->m_rendererSettings.m_maxMeshInstances);
+
 		Segment segment;
+		segment.setState(state);
+
+		segment.pushCommand(viewportCmd);
+		segment.pushCommand(clearColorCmd);
+		segment.pushCommand(clearCmd);
+		segment.pushCommand(drawCmd);
 
 		return segment;
 	}
@@ -155,7 +184,7 @@ namespace Graphics
 		auto segmentVoxelize = createSegmentVoxelize();
 		auto segmentConeTrace = createSegmentConeTrace();
 
-		//cmdList->pushSegment(segmentVoxelize, "voxelize");
+		cmdList->pushSegment(segmentVoxelize, "voxelize");
 		//cmdList->pushSegment(segmentConeTrace, "coneTrace");
 	}
 
@@ -183,7 +212,7 @@ namespace Graphics
 		const u32 textureSizeLod = m_voxelTextureSize;
 		const f32 gridsizeLod = m_voxelGridDim;
 
-		VoxelBlock voxelBlock;
+		Gpu::VoxelBlock voxelBlock;
 		//for (u32 i = 0; i < voxelLodCount; ++i)
 		u32 i = 0;
 		{
@@ -205,7 +234,7 @@ namespace Graphics
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
-		desc.size = sizeof(VoxelBlock);
+		desc.size = sizeof(Gpu::VoxelBlock);
 		desc.flags = 0;
 		desc.immutable = 1;
 		desc.pData = &voxelBlock;

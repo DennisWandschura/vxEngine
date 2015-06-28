@@ -65,8 +65,6 @@ namespace Graphics
 		void initialize(vx::StackAllocator* scratchAllocator, const void* p) override;
 		void shutdown() override;
 
-		void update() override;
-
 		void getCommandList(CommandList* cmdList) override;
 
 		void clearData() override;

@@ -38,9 +38,11 @@ namespace Graphics
 		bool depthState;
 		bool blendState;
 		bool polygonOffsetFillState;
+		bool cullface;
 
-		StateDescription() :fbo(0), vao(0), pipeline(0), indirectBuffer(0), paramBuffer(0), depthState(true), blendState(false), polygonOffsetFillState(false) {}
-		StateDescription(u32 f, u32 v, u32 p, u32 cmd, u32 param, bool depth, bool blend, bool polyOffsetState) :fbo(f), vao(v), pipeline(p), indirectBuffer(cmd), paramBuffer(param), depthState(depth), blendState(blend), polygonOffsetFillState(polyOffsetState) {}
+		StateDescription() :fbo(0), vao(0), pipeline(0), indirectBuffer(0), paramBuffer(0), depthState(true), blendState(false), polygonOffsetFillState(false), cullface(true){}
+		StateDescription(u32 f, u32 v, u32 p, u32 cmd, u32 param, bool depth, bool blend, bool polyOffsetState, bool cullFace_) 
+			:fbo(f), vao(v), pipeline(p), indirectBuffer(cmd), paramBuffer(param), depthState(depth), blendState(blend), polygonOffsetFillState(polyOffsetState), cullface(cullFace_){}
 	};
 
 	class State
@@ -54,7 +56,7 @@ namespace Graphics
 		u8 m_blendState;
 		u8 m_depthTestState;
 		u8 m_polygonOffsetFillState;
-		u8 m_padding;
+		u8 m_cullFace;
 
 	public:
 		State();

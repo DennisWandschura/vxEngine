@@ -69,9 +69,6 @@
     <ClCompile Include="source\GpuProfiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\LightBufferManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\RenderAspect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -201,6 +198,9 @@
     <ClCompile Include="source\Graphics\Commands\BlendEquationCommand.cpp">
       <Filter>Source Files\Graphics\Commands</Filter>
     </ClCompile>
+    <ClCompile Include="source\Graphics\LightRenderer.cpp">
+      <Filter>Source Files\Graphics\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxRenderAspect\RenderCommand.h">
@@ -246,9 +246,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\GpuStructs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxRenderAspect\LightBufferManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\RenderAspect.h">
@@ -400,6 +397,9 @@
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BlendEquationCommand.h">
       <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\LightRenderer.h">
+      <Filter>Header Files\Graphics\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

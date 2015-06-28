@@ -139,4 +139,9 @@ namespace Graphics
 			it.draw();
 		}
 	}
+
+	u32 CommandList::size() const
+	{
+		return m_sortedSegments.size();
+	}
 }

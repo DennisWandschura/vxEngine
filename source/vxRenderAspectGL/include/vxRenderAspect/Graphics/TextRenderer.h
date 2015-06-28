@@ -79,7 +79,7 @@ namespace Graphics
 
 		void pushEntry(std::string &&text, const vx::float2 &topLeftPosition, const vx::float3 &color);
 
-		void update() override;
+		void update();
 
 		void getCommandList(CommandList* cmdList) override;
 

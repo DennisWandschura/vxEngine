@@ -48,7 +48,11 @@ namespace vx
 struct RenderAspectDescription
 {
 	const std::string &dataDir;
-	const vx::Window* window;
+	union
+	{
+		const vx::Window* window;
+		void* hwnd;
+	};
 	vx::StackAllocator* pAllocator;
 	const EngineConfig* settings;
 	FileAspect* fileAspect;

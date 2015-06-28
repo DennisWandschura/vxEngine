@@ -47,7 +47,7 @@ namespace Graphics
 		m_blendState(0),
 		m_depthTestState(1),
 		m_polygonOffsetFillState(0),
-		m_padding()
+		m_cullFace(1)
 	{
 
 	}
@@ -67,6 +67,7 @@ namespace Graphics
 		m_depthTestState = desc.depthState;
 		m_blendState = desc.blendState;
 		m_polygonOffsetFillState = desc.polygonOffsetFillState;
+		m_cullFace = desc.cullface;
 	}
 
 	void State::update() const
@@ -74,6 +75,7 @@ namespace Graphics
 		g_capabilityFun[m_depthTestState](vx::gl::Capabilities::Depth_Test);
 		g_capabilityFun[m_blendState](vx::gl::Capabilities::Blend);
 		g_capabilityFun[m_polygonOffsetFillState](vx::gl::Capabilities::Polygon_Offset_Fill);
+		g_capabilityFun[m_cullFace](vx::gl::Capabilities::Cull_Face);
 
 		vx::gl::StateManager::bindFrameBuffer(m_fbo);
 		vx::gl::StateManager::bindVertexArray(m_vao);

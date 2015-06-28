@@ -38,13 +38,62 @@ SOFTWARE.
 #include "vxRenderAspect/Graphics/Commands/CullFaceCommand.h"
 #include "vxRenderAspect/Graphics/Commands/DepthRangeCommand.h"
 #include <vxEngineLib/EngineConfig.h>
+#include <vxLib/File/FileHandle.h>
+#include <vxEngineLib/Light.h>
+#include <vxLib/Graphics/Camera.h>
+
+namespace ShadowRendererCpp
+{
+	void getShadowTransform(const Gpu::LightData &light, ShadowTransform* shadowTransform)
+	{
+		auto n = 0.1f;
+		auto f = light.falloff;
+
+		auto lightPos = light.position;
+		auto projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(90.0f), 1.0f, n, f);
+
+		vx::mat4 viewMatrices[6];
+		// X+
+		vx::float4 up = { 0, -1, 0, 0 };
+		vx::float4 dir = { 1, 0, 0, 0 };
+		viewMatrices[0] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
+		// X-
+		up = { 0, -1, 0, 0 };
+		dir = { -1, 0, 0, 0 };
+		viewMatrices[1] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
+		// Y+
+		up = { 0, 0, 1, 0 };
+		dir = vx::float4(0, 1, 0, 0);
+		viewMatrices[2] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
+		// Y-
+		up = { 0, 0, -1, 0 };
+		dir = vx::float4(0, -1, 0, 0);
+		viewMatrices[3] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
+		// Z+
+		up = { 0, -1, 0, 0 };
+		dir = vx::float4(0, 0, 1, 0);
+		viewMatrices[4] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
+		// Z-
+		up = { 0, -1, 0, 0 };
+		dir = vx::float4(0, 0, -1, 0);
+		viewMatrices[5] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
+
+		shadowTransform->projectionMatrix = projectionMatrix;
+		for (u32 i = 0; i < 6; ++i)
+		{
+			shadowTransform->viewMatrix[i] = viewMatrices[i];
+			shadowTransform->pvMatrix[i] = projectionMatrix * viewMatrices[i];
+		}
+	}
+}
 
 namespace Graphics
 {
 	ShadowRenderer::ShadowRenderer()
-		:m_maxShadowLights(0),
-		m_maxMeshInstanceCount(0),
-		m_shadowMapResolution()
+		:m_lights(),
+		m_shadowDepthTextureIds(),
+		m_lightCmdBufferSid(),
+		m_lightCount(0)
 	{
 
 	}
@@ -56,8 +105,10 @@ namespace Graphics
 
 	void ShadowRenderer::createShadowTextureBuffer()
 	{
-		auto data = vx::make_unique<u64[]>(m_maxShadowLights);
-		auto sizeInBytes = sizeof(u64) * m_maxShadowLights;
+		auto maxShadowLightCount = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+
+		auto data = vx::make_unique<u64[]>(maxShadowLightCount);
+		auto sizeInBytes = sizeof(u64) * maxShadowLightCount;
 		memset(data.get(), 0, sizeInBytes);
 
 		vx::gl::BufferDescription desc;
@@ -73,14 +124,17 @@ namespace Graphics
 
 	void ShadowRenderer::createShadowTextures()
 	{
+		auto maxShadowLightCount = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+		auto shadowMapResolution = s_settings->m_rendererSettings.m_shadowSettings.m_shadowMapResolution;
+
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
 
-		m_shadowDepthTextureIds = vx::make_unique<u32[]>(m_maxShadowLights);
+		m_shadowDepthTextureIds = vx::make_unique<u32[]>(maxShadowLightCount);
 
 		vx::gl::TextureDescription depthDesc;
 		depthDesc.format = vx::gl::TextureFormat::DEPTH32F;
 		depthDesc.type = vx::gl::TextureType::Texture_Cubemap;
-		depthDesc.size = vx::ushort3(m_shadowMapResolution, m_shadowMapResolution, 6);
+		depthDesc.size = vx::ushort3(shadowMapResolution, shadowMapResolution, 6);
 		depthDesc.miplevels = 1;
 		depthDesc.sparse = 0;
 
@@ -93,7 +147,7 @@ namespace Graphics
 
 		auto mappedBuffer = shadowTexBuffer->map<u64>(vx::gl::Map::Write_Only);
 
-		for (u32 i = 0; i < m_maxShadowLights; ++i)
+		for (u32 i = 0; i < maxShadowLightCount; ++i)
 		{
 			sprintf(depthNameBuffer + textureDepthNameSize - 1, "%u", i);
 			auto depthTextureSid = s_objectManager->createTexture(depthNameBuffer, depthDesc);
@@ -128,7 +182,7 @@ namespace Graphics
 
 	void ShadowRenderer::createLightDrawCommandBuffers()
 	{
-		auto cmdCount = m_maxMeshInstanceCount * m_maxShadowLights;
+		/*auto cmdCount = m_maxMeshInstanceCount * m_maxShadowLights;
 		auto commands = vx::make_unique<vx::gl::DrawElementsIndirectCommand[]>(cmdCount);
 		for (u32 i = 0; i < cmdCount; ++i)
 		{
@@ -145,7 +199,7 @@ namespace Graphics
 
 		auto sid = s_objectManager->createBuffer("lightCmdBuffer", desc);
 		VX_ASSERT(sid.value != 0u);
-		m_lightCmdBufferSid = sid;
+		m_lightCmdBufferSid = sid;*/
 	}
 
 	Segment ShadowRenderer::createSegmentResetCmdBuffer() const
@@ -170,8 +224,8 @@ namespace Graphics
 		segment.setState(state);
 
 		DrawArraysCommand drawCmd;
-		drawCmd.set(GL_POINTS, 0, m_maxMeshInstanceCount * m_maxShadowLights);
-		segment.pushCommand(drawCmd);
+		//drawCmd.set(GL_POINTS, 0, m_maxMeshInstanceCount * m_maxShadowLights);
+		//segment.pushCommand(drawCmd);
 
 		return segment;
 	}
@@ -200,7 +254,7 @@ namespace Graphics
 		Segment segment;
 		segment.setState(state);
 
-		auto maxMeshInstances = m_maxMeshInstanceCount;
+		/*auto maxMeshInstances = m_maxMeshInstanceCount;
 
 		Graphics::BarrierCommand barrierCmd;
 		barrierCmd.set(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -208,22 +262,32 @@ namespace Graphics
 
 		Graphics::MultiDrawElementsIndirectCountCommand drawCmd;
 		drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT, maxMeshInstances);
-		segment.pushCommand(drawCmd);
+		segment.pushCommand(drawCmd);*/
 
 		return segment;
 	}
 
 	void ShadowRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
-		m_maxShadowLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
-		m_maxMeshInstanceCount = s_settings->m_rendererSettings.m_maxMeshInstances;
-		m_shadowMapResolution = s_settings->m_rendererSettings.m_shadowSettings.m_shadowMapResolution;
+		auto maxShadowLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+
+		s_shaderManager->loadPipeline(vx::FileHandle("shadow.pipe"), "shadow.pipe", scratchAllocator);
+		//s_shaderManager->loadPipeline(vx::FileHandle("resetLightCmdBuffer.pipe"), "resetLightCmdBuffer.pipe", scratchAllocator);
+		//s_shaderManager->loadPipeline(vx::FileHandle("createLightCmdBuffer.pipe"), "createLightCmdBuffer.pipe", scratchAllocator);
 
 		createShadowTextureBuffer();
 		createShadowTextures();
 		createFramebuffer();
 
 		createLightDrawCommandBuffers();
+
+		vx::gl::BufferDescription desc;
+		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
+		desc.size = sizeof(ShadowTransform) * maxShadowLights + sizeof(__m128);
+		desc.immutable = 1;
+		desc.flags = vx::gl::BufferStorageFlags::Write;
+
+		s_objectManager->createBuffer("ShadowTransformBuffer", desc);
 	}
 
 	void ShadowRenderer::shutdown()
@@ -231,14 +295,9 @@ namespace Graphics
 
 	}
 
-	void ShadowRenderer::update()
-	{
-
-	}
-
 	void ShadowRenderer::updateDrawCmd(const vx::gl::DrawElementsIndirectCommand &cmd, u32 index)
 	{
-		auto cmdBuffer = s_objectManager->getBuffer(m_lightCmdBufferSid);
+		/*auto cmdBuffer = s_objectManager->getBuffer(m_lightCmdBufferSid);
 
 		auto offset = sizeof(vx::gl::DrawElementsIndirectCommand) * index;
 		auto offsetPerLight = sizeof(vx::gl::DrawElementsIndirectCommand) * m_maxMeshInstanceCount;
@@ -249,12 +308,12 @@ namespace Graphics
 			*mappedCmd = cmd;
 
 			offset += offsetPerLight;
-		}
+		}*/
 	}
 
 	void ShadowRenderer::updateDrawCmds()
 	{
-		auto meshCmdBuffer = s_objectManager->getBuffer("meshCmdBuffer");
+		/*auto meshCmdBuffer = s_objectManager->getBuffer("meshCmdBuffer");
 
 		auto meshCmds = meshCmdBuffer->map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Read_Only);
 		auto lightCmdBuffer = s_objectManager->getBuffer(m_lightCmdBufferSid);
@@ -268,18 +327,22 @@ namespace Graphics
 			mappedCmd.unmap();
 
 			offset += sizeInBytes;
-		}
+		}*/
 	}
 
 	void ShadowRenderer::getCommandList(CommandList* cmdList)
 	{
-		auto segmentResetLightCmdBuffer = createSegmentResetCmdBuffer();
-		auto segmentCullMeshes = createSegmentCullMeshes();
+		//auto segmentResetLightCmdBuffer = createSegmentResetCmdBuffer();
+		//auto segmentCullMeshes = createSegmentCullMeshes();
 
-		auto maxMeshInstances = m_maxMeshInstanceCount;
-		auto resolution = m_shadowMapResolution;
+		//
+		//m_maxMeshInstanceCount = s_settings->m_rendererSettings.m_maxMeshInstances;
 
-		auto lightCmdBuffer = s_objectManager->getBuffer(m_lightCmdBufferSid);
+		auto maxShadowLightCount = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+		auto maxMeshInstances = s_settings->m_rendererSettings.m_maxMeshInstances;
+		auto shadowMapResolution = s_settings->m_rendererSettings.m_shadowSettings.m_shadowMapResolution;
+
+		//auto lightCmdBuffer = s_objectManager->getBuffer(m_lightCmdBufferSid);
 
 		auto fbo = s_objectManager->getFramebuffer("shadowFbo");
 		auto vao = s_objectManager->getVertexArray("meshVao");
@@ -293,7 +356,7 @@ namespace Graphics
 		stateDesc.vao = vao->getId();
 		stateDesc.blendState = false;
 		stateDesc.depthState = true;
-		stateDesc.indirectBuffer = lightCmdBuffer->getId();
+		stateDesc.indirectBuffer = meshCmdBuffer->getId();
 		stateDesc.paramBuffer = meshParamBuffer->getId();
 		stateDesc.pipeline = pipeline->getId();
 		stateDesc.polygonOffsetFillState = true;
@@ -317,7 +380,7 @@ namespace Graphics
 		//segmentCreateShadowmap.pushCommand(gpuPushCmd);
 
 		Graphics::ViewportCommand viewportCmd;
-		viewportCmd.set(vx::uint2(0), vx::uint2(m_shadowMapResolution));
+		viewportCmd.set(vx::uint2(0), vx::uint2(shadowMapResolution));
 		segmentCreateShadowmap.pushCommand(viewportCmd);
 
 		Graphics::CullFaceCommand cullFaceCommand;
@@ -331,11 +394,10 @@ namespace Graphics
 		Graphics::ProgramUniformCommand uniformCmd;
 		uniformCmd.set(gsShader, 0, 1, vx::gl::DataType::Unsigned_Int);
 
-		auto cmdSizeInBytes = sizeof(vx::gl::DrawElementsIndirectCommand) * m_maxMeshInstanceCount;
-		u32 cmdOffset = 0;
+		//auto cmdSizeInBytes = sizeof(vx::gl::DrawElementsIndirectCommand) * m_maxMeshInstanceCount;
+		//u32 cmdOffset = 0;
 
-		auto maxLightCount = m_maxShadowLights;
-		for (u32 i = 0; i < maxLightCount; ++i)
+		for (u32 i = 0; i < maxShadowLightCount; ++i)
 		{
 			const auto ll = GL_UNSIGNED_INT;
 			Graphics::FramebufferTextureCommand fbDepthTexCmd;
@@ -345,14 +407,14 @@ namespace Graphics
 			clearCmd.set(GL_DEPTH_BUFFER_BIT);
 
 			Graphics::MultiDrawElementsIndirectCountCommand drawCmd;
-			drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT, maxMeshInstances, cmdOffset);
+			drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT, maxMeshInstances, 0);
 
 			segmentCreateShadowmap.pushCommand(fbDepthTexCmd);
 			segmentCreateShadowmap.pushCommand(clearCmd);
 			segmentCreateShadowmap.pushCommand(uniformCmd, i);
 			segmentCreateShadowmap.pushCommand(drawCmd);
 
-			cmdOffset += cmdSizeInBytes;
+		//	cmdOffset += cmdSizeInBytes;
 		}
 
 		cullFaceCommand.set(GL_BACK);
@@ -360,8 +422,8 @@ namespace Graphics
 		//segmentCreateShadowmap.pushCommand(gpuPopCmd);
 		//segmentCreateShadowmap.pushCommand(cpuPopCmd);
 
-		cmdList->pushSegment(segmentResetLightCmdBuffer, "segmentResetLightCmdBuffer");
-		cmdList->pushSegment(segmentCullMeshes, "segmentCullMeshes");
+		//cmdList->pushSegment(segmentResetLightCmdBuffer, "segmentResetLightCmdBuffer");
+		//cmdList->pushSegment(segmentCullMeshes, "segmentCullMeshes");
 		cmdList->pushSegment(segmentCreateShadowmap, "segmentCreateShadowmap");
 	}
 
@@ -372,11 +434,104 @@ namespace Graphics
 	void ShadowRenderer::bindBuffers()
 	{
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
-		auto lightCmdBuffer = s_objectManager->getBuffer("lightCmdBuffer");
+		auto pShadowTransformBuffer = s_objectManager->getBuffer("ShadowTransformBuffer");
 
+		//auto lightCmdBuffer = s_objectManager->getBuffer("lightCmdBuffer");
+
+		gl::BufferBindingManager::bindBaseUniform(5, pShadowTransformBuffer->getId());
 		gl::BufferBindingManager::bindBaseUniform(9, shadowTexBuffer->getId());
 
-		gl::BufferBindingManager::bindBaseShaderStorage(5, lightCmdBuffer->getId());
+		//gl::BufferBindingManager::bindBaseShaderStorage(5, lightCmdBuffer->getId());
+	}
+
+	void ShadowRenderer::setLights(const Light* lights, u32 count)
+	{
+		m_lights = vx::make_unique<ShadowTransform[]>(count);
+		for (u32 i = 0;i < count; ++i)
+		{
+			auto &light = lights[i];
+
+			Gpu::LightData data;
+			data.position = vx::loadFloat3(light.m_position);
+			data.falloff = light.m_falloff;
+			data.lumen = light.m_lumen;
+
+			ShadowTransform bufferData;
+			bufferData.position = data.position;
+			bufferData.falloff_lumen.x = data.falloff;
+			bufferData.falloff_lumen.y = data.lumen;
+
+			ShadowRendererCpp::getShadowTransform(data, &bufferData);
+
+			m_lights[i] = bufferData;
+		}
+		m_lightCount = count;
+
+		m_distances = vx::make_unique<std::pair<f32, u32>[]>(count);
+
+		/*auto maxLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+
+		auto activeLights = std::min(maxLights, count);
+
+		auto bufferData = vx::make_unique<ShadowTransform[]>(activeLights);
+		for (u32 i = 0; i < activeLights; ++i)
+		{
+			bufferData[i].position = m_lights[i].position;
+			bufferData[i].falloff_lumen.x = m_lights[i].falloff;
+			bufferData[i].falloff_lumen.y = m_lights[i].lumen;
+
+			ShadowRendererCpp::getShadowTransform(m_lights[i], &bufferData[i]);
+		}
+
+	*/
+	}
+
+	void ShadowRenderer::cullLights(const vx::Camera &camera)
+	{
+		auto lightCount = m_lightCount;
+		if (lightCount == 0)
+			return;
+
+		auto lightDistances = m_distances.get();
+		auto lights = m_lights.get();
+
+		auto cameraPosition = camera.getPosition();
+
+		for (u32 i = 0;i < m_lightCount; ++i)
+		{
+			auto lightPosition = lights[i].position;
+
+			auto distance = _mm_sub_ps(cameraPosition, lightPosition);
+			distance = vx::dot3(distance, distance);
+			distance = _mm_sqrt_ps(distance);
+
+			_mm_store_ss(&lightDistances[i].first, distance);
+			lightDistances[i].second = i;
+		}
+
+		std::sort(lightDistances, lightDistances + lightCount, [](const std::pair<f32, u32> &lhs, const std::pair<f32, u32> &rhs)
+		{
+			return lhs.first < rhs.first;
+		});
+
+		auto maxLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+		auto activeLights = std::min(lightCount, maxLights);
+
+		auto offset = maxLights * sizeof(ShadowTransform);
+		auto dataSize = activeLights * sizeof(ShadowTransform);
+
+		auto buffer = s_objectManager->getBuffer("ShadowTransformBuffer");
+		auto mappedBuffer = buffer->mapRange<ShadowTransform>(0, dataSize, vx::gl::MapRange::Write);
+		for (u32 i = 0; i < activeLights; ++i)
+		{
+
+			mappedBuffer[i] = lights[i];
+		}
+		mappedBuffer.unmap();
+
+		auto mappedBufferCount = buffer->mapRange<u32>(offset, sizeof(u32), vx::gl::MapRange::Write);
+		*mappedBufferCount = activeLights;
+		mappedBufferCount.unmap();
 	}
 
 	const u32* ShadowRenderer::getTextureIds() const

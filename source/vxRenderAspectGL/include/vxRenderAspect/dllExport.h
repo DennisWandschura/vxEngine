@@ -24,7 +24,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxEngineLib/RenderAspectInterface.h>
+#include <vxEngineLib/EditorRenderAspectInterface.h>
 
 extern "C" __declspec(dllexport) RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc);
 extern "C" __declspec(dllexport) void destroyRenderAspect(RenderAspectInterface *p);
+
+extern "C" __declspec(dllexport) Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc);
+extern "C" __declspec(dllexport) void destroyEditorRenderAspect(Editor::RenderAspectInterface *p);

@@ -100,7 +100,7 @@ namespace Graphics
 		const auto bufferCount = sizeof(buffers) / sizeof(vx::gl::Attachment);
 		fbo->drawBuffers(buffers, bufferCount);
 
-		UniformGBufferBlock block;
+		Gpu::UniformGBufferBlock block;
 		block.u_albedoSlice = tex0->getTextureHandle();
 		block.u_normalSlice = tex1->getTextureHandle();
 		block.u_surfaceSlice = tex2->getTextureHandle();
@@ -110,7 +110,7 @@ namespace Graphics
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
-		desc.size = sizeof(UniformGBufferBlock);
+		desc.size = sizeof(Gpu::UniformGBufferBlock);
 		desc.immutable = 1;
 		desc.pData = &block;
 
@@ -124,11 +124,6 @@ namespace Graphics
 
 	}
 
-	void GBufferRenderer::update()
-	{
-
-	}
-
 	void GBufferRenderer::getCommandList(CommandList* cmdList)
 	{
 		auto fbo = s_objectManager->getFramebuffer("gbufferFB");
@@ -137,7 +132,7 @@ namespace Graphics
 		auto vao = s_objectManager->getVertexArray("meshVao");
 		auto meshParamBuffer = s_objectManager->getBuffer("meshParamBuffer");
 
-		StateDescription stateDesc = { fbo->getId(), vao->getId(), pipeline->getId(), cmdbuffer->getId(), meshParamBuffer->getId(), true, false, false };
+		StateDescription stateDesc = { fbo->getId(), vao->getId(), pipeline->getId(), cmdbuffer->getId(), meshParamBuffer->getId(), true, false, false,true };
 		State state;
 		state.set(stateDesc);
 

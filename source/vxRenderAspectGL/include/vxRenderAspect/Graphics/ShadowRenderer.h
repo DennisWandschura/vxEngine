@@ -24,8 +24,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+struct Light;
+struct ShadowTransform;
+
 namespace vx
 {
+	class Camera;
+
 	namespace gl
 	{
 		struct DrawElementsIndirectCommand;
@@ -43,11 +48,11 @@ namespace Graphics
 
 	class ShadowRenderer : public Renderer
 	{
+		std::unique_ptr<ShadowTransform[]> m_lights;
+		std::unique_ptr < std::pair<f32, u32>[]> m_distances;
 		std::unique_ptr<u32[]> m_shadowDepthTextureIds;
 		vx::StringID m_lightCmdBufferSid;
-		u32 m_maxShadowLights;
-		u32 m_maxMeshInstanceCount;
-		u32 m_shadowMapResolution;
+		u32 m_lightCount;
 
 		void createShadowTextureBuffer();
 		void createShadowTextures();
@@ -65,8 +70,6 @@ namespace Graphics
 		void initialize(vx::StackAllocator* scratchAllocator, const void* p) override;
 		void shutdown() override;
 
-		void update() override;
-
 		void updateDrawCmds();
 		void updateDrawCmd(const vx::gl::DrawElementsIndirectCommand &cmd, u32 index);
 
@@ -74,6 +77,9 @@ namespace Graphics
 
 		void clearData() override;
 		void bindBuffers() override;
+
+		void setLights(const Light* lights, u32 count);
+		void cullLights(const vx::Camera &camera);
 
 		const u32* getTextureIds() const;
 	};

@@ -54,12 +54,15 @@ class GpuProfiler;
 #include "opencl/context.h"
 #include <vxEngineLib/mutex.h>
 #include "Graphics/TextRenderer.h"
+#include <vxRenderAspect/Graphics/LightRenderer.h>
 
 class VX_ALIGN(64) RenderAspect : public RenderAspectInterface
 {
 protected:
 	struct ColdData;
 
+	void* m_fence;
+	Graphics::LightRenderer* m_lightRenderer;
 	Graphics::Frame m_frame;
 	Graphics::CommandList m_textCmdList;
 	std::vector<std::unique_ptr<Graphics::Renderer>> m_renderer;
@@ -75,7 +78,6 @@ protected:
 
 	vx::gl::Buffer m_cameraBuffer;
 	
-	vx::gl::Framebuffer m_gbufferFB;
 	vx::gl::Framebuffer m_aabbFB;
 	vx::gl::Framebuffer m_coneTraceFB;
 	vx::gl::Framebuffer m_blurFB[2];
@@ -119,7 +121,6 @@ protected:
 	void clearTextures();
 	void clearBuffers();
 
-	void voxelize(const vx::gl::VertexArray &vao, const vx::gl::Buffer &cmdBuffer, const vx::gl::Buffer &paramBuffer);
 	void voxelDebug();
 
 	void createConeTracePixelList();
@@ -128,8 +129,10 @@ protected:
 
 	void renderProfiler();
 
+	void processTasks();
 	void taskUpdateCamera();
 	void taskTakeScreenshot();
+	void taskUpdateText(u8* p, u32* offset);
 	void taskLoadScene(u8* p, u32* offset);
 	void taskToggleRenderMode();
 	void taskCreateActorGpuIndex(u8* p, u32* offset);

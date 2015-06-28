@@ -36,10 +36,11 @@ struct EngineConfig
 
 	f32 m_fov{66.0f};
 	f32 m_zNear{0.1f};
-	f32 m_zFar{1000.0f};
+	f32 m_zFar{250.f};
 	u32 m_threads{1};
 	bool m_vsync{false};
 	bool m_renderDebug{false};
+	bool m_editor{ false };
 
 	bool loadFromFile(const char* file);
 };

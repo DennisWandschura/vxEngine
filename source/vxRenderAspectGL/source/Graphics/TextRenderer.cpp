@@ -204,41 +204,21 @@ namespace Graphics
 
 	void TextRenderer::pushEntry(std::string &&text, const vx::float2 &topLeftPosition, const vx::float3 &color)
 	{
+		auto textSize = text.size();
+
 		Entry entry;
 		entry.m_text = std::move(text);
 		entry.m_position = topLeftPosition;
 		entry.m_color = vx::float4(color, 1.0f);
 
 		m_entries.push_back(std::move(entry));
+		m_size += textSize;
 	}
 
 	void TextRenderer::update()
 	{
-		/*static f32 timer = 0.1f;
-
-		timer -= dt;
-
-		if (timer <= 0.0f)
-		{*/
-		//timer = 0.1f;
-
-		/*f32 textureSlice = m_font->getTextureEntry().getSlice();
-		auto textureSize = m_font->getTextureEntry().getTextureSize();
-		vx::float4a invTextureSize;
-		invTextureSize.x = 1.0f / textureSize.x;
-		invTextureSize.y = 1.0f / textureSize.y;
-
-		//vx::float2(1.0f / textureSize.x, 1.0f / textureSize.y);
-		auto vInvTexSize = _mm_shuffle_ps(invTextureSize.v, invTextureSize.v, _MM_SHUFFLE(1, 0, 1, 0));
-
-		vx::uint2 bufferIndex = { 0, 0 };
-		//vx::float2 position = s_position;
-		//writeGpuMarkers(textureSlice, textureSize, vInvTexSize, &bufferIndex, &position);
-
-		//glNamedBufferSubData(m_vbo.getId(), 0, sizeof(Vertex) * bufferIndex.x, m_pVertices.get());
-
-		//m_indexCount = bufferIndex.y;
-	//}*/
+		if (m_size == 0)
+			return;
 
 		updateVertexBuffer();
 	}
@@ -372,7 +352,7 @@ namespace Graphics
 		auto fsId = pipeline->getFragmentShader();
 		auto cmdBuffer = s_objectManager->getBuffer("textCmd");
 
-		StateDescription stateDesc = { 0, vao->getId(), pipeline->getId(), cmdBuffer->getId(), 0, false, true, false };
+		StateDescription stateDesc = { 0, vao->getId(), pipeline->getId(), cmdBuffer->getId(), 0, false, true, false, true };
 		State state;
 		state.set(stateDesc);
 

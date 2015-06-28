@@ -65,10 +65,7 @@ namespace SceneRendererCpp
 		auto f = light.m_falloff;
 
 		auto lightPos = vx::loadFloat3(light.m_position);
-		auto projectionMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, n, f);
-
-	//	auto pp = DirectX::XMMatrixPerspectiveFovRH(vx::degToRad(90.0f), 1.0f, n, f);
-		//memcpy(&projectionMatrix, &pp, sizeof(vx::mat4));
+		auto projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(90.0f), 1.0f, n, f);
 
 		vx::mat4 viewMatrices[6];
 		// X+
@@ -115,7 +112,6 @@ struct SceneRenderer::ColdData
 	u32 m_meshIndexCount{ 0 };
 	u32 m_materialCount{ 0 };
 
-	LightBufferManager m_lightBufferManager;
 	u32 m_dynamicMeshVertexCount{ 0 };
 	u32 m_dynamicMeshIndexCount{ 0 };
 	vx::StackAllocator m_scratchAllocator;
@@ -301,7 +297,7 @@ void SceneRenderer::createMeshMaterialBuffer()
 {
 	vx::gl::BufferDescription materialDesc;
 	materialDesc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
-	materialDesc.size = sizeof(MaterialGPU) * s_maxMaterials;
+	materialDesc.size = sizeof(Gpu::MaterialGPU) * s_maxMaterials;
 	materialDesc.immutable = 1;
 	materialDesc.flags = vx::gl::BufferStorageFlags::Write;
 	m_pObjectManager->createBuffer("materialBlockBuffer", materialDesc);
@@ -319,8 +315,6 @@ void SceneRenderer::initialize(u32 maxLightCount, gl::ObjectManager* objectManag
 	createMeshCmdBuffer();
 	createMeshTransformBuffer();
 	createMeshMaterialBuffer();
-
-	m_coldData->m_lightBufferManager.initialize(maxLightCount, objectManager);
 }
 
 bool SceneRenderer::initializeProfiler(const Font &font, u64 fontTextureHandle, const vx::uint2 &resolution, const vx::gl::ShaderManager &shaderManager, GpuProfiler* gpuProfiler, vx::StackAllocator *pAllocator)
@@ -464,11 +458,6 @@ void SceneRenderer::updateTransform(const vx::TransformGpu &transform, u32 eleme
 	transformBlockBuffer->subData(offset, sizeof(vx::TransformGpu), &transform);
 }
 
-void SceneRenderer::updateLights(const Light* lights, u32 count)
-{
-	m_coldData->m_lightBufferManager.updateLightDataBuffer(lights, count, m_pObjectManager);
-}
-
 void SceneRenderer::writeMaterialToBuffer(const Reference<Material> &material, u32 offset)
 {
 	auto getTextureGpuEntry = [&](const TextureRef &ref)
@@ -491,7 +480,7 @@ void SceneRenderer::writeMaterialToBuffer(const Reference<Material> &material, u
 	u32 hasNormalmap = (normalRef.isValid());
 
 	auto materialBlockBuffer = m_pObjectManager->getBuffer("materialBlockBuffer");
-	auto pMaterialGPU = materialBlockBuffer->mapRange<MaterialGPU>(sizeof(MaterialGPU) * offset, sizeof(MaterialGPU), vx::gl::MapRange::Write);
+	auto pMaterialGPU = materialBlockBuffer->mapRange<Gpu::MaterialGPU>(sizeof(Gpu::MaterialGPU) * offset, sizeof(Gpu::MaterialGPU), vx::gl::MapRange::Write);
 	VX_ASSERT(pMaterialGPU.get());
 	pMaterialGPU->indexAlbedo = getTextureGpuEntry(albedoRef);
 
@@ -621,26 +610,6 @@ void SceneRenderer::updateMeshBuffer(const vx::MeshFile** meshes, const vx::Stri
 	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Vertex count: %u\nIndex count: %u", m_coldData->m_meshVertexCount, m_coldData->m_meshIndexCount);
 }
 
-void SceneRenderer::updateLightBuffer(const Light *pLights, u32 lightCount, const gl::ObjectManager &objectManager)
-{
-	assert(lightCount <= 5);
-
-	ShadowTransformBufferBlock shadowTransforms;
-
-	for (auto i = 0u; i < lightCount; ++i)
-	{
-		SceneRendererCpp::getShadowTransform(pLights[i], &shadowTransforms.u_shadowTransforms[i]);
-	}
-
-	m_coldData->m_lightBufferManager.updateLightDataBuffer(pLights, lightCount, m_pObjectManager);
-
-	{
-		auto pShadowTransformBuffer = objectManager.getBuffer("ShadowTransformBuffer");
-		auto shadowTransformsMappedBuffer = pShadowTransformBuffer->map<ShadowTransformBufferBlock>(vx::gl::Map::Write_Only);
-		vx::memcpy(shadowTransformsMappedBuffer.get(), shadowTransforms);
-	}
-}
-
 void SceneRenderer::writeMeshInstanceIdBuffer(u32 elementId, u32 materialIndex) const
 {
 	auto drawId = elementId | (materialIndex << 16);
@@ -752,7 +721,6 @@ void SceneRenderer::loadSceneImpl(Scene* scene, const gl::ObjectManager &objectM
 
 	m_coldData->m_meshEntries.reserve(scene->getMeshes().size());
 
-	updateLightBuffer(scene->getLights(), scene->getLightCount(), objectManager);
 	auto &sceneMeshes = scene->getMeshes();
 
 	updateMeshBuffer(sceneMeshes.data(), sceneMeshes.keys(), sceneMeshes.size());
@@ -786,7 +754,6 @@ void SceneRenderer::loadSceneImpl(Editor::Scene* scene, const gl::ObjectManager 
 
 	m_coldData->m_meshEntries.reserve(scene->getMeshes().size());
 
-	updateLightBuffer(scene->getLights(), scene->getLightCount(), objectManager);
 	auto &sceneMeshes = scene->getMeshes();
 
 	updateMeshBuffer(sceneMeshes.data(), sceneMeshes.keys(), sceneMeshes.size());
@@ -954,11 +921,6 @@ vx::gl::DrawElementsIndirectCommand SceneRenderer::getDrawCommand(const vx::Stri
 	}
 
 	return cmd;
-}
-
-u32 SceneRenderer::getLightCount() const
-{
-	return m_coldData->m_lightBufferManager.getLightCount();
 }
 
 const MeshEntry* SceneRenderer::getMeshEntries() const

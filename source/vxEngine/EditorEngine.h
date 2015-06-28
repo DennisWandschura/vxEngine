@@ -39,6 +39,7 @@ namespace Editor
 #include "Editor.h"
 #include <vxEngineLib/EventListener.h>
 #include "InfluenceMap.h"
+#include <vxEngineLib/EditorRenderAspectInterface.h>
 
 enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
@@ -62,7 +63,7 @@ class EditorEngine : public vx::EventListener
 
 	vx::EventManager m_eventManager;
 	Editor::PhysicsAspect m_physicsAspect;
-	EditorRenderAspect m_renderAspect;
+	Editor::RenderAspectInterface* m_renderAspect;
 	Editor::Scene* m_pEditorScene{ nullptr };
 	InfluenceMap m_influenceMap;
 	vx::mutex m_editorMutex;
@@ -79,6 +80,8 @@ class EditorEngine : public vx::EventListener
 	Memory m_memory;
 	vx::uint2 m_resolution;
 	HWND m_panel;
+	HMODULE m_renderAspectDll;
+	DestroyEditorRenderAspectFunction m_destroyFn;
 	bool m_previousSceneLoaded;
 
 	vx::sorted_vector<vx::StringID, std::pair<Editor::LoadFileCallback, u32>> m_requestedFiles;
@@ -95,7 +98,7 @@ class EditorEngine : public vx::EventListener
 
 	vx::StringID raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition);
 
-	void createStateMachine();
+	bool createRenderAspectGL(const RenderAspectDescription &desc);
 
 	Ray getRay(s32 mouseX, s32 mouseY);
 	u32 getSelectedNavMeshVertex(s32 mouseX, s32 mouseY);
