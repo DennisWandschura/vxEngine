@@ -76,7 +76,7 @@ namespace Graphics
 		s_objectManager->createTexture("gbufferDepthSlice", desc, true);
 	}
 
-	void GBufferRenderer::initialize(vx::StackAllocator* scratchAllocator)
+	void GBufferRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
 		createTextures();
 

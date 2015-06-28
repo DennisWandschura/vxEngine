@@ -43,6 +43,15 @@
     <Filter Include="Shaders\include">
       <UniqueIdentifier>{59a2d11c-91c7-4e6f-9e8f-6d8b9a502864}</UniqueIdentifier>
     </Filter>
+    <Filter Include="unity">
+      <UniqueIdentifier>{c897a364-d8aa-49aa-bc9e-3e8d05581b87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Renderer">
+      <UniqueIdentifier>{9f64ff07-c1ad-4a8d-8fb6-e9bdd133b296}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Renderer">
+      <UniqueIdentifier>{4f71d882-5e4d-41bf-9b35-07024e7b23f2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\DDS_File.cpp">
@@ -96,25 +105,16 @@
     <ClCompile Include="source\Graphics\Frame.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="source\Graphics\GBufferRenderer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="source\Graphics\Renderer.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="source\Graphics\Segment.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="source\Graphics\ShadowRenderer.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="source\Graphics\State.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="source\Graphics\Surface.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\VoxelRenderer.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="source\Graphics\Commands\CpuProfileCommand.cpp">
@@ -179,6 +179,27 @@
     </ClCompile>
     <ClCompile Include="source\dllExport.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="unity\Unity_vxEngine1.cpp">
+      <Filter>unity</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\VoxelRenderer.cpp">
+      <Filter>Source Files\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\ShadowRenderer.cpp">
+      <Filter>Source Files\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\GBufferRenderer.cpp">
+      <Filter>Source Files\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\TextRenderer.cpp">
+      <Filter>Source Files\Graphics\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\BlendFuncCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\BlendEquationCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -263,28 +284,16 @@
     <ClInclude Include="include\vxRenderAspect\Graphics\Frame.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxRenderAspect\Graphics\GBufferRenderer.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxRenderAspect\Graphics\Renderer.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\Graphics\Segment.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxRenderAspect\Graphics\ShadowRenderer.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxRenderAspect\Graphics\State.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxRenderAspect\Graphics\StaticMeshRenderer.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxRenderAspect\Graphics\Surface.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxRenderAspect\Graphics\VoxelRenderer.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearCommand.h">
@@ -370,6 +379,27 @@
     </ClInclude>
     <ClInclude Include="..\..\game\data\shaders\include\UniformCameraBufferStatic.h">
       <Filter>Shaders\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\ProgramUniformBinding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\GBufferRenderer.h">
+      <Filter>Header Files\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\ShadowRenderer.h">
+      <Filter>Header Files\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\VoxelRenderer.h">
+      <Filter>Header Files\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\TextRenderer.h">
+      <Filter>Header Files\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BlendFuncCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BlendEquationCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

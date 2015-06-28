@@ -74,7 +74,8 @@ public:
 
 	virtual void updateProfiler(f32 dt) = 0;
 
-	virtual void render() = 0;
+	virtual void submitCommands() = 0;
+	virtual void endFrame() = 0;
 
 	virtual void handleEvent(const vx::Event &evt) override = 0;
 

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,27 +23,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "ImageBindingManager.h"
-#include <vxGL/gl.h>
 
-ImageBindingManager::Binding ImageBindingManager::s_bindings[s_maxBindings]{};
+#include <vxRenderAspect/Graphics/Commands/Command.h>
 
-ImageBindingManager::ImageBindingManager(){}
-
-void ImageBindingManager::bind(u32 unit, u32 id, u32 level, u8 layered, u32 layer, u32 access, u32 format)
+namespace Graphics
 {
-	if (unit >= s_maxBindings)
-		return;
-
-	auto currentBinding = s_bindings[unit];
-	if (currentBinding.id != id ||
-		currentBinding.access != access ||
-		currentBinding.format != format)
+	struct BlendFuncCommand
 	{
-		glBindImageTexture(unit, id, level, layered, layer, access, format);
+		u32 m_sfactor;
+		u32 m_dfactor;
 
-		s_bindings[unit].id = id;
-		s_bindings[unit].access = access;
-		s_bindings[unit].format = format;
-	}
+		void set(u32 sfactor, u32 dfactor);
+
+		static void execute(const u8* p, u32* offset);
+	};
 }

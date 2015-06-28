@@ -823,6 +823,12 @@ TextureRef SceneRenderer::loadTexture(const char* file)
 	return ref;
 }
 
+u32 SceneRenderer::getTextureIndex(u64 textureHandle) const
+{
+	auto textureIndex = *m_coldData->m_texturesGPU.find(textureHandle);
+	return textureIndex;
+}
+
 u32 SceneRenderer::getMaterialIndex(const Reference<Material> &material) const
 {
 	u32 index = 0;

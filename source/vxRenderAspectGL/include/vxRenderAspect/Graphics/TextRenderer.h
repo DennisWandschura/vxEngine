@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,56 +23,67 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
+
+class Font;
 
 namespace vx
 {
 	namespace gl
 	{
-		class ProgramPipeline;
-		class StateManager;
 		class ShaderManager;
 	}
 }
 
+#include <vxRenderAspect/Graphics/Renderer.h>
 #include <vxLib/math/Vector.h>
-#include <vxGL/Buffer.h>
-#include <vxGL/VertexArray.h>
+#include <vxLib/memory.h>
+#include <vector>
 
-class ProfilerGraph
+namespace Graphics
 {
-	static const u16 s_sampleCount = 500u;
-	static s64 s_frequency;
-	static const u8 s_queryCount = 3;
+	struct TextRendererDesc
+	{
+		const Font* font;
+		u32 maxCharacters;
+		u32 textureIndex;
+	};
 
-	s64 m_currentStart{0};
-	u32 m_queryGpuStart[s_queryCount];
-	u32 m_queryGpuEnd[s_queryCount];
-	u32 m_currentQuery{0};
-	f32 m_scale{ 1.0f };
-	vx::float2 m_position{ 0, 0 };
-	vx::float2 m_entriesCpu[s_sampleCount];
-	vx::float2 m_entriesGpu[s_sampleCount];
-	const vx::gl::ProgramPipeline *m_pPipeline{ nullptr };
-	vx::gl::VertexArray m_vao;
-	u32 m_indexCount{0};
-	vx::gl::Buffer m_vbo;
-	vx::gl::Buffer m_ibo;
-	vx::gl::Buffer m_vboColor;
+	class TextRenderer : public Renderer
+	{
+		struct Entry;
+		struct TextVertex;
 
-public:
-	ProfilerGraph() = default;
-	bool initialize(const vx::gl::ShaderManager &shaderManager, f32 targetMs);
+		u32 m_vboId;
+		u32 m_cmdId;
+		std::vector<Entry> m_entries;
+		std::unique_ptr<TextVertex[]> m_vertices;
+		u32 m_size;
+		u32 m_capacity;
+		const Font* m_font;
+		u32 m_texureIndex;
 
-	void startCpu();
-	void endCpu();
+		void createVertexBuffer();
+		void createIndexBuffer();
+		void createVao();
+		void createCmdBuffer();
 
-	void startGpu();
-	void endGpu();
+		void updateVertexBuffer();
+		void writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, const vx::uint2a &textureSize, u32 textureSlice);
 
-	// call at begin of frame
-	void frame(f32 frameTime);
-	// updates buffers
-	void update();
-	void render();
-};
+	public:
+		TextRenderer();
+		~TextRenderer();
+
+		void initialize(vx::StackAllocator* scratchAllocator, const void* p) override;
+		void shutdown() override;
+
+		void pushEntry(std::string &&text, const vx::float2 &topLeftPosition, const vx::float3 &color);
+
+		void update() override;
+
+		void getCommandList(CommandList* cmdList) override;
+
+		void clearData() override;
+		void bindBuffers() override;
+	};
+}

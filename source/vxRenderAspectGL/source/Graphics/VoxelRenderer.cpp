@@ -54,7 +54,7 @@ namespace Graphics
 
 	}
 
-	void VoxelRenderer::initialize(vx::StackAllocator* scratchAllocator)
+	void VoxelRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
 		m_voxelTextureSize = s_settings->m_rendererSettings.m_voxelSettings.m_voxelTextureSize;
 		m_voxelGridDim = s_settings->m_rendererSettings.m_voxelSettings.m_voxelGridDim;

@@ -149,10 +149,10 @@ namespace Graphics
 		switch (ptr->m_dataType)
 		{
 		case vx::gl::DataType::Float:
-			ptr->programUniformFloat(offset);
+			ptr->programUniformFloat(offset, (u8*)(ptr + 1));
 			break;
 		case vx::gl::DataType::Unsigned_Int:
-			ptr->programUniformUInt(offset);
+			ptr->programUniformUInt(offset, (u8*)(ptr + 1));
 			break;
 		default:
 			VX_ASSERT(false);
@@ -162,9 +162,9 @@ namespace Graphics
 		*offset += sizeof(ProgramUniformCommand);
 	}
 
-	void ProgramUniformCommand::programUniformFloat(u32* offset)
+	void ProgramUniformCommand::programUniformFloat(u32* offset, const u8* p)
 	{
-		const f32* dataPtr = (f32*)(this + 1);
+		const f32* dataPtr = (f32*)(p);
 		switch (m_count)
 		{
 		case 1:
@@ -181,9 +181,10 @@ namespace Graphics
 		*offset += (m_count * sizeof(f32));
 	}
 
-	void ProgramUniformCommand::programUniformUInt(u32* offset)
+	void ProgramUniformCommand::programUniformUInt(u32* offset, const u8* p)
 	{
-		const u32* dataPtr = (u32*)(this + 1);
+		const u32* dataPtr = (u32*)(p);
+
 		switch (m_count)
 		{
 		case 1:

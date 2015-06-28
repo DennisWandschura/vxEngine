@@ -167,7 +167,8 @@ Global
 		{6B2488E5-F44A-46C6-9F8D-AD76C95DAC54}.Release|Any CPU.ActiveCfg = Release|Win32
 		{6B2488E5-F44A-46C6-9F8D-AD76C95DAC54}.Release|Mixed Platforms.ActiveCfg = Release|Win32
 		{6B2488E5-F44A-46C6-9F8D-AD76C95DAC54}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{6B2488E5-F44A-46C6-9F8D-AD76C95DAC54}.Release|x64.ActiveCfg = Release|Win32
+		{6B2488E5-F44A-46C6-9F8D-AD76C95DAC54}.Release|x64.ActiveCfg = Release|x64
+		{6B2488E5-F44A-46C6-9F8D-AD76C95DAC54}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

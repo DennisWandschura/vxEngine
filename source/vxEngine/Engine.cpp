@@ -154,9 +154,10 @@ void Engine::renderLoop()
 		//CpuProfiler::popMarker();
 
 		//CpuProfiler::pushMarker("render");
-		m_renderAspect->render();
+		m_renderAspect->submitCommands();
 		//CpuProfiler::popMarker();
 
+		m_renderAspect->endFrame();
 		//CpuProfiler::popMarker(); // frame end
 
 		last = current;

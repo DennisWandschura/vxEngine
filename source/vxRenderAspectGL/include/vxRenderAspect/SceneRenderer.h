@@ -132,6 +132,7 @@ public:
 
 	void loadScene(const void* scene, const gl::ObjectManager &objectManager,FileAspect* fileAspect, bool editor);
 	TextureRef loadTexture(const char* file);
+	u32 getTextureIndex(u64 textureHandle) const;
 
 	u32 getMaterialIndex(const Reference<Material> &material) const;
 	bool setMeshInstanceMaterial(const vx::StringID &sid, const Reference<Material> &material) const;

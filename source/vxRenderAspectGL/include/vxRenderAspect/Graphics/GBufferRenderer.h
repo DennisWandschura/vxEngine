@@ -36,7 +36,7 @@ namespace Graphics
 		GBufferRenderer();
 		~GBufferRenderer();
 
-		void initialize(vx::StackAllocator* scratchAllocator) override;
+		void initialize(vx::StackAllocator* scratchAllocator, const void* p) override;
 		void shutdown() override;
 
 		void update() override;

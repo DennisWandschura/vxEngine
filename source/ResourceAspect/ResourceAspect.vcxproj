@@ -140,7 +140,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
-    <IncludePath>E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Program Files\Autodesk\FBX\FBX SDK\2016.0\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -256,6 +256,8 @@
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
       <PreprocessorDefinitions>_VX_ASSERT;_VX_WINDOWS;NDEBUG;NOMINMAX;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization>MaxSpeedHighLevel</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

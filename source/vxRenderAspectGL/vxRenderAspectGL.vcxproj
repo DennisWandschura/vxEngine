@@ -19,51 +19,147 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\DDS_File.cpp" />
-    <ClCompile Include="source\dllExport.cpp" />
-    <ClCompile Include="source\DoubleBufferRaw.cpp" />
-    <ClCompile Include="source\Font.cpp" />
-    <ClCompile Include="source\FontAtlas.cpp" />
-    <ClCompile Include="source\gl\BufferBindingManager.cpp" />
-    <ClCompile Include="source\gl\BufferManager.cpp" />
-    <ClCompile Include="source\gl\ObjectManager.cpp" />
-    <ClCompile Include="source\GpuProfiler.cpp" />
-    <ClCompile Include="source\Graphics\CommandFactory.cpp" />
-    <ClCompile Include="source\Graphics\CommandList.cpp" />
-    <ClCompile Include="source\Graphics\CommandListFactory.cpp" />
-    <ClCompile Include="source\Graphics\Commands\BarrierCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\ClearColorCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\ClearCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\CpuProfileCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\CullFaceCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\DepthRangeCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\DrawArraysCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\DrawArraysIndirectCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\DrawElementsIndirectCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\FramebufferTextureCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\GpuProfileCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\PointSizeCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\PolygonOffsetCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\ProgramUniformCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\ViewportCommand.cpp" />
-    <ClCompile Include="source\Graphics\Frame.cpp" />
-    <ClCompile Include="source\Graphics\GBufferRenderer.cpp" />
-    <ClCompile Include="source\Graphics\Renderer.cpp" />
-    <ClCompile Include="source\Graphics\Segment.cpp" />
-    <ClCompile Include="source\Graphics\ShadowRenderer.cpp" />
-    <ClCompile Include="source\Graphics\State.cpp" />
-    <ClCompile Include="source\Graphics\Surface.cpp" />
-    <ClCompile Include="source\Graphics\VoxelRenderer.cpp" />
-    <ClCompile Include="source\LightBufferManager.cpp" />
-    <ClCompile Include="source\RenderAspect.cpp" />
-    <ClCompile Include="source\RenderCommand.cpp" />
-    <ClCompile Include="source\RenderCommandFinalImage.cpp" />
-    <ClCompile Include="source\SceneRenderer.cpp" />
-    <ClCompile Include="source\SegmentFactory.cpp" />
-    <ClCompile Include="source\TextureManager.cpp" />
-    <ClCompile Include="source\Vertex.cpp" />
+    <ClCompile Include="source\DDS_File.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\dllExport.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\DoubleBufferRaw.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Font.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\FontAtlas.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\gl\BufferBindingManager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\gl\BufferManager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\gl\ObjectManager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\GpuProfiler.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\CommandFactory.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\CommandList.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\CommandListFactory.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\BarrierCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\BlendFuncCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\ClearColorCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\ClearCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\CpuProfileCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\CullFaceCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\DepthRangeCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\DrawArraysCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\DrawArraysIndirectCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\DrawElementsIndirectCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\FramebufferTextureCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\GpuProfileCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\PointSizeCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\PolygonOffsetCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\ProgramUniformCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\BlendEquationCommand.cpp" />
+    <ClCompile Include="source\Graphics\Commands\ViewportCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Frame.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\GBufferRenderer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Renderer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Segment.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\ShadowRenderer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\State.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Surface.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\TextRenderer.cpp" />
+    <ClCompile Include="source\Graphics\VoxelRenderer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\LightBufferManager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\RenderAspect.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\RenderCommand.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\RenderCommandFinalImage.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\SceneRenderer.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\SegmentFactory.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\TextureManager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="source\Vertex.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="unity\Unity_vxEngine1.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\game\data\shaders\include\common.h" />
@@ -93,6 +189,7 @@
     <ClInclude Include="include\vxRenderAspect\Graphics\CommandListFactory.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BarrierCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BlendFuncCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearColorCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\Command.h" />
@@ -104,6 +201,7 @@
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawElementsIndirectCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\FramebufferTextureCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\GpuProfileCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BlendEquationCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawArraysIndirectCountCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawElementsIndirectCountCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PointSizeCommand.h" />
@@ -116,14 +214,15 @@
     <ClInclude Include="include\vxRenderAspect\Graphics\Segment.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\ShadowRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\State.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\StaticMeshRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Surface.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\TextRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\VoxelRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\LightBufferManager.h" />
     <ClInclude Include="include\vxRenderAspect\opencl\Context.h" />
     <ClInclude Include="include\vxRenderAspect\opencl\Device.h" />
     <ClInclude Include="include\vxRenderAspect\opencl\Image.h" />
     <ClInclude Include="include\vxRenderAspect\opencl\Platform.h" />
+    <ClInclude Include="include\vxRenderAspect\ProgramUniformBinding.h" />
     <ClInclude Include="include\vxRenderAspect\RenderAspect.h" />
     <ClInclude Include="include\vxRenderAspect\RenderAspectDescription.h" />
     <ClInclude Include="include\vxRenderAspect\RenderCommand.h" />
@@ -267,11 +366,11 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -296,6 +395,12 @@
     <TargetName>$(ProjectName)_d</TargetName>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
+    <LibraryPath>C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs2015;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxRenderAspectGL\include;C:\Intel\INDE\code_builder_5.1.0.25\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\game\data\shaders\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <OutDir>..\..\lib\</OutDir>
+    <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <LibraryPath>C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -342,16 +447,32 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>MaxSpeedHighLevel</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InterproceduralOptimization>NoIPO</InterproceduralOptimization>
+      <PreprocessorDefinitions>NOMINMAX;_VX_ASSER;_VX_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <Cpp0xSupport>true</Cpp0xSupport>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>opengl32.lib;vxlib_s.lib;vxGL_s.lib;vxEngineLib.lib;opencl.lib;vxResourceAspect.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>"E:\dev\fastbuild-x64\fbuild.exe" -config generate_unity.bff</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

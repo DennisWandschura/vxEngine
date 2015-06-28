@@ -59,7 +59,7 @@ namespace Graphics
 	public:
 		virtual ~Renderer(){}
 
-		virtual void initialize(vx::StackAllocator* scratchAllocator) = 0;
+		virtual void initialize(vx::StackAllocator* scratchAllocator, const void* p) = 0;
 		virtual void shutdown() = 0;
 
 		virtual void update() = 0;

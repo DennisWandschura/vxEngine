@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,40 +23,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include "Renderer.h"
-#include <vxGL/VertexArray.h>
-#include <vxGL/Buffer.h>
+#include <vxRenderAspect/Graphics/Commands/Command.h>
 
 namespace Graphics
 {
-	class StaticMeshRenderer : public Renderer
+	struct BlendEquationCommand
 	{
-		static const u32 s_maxMeshInstanceCount{ 255u };
-		static const u32 s_maxVertices = 100000;
-		static const u32 s_maxIndices = 150000;
+		u32 m_equation;
 
-		vx::gl::Buffer m_indirectCmdBuffer;
-		vx::gl::Buffer m_drawCountBuffer;
-		vx::gl::VertexArray m_vao;
-		vx::gl::Buffer m_vbo;
-		vx::gl::Buffer m_idVbo;
-		vx::gl::Buffer m_ibo;
+		void set(u32 equation);
 
-		void createIndirectCmdBuffer();
-		void createIbo();
-		void createDrawIdVbo();
-		void createVaoVbo();
-		void bindBuffersToVao();
-
-		Segment createSegmentGBuffer();
-
-	public:
-		void initialize() override;
-
-		void update() override;
-
-		void getSegments(std::vector<Segment>* segments) override;
+		static void execute(const u8* p, u32* offset);
 	};
 }

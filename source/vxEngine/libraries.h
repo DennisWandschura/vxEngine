@@ -26,9 +26,7 @@ SOFTWARE.
 #if defined(_DEBUG_STATIC_BUILD)
 
 #pragma comment(lib, "vxLib_sd.lib")
-//#pragma comment(lib, "vxGL_sd.lib")
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
-//#pragma comment(lib, "vxRenderAspectGL_d.lib")
 
 #if _VX_EDITOR
 #pragma comment(lib, "ResourceAspect_editor_d.lib")
@@ -50,9 +48,8 @@ SOFTWARE.
 
 #elif defined(_RELEASE_STATIC_BUILD)
 #pragma comment(lib, "vxLib_s.lib")
-#pragma comment(lib, "vxGL_s.lib")
 #pragma comment(lib, "vxEngineLib.lib")
-#pragma comment(lib, "ResourceAspect.lib")
+#pragma comment(lib, "vxResourceAspect.lib")
 
 #ifdef _VX_NOAUDIO
 #else
@@ -70,8 +67,6 @@ SOFTWARE.
 
 #endif
 
-#pragma comment(lib, "opengl32.lib")
-//#pragma comment(lib, "OpenCL.lib")
 #pragma comment(lib, "Shlwapi.lib")
 
 #ifdef _PHYSX_CHECKED

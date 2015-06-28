@@ -213,7 +213,7 @@ namespace Graphics
 		return segment;
 	}
 
-	void ShadowRenderer::initialize(vx::StackAllocator* scratchAllocator)
+	void ShadowRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
 		m_maxShadowLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
 		m_maxMeshInstanceCount = s_settings->m_rendererSettings.m_maxMeshInstances;

@@ -42,7 +42,7 @@ namespace Graphics
 		static void execute(const u8* p, u32* offset);
 
 	private:
-		void programUniformFloat(u32* offset);
-		void programUniformUInt(u32* offset);
+		void programUniformFloat(u32* offset, const u8* p);
+		void programUniformUInt(u32* offset, const u8* p);
 	};
 }

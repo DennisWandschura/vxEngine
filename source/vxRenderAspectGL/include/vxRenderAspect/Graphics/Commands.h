@@ -24,6 +24,8 @@ SOFTWARE.
 */
 
 #include "Commands/BarrierCommand.h"
+#include <vxRenderAspect/Graphics/Commands/BlendEquationCommand.h>
+#include <vxRenderAspect/Graphics/Commands/BlendFuncCommand.h>
 #include "Commands/ClearColorCommand.h"
 #include "Commands/ClearCommand.h"
 #include "Commands/CpuProfileCommand.h"

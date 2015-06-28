@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -22,47 +21,40 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-#include <vxGL/Base.h>
+#include <vxRenderAspect/Graphics/Commands/BlendEquationCommand.h>
+#include <vxGL/gl.h>
+#include <vxRenderAspect/Graphics/Segment.h>
+#include <vxEngineLib/ParserNode.h>
+#include <vxRenderAspect/Graphics/CommandFactory.h>
 
 namespace Graphics
 {
-	enum class RenderMode : u8{ DrawArrays, DrawElements, MultiDrawElementsIndirect };
-	enum class PrimitiveMode : u8{ Points, Triangles };
-
-	struct DrawCommandDescription
+	void createFromNodeBlendEquationCommand(const Parser::Node &node, Segment* segment, void*)
 	{
-		u32 indirectBuffer{ 0 };
-		u32 count{0};
-		PrimitiveMode primitiveMode{ PrimitiveMode::Triangles };
-		vx::gl::DataType dataType{ vx::gl::DataType::Unsigned_Byte};
-		RenderMode renderMode{ RenderMode::DrawArrays };
+		auto paramsNode = node.get("params");
 
-		bool isValid() const;
-	};
+		u32 param;
+		paramsNode->as(0, &param);
 
-	class DrawCommand
+		BlendEquationCommand command;
+		command.set(param);
+
+		segment->pushCommand(command);
+	}
+
+	REGISTER_COMMANDFACTORY(BlendEquationCommand, createFromNodeBlendEquationCommand);
+
+	void BlendEquationCommand::set(u32 equation)
 	{
-		u32 m_indirectBuffer{ 0 };
-		u32 m_count{ 0 };
-		u16 m_dataType{ 0 };
-		u8 m_primitiveMode{ 0 };
-		RenderMode m_renderMode{ RenderMode::DrawArrays };
+		m_equation = equation;
+	}
 
-		void drawArrays() const;
-		void drawElements() const;
-		void multiDrawElementsIndirect() const;
+	void BlendEquationCommand::execute(const u8* p, u32* offset)
+	{
+		BlendEquationCommand* cmd = (BlendEquationCommand*)p;
 
-	public:
-		DrawCommand() = default;
+		glBlendEquation(cmd->m_equation);
 
-		void initialize(const DrawCommandDescription &desc);
-
-		void draw() const;
-
-		void setDrawCount(u32 count) { m_count = count; }
-		void setPrimitiveMode(PrimitiveMode mode);
-		void setRenderMode(RenderMode renderMode);
-		void setDataType(vx::gl::DataType dataType);
-	};
+		*offset += sizeof(BlendEquationCommand);
+	}
 }

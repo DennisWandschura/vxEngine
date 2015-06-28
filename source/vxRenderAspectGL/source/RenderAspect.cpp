@@ -541,13 +541,13 @@ bool RenderAspect::initialize(const RenderAspectDescription &desc)
 		return false;
 
 	auto gbufferRenderer = vx::make_unique<Graphics::GBufferRenderer>();
-	gbufferRenderer->initialize(&m_allocator);
+	gbufferRenderer->initialize(&m_allocator, nullptr);
 	m_renderer.push_back(std::move(gbufferRenderer));
 
 	if (desc.settings->m_rendererSettings.m_shadowMode != 0)
 	{
 		auto shadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
-		shadowRenderer->initialize(&m_allocator);
+		shadowRenderer->initialize(&m_allocator, nullptr);
 
 		m_shadowRenderer = shadowRenderer.get();
 		m_renderer.push_back(std::move(shadowRenderer));
@@ -558,7 +558,7 @@ bool RenderAspect::initialize(const RenderAspectDescription &desc)
 	if (desc.settings->m_rendererSettings.m_voxelGIMode != 0)
 	{
 		auto voxelRenderer = vx::make_unique<Graphics::VoxelRenderer >();
-		voxelRenderer->initialize(&m_allocator);
+		voxelRenderer->initialize(&m_allocator, nullptr);
 		m_renderer.push_back(std::move(voxelRenderer));
 	}
 
@@ -637,17 +637,6 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 
 	m_sceneRenderer.initialize(10, &m_objectManager, pAllocator);
 
-	{
-		auto file = (dataDir + "textures/verdana.png");
-		auto ref = m_sceneRenderer.loadTexture(file.c_str());
-
-		FontAtlas fontAtlas;
-		if (!fontAtlas.loadFromFile((dataDir + "fonts/meta/VerdanaRegular.sdff").c_str()))
-			return false;
-
-		m_pColdData->m_font = Font(std::move(ref), std::move(fontAtlas));
-	}
-
 	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
 	m_renderpassFinalImageFullShading.initialize(*emptyVao, *m_shaderManager.getPipeline("draw_final_image.pipe"), m_resolution);
 	auto pipeline = m_shaderManager.getPipeline("drawFinalImageAlbedo.pipe");
@@ -668,6 +657,33 @@ bool RenderAspect::initializeProfiler()
 	{
 		return false;
 	}*/
+
+	{
+		std::string dataDir = "../data/";
+		auto file = (dataDir + "textures/verdana.png");
+		auto ref = m_sceneRenderer.loadTexture(file.c_str());
+		VX_ASSERT(ref.isValid());
+
+		FontAtlas fontAtlas;
+		if (!fontAtlas.loadFromFile((dataDir + "fonts/meta/VerdanaRegular.sdff").c_str()))
+			return false;
+
+		m_pColdData->m_font = Font(std::move(ref), std::move(fontAtlas));
+	}
+
+	auto fontHandle = glGetTextureHandleARB(m_pColdData->m_font.getTextureEntry().getTextureId());
+	auto textureIndex = m_sceneRenderer.getTextureIndex(fontHandle);
+
+	Graphics::TextRendererDesc desc;
+	desc.font = &m_pColdData->m_font;
+	desc.maxCharacters = 256;
+	desc.textureIndex = textureIndex;
+
+	m_textRenderer = vx::make_unique<Graphics::TextRenderer>();
+	m_textRenderer->initialize(&m_allocator, &desc);
+
+	m_textCmdList.initialize();
+	m_textRenderer->getCommandList(&m_textCmdList);
 
 	return true;
 }
@@ -784,6 +800,10 @@ void RenderAspect::update()
 
 void RenderAspect::updateProfiler(f32 dt)
 {
+
+	m_textRenderer->pushEntry(std::string("test"), vx::float2(100, 0), vx::float3(1, 0, 0));
+
+	m_textRenderer->update();
 	//m_gpuProfiler->update(dt);
 }
 
@@ -885,7 +905,7 @@ void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
 	*offset += sizeof(RenderUpdateDataTransforms) + (sizeof(vx::TransformGpu) + sizeof(u32)) * count;
 }
 
-void RenderAspect::render()
+void RenderAspect::submitCommands()
 {
 	//m_gpuProfiler->frame();
 
@@ -987,9 +1007,14 @@ void RenderAspect::render()
 
 	//CpuProfiler::pushMarker("swapBuffers");
 
-	m_renderContext.swapBuffers();
-
 //	CpuProfiler::popMarker();
+}
+
+void RenderAspect::endFrame()
+{
+	glFinish();
+
+	m_renderContext.swapBuffers();
 }
 
 void RenderAspect::bindBuffers()
@@ -1222,7 +1247,17 @@ void RenderAspect::blurAmbientColor()
 
 void RenderAspect::renderProfiler()
 {
-	/*vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
+	//vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+	//vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+
+	//glBlendEquation(GL_FUNC_ADD);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
+	m_textCmdList.draw();
+
+	//vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	/*
 
 	vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
@@ -1234,7 +1269,7 @@ void RenderAspect::renderProfiler()
 
 	CpuProfiler::render();
 
-	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);*/
+	*/
 }
 
 void RenderAspect::keyPressed(u16 key)

@@ -109,7 +109,7 @@
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
     <TargetName>$(ProjectName)</TargetName>
-    <IncludePath>d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -194,6 +194,8 @@
       <DebugInformationFormat>None</DebugInformationFormat>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <Optimization>MaxSpeedHighLevel</Optimization>
+      <PreprocessorDefinitions>_VX_ASSERT;_VX_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -274,7 +276,9 @@
     <ClCompile Include="EditorScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="EngineConfig.cpp" />
+    <ClCompile Include="EngineConfig.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="EventManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -284,7 +288,9 @@
     <ClCompile Include="Light.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Locator.cpp" />
+    <ClCompile Include="Locator.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Logfile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -321,7 +327,9 @@
     <ClCompile Include="SceneFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Spawn.cpp" />
+    <ClCompile Include="Spawn.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="TextureFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

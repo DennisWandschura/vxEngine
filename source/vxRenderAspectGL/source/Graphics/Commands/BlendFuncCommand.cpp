@@ -21,26 +21,42 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
+#include <vxRenderAspect/Graphics/Commands/BlendFuncCommand.h>
+#include <vxGL/gl.h>
+#include <vxRenderAspect/Graphics/Segment.h>
+#include <vxEngineLib/ParserNode.h>
+#include <vxRenderAspect/Graphics/CommandFactory.h>
 
-#include <vxLib/types.h>
-
-class ImageBindingManager
+namespace Graphics
 {
-	static const u8 s_maxBindings = 255;
-
-	struct Binding
+	void createFromNodeBlendFuncCommand(const Parser::Node &node, Segment* segment, void*)
 	{
-		u32 unit{0};
-		u32 id{0};
-		u32 access{0}; 
-		u32 format{0};
-	};
+		auto paramsNode = node.get("params");
 
-	static Binding s_bindings[s_maxBindings];
+		u32 param[2];
+		paramsNode->as(0, &param[0]);
+		paramsNode->as(1, &param[1]);
 
-	ImageBindingManager();
+		BlendFuncCommand command;
+		command.set(param[0], param[1]);
 
-public:
-	static void bind(u32 unit, u32 id, u32 level, u8 layered, u32 layer, u32 access, u32 format);
-};
+		segment->pushCommand(command);
+	}
+
+	REGISTER_COMMANDFACTORY(BlendFuncCommand, createFromNodeBlendFuncCommand);
+
+	void BlendFuncCommand::set(u32 sfactor, u32 dfactor)
+	{
+		m_sfactor = sfactor;
+		m_dfactor = dfactor;
+	}
+
+	void BlendFuncCommand::execute(const u8* p, u32* offset)
+	{
+		BlendFuncCommand* cmd = (BlendFuncCommand*)p;
+
+		glBlendFunc(cmd->m_sfactor, cmd->m_dfactor);
+
+		*offset += sizeof(BlendFuncCommand);
+	}
+}

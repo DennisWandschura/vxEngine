@@ -53,7 +53,7 @@ class GpuProfiler;
 #include "Graphics/Frame.h"
 #include "opencl/context.h"
 #include <vxEngineLib/mutex.h>
-//#include "GpuProfiler.h"
+#include "Graphics/TextRenderer.h"
 
 class VX_ALIGN(64) RenderAspect : public RenderAspectInterface
 {
@@ -61,6 +61,7 @@ protected:
 	struct ColdData;
 
 	Graphics::Frame m_frame;
+	Graphics::CommandList m_textCmdList;
 	std::vector<std::unique_ptr<Graphics::Renderer>> m_renderer;
 	vx::uint2 m_resolution;
 	SceneRenderer m_sceneRenderer;
@@ -70,7 +71,7 @@ protected:
 	RenderUpdateCameraData m_updateCameraData;
 	DoubleBufferRaw m_doubleBuffer;
 	Graphics::ShadowRenderer* m_shadowRenderer;
-//	std::unique_ptr<GpuProfiler> m_gpuProfiler;
+	std::unique_ptr<Graphics::TextRenderer> m_textRenderer;
 
 	vx::gl::Buffer m_cameraBuffer;
 	
@@ -160,7 +161,8 @@ public:
 
 	void updateProfiler(f32 dt) override;
 
-	void render() override;
+	void submitCommands() override;
+	void endFrame() override;
 
 	virtual void handleEvent(const vx::Event &evt) override;
 
