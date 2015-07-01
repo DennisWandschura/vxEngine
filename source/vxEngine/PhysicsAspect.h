@@ -97,6 +97,8 @@ protected:
 
 	void addMeshInstance(const MeshInstance &instance);
 
+	vx::StringID raycast_static(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
+
 public:
 	PhysicsAspect();
 	virtual ~PhysicsAspect();
@@ -114,5 +116,7 @@ public:
 
 	void move(const vx::float4a &velocity, f32 dt, physx::PxController* pController);
 	
-	vx::StringID raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition) const;
+	vx::StringID raycast_static(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
+	vx::StringID raycast_static(const vx::float3 &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
+	vx::StringID raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
 };

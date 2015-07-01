@@ -188,73 +188,73 @@ bool AABB::intersects(const Triangle &triangle)
 
 	// a00
 	auto f = vx::float3(0, -f0.z, f0.y);
-	auto p0 = vx::dot(v0, f);
-	auto p1 = vx::dot(v1, f);
-	auto p2 = vx::dot(v2, f);
+	auto p0 = vx::dot3(v0, f);
+	auto p1 = vx::dot3(v1, f);
+	auto p2 = vx::dot3(v2, f);
 	auto r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
 	// a01
 	f = vx::float3(0, -f1.z, f1.y);
-	p0 = vx::dot(v0, f);
-	p1 = vx::dot(v1, f);
-	p2 = vx::dot(v2, f);
+	p0 = vx::dot3(v0, f);
+	p1 = vx::dot3(v1, f);
+	p2 = vx::dot3(v2, f);
 	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
 	// a02
 	f = vx::float3(0, -f2.z, f2.y);
-	p0 = vx::dot(v0, f);
-	p1 = vx::dot(v1, f);
-	p2 = vx::dot(v2, f);
+	p0 = vx::dot3(v0, f);
+	p1 = vx::dot3(v1, f);
+	p2 = vx::dot3(v2, f);
 	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
 	// a10
 	f = vx::float3(f0.z, 0, -f0.x);
-	p0 = vx::dot(v0, f);
-	p1 = vx::dot(v1, f);
-	p2 = vx::dot(v2, f);
+	p0 = vx::dot3(v0, f);
+	p1 = vx::dot3(v1, f);
+	p2 = vx::dot3(v2, f);
 	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
 	// a11
 	f = vx::float3(f1.z, 0, -f1.x);
-	p0 = vx::dot(v0, f);
-	p1 = vx::dot(v1, f);
-	p2 = vx::dot(v2, f);
+	p0 = vx::dot3(v0, f);
+	p1 = vx::dot3(v1, f);
+	p2 = vx::dot3(v2, f);
 	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
 	// a12
 	f = vx::float3(f2.z, 0, -f2.x);
-	p0 = vx::dot(v0, f);
-	p1 = vx::dot(v1, f);
-	p2 = vx::dot(v2, f);
+	p0 = vx::dot3(v0, f);
+	p1 = vx::dot3(v1, f);
+	p2 = vx::dot3(v2, f);
 	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
 	// a20
 	f = vx::float3(-f0.y, f0.x, 0);
-	p0 = vx::dot(v0, f);
-	p1 = vx::dot(v1, f);
-	p2 = vx::dot(v2, f);
+	p0 = vx::dot3(v0, f);
+	p1 = vx::dot3(v1, f);
+	p2 = vx::dot3(v2, f);
 	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
 	// a21
 	f = vx::float3(-f1.y, f1.x, 0);
-	p0 = vx::dot(v0, f);
-	p1 = vx::dot(v1, f);
-	p2 = vx::dot(v2, f);
+	p0 = vx::dot3(v0, f);
+	p1 = vx::dot3(v1, f);
+	p2 = vx::dot3(v2, f);
 	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
 	// a22
 	f = vx::float3(-f2.y, f2.x, 0);
-	p0 = vx::dot(v0, f);
-	p1 = vx::dot(v1, f);
-	p2 = vx::dot(v2, f);
+	p0 = vx::dot3(v0, f);
+	p1 = vx::dot3(v1, f);
+	p2 = vx::dot3(v2, f);
 	r = e.x * fabsf(f.x) + e.y * fabsf(f.y) + e.z * fabsf(f.z);
 	if (fmaxf(-fmaxf(p0, p2), fminf(p0, p2)) > r) return false;
 
@@ -274,7 +274,7 @@ bool AABB::intersects(const Triangle &triangle)
 
 	Plane p;
 	p.n = vx::cross(f0, f1);
-	p.d = vx::dot(p.n, v0);
+	p.d = vx::dot3(p.n, v0);
 
 	return intersects(p);
 }
@@ -285,7 +285,7 @@ bool AABB::intersects(const Plane &plane)
 	auto e = max - c;
 
 	auto r = e.x * abs(plane.n.x) + e.y * abs(plane.n.y) + e.z * abs(plane.n.z);
-	auto s = vx::dot(plane.n, c) - plane.d;
+	auto s = vx::dot3(plane.n, c) - plane.d;
 
 	return fabsf(s) <= r;
 }

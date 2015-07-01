@@ -41,7 +41,7 @@ namespace Gpu
 
 	struct VoxelBlock
 	{
-		VoxelData data[4];
+		VoxelData data;
 	};
 
 	struct LightData
@@ -67,8 +67,6 @@ namespace Gpu
 		u64 u_aabbTexture;
 		u64 u_ambientSlice;
 		u64 u_ambientImage;
-		u64 u_volumetricTexture;
-		u64 u_particleTexture;
 	};
 
 	struct MaterialGPU

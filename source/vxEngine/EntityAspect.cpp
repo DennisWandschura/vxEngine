@@ -153,7 +153,7 @@ Component::Actor* EntityAspect::createComponentActor(u16 entityIndex, EntityActo
 	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, componentInput, pActor, &m_quadTree, 0.2f, 2.0f);
 	ActionSetFollowPath* actionSetFollowPath = new ActionSetFollowPath(actionFollowPath, pActor->m_data.get());
 
-	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(pActor);
+	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(entity,pActor);
 
 	State* waitingState = new State();
 	State* movingState = new State();

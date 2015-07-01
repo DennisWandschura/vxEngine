@@ -25,8 +25,9 @@ SOFTWARE.
 #include "ai/Squad.h"
 #include "ComponentActor.h"
 
-ActionActorCreatePath::ActionActorCreatePath(Component::Actor* actor)
-	:m_actor(actor)
+ActionActorCreatePath::ActionActorCreatePath(EntityActor* entity, Component::Actor* actor)
+	:m_actor(actor),
+	m_entity(entity)
 {
 
 }
@@ -37,7 +38,7 @@ void ActionActorCreatePath::run()
 
 	if (squad && m_actor->m_data->path.empty())
 	{
-		squad->createPath(m_actor);
+		squad->createPath(m_entity, m_actor);
 	}
 }
 

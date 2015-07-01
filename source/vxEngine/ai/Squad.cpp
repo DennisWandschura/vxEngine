@@ -33,9 +33,108 @@ SOFTWARE.
 #include <random>
 #include <vxEngineLib/Waypoint.h>
 #include <vxLib/Container/sorted_vector.h>
+#include <vxEngineLib/Locator.h>
+#include "../PhysicsAspect.h"
 
 namespace SquadCpp
 {
+	void smoothPath(const vx::float3 &currentPosition, f32 collisionRadius, std::vector<vx::float3>* path)
+	{
+		auto physicsAspect = Locator::getPhysicsAspect();
+
+		auto size = path->size();
+		if (size <= 2)
+			return;
+
+		const vx::float3 upDir = { 0, 1, 0 };
+		const __m128 vUpDir = { 0, 1, 0, 0};
+
+		/*auto halfSize = size / 2;
+		//auto next = halfSize - 1;
+
+		auto p1 = (*path)[halfSize];
+
+		auto D = p1 - currentPosition;
+		auto distance = vx::length3(D);
+		auto directionToCurrentNode = D / distance;
+		//vx::float3 forwardDir = { orientation.x, 0, orientation.y };
+		//forwardDir = vx::normalize3(forwardDir);
+
+		auto tangent = vx::cross(upDir, directionToCurrentNode);
+
+		//auto pos0 = currentPosition + tangent * collisionRadius;
+		//auto pos1 = currentPosition - tangent * collisionRadius;
+
+		vx::float3 hitPosition;
+		f32 hitDistance;
+		auto sid0 = physicsAspect->raycast_static(currentPosition, directionToCurrentNode, distance, &hitPosition, &hitDistance);
+		//auto sid1 = physicsAspect->raycast_static(pos1, directionToCurrentNode, distance, &hitPosition, &hitDistance);
+		if (sid0.value == 0 )
+		{
+			auto diff = size - halfSize;
+			for (u32 i = 0;i < diff; ++i)
+			{
+				path->pop_back();
+			}
+		}*/
+
+		vx::float3 hitPosition;
+		f32 hitDistance;
+
+		size = path->size();
+		std::vector<vx::float3> newPath;
+		newPath.reserve(size);
+
+		auto &srcPos = (*path)[0];
+		newPath.push_back(srcPos);
+
+		auto p0 = vx::loadFloat3(srcPos);
+
+		const __m128 vRadius = { collisionRadius,collisionRadius,collisionRadius, 0};
+
+		for (u32 i = 2; i < size; ++i)
+		{
+			auto &dstPos = (*path)[i];
+			auto p1 = vx::loadFloat3(dstPos);
+
+			auto D = _mm_sub_ps(p1, p0);
+			auto vDistance = vx::length3(D);
+			vx::float4a direction = _mm_div_ps(D, vDistance);
+			auto tangent = vx::cross3(vUpDir, direction);
+
+			auto pos0 = _mm_fmadd_ps(vRadius, tangent, p0);
+			auto pos1 = _mm_fmadd_ps(vRadius, vx::negate(tangent), p0);
+
+			f32 distance = 0.0f;
+			_mm_store_ss(&distance, vDistance);
+
+			/*auto D = dstPos - srcPos;
+			auto distance = vx::length3(D);
+			auto direction = D / distance;
+			auto tangent = vx::cross(upDir, direction);
+
+			auto pos0 = srcPos + tangent * collisionRadius;
+			auto pos1 = srcPos - tangent * collisionRadius;*/
+
+			auto sid0 = physicsAspect->raycast_static(pos0, direction, distance, &hitPosition, &hitDistance);
+			auto sid1 = physicsAspect->raycast_static(pos1, direction, distance, &hitPosition, &hitDistance);
+
+			if (sid0.value != 0 ||
+				sid1.value != 0)
+			{
+				newPath.push_back(srcPos);
+				newPath.push_back((*path)[i - 1]);
+				srcPos = (*path)[i];
+
+				p0 = vx::loadFloat3(srcPos);
+			}
+		}
+
+		//newPath.push_back((*path)[src]);
+		newPath.push_back(path->back());
+
+		path->swap(newPath);
+	}
 }
 
 namespace ai
@@ -119,7 +218,7 @@ namespace ai
 		return true;
 	}
 
-	void Squad::createPath(Component::Actor* componentActor)
+	void Squad::createPath(EntityActor* entity, Component::Actor* componentActor)
 	{
 		Data* targetData = nullptr;
 		for (auto &it : m_entities)
@@ -180,7 +279,7 @@ namespace ai
 		for (u32 i = 0; i < targetCell->waypointCount; ++i)
 		{
 			auto &waypoint = waypoints[targetCell->waypointOffset + i];
-			auto distance = vx::distance(waypoint.position, entityPosition);
+			auto distance = vx::distance3(waypoint.position, entityPosition);
 
 			vx::float4 p;
 			p.x = waypoint.position.x;
@@ -235,7 +334,9 @@ namespace ai
 				path.push_back(outNodes[i]);
 			}
 
-			//printf("destination: %f %f %f\n", endPosition.x, endPosition.y, endPosition.z);
+			SquadCpp::smoothPath(entityPosition, 0.3f, &path);
+
+			printf("destination: %f %f %f\n", endPosition.x, endPosition.y, endPosition.z);
 			targetData->m_actorComponent->m_followingPath = 1;
 			targetData->m_actorComponent->m_data->targetCell = targetActorCellIndex;
 		}

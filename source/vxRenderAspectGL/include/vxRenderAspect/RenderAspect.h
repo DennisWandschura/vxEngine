@@ -49,12 +49,13 @@ class GpuProfiler;
 #include <vector>
 #include "RenderCommandFinalImage.h"
 #include "Graphics/CommandList.h"
-#include "DoubleBufferRaw.h"
+#include <vxEngineLib/DoubleBufferRaw.h>
 #include "Graphics/Frame.h"
 #include "opencl/context.h"
 #include <vxEngineLib/mutex.h>
 #include "Graphics/TextRenderer.h"
 #include <vxRenderAspect/Graphics/LightRenderer.h>
+#include <vxGL/Framebuffer.h>
 
 class VX_ALIGN(64) RenderAspect : public RenderAspectInterface
 {
@@ -171,9 +172,7 @@ public:
 
 	void keyPressed(u16 key) override;
 
-	const vx::gl::ShaderManager& getShaderManager() const override { return m_shaderManager; }
 	void getProjectionMatrix(vx::mat4* m) override;
-	const Font& getProfilerFont() const override;
 
 	void getTotalVRam(u32* totalVram) const override;
 	void getTotalAvailableVRam(u32* totalAvailableVram) const override;

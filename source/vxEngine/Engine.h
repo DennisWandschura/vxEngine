@@ -54,7 +54,7 @@ class Engine
 	vx::StackAllocator m_allocator;
 	u32 m_shutdown{0};
 	vx::thread m_fileAspectThread;
-	vx::thread m_renderThread;
+	//vx::thread m_renderThread;
 #if _VX_AUDIO
 	vx::AudioAspect m_audioAspect;
 #endif
@@ -64,13 +64,14 @@ class Engine
 	Memory m_memory;
 
 	bool createRenderAspectGL(const RenderAspectDescription &desc);
+	bool createRenderAspectDX12(const RenderAspectDescription &desc);
 
 	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);
 
 	void update();
 	void mainLoop();
-	void renderLoop();
+	//void renderLoop(const RenderAspectThreadDesc &desc);
 
 public:
 	Engine();

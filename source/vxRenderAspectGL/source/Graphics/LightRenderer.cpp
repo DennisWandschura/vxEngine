@@ -66,6 +66,15 @@ namespace Graphics
 		desc.pData = gpuData.get();
 
 		s_objectManager->createBuffer("lightDataBuffer", desc);
+
+		vx::gl::DrawArraysIndirectCommand cmd = {};
+		cmd.instanceCount = 1;
+
+		desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+		desc.pData = &cmd;
+		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage| vx::gl::BufferStorageFlags::Read;
+
+		s_objectManager->createBuffer("cmdLight", desc);
 	}
 
 	void LightRenderer::shutdown()
@@ -155,6 +164,8 @@ namespace Graphics
 		auto lightCountOffset = sizeof(Gpu::LightData) * maxActiveLights;
 
 		auto lightDataBuffer = s_objectManager->getBuffer("lightDataBuffer");
+		auto lightCmdBuffer = s_objectManager->getBuffer("cmdLight");
+
 		auto mappedBuffer = lightDataBuffer->mapRange<Gpu::LightData>(0, lightDataSize, vx::gl::MapRange::Write);
 		memcpy(mappedBuffer.get(), activeLights, lightDataSize);
 		mappedBuffer.unmap();
@@ -162,6 +173,11 @@ namespace Graphics
 		auto mappedBufferCount = lightDataBuffer->mapRange<u32>(lightCountOffset, sizeof(u32), vx::gl::MapRange::Write);
 		memcpy(mappedBufferCount.get(), &activeLightCount, sizeof(u32));
 		mappedBufferCount.unmap();
+
+		auto mappedCmdBuffer = lightCmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		mappedCmdBuffer->count = activeLightCount;
+		//lightCmdBuffer->subData(0, sizeof(u32), &activeLightCount);
+
 		//lightDataBuffer->subData(0, lightDataSize, activeLights);
 		//lightDataBuffer->subData(lightCountOffset, sizeof(u32), &activeLightCount);
 	}

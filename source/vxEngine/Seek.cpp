@@ -39,7 +39,7 @@ void Seek::setTarget(const vx::float3 &target)
 bool Seek::getSteering(SteeringOutput* output)
 {
 	auto dir = m_targetPosition - m_entity->position;
-	dir = vx::normalize(dir);
+	dir = vx::normalize3(dir);
 
 	dir *= m_maxAcceleration;
 

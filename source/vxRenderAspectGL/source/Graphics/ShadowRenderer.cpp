@@ -41,6 +41,9 @@ SOFTWARE.
 #include <vxLib/File/FileHandle.h>
 #include <vxEngineLib/Light.h>
 #include <vxLib/Graphics/Camera.h>
+#include <vxGL/Texture.h>
+#include <vxGL/Framebuffer.h>
+#include <vxGL/VertexArray.h>
 
 namespace ShadowRendererCpp
 {

@@ -70,14 +70,19 @@ void ActionFollowPath::run()
 
 			m_lookWhereYoureGoing.getSteering(&steering);
 
-			vx::float3 outVelocity;
-			if (m_avoidance.getSteering(m_entity, positionFoot, velocity, &outVelocity))
-			{
-				velocity.x = outVelocity.x;
-				//velocity.y = outVelocity.y;
-				velocity.z = outVelocity.z;
+			auto currentTarget = m_arrive.getTarget();
 
-				//puts("avoid");
+			vx::float4a outVelocity;
+			auto tmpVelocity = vx::loadFloat4(velocity);
+			if (m_avoidance.getSteering(m_entity, positionFoot, tmpVelocity, &outVelocity))
+			{
+				velocity.x += outVelocity.x;
+				velocity.y += outVelocity.y;
+				velocity.z += outVelocity.z;
+
+				velocity.x *= 0.5f;
+				velocity.y *= 0.5f;
+				velocity.z *= 0.5f;
 			}
 
 			m_componentInput->orientation.x = steering.angular;

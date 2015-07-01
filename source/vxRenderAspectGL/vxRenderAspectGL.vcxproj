@@ -25,9 +25,6 @@
     <ClCompile Include="source\dllExport.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="source\DoubleBufferRaw.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="source\Font.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -131,6 +128,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="source\Graphics\TextRenderer.cpp" />
+    <ClCompile Include="source\Graphics\VolumetricLightRenderer.cpp" />
     <ClCompile Include="source\Graphics\VoxelRenderer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -164,6 +162,7 @@
     <None Include="..\..\game\data\shaders\include\buffers.glsl" />
     <None Include="..\..\game\data\shaders\include\quaternion.glsl" />
     <None Include="..\..\game\data\shaders\include\UniformCameraBuffer.h" />
+    <ClInclude Include="..\..\game\data\shaders\include\UniformVolumetricFogBuffer.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformCameraBufferStatic.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformFrustumBuffer.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformReflectionBuffer.h" />
@@ -173,7 +172,6 @@
     <ClInclude Include="include\vxRenderAspect\DDS_File.h" />
     <ClInclude Include="include\vxRenderAspect\DebugRenderSettings.h" />
     <ClInclude Include="include\vxRenderAspect\dllExport.h" />
-    <ClInclude Include="include\vxRenderAspect\DoubleBufferRaw.h" />
     <ClInclude Include="include\vxRenderAspect\Font.h" />
     <ClInclude Include="include\vxRenderAspect\FontAtlas.h" />
     <ClInclude Include="include\vxRenderAspect\Frustum.h" />
@@ -215,6 +213,7 @@
     <ClInclude Include="include\vxRenderAspect\Graphics\State.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Surface.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\TextRenderer.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\VolumetricLightRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\VoxelRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\opencl\Context.h" />
     <ClInclude Include="include\vxRenderAspect\opencl\Device.h" />
@@ -427,6 +426,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;vxlib_sd.lib;vxGL_sd.lib;vxEngineLib_d.lib;opencl.lib;vxResourceAspect_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

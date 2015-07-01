@@ -1,4 +1,4 @@
-#include <vxRenderAspect/DoubleBufferRaw.h>
+#include <vxEngineLib/DoubleBufferRaw.h>
 #include <algorithm>
 
 DoubleBufferRaw::DoubleBufferRaw()

@@ -205,6 +205,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DoubleBufferRaw.h" />
     <ClInclude Include="include\vxEngineLib\AABB.h" />
     <ClInclude Include="include\vxEngineLib\Actor.h" />
     <ClInclude Include="include\vxEngineLib\Animation.h" />
@@ -213,6 +214,7 @@
     <ClInclude Include="include\vxEngineLib\copy.h" />
     <ClInclude Include="include\vxEngineLib\CreateActorData.h" />
     <ClInclude Include="include\vxEngineLib\debugPrint.h" />
+    <ClInclude Include="include\vxEngineLib\DoubleBufferRaw.h" />
     <ClInclude Include="include\vxEngineLib\EditorMeshInstance.h" />
     <ClInclude Include="include\vxEngineLib\EditorScene.h" />
     <ClInclude Include="include\vxEngineLib\EngineConfig.h" />
@@ -274,6 +276,7 @@
     <ClCompile Include="ArrayAllocator.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="DoubleBufferRaw.cpp" />
     <ClCompile Include="EditorScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

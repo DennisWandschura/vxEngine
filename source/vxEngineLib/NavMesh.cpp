@@ -486,7 +486,7 @@ bool NavMesh::isCCW(const vx::float3 &p0, const vx::float3 &p1, const vx::float3
 	const vx::float3 n = { 1, 1, 1 };
 
 	auto normal = vx::cross(p1 - p0, p2 - p0);
-	auto det = vx::dot(normal, n);
+	auto det = vx::dot3(normal, n);
 	printf("%f\n",det);
 
 	return (det > 0.0f);

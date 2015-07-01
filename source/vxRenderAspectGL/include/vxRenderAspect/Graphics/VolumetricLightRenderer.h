@@ -1,4 +1,6 @@
-﻿/*
+#pragma once
+
+/*
 The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
@@ -21,26 +23,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include <vxEngineLib/Light.h>
 
-void Light::getTransformationMatrix(vx::mat4* m) const
+#include <vxRenderAspect/Graphics/Renderer.h>
+
+namespace Graphics
 {
-	const __m128 x_axis = { 1, 0, 0, 0 };
-	const __m128 y_axis = { 0, 1, 0, 0 };
-
-	auto lightPos = vx::loadFloat3(m_position);
-	auto lightDir = vx::loadFloat3(m_direction);
-
-	auto upDir = vx::cross3(x_axis, lightDir);
-	auto dot = vx::dot3(upDir, upDir);
-	if (dot.f[0] == 0.0f)
+	class VolumetricLightRenderer : public Renderer
 	{
-		upDir = vx::cross3(y_axis, lightDir);
-	}
+	public:
+		VolumetricLightRenderer();
+		~VolumetricLightRenderer();
 
-	auto projMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(m_angle), 1.0f, 0.1f, m_falloff);
-	//auto projMatrix = vx::MatrixOrthographicRH(8, 5, 0.01f, m_falloff);
-	auto viewMatrix = vx::MatrixLookToRH(lightPos, lightDir, upDir);
+		void initialize(vx::StackAllocator* scratchAllocator, const void* p) override;
+		void shutdown() override;
 
-	*m = projMatrix * viewMatrix;
+		void getCommandList(CommandList* cmdList) override;
+
+		void clearData() override;
+		void bindBuffers() override;
+	};
 }

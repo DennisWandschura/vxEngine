@@ -180,7 +180,7 @@ namespace NavMeshGraphCpp
 				auto toIndex = toNode - sortedBuildNodes.begin();
 
 				NavConnection connection;
-				connection.m_cost = vx::distance(fromNode->position, toNode->position);
+				connection.m_cost = vx::distance3(fromNode->position, toNode->position);
 				connection.m_fromNode = fromIndex;
 				connection.m_toNode = toIndex;
 
@@ -266,7 +266,7 @@ u32 NavMeshGraph::getClosestNodeInex(const vx::float3 &position) const
 	{
 		auto &node = m_nodes[i];
 
-		auto currentDistance = vx::distance(node.m_position, position);
+		auto currentDistance = vx::distance3(node.m_position, position);
 		if (currentDistance < distance)
 		{
 			distance = currentDistance;

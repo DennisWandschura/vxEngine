@@ -51,5 +51,5 @@ namespace Editor
 	};
 }
 
-typedef Editor::RenderAspectInterface* (*CreateEditorRenderAspectFunction)(const RenderAspectDescription &desc);
+typedef Editor::RenderAspectInterface* (*CreateEditorRenderAspectFunction)(const RenderAspectDescription &desc, u8 verboseChannels);
 typedef void(*DestroyEditorRenderAspectFunction)(Editor::RenderAspectInterface *p);

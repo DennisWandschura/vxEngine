@@ -508,7 +508,7 @@ void SceneRenderer::writeMeshToBuffer(const WriteMeshToBufferDesc &desc)
 		vertex.tangent = pMeshVertices[j].tangent;
 		vertex.uv = pMeshVertices[j].texCoords;
 
-		f32 w = vx::dot(vx::cross(vertex.normal, vertex.tangent), pMeshVertices[j].bitangent);
+		f32 w = vx::dot3(vx::cross(vertex.normal, vertex.tangent), pMeshVertices[j].bitangent);
 		if (w < 0.0f)
 		{
 			vertex.position.w = -1.0f;

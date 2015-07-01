@@ -35,6 +35,9 @@ SOFTWARE.
 #include <vxLib/File/FileHandle.h>
 #include <vxGL/ProgramPipeline.h>
 #include <vxRenderAspect/Graphics/Commands.h>
+#include <vxGL/Texture.h>
+#include <vxGL/Framebuffer.h>
+#include <vxGL/VertexArray.h>
 
 namespace Graphics
 {
@@ -81,45 +84,20 @@ namespace Graphics
 	Segment VoxelRenderer::createSegmentVoxelize()
 	{
 		auto voxelFB = s_objectManager->getFramebuffer("voxelFB");
-		auto emptyVao = s_objectManager->getVertexArray("emptyVao");
 		auto pipeline = s_shaderManager->getPipeline("voxelize.pipe");
-		auto voxelizeLightPipeline = s_shaderManager->getPipeline("voxelizeLight.pipe");
 
 		auto meshCmdBuffer = s_objectManager->getBuffer("meshCmdBuffer");
 		auto meshVao = s_objectManager->getVertexArray("meshVao");
 		auto meshParamBuffer = s_objectManager->getBuffer("meshParamBuffer");
 
-		/*auto voxelSize = 128;
-
-		auto lightCount = m_sceneRenderer.getLightCount();
-
-		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
-		vx::gl::StateManager::bindFrameBuffer(*voxelFB);
-
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
-		vx::gl::StateManager::disable(vx::gl::Capabilities::Cull_Face);
+		/*
 
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 		glDepthMask(GL_FALSE);
 
-		vx::gl::StateManager::bindPipeline(*pipeline);
-		vx::gl::StateManager::bindVertexArray(vao);
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Draw_Indirect_Buffer, cmdBuffer);
-		vx::gl::StateManager::bindBuffer(vx::gl::BufferType::Parameter_Buffer, paramBuffer);
-
-		vx::gl::StateManager::setViewport(0, 0, voxelSize, voxelSize);
-		glMultiDrawElementsIndirectCountARB(GL_TRIANGLES, GL_UNSIGNED_INT, 0, 0, 150, sizeof(vx::gl::DrawElementsIndirectCommand));
-
-		vx::gl::StateManager::bindVertexArray(*emptyVao);
-		vx::gl::StateManager::bindPipeline(*voxelizeLightPipeline);
-		glDrawArrays(GL_POINTS, 0, lightCount);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glDepthMask(GL_TRUE);*/
-
-	//	vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
 
 		StateDescription stateDesc = { voxelFB->getId(), meshVao->getId(), pipeline->getId(), meshCmdBuffer->getId(), meshParamBuffer->getId(), false, false, false, false};
 		State state;
@@ -182,9 +160,26 @@ namespace Graphics
 	void VoxelRenderer::getCommandList(CommandList* cmdList)
 	{
 		auto segmentVoxelize = createSegmentVoxelize();
-		auto segmentConeTrace = createSegmentConeTrace();
+		//auto segmentConeTrace = createSegmentConeTrace();
+
+		auto lightCmdBuffer = s_objectManager->getBuffer("cmdLight");
+		auto voxelFB = s_objectManager->getFramebuffer("voxelFB");
+		auto emptyVao = s_objectManager->getVertexArray("emptyVao");
+		auto voxelizeLightPipeline = s_shaderManager->getPipeline("voxelizeLight.pipe");
+		StateDescription stateDesc = { voxelFB->getId(), emptyVao->getId(), voxelizeLightPipeline->getId(), lightCmdBuffer->getId(), 0, false, false, false, false };
+		State state;
+		state.set(stateDesc);
+
+		Segment voxelizeLightsSegment;
+		voxelizeLightsSegment.setState(state);
+
+		DrawArraysIndirectCommand drawCmd;
+		drawCmd.set(GL_POINTS);
+
+		voxelizeLightsSegment.pushCommand(drawCmd);
 
 		cmdList->pushSegment(segmentVoxelize, "voxelize");
+		cmdList->pushSegment(voxelizeLightsSegment, "voxelizeLights");
 		//cmdList->pushSegment(segmentConeTrace, "coneTrace");
 	}
 
@@ -213,9 +208,6 @@ namespace Graphics
 		const f32 gridsizeLod = m_voxelGridDim;
 
 		Gpu::VoxelBlock voxelBlock;
-		//for (u32 i = 0; i < voxelLodCount; ++i)
-		u32 i = 0;
-		{
 			auto halfDim = textureSizeLod / 2;
 			auto gridHalfSize = gridsizeLod / 2.0f;
 
@@ -225,12 +217,11 @@ namespace Graphics
 			auto projectionMatrix = vx::MatrixOrthographicRHDX(gridsizeLod, gridsizeLod, 0.0f, -gridsizeLod);
 
 			//auto projectionMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, gridHalfSize, -gridHalfSize, gridHalfSize, 0.0f, -gridsizeLod);
-			voxelBlock.data[i].projectionMatrix = projectionMatrix * vx::MatrixTranslation(0, 0, gridHalfSize);
-			voxelBlock.data[i].dim = textureSizeLod;
-			voxelBlock.data[i].halfDim = halfDim;
-			voxelBlock.data[i].gridCellSize = gridCellSize;
-			voxelBlock.data[i].invGridCellSize = invGridCellSize;
-		}
+			voxelBlock.data.projectionMatrix = projectionMatrix * vx::MatrixTranslation(0, 0, gridHalfSize);
+			voxelBlock.data.dim = textureSizeLod;
+			voxelBlock.data.halfDim = halfDim;
+			voxelBlock.data.gridCellSize = gridCellSize;
+			voxelBlock.data.invGridCellSize = invGridCellSize;
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -284,7 +275,7 @@ namespace Graphics
 		for (u32 i = 0; i < 6; ++i)
 		{
 			m_coldData->m_voxelEmmitanceTextures[i].create(desc);
-			m_coldData->m_voxelEmmitanceTextures[i].setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE, vx::gl::TextureWrapMode::CLAMP_TO_EDGE);
+			m_coldData->m_voxelEmmitanceTextures[i].setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
 			m_coldData->m_voxelEmmitanceTextures[i].setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
 
 			m_coldData->m_voxelEmmitanceTextures[i].makeTextureResident();

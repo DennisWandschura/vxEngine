@@ -29,6 +29,8 @@ SOFTWARE.
 #include <vxGL/Buffer.h>
 #include <vxEngineLib/ParserNode.h>
 #include "vxRenderAspect/Graphics/CommandFactory.h"
+#include <vxGL/Framebuffer.h>
+#include <vxGL/VertexArray.h>
 
 namespace Graphics
 {

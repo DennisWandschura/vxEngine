@@ -34,6 +34,9 @@ SOFTWARE.
 #include "vxRenderAspect/GpuStructs.h"
 #include "vxRenderAspect/gl/BufferBindingManager.h"
 #include <vxLib/File/FileHandle.h>
+#include <vxGL/Texture.h>
+#include <vxGL/Framebuffer.h>
+#include <vxGL/VertexArray.h>
 
 namespace Graphics
 {

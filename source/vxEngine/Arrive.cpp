@@ -36,7 +36,7 @@ bool Arrive::getSteering(const vx::float3 &currentPosition, SteeringOutput* outp
 	//const f32 timeToTarget = 0.1f;
 
 	auto direction = m_targetPosition - currentPosition;
-	auto distance = vx::length(direction);
+	auto distance = vx::length3(direction);
 
 	if (distance < targetRadius)
 	{

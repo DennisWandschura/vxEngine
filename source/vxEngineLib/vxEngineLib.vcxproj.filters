@@ -183,6 +183,12 @@
     <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DoubleBufferRaw.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\DoubleBufferRaw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">
@@ -270,6 +276,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Spawn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DoubleBufferRaw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -209,18 +209,39 @@ void PhysicsAspect::handleIngameEvent(const vx::Event &evt)
 	}
 }
 
-vx::StringID PhysicsAspect::raycast_static(const vx::float4a &origin, const vx::float4a &dir, f32 maxDistance, vx::float3* hitPosition) const
+vx::StringID PhysicsAspect::raycast_static(const vx::float3 &origin, const vx::float3 &dir, f32 maxDistance, vx::float3* hitPosition, f32* distance) const
 {
 	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
 	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
-	physx::PxRaycastBuffer hit;                 // [out] Raycast results
 
-	// [in] Define filter for static objects only
+	return raycast_static(rayOrigin, unitDir, maxDistance, hitPosition, distance);
+}
+
+vx::StringID PhysicsAspect::raycast_static(const vx::float3 &origin, const vx::float4a &dir, f32 maxDistance, vx::float3* hitPosition, f32* distance) const
+{
+	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
+	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
+
+	return raycast_static(rayOrigin, unitDir, maxDistance, hitPosition, distance);
+}
+
+vx::StringID PhysicsAspect::raycast_static(const vx::float4a &origin, const vx::float4a &dir, f32 maxDistance, vx::float3* hitPosition, f32* distance) const
+{
+	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
+	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
+	
+	return raycast_static(rayOrigin, unitDir, maxDistance, hitPosition, distance);
+}
+
+vx::StringID PhysicsAspect::raycast_static(const physx::PxVec3 &origin, const physx::PxVec3 &dir, f32 maxDistance, vx::float3* hitPosition, f32* distance) const
+{
+	physx::PxRaycastBuffer hit;
 	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eSTATIC);
 
-	//unitDir.normalize();
+	auto unitDir = dir;
+	unitDir.normalize();
 
-	m_pScene->raycast(rayOrigin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData);
+	m_pScene->raycast(origin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData);
 
 	u8 result = hit.hasBlock;
 	vx::StringID sid;
@@ -229,6 +250,7 @@ vx::StringID PhysicsAspect::raycast_static(const vx::float4a &origin, const vx::
 		hitPosition->x = hit.block.position.x;
 		hitPosition->y = hit.block.position.y;
 		hitPosition->z = hit.block.position.z;
+		*distance = hit.block.distance;
 
 		auto pActor = hit.block.actor;
 		auto sidptr = (vx::StringID*)&pActor->userData;

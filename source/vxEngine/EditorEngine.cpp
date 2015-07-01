@@ -109,7 +109,7 @@ bool EditorEngine::createRenderAspectGL(const RenderAspectDescription &desc)
 	if (proc == nullptr || procDestroy == nullptr)
 		return false;
 
-	auto renderAspect = proc(desc);
+	auto renderAspect = proc(desc, 0);
 	if (renderAspect == nullptr)
 		return false;
 
@@ -161,7 +161,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 		&m_fileAspect,
 		&m_eventManager
 	};
-	renderAspectDesc.hwnd = m_panel;
+	//renderAspectDesc.hwnd = m_panel;
 
 	if (!createRenderAspectGL(renderAspectDesc))
 	{
@@ -436,8 +436,8 @@ vx::StringID EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, v
 	auto cameraPosition = m_renderAspect->getCamera().getPosition();
 
 	vx::float4a tmp = cameraPosition;
-
-	return m_physicsAspect.raycast_static(tmp, ray_world, 50.0f, hitPosition);
+	f32 distance;
+	return m_physicsAspect.raycast_static(tmp, ray_world, 50.0f, hitPosition, &distance);
 }
 
 u32 EditorEngine::getMeshInstanceCount() const

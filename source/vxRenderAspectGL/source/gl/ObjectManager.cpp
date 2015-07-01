@@ -23,9 +23,24 @@ SOFTWARE.
 */
 
 #include <vxRenderAspect/gl/ObjectManager.h>
+#include <vxGL/Texture.h>
+#include <vxGL/Buffer.h>
+#include <vxGL/VertexArray.h>
+#include <vxGL/Framebuffer.h>
 
 namespace gl
 {
+	ObjectManager::ObjectManager()
+		:m_usedMemoryBuffer(0)
+	{
+
+	}
+
+	ObjectManager::~ObjectManager()
+	{
+
+	}
+
 	void ObjectManager::initialize(u32 maxBufferCount, u32 maxVaoCount, u32 maxFramebufferCount, u32 maxTextureCount, vx::StackAllocator* allocator)
 	{
 		m_bufferManager.initialize(maxBufferCount, allocator);
@@ -129,7 +144,14 @@ namespace gl
 
 	vx::StringID ObjectManager::createBuffer(const char* key, const vx::gl::BufferDescription &desc)
 	{
-		return m_bufferManager.createBuffer(key, desc);
+		auto sid = m_bufferManager.createBuffer(key, desc);
+
+		if (sid.value != 0)
+		{
+			m_usedMemoryBuffer += desc.size;
+		}
+
+		return sid;
 	}
 
 	const vx::gl::Buffer* ObjectManager::getBuffer(const vx::StringID &sid) const
@@ -181,5 +203,10 @@ namespace gl
 	{
 		auto sid = vx::make_sid(id);
 		return getTexture(sid);
+	}
+
+	u32 ObjectManager::getUsedMemoryBuffer() const
+	{
+		return m_usedMemoryBuffer;
 	}
 }

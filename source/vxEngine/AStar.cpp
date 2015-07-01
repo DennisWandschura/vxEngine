@@ -35,12 +35,12 @@ SOFTWARE.
 
 f32 AStar::heuristicDistance(const vx::float3 &fromNode, const vx::float3 &goalNode)
 {
-	return sqrtf(vx::dot(fromNode, goalNode));
+	return sqrtf(vx::dot3(fromNode, goalNode));
 }
 
 f32 AStar::heuristicDistance2(const vx::float3 &fromNode, const vx::float3 &goalNode)
 {
-	return vx::dot(fromNode, goalNode);
+	return vx::dot3(fromNode, goalNode);
 }
 
 bool AStar::pathfind(const PathFindDescription &desc)

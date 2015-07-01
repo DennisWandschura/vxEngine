@@ -37,4 +37,5 @@ public:
 	bool getSteering(const vx::float3 &currentPosition, SteeringOutput * output);
 
 	void setTarget(const vx::float3 &targetPos);
+	const vx::float3& getTarget() const { return m_targetPosition; }
 };

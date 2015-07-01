@@ -28,14 +28,17 @@ namespace Component
 	struct Actor;
 }
 
+struct EntityActor;
+
 #include "Action.h"
 
 class ActionActorCreatePath : public Action
 {
 	Component::Actor* m_actor;
+	EntityActor* m_entity;
 
 public:
-	explicit ActionActorCreatePath(Component::Actor* actor);
+	explicit ActionActorCreatePath(EntityActor* entity, Component::Actor* actor);
 
 	void run() override;
 

@@ -24,10 +24,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace vx
+{
+	namespace gl
+	{
+		struct TextureDescription;
+		struct BufferDescription;
+
+		class Texture;
+		class VertexArray;
+		class Framebuffer;
+	}
+}
+
 #include "BufferManager.h"
-#include <vxGL/VertexArray.h>
-#include <vxGL/Framebuffer.h>
-#include <vxGL/Texture.h>
 
 namespace gl
 {
@@ -38,7 +48,12 @@ namespace gl
 		vx::sorted_array<vx::StringID, vx::gl::Framebuffer> m_frameBuffers;
 		vx::sorted_array<vx::StringID, vx::gl::Texture> m_textures;
 
+		u32 m_usedMemoryBuffer;
+
 	public:
+		ObjectManager();
+		~ObjectManager();
+
 		void initialize(u32 maxBufferCount, u32 maxVaoCount, u32 maxFramebufferCount, u32 maxTextureCount, vx::StackAllocator* allocator);
 		void shutdown();
 
@@ -65,5 +80,7 @@ namespace gl
 		vx::StringID createTexture(const char* id, const vx::gl::TextureDescription &desc, bool makeResident = false);
 		const vx::gl::Texture* getTexture(const vx::StringID &sid) const;
 		const vx::gl::Texture* getTexture(const char* id) const;
+
+		u32 getUsedMemoryBuffer() const;
 	};
 }

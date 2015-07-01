@@ -194,7 +194,7 @@ void QuadTree::getDataLinear(const vx::float3 &position, f32 radius, u32 maxCoun
 	{
 		auto &it = data[i];
 
-		auto distance = vx::distance(it.position, position);
+		auto distance = vx::distance3(it.position, position);
 		if (distance <= radius)
 		{
 			outData[index] = it;
@@ -218,7 +218,7 @@ void QuadTree::getDataLinear(const EntityActor* entity, const vx::float3 &positi
 	{
 		auto &it = data[i];
 
-		auto distance = vx::distance(it.position, position);
+		auto distance = vx::distance3(it.position, position);
 		if (entity != it.entity && 
 			distance <= radius)
 		{

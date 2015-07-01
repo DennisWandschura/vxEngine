@@ -26,10 +26,10 @@ SOFTWARE.
 #include <vxEngineLib/EngineConfig.h>
 #include <vxEngineLib\/Locator.h>
 #include "developer.h"
-//#include "DebugRenderSettings.h"
 #include "EngineGlobals.h"
 #include "CpuProfiler.h"
 #include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/debugPrint.h>
 
 Engine* g_pEngine{ nullptr };
 
@@ -77,16 +77,12 @@ void Engine::update()
 
 	m_physicsAspect.fetch();
 
-	//////////////
-	//m_profiler.pushCpuMarker("update.input()");
-
 	m_systemAspect.update(g_dt);
 
 	m_actorAspect.update();
 
 	m_entityAspect.builEntityQuadTree();
 	m_entityAspect.updateInput(g_dt);
-
 
 	//CpuProfiler::pushMarker("physics");
 	m_entityAspect.updatePhysics_linear(g_dt);
@@ -102,88 +98,6 @@ void Engine::update()
 	//CpuProfiler::popMarker();
 }
 
-void Engine::renderLoop()
-{
-	m_renderAspect->makeCurrent(true);
-	if (!m_renderAspect->initializeProfiler())
-	{
-		VX_ASSERT(false);
-		return;
-	}
-
-	auto frequency = Timer::getFrequency();
-	const f64 invFrequency = 1.0 / frequency;
-
-	//CpuProfiler::setPosition(vx::float2(0, 500));
-
-	//CpuProfiler::initialize(&m_renderAspect.getProfilerFont());
-
-	//Video video;
-	//video.initialize("test.video");
-
-	u32 totalVRam = 0, availableVRam = 0;
-	m_renderAspect->getTotalAvailableVRam(&totalVRam);
-	m_renderAspect->getAvailableVRam(&availableVRam);
-
-	f32 usedVRam = (totalVRam - availableVRam) / 1024.0f;
-
-	RenderUpdateTask task;
-	task.type = RenderUpdateTask::Type::UpdateText;
-
-	char buffer[32] = {};
-	sprintf(buffer, "Available VRAM: %.2f GB", availableVRam / 1024.f);
-
-	RenderUpdateTextData data;
-	memcpy(data.text, buffer, 32);
-	data.position = {-900, 500};
-	data.color = {1, 0, 0};
-
-	LARGE_INTEGER last;
-	QueryPerformanceCounter(&last);
-
-	f32 accum = 0.0f;
-	while (m_bRunRenderThread.load() != 0)
-	{
-		LARGE_INTEGER current;
-		QueryPerformanceCounter(&current);
-
-		auto frameTicks = (current.QuadPart - last.QuadPart) * 1000;
-		f32 frameTime = frameTicks * invFrequency * 0.001f;
-		frameTime = fminf(frameTime, g_dt);
-
-		accum += frameTime;
-
-		//CpuProfiler::frame();
-
-		//CpuProfiler::pushMarker("frame"); // frame begin
-
-		while (accum >= g_dt)
-		{
-			m_renderAspect->queueUpdateTask(task, reinterpret_cast<u8*>(&data), sizeof(RenderUpdateTextData));
-			m_renderAspect->updateProfiler(g_dt);
-			//CpuProfiler::update();
-			//CpuProfiler::updateRenderer();
-
-			accum -= g_dt;
-		}
-
-		//CpuProfiler::pushMarker("update");
-		m_renderAspect->update();
-		//CpuProfiler::popMarker();
-
-		//CpuProfiler::pushMarker("render");
-		m_renderAspect->submitCommands();
-		//CpuProfiler::popMarker();
-
-		m_renderAspect->endFrame();
-		//CpuProfiler::popMarker(); // frame end
-
-		last = current;
-	}
-
-	//video.shutdown();
-}
-
 void Engine::mainLoop()
 {
 	auto frequency = Timer::getFrequency();
@@ -192,8 +106,7 @@ void Engine::mainLoop()
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
 
-	auto &font = m_renderAspect->getProfilerFont();
-	//CpuProfiler::initialize(&font);
+	m_renderAspect->initializeProfiler();
 
 	f32 accum = 0.0f;
 	while (m_bRun != 0)
@@ -207,40 +120,19 @@ void Engine::mainLoop()
 
 		accum += frameTime;
 
-		//CpuProfiler::frame();
-		//m_profileGraph.frame(frameTime);
-		//m_profiler.frame();
-
-		//m_profileGraph.startCpu();
-		////////////// FRAME START
-		//m_profiler.pushCpuMarker("frame()");
+		m_renderAspect->update();
+		m_renderAspect->submitCommands();
 
 		while (accum >= g_dt)
 		{
-			//CpuProfiler::pushMarker("update");
-			//m_profiler.pushCpuMarker("update()");
 			update();
-			//m_profiler.popCpuMarker();
+
+			m_renderAspect->updateProfiler(g_dt);
 
 			accum -= g_dt;
-
-			//CpuProfiler::popMarker();
-
-			//CpuProfiler::update();
-
-			//	m_profiler.update(g_dt);
-			//m_profileGraph.update();
 		}
 
-		//////////////
-		//m_profiler.pushCpuMarker("render()");
-		//m_renderAspect.render();
-		//m_profiler.popCpuMarker();
-		//////////////
-
-		////////////// FRAME END
-		//m_profiler.popCpuMarker();
-		//m_profileGraph.endCpu();
+		m_renderAspect->endFrame();
 
 		last = current;
 	}
@@ -284,7 +176,7 @@ bool Engine::createRenderAspectGL(const RenderAspectDescription &desc)
 	if (proc == nullptr || procDestroy == nullptr)
 		return false;
 
-	auto renderAspect = proc(desc);
+	auto renderAspect = proc(desc, 0);
 	if (renderAspect == nullptr)
 		return false;
 
@@ -292,8 +184,27 @@ bool Engine::createRenderAspectGL(const RenderAspectDescription &desc)
 	m_renderAspectDll = handle;
 	m_destroyFn = procDestroy;
 
-	//if (!m_renderAspect->initialize(dataDir, desc, &g_engineConfig, &m_fileAspect, &m_eventManager))
-	//	return false;
+	return true;
+}
+
+bool Engine::createRenderAspectDX12(const RenderAspectDescription &desc)
+{
+	auto handle = LoadLibrary(L"../../lib/vxRenderAspectDX12_d.dll");
+	if (handle == nullptr)
+		return false;
+
+	auto proc = (CreateRenderAspectFunction)GetProcAddress(handle, "createRenderAspect");
+	auto procDestroy = (DestroyRenderAspectFunction)GetProcAddress(handle, "destroyRenderAspect");
+	if (proc == nullptr || procDestroy == nullptr)
+		return false;
+
+	auto renderAspect = proc(desc, 0);
+	if (renderAspect == nullptr)
+		return false;
+
+	m_renderAspect = renderAspect;
+	m_renderAspectDll = handle;
+	m_destroyFn = procDestroy;
 
 	return true;
 }
@@ -331,7 +242,7 @@ bool Engine::initialize()
 		return false;
 	}
 
-	m_renderAspect->makeCurrent(false);
+	//m_renderAspect->makeCurrent(false);
 
 	if (!m_physicsAspect.initialize())
 		return false;
@@ -367,7 +278,7 @@ bool Engine::initialize()
 void Engine::shutdown()
 {
 	m_fileAspectThread.join();
-	m_renderThread.join();
+	//m_renderThread.join();
 
 	m_scene.reset();
 
@@ -407,7 +318,9 @@ void Engine::shutdown()
 void Engine::start()
 {
 	m_fileAspectThread = vx::thread(&Engine::loopFileThread, this);
-	m_renderThread = vx::thread(&Engine::renderLoop, this);
+
+	//RenderAspectThreadDesc desc{ &m_systemAspect.getWindow(), &g_engineConfig};
+	//m_renderThread = vx::thread(&Engine::renderLoop, this, desc);
 
 	std::string level;
 	g_engineConfig.m_root.get("level")->as(&level);

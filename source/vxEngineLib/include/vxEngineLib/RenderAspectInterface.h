@@ -24,7 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class Font;
 class FileAspect;
 struct EngineConfig;
 
@@ -33,11 +32,6 @@ namespace vx
 	class EventManager;
 	class Window;
 	class StackAllocator;
-
-	namespace gl
-	{
-		class ShaderManager;
-	}
 }
 
 #include <vxEngineLib/EventListener.h>
@@ -48,15 +42,17 @@ namespace vx
 struct RenderAspectDescription
 {
 	const std::string &dataDir;
-	union
-	{
-		const vx::Window* window;
-		void* hwnd;
-	};
+	const vx::Window* window;
 	vx::StackAllocator* pAllocator;
 	const EngineConfig* settings;
 	FileAspect* fileAspect;
 	vx::EventManager* evtManager;
+};
+
+struct RenderAspectThreadDesc
+{
+	const vx::Window* window;
+	const EngineConfig* settings;
 };
 
 class RenderAspectInterface : public vx::EventListener
@@ -85,14 +81,12 @@ public:
 
 	virtual void keyPressed(u16 key) = 0;
 
-	virtual const vx::gl::ShaderManager& getShaderManager() const = 0;
 	virtual void getProjectionMatrix(vx::mat4* m) = 0;
-	virtual const Font& getProfilerFont() const = 0;
 
 	virtual void getTotalVRam(u32* totalVram) const = 0;
 	virtual void getTotalAvailableVRam(u32* totalAvailableVram) const = 0;
 	virtual void getAvailableVRam(u32* availableVram) const = 0;
 };
 
-typedef RenderAspectInterface* (*CreateRenderAspectFunction)(const RenderAspectDescription &desc);
+typedef RenderAspectInterface* (*CreateRenderAspectFunction)(const RenderAspectDescription &desc, u8 verboseChannels);
 typedef void(*DestroyRenderAspectFunction)(RenderAspectInterface *p);

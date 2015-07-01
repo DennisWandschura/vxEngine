@@ -57,9 +57,6 @@
     <ClCompile Include="source\DDS_File.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\DoubleBufferRaw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -201,6 +198,9 @@
     <ClCompile Include="source\Graphics\LightRenderer.cpp">
       <Filter>Source Files\Graphics\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Graphics\VolumetricLightRenderer.cpp">
+      <Filter>Source Files\Graphics\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxRenderAspect\RenderCommand.h">
@@ -228,9 +228,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\DebugRenderSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxRenderAspect\DoubleBufferRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\Font.h">
@@ -400,6 +397,12 @@
     </ClInclude>
     <ClInclude Include="include\vxRenderAspect\Graphics\LightRenderer.h">
       <Filter>Header Files\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\VolumetricLightRenderer.h">
+      <Filter>Header Files\Graphics\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformVolumetricFogBuffer.h">
+      <Filter>Shaders\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

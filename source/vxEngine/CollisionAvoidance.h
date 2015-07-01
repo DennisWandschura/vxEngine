@@ -40,5 +40,5 @@ public:
 	CollisionAvoidance(const QuadTree* quadTree, f32 actorRadius, f32 queryRadius, f32 maxAccel):m_quadTree(quadTree), m_actorRadius(actorRadius), m_queryRadius(queryRadius), m_maxAccel(maxAccel){}
 	~CollisionAvoidance();
 
-	bool getSteering(EntityActor* currentEntity, const vx::float3 &currentPosition, const vx::float4 &inVelocity, vx::float3* outVelocity);
+	bool getSteering(EntityActor* currentEntity, const vx::float3 &currentPosition, const vx::float4a &inVelocity, vx::float4a* outVelocity);
 };

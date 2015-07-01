@@ -29,7 +29,7 @@ f32 Triangle::getArea() const
 	auto ac = m_points[2] - m_points[0];
 
 	auto t = vx::cross(ab, ac);
-	auto area = vx::length(t) * 0.5f;
+	auto area = vx::length3(t) * 0.5f;
 
 	return area;
 }
@@ -53,14 +53,14 @@ bool Triangle::contains(const vx::float3 &point) const
 	auto u = vx::cross3(b, c);
 	auto v = vx::cross3(c, a);
 
-	auto uDotV = vx::dot(u, v);
-	if (uDotV < 0.0f)
+	auto uDotV = vx::dot3(u, v);
+	if (uDotV.f[0] < 0.0f)
 		return false;
 
 	auto w = vx::cross3(a, b);
 
-	auto uDotW = vx::dot(u, w);
-	if (uDotW < 0.0f)
+	auto uDotW = vx::dot3(u, w);
+	if (uDotW.f[0] < 0.0f)
 		return false;
 
 	return true;

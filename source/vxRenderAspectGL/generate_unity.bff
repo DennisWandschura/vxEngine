@@ -1,3 +1,14 @@
+.IntelPath = 'C:\Program Files (x86)\Intel\Composer XE 2015\bin\intel64'
+
+ObjectList("Obj_Test")
+{
+	.CompilerInputPath = 'shader/'
+	.CompilerInputPattern = '*.vert'
+	.Compiler = '$IntelPath$/icl.exe'
+	.CompilerOptions = '"%1" /P /Fo"%2"'
+	.CompilerOutputPath = 'test\'
+}
+
 Unity("Unity_vxEngine")
 	{
 		.UnityInputPath = ''

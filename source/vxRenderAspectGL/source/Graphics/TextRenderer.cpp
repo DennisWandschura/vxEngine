@@ -33,6 +33,9 @@ SOFTWARE.
 #include <vxRenderAspect/Graphics/Segment.h>
 #include "vxRenderAspect/Graphics/CommandList.h"
 #include <vxRenderAspect/Graphics/Commands.h>
+#include <vxGL/Texture.h>
+#include <vxGL/Framebuffer.h>
+#include <vxGL/VertexArray.h>
 
 namespace Graphics
 {

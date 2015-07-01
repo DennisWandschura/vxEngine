@@ -189,13 +189,10 @@ void RenderAspect::createUniformBuffers(f32 znear, f32 zfar)
 	}
 
 	{
-		auto volumeTexture = m_objectManager.getTexture("volumeTexture");
-
 		Gpu::UniformTextureBufferBlock data;
 		data.u_aabbTexture = m_pColdData->m_aabbTexture.getTextureHandle();
 		data.u_ambientSlice = m_pColdData->m_ambientColorTexture.getTextureHandle();
 		data.u_ambientImage = m_pColdData->m_ambientColorTexture.getImageHandle(0, 0, 0);
-		data.u_volumetricTexture = volumeTexture->getTextureHandle();
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -330,102 +327,6 @@ void RenderAspect::createTextures()
 
 		m_pColdData->m_aabbTexture.makeTextureResident();
 	}
-
-	{
-		vx::gl::TextureDescription desc;
-		desc.type = vx::gl::TextureType::Texture_3D;
-		desc.format = vx::gl::TextureFormat::R8;
-		desc.size = vx::ushort3(64, 64, 64);
-		desc.miplevels = 1;
-
-		auto sid = m_objectManager.createTexture("volumetricFogTexture", desc);
-		auto texture = m_objectManager.getTexture(sid);
-		texture->setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
-
-		union IntFloat
-		{
-			int i;
-			float f;
-		};
-
-		//const auto dataSize = sizeof(u8) * 64 * 64 * 64;
-		const auto dataCount = 64 * 64 * 64;
-		auto data = vx::make_unique<s8[]>(dataCount);
-		for (u32 i = 0; i < dataCount; ++i)
-		{
-			//IntFloat intFloat;
-			//intFloat.f = 0.0f;
-
-			data[i] = 0;
-		}
-
-		for (u32 z = 0; z < 32; ++z)
-		{
-			for (u32 y = 0; y < 64; ++y)
-			{
-				for (u32 x = 0; x < 37; ++x)
-				{
-					auto index = x + 64 * (y + z * 64);
-
-					//IntFloat intFloat;
-					//	intFloat.f = 1.0f;
-
-					data[index] = 1;
-				}
-			}
-		}
-
-		vx::gl::TextureSubImageDescription subImgDesc;
-		subImgDesc.dataType = vx::gl::DataType::Byte;
-		subImgDesc.miplevel = 0;
-		subImgDesc.offset = vx::uint3(0, 0, 0);
-		subImgDesc.p = data.get();
-		subImgDesc.size = vx::uint3(64, 64, 64);
-		texture->subImage(subImgDesc);
-
-		texture->makeTextureResident();
-	}
-
-	/*{
-		vx::gl::TextureDescription desc;
-		desc.type = vx::gl::TextureType::Texture_Cubemap;
-		desc.format = vx::gl::TextureFormat::RGB16F;
-		desc.size = vx::ushort3(512, 512, 6);
-		desc.miplevels = 1;
-
-		m_objectManager.createTexture("reflectionTexture", desc);
-
-		auto texture = m_objectManager.getTexture("reflectionTexture");
-		//texture->setWrapMode3D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
-		texture->makeTextureResident();
-
-		desc.format = vx::gl::TextureFormat::DEPTH16;
-		m_objectManager.createTexture("reflectionTextureDepth", desc);
-	}*/
-
-	/*{
-		vx::gl::TextureDescription desc;
-		desc.type = vx::gl::TextureType::Texture_2D;
-		desc.format = vx::gl::TextureFormat::RGB16F;
-		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
-		desc.miplevels = 1;
-
-		auto sid = m_objectManager.createTexture("particleTexture", desc);
-		auto tex = m_objectManager.getTexture(sid);
-		tex->makeTextureResident();
-	}*/
-
-	{
-		vx::gl::TextureDescription desc;
-		desc.type = vx::gl::TextureType::Texture_2D;
-		desc.format = vx::gl::TextureFormat::R16F;
-		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
-		desc.miplevels = 1;
-
-		auto sid = m_objectManager.createTexture("volumeTexture", desc);
-		auto tex = m_objectManager.getTexture(sid);
-		tex->makeTextureResident();
-	}
 }
 
 void RenderAspect::createFrameBuffers()
@@ -450,16 +351,6 @@ void RenderAspect::createFrameBuffers()
 			glNamedFramebufferDrawBuffer(m_blurFB[i].getId(), GL_COLOR_ATTACHMENT0);
 		}
 	}
-
-	/*{
-		auto colorTexture = m_objectManager.getTexture("volumeTexture");
-		auto depthTexture = m_objectManager.getTexture("gbufferDepthSlice");
-		auto sid = m_objectManager.createFramebuffer("volumeFbo");
-		auto fbo = m_objectManager.getFramebuffer(sid);
-
-		fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexture, 0);
-		fbo->attachTexture(vx::gl::Attachment::Depth, *depthTexture, 0);
-	}*/
 }
 
 void RenderAspect::createColdData()
@@ -569,6 +460,8 @@ bool RenderAspect::initialize(const RenderAspectDescription &desc)
 
 	bindBuffers();
 
+	printf("Used Memory (Buffers): %.2f MB\n", m_objectManager.getUsedMemoryBuffer() / 1024.f / 1024.f);
+
 	return result;
 }
 
@@ -613,6 +506,19 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 	}
 
 	m_shaderManager.addParameter("maxActiveLights", engineConfig->m_rendererSettings.m_maxActiveLights);
+	m_shaderManager.setDefine("FULL_SHADING");
+
+	auto shaderIncludeDir = dataDir + "shaders/include/";
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "structs.glsl").c_str(), "structs.glsl");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "math.glsl").c_str(), "math.glsl");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "buffers.glsl").c_str(), "buffers.glsl");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "uniform_buffers.glsl").c_str(), "uniform_buffers.glsl");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "mesh.glsl").c_str(), "mesh.glsl");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "common.h").c_str(), "common.h");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformCameraBuffer.h").c_str(), "UniformCameraBuffer.h");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformShadowTextureBuffer.h").c_str(), "UniformShadowTextureBuffer.h");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformShadowTransformBuffer.h").c_str(), "UniformShadowTransformBuffer.h");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformCameraBufferStatic.h").c_str(), "UniformCameraBufferStatic.h");
 
 	m_shaderManager.loadPipeline(vx::FileHandle("draw_final_image.pipe"), "draw_final_image.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageAlbedo.pipe"), "drawFinalImageAlbedo.pipe", &m_allocator);
@@ -621,7 +527,6 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 	m_shaderManager.loadPipeline(vx::FileHandle("blurpass.pipe"), "blurpass.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("blurpass2.pipe"), "blurpass2.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("screenquad.pipe"), "screenquad.pipe", &m_allocator);
-	m_shaderManager.loadPipeline(vx::FileHandle("volume.pipe"), "volume.pipe", &m_allocator);
 
 	const auto doubleBufferSizeInBytes = 5 KBYTE;
 	m_doubleBuffer = DoubleBufferRaw(&m_allocator, doubleBufferSizeInBytes);
@@ -1392,11 +1297,6 @@ u16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::Str
 	buffer->subData(0, sizeof(u32), &count);
 
 	return gpuIndex;
-}
-
-const Font& RenderAspect::getProfilerFont() const
-{
-	return m_pColdData->m_font;
 }
 
 void RenderAspect::getTotalVRam(u32* totalVram) const

@@ -23,13 +23,15 @@ SOFTWARE.
 */
 #include "CollisionAvoidance.h"
 #include "QuadTree.h"
+#include <vxEngineLib/Locator.h>
+#include "PhysicsAspect.h"
 
 CollisionAvoidance::~CollisionAvoidance()
 {
 
 }
 
-bool CollisionAvoidance::getSteering(EntityActor* currentEntity, const vx::float3 &currentPosition, const vx::float4 &inVelocity, vx::float3* outVelocity)
+bool CollisionAvoidance::getSteering(EntityActor* currentEntity, const vx::float3 &currentPosition, const vx::float4a &inVelocity, vx::float4a* outVelocity)
 {
 	QuadTreeData data[2];
 
@@ -39,71 +41,101 @@ bool CollisionAvoidance::getSteering(EntityActor* currentEntity, const vx::float
 	if (count == 0)
 		return false;
 
-	vx::float3 currentVelocity(inVelocity.x, inVelocity.y, inVelocity.z);
+	vx::float4a currentVelocity(inVelocity.x, inVelocity.y, inVelocity.z, 0.0f);
+	vx::float4a tmpPosition(currentPosition.x, currentPosition.y, currentPosition.z, 0.0f);
+	//vx::float3 currentVelocity(inVelocity.x, inVelocity.y, inVelocity.z);
 
 	auto actorRadius2 = m_actorRadius * 2;
 
 	f32 targetDistance = FLT_MAX;
-	vx::float3 directionToTarget;
-	vx::float3 targetRelativeVelocity;
-	vx::float3 targetRelativePosition;
-	f32 targetTimeToCollision;
+	vx::float4a targetPosition;
+	//vx::float3 targetRelativeVelocity;
+	//vx::float3 targetRelativePosition;
+	//f32 targetTimeToCollision;
 	bool found = false;
 	for (u32 i = 0; i < count; ++i)
 	{
 		//if (currentEntity == data[i].entity)
 		//	continue;
+		vx::float4a otherPositon(data[i].position.x, data[i].position.y, data[i].position.z, 0.0f);
+		vx::float4a otherVelocity(data[i].velocity.x, data[i].velocity.y, data[i].velocity.z, 0.0f);
 
-		auto relativePos = data[i].position - currentPosition;
-		auto currentDistance = vx::length(relativePos) - actorRadius2;
+		auto relativePos = _mm_sub_ps(otherPositon, tmpPosition);
+		auto currentDistance = vx::length3(relativePos).f[0] - actorRadius2;
 
-		auto relativeVelocity = data[i].velocity - currentVelocity;
-		auto len = vx::length(relativeVelocity);
-		auto timeToCollision = -vx::dot(relativePos, relativeVelocity) / (len * len);
+		auto relativeVelocity = _mm_sub_ps(otherVelocity, currentVelocity);
+		//auto len = vx::length3(relativeVelocity);
+		//auto timeToCollision = -vx::dot(relativePos, relativeVelocity) / (len * len);
 
-		auto currentDirToTarget = vx::normalize(relativePos);
-		auto tmp1 = vx::normalize(relativeVelocity);
-		auto tmp = -vx::dot(currentDirToTarget, tmp1);
+		auto currentDirToTarget = vx::normalize3(relativePos);
+		auto tmp = vx::dot3(vx::normalize3(relativeVelocity), currentDirToTarget);
+		f32 ttt = -tmp.f[0];
 
-		if (tmp > 0.0f)
+		if (ttt > 0.0f && currentDistance < targetDistance)
 		{
+			targetPosition = otherPositon;
 			targetDistance = currentDistance;
-			targetRelativePosition = relativePos;
-			directionToTarget = currentDirToTarget;
-			targetRelativeVelocity = relativeVelocity;
-			targetTimeToCollision = timeToCollision;
+			//targetRelativePosition = relativePos;
+			//targetRelativeVelocity = relativeVelocity;
+			//targetTimeToCollision = timeToCollision;
 			found = true;
 		}
 	}
 
 	if (found)
 	{
-		const vx::float3 upDir = { 0, 1, 0 };
-		auto tangent = vx::cross(upDir, directionToTarget);
+		const __m128 upDir = { 0, 1, 0, 0 };
 
-		if (targetDistance <= actorRadius2)
+		currentVelocity = vx::normalize3(currentVelocity);
+
+		auto tangent = vx::cross3(upDir, currentVelocity);
+
+		auto absTangent = vx::abs(tangent);
+
+		auto maxExtend = _mm_shuffle_ps(absTangent, absTangent, _MM_SHUFFLE(0, 0, 0, 0));
+		auto ty = _mm_shuffle_ps(absTangent, absTangent, _MM_SHUFFLE(1, 1, 1, 1));
+		maxExtend = _mm_max_ps(maxExtend, ty);
+		auto tz = _mm_shuffle_ps(absTangent, absTangent, _MM_SHUFFLE(2, 2, 2, 2));
+		maxExtend = _mm_max_ps(maxExtend, tz);
+		auto mask = _mm_cmpeq_ps(absTangent, maxExtend);
+
+		tangent = _mm_and_ps(tangent, mask);
+		tangent = vx::normalize3(tangent);
+
+		auto otherTangent = vx::negate(tangent);
+
+		auto physicsAspect = Locator::getPhysicsAspect();
+		vx::float3 hitPosition;
+		f32 distance0 = FLT_MAX;
+		f32 distance1 = FLT_MAX;
+
+		physicsAspect->raycast_static(targetPosition, tangent, 2.0f, &hitPosition, &distance0);
+		physicsAspect->raycast_static(targetPosition, otherTangent, 2.0f, &hitPosition, &distance1);
+
+		auto finalVelocity = (distance0 >= distance1) ? tangent : otherTangent;
+
+		/*if (targetDistance <= actorRadius2)
 		{
-			/*u32 maxExtend = 0;
-			if (tangent.y < tangent.x && tangent.y < tangent.z)
-			{
-				maxExtend = 1;
-			}
-			else if (tangent.z < tangent.x)
-			{
-				maxExtend = 2;
-			}*/
-
-			targetRelativePosition = tangent;
+		//	targetRelativePosition = tangent;//(distance0 >= distance1) ? tangent : otherTangent;
 		}
-		else
+		else*/
+		if (targetDistance > actorRadius2)
 		{
 			auto weight = targetDistance / m_queryRadius;
+			auto otherWeight = 1.0f - weight;
 
-			targetRelativePosition = vx::normalize(tangent * (1.0f - weight) + directionToTarget * weight);
-			
+			__m128 tmp0 = { otherWeight, otherWeight, otherWeight, 0.0f };
+			__m128 tmp1 = { weight, weight, weight, 0.0f };
+
+			finalVelocity = _mm_mul_ps(finalVelocity, tmp0);
+			finalVelocity = _mm_fmadd_ps(currentVelocity, tmp1, finalVelocity);
+
+			//finalVelocity = finalVelocity * (1.0f - weight) + velocity * weight;
 		}
 
-		*outVelocity = targetRelativePosition * m_maxAccel;
+		__m128 vMaxAccel = { m_maxAccel, m_maxAccel, m_maxAccel, 0.0f};
+
+		*outVelocity = _mm_mul_ps(finalVelocity, vMaxAccel);
 	}
 
 	return found;

@@ -190,7 +190,7 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 
 			auto &toTriangle = triangles[it];
 
-			connection.m_cost = vx::distance(triangle.c, toTriangle.c);
+			connection.m_cost = vx::distance3(triangle.c, toTriangle.c);
 
 			connections[connectionOffset++] = connection;
 		}
@@ -231,7 +231,7 @@ u32 NavGraph::getClosestNode(const vx::float3 &position) const
 	{
 		auto &node = m_nodes[i];
 
-		auto currentDistance = vx::distance2(position, node.m_position);
+		auto currentDistance = vx::distance3(position, node.m_position);
 
 		if (currentDistance < distance)
 		{
@@ -251,7 +251,7 @@ u32 NavGraph::getFarestNode(const vx::float3 &position) const
 	{
 		auto &node = m_nodes[i];
 
-		auto currentDistance = vx::distance2(position, node.m_position);
+		auto currentDistance = vx::distance3(position, node.m_position);
 
 		if (currentDistance > distance)
 		{
