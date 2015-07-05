@@ -24,4 +24,10 @@ typedef u64 uimage3D;
 
 #define UNIFORM(NAME, X) struct NAME
 #define UNIFORM_END(NAME) ;
+
+#define SSO(NAME, X) struct NAME
+#define SSO_END(NAME) ;
+
+#define ARRAY(DATATYPE, NAME) DATATYPE* NAME
+
 #define PARAMS(P) 

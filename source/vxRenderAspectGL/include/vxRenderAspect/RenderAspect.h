@@ -56,6 +56,7 @@ class GpuProfiler;
 #include "Graphics/TextRenderer.h"
 #include <vxRenderAspect/Graphics/LightRenderer.h>
 #include <vxGL/Framebuffer.h>
+#include <vxRenderAspect/Graphics/PStateProfiler.h>
 
 class VX_ALIGN(64) RenderAspect : public RenderAspectInterface
 {
@@ -76,6 +77,8 @@ protected:
 	DoubleBufferRaw m_doubleBuffer;
 	Graphics::ShadowRenderer* m_shadowRenderer;
 	std::unique_ptr<Graphics::TextRenderer> m_textRenderer;
+	std::unique_ptr<GpuProfiler> m_gpuProfiler;
+	Graphics::PStateProfiler m_pstateProfiler;
 
 	vx::gl::Buffer m_cameraBuffer;
 	
@@ -89,8 +92,9 @@ protected:
 	vx::gl::ShaderManager m_shaderManager;
 	vx::gl::RenderContext m_renderContext;
 	vx::Camera m_camera;
+	vx::mat4 m_projectionMatrix;
 	cl::Context m_context;
-	FileAspect* m_fileAspect;
+	FileAspectInterface* m_fileAspect;
 	vx::EventManager* m_evtManager;
 	
 	vx::StackAllocator m_allocator;
@@ -110,7 +114,6 @@ protected:
 	void createTextures();
 	void createFrameBuffers();
 
-	bool initializeCommon(const vx::gl::ContextDescription &desc, const EngineConfig* settings);
 	bool initializeImpl(const std::string &dataDir, const EngineConfig* settings, vx::StackAllocator *pAllocator);
 
 	////////////// Event handling
@@ -142,16 +145,13 @@ protected:
 	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material);
 	u16 getActorGpuIndex();
 
-	void createColdData();
-	void provideRenderData(const EngineConfig* settings, GpuProfiler* gpuProfiler);
-
 	void createOpenCL();
 
 public:
 	RenderAspect();
 	virtual ~RenderAspect();
 
-	bool initialize(const RenderAspectDescription &desc) override;
+	RenderAspectInitializeError initialize(const RenderAspectDescription &desc) override;
 	void shutdown(void* hwnd) override;
 
 	bool initializeProfiler() override;

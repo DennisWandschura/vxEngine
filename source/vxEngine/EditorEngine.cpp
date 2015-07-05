@@ -30,7 +30,7 @@ SOFTWARE.
 #include <vxEngineLib/Ray.h>
 #include <vxEngineLib/EditorScene.h>
 #include <vxEngineLib/Light.h>
-#include "NavMeshGraph.h"
+#include <vxEngineLib/NavMeshGraph.h>
 #include <vxEngineLib/EngineConfig.h>
 #include <vxEngineLib/debugPrint.h>
 #include "developer.h"
@@ -40,6 +40,7 @@ SOFTWARE.
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/Actor.h>
 #include "EngineGlobals.h"
+#include <vxLib/Graphics/Camera.h>
 
 #include <Dbghelp.h>
 
@@ -98,9 +99,11 @@ bool EditorEngine::initializeImpl(const std::string &dataDir)
 	return true;
 }
 
-bool EditorEngine::createRenderAspectGL(const RenderAspectDescription &desc)
+bool EditorEngine::createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc)
 {
-	auto handle = LoadLibrary(L"../../lib/vxRenderAspectGL_d.dll");
+
+	//auto handle = LoadLibrary(L"../../../lib/vs2013/vxRenderAspectGL_vs12_d.dll");
+	auto handle = LoadLibrary(L"../../../lib/vxRenderAspectGL_d.dll");
 	if (handle == nullptr)
 		return false;
 
@@ -109,7 +112,8 @@ bool EditorEngine::createRenderAspectGL(const RenderAspectDescription &desc)
 	if (proc == nullptr || procDestroy == nullptr)
 		return false;
 
-	auto renderAspect = proc(desc, 0);
+	RenderAspectInitializeError error;
+	auto renderAspect = proc(desc, &error);
 	if (renderAspect == nullptr)
 		return false;
 
@@ -155,7 +159,8 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	RenderAspectDescription renderAspectDesc =
 	{
 		dataDir,
-		nullptr,
+		panel,
+		tmp,
 		&m_allocator,
 		&g_engineConfig,
 		&m_fileAspect,
@@ -163,7 +168,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	};
 	//renderAspectDesc.hwnd = m_panel;
 
-	if (!createRenderAspectGL(renderAspectDesc))
+	if (!createRenderAspectGL(dataDir, renderAspectDesc))
 	{
 		return false;
 	}
@@ -176,6 +181,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 
 	Locator::provide(&m_physicsAspect);
 
+	m_eventManager.initialize(&m_allocator, 255);
 	//m_eventManager.registerListener(&m_renderAspect, 1, (u8)vx::EventType::File_Event);
 	m_eventManager.registerListener(&m_physicsAspect, 1, (u8)vx::EventType::File_Event);
 	m_eventManager.registerListener(this, 1, (u8)vx::EventType::File_Event);
@@ -199,6 +205,7 @@ void EditorEngine::shutdownEditor()
 	{
 		m_renderAspect->shutdown(m_panel);
 		m_destroyFn(m_renderAspect);
+		m_renderAspect = nullptr;
 	}
 	m_panel = nullptr;
 
@@ -273,7 +280,7 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		delete(pStr);
 
 	}break;
-	case vx::FileEvent::Scene_Loaded:
+	case vx::FileEvent::EditorScene_Loaded:
 	{
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded Scene");
 		call_editorCallback(vx::StringID(evt.arg1.u64));
@@ -343,7 +350,7 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	}
 	else if (type == g_editorTypeScene)
 	{
-		fileEntry = vx::FileEntry(filename, vx::FileType::Scene);
+		fileEntry = vx::FileEntry(filename, vx::FileType::EditorScene);
 
 		if (m_previousSceneLoaded)
 		{
@@ -651,13 +658,12 @@ void EditorEngine::setMeshInstanceMaterial(u64 instanceSid, u64 materialSid)
 	{
 		auto meshInstance = m_pEditorScene->getMeshInstance(vx::StringID(instanceSid));
 
-		auto &sceneMaterials = m_pEditorScene->getMaterials();
-		auto it = sceneMaterials.find(vx::StringID(materialSid));
-		if (it != sceneMaterials.end())
+		auto sceneMaterial = m_pEditorScene->getMaterial(vx::StringID(materialSid));
+		if (sceneMaterial != nullptr)
 		{
-			if (m_renderAspect->setSelectedMeshInstanceMaterial(*it))
+			if (m_renderAspect->setSelectedMeshInstanceMaterial(*sceneMaterial))
 			{
-				meshInstance->setMaterial(*it);
+				meshInstance->setMaterial(*sceneMaterial);
 			}
 		}
 	}
@@ -1307,8 +1313,8 @@ const char* EditorEngine::getMaterialNameIndex(u32 i) const
 
 	if (m_pEditorScene)
 	{
-		auto &materials = m_pEditorScene->getMaterials();
-		auto sid = materials.keys()[i];
+		auto materials = m_pEditorScene->getMaterials();
+		auto sid = (*materials[i]).getSid();
 
 		name = m_pEditorScene->getMaterialName(sid);
 	}
@@ -1334,8 +1340,8 @@ u64 EditorEngine::getMaterialSid(u32 i) const
 
 	if (m_pEditorScene)
 	{
-		auto &materials = m_pEditorScene->getMaterials();
-		auto sid = materials.keys()[i];
+		auto materials = m_pEditorScene->getMaterials();
+		auto sid = (*materials[i]).getSid();
 
 		sidValue = sid.value;
 	}

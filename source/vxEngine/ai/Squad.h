@@ -70,7 +70,7 @@ namespace ai
 
 		bool addEntity(EntityActor* entity, Component::Actor* actorComponent);
 
-		void createPath(EntityActor* entity, Component::Actor* componentActor);
+		void createPath(Component::Actor* componentActor);
 
 		static void provide(InfluenceMap* influenceMap, NavMeshGraph* graph);
 		void updateAfterProvide();

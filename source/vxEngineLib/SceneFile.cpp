@@ -703,6 +703,16 @@ u64 SceneFile::getCrcVersion4() const
 	return CityHash64((char*)ptr.get(), totalSize);
 }
 
+u32 SceneFile::getActorCount() const 
+{
+	return m_actorCount; 
+}
+
+const ActorFile* SceneFile::getActors() const
+{
+	return m_pActors.get(); 
+}
+
 u64 SceneFile::getCrc() const
 {
 	auto currentVersion = getVersion();

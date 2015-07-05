@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -25,6 +25,7 @@
     <ClCompile Include="source\dllExport.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="source\EditorRenderAspect.cpp" />
     <ClCompile Include="source\Font.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -62,6 +63,7 @@
     <ClCompile Include="source\Graphics\Commands\ClearCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\ConservativeRasterCommand.cpp" />
     <ClCompile Include="source\Graphics\Commands\CpuProfileCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -95,6 +97,7 @@
     <ClCompile Include="source\Graphics\Commands\PointSizeCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\PolygonModeCommand.cpp" />
     <ClCompile Include="source\Graphics\Commands\PolygonOffsetCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -112,6 +115,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="source\Graphics\LightRenderer.cpp" />
+    <ClCompile Include="source\Graphics\PStateProfiler.cpp" />
     <ClCompile Include="source\Graphics\Renderer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -159,9 +163,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\game\data\shaders\include\common.h" />
+    <None Include="..\..\game\data\shaders\blurpassNew.pipe" />
     <None Include="..\..\game\data\shaders\include\buffers.glsl" />
     <None Include="..\..\game\data\shaders\include\quaternion.glsl" />
     <None Include="..\..\game\data\shaders\include\UniformCameraBuffer.h" />
+    <ClInclude Include="..\..\game\data\shaders\include\EditorLightBuffer.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformVolumetricFogBuffer.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformCameraBufferStatic.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformFrustumBuffer.h" />
@@ -172,6 +178,7 @@
     <ClInclude Include="include\vxRenderAspect\DDS_File.h" />
     <ClInclude Include="include\vxRenderAspect\DebugRenderSettings.h" />
     <ClInclude Include="include\vxRenderAspect\dllExport.h" />
+    <ClInclude Include="include\vxRenderAspect\EditorRenderAspect.h" />
     <ClInclude Include="include\vxRenderAspect\Font.h" />
     <ClInclude Include="include\vxRenderAspect\FontAtlas.h" />
     <ClInclude Include="include\vxRenderAspect\Frustum.h" />
@@ -189,6 +196,7 @@
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearColorCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\Command.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ConservativeRasterCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\CpuProfileCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\CullFaceCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DepthRangeCommand.h" />
@@ -201,12 +209,14 @@
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawArraysIndirectCountCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawElementsIndirectCountCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PointSizeCommand.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PolygonModeCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PolygonOffsetCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ProgramUniformCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ViewportCommand.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Frame.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\GBufferRenderer.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\LightRenderer.h" />
+    <ClInclude Include="include\vxRenderAspect\Graphics\PStateProfiler.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Renderer.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\Segment.h" />
     <ClInclude Include="include\vxRenderAspect\Graphics\ShadowRenderer.h" />
@@ -340,13 +350,12 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6B2488E5-F44A-46C6-9F8D-AD76C95DAC54}</ProjectGuid>
     <RootNamespace>vxRenderAspectGL</RootNamespace>
-    <TargetPlatformVersion>10.0.10069.0</TargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -358,7 +367,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -388,11 +397,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxRenderAspectGL\include;C:\Intel\INDE\code_builder_5.1.0.25\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\game\data\shaders\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>E:\dev\libraries\nvapi R343-developer\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxRenderAspectGL\include;C:\Intel\INDE\code_builder_5.1.0.25\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\game\data\shaders\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)_d</TargetName>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
-    <LibraryPath>C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs2015;$(LibraryPath)</LibraryPath>
+    <LibraryPath>E:\dev\libraries\nvapi R343-developer\amd64;C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\lib\vs14;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxRenderAspectGL\include;C:\Intel\INDE\code_builder_5.1.0.25\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\game\data\shaders\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
@@ -415,7 +424,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_VX_WINDOWS;_DEBUG;VX_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_DEBUG;_VX_ASSERT;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -424,7 +433,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;vxlib_sd.lib;vxGL_sd.lib;vxEngineLib_d.lib;opencl.lib;vxResourceAspect_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vxlib_sd.lib;vxGL_sd.lib;vxEngineLib_d.lib;opencl.lib;nvapi64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>

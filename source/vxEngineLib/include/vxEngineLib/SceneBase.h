@@ -104,9 +104,10 @@ public:
 	const Light* getLights() const;
 	u32 getLightCount() const;
 
-	const vx::sorted_vector<vx::StringID, Reference<Material>>& getMaterials() const;
-	vx::sorted_vector<vx::StringID, Reference<Material>>& getMaterials();
+	Reference<Material>* getMaterials() const;
 	u32 getMaterialCount() const;
+
+	const Reference<Material>* getMaterial(const vx::StringID &sid) const;
 
 	const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& getMeshes() const;
 	u32 getVertexCount() const;

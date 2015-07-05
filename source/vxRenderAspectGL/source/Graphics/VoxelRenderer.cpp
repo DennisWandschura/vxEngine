@@ -62,6 +62,16 @@ namespace Graphics
 
 	void VoxelRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
+		if (FLEXT_NV_conservative_raster != 0)
+		{
+			s_shaderManager->setDefine("_CONSERVATIVE_RASTER");
+		}
+
+		if (FLEXT_NV_shader_atomic_fp16_vector != 0)
+		{
+
+		}
+
 		s_shaderManager->loadPipeline(vx::FileHandle("voxelize.pipe"), "voxelize.pipe", scratchAllocator);
 		s_shaderManager->loadPipeline(vx::FileHandle("voxelizeLight.pipe"), "voxelizeLight.pipe", scratchAllocator);
 
@@ -121,6 +131,18 @@ namespace Graphics
 		Segment segment;
 		segment.setState(state);
 
+		if (FLEXT_NV_conservative_raster != 0)
+		{
+			ConservativeRasterCommand rasterCmd;
+			rasterCmd.set(1);
+
+			PolygonModeCommand modeCmd;
+			modeCmd.set(GL_FRONT_AND_BACK, GL_FILL_RECTANGLE_NV);
+
+			segment.pushCommand(rasterCmd);
+			segment.pushCommand(modeCmd);
+		}
+
 		segment.pushCommand(viewportCmd);
 		segment.pushCommand(clearColorCmd);
 		segment.pushCommand(clearCmd);
@@ -178,6 +200,18 @@ namespace Graphics
 
 		voxelizeLightsSegment.pushCommand(drawCmd);
 
+		if (FLEXT_NV_conservative_raster != 0)
+		{
+			ConservativeRasterCommand rasterCmd;
+			rasterCmd.set(0);
+
+			PolygonModeCommand modeCmd;
+			modeCmd.set(GL_FRONT_AND_BACK, GL_FILL);
+
+			voxelizeLightsSegment.pushCommand(rasterCmd);
+			voxelizeLightsSegment.pushCommand(modeCmd);
+		}
+
 		cmdList->pushSegment(segmentVoxelize, "voxelize");
 		cmdList->pushSegment(voxelizeLightsSegment, "voxelizeLights");
 		//cmdList->pushSegment(segmentConeTrace, "coneTrace");
@@ -214,10 +248,15 @@ namespace Graphics
 			auto gridCellSize = gridHalfSize / halfDim;
 			auto invGridCellSize = 1.0f / gridCellSize;
 
-			auto projectionMatrix = vx::MatrixOrthographicRHDX(gridsizeLod, gridsizeLod, 0.0f, -gridsizeLod);
+			auto projectionMatrix = vx::MatrixOrthographicRHDX(gridsizeLod, gridsizeLod, 0.0f, gridsizeLod);
 
+			auto backFront = projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
+			auto leftRight = projectionMatrix * vx::MatrixRotationAxis(vx::g_VXIdentityR1, vx::degToRad(90)) *vx::MatrixTranslation(-gridHalfSize, 0, 0);
+			auto topDown = projectionMatrix * vx::MatrixRotationAxis(vx::g_VXIdentityR0, vx::degToRad(90)) *vx::MatrixTranslation(0, -gridHalfSize, 0);
 			//auto projectionMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, gridHalfSize, -gridHalfSize, gridHalfSize, 0.0f, -gridsizeLod);
-			voxelBlock.data.projectionMatrix = projectionMatrix * vx::MatrixTranslation(0, 0, gridHalfSize);
+			voxelBlock.data.projectionMatrix[0] = leftRight;//projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
+			voxelBlock.data.projectionMatrix[1] = topDown;
+			voxelBlock.data.projectionMatrix[2] = backFront;
 			voxelBlock.data.dim = textureSizeLod;
 			voxelBlock.data.halfDim = halfDim;
 			voxelBlock.data.gridCellSize = gridCellSize;
@@ -267,7 +306,14 @@ namespace Graphics
 	void VoxelRenderer::createVoxelTextures()
 	{
 		vx::gl::TextureDescription desc;
-		desc.format = vx::gl::TextureFormat::RGBA8;
+		if (FLEXT_NV_conservative_raster != 0)
+		{
+			desc.format = vx::gl::TextureFormat::RGBA16F;
+		}
+		else
+		{
+			desc.format = vx::gl::TextureFormat::RGBA8;
+		}
 		desc.type = vx::gl::TextureType::Texture_3D;
 		desc.size = vx::ushort3(m_voxelTextureSize, m_voxelTextureSize, m_voxelTextureSize);
 		desc.miplevels = 1;// std::max((u8)1, m_mipcount);
@@ -294,7 +340,7 @@ namespace Graphics
 	void VoxelRenderer::createFrameBuffer()
 	{
 		vx::gl::TextureDescription desc;
-		desc.type = vx::gl::TextureType::Texture_2D_MS;
+		desc.type = vx::gl::TextureType::Texture_2D;
 		desc.format = vx::gl::TextureFormat::R8;
 		desc.size = vx::ushort3(m_voxelTextureSize, m_voxelTextureSize, 1);
 		desc.samples = 8;

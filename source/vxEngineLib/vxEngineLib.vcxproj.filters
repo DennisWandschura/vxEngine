@@ -183,10 +183,22 @@
     <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DoubleBufferRaw.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\DoubleBufferRaw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\InfluenceMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\NavMeshGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\NavConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\NavNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\NavGraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -279,6 +291,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DoubleBufferRaw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshGraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InfluenceMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NavGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,0 +1,446 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\gl">
+      <UniqueIdentifier>{54f7f9bc-61a7-4c81-810b-7d1291c68401}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{e189b298-e4b6-4938-9e3a-7a9832524053}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Commands">
+      <UniqueIdentifier>{931b5d30-fe86-44f9-baae-726121f29c32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\opencl">
+      <UniqueIdentifier>{780ad510-af5d-4605-8693-b8bc4e05d651}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\gl">
+      <UniqueIdentifier>{e3f36194-945b-4d89-945b-4495aa354299}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{cebb16c3-ae66-4da6-8024-c237fa1b5581}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Commands">
+      <UniqueIdentifier>{24fa7358-19e2-4ecd-a24d-5dfe52fecbc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{c59e30e8-52e9-4366-b988-1b0cd3ed58c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Include">
+      <UniqueIdentifier>{8174716d-5079-45d6-85c4-d244c371872c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\DDS_File.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\dllExport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\EditorRenderAspect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Font.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\FontAtlas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\GpuProfiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\RenderAspect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\RenderCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\RenderCommandFinalImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\SceneRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\SegmentFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\TextureManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Vertex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\gl\BufferBindingManager.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="source\gl\BufferManager.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="source\gl\ObjectManager.cpp">
+      <Filter>Source Files\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\CommandFactory.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\CommandList.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\CommandListFactory.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Frame.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\GBufferRenderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\LightRenderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\PStateProfiler.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Renderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Segment.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\ShadowRenderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\State.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Surface.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\TextRenderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\VolumetricLightRenderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\VoxelRenderer.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\CpuProfileCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\CullFaceCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\DepthRangeCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\DrawArraysCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\DrawArraysIndirectCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\DrawElementsIndirectCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\FramebufferTextureCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\GpuProfileCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\PointSizeCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\PolygonModeCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\PolygonOffsetCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\ProgramUniformCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\ViewportCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\BarrierCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\BlendEquationCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\BlendFuncCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\ClearColorCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\ClearCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\ConservativeRasterCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\vxRenderAspect\dds.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\DDS_File.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\DebugRenderSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\dllExport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\EditorRenderAspect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Font.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\FontAtlas.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Frustum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\GpuProfiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\GpuStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\ProgramUniformBinding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\RenderAspect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\RenderAspectDescription.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\RenderCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\RenderCommandFinalImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\SceneRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\SegmentFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\TextureManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\opencl\Device.h">
+      <Filter>Header Files\opencl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\opencl\Image.h">
+      <Filter>Header Files\opencl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\opencl\Platform.h">
+      <Filter>Header Files\opencl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\opencl\Context.h">
+      <Filter>Header Files\opencl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\gl\BufferBindingManager.h">
+      <Filter>Header Files\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\gl\BufferManager.h">
+      <Filter>Header Files\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\gl\ObjectManager.h">
+      <Filter>Header Files\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\CommandFactory.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\CommandList.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\CommandListFactory.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Frame.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\GBufferRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\LightRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\PStateProfiler.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Renderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Segment.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\ShadowRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\State.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Surface.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\TextRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\VolumetricLightRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\VoxelRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BlendEquationCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BlendFuncCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearColorCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\Command.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ConservativeRasterCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\CpuProfileCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\CullFaceCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DepthRangeCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawArraysCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawArraysIndirectCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawElementsIndirectCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\FramebufferTextureCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\GpuProfileCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawArraysIndirectCountCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawElementsIndirectCountCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PointSizeCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PolygonModeCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PolygonOffsetCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ProgramUniformCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ViewportCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BarrierCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\common.h">
+      <Filter>Shaders\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\EditorLightBuffer.h">
+      <Filter>Shaders\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformCameraBuffer.h">
+      <Filter>Shaders\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformCameraBufferStatic.h">
+      <Filter>Shaders\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformFrustumBuffer.h">
+      <Filter>Shaders\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformReflectionBuffer.h">
+      <Filter>Shaders\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTextureBuffer.h">
+      <Filter>Shaders\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTransformBuffer.h">
+      <Filter>Shaders\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\UniformVolumetricFogBuffer.h">
+      <Filter>Shaders\Include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\game\data\shaders\include\math.glsl">
+      <Filter>Shaders\Include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\mesh.glsl">
+      <Filter>Shaders\Include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\quaternion.glsl">
+      <Filter>Shaders\Include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\structs.glsl">
+      <Filter>Shaders\Include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\uniform_buffers.glsl">
+      <Filter>Shaders\Include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\atomicCounters.glsl">
+      <Filter>Shaders\Include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\include\buffers.glsl">
+      <Filter>Shaders\Include</Filter>
+    </None>
+  </ItemGroup>
+</Project>

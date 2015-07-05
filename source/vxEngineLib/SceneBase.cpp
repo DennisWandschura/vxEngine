@@ -149,19 +149,27 @@ u32 SceneBase::getLightCount() const
 	return m_lightCount;
 }
 
-const vx::sorted_vector<vx::StringID, Reference<Material>>& SceneBase::getMaterials() const
+Reference<Material>* SceneBase::getMaterials() const
 {
-	return m_materials;
-}
-
-vx::sorted_vector<vx::StringID, Reference<Material>>& SceneBase::getMaterials()
-{
-	return m_materials;
+	return m_materials.data();
 }
 
 u32 SceneBase::getMaterialCount() const
 {
 	return m_materials.size();
+}
+
+const Reference<Material>* SceneBase::getMaterial(const vx::StringID &sid) const
+{
+	const Reference<Material>* result = nullptr;
+
+	auto it = m_materials.find(sid);
+	if (it != m_materials.end())
+	{
+		result = &(*it);
+	}
+
+	return result;
 }
 
 const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& SceneBase::getMeshes() const

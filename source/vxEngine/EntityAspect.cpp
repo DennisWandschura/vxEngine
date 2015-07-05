@@ -36,8 +36,8 @@ SOFTWARE.
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/Locator.h>
 #include <vxEngineLib/EventManager.h>
-#include "InfluenceMap.h"
-#include "NavGraph.h"
+#include <vxEngineLib/InfluenceMap.h>
+#include <vxEngineLib/NavGraph.h>
 #include <vxEngineLib/EventsIngame.h>
 #include <vxLib/ScopeGuard.h>
 #include <vxEngineLib/Spawn.h>
@@ -153,7 +153,7 @@ Component::Actor* EntityAspect::createComponentActor(u16 entityIndex, EntityActo
 	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, componentInput, pActor, &m_quadTree, 0.2f, 2.0f);
 	ActionSetFollowPath* actionSetFollowPath = new ActionSetFollowPath(actionFollowPath, pActor->m_data.get());
 
-	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(entity,pActor);
+	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(pActor);
 
 	State* waitingState = new State();
 	State* movingState = new State();
@@ -202,8 +202,8 @@ void EntityAspect::createActorEntity(const CreateActorData &data)
 	auto pInput = m_poolInput.createEntry(&pEntity->input);
 	pInput->entityIndex = entityIndex;
 
-	auto transform = data.getTransform();
-	auto height = data.getHeight();
+	//auto transform = data.getTransform();
+//	auto height = data.getHeight();
 	auto gpuIndex = data.getGpuIndex();
 
 	createComponentPhysics(data, entityIndex);
@@ -255,7 +255,7 @@ void EntityAspect::updatePhysics_linear(f32 dt)
 	auto p = m_poolEntity.first();
 	while (p != nullptr)
 	{
-		auto contactOffset = p->pRigidActor->getContactOffset();
+		//auto contactOffset = p->pRigidActor->getContactOffset();
 		auto footPosition = p->pRigidActor->getFootPosition();
 
 		auto position = p->pRigidActor->getPosition();

@@ -44,6 +44,7 @@ SOFTWARE.
 #include <vxGL/Texture.h>
 #include <vxGL/Framebuffer.h>
 #include <vxGL/VertexArray.h>
+#include <vxRenderAspect/Frustum.h>
 
 namespace ShadowRendererCpp
 {
@@ -81,6 +82,24 @@ namespace ShadowRendererCpp
 		dir = vx::float4(0, 0, -1, 0);
 		viewMatrices[5] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
 
+		/*f32 xmax = lightPos.f[0] + light.falloff;
+		f32 xmin = lightPos.f[0] - light.falloff;
+
+		f32 ymax = lightPos.f[1] + light.falloff;
+		f32 ymin = lightPos.f[1] - light.falloff;
+
+		auto sx = 2 / (xmax - xmin);
+		auto sy = 2 / (ymax - ymin);
+		auto ox = -(sx * (xmax + xmin)) / 2.0f;
+		auto oy = -(sy * (ymax + ymin)) / 2.0f;
+
+		vx::mat4 scaleMatrix;
+		scaleMatrix.c[0] = { sx, 0, 0, 0 };
+		scaleMatrix.c[1] = { 0, sy, 0, 0 };
+		scaleMatrix.c[2] = { 0, 0, 1, 0 };
+		scaleMatrix.c[3] = { ox, oy, 0, 1 };
+
+		shadowTransform->scaleMatrix = scaleMatrix;*/
 		shadowTransform->projectionMatrix = projectionMatrix;
 		for (u32 i = 0; i < 6; ++i)
 		{
@@ -96,7 +115,8 @@ namespace Graphics
 		:m_lights(),
 		m_shadowDepthTextureIds(),
 		m_lightCmdBufferSid(),
-		m_lightCount(0)
+		m_lightCount(0),
+		m_maxShadowLights(0)
 	{
 
 	}
@@ -108,7 +128,7 @@ namespace Graphics
 
 	void ShadowRenderer::createShadowTextureBuffer()
 	{
-		auto maxShadowLightCount = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+		auto maxShadowLightCount = m_maxShadowLights;
 
 		auto data = vx::make_unique<u64[]>(maxShadowLightCount);
 		auto sizeInBytes = sizeof(u64) * maxShadowLightCount;
@@ -127,7 +147,7 @@ namespace Graphics
 
 	void ShadowRenderer::createShadowTextures()
 	{
-		auto maxShadowLightCount = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+		auto maxShadowLightCount = m_maxShadowLights;
 		auto shadowMapResolution = s_settings->m_rendererSettings.m_shadowSettings.m_shadowMapResolution;
 
 		auto shadowTexBuffer = s_objectManager->getBuffer("uniformShadowTextureBuffer");
@@ -273,6 +293,7 @@ namespace Graphics
 	void ShadowRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
 		auto maxShadowLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+		m_maxShadowLights = maxShadowLights;
 
 		s_shaderManager->loadPipeline(vx::FileHandle("shadow.pipe"), "shadow.pipe", scratchAllocator);
 		//s_shaderManager->loadPipeline(vx::FileHandle("resetLightCmdBuffer.pipe"), "resetLightCmdBuffer.pipe", scratchAllocator);
@@ -341,7 +362,7 @@ namespace Graphics
 		//
 		//m_maxMeshInstanceCount = s_settings->m_rendererSettings.m_maxMeshInstances;
 
-		auto maxShadowLightCount = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+		auto maxShadowLightCount = m_maxShadowLights;
 		auto maxMeshInstances = s_settings->m_rendererSettings.m_maxMeshInstances;
 		auto shadowMapResolution = s_settings->m_rendererSettings.m_shadowSettings.m_shadowMapResolution;
 
@@ -417,7 +438,7 @@ namespace Graphics
 			segmentCreateShadowmap.pushCommand(uniformCmd, i);
 			segmentCreateShadowmap.pushCommand(drawCmd);
 
-		//	cmdOffset += cmdSizeInBytes;
+			//	cmdOffset += cmdSizeInBytes;
 		}
 
 		cullFaceCommand.set(GL_BACK);
@@ -471,36 +492,23 @@ namespace Graphics
 		m_lightCount = count;
 
 		m_distances = vx::make_unique<std::pair<f32, u32>[]>(count);
-
-		/*auto maxLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
-
-		auto activeLights = std::min(maxLights, count);
-
-		auto bufferData = vx::make_unique<ShadowTransform[]>(activeLights);
-		for (u32 i = 0; i < activeLights; ++i)
-		{
-			bufferData[i].position = m_lights[i].position;
-			bufferData[i].falloff_lumen.x = m_lights[i].falloff;
-			bufferData[i].falloff_lumen.y = m_lights[i].lumen;
-
-			ShadowRendererCpp::getShadowTransform(m_lights[i], &bufferData[i]);
-		}
-
-	*/
 	}
 
-	void ShadowRenderer::cullLights(const vx::Camera &camera)
+	void ShadowRenderer::cullLights(const Frustum &frustum, const vx::Camera &camera)
 	{
 		auto lightCount = m_lightCount;
 		if (lightCount == 0)
 			return;
 
-		auto lightDistances = m_distances.get();
 		auto lights = m_lights.get();
+
+		auto maxLights = m_maxShadowLights;
+
+		auto lightDistances = m_distances.get();
 
 		auto cameraPosition = camera.getPosition();
 
-		for (u32 i = 0;i < m_lightCount; ++i)
+		for (u32 i = 0; i < lightCount; ++i)
 		{
 			auto lightPosition = lights[i].position;
 
@@ -517,7 +525,7 @@ namespace Graphics
 			return lhs.first < rhs.first;
 		});
 
-		auto maxLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
+
 		auto activeLights = std::min(lightCount, maxLights);
 
 		auto offset = maxLights * sizeof(ShadowTransform);

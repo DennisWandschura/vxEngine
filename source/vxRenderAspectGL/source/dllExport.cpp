@@ -1,17 +1,25 @@
 #include <vxRenderAspect/dllExport.h>
 #include <vxRenderAspect/RenderAspect.h>
+#include <vxRenderAspect/EditorRenderAspect.h>
 #include <vxEngineLib/debugPrint.h>
 
-RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, u8 verboseChannels)
+RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
 {
 	auto result = (RenderAspect*)_aligned_malloc(sizeof(RenderAspect), __alignof(RenderAspect));
 	new (result) RenderAspect{};
 
-	if(!result->initialize(desc))
+	auto initError = result->initialize(desc);
+	if (initError != RenderAspectInitializeError::OK)
 	{
 		result->~RenderAspect();
 		_aligned_free(result);
 		result = nullptr;
+	}
+
+
+	if (error)
+	{
+		*error = initError;
 	}
 
 	return result;
@@ -27,29 +35,39 @@ void destroyRenderAspect(RenderAspectInterface *p)
 	}
 }
 
-Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, u8 verboseChannels)
+Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
 {
-	/*auto result = (RenderAspect*)_aligned_malloc(sizeof(RenderAspect), __alignof(RenderAspect));
-	new (result) RenderAspect{};
+	auto result = (Editor::RenderAspect*)_aligned_malloc(sizeof(Editor::RenderAspect), __alignof(Editor::RenderAspect));
+	new (result)Editor::RenderAspect{};
 
-	if (!result->initialize(desc))
+	auto initError = result->initialize(desc);
+	if (initError != RenderAspectInitializeError::OK)
 	{
 		result->~RenderAspect();
 		_aligned_free(result);
 		result = nullptr;
 	}
 
-	return result;*/
+	if (error)
+	{
+		*error = initError;
+	}
 
-	return nullptr;
+	return result;
+}
+
+template<typename T>
+void destroy(T* ptr)
+{
+	ptr->~T();
 }
 
 void destroyEditorRenderAspect(Editor::RenderAspectInterface *p)
 {
 	if (p != nullptr)
 	{
-		//auto ptr = (RenderAspect*)p;
-		//ptr->~RenderAspect();
-		//_aligned_free(ptr);
+		auto ptr = (Editor::RenderAspect*)p;
+		destroy(ptr);
+		_aligned_free(ptr);
 	}
 }

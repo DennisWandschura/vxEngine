@@ -212,6 +212,8 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 
 	if (result)
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded Editor::Scene File version %u", sceneFile.getVersion());
+
 		//printf("SceneFactory::createFromMemory: create scene file\n");
 		LoadSceneFileDescription loadDesc;
 		loadDesc.sortedMaterials = desc.materials;

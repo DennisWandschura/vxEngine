@@ -49,9 +49,6 @@
     <Filter Include="Header Files\AI\Steering">
       <UniqueIdentifier>{8ca0b2ba-77f7-4149-911a-ec4c67bb56e3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\AI\Navigation">
-      <UniqueIdentifier>{184e5c93-2bc5-48b1-94fd-89236205ad1b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\AI\Decision Tree">
       <UniqueIdentifier>{70ddb8cc-aeed-45cb-8a99-6646e88d4f5f}</UniqueIdentifier>
     </Filter>
@@ -75,9 +72,6 @@
     </Filter>
     <Filter Include="Source Files\Editor">
       <UniqueIdentifier>{633544a4-e453-4b42-bc26-a5f6ede6c1ab}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Navigation">
-      <UniqueIdentifier>{2c0367ea-7bb1-4975-8778-859b7f2a54ac}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Input">
       <UniqueIdentifier>{30930ff3-e05e-497c-9e5f-a16b9dd1588c}</UniqueIdentifier>
@@ -195,15 +189,6 @@
     <ClInclude Include="ComponentsForward.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="NavGraph.h">
-      <Filter>Header Files\Navigation</Filter>
-    </ClInclude>
-    <ClInclude Include="NavNode.h">
-      <Filter>Header Files\Navigation</Filter>
-    </ClInclude>
-    <ClInclude Include="NavConnection.h">
-      <Filter>Header Files\Navigation</Filter>
-    </ClInclude>
     <ClInclude Include="AStar.h">
       <Filter>Header Files\AI</Filter>
     </ClInclude>
@@ -234,9 +219,6 @@
     <ClInclude Include="SmallObjAllocator.h">
       <Filter>Header Files\Allocator</Filter>
     </ClInclude>
-    <ClInclude Include="InfluenceMap.h">
-      <Filter>Header Files\AI</Filter>
-    </ClInclude>
     <ClInclude Include="ActorAspect.h">
       <Filter>Header Files\AI</Filter>
     </ClInclude>
@@ -257,9 +239,6 @@
     </ClInclude>
     <ClInclude Include="EventEditor.h">
       <Filter>Header Files\Events</Filter>
-    </ClInclude>
-    <ClInclude Include="EditorRenderAspect.h">
-      <Filter>Header Files\Editor</Filter>
     </ClInclude>
     <ClInclude Include="Editor.h">
       <Filter>Header Files\Editor</Filter>
@@ -317,9 +296,6 @@
     </ClInclude>
     <ClInclude Include="ActionSetFollowPath.h">
       <Filter>Header Files\Actions</Filter>
-    </ClInclude>
-    <ClInclude Include="NavMeshGraph.h">
-      <Filter>Header Files\Navigation</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
       <Filter>Header Files</Filter>
@@ -392,9 +368,6 @@
     <ClCompile Include="ActionManager.cpp">
       <Filter>Source Files\AI</Filter>
     </ClCompile>
-    <ClCompile Include="NavGraph.cpp">
-      <Filter>Source Files\AI\Navigation</Filter>
-    </ClCompile>
     <ClCompile Include="AStar.cpp">
       <Filter>Source Files\AI</Filter>
     </ClCompile>
@@ -412,9 +385,6 @@
     </ClCompile>
     <ClCompile Include="SmallObjAllocator.cpp">
       <Filter>Source Files\Allocator</Filter>
-    </ClCompile>
-    <ClCompile Include="InfluenceMap.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Decision.cpp">
       <Filter>Source Files\AI\Decisions</Filter>
@@ -437,14 +407,8 @@
     <ClCompile Include="LevelEditor.cpp">
       <Filter>Source Files\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="EditorRenderAspect.cpp">
-      <Filter>Source Files\Editor</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerController.cpp">
       <Filter>Source Files\Entity</Filter>
-    </ClCompile>
-    <ClCompile Include="NavMeshGraph.cpp">
-      <Filter>Source Files\AI</Filter>
     </ClCompile>
     <ClCompile Include="ActionUpdateGpuTransform.cpp">
       <Filter>Source Files\Actions</Filter>

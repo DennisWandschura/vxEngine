@@ -46,9 +46,9 @@ namespace Graphics
 		s_shaderManager->loadPipeline(vx::FileHandle("volume.pipe"), "volume.pipe", scratchAllocator);
 
 		UniformVolumetricFogBufferBlock data;
-		data.position = {0, 1.5f, 1.5f, 0};
-		data.boundsMin = {-1, 0, 0.5f, 0};
-		data.boundsMax = {1, 3, 2.5f, 0};
+		data.position = vx::float4a(0, 1.5f, 1.5f, 0);
+		data.boundsMin = vx::float4a(-1, 0, 0.5f, 0);
+		data.boundsMax = vx::float4a(1, 3, 2.5f, 0);
 
 		vx::gl::BufferDescription desc{};
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;

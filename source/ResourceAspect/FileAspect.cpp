@@ -360,6 +360,7 @@ void FileAspect::pushFileEvent(vx::FileEvent code, vx::Variant arg1, vx::Variant
 
 bool FileAspect::loadFileFbx(const LoadFileOfTypeDescription &desc)
 {
+#if _VX_EDITOR
 	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Trying to load file %s\n", desc.fileNameWithPath);
 
 	std::vector<vx::FileHandle> files;
@@ -371,7 +372,7 @@ bool FileAspect::loadFileFbx(const LoadFileOfTypeDescription &desc)
 		vx::FileEntry fileEntry(it.m_string, vx::FileType::Mesh);
 		requestLoadFile(fileEntry, desc.pUserData);
 	}
-
+#endif
 	return true;
 }
 
@@ -783,6 +784,11 @@ void FileAspect::handleRequest(FileRequest* request, std::vector<vx::FileEntry>*
 	default:
 		break;
 	}
+}
+
+void FileAspect::reset()
+{
+
 }
 
 void FileAspect::update()

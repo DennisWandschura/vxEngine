@@ -91,12 +91,13 @@ namespace Editor
 		auto numInstances = pScene->getMeshInstanceCount();
 		auto pMeshInstances = pScene->getMeshInstancesEditor();
 
-		auto &sceneMaterials = pScene->getMaterials();
-		for (auto i = 0u; i < sceneMaterials.size(); ++i)
+		auto sceneMaterials = pScene->getMaterials();
+		auto materialCount = pScene->getMaterialCount();
+		for (auto i = 0u; i < materialCount; ++i)
 		{
 			auto &currentMaterial = sceneMaterials[i];
 
-			auto sid = sceneMaterials.keys()[i];
+			auto sid = (*currentMaterial).getSid();
 			auto pMaterial = m_pPhysics->createMaterial((*currentMaterial).getStaticFriction(), (*currentMaterial).getDynamicFriction(), (*currentMaterial).getRestitution());
 			assert(pMaterial);
 			m_physxMaterials.insert(sid, pMaterial);

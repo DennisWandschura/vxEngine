@@ -33,7 +33,7 @@ SOFTWARE.
 #include "Entity.h"
 #include "EventsAI.h"
 #include "AStar.h"
-#include "NavNode.h"
+#include <vxEngineLib/NavNode.h>
 #include <vxLib/ScopeGuard.h>
 #include <vxEngineLib/EventsIngame.h>
 #include <vxEngineLib/FileEvents.h>

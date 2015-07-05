@@ -44,10 +44,10 @@ class EventManager;
 class Scene;
 
 #include <vxEngineLib/EventListener.h>
-#include "InfluenceMap.h"
+#include <vxEngineLib/InfluenceMap.h>
 #include "ActionManager.h"
 #include <vxLib/Allocator/StackAllocator.h>
-#include "NavMeshGraph.h"
+#include <vxEngineLib/NavMeshGraph.h>
 #include "ai/Squad.h"
 
 class ActorAspect : public vx::EventListener

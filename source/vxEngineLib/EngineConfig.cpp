@@ -49,7 +49,7 @@ bool EngineConfig::loadFromFile(const char* file)
 		u32 index = shadowMode - 1;
 
 		shadowSettings->get("resolution")->as(index, &m_rendererSettings.m_shadowSettings.m_shadowMapResolution);
-		shadowSettings->get("lights")->as(&m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
+		shadowSettings->get("lights")->as(index, &m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
 	}
 	m_rendererSettings.m_shadowMode = shadowMode;
 

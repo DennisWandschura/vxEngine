@@ -62,6 +62,7 @@
     <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <BasePlatformToolset>v130</BasePlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -103,7 +104,7 @@
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
     <TargetName>$(ProjectName)_editor_d</TargetName>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
@@ -205,7 +206,6 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="DoubleBufferRaw.h" />
     <ClInclude Include="include\vxEngineLib\AABB.h" />
     <ClInclude Include="include\vxEngineLib\Actor.h" />
     <ClInclude Include="include\vxEngineLib\Animation.h" />
@@ -227,6 +227,7 @@
     <ClInclude Include="include\vxEngineLib\FileFactory.h" />
     <ClInclude Include="include\vxEngineLib\GpuFunctions.h" />
     <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h" />
+    <ClInclude Include="include\vxEngineLib\InfluenceMap.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Locator.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />
@@ -237,8 +238,12 @@
     <ClInclude Include="include\vxEngineLib\MeshInstance.h" />
     <ClInclude Include="include\vxEngineLib\MeshInstanceFile.h" />
     <ClInclude Include="include\vxEngineLib\mutex.h" />
+    <ClInclude Include="include\vxEngineLib\NavConnection.h" />
+    <ClInclude Include="include\vxEngineLib\NavGraph.h" />
     <ClInclude Include="include\vxEngineLib\NavMesh.h" />
+    <ClInclude Include="include\vxEngineLib\NavMeshGraph.h" />
     <ClInclude Include="include\vxEngineLib\NavMeshTriangle.h" />
+    <ClInclude Include="include\vxEngineLib\NavNode.h" />
     <ClInclude Include="include\vxEngineLib\OpenGLTypes.h" />
     <ClInclude Include="include\vxEngineLib\ParserConverter.h" />
     <ClInclude Include="include\vxEngineLib\ParserNode.h" />
@@ -289,6 +294,7 @@
     <ClCompile Include="FileFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="InfluenceMap.cpp" />
     <ClCompile Include="Light.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -313,9 +319,11 @@
     <ClCompile Include="MeshInstanceFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="NavGraph.cpp" />
     <ClCompile Include="NavMesh.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="NavMeshGraph.cpp" />
     <ClCompile Include="ParserNode.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

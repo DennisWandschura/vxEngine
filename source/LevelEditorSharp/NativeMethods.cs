@@ -60,8 +60,8 @@ namespace LevelEditor
 
     static class NativeMethods
     {
-        const string m_libPath = "d:/Users/dw/Documents/Visual Studio 2013/Projects/vxEngine/lib/";
-        const string m_dllName = "vxEngine_d.dll";
+        const string m_libPath = "../../../lib/vs2013/";
+        const string m_dllName = "vxEngine_vs12_d.dll";
 
         public delegate void LoadFileCallback(ulong sid, uint type);
 

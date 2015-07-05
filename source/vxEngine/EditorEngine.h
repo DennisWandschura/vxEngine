@@ -30,7 +30,6 @@ namespace Editor
 
 #include <vxEngineLib/EventManager.h>
 #include "SystemAspect.h"
-#include "EditorRenderAspect.h"
 #include "EditorPhysicsAspect.h"
 #include <vxResourceAspect/FileAspect.h>
 #include "thread.h"
@@ -38,7 +37,7 @@ namespace Editor
 #include "LevelEditor.h"
 #include "Editor.h"
 #include <vxEngineLib/EventListener.h>
-#include "InfluenceMap.h"
+#include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/EditorRenderAspectInterface.h>
 
 enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
@@ -98,7 +97,7 @@ class EditorEngine : public vx::EventListener
 
 	vx::StringID raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition);
 
-	bool createRenderAspectGL(const RenderAspectDescription &desc);
+	bool createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc);
 
 	Ray getRay(s32 mouseX, s32 mouseY);
 	u32 getSelectedNavMeshVertex(s32 mouseX, s32 mouseY);

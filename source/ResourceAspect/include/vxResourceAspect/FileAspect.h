@@ -23,30 +23,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class CoreAspect;
 class MeshInstance;
 class Scene;
-class Material;
 
 namespace Editor
 {
 	class Scene;
 }
 
-namespace physx
-{
-	class PxCooking;
-}
-
 namespace vx
 {
 	struct FileHeader; 
-	class EventManager;
-	class FileEntry;
-	class MeshFile;
 	class AnimationFile;
 }
 
+#include <vxEngineLib/FileAspectInterface.h>
 #include "FileEntry.h"
 #include <vxLib/Allocator/StackAllocator.h>
 #include "LoadFileCallback.h"
@@ -62,7 +53,7 @@ namespace vx
 #include <vxEngineLib/SRWMutex.h>
 #include <vxEngineLib/Reference.h>
 
-class VX_ALIGN(64) FileAspect
+class VX_ALIGN(64) FileAspect : public FileAspectInterface
 {
 	static char s_textureFolder[32];
 	static char s_materialFolder[32];
@@ -78,7 +69,7 @@ class VX_ALIGN(64) FileAspect
 	struct LoadMaterialDescription;
 	struct LoadTextureDescription;
 
-	VX_ALIGN(64) struct
+	struct VX_ALIGN(64)
 	{
 		std::vector<FileRequest> m_fileRequests;
 		vx::mutex m_mutexFileRequests;
@@ -129,23 +120,23 @@ public:
 	FileAspect();
 	~FileAspect();
 
-	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager, physx::PxCooking* cooking);
-	void shutdown();
+	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager, physx::PxCooking* cooking) override;
+	void shutdown() override;
 
-	void reset();
+	void reset() override;
 
-	void update();
+	void update() override;
 
-	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
-	void requestSaveFile(const vx::FileEntry &fileEntry, void* p);
+	void requestLoadFile(const vx::FileEntry &fileEntry, void* p) override;
+	void requestSaveFile(const vx::FileEntry &fileEntry, void* p) override;
 
-	const TextureFile* getTextureFile(const vx::StringID &sid) const noexcept;
-	Reference<Material> getMaterial(const vx::StringID &sid) noexcept;
-	Reference<Material> getMaterial(const vx::StringID &id) const noexcept;
+	const TextureFile* getTextureFile(const vx::StringID &sid) const noexcept override;
+	Reference<Material> getMaterial(const vx::StringID &sid) noexcept override;
+	Reference<Material> getMaterial(const vx::StringID &id) const noexcept override;
 
-	const vx::MeshFile* getMesh(const vx::StringID &sid) const noexcept;
+	const vx::MeshFile* getMesh(const vx::StringID &sid) const noexcept override;
 
-	const char* getLoadedFileName(const vx::StringID &sid) const noexcept;
+	const char* getLoadedFileName(const vx::StringID &sid) const noexcept override;
 
 	bool releaseFile(const vx::StringID &sid, vx::FileType type);
 };

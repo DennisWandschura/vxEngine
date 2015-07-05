@@ -26,6 +26,7 @@ SOFTWARE.
 
 class FileAspect;
 struct EngineConfig;
+class FileAspectInterface;
 
 namespace vx
 {
@@ -42,25 +43,26 @@ namespace vx
 struct RenderAspectDescription
 {
 	const std::string &dataDir;
-	const vx::Window* window;
+	union
+	{
+		void* hwnd;
+		const vx::Window* window;
+	};
+	const void* tmpHwnd;
 	vx::StackAllocator* pAllocator;
 	const EngineConfig* settings;
-	FileAspect* fileAspect;
+	FileAspectInterface* fileAspect;
 	vx::EventManager* evtManager;
 };
 
-struct RenderAspectThreadDesc
-{
-	const vx::Window* window;
-	const EngineConfig* settings;
-};
+enum class RenderAspectInitializeError : u32 {OK, ERROR_CONTEXT, ERROR_OUT_OF_MEMORY, ERROR_SHADER};
 
 class RenderAspectInterface : public vx::EventListener
 {
 public:
 	virtual ~RenderAspectInterface() {}
 
-	virtual bool initialize(const RenderAspectDescription &desc) = 0;
+	virtual RenderAspectInitializeError initialize(const RenderAspectDescription &desc) = 0;
 	virtual void shutdown(void* hwnd) = 0;
 
 	virtual bool initializeProfiler() = 0;
@@ -88,5 +90,5 @@ public:
 	virtual void getAvailableVRam(u32* availableVram) const = 0;
 };
 
-typedef RenderAspectInterface* (*CreateRenderAspectFunction)(const RenderAspectDescription &desc, u8 verboseChannels);
+typedef RenderAspectInterface* (*CreateRenderAspectFunction)(const RenderAspectDescription &desc, RenderAspectInitializeError* error);
 typedef void(*DestroyRenderAspectFunction)(RenderAspectInterface *p);

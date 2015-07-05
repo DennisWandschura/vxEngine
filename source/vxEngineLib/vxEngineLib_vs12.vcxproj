@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{B1333E92-C6DD-4A37-A9BD-DAF2205D273E}</ProjectGuid>
+    <RootNamespace>vxEngineLib_vs12</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <OutDir>..\..\lib\vs2013\</OutDir>
+    <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <Cpp0xSupport>true</Cpp0xSupport>
+      <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
+      <EnableAnsiAliasing>true</EnableAnsiAliasing>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AABB.cpp" />
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="AnimationFile.cpp" />
+    <ClCompile Include="ArrayAllocator.cpp" />
+    <ClCompile Include="DoubleBufferRaw.cpp" />
+    <ClCompile Include="EditorScene.cpp" />
+    <ClCompile Include="EngineConfig.cpp" />
+    <ClCompile Include="EventManager.cpp" />
+    <ClCompile Include="FileFactory.cpp" />
+    <ClCompile Include="InfluenceMap.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="Locator.cpp" />
+    <ClCompile Include="Logfile.cpp" />
+    <ClCompile Include="managed_ptr.cpp" />
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MeshFile.cpp" />
+    <ClCompile Include="MeshInstance.cpp" />
+    <ClCompile Include="MeshInstanceFile.cpp" />
+    <ClCompile Include="NavGraph.cpp" />
+    <ClCompile Include="NavMesh.cpp" />
+    <ClCompile Include="NavMeshGraph.cpp" />
+    <ClCompile Include="ParserNode.cpp" />
+    <ClCompile Include="Pool.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneBase.cpp" />
+    <ClCompile Include="SceneFile.cpp" />
+    <ClCompile Include="Spawn.cpp" />
+    <ClCompile Include="TextureFile.cpp" />
+    <ClCompile Include="TextureRef.cpp" />
+    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Triangle.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\vxEngineLib\AABB.h" />
+    <ClInclude Include="include\vxEngineLib\Actor.h" />
+    <ClInclude Include="include\vxEngineLib\Animation.h" />
+    <ClInclude Include="include\vxEngineLib\AnimationFile.h" />
+    <ClInclude Include="include\vxEngineLib\ArrayAllocator.h" />
+    <ClInclude Include="include\vxEngineLib\copy.h" />
+    <ClInclude Include="include\vxEngineLib\CreateActorData.h" />
+    <ClInclude Include="include\vxEngineLib\debugPrint.h" />
+    <ClInclude Include="include\vxEngineLib\DoubleBufferRaw.h" />
+    <ClInclude Include="include\vxEngineLib\EditorMeshInstance.h" />
+    <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h" />
+    <ClInclude Include="include\vxEngineLib\EditorScene.h" />
+    <ClInclude Include="include\vxEngineLib\EngineConfig.h" />
+    <ClInclude Include="include\vxEngineLib\Event.h" />
+    <ClInclude Include="include\vxEngineLib\EventListener.h" />
+    <ClInclude Include="include\vxEngineLib\EventManager.h" />
+    <ClInclude Include="include\vxEngineLib\EventsIngame.h" />
+    <ClInclude Include="include\vxEngineLib\EventTypes.h" />
+    <ClInclude Include="include\vxEngineLib\EventTypesFwd.h" />
+    <ClInclude Include="include\vxEngineLib\FileAspectInterface.h" />
+    <ClInclude Include="include\vxEngineLib\FileEvents.h" />
+    <ClInclude Include="include\vxEngineLib\FileFactory.h" />
+    <ClInclude Include="include\vxEngineLib\GpuFunctions.h" />
+    <ClInclude Include="include\vxEngineLib\InfluenceMap.h" />
+    <ClInclude Include="include\vxEngineLib\Light.h" />
+    <ClInclude Include="include\vxEngineLib\Locator.h" />
+    <ClInclude Include="include\vxEngineLib\Logfile.h" />
+    <ClInclude Include="include\vxEngineLib\managed_ptr.h" />
+    <ClInclude Include="include\vxEngineLib\Material.h" />
+    <ClInclude Include="include\vxEngineLib\memcpy.h" />
+    <ClInclude Include="include\vxEngineLib\memory.h" />
+    <ClInclude Include="include\vxEngineLib\MeshFile.h" />
+    <ClInclude Include="include\vxEngineLib\MeshInstance.h" />
+    <ClInclude Include="include\vxEngineLib\MeshInstanceFile.h" />
+    <ClInclude Include="include\vxEngineLib\mutex.h" />
+    <ClInclude Include="include\vxEngineLib\NavConnection.h" />
+    <ClInclude Include="include\vxEngineLib\NavGraph.h" />
+    <ClInclude Include="include\vxEngineLib\NavMesh.h" />
+    <ClInclude Include="include\vxEngineLib\NavMeshGraph.h" />
+    <ClInclude Include="include\vxEngineLib\NavMeshTriangle.h" />
+    <ClInclude Include="include\vxEngineLib\NavNode.h" />
+    <ClInclude Include="include\vxEngineLib\OpenGLTypes.h" />
+    <ClInclude Include="include\vxEngineLib\ParserConverter.h" />
+    <ClInclude Include="include\vxEngineLib\ParserNode.h" />
+    <ClInclude Include="include\vxEngineLib\Plane.h" />
+    <ClInclude Include="include\vxEngineLib\Pool.h" />
+    <ClInclude Include="include\vxEngineLib\Ray.h" />
+    <ClInclude Include="include\vxEngineLib\Reference.h" />
+    <ClInclude Include="include\vxEngineLib\RenderAspectInterface.h" />
+    <ClInclude Include="include\vxEngineLib\RendererSettings.h" />
+    <ClInclude Include="include\vxEngineLib\RenderUpdateTask.h" />
+    <ClInclude Include="include\vxEngineLib\Scene.h" />
+    <ClInclude Include="include\vxEngineLib\SceneBase.h" />
+    <ClInclude Include="include\vxEngineLib\SceneFile.h" />
+    <ClInclude Include="include\vxEngineLib\Serializable.h" />
+    <ClInclude Include="include\vxEngineLib\Spawn.h" />
+    <ClInclude Include="include\vxEngineLib\SRWMutex.h" />
+    <ClInclude Include="include\vxEngineLib\TextureFile.h" />
+    <ClInclude Include="include\vxEngineLib\TextureRef.h" />
+    <ClInclude Include="include\vxEngineLib\Timer.h" />
+    <ClInclude Include="include\vxEngineLib\Transform.h" />
+    <ClInclude Include="include\vxEngineLib\Triangle.h" />
+    <ClInclude Include="include\vxEngineLib\Waypoint.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

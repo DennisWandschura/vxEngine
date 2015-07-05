@@ -176,7 +176,8 @@ bool Engine::createRenderAspectGL(const RenderAspectDescription &desc)
 	if (proc == nullptr || procDestroy == nullptr)
 		return false;
 
-	auto renderAspect = proc(desc, 0);
+	RenderAspectInitializeError error;
+	auto renderAspect = proc(desc, &error);
 	if (renderAspect == nullptr)
 		return false;
 
@@ -230,7 +231,8 @@ bool Engine::initialize()
 	RenderAspectDescription renderAspectDesc =
 	{
 		dataDir,
-		&m_systemAspect.getWindow(),
+		(void*)&m_systemAspect.getWindow(),
+		nullptr,
 		&m_allocator,
 		&g_engineConfig,
 		&m_fileAspect,

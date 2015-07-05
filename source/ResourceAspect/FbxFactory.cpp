@@ -1,5 +1,4 @@
 #include <vxResourceAspect/FbxFactory.h>
-#if _VX_EDITOR
 #include <fbxsdk.h>
 #include <memory>
 
@@ -15,30 +14,24 @@
 #include <vxLib/util/CityHash.h>
 #include <vxEngineLib/AnimationFile.h>
 #include <vxEngineLib/debugPrint.h>
-#endif
 
 FbxFactory::FbxFactory()
 	:m_pFbxManager(nullptr),
 	m_pIOSettings(nullptr)
 {
-#if _VX_EDITOR
 	m_pFbxManager = FBXSDK_NAMESPACE::FbxManager::Create();
 
 	m_pIOSettings = FBXSDK_NAMESPACE::FbxIOSettings::Create(m_pFbxManager, IOSROOT);
 	m_pFbxManager->SetIOSettings(m_pIOSettings);
-#endif
 }
 
 FbxFactory::~FbxFactory()
 {
-#if _VX_EDITOR
 	m_pIOSettings = nullptr;
 
 	m_pFbxManager->Destroy();
 	m_pFbxManager = nullptr;
-#endif
 }
-#if _VX_EDITOR
 /*void FbxFactory::loadMesh(const char *name, const FBXSDK_NAMESPACE::FbxMesh *pMesh, sorted_vector<Node, NodeCmp> *pNodes)
 {
 	//Node meshNode(, Node::ACTIVE);
@@ -476,9 +469,3 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, physx
 
 	return true;
 }
-#else
-bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, physx::PxCooking* cooking, std::vector<vx::FileHandle>* files)
-{
-	return false;
-}
-#endif

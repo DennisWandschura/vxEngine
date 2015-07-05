@@ -114,17 +114,13 @@ namespace LevelEditor
 
             createStateMachine();
 
-            try
-            {
+
                 Panel tmp = new Panel();
 
-                NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.ToString());
-                throw;
-            }
+                if(!NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx))
+                {
+                    throw new Exception();
+                }
 
             s_form = this;
 

@@ -26,6 +26,7 @@ SOFTWARE.
 
 struct Light;
 struct ShadowTransform;
+class Frustum;
 
 namespace vx
 {
@@ -53,6 +54,7 @@ namespace Graphics
 		std::unique_ptr<u32[]> m_shadowDepthTextureIds;
 		vx::StringID m_lightCmdBufferSid;
 		u32 m_lightCount;
+		u32 m_maxShadowLights;
 
 		void createShadowTextureBuffer();
 		void createShadowTextures();
@@ -79,7 +81,7 @@ namespace Graphics
 		void bindBuffers() override;
 
 		void setLights(const Light* lights, u32 count);
-		void cullLights(const vx::Camera &camera);
+		void cullLights(const Frustum &frustum, const vx::Camera &camera);
 
 		const u32* getTextureIds() const;
 	};

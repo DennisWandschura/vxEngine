@@ -24,12 +24,15 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <BasePlatformToolset>v140</BasePlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLL Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <BasePlatformToolset>v130</BasePlatformToolset>
+    <InterproceduralOptimization>false</InterproceduralOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -58,14 +61,14 @@
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
     <IncludePath>E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;$(IncludePath)</IncludePath>
-    <LibraryPath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;E:\dev\libraries\openal-soft-1.16.0-bin\libs\Win64;E:\dev\libraries\libogg\bin\x64\intel;E:\dev\libraries\libvorbis-1.3.3\bin\x64\intel;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc14win64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs2015;$(LibraryPath)</LibraryPath>
+    <LibraryPath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;E:\dev\libraries\openal-soft-1.16.0-bin\libs\Win64;E:\dev\libraries\libogg\bin\x64\intel;E:\dev\libraries\libvorbis-1.3.3\bin\x64\intel;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc14win64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLL Debug|x64'">
     <OutDir>..\..\lib\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>C:\Intel\INDE\code_builder_5.1.0.25\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\game\data\shaders\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\ResourceAspect\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x64\debug;C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc11win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;C:\Intel\INDE\code_builder_5.1.0.25\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxRenderAspectGL\include;$(IncludePath)</IncludePath>
+    <LibraryPath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;C:\Program Files\Autodesk\FBX\FBX SDK\2016.0\lib\vs2013\x64\debug;C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Lib\vc14win64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs12;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;E:\dev\libraries\PhysX-3.3.2_WINDOWS_SDK_Core\Include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;$(IncludePath)</IncludePath>
@@ -189,7 +192,6 @@
     <ClInclude Include="PseudoRandom.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="EditorEngine.h" />
-    <ClInclude Include="EditorRenderAspect.h" />
     <ClInclude Include="EventEditor.h" />
     <ClInclude Include="EventsAI.h" />
     <ClInclude Include="Align.h" />
@@ -197,9 +199,7 @@
     <ClInclude Include="AStar.h" />
     <ClInclude Include="BVH.h" />
     <ClInclude Include="developer.h" />
-    <ClInclude Include="InfluenceMap.h" />
     <ClInclude Include="EventsIngame.h" />
-    <ClInclude Include="NavMeshGraph.h" />
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="SmallObjAllocator.h" />
@@ -224,9 +224,6 @@
     <ClInclude Include="libraries.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="MeshFactory.h" />
-    <ClInclude Include="NavConnection.h" />
-    <ClInclude Include="NavGraph.h" />
-    <ClInclude Include="NavNode.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PhysicsDefines.h" />
     <ClInclude Include="PhysicsFactory.h" />
@@ -324,18 +321,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="EditorEngine.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="EditorRenderAspect.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="InfluenceMap.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="NavGraph.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="NavMeshGraph.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="QuadTree.cpp">

@@ -125,8 +125,8 @@ public:
 	u8 createScene(const CreateSceneDescription &desc);
 	u8 createScene(const CreateEditorSceneDescription &desc);
 
-	u32 getActorCount() const { return m_actorCount; }
-	const ActorFile* getActors() const { return m_pActors.get(); }
+	u32 getActorCount() const;
+	const ActorFile* getActors() const;
 
 	u64 getCrc() const override;
 

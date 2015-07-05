@@ -26,7 +26,7 @@ SOFTWARE.
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/TextureFile.h>
 #include <vxEngineLib/EditorScene.h>
-#include <vxResourceAspect/FileAspect.h>
+#include <vxEngineLib/FileAspectInterface.h>
 #include "vxRenderAspect/Vertex.h"
 #include "vxRenderAspect/GpuStructs.h"
 #include <vxEngineLib/Transform.h>
@@ -338,7 +338,7 @@ void SceneRenderer::shutdown()
 	m_coldData.reset();
 }
 
-void SceneRenderer::createMaterial(Reference<Material> &material, FileAspect* fileAspect)
+void SceneRenderer::createMaterial(Reference<Material> &material, FileAspectInterface* fileAspect)
 {
 	VX_ASSERT(fileAspect);
 
@@ -364,7 +364,7 @@ void SceneRenderer::createMaterial(Reference<Material> &material, FileAspect* fi
 	(*material).setTextures(std::move(albedoRef), std::move(normalRef), std::move(surfaceRef));
 }
 
-u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &material, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex, FileAspect* fileAspect)
+u16 SceneRenderer::addActorToBuffer(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &material, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex, FileAspectInterface* fileAspect)
 {
 	auto itMesh = m_coldData->m_meshEntries.find(meshSid);
 	VX_ASSERT(itMesh != m_coldData->m_meshEntries.end());
@@ -672,7 +672,7 @@ void SceneRenderer::updateBuffersWithMeshInstance(const MeshInstance &instance, 
 	addMeshInstanceToBuffers(instance, cmdBuffer, *meshEntry, elementId, materialIndex);
 }
 
-void SceneRenderer::updateBuffers(const void* ptr, u32 instanceCount)
+void SceneRenderer::updateBuffers(const MeshInstance* ptr, u32 instanceCount)
 {
 	u32 totalInstanceCount = 0;
 	u32 drawCount = 0;
@@ -685,13 +685,7 @@ void SceneRenderer::updateBuffers(const void* ptr, u32 instanceCount)
 	{
 		u16 elementId = i;
 
-#if _VX_EDITOR
-		auto instances = (Editor::MeshInstance*)ptr;
-		updateBuffersWithMeshInstance(instances[i].getMeshInstance(), elementId, cmdBuffer);
-#else
-		auto instances = (MeshInstance*)ptr;
-		updateBuffersWithMeshInstance(instances[i], elementId, cmdBuffer);
-#endif
+		updateBuffersWithMeshInstance(ptr[i], elementId, cmdBuffer);
 
 		++totalInstanceCount;
 	}
@@ -699,9 +693,30 @@ void SceneRenderer::updateBuffers(const void* ptr, u32 instanceCount)
 	setMeshParamBufferValue(instanceCount);
 }
 
-void SceneRenderer::loadSceneImpl(Scene* scene, const gl::ObjectManager &objectManager, FileAspect* fileAspect)
+void SceneRenderer::updateBuffers(const Editor::MeshInstance* ptr, u32 instanceCount)
 {
-	auto &sceneMaterial = scene->getMaterials();
+	u32 totalInstanceCount = 0;
+	u32 drawCount = 0;
+
+	auto cmdBuffer = m_pObjectManager->getBuffer("meshCmdBuffer");
+
+	m_coldData->m_staticDrawCommands.reserve(instanceCount);
+
+	for (auto i = 0u; i < instanceCount; ++i)
+	{
+		u16 elementId = i;
+
+		updateBuffersWithMeshInstance(ptr[i].getMeshInstance(), elementId, cmdBuffer);
+
+		++totalInstanceCount;
+	}
+
+	setMeshParamBufferValue(instanceCount);
+}
+
+void SceneRenderer::loadSceneImpl(const Scene* scene, const gl::ObjectManager &objectManager, FileAspectInterface* fileAspect)
+{
+	auto sceneMaterial = scene->getMaterials();
 	auto numMaterials = scene->getMaterialCount();
 
 	assert(m_coldData->m_materialCount + numMaterials <= s_maxMaterials);
@@ -732,9 +747,9 @@ void SceneRenderer::loadSceneImpl(Scene* scene, const gl::ObjectManager &objectM
 	m_meshInstanceCount = m_staticMeshInstanceCount + m_dynamicMeshInstanceCount;
 }
 
-void SceneRenderer::loadSceneImpl(Editor::Scene* scene, const gl::ObjectManager &objectManager, FileAspect* fileAspect)
+void SceneRenderer::loadSceneImpl(const Editor::Scene* scene, const gl::ObjectManager &objectManager, FileAspectInterface* fileAspect)
 {
-	auto &sceneMaterial = scene->getMaterials();
+	auto sceneMaterial = scene->getMaterials();
 	auto numMaterials = scene->getMaterialCount();
 
 	assert(m_coldData->m_materialCount + numMaterials <= s_maxMaterials);
@@ -765,16 +780,14 @@ void SceneRenderer::loadSceneImpl(Editor::Scene* scene, const gl::ObjectManager 
 	m_meshInstanceCount = m_staticMeshInstanceCount + m_dynamicMeshInstanceCount;
 }
 
-void SceneRenderer::loadScene(const void* ptr, const gl::ObjectManager &objectManager, FileAspect* fileAspect, bool editor)
+void SceneRenderer::loadScene(const Scene* ptr, const gl::ObjectManager &objectManager, FileAspectInterface* fileAspect)
 {
-	if (editor)
-	{
-		loadSceneImpl((Editor::Scene*)ptr, objectManager, fileAspect);
-	}
-	else
-	{
-		loadSceneImpl((Scene*)ptr, objectManager, fileAspect);
-	}
+	loadSceneImpl(ptr, objectManager, fileAspect);
+}
+
+void SceneRenderer::loadScene(const Editor::Scene* ptr, const gl::ObjectManager &objectManager, FileAspectInterface* fileAspect)
+{
+	loadSceneImpl(ptr, objectManager, fileAspect);
 }
 
 TextureRef SceneRenderer::loadTexture(const char* file)
@@ -824,7 +837,7 @@ bool SceneRenderer::setMeshInstanceMaterial(const vx::StringID &sid, const Refer
 	return result;
 }
 
-void SceneRenderer::addMesh(const vx::StringID &meshSid, FileAspect* fileAspect)
+void SceneRenderer::addMesh(const vx::StringID &meshSid, FileAspectInterface* fileAspect)
 {
 	auto meshFile = fileAspect->getMesh(meshSid);
 
@@ -868,7 +881,7 @@ void SceneRenderer::addMesh(const vx::StringID &meshSid, FileAspect* fileAspect)
 	memcpy(pGpuIndices.get(), pIndices, indexSizeBytes);
 }
 
-bool SceneRenderer::setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid, FileAspect* fileAspect)
+bool SceneRenderer::setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid, FileAspectInterface* fileAspect)
 {
 	auto meshEntryIt = m_coldData->m_meshEntries.find(meshSid);
 	if (meshEntryIt == m_coldData->m_meshEntries.end())
@@ -933,7 +946,7 @@ u32 SceneRenderer::getMeshEntryCount() const
 	return m_coldData->m_meshEntries.size();
 }
 
-void SceneRenderer::editorAddMeshInstance(const MeshInstance &newInstance, FileAspect* fileAspect)
+void SceneRenderer::editorAddMeshInstance(const MeshInstance &newInstance, FileAspectInterface* fileAspect)
 {
 	auto currentMeshSid = newInstance.getMeshSid();
 	auto meshEntryIt = m_coldData->m_meshEntries.find(currentMeshSid);

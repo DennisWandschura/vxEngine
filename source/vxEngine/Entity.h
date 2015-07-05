@@ -44,3 +44,9 @@ struct EntityActor
 	u16 render{ 0 };
 	u16 actor{ 0 };
 };
+
+struct StaticEntityAnimated
+{
+	vx::float3 position;
+	u16 render{ 0 };
+};

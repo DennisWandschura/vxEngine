@@ -25,11 +25,11 @@ SOFTWARE.
 
 #if defined(_DEBUG_STATIC_BUILD)
 
-#pragma comment(lib, "vxLib_sd.lib")
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
+#pragma comment(lib, "vxLib_sd.lib")
 
-#if _VX_EDITOR
-#pragma comment(lib, "ResourceAspect_editor_d.lib")
+#ifdef _VX_EDITOR
+#pragma comment(lib, "vxResourceAspect_editor_d.lib")
 #pragma comment(lib, "vxEngineLib_editor_d.lib")
 #pragma comment(lib, "libfbxsdk-mt.lib")
 #else

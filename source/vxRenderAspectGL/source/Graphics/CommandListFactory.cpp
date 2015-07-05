@@ -32,7 +32,8 @@ namespace Graphics
 	void CommandListFactory::createFromFile(const char *file, const gl::ObjectManager &objectManager, const vx::gl::ShaderManager &shaderManager, CommandList* list)
 	{
 		Parser::Node root;
-		VX_ASSERT(root.createFromFile(file));
+		auto result = root.createFromFile(file);
+		VX_ASSERT(result == true);
 
 		auto segmentsNode = root.get("segments");
 

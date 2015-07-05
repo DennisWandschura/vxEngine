@@ -29,7 +29,7 @@ class MeshInstance;
 struct VertexPNTUV;
 class GpuProfiler;
 class Font;
-class FileAspect;
+class FileAspectInterface;
 
 namespace gl
 {
@@ -54,6 +54,7 @@ namespace vx
 namespace Editor
 {
 	class Scene;
+	class MeshInstance;
 }
 
 #include <vxGL/Buffer.h>
@@ -99,7 +100,7 @@ class SceneRenderer
 	void createMeshTransformBuffer();
 	void createMeshMaterialBuffer();
 
-	void createMaterial(Reference<Material> &material, FileAspect* fileAspect);
+	void createMaterial(Reference<Material> &material, FileAspectInterface* fileAspect);
 
 	void setMeshParamBufferValue(u32 count);
 
@@ -112,12 +113,13 @@ class SceneRenderer
 
 	void updateMeshBuffer(const vx::MeshFile** meshes, const vx::StringID* keys, u32 count);
 	void updateBuffersWithMeshInstance(const MeshInstance &instance, u16 elementId, const vx::gl::Buffer* cmdBuffer);
-	void updateBuffers(const void *pInstances, u32 instanceCount);
+	void updateBuffers(const MeshInstance *pInstances, u32 instanceCount);
+	void updateBuffers(const Editor::MeshInstance *pInstances, u32 instanceCount);
 
-	void addMesh(const vx::StringID &meshSid, FileAspect* fileAspect);
+	void addMesh(const vx::StringID &meshSid, FileAspectInterface* fileAspect);
 
-	void loadSceneImpl(Editor::Scene* scene, const gl::ObjectManager &objectManager, FileAspect* fileAspect);
-	void loadSceneImpl(Scene* scene, const gl::ObjectManager &objectManager, FileAspect* fileAspect);
+	void loadSceneImpl(const Editor::Scene* scene, const gl::ObjectManager &objectManager, FileAspectInterface* fileAspect);
+	void loadSceneImpl(const Scene* scene, const gl::ObjectManager &objectManager, FileAspectInterface* fileAspect);
 
 public:
 	SceneRenderer();
@@ -128,26 +130,28 @@ public:
 
 	void shutdown();
 
-	void loadScene(const void* scene, const gl::ObjectManager &objectManager,FileAspect* fileAspect, bool editor);
+	void loadScene(const Scene* scene, const gl::ObjectManager &objectManager, FileAspectInterface* fileAspect);
+	void loadScene(const Editor::Scene* scene, const gl::ObjectManager &objectManager, FileAspectInterface* fileAspect);
+
 	TextureRef loadTexture(const char* file);
 	u32 getTextureIndex(u64 textureHandle) const;
 
 	u32 getMaterialIndex(const Reference<Material> &material) const;
 	bool setMeshInstanceMaterial(const vx::StringID &sid, const Reference<Material> &material) const;
-	bool setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid, FileAspect* fileAspect);
+	bool setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid, FileAspectInterface* fileAspect);
 
 	u16 getActorGpuIndex();
 
 	u32 getMeshInstanceCount() const { return m_staticMeshInstanceCount + m_dynamicMeshInstanceCount; }
 	vx::gl::DrawElementsIndirectCommand getDrawCommand(const vx::StringID &sid) const;
 
-	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex, FileAspect* fileAspect);
+	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material, vx::gl::DrawElementsIndirectCommand* drawCmd, u32* cmdIndex, FileAspectInterface* fileAspect);
 	void updateTransform(const vx::Transform &t, u32 elementId);
 	void updateTransform(const vx::TransformGpu &t, u32 elementId);
 
 	const MeshEntry* getMeshEntries() const;
 	u32 getMeshEntryCount() const;
 
-	void editorAddMeshInstance(const MeshInstance &instance, FileAspect* fileAspect);
+	void editorAddMeshInstance(const MeshInstance &instance, FileAspectInterface* fileAspect);
 	bool editorRemoveStaticMeshInstance(const vx::StringID &sid);
 };

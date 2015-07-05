@@ -25,8 +25,8 @@ SOFTWARE.
 #include "Squad.h"
 #include "../ComponentActor.h"
 #include"../Entity.h"
-#include "../InfluenceMap.h"
-#include "../NavMeshGraph.h"
+#include <vxEngineLib/InfluenceMap.h>
+#include <vxEngineLib/NavMeshGraph.h>
 #include "../AStar.h"
 #include <vxLib/Container/array.h>
 #include <vxLib/ScopeGuard.h>
@@ -38,63 +38,32 @@ SOFTWARE.
 
 namespace SquadCpp
 {
-	void smoothPath(const vx::float3 &currentPosition, f32 collisionRadius, std::vector<vx::float3>* path)
+	void smoothPath(f32 collisionRadius, const vx::array<vx::float3> &oldPath, std::vector<vx::float3>* path)
 	{
 		auto physicsAspect = Locator::getPhysicsAspect();
 
-		auto size = path->size();
+		auto size = oldPath.size();
 		if (size <= 2)
 			return;
 
 		const vx::float3 upDir = { 0, 1, 0 };
 		const __m128 vUpDir = { 0, 1, 0, 0};
 
-		/*auto halfSize = size / 2;
-		//auto next = halfSize - 1;
-
-		auto p1 = (*path)[halfSize];
-
-		auto D = p1 - currentPosition;
-		auto distance = vx::length3(D);
-		auto directionToCurrentNode = D / distance;
-		//vx::float3 forwardDir = { orientation.x, 0, orientation.y };
-		//forwardDir = vx::normalize3(forwardDir);
-
-		auto tangent = vx::cross(upDir, directionToCurrentNode);
-
-		//auto pos0 = currentPosition + tangent * collisionRadius;
-		//auto pos1 = currentPosition - tangent * collisionRadius;
-
-		vx::float3 hitPosition;
-		f32 hitDistance;
-		auto sid0 = physicsAspect->raycast_static(currentPosition, directionToCurrentNode, distance, &hitPosition, &hitDistance);
-		//auto sid1 = physicsAspect->raycast_static(pos1, directionToCurrentNode, distance, &hitPosition, &hitDistance);
-		if (sid0.value == 0 )
-		{
-			auto diff = size - halfSize;
-			for (u32 i = 0;i < diff; ++i)
-			{
-				path->pop_back();
-			}
-		}*/
-
 		vx::float3 hitPosition;
 		f32 hitDistance;
 
-		size = path->size();
-		std::vector<vx::float3> newPath;
-		newPath.reserve(size);
+		path->reserve(size);
 
-		auto &srcPos = (*path)[0];
-		newPath.push_back(srcPos);
+		auto srcPos = oldPath[0];
+		path->push_back(srcPos);
 
 		auto p0 = vx::loadFloat3(srcPos);
 
-		const __m128 vRadius = { collisionRadius,collisionRadius,collisionRadius, 0};
+		const __m128 vRadius = { collisionRadius,collisionRadius, collisionRadius, 0};
 
 		for (u32 i = 2; i < size; ++i)
 		{
-			auto &dstPos = (*path)[i];
+			auto &dstPos = oldPath[i];
 			auto p1 = vx::loadFloat3(dstPos);
 
 			auto D = _mm_sub_ps(p1, p0);
@@ -122,18 +91,16 @@ namespace SquadCpp
 			if (sid0.value != 0 ||
 				sid1.value != 0)
 			{
-				newPath.push_back(srcPos);
-				newPath.push_back((*path)[i - 1]);
-				srcPos = (*path)[i];
+				path->push_back(oldPath[i - 1]);
+				srcPos = oldPath[i];
+				path->push_back(srcPos);
 
 				p0 = vx::loadFloat3(srcPos);
 			}
 		}
 
 		//newPath.push_back((*path)[src]);
-		newPath.push_back(path->back());
-
-		path->swap(newPath);
+		path->push_back(oldPath.back());
 	}
 }
 
@@ -218,7 +185,7 @@ namespace ai
 		return true;
 	}
 
-	void Squad::createPath(EntityActor* entity, Component::Actor* componentActor)
+	void Squad::createPath(Component::Actor* componentActor)
 	{
 		Data* targetData = nullptr;
 		for (auto &it : m_entities)
@@ -328,15 +295,15 @@ namespace ai
 		if (AStar::pathfind(desc))
 		{
 			auto &path = targetData->m_actorComponent->m_data->path;
-			path.reserve(outNodes.size());
+			/*path.reserve(outNodes.size());
 			for (u32 i = 0; i < outNodes.size(); ++i)
 			{
 				path.push_back(outNodes[i]);
-			}
+			}*/
 
-			SquadCpp::smoothPath(entityPosition, 0.3f, &path);
+			SquadCpp::smoothPath(0.3f, outNodes, &path);
 
-			printf("destination: %f %f %f\n", endPosition.x, endPosition.y, endPosition.z);
+		//	printf("destination: %f %f %f\n", endPosition.x, endPosition.y, endPosition.z);
 			targetData->m_actorComponent->m_followingPath = 1;
 			targetData->m_actorComponent->m_data->targetCell = targetActorCellIndex;
 		}

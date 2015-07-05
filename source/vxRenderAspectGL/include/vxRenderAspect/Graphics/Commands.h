@@ -28,6 +28,7 @@ SOFTWARE.
 #include <vxRenderAspect/Graphics/Commands/BlendFuncCommand.h>
 #include "Commands/ClearColorCommand.h"
 #include "Commands/ClearCommand.h"
+#include <vxRenderAspect/Graphics/Commands/ConservativeRasterCommand.h>
 #include "Commands/CpuProfileCommand.h"
 #include "Commands/DrawArraysCommand.h"
 #include "Commands/DrawArraysIndirectCommand.h"
@@ -37,6 +38,7 @@ SOFTWARE.
 #include "Commands/MultiDrawArraysIndirectCountCommand.h"
 #include "Commands/MultiDrawElementsIndirectCountCommand.h"
 #include "Commands/PointSizeCommand.h"
+#include <vxRenderAspect/Graphics/Commands/PolygonModeCommand.h>
 #include "Commands/PolygonOffsetCommand.h"
 #include "Commands/ProgramUniformCommand.h"
 #include "Commands/ViewportCommand.h"

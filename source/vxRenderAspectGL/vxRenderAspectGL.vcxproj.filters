@@ -201,6 +201,18 @@
     <ClCompile Include="source\Graphics\VolumetricLightRenderer.cpp">
       <Filter>Source Files\Graphics\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\ConservativeRasterCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\PStateProfiler.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Graphics\Commands\PolygonModeCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="source\EditorRenderAspect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxRenderAspect\RenderCommand.h">
@@ -402,6 +414,21 @@
       <Filter>Header Files\Graphics\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\game\data\shaders\include\UniformVolumetricFogBuffer.h">
+      <Filter>Shaders\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\EditorRenderAspect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ConservativeRasterCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\PStateProfiler.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PolygonModeCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\game\data\shaders\include\EditorLightBuffer.h">
       <Filter>Shaders\include</Filter>
     </ClInclude>
   </ItemGroup>
@@ -732,6 +759,9 @@
     </None>
     <None Include="..\..\game\data\shaders\include\quaternion.glsl">
       <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\blurpassNew.pipe">
+      <Filter>Shader Pipelines</Filter>
     </None>
   </ItemGroup>
 </Project>

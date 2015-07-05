@@ -22,15 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "AStar.h"
-#include "NavNode.h"
-#include "NavGraph.h"
-#include "NavConnection.h"
+#include <vxEngineLib/NavNode.h>
+#include <vxEngineLib/NavGraph.h>
+#include <vxEngineLib/NavConnection.h>
 #include "Heap.h"
 #include "PhysicsAspect.h"
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/ScopeGuard.h>
 #include <vxLib/Container/array.h>
-#include "NavMeshGraph.h"
+#include <vxEngineLib/NavMeshGraph.h>
 #include <vxEngineLib/Timer.h>
 
 f32 AStar::heuristicDistance(const vx::float3 &fromNode, const vx::float3 &goalNode)

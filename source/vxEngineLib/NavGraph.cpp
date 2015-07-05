@@ -21,11 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "NavGraph.h"
+#include "vxEngineLib/NavGraph.h"
 #include <vxEngineLib/NavMesh.h>
 #include <vxEngineLib/AABB.h>
-#include "NavConnection.h"
-#include "NavNode.h"
+#include "vxEngineLib/NavConnection.h"
+#include "vxEngineLib/NavNode.h"
 #include <vector>
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/algorithm.h>
