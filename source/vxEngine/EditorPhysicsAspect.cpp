@@ -51,7 +51,7 @@ namespace Editor
 		auto fileEvent = (vx::FileEvent)evt.code;
 		switch (fileEvent)
 		{
-		case vx::FileEvent::Scene_Loaded:
+		case vx::FileEvent::EditorScene_Loaded:
 			processScene((Editor::Scene*)evt.arg2.ptr);
 			break;
 		default:

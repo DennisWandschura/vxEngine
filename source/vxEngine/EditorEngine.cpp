@@ -182,7 +182,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	Locator::provide(&m_physicsAspect);
 
 	m_eventManager.initialize(&m_allocator, 255);
-	//m_eventManager.registerListener(&m_renderAspect, 1, (u8)vx::EventType::File_Event);
+	m_eventManager.registerListener(m_renderAspect, 1, (u8)vx::EventType::File_Event);
 	m_eventManager.registerListener(&m_physicsAspect, 1, (u8)vx::EventType::File_Event);
 	m_eventManager.registerListener(this, 1, (u8)vx::EventType::File_Event);
 
@@ -420,10 +420,10 @@ vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY)
 
 	vx::mat4 projMatrix;
 	m_renderAspect->getProjectionMatrix(&projMatrix);
-	projMatrix = vx::MatrixInverse(projMatrix);
+	auto invProjMatrix = vx::MatrixInverse(projMatrix);
 
 	vx::float4a ray_clip(ndc_x, ndc_y, -1, 1);
-	vx::float4a ray_eye = vx::Vector4Transform(projMatrix, ray_clip);
+	vx::float4a ray_eye = vx::Vector4Transform(invProjMatrix, ray_clip);
 	ray_eye.z = -1.0f;
 	ray_eye.w = 0.0f;
 
@@ -1200,7 +1200,6 @@ void EditorEngine::addSpawn()
 
 		auto count = m_pEditorScene->getSpawnCount();
 		auto spawns = m_pEditorScene->getSpawns();
-		printf("spawns: %u\n", count);
 		m_renderAspect->updateSpawns(spawns, count);
 	}
 }

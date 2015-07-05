@@ -93,6 +93,8 @@ namespace Editor
 		m_resolution = resolution;
 		m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(renderDesc.settings->m_fov), (f32)resolution.x / (f32)resolution.y, znear, zfar);
 
+		m_fileAspect = renderDesc.fileAspect;
+
 		vx::gl::ContextDescription contextDesc;
 		contextDesc.tmpHwnd = (HWND)renderDesc.tmpHwnd;
 		contextDesc.glParams.hwnd = (HWND)renderDesc.hwnd;
@@ -127,6 +129,7 @@ namespace Editor
 		vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
 
 		m_objectManager.initialize(50, 20, 20, 20, &m_allocator);
+		m_camera.setPosition(0, 5, 5);
 
 		if (!m_shaderManager.initialize(renderDesc.dataDir, &m_allocator, false))
 		{
@@ -354,6 +357,8 @@ namespace Editor
 
 		glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		updateCamera();
 
 		return RenderAspectInitializeError::OK;
 	}
@@ -605,7 +610,7 @@ namespace Editor
 	void RenderAspect::submitCommands()
 	{
 		vx::gl::StateManager::bindFrameBuffer(0);
-		vx::gl::StateManager::setClearColor(0, 0, 0, 0);
+		vx::gl::StateManager::setClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		if (m_selectedInstance.ptr != nullptr)
@@ -658,7 +663,7 @@ namespace Editor
 
 	void RenderAspect::getProjectionMatrix(vx::mat4* m)
 	{
-
+		*m = m_projectionMatrix;
 	}
 
 	void RenderAspect::getTotalVRam(u32* totalVram) const
@@ -703,6 +708,7 @@ namespace Editor
 		else
 		{
 			m_selectedInstance.ptr = nullptr;
+			return false;
 		}
 
 		return true;
@@ -1005,14 +1011,11 @@ namespace Editor
 	{
 		auto scene = (Editor::Scene*)evt.arg2.ptr;
 
-		__debugbreak();
-
 		m_sceneRenderer.loadScene(scene, m_objectManager, m_fileAspect);
 
 		auto count = m_sceneRenderer.getMeshInstanceCount();
 		auto buffer = m_objectManager.getBuffer("meshParamBuffer");
 		buffer->subData(0, sizeof(u32), &count);
-
 
 		auto lightCount = scene->getLightCount();
 		m_coldData->m_lightCount = lightCount;
