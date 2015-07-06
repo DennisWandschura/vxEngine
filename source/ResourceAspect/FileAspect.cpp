@@ -39,15 +39,18 @@ SOFTWARE.
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/FileEvents.h>
 #include <vxResourceAspect/FbxFactory.h>
+#include <vxEngineLib/AnimationFile.h>
+#include <vxEngineLib/FileFactory.h>
 
 char FileAspect::s_textureFolder[32] = { "data/textures/" };
 char FileAspect::s_materialFolder[32] = { "data/materials/" };
 char FileAspect::s_sceneFolder[32] = { "data/scenes/" };
 char FileAspect::s_meshFolder[32] = { "data/mesh/" };
+char FileAspect::s_animationFolder[32] = { "data/animation/" };
 
 namespace FileAspectCpp
 {
-	char g_assetFolder[32] = {"../assets/"};
+	char g_assetFolder[32] = {"../../../assets/"};
 }
 
 namespace
@@ -161,6 +164,7 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	strcpy_s(s_materialFolder, (dataDir + "materials/").c_str());
 	strcpy_s(s_sceneFolder, (dataDir + "scenes/").c_str());
 	strcpy_s(s_meshFolder, (dataDir + "mesh/").c_str());
+	strcpy_s(s_animationFolder, (dataDir + "animation/").c_str());
 
 	strcpy_s(FileAspectCpp::g_assetFolder, (dataDir + "../../assets/").c_str());
 	
@@ -317,6 +321,9 @@ void FileAspect::getFolderString(vx::FileType fileType, const char** folder)
 	case vx::FileType::Fbx:
 		*folder = FileAspectCpp::g_assetFolder;
 		break;
+	case vx::FileType::Animation:
+		*folder = s_animationFolder;
+		break;
 	default:
 		break;
 	}
@@ -358,21 +365,71 @@ void FileAspect::pushFileEvent(vx::FileEvent code, vx::Variant arg1, vx::Variant
 	m_eventManager->addEvent(e);
 }
 
+bool FileAspect::loadFileAnimation(const LoadFileOfTypeDescription &desc)
+{
+	vx::FileHeader headerTop;
+	memcpy(&headerTop, desc.fileData, sizeof(vx::FileHeader));
+
+	if (headerTop.s_magic != headerTop.magic)
+		return false;
+
+	auto dataBegin = desc.fileData + sizeof(vx::FileHeader);
+	auto fileDataEnd = desc.fileData + desc.fileSize;
+
+	vx::FileHeader headerBottom;
+	memcpy(&headerBottom, fileDataEnd - sizeof(vx::FileHeader), sizeof(vx::FileHeader));
+
+	if (!headerBottom.isEqual(headerTop))
+	{
+		printf("invalid file\n");
+		return false;
+	}
+
+	auto size = desc.fileSize;
+
+	vx::AnimationFile animFile(vx::AnimationFile::getGlobalVersion());
+
+	animFile.loadFromMemory(dataBegin, size, nullptr);
+	auto crc = animFile.getCrc();
+
+	if (headerTop.crc != crc)
+	{
+		printf("wrong crc: %llu %llu\n", headerTop.crc, crc);
+		return false;
+	}
+
+	u16 index;
+	auto ptr = m_poolAnimations.createEntry(&index, std::move(animFile));
+	if (ptr == nullptr)
+	{
+		return false;
+	}
+
+	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded Animation %s\n", desc.fileName);
+	m_sortedAnimations.insert(desc.sid, ptr);
+
+	return true;
+}
+
 bool FileAspect::loadFileFbx(const LoadFileOfTypeDescription &desc)
 {
-#if _VX_EDITOR
 	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Trying to load file %s\n", desc.fileNameWithPath);
 
-	std::vector<vx::FileHandle> files;
+	std::vector<vx::FileHandle> meshFiles, animFiles;
 	FbxFactory factory;
-	factory.loadFile(desc.fileNameWithPath, std::string(s_meshFolder), m_cooking, &files);
+	factory.loadFile(desc.fileNameWithPath, std::string(s_meshFolder), std::string(s_animationFolder), m_cooking, &meshFiles, &animFiles);
 
-	for (auto &it : files)
+	for (auto &it : meshFiles)
 	{
 		vx::FileEntry fileEntry(it.m_string, vx::FileType::Mesh);
 		requestLoadFile(fileEntry, desc.pUserData);
 	}
-#endif
+
+	for (auto &it : animFiles)
+	{
+		vx::FileEntry fileEntry(it.m_string, vx::FileType::Animation);
+		requestLoadFile(fileEntry, desc.pUserData);
+	}
 	return true;
 }
 
@@ -535,6 +592,22 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 			desc.result->type = vx::FileType::Fbx;
 		}
 	}break;
+	case vx::FileType::Animation:
+	{
+		if (loadFileAnimation(desc))
+		{
+			desc.result->result = 1;
+			desc.result->type = vx::FileType::Animation;
+
+			vx::Variant arg1;
+			arg1.u64 = desc.sid.value;
+
+			vx::Variant arg2;
+			arg2.ptr = desc.pUserData;
+
+			pushFileEvent(vx::FileEvent::Animation_Loaded, arg1, arg2);
+		}
+	}
 	default:
 		break;
 	}
@@ -603,8 +676,10 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 		folder = s_sceneFolder;
 		break;
 	default:
+	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error, unhandled file type !");
 		return result;
-		break;
+	}break;
 	}
 
 	char file[64];
@@ -614,6 +689,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	if (!f.create(file, vx::FileAccess::Write))
 	{
 		LOG_ERROR_ARGS(m_logfile, "Error opening file '%s'\n", false, file);
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error opening file '%s'\n", file);
 		return result;
 	}
 
@@ -877,6 +953,18 @@ const vx::MeshFile* FileAspect::getMesh(const vx::StringID &sid) const noexcept
 	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedMeshes.find(sid);
 	if (it != m_sortedMeshes.end())
+		p = *it;
+
+	return p;
+}
+
+const vx::AnimationFile* FileAspect::getAnimation(const vx::StringID &sid) const
+{
+	const vx::AnimationFile *p = nullptr;
+
+	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
+	auto it = m_sortedAnimations.find(sid);
+	if (it != m_sortedAnimations.end())
 		p = *it;
 
 	return p;

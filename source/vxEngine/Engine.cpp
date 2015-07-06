@@ -199,7 +199,7 @@ bool Engine::createRenderAspectDX12(const RenderAspectDescription &desc)
 	if (proc == nullptr || procDestroy == nullptr)
 		return false;
 
-	auto renderAspect = proc(desc, 0);
+	auto renderAspect = proc(desc, nullptr);
 	if (renderAspect == nullptr)
 		return false;
 
@@ -239,9 +239,20 @@ bool Engine::initialize()
 		&m_eventManager,
 	};
 
-	if (!createRenderAspectGL(renderAspectDesc))
+	auto renderMode = g_engineConfig.m_rendererSettings.m_renderMode;
+	if (renderMode == Graphics::RendererSettings::Mode_GL)
 	{
-		return false;
+		if (!createRenderAspectGL(renderAspectDesc))
+		{
+			return false;
+		}
+	}
+	else if (renderMode == Graphics::RendererSettings::Mode_DX12)
+	{
+		if (!createRenderAspectDX12(renderAspectDesc))
+		{
+			return false;
+		}
 	}
 
 	//m_renderAspect->makeCurrent(false);

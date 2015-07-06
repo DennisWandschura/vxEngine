@@ -39,6 +39,7 @@ namespace vx
 	class FileEntry;
 	struct StringID;
 	class MeshFile;
+	class AnimationFile;
 
 	enum class FileType : u8;
 }
@@ -70,6 +71,7 @@ public:
 	virtual Reference<Material> getMaterial(const vx::StringID &id) const noexcept = 0;
 
 	virtual const vx::MeshFile* getMesh(const vx::StringID &sid) const noexcept = 0;
+	virtual const vx::AnimationFile* getAnimation(const vx::StringID &sid) const = 0;
 
 	virtual const char* getLoadedFileName(const vx::StringID &sid) const noexcept = 0;
 

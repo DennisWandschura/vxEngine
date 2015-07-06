@@ -32,11 +32,24 @@ SOFTWARE.
 #include <vxEngineLib/Scene.h>
 #include "d3dx12.h"
 
+#include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/MeshFile.h>
 
 struct Vertex
 {
 	vx::float3 position;
+};
+
+struct CameraBufferData
+{
+	vx::float4a cameraPosition;
+	vx::mat4 pvMatrix;
+	vx::mat4 cameraViewMatrix;
+};
+
+struct Transform
+{
+	vx::float4 translation;
 };
 
 struct TaskLoadScene
@@ -47,6 +60,7 @@ struct TaskLoadScene
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 10000 };
 const u32 g_maxIndexCount{ 20000 };
+const u32 g_maxMeshInstances{128};
 
 void setResourceBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter)
 {
@@ -61,6 +75,20 @@ void setResourceBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* 
 	commandList->ResourceBarrier(1, &descBarrier);
 }
 
+struct UploadTask
+{
+	ID3D12Resource* src;
+	ID3D12Resource* dst;
+	u32 size;
+	u32 srcOffset;
+	u32 dstOffset;
+
+	void execute(ID3D12GraphicsCommandList* cmdList)
+	{
+		cmdList->CopyBufferRegion(dst, dstOffset, src, srcOffset, size);
+	}
+};
+
 RenderAspect::RenderAspect()
 	:m_commandQueue(nullptr),
 	m_commandList(nullptr),
@@ -74,9 +102,11 @@ RenderAspect::RenderAspect()
 	m_lastSwapBuffer(0),
 	m_descriptorHeapRtv(nullptr),
 	m_commandAllocator(nullptr),
-	m_heap(nullptr),
-	m_vertexBuffer(nullptr),
-	m_indexBuffer(nullptr)
+	m_uploadHeap(),
+	m_vertexUploadBuffer(),
+	m_indexUploadBuffer(),
+	m_meshIndexOffset(0),
+	m_meshEntries()
 {
 
 }
@@ -117,66 +147,37 @@ bool RenderAspect::createCommandList()
 	return true;
 }
 
-bool RenderAspect::createMeshBuffers()
+bool RenderAspect::createHeaps()
 {
-	/*auto result = m_device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(sizeof(Vertex) * g_maxVertexCount),
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,    // Clear value
-		IID_PPV_ARGS(&m_vertexBuffer));
+	auto uploadHeapSize = Buffer::calculateAllocSize(sizeof(Vertex) * g_maxVertexCount) + Buffer::calculateAllocSize(sizeof(u32) * g_maxIndexCount);
 
-	if (result != 0)
+	if (!m_uploadHeap.create(uploadHeapSize, m_device))
 	{
-		puts("Error creating vertex buffer");
-		return false;
-	}*/
-
-	D3D12_HEAP_DESC desc{};
-	desc.Alignment = 0xffff + 1;
-	desc.Flags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
-	desc.Properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	desc.SizeInBytes = sizeof(Vertex) * g_maxVertexCount + sizeof(u32) * g_maxIndexCount;
-	auto result = m_device->CreateHeap(&desc, IID_PPV_ARGS(&m_heap));
-	if (result != 0)
-	{
-		puts("Error creating buffer heap");
-		printError(result);
 		return false;
 	}
 
-	auto vresDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(Vertex));
-
-	result = m_device->CreatePlacedResource(m_heap, 0, &vresDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_vertexBuffer));
-	if (result != 0)
+	auto defaultBufferHeapSize = Buffer::calculateAllocSize(sizeof(CameraBufferData) + sizeof(Transform) * g_maxMeshInstances);
+	if (!m_defaultBufferHeap.create(defaultBufferHeapSize, m_device))
 	{
-		puts("Error creating vertex buffer");
-		return false;
-	}
-
-	void* data = nullptr;
-	m_vertexBuffer->Map(0, nullptr, &data);
-	m_vertexBuffer->Unmap(0, nullptr);
-
-	result = m_device->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer(sizeof(u32) * g_maxIndexCount),
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,    // Clear value
-		IID_PPV_ARGS(&m_indexBuffer));
-
-	if (result != 0)
-	{
-		puts("Error creating index buffer");
 		return false;
 	}
 
 	return true;
 }
 
-bool RenderAspect::initialize(const RenderAspectDescription &desc)
+bool RenderAspect::createMeshBuffers()
+{
+	m_vertexUploadBuffer = m_uploadHeap.createBuffer(sizeof(Vertex) * g_maxVertexCount, D3D12_RESOURCE_FLAG_NONE, m_device);
+	m_indexUploadBuffer = m_uploadHeap.createBuffer(sizeof(u32) * g_maxIndexCount, D3D12_RESOURCE_FLAG_NONE, m_device);
+
+	if (!m_vertexUploadBuffer.isValid() ||
+		!m_indexUploadBuffer.isValid())
+		return false;
+
+	return true;
+}
+
+RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &desc)
 {
 	m_allocator = vx::StackAllocator(desc.pAllocator->allocate(5 MBYTE, 64), 5 MBYTE);
 	const auto doubleBufferSizeInBytes = 5 KBYTE;
@@ -186,14 +187,14 @@ bool RenderAspect::initialize(const RenderAspectDescription &desc)
 	if (result != 0)
 	{
 		puts("Error creating device");
-		return false;
+		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
 	result = CreateDXGIFactory1(IID_PPV_ARGS(&m_dxgiFactory));
 	if (result != 0)
 	{
 		puts("Error creating dxgi factory");
-		return false;
+		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
 	D3D12_COMMAND_QUEUE_DESC queueDesc;
@@ -204,7 +205,7 @@ bool RenderAspect::initialize(const RenderAspectDescription &desc)
 	if (result != 0)
 	{
 		puts("Error creating queue");
-		return false;
+		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
 	m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator));
@@ -233,11 +234,12 @@ bool RenderAspect::initialize(const RenderAspectDescription &desc)
 		&descSwapChain,
 		&m_swapChain
 		);
+
 	if (result != 0)
 	{
 		puts("Error creating swap chain");
 		printError(result);
-		return false;
+		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
 	D3D12_DESCRIPTOR_HEAP_DESC descHeap = {};
@@ -248,17 +250,20 @@ bool RenderAspect::initialize(const RenderAspectDescription &desc)
 	if (result != 0)
 	{
 		puts("Error CreateDescriptorHeap");
-		return false;
+		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
 	m_swapChain->GetBuffer(0, IID_PPV_ARGS(&m_renderTarget));
 	m_device->CreateRenderTargetView(m_renderTarget, nullptr, m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart());
 
+	if (!createHeaps())
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+
 	if (!createCommandList())
-		return false;
+		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	if (!createMeshBuffers())
-		return false;
+		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
 	m_currentFence = 1;
@@ -267,7 +272,7 @@ bool RenderAspect::initialize(const RenderAspectDescription &desc)
 
 	waitForGpu();
 
-	return true;
+	return RenderAspectInitializeError::OK;
 }
 
 void RenderAspect::waitForGpu()
@@ -289,24 +294,10 @@ void RenderAspect::waitForGpu()
 
 void RenderAspect::shutdown(void* hwnd)
 {
-	if (m_vertexBuffer)
-	{
-		m_vertexBuffer->Release();
-		m_vertexBuffer = nullptr;
-	}
+	m_vertexUploadBuffer.release();
+	m_indexUploadBuffer.release();
 
-	if (m_indexBuffer)
-	{
-		m_indexBuffer->Release();
-		m_indexBuffer = nullptr;
-	}
-
-	if (m_heap)
-	{
-		m_heap->Release();
-
-		m_heap = nullptr;
-	}
+	m_uploadHeap.release();
 
 	if (m_commandList)
 	{
@@ -420,11 +411,18 @@ void RenderAspect::submitCommands()
 		m_commandList->RSSetViewports(1, &m_viewport);
 		m_commandList->RSSetScissorRects(1, &m_rectScissor);
 
+		for (auto &it : m_drawCommands)
+		{
+			m_commandList->DrawIndexedInstanced(it.indexCount, it.instanceCount, it.firstIndex, it.baseVertex, it.baseInstance);
+		}
+
 		setResourceBarrier(m_commandList, m_renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 		m_commandList->ClearRenderTargetView(m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart(), clearColor, 0, nullptr);
-		m_commandList->OMSetRenderTargets(1, &m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart(), true, nullptr);
+
+		auto tmp = m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart();
+		m_commandList->OMSetRenderTargets(1, &tmp, true, nullptr);
 
 		setResourceBarrier(m_commandList, m_renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
@@ -606,32 +604,81 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 	auto scene = (Scene*)data->ptr;
 
 	auto &meshes = scene->getMeshes();
+	auto meshKeys = meshes.keys();
 	auto meshCount = meshes.size();
 
-	Vertex* gpuVertices = nullptr;
-	auto error = m_vertexBuffer->Map(0, nullptr, (void**)&gpuVertices);
-	VX_ASSERT(error == 0);
+	u32 meshIndexOffset = m_meshIndexOffset;
 
-	u32 vertexOffset = 0;
+	u32 vertexOffsetInBytes = 0;
+	u32 indexOffsetInBytes = 0;
 	for (u32 i = 0; i < meshCount; ++i)
 	{
 		auto &meshFile = meshes[i];
 		auto &mesh = meshFile->getMesh();
+		auto sid = meshKeys[i];
 
 		auto vertexCount = mesh.getVertexCount();
 		auto vertices = mesh.getVertices();
+		auto indexCount = mesh.getIndexCount();
+		auto indices = mesh.getIndices();
 
+		MeshEntry meshEntry;
+		meshEntry.indexStart = meshIndexOffset;
+		meshEntry.indexCount = indexCount;
+
+		auto vertexSizeInBytes = sizeof(Vertex) * vertexCount;
+
+		MappedBuffer mappedVertexBuffer(vertexOffsetInBytes, vertexSizeInBytes);
+		auto error = m_vertexUploadBuffer.map(&mappedVertexBuffer);
+		VX_ASSERT(error == 0);
+
+		Vertex* gpuVertices = (Vertex*)mappedVertexBuffer.ptr;
 		for (u32 j = 0; j < vertexCount; ++j)
 		{
-			gpuVertices[vertexOffset].position = vertices[j].position;
-			++vertexOffset;
+			gpuVertices[j].position = vertices[j].position;
 		}
+		m_vertexUploadBuffer.unmap(&mappedVertexBuffer);
+
+		vertexOffsetInBytes += vertexSizeInBytes;
+
+		auto indexSizeBytes = sizeof(u32) * indexCount;
+
+		MappedBuffer mappedIndexBuffer(indexOffsetInBytes, indexSizeBytes);
+		error = m_indexUploadBuffer.map(&mappedIndexBuffer);
+		VX_ASSERT(error == 0);
+		u32* gpuIndices = (u32*)mappedIndexBuffer.ptr;
+		for (u32 j = 0; j < vertexCount; ++j)
+		{
+			gpuIndices[j] = indices[j];
+		}
+		m_indexUploadBuffer.unmap(&mappedIndexBuffer);
+
+		m_meshEntries.insert(sid, meshEntry);
+
+		indexOffsetInBytes += indexSizeBytes;
+
+		meshIndexOffset += indexCount;
 	}
 
-	m_vertexBuffer->Unmap(0, nullptr);
+	m_meshIndexOffset = meshIndexOffset;
 
 	auto meshInstances = scene->getMeshInstances();
 	auto meshInstanceCount = scene->getMeshInstanceCount();
+
+	for (u32 i = 0;i < meshInstanceCount; ++i)
+	{
+		auto meshSid = meshInstances[i].getMeshSid();
+
+		auto meshIt = m_meshEntries.find(meshSid);
+		VX_ASSERT(meshIt != m_meshEntries.end());
+
+		MeshInstanceDrawCmd drawCmd;
+		drawCmd.indexCount = meshIt->indexCount;
+		drawCmd.instanceCount = 1;
+		drawCmd.firstIndex = meshIt->indexStart;
+		drawCmd.baseVertex = 0;
+		drawCmd.baseInstance = 0;
+	}
 
 	/*auto lightCount = scene->getLightCount();
 	auto lights = scene->getLights();

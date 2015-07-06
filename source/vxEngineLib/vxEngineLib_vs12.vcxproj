@@ -53,7 +53,7 @@
       <Cpp0xSupport>true</Cpp0xSupport>
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
-      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_VX_EDITOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

@@ -48,6 +48,7 @@ u32 g_editorTypeMesh{ 0xffffffff };
 u32 g_editorTypeMaterial{ 0xffffffff };
 u32 g_editorTypeScene{ 0xffffffff };
 u32 g_editorTypeFbx{ 0xffffffff };
+u32 g_editorTypeAnimation{ 0xffffffff };
 
 EditorEngine::EditorEngine()
 	:m_eventManager(),
@@ -152,6 +153,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	g_engineConfig.m_zNear = 0.1f;
 	g_engineConfig.m_editor = true;
 
+	g_engineConfig.m_rendererSettings.m_renderMode = Graphics::RendererSettings::Mode_GL;
 	g_engineConfig.m_rendererSettings.m_shadowMode = 0;
 	g_engineConfig.m_rendererSettings.m_voxelGIMode = 0;
 	g_engineConfig.m_rendererSettings.m_maxMeshInstances = 150;
@@ -288,6 +290,16 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		buildNavGraph();
 		m_renderAspect->updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 	}break;
+	case vx::FileEvent::Animation_Loaded:
+	{
+		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
+
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded Animation");
+		call_editorCallback(vx::StringID(evt.arg1.u64));
+
+		delete(pStr);
+
+	}break;
 	default:
 	{
 	}break;
@@ -303,15 +315,16 @@ void EditorEngine::editor_saveScene(const char* name)
 {
 	auto sceneCopy = new Editor::Scene();
 	m_pEditorScene->copy(sceneCopy);
-	m_fileAspect.requestSaveFile(vx::FileEntry(name, vx::FileType::Scene), sceneCopy);
+	m_fileAspect.requestSaveFile(vx::FileEntry(name, vx::FileType::EditorScene), sceneCopy);
 }
 
-void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx)
+void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u32 typeAnimation)
 {
 	g_editorTypeMesh = mesh;
 	g_editorTypeMaterial = material;
 	g_editorTypeScene = scene;
 	g_editorTypeFbx = fbx;
+	g_editorTypeAnimation = typeAnimation;
 }
 
 void EditorEngine::editor_start()
@@ -364,9 +377,15 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 		fileEntry = vx::FileEntry(filename, vx::FileType::Fbx);
 		p = new std::string(filename);
 	}
+	else if (type == g_editorTypeAnimation)
+	{
+		fileEntry = vx::FileEntry(filename, vx::FileType::Animation);
+		p = new std::string(filename);
+	}
 	else
 	{
-		assert(false);
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Trying to load unknown file type");
+		//assert(false);
 	}
 
 	vx::lock_guard<vx::mutex> guard(m_editorMutex);
@@ -1346,4 +1365,24 @@ u64 EditorEngine::getMaterialSid(u32 i) const
 	}
 
 	return sidValue;
+}
+
+void EditorEngine::setMeshInstanceAnimation(u64 instanceSid, u64 animSid)
+{
+	auto instance = m_pEditorScene->getMeshInstance(vx::StringID(instanceSid));
+	if (instance)
+	{
+		instance->setAnimationSid(vx::StringID(animSid));
+	}
+}
+
+u64 EditorEngine::getMeshInstanceAnimation(u64 instanceSid)
+{
+	u64 result = 0;
+	auto instance = m_pEditorScene->getMeshInstance(vx::StringID(instanceSid));
+	if (instance)
+	{
+		result = instance->getAnimationSid().value;
+	}
+	return result;
 }

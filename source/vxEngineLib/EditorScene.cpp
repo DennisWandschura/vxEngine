@@ -45,7 +45,8 @@ namespace Editor
 
 	Scene::Scene()
 		:m_meshInstances(),
-		m_spawnHumanId(EditorSceneCpp::g_invalidId)
+		m_spawnHumanId(EditorSceneCpp::g_invalidId),
+		m_animationNames()
 	{
 
 	}
@@ -58,7 +59,6 @@ namespace Editor
 		m_meshNames(std::move(params.m_meshNames)),
 		m_actorNames(std::move(params.m_actorNames))
 	{
-#if _VX_EDITOR
 		buildSelectableLights();
 
 		m_selectableSpawns.reserve(m_spawnCount);
@@ -79,7 +79,6 @@ namespace Editor
 			if (spawn.type == PlayerType::Human)
 				m_spawnHumanId = spawn.id;
 		}
-#endif
 	}
 
 	Scene::~Scene()
@@ -146,7 +145,6 @@ namespace Editor
 
 	void Scene::buildSelectableSpawns()
 	{
-#if _VX_EDITOR
 		m_selectableSpawns.clear();
 		m_selectableSpawns.reserve(m_spawnCount);
 
@@ -164,7 +162,6 @@ namespace Editor
 
 			m_selectableSpawns.push_back(selected);
 		}
-#endif
 	}
 
 	void Scene::reset()
@@ -191,6 +188,7 @@ namespace Editor
 		copySortedVector(&dst->m_materialNames, m_materialNames);
 		copySortedVector(&dst->m_meshNames, m_meshNames);
 		copySortedVector(&dst->m_actorNames, m_actorNames);
+		copySortedVector(&dst->m_animationNames, m_animationNames);
 	}
 
 	void Scene::sortMeshInstances()
@@ -233,16 +231,12 @@ namespace Editor
 
 	Light* Scene::addLight(const Light &light)
 	{
-#if _VX_EDITOR
 		m_pLights.push_back(light);
 		++m_lightCount;
 
 		buildSelectableLights();
 
 		return &m_pLights.back();
-#else
-		return nullptr;
-#endif
 	}
 
 	u8 Scene::addMesh(vx::StringID sid, const char* name, const vx::MeshFile* pMesh)
@@ -281,7 +275,6 @@ namespace Editor
 
 	void Scene::addWaypoint(const vx::float3 &position)
 	{
-#if _VX_EDITOR
 		Waypoint w;
 		w.position = position;
 		w.value = 0.0f;
@@ -290,12 +283,10 @@ namespace Editor
 		++m_waypointCount;
 
 		buildSelectableWaypoints();
-#endif
 	}
 
 	void Scene::removeWaypoint(const vx::float3 &position)
 	{
-#if _VX_EDITOR
 		bool found = false;
 		u32 index = 0;
 		for (auto &it : m_selectableWaypoints)
@@ -317,7 +308,6 @@ namespace Editor
 
 			buildSelectableWaypoints();
 		}
-#endif
 	}
 
 	const char* Scene::getMeshInstanceName(const vx::StringID &sid) const
@@ -495,7 +485,6 @@ namespace Editor
 
 	void Scene::setSpawnType(u32 id, u32 type)
 	{
-#if _VX_EDITOR
 		auto it = m_pSpawns.find(id);
 		if (it != m_pSpawns.end())
 		{
@@ -512,7 +501,6 @@ namespace Editor
 				m_spawnHumanId = otherId;
 			}
 		}
-#endif
 	}
 
 	u32 Scene::getSpawnHumanId() const

@@ -59,6 +59,7 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 	static char s_materialFolder[32];
 	static char s_sceneFolder[32];
 	static char s_meshFolder[32];
+	static char s_animationFolder[32];
 
 	struct FileRequest;
 
@@ -82,6 +83,7 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 	Timer m_timer;
 	vx::sorted_array<vx::StringID, vx::MeshFile*> m_sortedMeshes;
 	vx::sorted_array<vx::StringID, Reference<Material>> m_sortedMaterials;
+	vx::sorted_array<vx::StringID, vx::AnimationFile*> m_sortedAnimations;
 	vx::Pool<vx::MeshFile> m_poolMesh;
 	vx::Pool<ReferenceCounted<Material>> m_poolMaterial;
 	vx::Pool<vx::AnimationFile> m_poolAnimations;
@@ -102,6 +104,7 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 
 	LoadFileReturnType saveFile(const FileRequest &request, vx::Variant* p);
 
+	bool loadFileAnimation(const LoadFileOfTypeDescription &desc);
 	bool loadFileFbx(const LoadFileOfTypeDescription &desc);
 	bool loadFileScene(const LoadFileOfTypeDescription &desc, bool editor);
 	bool loadFileMesh(const LoadFileOfTypeDescription &desc);
@@ -135,6 +138,7 @@ public:
 	Reference<Material> getMaterial(const vx::StringID &id) const noexcept override;
 
 	const vx::MeshFile* getMesh(const vx::StringID &sid) const noexcept override;
+	const vx::AnimationFile* getAnimation(const vx::StringID &sid) const override;
 
 	const char* getLoadedFileName(const vx::StringID &sid) const noexcept override;
 

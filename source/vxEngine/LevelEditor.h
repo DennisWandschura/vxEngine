@@ -32,7 +32,7 @@ SOFTWARE.
 
 namespace Editor
 {
-	extern "C" DLL_EXPORT bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx);
+	extern "C" DLL_EXPORT bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx, u32 typeAnimation);
 	extern "C" DLL_EXPORT void shutdownEditor();
 
 	extern "C" DLL_EXPORT void frame();
@@ -84,6 +84,9 @@ namespace Editor
 
 	extern "C" DLL_EXPORT u64 getMeshInstanceMaterialSid(u64 instanceSid);
 	extern "C" DLL_EXPORT void setMeshInstanceMaterial(u64 instanceSid, u64 materialSid);
+
+	extern "C" DLL_EXPORT void setMeshInstanceAnimation(u64 instanceSid, u64 animSid);
+	extern "C" DLL_EXPORT u64 getMeshInstanceAnimation(u64 instanceSid);
 
 	extern "C" DLL_EXPORT u64 createMeshInstance();
 	extern "C" DLL_EXPORT void removeMeshInstance(u64 sid);

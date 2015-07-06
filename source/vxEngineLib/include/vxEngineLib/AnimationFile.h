@@ -36,8 +36,13 @@ namespace vx
 
 	public:
 		explicit AnimationFile(u32 version);
+		AnimationFile(const AnimationFile&) = delete;
+		AnimationFile(AnimationFile &&rhs);
 		AnimationFile(u32 version, Animation &&animation, const char* name);
 		~AnimationFile();
+
+		AnimationFile& operator=(const AnimationFile&) = delete;
+		AnimationFile& operator=(AnimationFile &&rhs);
 
 		void saveToFile(File* f) const override;
 

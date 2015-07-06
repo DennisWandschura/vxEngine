@@ -27,8 +27,8 @@ SOFTWARE.
 
 #include <vxEngineLib/EditorRenderAspectInterface.h>
 
-extern "C" __declspec(dllexport) RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, u8 verboseChannels);
+extern "C" __declspec(dllexport) RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error);;
 extern "C" __declspec(dllexport) void destroyRenderAspect(RenderAspectInterface *p);
 
-extern "C" __declspec(dllexport) Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, u8 verboseChannels);
+extern "C" __declspec(dllexport) Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error);
 extern "C" __declspec(dllexport) void destroyEditorRenderAspect(Editor::RenderAspectInterface *p);

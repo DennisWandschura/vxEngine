@@ -250,7 +250,7 @@ bool createPhysXMesh(const vx::float3* positions, u32 vertexCount, const u32* in
 	return cooking->cookConvexMesh(convexDesc, *writeBuffer);*/
 }
 
-bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, physx::PxCooking* cooking, std::vector<vx::FileHandle>* files)
+bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const std::string &animDir, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles)
 {
 	FbxImporter* lImporter = FbxImporter::Create(m_pFbxManager, "");
 
@@ -443,7 +443,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, physx
 		auto meshFileNameWithPath = saveDir + meshFileName;
 
 		vx::FileFactory::saveToFile(meshFileNameWithPath.c_str(), &meshFile);
-		files->push_back(vx::FileHandle(meshFileName.c_str()));
+		meshFiles->push_back(vx::FileHandle(meshFileName.c_str()));
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Converted fbx to mesh %s\n", meshFileNameWithPath.c_str());
 
 		std::unique_ptr<vx::AnimationLayer[]> animationLayers;
@@ -453,6 +453,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, physx
 		if (animationLayerCount != 0)
 		{
 			std::string animFileName = fileName + ".animation";
+			std::string animFileWithPath = animDir + animFileName;
 
 			vx::Animation animation;
 			animation.layerCount = animationLayerCount;
@@ -460,11 +461,14 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, physx
 
 			vx::AnimationFile animationFile(vx::AnimationFile::getGlobalVersion(), std::move(animation), animFileName.c_str());
 
-			vx::FileFactory::saveToFile(animFileName.c_str(), &animationFile);
+			vx::FileFactory::saveToFile(animFileWithPath.c_str(), &animationFile);
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Saved animation %s\n", animFileName.c_str());
+
+			animFiles->push_back(vx::FileHandle(animFileName.c_str()));
 		}
 
 		//printf("animation layers: %u\n", animationLayerCount);
-		printf("vertexCount: %u\n", vertexCount);
+		//printf("vertexCount: %u\n", vertexCount);
 	}
 
 	return true;

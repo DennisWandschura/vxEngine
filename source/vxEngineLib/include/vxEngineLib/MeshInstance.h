@@ -68,4 +68,5 @@ public:
 	void setMaterial(const Reference<Material> &material);
 	void setNameSid(const vx::StringID &sid) { m_nameSid = sid; }
 	void setMeshSid(const vx::StringID &sid) { m_meshSid = sid; }
+	void setAnimationSid(const vx::StringID &sid) { m_animationSid = sid; }
 };

@@ -37,7 +37,7 @@ namespace vx
 		}
 
 		const u8* loadFromMemory(const u8 *ptr);
-		void saveToFile(File* f) const;
+		void saveToFile(File* f, u32* writtenSize) const;
 	};
 
 	struct Animation
@@ -62,6 +62,6 @@ namespace vx
 		}
 
 		const u8* loadFromMemory(const u8 *ptr);
-		void saveToFile(File* f) const;
+		void saveToFile(File* f, u32* writtenSize) const;
 	};
 }

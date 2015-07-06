@@ -31,26 +31,19 @@ namespace vx
 struct NavMeshTriangle;
 
 #include <vxLib/math/Vector.h>
-#if _VX_EDITOR
 #include <vector>
-#endif
 #include <vxLib/memory.h>
 #include <vxEngineLib/AABB.h>
 
 class NavMesh
 {
 	std::unique_ptr<NavMeshTriangle[]> m_navMeshTriangles;
-#if _VX_EDITOR
 	std::vector<vx::float3> m_vertices;
 	std::vector<u16> m_triangleIndices;
-	std::vector<AABB> m_vertexBounds;
-#else
-	std::unique_ptr<vx::float3[]> m_vertices;
-	std::unique_ptr<u16[]> m_triangleIndices;
-#endif
 	AABB m_bounds;
 	u32 m_vertexCount;
 	u32 m_triangleCount;
+	std::vector<AABB> m_vertexBounds;
 
 	bool isCCW(const vx::float3 &p0, const vx::float3 &p1, const vx::float3 &p2) const;
 

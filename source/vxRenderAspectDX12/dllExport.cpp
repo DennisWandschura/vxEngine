@@ -1,16 +1,22 @@
 #include "dllExport.h"
 #include "RenderAspect.h"
 
-RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, u8 verboseChannels)
+RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
 {
 	auto result = (RenderAspect*)_aligned_malloc(sizeof(RenderAspect), __alignof(RenderAspect));
 	new (result) RenderAspect{};
 
-	if (!result->initialize(desc))
+	auto initError = result->initialize(desc);
+	if (initError != RenderAspectInitializeError::OK)
 	{
 		result->~RenderAspect();
 		_aligned_free(result);
 		result = nullptr;
+	}
+
+	if (error)
+	{
+		*error = initError;
 	}
 
 	return result;
@@ -26,7 +32,7 @@ void destroyRenderAspect(RenderAspectInterface *p)
 	}
 }
 
-Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, u8 verboseChannels)
+Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
 {
 	return nullptr;
 }

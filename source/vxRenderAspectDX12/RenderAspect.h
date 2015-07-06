@@ -39,6 +39,25 @@ struct ID3D12CommandAllocator;
 #include <vxEngineLib/DoubleBufferRaw.h>
 #include <vxLib/Graphics/Camera.h>
 #include <vector>
+#include "UploadHeap.h"
+#include <vxLib/Container/sorted_vector.h>
+#include <vxLib/StringID.h>
+#include "DefaultHeap.h"
+
+struct MeshEntry
+{
+	u32 indexStart;
+	u32 indexCount;
+};
+
+struct MeshInstanceDrawCmd
+{
+	u32 indexCount;
+	u32 instanceCount;
+	u32 firstIndex;
+	u32 baseVertex;
+	u32 baseInstance;
+};
 
 class RenderAspect : public RenderAspectInterface
 {
@@ -57,15 +76,21 @@ class RenderAspect : public RenderAspectInterface
 	ID3D12CommandAllocator* m_commandAllocator;
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_rectScissor;
-	ID3D12Heap* m_heap;
-	ID3D12Resource* m_vertexBuffer;
-	ID3D12Resource* m_indexBuffer;
+	UploadHeap m_uploadHeap;
+	UploadBuffer m_vertexUploadBuffer;
+	UploadBuffer m_indexUploadBuffer;
 	vx::mutex m_updateMutex;
 	std::vector<RenderUpdateTask> m_tasks;
 	DoubleBufferRaw m_doubleBuffer;
 	RenderUpdateCameraData m_updateCameraData;
 	vx::StackAllocator m_allocator;
+	u32 m_meshIndexOffset;
+	vx::sorted_vector<vx::StringID, MeshEntry> m_meshEntries;
+	std::vector<MeshInstanceDrawCmd> m_drawCommands;
+	DefaultHeap m_defaultBufferHeap;
+	DefaultHeap m_defaultGeometryHeap;
 
+	bool createHeaps();
 	bool createCommandList();
 	bool createMeshBuffers();
 
@@ -86,7 +111,7 @@ public:
 	RenderAspect();
 	~RenderAspect();
 
-	bool initialize(const RenderAspectDescription &desc);
+	RenderAspectInitializeError initialize(const RenderAspectDescription &desc);
 	void shutdown(void* hwnd);
 
 	bool initializeProfiler();

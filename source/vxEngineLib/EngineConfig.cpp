@@ -29,7 +29,8 @@ EngineConfig g_engineConfig{};
 
 bool EngineConfig::loadFromFile(const char* file)
 {
-	m_root.createFromFile(file);
+	if (!m_root.createFromFile(file))
+		return false;
 
 	m_root.get("resolution")->as(&m_resolution);
 	m_root.get("fov")->as(&m_fov);
@@ -38,7 +39,16 @@ bool EngineConfig::loadFromFile(const char* file)
 	m_root.get("vsync")->as(&m_vsync);
 	m_root.get("debug")->as(&m_renderDebug);
 
+	m_rendererSettings.m_renderMode = Graphics::RendererSettings::Mode_GL;
 	auto rendererSettings = m_root.get("renderer");
+	auto renderMode = rendererSettings->get("mode");
+	if (renderMode)
+	{
+		u32 value = 0;
+		renderMode->as(&value);
+
+		m_rendererSettings.m_renderMode = (Graphics::RendererSettings::Mode)value;
+	}
 
 	auto shadowSettings = rendererSettings->get("shadow");
 

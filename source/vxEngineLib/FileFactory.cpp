@@ -24,6 +24,7 @@ SOFTWARE.
 #include <vxEngineLib/FileFactory.h>
 #include <vxLib/File/FileHeader.h>
 #include <vxLib/File/File.h>
+#include <cstdio>
 
 namespace vx
 {
@@ -42,6 +43,8 @@ namespace vx
 		header.magic = FileHeader::s_magic;
 		header.version = data->getVersion();
 		header.crc = data->getCrc();
+
+		printf("crc: %llu\n", header.crc);
 
 		f->write(header);
 		data->saveToFile(f);

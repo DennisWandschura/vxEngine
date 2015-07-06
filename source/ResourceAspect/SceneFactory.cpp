@@ -40,48 +40,82 @@ SOFTWARE.
 #include <vxEngineLib/MeshInstanceFile.h>
 #include <vxEngineLib/debugPrint.h>
 #include <vxEngineLib/Reference.h>
+#include <vxEngineLib/AnimationFile.h>
 
 struct SceneFactory::LoadSceneFileDescription
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes;
 	const vx::sorted_array<vx::StringID, Reference<Material>>* sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::AnimationFile>* sortedAnimations;
 	std::vector<vx::FileEntry> *pMissingFiles;
 	SceneFile *pSceneFile;
 };
+
+bool checkMeshInstanceMesh(const vx::FileEntry &meshFileEntry, const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes, std::vector<vx::FileEntry>* missingFiles)
+{
+	bool result = true;
+	auto itMesh = sortedMeshes->find(meshFileEntry.getSid());
+	if (itMesh == sortedMeshes->end())
+	{
+		// request load
+		missingFiles->push_back(meshFileEntry);
+
+		//printf("could not find mesh: %s %llu\n", meshFile, meshFileEntry.getSid());
+
+		result = false;
+	}
+
+	return result;
+}
+
+bool checkMeshInstanceMaterial(const vx::FileEntry &materialFileEntry, const vx::sorted_array<vx::StringID, Reference<Material>>* sortedMaterials, std::vector<vx::FileEntry>* missingFiles)
+{
+	bool result = true;
+	auto it = sortedMaterials->find(materialFileEntry.getSid());
+	if (it == sortedMaterials->end())
+	{
+		// request load
+		missingFiles->push_back(materialFileEntry);
+
+		//printf("could not find mesh: %s %llu\n", meshFile, meshFileEntry.getSid());
+
+		result = false;
+	}
+
+	return result;
+}
 
 bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFile* instances, u32 count)
 {
 	bool result = true;
 	for (u32 i = 0; i < count; ++i)
 	{
+		auto &instance = instances[i];
 		auto meshFile = instances[i].getMeshFile();
 		auto meshFileEntry = vx::FileEntry(meshFile, vx::FileType::Mesh);
 
 		// check for mesh
-		auto itMesh = desc.sortedMeshes->find(meshFileEntry.getSid());
-		if (itMesh == desc.sortedMeshes->end())
+		if (!checkMeshInstanceMesh(meshFileEntry, desc.sortedMeshes, desc.pMissingFiles))
 		{
-			// request load
-			desc.pMissingFiles->push_back(meshFileEntry);
-
-			//printf("could not find mesh: %s %llu\n", meshFile, meshFileEntry.getSid());
-
 			result = false;
 		}
 
 		// check for material
 		auto materialFile = instances[i].getMaterialFile();
 		auto materialFileEntry = vx::FileEntry(materialFile, vx::FileType::Material);
+		if (!checkMeshInstanceMaterial(materialFileEntry, desc.sortedMaterials, desc.pMissingFiles))
+		{
+			result = false;
+		}
 
-
-		auto itMaterial = desc.sortedMaterials->find(materialFileEntry.getSid());
+		/*auto itMaterial = desc.sortedMaterials->find(materialFileEntry.getSid());
 		if (itMaterial == desc.sortedMaterials->end())
 		{
 			desc.pMissingFiles->push_back(materialFileEntry);
 			//printf("could not find material: %s\n", materialFile);
 
 			result = false;
-		}
+		}*/
 	}
 
 	return result;

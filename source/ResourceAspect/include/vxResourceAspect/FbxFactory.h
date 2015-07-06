@@ -24,5 +24,5 @@ public:
 	FbxFactory();
 	~FbxFactory();
 
-	bool loadFile(const char *fbxFile, const std::string &saveDir, physx::PxCooking* cooking, std::vector<vx::FileHandle>* files);
+	bool loadFile(const char *fbxFile, const std::string &meshDir, const std::string &animDir, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles);
 };

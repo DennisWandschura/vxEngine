@@ -111,7 +111,7 @@ public:
 	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene);
 	void shutdownEditor();
 
-	static void editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx);
+	static void editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u32 animation);
 
 	void editor_saveScene(const char* name);
 
@@ -169,6 +169,9 @@ public:
 	void createNavMeshTriangleFromIndices(const vx::uint3 &indices);
 	void removeNavMeshTriangle();
 	u32 getSelectedNavMeshCount() const;
+
+	void setMeshInstanceAnimation(u64 instanceSid, u64 animSid);
+	u64 getMeshInstanceAnimation(u64 instanceSid);
 
 	void createLight();
 	bool selectLight(s32 mouseX, s32 mouseY);

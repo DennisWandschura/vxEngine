@@ -40,7 +40,24 @@ public:
 	ReferenceCounted(Args&& ...args) : m_data(std::forward<Args>(args)...), m_refCount() {}
 
 	ReferenceCounted(const ReferenceCounted&) = delete;
-	ReferenceCounted(ReferenceCounted &&rhs) :m_data(std::move(rhs.m_data)), m_refCount(std::move(rhs.m_refCount)){}
+	ReferenceCounted(ReferenceCounted &&rhs) 
+		:m_data(std::move(rhs.m_data)), 
+		m_refCount(rhs.m_refCount)
+	{
+		rhs.m_refCount.store(0);
+	}
+
+	ReferenceCounted& operator=(ReferenceCounted &&rhs)
+	{
+		if (this != &rhs)
+		{
+			std::swap(m_data, rhs.m_data);
+			std::swap(m_refCount, rhs.m_refCount);
+		}
+		return *this;
+	}
+
+	ReferenceCounted& operator=(const ReferenceCounted&) = delete;
 
 	u32 increment()
 	{

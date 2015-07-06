@@ -28,13 +28,16 @@ SOFTWARE.
 
 namespace vx
 {
-	void Animation::saveToFile(File* f) const
+	void Animation::saveToFile(File* f, u32* writtenSize) const
 	{
 		f->write(layerCount);
 		for (u32 i = 0; i < layerCount; ++i)
 		{
-			layers[i].saveToFile(f);
+			layers[i].saveToFile(f, writtenSize);
 		}
+
+		//printf("layerCount: %u\n", layerCount);
+		*writtenSize += sizeof(layerCount);
 	}
 
 	const u8* Animation::loadFromMemory(const u8 *ptr)
@@ -46,18 +49,27 @@ namespace vx
 			ptr = layers[i].loadFromMemory(ptr);
 		}
 
+		//printf("layerCount: %u\n", layerCount);
 		return ptr;
 	}
 
-	void AnimationLayer::saveToFile(File* f) const
+	void AnimationLayer::saveToFile(File* f, u32* writtenSize) const
 	{
 		f->write(frameCount);
 		f->write(frameRate);
 
+		//printf("frameCount: %u\n", frameCount);
+		//printf("frameRate: %f\n", frameRate);
+
 		for (u32 i = 0; i < frameCount; ++i)
 		{
 			f->write(samples[i]);
+
+			*writtenSize += sizeof(AnimationSample);
 		}
+
+		*writtenSize += sizeof(frameCount);
+		*writtenSize += sizeof(frameRate);
 	}
 
 	const u8* AnimationLayer::loadFromMemory(const u8 *ptr)
@@ -65,7 +77,19 @@ namespace vx
 		ptr = vx::read(frameCount, ptr);
 		ptr = vx::read(frameRate, ptr);
 
+		//printf("frameCount: %u\n", frameCount);
+		//printf("frameRate: %f\n", frameRate);
+
 		samples = std::make_unique<AnimationSample[]>(frameCount);
-		return vx::read(samples.get(), ptr, frameCount);
+
+		for (u32 i = 0; i < frameCount; ++i)
+		{
+			ptr = vx::read(samples[i], ptr);
+
+			//printf("	frame: %u\n", samples[i].frame);
+			//printf("	translation: %f %f %f\n", samples[i].transform.m_translation.x, samples[i].transform.m_translation.y, samples[i].transform.m_translation.z);
+		}
+
+		return ptr;
 	}
 }

@@ -42,7 +42,15 @@ namespace vx
 		m_animation(std::move(animation)),
 		m_name()
 	{
-		strncpy(m_name, name, 32);
+		strncpy(m_name, name, sizeof(m_name));
+	}
+
+	AnimationFile::AnimationFile(AnimationFile &&rhs)
+		:Serializable(std::move(rhs)),
+		m_animation(std::move(rhs.m_animation)),
+		m_name()
+	{
+		strncpy(m_name, rhs.m_name, sizeof(m_name));
 	}
 
 	AnimationFile::~AnimationFile()
@@ -50,17 +58,49 @@ namespace vx
 
 	}
 
+	AnimationFile& AnimationFile::operator = (AnimationFile &&rhs)
+	{
+		if (this != &rhs)
+		{
+			Serializable::operator=(std::move(rhs));
+			std::swap(m_animation, rhs.m_animation);
+
+			const auto bufferSize = sizeof(m_name);
+			char buffer[bufferSize];
+			strncpy(buffer, rhs.m_name, bufferSize);
+
+			strncpy(rhs.m_name, m_name, bufferSize);
+			strncpy(m_name, buffer, bufferSize);
+			
+		}
+		return *this;
+	}
+
 	void AnimationFile::saveToFile(File* f) const
 	{
-		m_animation.saveToFile(f);
+		u32 writtenSize = 0;
+		m_animation.saveToFile(f, &writtenSize);
 		f->write(m_name);
+
+		writtenSize += sizeof(m_name);
+
+		//printf("name: %s\n", m_name);
+		//printf("AnimationFile::saveToFile: %u\n", writtenSize);
 	}
 
 	const u8* AnimationFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator)
 	{
+		auto start = ptr;
+
 		ptr = m_animation.loadFromMemory(ptr);
+		ptr = vx::read(m_name, ptr, sizeof(m_name));
 		
-		return vx::read(m_name, ptr);
+		auto readSize = ptr - start;
+
+		//printf("name: %s\n", m_name);
+		//printf("AnimationFile::loadFromMemory: %u\n", readSize);
+
+		return ptr;
 	}
 
 	u64 AnimationFile::getCrc() const
@@ -73,24 +113,26 @@ namespace vx
 			sampleCount += layer.frameCount;
 		}
 
-		auto totalSize = m_animation.layerCount * sizeof(AnimationLayer) + sampleCount * sizeof(AnimationSample) + sizeof(m_name) + sizeof(Animation);
+		auto totalSize = m_animation.layerCount * (sizeof(f32) + sizeof(u32)) + sampleCount * sizeof(AnimationSample) + sizeof(m_name) + sizeof(u32);
+		//printf("AnimationFile::crc size: %u\n", totalSize);
 
 		auto memory = std::make_unique<u8[]>(totalSize);
 		auto ptr = memory.get();
 
-		ptr = vx::write(ptr, m_animation);
-		ptr = vx::write(ptr, m_name);
-
+		ptr = vx::write(ptr, m_animation.layerCount);
 		for (u32 layerIndex = 0; layerIndex < m_animation.layerCount; ++layerIndex)
 		{
 			auto &layer = m_animation.layers[layerIndex];
-			ptr = vx::write(ptr, layer);
+			ptr = vx::write(ptr, layer.frameCount);
+			ptr = vx::write(ptr, layer.frameRate);
 
 			for (u32 i = 0; i < layer.frameCount; ++i)
 			{
 				ptr = vx::write(ptr, layer.samples[i]);
 			}
 		}
+
+		ptr = vx::write(ptr, m_name);
 
 		return CityHash64((char*)memory.get(), totalSize);
 	}

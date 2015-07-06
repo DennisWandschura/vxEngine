@@ -42,6 +42,9 @@ namespace Graphics
 
 	struct RendererSettings
 	{
+		enum Mode { Mode_GL, Mode_DX12 };
+
+		Mode m_renderMode;
 		u8 m_shadowMode;
 		u8 m_voxelGIMode;
 		u32 m_maxActiveLights;

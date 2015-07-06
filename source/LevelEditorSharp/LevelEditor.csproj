@@ -101,6 +101,7 @@
     <Compile Include="ActionNode.cs" />
     <Compile Include="ActionRemoveNavMeshVertex.cs" />
     <Compile Include="ActionRenameSelectedMeshInstance.cs" />
+    <Compile Include="ActionSetMeshInstanceAnimation.cs" />
     <Compile Include="ActionSetMeshInstanceMaterial.cs" />
     <Compile Include="ActionSetMeshInstanceMesh.cs" />
     <Compile Include="ActionSetMeshInstancePosition.cs" />

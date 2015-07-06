@@ -297,13 +297,17 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 			auto name = instanceFile.getName();
 			auto meshFile = instanceFile.getMeshFile();
 			auto materialFile = instanceFile.getMaterialFile();
+			auto animationFile = instanceFile.getAnimation();
 
 			if (name[0] == '\0')
 				name = genName.c_str();
 
+			vx::FileHandle sidAnimation;
+			if (animationFile[0] != '\0')
+				sidAnimation = vx::FileHandle(animationFile);
+
 			auto sidName = vx::FileHandle(name);
 			auto sidMesh = vx::FileHandle(meshFile);
-			auto sidAnimation = vx::FileHandle(instanceFile.getAnimation());
 			auto itMesh = desc.sortedMeshes->find(sidMesh.m_sid);
 			auto sidMaterial = vx::FileHandle(materialFile);
 			auto itMaterial = desc.sortedMaterials->find(sidMaterial.m_sid);
@@ -354,7 +358,8 @@ bool SceneFile::createSceneActors(const CreateSceneActorsDesc &desc)
 			desc.sceneMeshes->insert(sidMesh.m_sid, *itMesh);
 			desc.sceneMaterials->insert(sidMaterial.m_sid, *itMaterial);
 
-			auto sidName = vx::make_sid(actor.m_name);
+			auto sidName = vx::FileHandle(actor.m_name).m_sid;
+			//auto sidName = vx::make_sid(actor.m_name);
 
 			Actor a;
 			a.m_mesh = sidMesh.m_sid;
@@ -550,12 +555,13 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	{
 		auto &actorFile = m_pActors[i];
 		
-		auto sid = vx::FileHandle(actorFile.m_name);
+		auto sid = vx::FileHandle(actorFile.m_name).m_sid;
+		//auto sid = vx::make_sid(actorFile.m_name);
 
 		//char str[32];
 	//	strncpy(str, actorFile.m_name, 32);
 
-		actorNames.insert(sid.m_sid, actorFile.m_name);
+		actorNames.insert(sid, actorFile.m_name);
 	}
 
 	Editor::SceneParams sceneParams;

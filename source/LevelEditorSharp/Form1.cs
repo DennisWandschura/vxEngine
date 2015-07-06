@@ -45,11 +45,12 @@ namespace LevelEditor
         const int s_groupBoxEditPositionX = 2000;
         const int s_groupBoxEditPositionY = 680;
 
-        const UInt32 s_typeMesh = 0;
-        const UInt32 s_typeMaterial = 1;
-        const UInt32 s_typeMeshInstance = 2;
-        const UInt32 s_typeScene = 3;
-        const UInt32 s_typeFbx = 4;
+        const uint s_typeMesh = 0;
+        const uint s_typeMaterial = 1;
+        const uint s_typeMeshInstance = 2;
+        const uint s_typeScene = 3;
+        const uint s_typeFbx = 4;
+        const uint s_typeAnimation = 5;
 
         static Form1 s_form;
 
@@ -60,6 +61,7 @@ namespace LevelEditor
         TreeNode m_materialNode;
         TreeNode m_meshInstanceNode;
         TreeNode m_waypointsNode;
+        TreeNode m_animationsNode;
         bool m_keyDownAlt;
         int m_mouseX;
         int m_mouseY;
@@ -76,6 +78,7 @@ namespace LevelEditor
         Dictionary<ulong, EditorNodeEntry> m_sortedMeshInstances;
         Dictionary<ulong, EditorEntry> m_sortedMeshes;
         Dictionary<ulong, EditorEntry> m_sortedMaterials;
+        Dictionary<ulong, EditorEntry> m_sortedAnimations;
         Dictionary<Keys, bool> m_keys;
         ActionList m_actionListHead;
         uint m_selectedSpawn;
@@ -88,6 +91,8 @@ namespace LevelEditor
             m_materialNode = treeView_entities.Nodes.Add("Materials");
             m_meshInstanceNode = treeView_entities.Nodes.Add("Mesh Instances");
             m_waypointsNode = treeView_entities.Nodes.Add("Waypoints");
+            m_animationsNode = treeView_entities.Nodes.Add("Animations");
+
             treeView_entities.Nodes.Add("Lights");
             m_currentSceneFileName = "untitled.scene";
 
@@ -97,6 +102,7 @@ namespace LevelEditor
             m_sortedMeshInstances = new Dictionary<ulong, EditorNodeEntry>();
             m_sortedMeshes = new Dictionary<ulong, EditorEntry>();
             m_sortedMaterials = new Dictionary<ulong, EditorEntry>();
+            m_sortedAnimations = new Dictionary<ulong, EditorEntry>();
             m_keys = new Dictionary<Keys, bool>();
 
             loadFileDelegate = new LoadedFileFun(loadedFile);
@@ -117,7 +123,7 @@ namespace LevelEditor
 
                 Panel tmp = new Panel();
 
-                if(!NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx))
+                if (!NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx, s_typeAnimation))
                 {
                     throw new Exception();
                 }
@@ -597,6 +603,25 @@ namespace LevelEditor
             }
         }
 
+        void addAnimation(ulong sid, string name)
+        {
+            EditorEntry entry;
+            if (!m_sortedAnimations.TryGetValue(sid, out entry))
+            {
+                insertAnimation(sid, name);
+            }
+        }
+
+        void insertAnimation(ulong sid, string name)
+        {
+            var nodeEntry = new EditorNodeEntry(sid, s_typeAnimation, name);
+            var entry = new EditorEntry(name, sid);
+
+            m_animationsNode.Nodes.Add(nodeEntry);
+            comboBoxAnimation.Items.Add(entry);
+            m_sortedAnimations.Add(nodeEntry.sid, entry);
+        }
+
         void loadedFile(UInt64 sid, UInt32 type)
         {
             string str;
@@ -618,6 +643,10 @@ namespace LevelEditor
                     addSceneMeshes();
                     addSceneMaterials();
                     addSceneMeshInstances();
+                }
+                else if(type == s_typeAnimation)
+                {
+                    addAnimation(sid, str);
                 }
                 else
                 {
@@ -684,6 +713,12 @@ namespace LevelEditor
 
                 NativeMethods.loadFile(filename, s_typeFbx, Form1.loadFileCallback);
             }
+            else if(ext == ".animation")
+            {
+                m_requestedFiles.Add(sid, filename);
+
+                NativeMethods.loadFile(filename, s_typeAnimation, Form1.loadFileCallback);
+            }
         }
 
         void setNumericUpDownTranslation(Float3 translation)
@@ -732,6 +767,7 @@ namespace LevelEditor
 
             var materialSid = NativeMethods.getMeshInstanceMaterialSid(sid);
             var meshSid = NativeMethods.getMeshInstanceMeshSid(sid);
+            var animSid = NativeMethods.getMeshInstanceAnimation(sid);
 
             EditorEntry entry;
             if (m_sortedMeshes.TryGetValue(meshSid, out entry))
@@ -750,6 +786,15 @@ namespace LevelEditor
             else
             {
                 Console.WriteLine("Error getting instance material name: {0}", materialSid);
+            }
+
+            if (m_sortedAnimations.TryGetValue(animSid, out entry))
+            {
+                comboBoxAnimation.SelectedItem = entry;
+            }
+            else
+            {
+                Console.WriteLine("Error getting instance animation name: {0}", animSid);
             }
         }
 
@@ -1345,8 +1390,27 @@ namespace LevelEditor
             {
                 var oldSid = NativeMethods.getMeshInstanceMaterialSid(instanceSid);
 
-                var action = new ActionSetMeshInstanceMaterial(instanceSid, oldSid, materialSid);
-                runAction(action);
+                if (oldSid != materialSid)
+                {
+                    var action = new ActionSetMeshInstanceMaterial(instanceSid, oldSid, materialSid);
+                    runAction(action);
+                }
+            }
+        }
+
+        void setMeshInstanceAnimation(ulong animSid)
+        {
+            var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
+
+            if (animSid != 0 && instanceSid != 0 && m_selectedMeshInstanceSid == instanceSid)
+            {
+                var oldSid = NativeMethods.getMeshInstanceAnimation(instanceSid);
+
+                if (oldSid != animSid)
+                {
+                    var action = new ActionSetMeshInstanceAnimation(instanceSid, oldSid, animSid);
+                    runAction(action);
+                }
             }
         }
 
@@ -1538,6 +1602,12 @@ namespace LevelEditor
         private void toolStripButtonCreateSpawn_Click(object sender, EventArgs e)
         {
             NativeMethods.addSpawn();
+        }
+
+        private void comboBoxAnimation_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            EditorEntry entry = (EditorEntry)comboBoxAnimation.SelectedItem;
+            setMeshInstanceAnimation(entry.m_sid);
         }
     }
 }

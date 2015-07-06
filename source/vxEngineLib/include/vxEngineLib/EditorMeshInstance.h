@@ -49,6 +49,7 @@ namespace Editor
 		void setRotation(const vx::float4 &rotation){ m_meshInstance.setRotation(rotation); }
 		void setMaterial(const Reference<Material> &material) { m_meshInstance.setMaterial(material); }
 		void setMeshSid(const vx::StringID &sid) { m_meshInstance.setMeshSid(sid); }
+		void setAnimationSid(const vx::StringID &sid){ m_meshInstance.setAnimationSid(sid); }
 
 		vx::StringID getNameSid() const noexcept{ return m_meshInstance.getNameSid(); }
 		vx::StringID getMeshSid() const noexcept{ return m_meshInstance.getMeshSid(); }

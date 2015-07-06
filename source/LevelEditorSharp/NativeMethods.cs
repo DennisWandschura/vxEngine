@@ -67,7 +67,7 @@ namespace LevelEditor
 
         // bool initialize(intptr_t hwndPanel, intptr_t hwndTmp, unsigned int panelSizeX, unsigned int panelSizeY);
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern bool initializeEditor(IntPtr hwndPanel, IntPtr hwndTmp, uint panelSizeX, uint panelSizeY, uint typeMesh, uint typeMaterial, uint typeScene, uint typeFbx);
+        public unsafe static extern bool initializeEditor(IntPtr hwndPanel, IntPtr hwndTmp, uint panelSizeX, uint panelSizeY, uint typeMesh, uint typeMaterial, uint typeScene, uint typeFbx, uint typeAnim);
 
         // void shutdown();
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
@@ -155,6 +155,12 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void setMeshInstanceMeshSid(ulong instanceSid, ulong meshSid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getMeshInstanceAnimation(ulong instanceSid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setMeshInstanceAnimation(ulong instanceSid, ulong animSid);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern bool selectMeshInstance(int x, int y);

@@ -97,6 +97,9 @@ namespace LevelEditor
             this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
             this.meshInstanceComboBoxMaterial = new System.Windows.Forms.ComboBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.flowLayoutPanel14 = new System.Windows.Forms.FlowLayoutPanel();
+            this.comboBoxAnimation = new System.Windows.Forms.ComboBox();
+            this.label13 = new System.Windows.Forms.Label();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.comboBox_selectEditorMode = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripButtonCreateLight = new System.Windows.Forms.ToolStripButton();
@@ -150,6 +153,7 @@ namespace LevelEditor
             this.flowLayoutPanel6.SuspendLayout();
             this.flowLayoutPanel9.SuspendLayout();
             this.flowLayoutPanel7.SuspendLayout();
+            this.flowLayoutPanel14.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionY)).BeginInit();
@@ -326,7 +330,7 @@ namespace LevelEditor
             // 
             // openFileDialog_importAsset
             // 
-            this.openFileDialog_importAsset.Filter = "mesh|*.mesh|material|*.material|fbx|*.fbx";
+            this.openFileDialog_importAsset.Filter = "mesh|*.mesh|material|*.material|fbx|*.fbx|animation|*.animation";
             this.openFileDialog_importAsset.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog_import_FileOk);
             // 
             // treeView_entities
@@ -600,7 +604,7 @@ namespace LevelEditor
             this.groupBoxMesh.Controls.Add(this.flowLayoutPanel8);
             this.groupBoxMesh.Location = new System.Drawing.Point(1977, 668);
             this.groupBoxMesh.Name = "groupBoxMesh";
-            this.groupBoxMesh.Size = new System.Drawing.Size(419, 236);
+            this.groupBoxMesh.Size = new System.Drawing.Size(419, 268);
             this.groupBoxMesh.TabIndex = 10;
             this.groupBoxMesh.TabStop = false;
             this.groupBoxMesh.Text = "Mesh Instance";
@@ -613,10 +617,11 @@ namespace LevelEditor
             this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel6);
             this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel9);
             this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel7);
+            this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel14);
             this.flowLayoutPanel8.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel8.Location = new System.Drawing.Point(13, 19);
             this.flowLayoutPanel8.Name = "flowLayoutPanel8";
-            this.flowLayoutPanel8.Size = new System.Drawing.Size(391, 200);
+            this.flowLayoutPanel8.Size = new System.Drawing.Size(391, 231);
             this.flowLayoutPanel8.TabIndex = 18;
             // 
             // flowLayoutPanel6
@@ -718,6 +723,39 @@ namespace LevelEditor
             this.label7.TabIndex = 8;
             this.label7.Text = "Material";
             this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // flowLayoutPanel14
+            // 
+            this.flowLayoutPanel14.AutoSize = true;
+            this.flowLayoutPanel14.Controls.Add(this.comboBoxAnimation);
+            this.flowLayoutPanel14.Controls.Add(this.label13);
+            this.flowLayoutPanel14.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
+            this.flowLayoutPanel14.Location = new System.Drawing.Point(3, 197);
+            this.flowLayoutPanel14.Name = "flowLayoutPanel14";
+            this.flowLayoutPanel14.Size = new System.Drawing.Size(261, 27);
+            this.flowLayoutPanel14.TabIndex = 21;
+            // 
+            // comboBoxAnimation
+            // 
+            this.comboBoxAnimation.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxAnimation.FormattingEnabled = true;
+            this.comboBoxAnimation.Location = new System.Drawing.Point(62, 3);
+            this.comboBoxAnimation.Name = "comboBoxAnimation";
+            this.comboBoxAnimation.Size = new System.Drawing.Size(196, 21);
+            this.comboBoxAnimation.TabIndex = 18;
+            this.comboBoxAnimation.SelectedIndexChanged += new System.EventHandler(this.comboBoxAnimation_SelectedIndexChanged);
+            // 
+            // label13
+            // 
+            this.label13.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(3, 0);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(53, 27);
+            this.label13.TabIndex = 8;
+            this.label13.Text = "Animation";
+            this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // toolStrip1
             // 
@@ -1224,6 +1262,8 @@ namespace LevelEditor
             this.flowLayoutPanel9.PerformLayout();
             this.flowLayoutPanel7.ResumeLayout(false);
             this.flowLayoutPanel7.PerformLayout();
+            this.flowLayoutPanel14.ResumeLayout(false);
+            this.flowLayoutPanel14.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).EndInit();
@@ -1340,6 +1380,9 @@ namespace LevelEditor
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel13;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.NumericUpDown numericUpDownSpawnType;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel14;
+        private System.Windows.Forms.ComboBox comboBoxAnimation;
+        private System.Windows.Forms.Label label13;
     }
 }
 

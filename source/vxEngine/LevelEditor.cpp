@@ -72,9 +72,9 @@ namespace Editor
 		p->~T();
 	}
 
-	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx)
+	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx, u32 typeAnimation)
 	{
-		EditorEngine::editor_setTypes(typeMesh, typeMaterial, typeScene, typeFbx);
+		EditorEngine::editor_setTypes(typeMesh, typeMaterial, typeScene, typeFbx, typeAnimation);
 
 		g_pMemory = ::operator new(sizeof(Editor));
 		if (!g_pMemory)
@@ -223,6 +223,16 @@ namespace Editor
 	u32 getSelectedNavMeshCount()
 	{
 		return g_pEditor->engine.getSelectedNavMeshCount();
+	}
+
+	void setMeshInstanceAnimation(u64 instanceSid, u64 animSid)
+	{
+		g_pEditor->engine.setMeshInstanceAnimation(instanceSid, animSid);
+	}
+
+	u64 getMeshInstanceAnimation(u64 instanceSid)
+	{
+		return g_pEditor->engine.getMeshInstanceAnimation(instanceSid);
 	}
 
 	u32 getMeshInstanceCount()
