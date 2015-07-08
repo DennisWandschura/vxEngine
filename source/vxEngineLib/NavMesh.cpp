@@ -43,10 +43,10 @@ NavMesh::NavMesh(NavMesh &&rhs)
 	: m_navMeshTriangles(std::move(rhs.m_navMeshTriangles)),
 	m_vertices(std::move(rhs.m_vertices)),
 	m_triangleIndices(std::move(rhs.m_triangleIndices)),
-	m_vertexBounds(std::move(rhs.m_vertexBounds)),
 	m_bounds(std::move(rhs.m_bounds)),
 	m_vertexCount(rhs.m_vertexCount),
-	m_triangleCount(rhs.m_triangleCount)
+	m_triangleCount(rhs.m_triangleCount),
+	m_vertexBounds(std::move(rhs.m_vertexBounds))
 {
 }
 

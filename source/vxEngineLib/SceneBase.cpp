@@ -29,6 +29,12 @@ SOFTWARE.
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
+#include <vxEngineLib/Animation.h>
+
+SceneBaseParams::SceneBaseParams()
+{
+
+}
 
 SceneBaseParams::~SceneBaseParams()
 {
@@ -40,6 +46,9 @@ SceneBase::SceneBase()
 	m_pSpawns(),
 	m_actors(),
 	m_waypoints(),
+	m_animations(),
+	m_indexCount(0),
+	m_spawnCount(0),
 	m_waypointCount(0)
 {
 }
@@ -51,6 +60,7 @@ SceneBase::SceneBase(SceneBase &&rhs)
 	m_pSpawns(std::move(rhs.m_pSpawns)),
 	m_actors(std::move(rhs.m_actors)),
 	m_waypoints(std::move(rhs.m_waypoints)),
+	m_animations(std::move(rhs.m_animations)),
 	m_navMesh(std::move(rhs.m_navMesh)),
 	m_lightCount(rhs.m_lightCount),
 	m_vertexCount(rhs.m_vertexCount),
@@ -67,6 +77,7 @@ SceneBase::SceneBase(SceneBaseParams &params)
 	m_pSpawns(std::move(params.m_pSpawns)),
 	m_actors(std::move(params.m_actors)),
 	m_waypoints(std::move(params.m_waypoints)),
+	m_animations(std::move(params.m_animations)),
 	m_navMesh(std::move(params.m_navMesh)),
 	m_lightCount(params.m_lightCount),
 	m_vertexCount(params.m_vertexCount),
@@ -86,6 +97,7 @@ SceneBase& SceneBase::operator = (SceneBase &&rhs)
 		m_pSpawns = std::move(rhs.m_pSpawns);
 		m_actors = std::move(rhs.m_actors);
 		m_waypoints = std::move(rhs.m_waypoints);
+		m_animations = std::move(rhs.m_animations);
 		std::swap(m_navMesh, rhs.m_navMesh);
 		m_lightCount = rhs.m_lightCount;
 		m_vertexCount = rhs.m_vertexCount;
@@ -111,6 +123,7 @@ void SceneBase::reset()
 	m_meshes.clear();
 	m_actors.clear();
 	m_navMesh.reset();
+	m_animations.clear();
 	m_lightCount = 0;
 	m_vertexCount = 0;
 	m_indexCount = 0;
@@ -129,6 +142,7 @@ void SceneBase::copy(SceneBase *dst) const
 	dst->m_pSpawns = m_pSpawns;
 
 	dst->m_waypoints = m_waypoints;
+	dst->m_animations = m_animations;
 
 	m_navMesh.copy(&dst->m_navMesh);
 
@@ -149,7 +163,7 @@ u32 SceneBase::getLightCount() const
 	return m_lightCount;
 }
 
-Reference<Material>* SceneBase::getMaterials() const
+const Reference<Material>* SceneBase::getMaterials() const
 {
 	return m_materials.data();
 }
@@ -195,6 +209,16 @@ u32 SceneBase::getSpawnCount() const
 const vx::sorted_vector<vx::StringID, Actor>& SceneBase::getActors() const
 {
 	return m_actors;
+}
+
+const Reference<vx::Animation>* SceneBase::getAnimations() const
+{
+	return m_animations.data();
+}
+
+u32 SceneBase::getAnimationCount() const
+{
+	return m_animations.size();
 }
 
 NavMesh& SceneBase::getNavMesh()

@@ -209,4 +209,8 @@ public:
 	const char* getMaterialNameIndex(u32 i) const;
 	const char* getMaterialName(u64 sid) const;
 	u64 getMaterialSid(u32 i) const;
+
+	u32 getAnimationCount() const;
+	const char* getAnimationNameIndex(u32 i) const;
+	u64 getAnimationSidIndex(u32 i) const;
 };

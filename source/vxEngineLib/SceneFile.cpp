@@ -39,15 +39,18 @@ SOFTWARE.
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/MeshInstanceFile.h>
 #include <vxLib/File/FileHandle.h>
+#include <vxEngineLib/Animation.h>
 
 struct SceneFile::CreateSceneMeshInstancesDesc
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<vx::Animation>, std::less<vx::StringID>> *sortedAnimations;
 	MeshInstance* pMeshInstances;
 	vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<vx::Animation>>* sceneAnimations;
 	vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 };
 
@@ -64,10 +67,12 @@ struct SceneFile::CreateSceneShared
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, Reference<vx::Animation>, std::less<vx::StringID>> *sortedAnimations;
 	MeshInstance* pMeshInstances;
 	vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, Reference<vx::Animation>>* sceneAnimations;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
 	vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 	Spawn* sceneSpawns;
@@ -170,9 +175,9 @@ const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* 
 	m_pLights = vx::make_unique<Light[]>(m_lightCount);
 	m_pSpawns = vx::make_unique<SpawnFile[]>(m_spawnCount);
 
-	ptr = vx::read(m_pMeshInstances.get(), ptr, m_meshInstanceCount);
-	ptr = vx::read(m_pLights.get(), ptr, m_lightCount);
-	ptr = vx::read(m_pSpawns.get(), ptr, m_spawnCount);
+	ptr = vx::read((u8*)m_pMeshInstances.get(), ptr, sizeof(MeshInstanceFile) * m_meshInstanceCount);
+	ptr = vx::read((u8*)m_pLights.get(), ptr, sizeof(Light) * m_lightCount);
+	ptr = vx::read((u8*)m_pSpawns.get(), ptr, sizeof(SpawnFile) *m_spawnCount);
 
 	if (m_actorCount != 0)
 	{
@@ -185,7 +190,7 @@ const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* 
 	{
 		m_waypoints = vx::make_unique<Waypoint[]>(m_waypointCount);
 
-		ptr = vx::read(m_waypoints.get(), ptr, m_waypointCount);
+		ptr = vx::read((u8*)m_waypoints.get(), ptr, sizeof(Waypoint) * m_waypointCount);
 	}
 
 	VX_ASSERT(ptr < last);
@@ -311,14 +316,22 @@ bool SceneFile::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &des
 			auto itMesh = desc.sortedMeshes->find(sidMesh.m_sid);
 			auto sidMaterial = vx::FileHandle(materialFile);
 			auto itMaterial = desc.sortedMaterials->find(sidMaterial.m_sid);
+			auto itAnimation = desc.sortedAnimations->find(sidAnimation.m_sid);
 
 			if (itMesh == desc.sortedMeshes->end() || itMaterial == desc.sortedMaterials->end())
 			{
 				return false;
 			}
 
+			if (sidAnimation.m_sid.value != 0 && itAnimation == desc.sortedAnimations->end())
+				return false;
+
 			desc.sceneMeshes->insert(sidMesh.m_sid, *itMesh);
 			desc.sceneMaterials->insert(sidMaterial.m_sid, *itMaterial);
+			if (sidAnimation.m_sid.value != 0)
+			{
+				desc.sceneAnimations->insert(sidAnimation.m_sid, *itAnimation);
+			}
 
 			auto transform = instanceFile.getTransform();
 
@@ -377,9 +390,11 @@ bool SceneFile::createSceneShared(const CreateSceneShared &desc)
 	createMeshInstancesDesc.pMeshInstances = desc.pMeshInstances;
 	createMeshInstancesDesc.sortedMeshInstances = desc.sortedMeshInstances;
 	createMeshInstancesDesc.sceneMaterials = desc.sceneMaterials;
+	createMeshInstancesDesc.sceneAnimations = desc.sceneAnimations;
 	createMeshInstancesDesc.sceneMeshes = desc.sceneMeshes;
 	createMeshInstancesDesc.sortedMaterials = desc.sortedMaterials;
 	createMeshInstancesDesc.sortedMeshes = desc.sortedMeshes;
+	createMeshInstancesDesc.sortedAnimations = desc.sortedAnimations;
 	createMeshInstancesDesc.sceneMeshInstanceNames = desc.sceneMeshInstanceNames;
 	if (!createSceneMeshInstances(createMeshInstancesDesc))
 	{
@@ -491,6 +506,8 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	vx::sorted_vector<vx::StringID, Reference<Material>> sceneMaterials;
 	sceneMaterials.reserve(5);
 
+	vx::sorted_vector<vx::StringID, Reference<vx::Animation>> sceneAnimations;
+
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 	vx::sorted_vector<vx::StringID, Actor> sceneActors;
 	vx::sorted_vector<vx::StringID, std::string> sceneMeshInstanceNames;
@@ -505,11 +522,13 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sharedDesc.pMeshInstances = nullptr;
 	sharedDesc.sortedMeshInstances = &meshInstances;
 	sharedDesc.sceneMaterials = &sceneMaterials;
+	sharedDesc.sceneAnimations = &sceneAnimations;
 	sharedDesc.sceneMeshes = &sceneMeshes;
 	sharedDesc.sceneActors = &sceneActors;
 	sharedDesc.sceneSpawns = sceneSpawns.get();
 	sharedDesc.sortedMaterials = desc.sortedMaterials;
 	sharedDesc.sortedMeshes = desc.sortedMeshes;
+	sharedDesc.sortedAnimations = desc.sortedAnimations;
 	sharedDesc.vertexCount = &vertexCount;
 	sharedDesc.indexCount = &indexCount;
 	sharedDesc.sceneMeshInstanceNames = &sceneMeshInstanceNames;
@@ -569,6 +588,7 @@ u8 SceneFile::createScene(const CreateEditorSceneDescription &desc)
 	sceneParams.m_baseParams.m_indexCount = indexCount;
 	sceneParams.m_baseParams.m_lightCount = m_lightCount;
 	sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
+	sceneParams.m_baseParams.m_animations = std::move(sceneAnimations);
 	sceneParams.m_baseParams.m_meshes = std::move(sceneMeshes);
 	sceneParams.m_baseParams.m_navMesh = std::move(m_navMesh);
 	sceneParams.m_meshInstanceNames = std::move(sceneMeshInstanceNames);

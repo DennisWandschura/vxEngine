@@ -31,7 +31,7 @@ SOFTWARE.
 #include <vxLib/math/Vector.h>
 #include <vxLib/RawInput.h>
 #include <vxLib/Graphics/Camera.h>
-#include "Entity.h"
+#include <vxEngineLib/Entity.h>
 #include "input/Keys.h"
 #include "EntityAspect.h"
 #include "ComponentInput.h"

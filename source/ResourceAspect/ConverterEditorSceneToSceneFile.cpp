@@ -34,18 +34,20 @@ SOFTWARE.
 #include <vxEngineLib/SceneFile.h>
 #include <vxEngineLib/Material.h>
 
-void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneFile* sceneFile)
+void ConverterEditorSceneToSceneFile::convertActors(const Editor::Scene &scene, SceneFile* sceneFile)
 {
-	auto actorCount = scene.m_actors.size();
-	sceneFile->m_actorCount = actorCount;
+	auto &sceneActors = scene.m_actors;
+	auto actorCount = sceneActors.size();
+	auto keys = sceneActors.keys();
+	auto actors = sceneActors.data();
 
 	if (actorCount != 0)
 	{
 		sceneFile->m_pActors = vx::make_unique<ActorFile[]>(actorCount);
 		for (u32 i = 0; i < actorCount; ++i)
 		{
-			auto sidActor = scene.m_actors.keys()[i];
-			auto &it = scene.m_actors[i];
+			auto sidActor = keys[i];
+			auto &it = actors[i];
 
 			vx::StringID sidMaterial = it.m_material;
 			vx::StringID sidMesh = it.m_mesh;
@@ -59,6 +61,13 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 			strncpy(sceneFile->m_pActors[i].m_name, actorNameIt->c_str(), 32);
 		}
 	}
+
+	sceneFile->m_actorCount = actorCount;
+}
+
+void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneFile* sceneFile)
+{
+	convertActors(scene, sceneFile);
 
 	sceneFile->m_lightCount = scene.m_lightCount;
 	if (scene.m_lightCount != 0)
@@ -110,7 +119,7 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 			char animation[32] = {};
 			if (instanceAnimationName)
 			{
-				strncpy(name, instanceAnimationName, 32);
+				strncpy(animation, instanceAnimationName, 32);
 			}
 
 			auto transform = it.getTransform();

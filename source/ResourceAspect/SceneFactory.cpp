@@ -41,12 +41,13 @@ SOFTWARE.
 #include <vxEngineLib/debugPrint.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/AnimationFile.h>
+#include <vxEngineLib/EditorMeshInstance.h>
 
 struct SceneFactory::LoadSceneFileDescription
 {
 	const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes;
 	const vx::sorted_array<vx::StringID, Reference<Material>>* sortedMaterials;
-	const vx::sorted_array<vx::StringID, vx::AnimationFile>* sortedAnimations;
+	const vx::sorted_array<vx::StringID, Reference<vx::Animation>>* sortedAnimations;
 	std::vector<vx::FileEntry> *pMissingFiles;
 	SceneFile *pSceneFile;
 };
@@ -85,6 +86,24 @@ bool checkMeshInstanceMaterial(const vx::FileEntry &materialFileEntry, const vx:
 	return result;
 }
 
+bool checkMeshInstanceAnimation(const vx::FileEntry &animationFileEntry, const vx::sorted_array<vx::StringID, Reference<vx::Animation>>* sortedAnimations, std::vector<vx::FileEntry>* missingFiles)
+{
+	bool result = true;
+
+		auto it = sortedAnimations->find(animationFileEntry.getSid());
+		if (it == sortedAnimations->end())
+		{
+			// request load
+			missingFiles->push_back(animationFileEntry);
+
+			//printf("could not find mesh: %s %llu\n", meshFile, meshFileEntry.getSid());
+
+			result = false;
+		}
+
+	return result;
+}
+
 bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFile* instances, u32 count)
 {
 	bool result = true;
@@ -106,6 +125,16 @@ bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, cons
 		if (!checkMeshInstanceMaterial(materialFileEntry, desc.sortedMaterials, desc.pMissingFiles))
 		{
 			result = false;
+		}
+
+		auto animationName = instances[i].getAnimation();
+		if (animationName[0] != '\0')
+		{
+			auto animationFileEntry = vx::FileEntry(animationName, vx::FileType::Animation);
+			if (!checkMeshInstanceAnimation(animationFileEntry, desc.sortedAnimations, desc.pMissingFiles))
+			{
+				result = false;
+			}
 		}
 
 		/*auto itMaterial = desc.sortedMaterials->find(materialFileEntry.getSid());
@@ -167,7 +196,7 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator,Scene *pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene)
 {
 	auto marker = scratchAllocator->getMarker();
 	bool result = false;
@@ -180,6 +209,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 		LoadSceneFileDescription loadDesc;
 		loadDesc.sortedMaterials = desc.materials;
 		loadDesc.sortedMeshes = desc.meshes;
+		loadDesc.sortedAnimations = desc.animations;
 		loadDesc.pMissingFiles = desc.pMissingFiles;
 		loadDesc.pSceneFile = &sceneFile;
 
@@ -219,6 +249,7 @@ bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, v
 		LoadSceneFileDescription loadDesc;
 		loadDesc.sortedMaterials = desc.materials;
 		loadDesc.sortedMeshes = desc.meshes;
+		loadDesc.sortedAnimations = desc.animations;
 		loadDesc.pMissingFiles = desc.pMissingFiles;
 		loadDesc.pSceneFile = &sceneFile;
 
@@ -231,6 +262,7 @@ bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, v
 		createSceneDescriptionDesc.pScene = pScene;
 		createSceneDescriptionDesc.sortedMaterials = desc.materials;
 		createSceneDescriptionDesc.sortedMeshes = desc.meshes;
+		createSceneDescriptionDesc.sortedAnimations = desc.animations;
 		createSceneDescriptionDesc.loadedFiles = desc.loadedFiles;
 		result = sceneFile.createScene(createSceneDescriptionDesc);
 	}
@@ -252,6 +284,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 		LoadSceneFileDescription loadDesc;
 		loadDesc.sortedMaterials = desc.materials;
 		loadDesc.sortedMeshes = desc.meshes;
+		loadDesc.sortedAnimations = desc.animations;
 		loadDesc.pMissingFiles = desc.pMissingFiles;
 		loadDesc.pSceneFile = &sceneFile;
 
@@ -265,6 +298,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 		createSceneDescriptionDesc.pScene = pScene;
 		createSceneDescriptionDesc.sortedMaterials = desc.materials;
 		createSceneDescriptionDesc.sortedMeshes = desc.meshes;
+		createSceneDescriptionDesc.sortedAnimations = desc.animations;
 		createSceneDescriptionDesc.loadedFiles = desc.loadedFiles;
 		result = sceneFile.createScene(createSceneDescriptionDesc);
 	}
@@ -282,6 +316,28 @@ void SceneFactory::saveToFile(const Editor::Scene &scene, vx::File* f)
 {
 	SceneFile sceneFile(SceneFile::getGlobalVersion());
 	convert(scene, &sceneFile);
+
+	auto sceneInstanceCount = scene.getMeshInstanceCount();
+	auto sceneInstances = scene.getMeshInstancesEditor();
+	for (u32 i = 0; i < sceneInstanceCount; ++i)
+	{
+		auto sid = sceneInstances[i].getAnimationSid();
+		if (sid.value != 0)
+		{
+			printf("SceneInstance Animation: %llu\n", sid.value);
+		}
+	}
+
+	auto sceneFileInstanceCount = sceneFile.getNumMeshInstances();
+	auto sceneFileInstances = sceneFile.getMeshInstances();
+	for (u32 i = 0; i < sceneFileInstanceCount; ++i)
+	{
+		auto str = sceneFileInstances[i].getAnimation();
+		if (str[0] != '\0')
+		{
+			printf("SceneFile Animation: %s\n", str);
+		}
+	}
 
 	vx::FileFactory::saveToFile(f, &sceneFile);
 }

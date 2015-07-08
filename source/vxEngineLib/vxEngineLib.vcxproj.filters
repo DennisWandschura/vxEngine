@@ -16,93 +16,36 @@
     <Filter Include="Source Files\unity">
       <UniqueIdentifier>{4d8f417d-d68e-4093-be3e-da151ef154e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{126b0277-d3d5-48f5-9d29-14ededa0fcea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{2071a0fb-b723-4169-ab74-5128943adaf1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\vxEngineLib\AABB.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\vxEngineLib\Graphics\Surface.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Actor.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\vxEngineLib\Graphics\Texture.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\copy.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\vxEngineLib\Graphics\TextureFactory.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\debugPrint.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\vxEngineLib\Graphics\dds.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\EditorMeshInstance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\EditorScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Event.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\EventListener.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\EventManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\EventTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\EventTypesFwd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Light.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Logfile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\memcpy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\MeshFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\MeshInstance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\NavMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\NavMeshTriangle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\ParserConverter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\ParserNode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Plane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Pool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Ray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Reference.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\SceneBase.h">
+    <ClInclude Include="include\vxEngineLib\SceneFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\Serializable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\Spawn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\SRWMutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\TextureFile.h">
@@ -123,82 +66,166 @@
     <ClInclude Include="include\vxEngineLib\Waypoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Animation.h">
+    <ClInclude Include="include\vxEngineLib\AABB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\FileFactory.h">
+    <ClInclude Include="include\vxEngineLib\Actor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Animation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\AnimationFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\MeshInstanceFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\SceneFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\OpenGLTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\SRWMutex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\ArrayAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\managed_ptr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\memory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\mutex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\EngineConfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\RendererSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\EventsIngame.h">
+    <ClInclude Include="include\vxEngineLib\copy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\CreateActorData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Locator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\RenderAspectInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\RenderUpdateTask.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\GpuFunctions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h">
+    <ClInclude Include="include\vxEngineLib\debugPrint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\DoubleBufferRaw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EditorMeshInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EditorScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EngineConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Event.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EventListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EventManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EventsIngame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EventTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\EventTypesFwd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\FileAspectInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\FileEvents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\FileFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\GpuFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\vxEngineLib\InfluenceMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\NavMeshGraph.h">
+    <ClInclude Include="include\vxEngineLib\Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Locator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Logfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\managed_ptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\memcpy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\MeshFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\MeshInstance.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\MeshInstanceFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\mutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\NavConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\NavGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\NavMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\NavMeshGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\NavMeshTriangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="include\vxEngineLib\NavNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\NavGraph.h">
+    <ClInclude Include="include\vxEngineLib\OpenGLTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\ParserConverter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\ParserNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Plane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Ray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Reference.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\RenderAspectInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\RendererSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\RenderUpdateTask.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\SceneBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -301,6 +328,15 @@
     </ClCompile>
     <ClCompile Include="NavGraph.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Surface.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Texture.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\TextureFactory.cpp">
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

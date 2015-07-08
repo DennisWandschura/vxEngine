@@ -543,6 +543,21 @@ namespace LevelEditor
             }
         }
 
+        void addSceneAnimations()
+        {
+            m_sortedAnimations.Clear();
+            m_animationsNode.Nodes.Clear();
+
+            var count = NativeMethods.getAnimationCount();
+            for(uint i = 0;i < count; ++i)
+            {
+                var sid = NativeMethods.getAnimationSidIndex(i);
+                var name = NativeMethods.getAnimationNameIndex(i);
+
+                insertAnimation(sid, name);
+            }
+        }
+
         void insertMeshInstance(ulong sid, string name)
         {
             var entry = new EditorNodeEntry(sid, s_typeMeshInstance, name);
@@ -643,6 +658,7 @@ namespace LevelEditor
                     addSceneMeshes();
                     addSceneMaterials();
                     addSceneMeshInstances();
+                    addSceneAnimations();
                 }
                 else if(type == s_typeAnimation)
                 {

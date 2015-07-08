@@ -216,23 +216,31 @@
     <ClInclude Include="include\vxEngineLib\debugPrint.h" />
     <ClInclude Include="include\vxEngineLib\DoubleBufferRaw.h" />
     <ClInclude Include="include\vxEngineLib\EditorMeshInstance.h" />
+    <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\EditorScene.h" />
     <ClInclude Include="include\vxEngineLib\EngineConfig.h" />
+    <ClInclude Include="include\vxEngineLib\Entity.h" />
     <ClInclude Include="include\vxEngineLib\Event.h" />
     <ClInclude Include="include\vxEngineLib\EventListener.h" />
     <ClInclude Include="include\vxEngineLib\EventManager.h" />
     <ClInclude Include="include\vxEngineLib\EventsIngame.h" />
     <ClInclude Include="include\vxEngineLib\EventTypes.h" />
     <ClInclude Include="include\vxEngineLib\EventTypesFwd.h" />
+    <ClInclude Include="include\vxEngineLib\FileAspectInterface.h" />
+    <ClInclude Include="include\vxEngineLib\FileEvents.h" />
     <ClInclude Include="include\vxEngineLib\FileFactory.h" />
     <ClInclude Include="include\vxEngineLib\GpuFunctions.h" />
-    <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\dds.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\Surface.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\Texture.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\TextureFactory.h" />
     <ClInclude Include="include\vxEngineLib\InfluenceMap.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Locator.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />
     <ClInclude Include="include\vxEngineLib\managed_ptr.h" />
     <ClInclude Include="include\vxEngineLib\Material.h" />
+    <ClInclude Include="include\vxEngineLib\memcpy.h" />
     <ClInclude Include="include\vxEngineLib\memory.h" />
     <ClInclude Include="include\vxEngineLib\MeshFile.h" />
     <ClInclude Include="include\vxEngineLib\MeshInstance.h" />
@@ -265,7 +273,6 @@
     <ClInclude Include="include\vxEngineLib\Timer.h" />
     <ClInclude Include="include\vxEngineLib\Transform.h" />
     <ClInclude Include="include\vxEngineLib\Triangle.h" />
-    <ClInclude Include="include\vxEngineLib\memcpy.h" />
     <ClInclude Include="include\vxEngineLib\Waypoint.h" />
   </ItemGroup>
   <ItemGroup>
@@ -294,6 +301,9 @@
     <ClCompile Include="FileFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Graphics\Surface.cpp" />
+    <ClCompile Include="Graphics\Texture.cpp" />
+    <ClCompile Include="Graphics\TextureFactory.cpp" />
     <ClCompile Include="InfluenceMap.cpp" />
     <ClCompile Include="Light.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

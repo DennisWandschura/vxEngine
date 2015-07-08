@@ -216,7 +216,6 @@
     <ClInclude Include="DecisionTreeTransition.h" />
     <ClInclude Include="DistanceCondition.h" />
     <ClInclude Include="Engine.h" />
-    <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityAspect.h" />
     <ClInclude Include="Face.h" />
     <ClInclude Include="Heap.h" />

@@ -41,6 +41,9 @@ SOFTWARE.
 #include <vxResourceAspect/FbxFactory.h>
 #include <vxEngineLib/AnimationFile.h>
 #include <vxEngineLib/FileFactory.h>
+#include <vxEngineLib/Graphics/TextureFactory.h>
+#include <Shlwapi.h>
+#include <vxEngineLib/Graphics/Texture.h>
 
 char FileAspect::s_textureFolder[32] = { "data/textures/" };
 char FileAspect::s_materialFolder[32] = { "data/materials/" };
@@ -123,7 +126,7 @@ FileAspect::FileAspect()
 	m_timer(),
 	m_poolMesh(),
 	m_poolMaterial(),
-	m_textureFileManager(),
+	m_poolTextures(),
 	m_eventManager(nullptr),
 	m_cooking(nullptr)
 {
@@ -144,19 +147,28 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	m_scratchAllocator = vx::StackAllocator(pMainAllocator->allocate(fileMemorySize, 16), fileMemorySize);
 	m_allocatorReadFile = vx::StackAllocator(pFileMemory, fileMemorySize);
 
-	const u32 textureMemorySize = 10 MBYTE;
-	m_allocatorMeshData = vx::StackAllocator(pMainAllocator->allocate(textureMemorySize, 64), textureMemorySize);
+	const u32 meshMemorySize = 10 MBYTE;
+	m_allocatorMeshData = vx::StackAllocator(pMainAllocator->allocate(meshMemorySize, 64), meshMemorySize);
+
+	const u32 textureMemorySize = 50 MBYTE;
+	auto textureMemory = pMainAllocator->allocate(textureMemorySize, 64);
+	if (textureMemory == nullptr)
+		return false;
+	m_allocatorTextureData = vx::StackAllocator(textureMemory, textureMemorySize);
 
 	m_logfile.create("filelog.xml");
 
 	const u32 maxCount = 255;
 	m_sortedMeshes = vx::sorted_array<vx::StringID, vx::MeshFile*>(maxCount, pMainAllocator);
 	m_sortedMaterials = vx::sorted_array<vx::StringID, Reference<Material>>(maxCount, pMainAllocator);
+	m_sortedAnimations = vx::sorted_array<vx::StringID, Reference<vx::Animation>>(maxCount, pMainAllocator);
+	m_sortedAnimationNames = vx::sorted_array<vx::StringID, std::string>(maxCount, pMainAllocator);
+	m_sortedTextures = vx::sorted_array<vx::StringID, const Graphics::Texture*>(maxCount, pMainAllocator);
 
 	createPool(maxCount, &m_poolMesh, pMainAllocator);
 	createPool(maxCount, &m_poolMaterial, pMainAllocator);
 	createPool(maxCount, &m_poolAnimations, pMainAllocator);
-	m_textureFileManager.initialize(maxCount, pMainAllocator);
+	createPool(maxCount, &m_poolTextures, pMainAllocator);
 
 	m_cooking = cooking;
 
@@ -167,20 +179,22 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	strcpy_s(s_animationFolder, (dataDir + "animation/").c_str());
 
 	strcpy_s(FileAspectCpp::g_assetFolder, (dataDir + "../../assets/").c_str());
-	
 
 	return true;
 }
 
 void FileAspect::shutdown()
 {
-	m_textureFileManager.shutdown();
-
+	m_sortedTextures.cleanup();
 	m_sortedMaterials.cleanup();
 	m_sortedMeshes.cleanup();
+	m_sortedAnimationNames.cleanup();
+	m_sortedAnimations.cleanup();
 
+	destroyPool(&m_poolTextures);
 	destroyPool(&m_poolMaterial);
 	destroyPool(&m_poolMesh);
+	destroyPool(&m_poolAnimations);
 
 	m_logfile.close();
 	m_allocatorReadFile.release();
@@ -228,6 +242,7 @@ bool FileAspect::loadFileScene(const LoadFileOfTypeDescription &desc, bool edito
 		factoryDesc.loadedFiles = &m_loadedFiles;
 		factoryDesc.materials = &m_sortedMaterials;
 		factoryDesc.meshes = &m_sortedMeshes;
+		factoryDesc.animations = &m_sortedAnimations;
 		factoryDesc.pMissingFiles = desc.missingFiles;
 
 		bool created = false;
@@ -268,7 +283,7 @@ Reference<Material> FileAspect::loadMaterial(const LoadMaterialDescription &desc
 
 		MaterialFactoryLoadDescription factoryDesc;
 		factoryDesc.fileNameWithPath = desc.fileNameWithPath;
-		factoryDesc.textureFiles = &m_textureFileManager.getSortedTextureFiles();
+		factoryDesc.textureFiles = &m_sortedTextures;
 		factoryDesc.missingFiles = desc.missingFiles;
 		factoryDesc.material = &material;
 		auto result = MaterialFactory::load(factoryDesc);
@@ -399,20 +414,22 @@ bool FileAspect::loadFileAnimation(const LoadFileOfTypeDescription &desc)
 	}
 
 	u16 index;
-	auto ptr = m_poolAnimations.createEntry(&index, std::move(animFile));
+	auto ptr = m_poolAnimations.createEntry(&index, std::move(animFile.getAnimation()));
 	if (ptr == nullptr)
 	{
 		return false;
 	}
 
-	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded Animation %s\n", desc.fileName);
-	m_sortedAnimations.insert(desc.sid, ptr);
+	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded Animation %s %llu\n", desc.fileName, desc.sid.value);
+	m_sortedAnimations.insert(desc.sid, *ptr);
+	m_sortedAnimationNames.insert(desc.sid, std::string(desc.fileName));
 
 	return true;
 }
 
 bool FileAspect::loadFileFbx(const LoadFileOfTypeDescription &desc)
 {
+#if _VX_EDITOR
 	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Trying to load file %s\n", desc.fileNameWithPath);
 
 	std::vector<vx::FileHandle> meshFiles, animFiles;
@@ -431,6 +448,9 @@ bool FileAspect::loadFileFbx(const LoadFileOfTypeDescription &desc)
 		requestLoadFile(fileEntry, desc.pUserData);
 	}
 	return true;
+#else
+	return false;
+#endif
 }
 
 bool FileAspect::loadFileMesh(const LoadFileOfTypeDescription &desc)
@@ -481,16 +501,30 @@ bool FileAspect::loadFileMesh(const LoadFileOfTypeDescription &desc)
 
 void FileAspect::loadFileTexture(const LoadFileOfTypeDescription &desc)
 {
-	desc::LoadTextureDescription loadDesc;
-	loadDesc.filename = desc.fileName;
-	loadDesc.fileData = desc.fileData;
-	loadDesc.fileSize = desc.fileSize;
-	loadDesc.sid = desc.sid;
-	loadDesc.status = &desc.result->status;
+	static const auto ddsSid = vx::make_sid(".dds");
+	static const auto pngSid = vx::make_sid(".png");
 
-	void* p = m_textureFileManager.loadTexture(loadDesc, &m_logfile);
-	if (p)
+	auto extension = PathFindExtensionA(desc.fileName);
+	auto extensionSid = vx::make_sid(extension);
+
+	bool result = false;
+	Graphics::Texture texture;
+	if (extensionSid == ddsSid)
 	{
+		result = Graphics::TextureFactory::createDDSFromMemory(desc.fileData, true, &texture, &m_allocatorTextureData);
+	}
+	else if (extensionSid == pngSid)
+	{
+		result = Graphics::TextureFactory::createPngFromMemory(desc.fileData, desc.fileSize, true, &texture, &m_allocatorTextureData);
+	}
+
+	if (result)
+	{
+		u16 index;
+		auto ptr = m_poolTextures.createEntry(&index, std::move(texture));
+
+		m_sortedTextures.insert(desc.sid, ptr);
+
 		desc.result->result = 1;
 		desc.result->type = vx::FileType::Texture;
 
@@ -498,10 +532,18 @@ void FileAspect::loadFileTexture(const LoadFileOfTypeDescription &desc)
 		arg1.u64 = desc.sid.value;
 
 		vx::Variant arg2;
-		arg2.ptr = p;
+		arg2.ptr = ptr;
 
 		pushFileEvent(vx::FileEvent::Texture_Loaded, arg1, arg2);
 	}
+
+	/*
+
+	void* p = m_textureFileManager.loadTexture(loadDesc, &m_logfile);
+	if (p)
+	{
+		
+	}*/
 }
 
 void FileAspect::loadFileMaterial(const LoadFileOfTypeDescription &desc)
@@ -821,7 +863,7 @@ void FileAspect::onExistingFile(const FileRequest* request, const vx::StringID &
 		break;
 	}
 
-	pushFileEvent(fileEvent, arg1, arg2);
+	//pushFileEvent(fileEvent, arg1, arg2);
 }
 
 void FileAspect::handleLoadRequest(FileRequest* request, std::vector<vx::FileEntry>* missingFiles)
@@ -917,9 +959,16 @@ void FileAspect::requestSaveFile(const vx::FileEntry &fileEntry, void* p)
 	m_fileRequests.push_back(request);
 }
 
-const TextureFile* FileAspect::getTextureFile(const vx::StringID &sid) const noexcept
+const Graphics::Texture* FileAspect::getTexture(const vx::StringID &sid) const noexcept
 {
-	return m_textureFileManager.getTextureFile(sid);
+	const Graphics::Texture* result = nullptr;
+	auto it = m_sortedTextures.find(sid);
+	if (it != m_sortedTextures.end())
+	{
+		result = *it;
+	}
+
+	return result;
 }
 
 Reference<Material> FileAspect::getMaterial(const vx::StringID &sid) noexcept
@@ -958,9 +1007,9 @@ const vx::MeshFile* FileAspect::getMesh(const vx::StringID &sid) const noexcept
 	return p;
 }
 
-const vx::AnimationFile* FileAspect::getAnimation(const vx::StringID &sid) const
+Reference<vx::Animation> FileAspect::getAnimation(const vx::StringID &sid) const
 {
-	const vx::AnimationFile *p = nullptr;
+	Reference<vx::Animation> p;
 
 	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedAnimations.find(sid);
@@ -968,6 +1017,18 @@ const vx::AnimationFile* FileAspect::getAnimation(const vx::StringID &sid) const
 		p = *it;
 
 	return p;
+}
+
+const char* FileAspect::getAnimationName(const vx::StringID &sid) const
+{
+	const char* result = nullptr;
+
+	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
+	auto it = m_sortedAnimationNames.find(sid);
+	if (it != m_sortedAnimationNames.end())
+		result = it->c_str();
+
+	return result;
 }
 
 const char* FileAspect::getLoadedFileName(const vx::StringID &sid) const noexcept

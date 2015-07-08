@@ -108,6 +108,7 @@ namespace Editor
 		// returns 1 on insert, 0 if mesh or material is missing
 		void addWaypoint(const vx::float3 &position);
 		void removeWaypoint(const vx::float3 &position);
+		void addAnimation(const vx::StringID &sid, std::string &&name);
 
 		const MeshInstance* getMeshInstance(const vx::StringID &sid) const;
 		MeshInstance* getMeshInstance(const vx::StringID &sid);
@@ -119,6 +120,10 @@ namespace Editor
 		const char* getMeshName(const vx::StringID &sid) const;
 		const char* getActorName(const vx::StringID &sid) const;
 		const char* getAnimationName(const vx::StringID &sid) const;
+
+		u32 getAnimationCount() const;
+		const char* getAnimationNameIndex(u32 i) const;
+		u64 getAnimationSidIndex(u32 i) const;
 
 		vx::StringID createMeshInstance();
 		void removeMeshInstance(const vx::StringID &sid);

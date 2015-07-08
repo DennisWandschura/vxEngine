@@ -27,6 +27,11 @@ SOFTWARE.
 #include <vxLib/math/Vector.h>
 #include <vxLib/Container/bitset.h>
 
+enum class TextureFormat
+{
+
+};
+
 class TextureFile
 {
 	struct Level
@@ -40,7 +45,7 @@ class TextureFile
 
 	std::unique_ptr<Level[]> m_pData;
 	std::unique_ptr<u8[]> m_pMemory;
-	vx::ushort2 m_size{0, 0};
+	vx::ushort2 m_size;
 	u8 m_channels;
 	vx::bitset<8> m_settings;
 	u8 m_mipmapLevels;

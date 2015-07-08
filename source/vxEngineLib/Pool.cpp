@@ -35,7 +35,8 @@ namespace vx
 
 	void PoolBase::initialize(u8* ptr, u16 capacity, u32 chunkSize)
 	{
-		assert(chunkSize >= sizeof(Freelist));
+		VX_ASSERT(chunkSize >= sizeof(Freelist));
+		VX_ASSERT(ptr != nullptr);
 
 		m_ptr = ptr;
 		m_capacity = capacity;

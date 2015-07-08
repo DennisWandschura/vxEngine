@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 #include "ActionUpdateGpuTransform.h"
-#include "Entity.h"
+#include <vxEngineLib/Entity.h>
 #include <vxEngineLib/RenderAspectInterface.h>
 
 ActionUpdateGpuTransform::ActionUpdateGpuTransform()

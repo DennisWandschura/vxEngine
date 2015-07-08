@@ -24,7 +24,7 @@ SOFTWARE.
 #include "EntityAspect.h"
 #include <characterkinematic/PxController.h>
 #include "PhysicsAspect.h"
-#include "Entity.h"
+#include <vxEngineLib/Entity.h>
 #include "ComponentActor.h"
 #include "ComponentInput.h"
 #include "PhysicsDefines.h"
@@ -48,6 +48,8 @@ SOFTWARE.
 #include <vxEngineLib/FileEvents.h>
 #include <vxEngineLib/RenderAspectInterface.h>
 #include <vxEngineLib/GpuFunctions.h>
+#include <vxEngineLib/MeshInstance.h>
+#include <vxResourceAspect/FileAspect.h>
 
 #include "ConditionActorFollowingPath.h"
 #include "ConditionActorHasPath.h"
@@ -78,6 +80,7 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator)
 	EntityAspectCpp::createPool(g_maxEntities, 16, pAllocator, &m_poolInput);
 	EntityAspectCpp::createPool(g_maxEntities, 16, pAllocator, &m_poolRender);
 	EntityAspectCpp::createPool(g_maxEntities, 16, pAllocator, &m_poolEntity);
+	EntityAspectCpp::createPool(g_maxEntities, 16, pAllocator, &m_poolStaticEntity);
 	EntityAspectCpp::createPool(g_maxEntities, 16, pAllocator, &m_coldData->m_poolActor);
 
 	//const auto pathChunkSize = s_maxNavNodes * sizeof(vx::float3);
@@ -353,25 +356,31 @@ void EntityAspect::handleFileEvent(const vx::Event &evt)
 		auto pEvtManager = Locator::getEventManager();
 		pEvtManager->addEvent(e);
 
-		m_coldData->m_pCurrentScene = (const Scene*)evt.arg2.ptr;
+		auto scene = (const Scene*)evt.arg2.ptr;
 
-		auto bounds = m_coldData->m_pCurrentScene->getNavMesh().getBounds();
+		auto bounds = scene->getNavMesh().getBounds();
 		bounds.min.y -= 0.1f;
 		bounds.max.y += 0.1f;
 
-		m_quadTree.initialize(bounds, vx::uint2(5), 64);
-	}
-}
+		auto instanceCount = scene->getMeshInstanceCount();
+		auto instances = scene->getMeshInstances();
+		for (u32 i = 0; i < instanceCount; ++i)
+		{
+			auto &instance = instances[i];
+			auto animSid = instance.getAnimationSid();
 
-void EntityAspect::handleIngameEvent(const vx::Event &evt)
-{
-	IngameEvent e = (IngameEvent)evt.code;
-	switch (e)
-	{
-	case IngameEvent::Created_NavGraph:
-	{
-		auto spawns = m_coldData->m_pCurrentScene->getSpawns();
-		auto spawnCount = m_coldData->m_pCurrentScene->getSpawnCount();
+			RenderUpdateTask task;
+			task.type = RenderUpdateTask::Type::CreateStaticMesh;
+
+			RenderUpdateTaskCreateStaticMeshData data;
+			data.instance = &instance;
+
+			auto renderAspect = Locator::getRenderAspect();
+			//renderAspect->queueUpdateTask(task, (u8*)&data, sizeof(RenderUpdateTaskCreateStaticMeshData));
+		}
+
+		auto spawns = scene->getSpawns();
+		auto spawnCount = scene->getSpawnCount();
 
 		for (u32 i = 0; i < spawnCount; ++i)
 		{
@@ -383,7 +392,7 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 			}
 			else
 			{
-				auto &actors = m_coldData->m_pCurrentScene->getActors();
+			/*	auto &actors = scene->getActors();
 				auto itActor = actors.find(it.sid);
 
 				vx::Transform transform;
@@ -391,7 +400,7 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 				transform.m_scaling = 1.0f;
 				transform.m_translation = it.position;
 
-				CreateActorData* data = new CreateActorData(transform, itActor->m_mesh, itActor->m_material,2.0f, i);
+				CreateActorData* data = new CreateActorData(transform, itActor->m_mesh, itActor->m_material, 2.0f, i);
 
 				RenderUpdateTask task;
 				task.type = RenderUpdateTask::Type::CreateActorGpuIndex;
@@ -405,12 +414,24 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 				evt.type = vx::EventType::Ingame_Event;
 				evt.code = (u32)IngameEvent::Create_Actor_Physx;
 				evt.arg1.ptr = data;
-				
+
 				auto evtManager = Locator::getEventManager();
-				evtManager->addEvent(evt);
+				evtManager->addEvent(evt);*/
 			}
 		}
 
+		m_quadTree.initialize(bounds, vx::uint2(5), 64);
+		m_coldData->m_pCurrentScene = scene;
+	}
+}
+
+void EntityAspect::handleIngameEvent(const vx::Event &evt)
+{
+	IngameEvent e = (IngameEvent)evt.code;
+	switch (e)
+	{
+	case IngameEvent::Created_NavGraph:
+	{
 	}break;
 	case IngameEvent::Created_Actor_GPU:
 	{

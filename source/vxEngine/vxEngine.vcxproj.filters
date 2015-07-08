@@ -138,9 +138,6 @@
     <ClInclude Include="memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Entity.h">
-      <Filter>Header Files\Entity</Filter>
-    </ClInclude>
     <ClInclude Include="Pool.h">
       <Filter>Header Files</Filter>
     </ClInclude>

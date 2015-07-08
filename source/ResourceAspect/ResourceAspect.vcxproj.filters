@@ -21,9 +21,6 @@
     <ClCompile Include="FileAspect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextureFileManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FileEntry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,9 +54,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\SceneFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxResourceAspect\TextureFileManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\ConverterEditorSceneToSceneFile.h">

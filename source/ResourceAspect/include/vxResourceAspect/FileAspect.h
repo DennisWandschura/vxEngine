@@ -46,8 +46,7 @@ namespace vx
 #include <vxEngineLib/Timer.h>
 #include <vxLib/Container/sorted_array.h>
 #include <vxLib/StringID.h>
-#include "TextureFileManager.h"
-#include <vxLib\Graphics\Mesh.h>
+#include <vxLib/Graphics\Mesh.h>
 #include <vxEngineLib/EventTypesFwd.h>
 #include <vxEngineLib/Pool.h>
 #include <vxEngineLib/SRWMutex.h>
@@ -80,16 +79,19 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 	vx::StackAllocator m_scratchAllocator;
 	vx::StackAllocator m_allocatorReadFile;
 	vx::StackAllocator m_allocatorMeshData;
+	vx::StackAllocator m_allocatorTextureData;
 	Timer m_timer;
 	vx::sorted_array<vx::StringID, vx::MeshFile*> m_sortedMeshes;
 	vx::sorted_array<vx::StringID, Reference<Material>> m_sortedMaterials;
-	vx::sorted_array<vx::StringID, vx::AnimationFile*> m_sortedAnimations;
+	vx::sorted_array<vx::StringID, Reference<vx::Animation>> m_sortedAnimations;
+	vx::sorted_array<vx::StringID, const Graphics::Texture*> m_sortedTextures;
 	vx::Pool<vx::MeshFile> m_poolMesh;
 	vx::Pool<ReferenceCounted<Material>> m_poolMaterial;
-	vx::Pool<vx::AnimationFile> m_poolAnimations;
-	TextureFileManager m_textureFileManager;
+	vx::Pool<ReferenceCounted<vx::Animation>> m_poolAnimations;
+	vx::Pool<Graphics::Texture> m_poolTextures;
 	vx::EventManager* m_eventManager;
 	physx::PxCooking* m_cooking;
+	vx::sorted_array<vx::StringID, std::string> m_sortedAnimationNames;
 
 	vx::sorted_vector<vx::StringID, std::string> m_loadedFiles;
 
@@ -133,12 +135,13 @@ public:
 	void requestLoadFile(const vx::FileEntry &fileEntry, void* p) override;
 	void requestSaveFile(const vx::FileEntry &fileEntry, void* p) override;
 
-	const TextureFile* getTextureFile(const vx::StringID &sid) const noexcept override;
+	const Graphics::Texture* getTexture(const vx::StringID &sid) const noexcept override;
 	Reference<Material> getMaterial(const vx::StringID &sid) noexcept override;
 	Reference<Material> getMaterial(const vx::StringID &id) const noexcept override;
 
 	const vx::MeshFile* getMesh(const vx::StringID &sid) const noexcept override;
-	const vx::AnimationFile* getAnimation(const vx::StringID &sid) const override;
+	Reference<vx::Animation> getAnimation(const vx::StringID &sid) const override;
+	const char* getAnimationName(const vx::StringID &sid) const;
 
 	const char* getLoadedFileName(const vx::StringID &sid) const noexcept override;
 

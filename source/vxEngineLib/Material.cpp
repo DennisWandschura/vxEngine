@@ -30,10 +30,10 @@ Material::Material()
 	m_albedo(),
 	m_normal(),
 	m_surface(),
-	m_textureSid(),
 	m_staticFriction(1.0f),
 	m_dynamicFriction(1.0f),
-	m_restitution(0.0f)
+	m_restitution(0.0f),
+	m_textureSid()
 {
 }
 
@@ -42,10 +42,10 @@ Material::Material(const vx::StringID &sid)
 	m_albedo(),
 	m_normal(),
 	m_surface(),
-	m_textureSid(),
 	m_staticFriction(1.0f),
 	m_dynamicFriction(1.0f),
-	m_restitution(0.0f)
+	m_restitution(0.0f),
+	m_textureSid()
 {
 
 }

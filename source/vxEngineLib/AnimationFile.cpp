@@ -93,7 +93,7 @@ namespace vx
 		auto start = ptr;
 
 		ptr = m_animation.loadFromMemory(ptr);
-		ptr = vx::read(m_name, ptr, sizeof(m_name));
+		ptr = vx::read(m_name, ptr);
 		
 		auto readSize = ptr - start;
 

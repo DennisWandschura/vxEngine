@@ -310,6 +310,17 @@ namespace Editor
 		}
 	}
 
+	void Scene::addAnimation(const vx::StringID &sid, std::string &&name)
+	{
+		printf("Scene::addAnimation: %llu\n", sid.value);
+		auto it = m_animationNames.find(sid);
+		if (it == m_animationNames.end())
+		{
+			auto s = sid;
+			m_animationNames.insert(std::move(s), std::move(name));
+		}
+	}
+
 	const char* Scene::getMeshInstanceName(const vx::StringID &sid) const
 	{
 		auto it = m_meshInstances.find(sid);
@@ -353,6 +364,21 @@ namespace Editor
 			return nullptr;
 
 		return it->c_str();
+	}
+
+	u32 Scene::getAnimationCount() const
+	{
+		return m_animationNames.size();
+	}
+
+	const char* Scene::getAnimationNameIndex(u32 i) const
+	{
+		return m_animationNames[i].c_str();
+	}
+
+	u64 Scene::getAnimationSidIndex(u32 i) const
+	{
+		return m_animationNames.keys()[i].value;
 	}
 
 	vx::StringID Scene::createMeshInstance()

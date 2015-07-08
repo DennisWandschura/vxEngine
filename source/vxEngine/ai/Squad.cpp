@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include "Squad.h"
 #include "../ComponentActor.h"
-#include"../Entity.h"
+#include <vxEngineLib/Entity.h>
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/NavMeshGraph.h>
 #include "../AStar.h"

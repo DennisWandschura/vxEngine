@@ -50,5 +50,7 @@ namespace vx
 
 		u64 getCrc() const override;
 		static u32 getGlobalVersion();
+
+		Animation getAnimation() { return std::move(m_animation); }
 	};
 }

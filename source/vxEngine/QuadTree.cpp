@@ -22,7 +22,7 @@ SOFTWARE.*/
 
 #include "QuadTree.h"
 #include <vxLib/memory.h>
-#include "Entity.h"
+#include <vxEngineLib/Entity.h>
 
 QuadTree::QuadTree()
 	:m_bounds(),

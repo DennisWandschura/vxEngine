@@ -29,6 +29,7 @@ namespace vx
 }
 
 struct Animation;
+struct StaticEntityAnimated;
 
 #include <vxEngineLib/EventListener.h>
 #include <vxLib/types.h>
@@ -45,4 +46,6 @@ public:
 	void handleEvent(const vx::Event &evt) override;
 
 	void update(const f32 dt);
+
+	void addAnimation(StaticEntityAnimated* entity);
 };

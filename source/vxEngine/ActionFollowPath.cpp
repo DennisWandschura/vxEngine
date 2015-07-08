@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "ActionFollowPath.h"
-#include "Entity.h"
+#include <vxEngineLib/Entity.h>
 #include "ComponentInput.h"
 #include "ComponentActor.h"
 

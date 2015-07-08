@@ -19,150 +19,125 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\DDS_File.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\dllExport.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\EditorRenderAspect.cpp" />
-    <ClCompile Include="source\Font.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\FontAtlas.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\gl\BufferBindingManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\gl\BufferManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\gl\ObjectManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\GpuProfiler.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\CommandFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\CommandList.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\CommandListFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\BarrierCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\BlendFuncCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\ClearColorCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\ClearCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\ConservativeRasterCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\CpuProfileCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\CullFaceCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\DepthRangeCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\DrawArraysCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\DrawArraysIndirectCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\DrawElementsIndirectCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\FramebufferTextureCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\GpuProfileCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\PointSizeCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\PolygonModeCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\PolygonOffsetCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\ProgramUniformCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Commands\BlendEquationCommand.cpp" />
-    <ClCompile Include="source\Graphics\Commands\ViewportCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Frame.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\GBufferRenderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\LightRenderer.cpp" />
-    <ClCompile Include="source\Graphics\PStateProfiler.cpp" />
-    <ClCompile Include="source\Graphics\Renderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Segment.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\ShadowRenderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\State.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\Surface.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Graphics\TextRenderer.cpp" />
-    <ClCompile Include="source\Graphics\VolumetricLightRenderer.cpp" />
-    <ClCompile Include="source\Graphics\VoxelRenderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\RenderAspect.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\RenderCommand.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\RenderCommandFinalImage.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\SceneRenderer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\SegmentFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\TextureManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="source\Vertex.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="DDS_File.cpp" />
+    <ClCompile Include="dllExport.cpp" />
+    <ClCompile Include="EditorRenderAspect.cpp" />
+    <ClCompile Include="Font.cpp" />
+    <ClCompile Include="FontAtlas.cpp" />
+    <ClCompile Include="gl\BufferBindingManager.cpp" />
+    <ClCompile Include="gl\BufferManager.cpp" />
+    <ClCompile Include="gl\ObjectManager.cpp" />
+    <ClCompile Include="GpuProfiler.cpp" />
+    <ClCompile Include="Graphics\CommandFactory.cpp" />
+    <ClCompile Include="Graphics\CommandList.cpp" />
+    <ClCompile Include="Graphics\CommandListFactory.cpp" />
+    <ClCompile Include="Graphics\Commands\BarrierCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\BlendEquationCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\BlendFuncCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\ClearColorCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\ClearCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\ConservativeRasterCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\CpuProfileCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\CullFaceCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\DepthRangeCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\DrawArraysCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\DrawElementsIndirectCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\FramebufferTextureCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\GpuProfileCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\PointSizeCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\PolygonModeCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\PolygonOffsetCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\ProgramUniformCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\ViewportCommand.cpp" />
+    <ClCompile Include="Graphics\Frame.cpp" />
+    <ClCompile Include="Graphics\GBufferRenderer.cpp" />
+    <ClCompile Include="Graphics\LightRenderer.cpp" />
+    <ClCompile Include="Graphics\PStateProfiler.cpp" />
+    <ClCompile Include="Graphics\Renderer.cpp" />
+    <ClCompile Include="Graphics\Segment.cpp" />
+    <ClCompile Include="Graphics\ShadowRenderer.cpp" />
+    <ClCompile Include="Graphics\State.cpp" />
+    <ClCompile Include="Graphics\TextRenderer.cpp" />
+    <ClCompile Include="Graphics\VolumetricLightRenderer.cpp" />
+    <ClCompile Include="Graphics\VoxelRenderer.cpp" />
+    <ClCompile Include="MaterialManager.cpp" />
+    <ClCompile Include="MeshManager.cpp" />
+    <ClCompile Include="RenderAspect.cpp" />
+    <ClCompile Include="RenderCommand.cpp" />
+    <ClCompile Include="RenderCommandFinalImage.cpp" />
+    <ClCompile Include="SceneRenderer.cpp" />
+    <ClCompile Include="SegmentFactory.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\game\data\shaders\include\common.h" />
+    <ClInclude Include="DDS_File.h" />
+    <ClInclude Include="DebugRenderSettings.h" />
+    <ClInclude Include="dllExport.h" />
+    <ClInclude Include="EditorRenderAspect.h" />
+    <ClInclude Include="Font.h" />
+    <ClInclude Include="FontAtlas.h" />
+    <ClInclude Include="Frustum.h" />
+    <ClInclude Include="gl\BufferBindingManager.h" />
+    <ClInclude Include="gl\BufferManager.h" />
+    <ClInclude Include="gl\ObjectManager.h" />
+    <ClInclude Include="GpuProfiler.h" />
+    <ClInclude Include="GpuStructs.h" />
+    <ClInclude Include="Graphics\CommandFactory.h" />
+    <ClInclude Include="Graphics\CommandList.h" />
+    <ClInclude Include="Graphics\CommandListFactory.h" />
+    <ClInclude Include="Graphics\Commands.h" />
+    <ClInclude Include="Graphics\Commands\BarrierCommand.h" />
+    <ClInclude Include="Graphics\Commands\BlendEquationCommand.h" />
+    <ClInclude Include="Graphics\Commands\BlendFuncCommand.h" />
+    <ClInclude Include="Graphics\Commands\ClearColorCommand.h" />
+    <ClInclude Include="Graphics\Commands\ClearCommand.h" />
+    <ClInclude Include="Graphics\Commands\Command.h" />
+    <ClInclude Include="Graphics\Commands\ConservativeRasterCommand.h" />
+    <ClInclude Include="Graphics\Commands\CpuProfileCommand.h" />
+    <ClInclude Include="Graphics\Commands\CullFaceCommand.h" />
+    <ClInclude Include="Graphics\Commands\DepthRangeCommand.h" />
+    <ClInclude Include="Graphics\Commands\DrawArraysCommand.h" />
+    <ClInclude Include="Graphics\Commands\DrawArraysIndirectCommand.h" />
+    <ClInclude Include="Graphics\Commands\DrawElementsIndirectCommand.h" />
+    <ClInclude Include="Graphics\Commands\FramebufferTextureCommand.h" />
+    <ClInclude Include="Graphics\Commands\GpuProfileCommand.h" />
+    <ClInclude Include="Graphics\Commands\MultiDrawArraysIndirectCountCommand.h" />
+    <ClInclude Include="Graphics\Commands\MultiDrawElementsIndirectCountCommand.h" />
+    <ClInclude Include="Graphics\Commands\PointSizeCommand.h" />
+    <ClInclude Include="Graphics\Commands\PolygonModeCommand.h" />
+    <ClInclude Include="Graphics\Commands\PolygonOffsetCommand.h" />
+    <ClInclude Include="Graphics\Commands\ProgramUniformCommand.h" />
+    <ClInclude Include="Graphics\Commands\ViewportCommand.h" />
+    <ClInclude Include="Graphics\Frame.h" />
+    <ClInclude Include="Graphics\GBufferRenderer.h" />
+    <ClInclude Include="Graphics\LightRenderer.h" />
+    <ClInclude Include="Graphics\PStateProfiler.h" />
+    <ClInclude Include="Graphics\Renderer.h" />
+    <ClInclude Include="Graphics\Segment.h" />
+    <ClInclude Include="Graphics\ShadowRenderer.h" />
+    <ClInclude Include="Graphics\State.h" />
+    <ClInclude Include="Graphics\TextRenderer.h" />
+    <ClInclude Include="Graphics\VolumetricLightRenderer.h" />
+    <ClInclude Include="Graphics\VoxelRenderer.h" />
+    <ClInclude Include="MaterialManager.h" />
+    <ClInclude Include="MeshManager.h" />
+    <ClInclude Include="ProgramUniformBinding.h" />
+    <ClInclude Include="RenderAspect.h" />
+    <ClInclude Include="RenderAspectDescription.h" />
+    <ClInclude Include="RenderCommand.h" />
+    <ClInclude Include="RenderCommandFinalImage.h" />
+    <ClInclude Include="SceneRenderer.h" />
+    <ClInclude Include="SegmentFactory.h" />
+    <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="Vertex.h" />
     <None Include="..\..\game\data\shaders\blurpassNew.pipe" />
     <None Include="..\..\game\data\shaders\include\buffers.glsl" />
     <None Include="..\..\game\data\shaders\include\quaternion.glsl" />
@@ -174,70 +149,6 @@
     <ClInclude Include="..\..\game\data\shaders\include\UniformReflectionBuffer.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTextureBuffer.h" />
     <ClInclude Include="..\..\game\data\shaders\include\UniformShadowTransformBuffer.h" />
-    <ClInclude Include="include\vxRenderAspect\dds.h" />
-    <ClInclude Include="include\vxRenderAspect\DDS_File.h" />
-    <ClInclude Include="include\vxRenderAspect\DebugRenderSettings.h" />
-    <ClInclude Include="include\vxRenderAspect\dllExport.h" />
-    <ClInclude Include="include\vxRenderAspect\EditorRenderAspect.h" />
-    <ClInclude Include="include\vxRenderAspect\Font.h" />
-    <ClInclude Include="include\vxRenderAspect\FontAtlas.h" />
-    <ClInclude Include="include\vxRenderAspect\Frustum.h" />
-    <ClInclude Include="include\vxRenderAspect\gl\BufferBindingManager.h" />
-    <ClInclude Include="include\vxRenderAspect\gl\BufferManager.h" />
-    <ClInclude Include="include\vxRenderAspect\gl\ObjectManager.h" />
-    <ClInclude Include="include\vxRenderAspect\GpuProfiler.h" />
-    <ClInclude Include="include\vxRenderAspect\GpuStructs.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\CommandFactory.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\CommandList.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\CommandListFactory.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BarrierCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BlendFuncCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearColorCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ClearCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\Command.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ConservativeRasterCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\CpuProfileCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\CullFaceCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DepthRangeCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawArraysCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawArraysIndirectCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\DrawElementsIndirectCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\FramebufferTextureCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\GpuProfileCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\BlendEquationCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawArraysIndirectCountCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\MultiDrawElementsIndirectCountCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PointSizeCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PolygonModeCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\PolygonOffsetCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ProgramUniformCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Commands\ViewportCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Frame.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\GBufferRenderer.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\LightRenderer.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\PStateProfiler.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Renderer.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Segment.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\ShadowRenderer.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\State.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\Surface.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\TextRenderer.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\VolumetricLightRenderer.h" />
-    <ClInclude Include="include\vxRenderAspect\Graphics\VoxelRenderer.h" />
-    <ClInclude Include="include\vxRenderAspect\opencl\Context.h" />
-    <ClInclude Include="include\vxRenderAspect\opencl\Device.h" />
-    <ClInclude Include="include\vxRenderAspect\opencl\Image.h" />
-    <ClInclude Include="include\vxRenderAspect\opencl\Platform.h" />
-    <ClInclude Include="include\vxRenderAspect\ProgramUniformBinding.h" />
-    <ClInclude Include="include\vxRenderAspect\RenderAspect.h" />
-    <ClInclude Include="include\vxRenderAspect\RenderAspectDescription.h" />
-    <ClInclude Include="include\vxRenderAspect\RenderCommand.h" />
-    <ClInclude Include="include\vxRenderAspect\RenderCommandFinalImage.h" />
-    <ClInclude Include="include\vxRenderAspect\SceneRenderer.h" />
-    <ClInclude Include="include\vxRenderAspect\SegmentFactory.h" />
-    <ClInclude Include="include\vxRenderAspect\TextureManager.h" />
-    <ClInclude Include="include\vxRenderAspect\Vertex.h" />
     <None Include="..\..\game\data\shaders\include\uniform_buffers.glsl" />
   </ItemGroup>
   <ItemGroup>

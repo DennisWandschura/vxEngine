@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace MaterialFactoryCpp
 {
-	bool checkTextureFile(const char(&filename)[32], const vx::sorted_array<vx::StringID, TextureFile*> *textureFiles, std::vector<vx::FileEntry>* missingFiles, vx::StringID* outSid)
+	bool checkTextureFile(const char(&filename)[32], const vx::sorted_array<vx::StringID, const Graphics::Texture*> *textureFiles, std::vector<vx::FileEntry>* missingFiles, vx::StringID* outSid)
 	{
 		vx::FileEntry fileEntry(filename, vx::FileType::Texture);
 		vx::StringID sid = vx::make_sid(filename);

@@ -29,6 +29,7 @@ SOFTWARE.
 TextureFile::TextureFile()
 	:m_pData(nullptr),
 	m_pMemory(),
+	m_size(0, 0),
 	m_channels(0),
 	m_settings(),
 	m_mipmapLevels(0)

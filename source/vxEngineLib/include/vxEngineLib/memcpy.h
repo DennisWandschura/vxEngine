@@ -97,15 +97,14 @@ namespace vx
 		auto size = sizeof(T) * count;
 		::memcpy((u8*)dst, src, size);
 
-		return (src + size);
+		return src + size;
 	}
 
-	template<typename T>
+	template<>
 	// writes data from src to dst and returns a ptr offset by size of dst from src
-	inline const T* read(T* dst, const T* src, u32 count)
+	inline const u8* read<u8>(u8* dst, const u8* src, u32 count)
 	{
-		auto size = sizeof(T) * count;
-		::memcpy((u8*)dst, src, size);
+		::memcpy(dst, src, count);
 
 		return (src + count);
 	}

@@ -23,11 +23,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class MeshInstance;
+
 #include <vxEngineLib/Transform.h>
 
 struct RenderUpdateTask
 {
-	enum class Type{ UpdateCamera, UpdateDynamicTransforms, UpdateText, LoadScene, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex };
+	enum class Type{ UpdateCamera, UpdateDynamicTransforms, UpdateText, LoadScene, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex, CreateStaticMesh };
 
 	Type type;
 };
@@ -49,4 +51,9 @@ struct RenderUpdateTextData
 	char text[32];
 	vx::float2 position;
 	vx::float3 color;
+};
+
+struct RenderUpdateTaskCreateStaticMeshData
+{
+	const MeshInstance* instance;
 };

@@ -125,5 +125,9 @@ namespace Editor
 	extern "C" DLL_EXPORT BSTR getMaterialNameIndex(u32 i);
 	extern "C" DLL_EXPORT BSTR getMaterialName(u64 sid);
 	extern "C" DLL_EXPORT u64 getMaterialSid(u32 i);
+
+	extern "C" DLL_EXPORT u32 getAnimationCount();
+	extern "C" DLL_EXPORT BSTR getAnimationNameIndex(u32 i);
+	extern "C" DLL_EXPORT u64 getAnimationSidIndex(u32 i);
 }
 #endif

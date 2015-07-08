@@ -301,9 +301,6 @@
     <ClCompile Include="SceneFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="TextureFileManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Editor|x64'">true</ExcludedFromBuild>
@@ -322,7 +319,6 @@
     <ClInclude Include="include\vxResourceAspect\MaterialFactory.h" />
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h" />
     <ClInclude Include="include\vxResourceAspect\SceneFactory.h" />
-    <ClInclude Include="include\vxResourceAspect\TextureFileManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

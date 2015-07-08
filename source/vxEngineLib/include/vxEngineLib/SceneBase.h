@@ -37,6 +37,7 @@ class Reference;
 
 namespace vx
 {
+	struct Animation;
 	class MeshFile;
 }
 
@@ -54,6 +55,7 @@ struct SceneBaseParams
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	std::vector<Waypoint> m_waypoints;
+	vx::sorted_vector<vx::StringID, Reference<vx::Animation>> m_animations;
 	NavMesh m_navMesh;
 	u32 m_lightCount;
 	u32 m_vertexCount;
@@ -61,6 +63,7 @@ struct SceneBaseParams
 	u32 m_spawnCount;
 	u32 m_waypointCount;
 
+	SceneBaseParams();
 	~SceneBaseParams();
 };
 
@@ -73,11 +76,12 @@ protected:
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	std::vector<Waypoint> m_waypoints;
+	vx::sorted_vector<vx::StringID, Reference<vx::Animation>> m_animations;
 	NavMesh m_navMesh;
 	u32 m_lightCount{ 0 };
 	u32 m_vertexCount{ 0 };
-	u32 m_indexCount{ 0 };
-	u32 m_spawnCount{ 0 };
+	u32 m_indexCount;
+	u32 m_spawnCount;
 	u32 m_waypointCount;
 
 	SceneBase();
@@ -104,7 +108,7 @@ public:
 	const Light* getLights() const;
 	u32 getLightCount() const;
 
-	Reference<Material>* getMaterials() const;
+	const Reference<Material>* getMaterials() const;
 	u32 getMaterialCount() const;
 
 	const Reference<Material>* getMaterial(const vx::StringID &sid) const;
@@ -116,6 +120,9 @@ public:
 	u32 getSpawnCount() const;
 
 	const vx::sorted_vector<vx::StringID, Actor>& getActors() const;
+
+	const Reference<vx::Animation>* getAnimations() const;
+	u32 getAnimationCount() const;
 
 	NavMesh& getNavMesh();
 	const NavMesh& getNavMesh() const;

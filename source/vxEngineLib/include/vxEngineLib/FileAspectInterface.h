@@ -24,8 +24,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class TextureFile;
 class Material;
+
+namespace Graphics
+{
+	class Texture;
+}
 
 template<typename T>
 class Reference;
@@ -39,7 +43,7 @@ namespace vx
 	class FileEntry;
 	struct StringID;
 	class MeshFile;
-	class AnimationFile;
+	struct Animation;
 
 	enum class FileType : u8;
 }
@@ -66,12 +70,12 @@ public:
 	virtual void requestLoadFile(const vx::FileEntry &fileEntry, void* p) = 0;
 	virtual void requestSaveFile(const vx::FileEntry &fileEntry, void* p) = 0;
 
-	virtual const TextureFile* getTextureFile(const vx::StringID &sid) const noexcept = 0;
+	virtual const Graphics::Texture* getTexture(const vx::StringID &sid) const noexcept = 0;
 	virtual Reference<Material> getMaterial(const vx::StringID &sid) noexcept = 0;
 	virtual Reference<Material> getMaterial(const vx::StringID &id) const noexcept = 0;
 
 	virtual const vx::MeshFile* getMesh(const vx::StringID &sid) const noexcept = 0;
-	virtual const vx::AnimationFile* getAnimation(const vx::StringID &sid) const = 0;
+	virtual Reference<vx::Animation> getAnimation(const vx::StringID &sid) const = 0;
 
 	virtual const char* getLoadedFileName(const vx::StringID &sid) const noexcept = 0;
 

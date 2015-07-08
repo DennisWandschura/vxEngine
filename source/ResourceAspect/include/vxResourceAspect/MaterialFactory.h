@@ -26,7 +26,11 @@ SOFTWARE.
 #include <vxLib/types.h>
 
 class Material;
-class TextureFile;
+
+namespace Graphics
+{
+	class Texture;
+}
 
 namespace vx
 {
@@ -43,7 +47,7 @@ namespace vx
 struct MaterialFactoryLoadDescription
 {
 	const char *fileNameWithPath;
-	const vx::sorted_array<vx::StringID, TextureFile*, std::less<vx::StringID>>* textureFiles;
+	const vx::sorted_array<vx::StringID, const Graphics::Texture*, std::less<vx::StringID>>* textureFiles;
 	std::vector<vx::FileEntry>* missingFiles;
 	Material* material;
 };

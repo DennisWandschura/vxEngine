@@ -34,5 +34,6 @@ enum class IngameEvent : u16
 	Create_Actor_Physx,
 	Created_Actor,
 	Created_Actor_GPU,
-	Created_Actor_Physx
+	Created_Actor_Physx,
+	Create_StaticEntity
 };

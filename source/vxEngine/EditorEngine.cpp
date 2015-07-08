@@ -292,13 +292,22 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 	}break;
 	case vx::FileEvent::Animation_Loaded:
 	{
-		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
+		auto sid = vx::StringID(evt.arg1.u64);
+		if (evt.arg2.ptr)
+		{
+			auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
 
-		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded Animation");
-		call_editorCallback(vx::StringID(evt.arg1.u64));
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded Animation %llu", sid.value);
+			call_editorCallback(sid);
 
-		delete(pStr);
-
+			m_pEditorScene->addAnimation(sid, std::move(*pStr));
+		}
+		else
+		{
+			auto str = m_fileAspect.getAnimationName(sid);
+			if (str)
+				m_pEditorScene->addAnimation(sid, std::move(std::string(str)));
+		}
 	}break;
 	default:
 	{
@@ -1385,4 +1394,19 @@ u64 EditorEngine::getMeshInstanceAnimation(u64 instanceSid)
 		result = instance->getAnimationSid().value;
 	}
 	return result;
+}
+
+u32 EditorEngine::getAnimationCount() const
+{
+	return m_pEditorScene->getAnimationCount();
+}
+
+const char* EditorEngine::getAnimationNameIndex(u32 i) const
+{
+	return m_pEditorScene->getAnimationNameIndex(i);
+}
+
+u64 EditorEngine::getAnimationSidIndex(u32 i) const
+{
+	return m_pEditorScene->getAnimationSidIndex(i);
 }

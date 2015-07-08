@@ -519,5 +519,29 @@ namespace Editor
 	{
 		return g_pEditor->engine.getMaterialSid(i);
 	}
+
+	u32 getAnimationCount()
+	{
+		return g_pEditor->engine.getAnimationCount();
+	}
+
+	BSTR getAnimationNameIndex(u32 i)
+	{
+		auto name = g_pEditor->engine.getAnimationNameIndex(i);
+
+		if (name)
+		{
+			return ANSItoBSTR(name);
+		}
+		else
+		{
+			return ::SysAllocString(L"unknownAnimation");
+		}
+	}
+
+	u64 getAnimationSidIndex(u32 i)
+	{
+		return g_pEditor->engine.getAnimationSidIndex(i);
+	}
 }
 #endif

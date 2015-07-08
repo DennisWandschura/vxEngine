@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Seek.h"
-#include "Entity.h"
+#include <vxEngineLib/Entity.h>
 
 Seek::Seek(EntityActor* entity, const vx::float3 &target, f32 maxAccel)
 	:m_entity(entity),
