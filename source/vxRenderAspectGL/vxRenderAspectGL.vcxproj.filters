@@ -207,6 +207,9 @@
     <ClCompile Include="MaterialManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TexturePool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\game\data\shaders\include\common.h">
@@ -411,6 +414,9 @@
       <Filter>Header Files\Graphics\Commands</Filter>
     </ClInclude>
     <ClInclude Include="MaterialManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TexturePool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

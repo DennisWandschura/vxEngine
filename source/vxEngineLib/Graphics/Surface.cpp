@@ -15,6 +15,8 @@ namespace Graphics
 		m_size(rhs.m_size),
 		m_pixels(std::move(rhs.m_pixels))
 	{
+		rhs.m_pixels = nullptr;
+		rhs.m_size = 0;
 	}
 
 	Surface::~Surface()

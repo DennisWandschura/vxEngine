@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,65 +24,40 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class FileAspectInterface;
 
-#include <UniformCameraBuffer.h>
-#include <UniformCameraBufferStatic.h>
-#include <UniformShadowTransformBuffer.h>
-
-namespace Gpu
+namespace Graphics
 {
-	struct VoxelData
-	{
-		vx::mat4 projectionMatrix[3];
-		u32 dim;
-		u32 halfDim;
-		float gridCellSize;
-		float invGridCellSize;
-		vx::float4a padding[3];
-	};
-
-	struct VoxelBlock
-	{
-		VoxelData data;
-	};
-
-	struct LightData
-	{
-		__m128 position;
-		float falloff;
-		float lumen;
-		f32 padding[2];
-	};
-
-	struct UniformGBufferBlock
-	{
-		u64 u_albedoSlice;
-		u64 u_normalSlice;
-		u64 u_surfaceSlice;
-		u64 u_tangentSlice;
-		u64 u_bitangentSlice;
-		u64 u_depthSlice;
-	};
-
-	struct UniformTextureBufferBlock
-	{
-		u64 u_aabbTexture;
-		u64 u_ambientSlice;
-		u64 u_ambientImage;
-		u64 u_srgb;
-		u64 u_rgb;
-	};
-
-	struct MaterialGPU
-	{
-		u32 indexAlbedo;
-		u32 indexNormal;
-		u32 indexSurface;
-		u32 hasNormalMap;
-	};
-
-	struct RenderSettingsBlock
-	{
-		vx::uint2 resolution;
-	};
+	class Texture;
 }
+
+#include <vxLib/Container/sorted_vector.h>
+#include <vxGL/Texture.h>
+#include <memory>
+#include <vxLib/StringID.h>
+
+class TexturePool
+{
+	vx::sorted_vector<vx::StringID, u32> m_indices;
+	std::unique_ptr<std::pair<u16, u16>[]> m_entries;
+	u32 m_firstFreeEntry;
+	u32 m_freeEntries;
+	vx::gl::Texture m_texture;
+
+	bool addTexture(const vx::StringID &sid, FileAspectInterface* fileAspect, u32* index);
+	bool addTexture(const vx::StringID &sid, const Graphics::Texture &texture, u32* index);
+
+public:
+	TexturePool();
+	~TexturePool();
+
+	void initialize(const vx::uint3 &textureDim, vx::gl::TextureFormat format);
+	void shutdown();
+
+	bool getTextureIndex(const vx::StringID &sid, FileAspectInterface* fileAspect, u32* index);
+	bool getTextureIndex(const vx::StringID &sid, const Graphics::Texture &texture, u32* index);
+
+	u32 getTextureId(const vx::StringID &sid) const;
+
+	u64 getTextureHandle() const;
+};

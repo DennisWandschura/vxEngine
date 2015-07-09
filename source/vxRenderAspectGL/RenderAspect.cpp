@@ -52,6 +52,10 @@ SOFTWARE.
 #include "Graphics/GBufferRenderer.h"
 #include <vxEngineLib/Scene.h>
 #include "Frustum.h"
+#include <vxEngineLib/MeshInstance.h>
+#include <vxEngineLib/Graphics/TextureFactory.h>
+#include <vxEngineLib/Graphics/Texture.h>
+#include <vxEngineLib/Material.h>
 
 #include "opencl/device.h"
 #include "opencl/image.h"
@@ -188,6 +192,7 @@ void RenderAspect::createUniformBuffers(f32 znear, f32 zfar)
 		desc.size = sizeof(Gpu::UniformTextureBufferBlock);
 		desc.immutable = 1;
 		desc.pData = &data;
+		desc.flags = vx::gl::BufferStorageFlags::Write;
 
 		m_objectManager.createBuffer("UniformTextureBuffer", desc);
 	}
@@ -464,7 +469,9 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	createUniformBuffers(desc.settings->m_zNear, desc.settings->m_zFar);
 	createBuffers();
 
-	m_sceneRenderer.initialize(10, &m_objectManager, desc.pAllocator);
+	//m_sceneRenderer.initialize(10, &m_objectManager, desc.pAllocator);
+	m_materialManager.initialize(vx::uint3(1024, 1024, 128), desc.settings->m_rendererSettings.m_maxMeshInstances, &m_objectManager);
+	m_meshManager.initialize(desc.settings->m_rendererSettings.m_maxMeshInstances, 0xffff+1, 0xffff+1, &m_objectManager);
 
 	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
 	m_renderpassFinalImageFullShading.initialize(*emptyVao, *m_shaderManager.getPipeline("draw_final_image.pipe"), m_resolution);
@@ -526,22 +533,34 @@ bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig
 
 bool RenderAspect::initializeProfiler()
 {
+	u32 textureIndex = 0;
+	u64 fontHandle = 0;
 	{
 		std::string dataDir = "../data/";
 		auto file = (dataDir + "textures/verdana.png");
+		auto sid = vx::make_sid("verdana.png");
 
-		auto ref = m_sceneRenderer.loadTexture(file.c_str(), &m_allocator, &m_scratchAllocator);
-		VX_ASSERT(ref.isValid());
+		Graphics::Texture texture;
+		Graphics::TextureFactory::createPngFromFile(file.c_str(), true, &texture, &m_allocator, &m_scratchAllocator);
+
+		auto b = m_materialManager.getTextureIndex(sid, texture, &textureIndex);
+		VX_ASSERT(b);
+		auto texId = m_materialManager.getTextureId(sid);
+
+		//auto ref = m_sceneRenderer.loadTexture(file.c_str(), &m_allocator, &m_scratchAllocator);
+		//VX_ASSERT(ref.isValid());
+		auto dim = texture.getFace(0).getDimension();
+
+		TextureRef ref(texId, textureIndex, vx::uint2(dim.x, dim.y), true);
 
 		FontAtlas fontAtlas;
 		if (!fontAtlas.loadFromFile((dataDir + "fonts/meta/VerdanaRegular.sdff").c_str()))
 			return false;
 
 		m_pColdData->m_font = Font(std::move(ref), std::move(fontAtlas));
-	}
 
-	auto fontHandle = glGetTextureHandleARB(m_pColdData->m_font.getTextureEntry().getTextureId());
-	auto textureIndex = m_sceneRenderer.getTextureIndex(fontHandle);
+		fontHandle = glGetTextureHandleARB(texId);
+	}
 
 	Graphics::TextRendererDesc desc;
 	desc.font = &m_pColdData->m_font;
@@ -592,7 +611,9 @@ void RenderAspect::shutdown(void* hwnd)
 	m_textRenderer.reset(nullptr);
 	m_gpuProfiler.reset(nullptr);
 	m_tasks.clear();
-	m_sceneRenderer.shutdown();
+	//m_sceneRenderer.shutdown();
+	m_materialManager.shutdown();
+	m_meshManager.shutdown();
 	m_objectManager.shutdown();
 	m_pColdData.reset(nullptr);
 	m_renderContext.shutdown((HWND)hwnd);
@@ -748,11 +769,22 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 	auto scene = (Scene*)data->ptr;
 
 	//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Loading Scene into Render");
-	m_sceneRenderer.loadScene(scene, m_objectManager, m_fileAspect);
+	//m_sceneRenderer.loadScene(scene, m_objectManager, m_fileAspect);
 
-	auto count = m_sceneRenderer.getMeshInstanceCount();
-	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
-	buffer->subData(0, sizeof(u32), &count);
+	auto instances = scene->getMeshInstances();
+	auto instanceCount = scene->getMeshInstanceCount();
+	for (u32 i = 0; i < instanceCount; ++i)
+	{
+		auto &instance = instances[i];
+		u32 materialIndex = 0;
+		auto b = m_materialManager.getMaterialIndex(*instance.getMaterial().get(), m_fileAspect, &materialIndex);
+		VX_ASSERT(b);
+
+		auto gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_fileAspect);
+	}
+
+
+	//auto count = m_sceneRenderer.getMeshInstanceCount();
 
 	if (m_shadowRenderer)
 		m_shadowRenderer->updateDrawCmds();
@@ -823,7 +855,8 @@ void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
 
 	for (u32 i = 0; i < count; ++i)
 	{
-		m_sceneRenderer.updateTransform(transforms[i], indices[i]);
+		//m_sceneRenderer.updateTransform(transforms[i], indices[i]);
+		m_meshManager.updateTransform(transforms[i], indices[i]);
 	}
 
 	*offset += sizeof(RenderUpdateDataTransforms) + (sizeof(vx::TransformGpu) + sizeof(u32)) * count;
@@ -858,10 +891,10 @@ void RenderAspect::submitCommands()
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 
-	auto instanceCount = m_sceneRenderer.getMeshInstanceCount();
-	auto meshCmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
+	//auto instanceCount = m_sceneRenderer.getMeshInstanceCount();
+	/*auto meshCmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
 	auto meshVao = m_objectManager.getVertexArray("meshVao");
-	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");
+	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");*/
 
 	//CpuProfiler::pushMarker("frame");
 	m_gpuProfiler->pushGpuMarker("commands");
@@ -976,7 +1009,6 @@ void RenderAspect::bindBuffers()
 		it->bindBuffers();
 	}
 
-	auto pTextureBuffer = m_objectManager.getBuffer("TextureBuffer");
 	auto pUniformTextureBuffer = m_objectManager.getBuffer("UniformTextureBuffer");
 	auto pCameraBufferStatic = m_objectManager.getBuffer("CameraBufferStatic");
 	auto renderSettingsBufferBlock = m_objectManager.getBuffer("RenderSettingsBufferBlock");
@@ -994,7 +1026,6 @@ void RenderAspect::bindBuffers()
 
 	gl::BufferBindingManager::bindBaseShaderStorage(0, transformBuffer->getId());
 	gl::BufferBindingManager::bindBaseShaderStorage(1, materialBlockBuffer->getId());
-	gl::BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
 }
 
 void RenderAspect::clearTextures()
@@ -1204,11 +1235,15 @@ u16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::Str
 {
 	vx::gl::DrawElementsIndirectCommand drawCmd;
 	u32 cmdIndex = 0;
-	auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, &drawCmd, &cmdIndex, m_fileAspect);
 
-	auto count = m_sceneRenderer.getMeshInstanceCount();
+	u32 materialIndex = 0;
+	m_materialManager.getMaterialIndex(material, m_fileAspect,&materialIndex);
+	auto gpuIndex = m_meshManager.addMeshInstance(transform, mesh, materialIndex, m_fileAspect);
+	//auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, &drawCmd, &cmdIndex, m_fileAspect);
+
+	/*auto count = m_sceneRenderer.getMeshInstanceCount();
 	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
-	buffer->subData(0, sizeof(u32), &count);
+	buffer->subData(0, sizeof(u32), &count);*/
 
 	return gpuIndex;
 }

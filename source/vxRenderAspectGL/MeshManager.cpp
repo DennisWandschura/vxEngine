@@ -32,7 +32,17 @@ SOFTWARE.
 #include <vxEngineLib/GpuFunctions.h>
 
 MeshManager::MeshManager()
-
+	:m_vertexBuffer(),
+	m_indexBuffer(),
+	m_drawIdBuffer(),
+	m_sizeVertices(0),
+	m_sizeIndices(0),
+	m_sizeInstances(0),
+	m_capacityVertices(0),
+	m_capacityIndices(0),
+	m_capacityInstances(0),
+	m_objectManager(nullptr),
+	m_meshEntries()
 {
 
 }
@@ -42,8 +52,10 @@ MeshManager::~MeshManager()
 
 }
 
-void MeshManager::initialize(u32 maxInstances, u32 maxVertices, u32 maxIndices)
+void MeshManager::initialize(u32 maxInstances, u32 maxVertices, u32 maxIndices, gl::ObjectManager* objectManager)
 {
+	m_objectManager = objectManager;
+
 	m_capacityInstances = maxInstances;
 	m_capacityVertices = maxVertices;
 	m_capacityIndices = maxIndices;
@@ -98,8 +110,16 @@ void MeshManager::createCmdBuffer()
 	desc.flags = vx::gl::BufferStorageFlags::Write;
 	desc.immutable = 1;
 	desc.size = sizeof(vx::gl::DrawElementsIndirectCommand) * m_capacityInstances;
+	desc.pData = nullptr;
 
 	m_objectManager->createBuffer("meshCmdBuffer", desc);
+
+	u32 count = 0;
+	desc.bufferType = vx::gl::BufferType::Parameter_Buffer;
+	desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
+	desc.size = sizeof(u32);
+	desc.pData = &count;
+	m_objectManager->createBuffer("meshParamBuffer", desc);
 }
 
 void MeshManager::createTransformBuffer()
@@ -109,7 +129,8 @@ void MeshManager::createTransformBuffer()
 	desc.flags = vx::gl::BufferStorageFlags::Write;
 	desc.immutable = 1;
 	desc.size = sizeof(vx::TransformGpu) * m_capacityInstances;
-	m_transformBuffer.create(desc);
+
+	m_objectManager->createBuffer("transformBuffer", desc);
 }
 
 void MeshManager::createBuffers()
@@ -174,7 +195,13 @@ void MeshManager::addMeshInstances(const MeshManagerMeshInstanceDesc &desc)
 u32 MeshManager::addMeshInstance(const MeshInstance &instance, u16 materialIndex, FileAspectInterface* fileAspect)
 {
 	auto meshSid = instance.getMeshSid();
+	auto transform = instance.getTransform();
 
+	return addMeshInstance(transform, meshSid, materialIndex, fileAspect);
+}
+
+u32 MeshManager::addMeshInstance(const vx::Transform &transform, const vx::StringID &meshSid, u16 materialIndex, FileAspectInterface* fileAspect)
+{
 	auto it = m_meshEntries.find(meshSid);
 	if (it == m_meshEntries.end())
 	{
@@ -205,16 +232,18 @@ u32 MeshManager::addMeshInstance(const MeshInstance &instance, u16 materialIndex
 	*mappedDrawIdBuffer = packedData;
 	mappedDrawIdBuffer.unmap();
 
-	auto transform = instance.getTransform();
-
 	vx::TransformGpu transformGpu;
 	transformGpu.translation = transform.m_translation;
 	transformGpu.scaling = transform.m_scaling;
 	transformGpu.packedQRotation = GpuFunctions::packQRotation(vx::loadFloat4(transform.m_qRotation));
 
-	auto mappedTransformBuffer = m_transformBuffer.mapRange<vx::TransformGpu>(sizeof(vx::TransformGpu) * drawId, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
+	auto transformBuffer = m_objectManager->getBuffer("transformBuffer");
+	auto mappedTransformBuffer = transformBuffer->mapRange<vx::TransformGpu>(sizeof(vx::TransformGpu) * drawId, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
 	*mappedTransformBuffer = transformGpu;
 	mappedTransformBuffer.unmap();
+
+	auto buffer = m_objectManager->getBuffer("meshParamBuffer");
+	buffer->subData(0, sizeof(u32), &m_sizeInstances);
 
 	return drawId;
 }
@@ -269,4 +298,12 @@ void MeshManager::addMeshes(const vx::Mesh* meshes, u32 count)
 	{
 		addMeshToGpu(meshes[i]);
 	}
+}
+
+void MeshManager::updateTransform(const vx::TransformGpu &transform, u32 index)
+{
+	auto transformBuffer = m_objectManager->getBuffer("transformBuffer");
+	auto mappedBuffer = transformBuffer->mapRange<vx::TransformGpu>(sizeof(vx::TransformGpu) * index, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
+	*mappedBuffer = transform;
+	mappedBuffer.unmap();
 }

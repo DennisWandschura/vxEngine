@@ -42,6 +42,11 @@ namespace Graphics
 		rhs.m_mipmapCount = 0;
 	}
 
+	Face::~Face()
+	{
+		clear();
+	}
+
 	Face& Face::operator = (Face &&rhs)
 	{
 		Graphics::Surface::operator=(std::move(rhs));

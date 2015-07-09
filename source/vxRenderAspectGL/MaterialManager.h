@@ -25,47 +25,42 @@ SOFTWARE.
 */
 
 class Material;
-class FileAspectInterface;
 
 namespace gl
 {
 	class ObjectManager;
 }
 
-#include <vxLib/Container/sorted_vector.h>
-#include <vxGL/Texture.h>
-#include <vxLib/StringID.h>
-#include <memory>
+#include "TexturePool.h"
 #include <vxgl/Buffer.h>
 
 class MaterialManager
 {
-	vx::sorted_vector<vx::StringID, u32> m_textureIndices;
+	TexturePool m_poolSrgba;
+	TexturePool m_poolRgb;
+
 	vx::sorted_vector<vx::StringID, u32> m_materialIndices;
-	vx::gl::Texture m_textureRgba8;
-	vx::gl::Texture m_textureRgb8;
-	vx::gl::Buffer m_materialIndexBuffer;
 	std::unique_ptr<u32[]> m_materialEntries;
 	u32 m_materialFreeEntries;
 	u32 m_materialFirstFreeEntry;
-	std::unique_ptr<std::pair<u16, u16>[]> m_textureEntries;
-	u32 m_textureFreeEntries;
-	u32 m_textureFirstFreeEntry;
+	gl::ObjectManager* m_objectManager;
 
-	void createTextures(const vx::uint3 &textureDim);
 	void createBuffer(u32 maxInstances);
 
-	bool addTexture(const vx::StringID &sid,FileAspectInterface* fileAspect, u32* index);
-	bool getTextureIndex(const vx::StringID &sid, FileAspectInterface* fileAspect, u32* index);
-
 	bool addMaterial(const Material &material, FileAspectInterface* fileAspect, u32* index);
+	bool addMaterial(const vx::StringID &materialSid, FileAspectInterface* fileAspect, u32* index);
 
 public:
 	MaterialManager();
 	~MaterialManager();
 
-	void initialize(const vx::uint3 &textureDim, u32 maxInstances);
+	void initialize(const vx::uint3 &textureDim, u32 maxInstances, gl::ObjectManager* objectManager);
 	void shutdown();
 
 	bool getMaterialIndex(const Material &material, FileAspectInterface* fileAspect, u32* index);
+	bool getMaterialIndex(const vx::StringID &materialSid, FileAspectInterface* fileAspect, u32* index);
+
+	bool getTextureIndex(const vx::StringID &sid, const Graphics::Texture &texture, u32* index);
+
+	u32 getTextureId(const vx::StringID &sid) const;
 };

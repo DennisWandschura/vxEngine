@@ -535,6 +535,8 @@ void FileAspect::loadFileTexture(const LoadFileOfTypeDescription &desc)
 		arg2.ptr = ptr;
 
 		pushFileEvent(vx::FileEvent::Texture_Loaded, arg1, arg2);
+
+		printf("Texture %s : %llu\n", desc.fileName, desc.sid.value);
 	}
 
 	/*

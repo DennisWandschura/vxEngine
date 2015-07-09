@@ -28,6 +28,8 @@ SOFTWARE.
 #include "gl/ObjectManager.h"
 #include <vxEngineLib/FileAspectInterface.h>
 #include <vxEngineLib/Graphics/Texture.h>
+#include <vxEngineLib/Reference.h>
+#include "GpuStructs.h"
 
 namespace MaterialManagerCpp
 {
@@ -55,16 +57,12 @@ namespace MaterialManagerCpp
 }
 
 MaterialManager::MaterialManager()
-	:m_textureIndices(),
-	m_textureRgba8(),
-	m_textureRgb8(),
-	m_materialIndexBuffer(),
+	:m_poolSrgba(),
+	m_poolRgb(),
 	m_materialEntries(),
 	m_materialFreeEntries(0),
 	m_materialFirstFreeEntry(0),
-	m_textureEntries(),
-	m_textureFreeEntries(0),
-	m_textureFirstFreeEntry(0)
+	m_objectManager(nullptr)
 {
 
 }
@@ -72,21 +70,6 @@ MaterialManager::MaterialManager()
 MaterialManager::~MaterialManager()
 {
 
-}
-
-void MaterialManager::createTextures(const vx::uint3 &textureDim)
-{
-	vx::gl::TextureDescription desc;
-	desc.size = textureDim;
-	desc.miplevels = 1;
-	desc.format = vx::gl::TextureFormat::RGBA8;
-	desc.sparse = 1;
-	desc.type = vx::gl::TextureType::Texture_2D_Array;
-
-	m_textureRgba8.create(desc);
-
-	desc.format = vx::gl::TextureFormat::RGB8;
-	m_textureRgb8.create(desc);
 }
 
 void MaterialManager::createBuffer(u32 maxInstances)
@@ -98,18 +81,12 @@ void MaterialManager::createBuffer(u32 maxInstances)
 	desc.flags = vx::gl::BufferStorageFlags::Write;
 	desc.size = sizeof(u32) * maxInstances;
 
-	m_materialIndexBuffer.create(desc);
+	m_objectManager->createBuffer("materialBlockBuffer", desc);
 }
 
-void MaterialManager::initialize(const vx::uint3 &textureDim, u32 maxInstances)
+void MaterialManager::initialize(const vx::uint3 &textureDim, u32 maxInstances, gl::ObjectManager* objectManager)
 {
-	auto textureCount = textureDim.z;
-	m_textureEntries = vx::make_unique<std::pair<u16, u16>[]>(textureCount);
-	for (u32 i = 0; i < textureCount; ++i)
-	{
-		m_textureEntries[i].first = i + 1;
-		m_textureEntries[i].second = 0;
-	}
+	m_objectManager = objectManager;
 
 	m_materialEntries = vx::make_unique<u32[]>(maxInstances);
 	for (u32 i = 0; i < maxInstances; ++i)
@@ -117,76 +94,39 @@ void MaterialManager::initialize(const vx::uint3 &textureDim, u32 maxInstances)
 		m_materialEntries[i] = i + 1;
 	}
 
-	createTextures(textureDim);
+	m_poolSrgba.initialize(textureDim, vx::gl::TextureFormat::SRGBA8);
+	m_poolRgb.initialize(textureDim, vx::gl::TextureFormat::RGB8);
+
+	auto handle0 = m_poolSrgba.getTextureHandle();
+	auto handle1 = m_poolRgb.getTextureHandle();
+
+	auto uniformTextureBuffer = objectManager->getBuffer("UniformTextureBuffer");
+	auto mappedBuffer = uniformTextureBuffer->map<Gpu::UniformTextureBufferBlock>(vx::gl::Map::Write_Only);
+	mappedBuffer->u_srgb = handle0;
+	mappedBuffer->u_rgb = handle1;
+	mappedBuffer.unmap();
+
 	createBuffer(maxInstances);
 
-	m_textureFirstFreeEntry = 0;
 	m_materialFirstFreeEntry = 0;
 
-	m_textureFreeEntries = textureCount;
 	m_materialFreeEntries = maxInstances;
 }
 
 void MaterialManager::shutdown()
 {
-	m_textureRgba8.destroy();
-	m_textureRgb8.destroy();
-	m_materialIndexBuffer.destroy();
+	m_poolSrgba.shutdown();
+	m_poolRgb.shutdown();
 }
 
-bool MaterialManager::addTexture(const vx::StringID &sid, FileAspectInterface* fileAspect, u32* index)
+bool MaterialManager::addMaterial(const vx::StringID &materialSid, FileAspectInterface* fileAspect, u32* index)
 {
-	if (m_textureFreeEntries == 0)
+	Reference<Material> material = fileAspect->getMaterial(materialSid);
+	auto ptr = material.get();
+	if (ptr == nullptr)
 		return false;
 
-	auto currentIndex = m_textureFirstFreeEntry;
-	m_textureFirstFreeEntry = m_textureEntries[currentIndex].first;
-	auto isCommitted = m_textureEntries[currentIndex].second;
-
-	auto texture = fileAspect->getTexture(sid);
-	auto &face = texture->getFace(0);
-	auto comp = texture->getComponents();
-	auto dim = face.getDimension();
-
-	m_textureEntries[currentIndex].second = 1;
-
-	if (comp == 4)
-	{
-		MaterialManagerCpp::uploadTextureData(face.getPixels(), dim.x, dim.y, currentIndex, isCommitted, &m_textureRgba8);
-	}
-	else if (comp == 3)
-	{
-		MaterialManagerCpp::uploadTextureData(face.getPixels(), dim.x, dim.y, currentIndex, isCommitted, &m_textureRgb8);
-	}
-	else
-	{
-		VX_ASSERT(false);
-	}
-
-	m_textureIndices.insert(sid, currentIndex);
-	*index = currentIndex;
-
-	--m_textureFreeEntries;
-
-	return true;
-}
-
-bool MaterialManager::getTextureIndex(const vx::StringID &sid, FileAspectInterface* fileAspect, u32* index)
-{
-	bool result = false;
-
-	auto it = m_textureIndices.find(sid);
-	if (it == m_textureIndices.end())
-	{
-		result = addTexture(sid, fileAspect, index);
-	}
-	else
-	{
-		*index = (*it);
-		result = true;
-	}
-
-	return result;
+	return addMaterial(*ptr, fileAspect, index);
 }
 
 bool MaterialManager::addMaterial(const Material &material, FileAspectInterface* fileAspect, u32* index)
@@ -198,20 +138,27 @@ bool MaterialManager::addMaterial(const Material &material, FileAspectInterface*
 	auto normalSid = material.m_textureSid[1];
 	auto surfaceSid = material.m_textureSid[2];
 
+	auto comp = fileAspect->getTexture(diffuseSid)->getComponents();
+	VX_ASSERT(comp == 4);
 	u32 indexDiffuse = 0;
-	if (!getTextureIndex(diffuseSid, fileAspect, &indexDiffuse))
+	if (!m_poolSrgba.getTextureIndex(diffuseSid, fileAspect, &indexDiffuse))
 	{
 		return false;
 	}
 
+	comp = fileAspect->getTexture(normalSid)->getComponents();
+	VX_ASSERT(comp == 3);
 	u32 indexNormal = 0;
-	if (!getTextureIndex(normalSid, fileAspect, &indexNormal))
+	if (!m_poolRgb.getTextureIndex(normalSid, fileAspect, &indexNormal))
 	{
 		return false;
 	}
+
+	comp = fileAspect->getTexture(surfaceSid)->getComponents();
+	VX_ASSERT(comp == 4);
 
 	u32 indexSurface = 0;
-	if (!getTextureIndex(surfaceSid, fileAspect, &indexDiffuse))
+	if (!m_poolSrgba.getTextureIndex(surfaceSid, fileAspect, &indexSurface))
 	{
 		return false;
 	}
@@ -228,7 +175,8 @@ bool MaterialManager::addMaterial(const Material &material, FileAspectInterface*
 
 	*index = materialIndex;
 
-	auto mappedBuffer = m_materialIndexBuffer.mapRange<u32>(sizeof(u32) * materialIndex, sizeof(u32), vx::gl::MapRange::Write);
+	auto materialBuffer = m_objectManager->getBuffer("materialBlockBuffer");
+	auto mappedBuffer = materialBuffer->mapRange<u32>(sizeof(u32) * materialIndex, sizeof(u32), vx::gl::MapRange::Write);
 	*mappedBuffer = packedTextureIndices;
 	mappedBuffer.unmap();
 
@@ -252,4 +200,49 @@ bool MaterialManager::getMaterialIndex(const Material &material, FileAspectInter
 	}
 
 	return result;
+}
+
+bool MaterialManager::getMaterialIndex(const vx::StringID &materialSid, FileAspectInterface* fileAspect, u32* index)
+{
+	bool result = false;
+
+	auto it = m_materialIndices.find(materialSid);
+	if (it == m_materialIndices.end())
+	{
+		result = addMaterial(materialSid, fileAspect, index);
+	}
+	else
+	{
+		*index = (*it);
+		result = true;
+	}
+
+	return result;
+}
+
+bool MaterialManager::getTextureIndex(const vx::StringID &sid, const Graphics::Texture &texture, u32* index)
+{
+	auto comp = texture.getComponents();
+	bool result = false;
+	if (comp == 4)
+	{
+		result = m_poolSrgba.getTextureIndex(sid, texture, index);
+	}
+	else if (comp == 3)
+	{
+		result = m_poolRgb.getTextureIndex(sid, texture, index);
+	}
+
+	return result;
+}
+
+u32 MaterialManager::getTextureId(const vx::StringID &sid) const
+{
+	auto id = m_poolSrgba.getTextureId(sid);
+	if (id == 0)
+	{
+		id = m_poolRgb.getTextureId(sid);
+	}
+
+	return id;
 }

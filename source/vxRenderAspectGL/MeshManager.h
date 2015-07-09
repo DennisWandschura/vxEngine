@@ -32,6 +32,8 @@ namespace vx
 {
 	struct StringID;
 	class Mesh;
+	struct Transform;
+	struct TransformGpu;
 }
 
 namespace gl
@@ -63,7 +65,6 @@ class MeshManager
 	vx::gl::Buffer m_vertexBuffer;
 	vx::gl::Buffer m_indexBuffer;
 	vx::gl::Buffer m_drawIdBuffer;
-	vx::gl::Buffer m_transformBuffer;
 	u32 m_sizeVertices;
 	u32 m_sizeIndices;
 	u32 m_sizeInstances;
@@ -86,12 +87,15 @@ public:
 	MeshManager();
 	~MeshManager();
 
-	void initialize(u32 maxInstances, u32 maxVertices, u32 maxIndices);
+	void initialize(u32 maxInstances, u32 maxVertices, u32 maxIndices, gl::ObjectManager* objectManager);
 	void shutdown();
 
 	u32 addMeshInstance(const MeshInstance &instance, u16 materialIndex, FileAspectInterface* fileAspect);
 	void addMeshInstances(const MeshManagerMeshInstanceDesc &desc);
+	u32 addMeshInstance(const vx::Transform &transform, const vx::StringID &mesh, u16 materialIndex, FileAspectInterface* fileAspect);
 
 	void addMesh(const vx::Mesh &mesh);
 	void addMeshes(const vx::Mesh* meshes, u32 count);
+
+	void updateTransform(const vx::TransformGpu &transform, u32 index);
 };

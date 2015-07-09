@@ -57,6 +57,8 @@ class GpuProfiler;
 #include "Graphics/LightRenderer.h"
 #include <vxGL/Framebuffer.h>
 #include "Graphics/PStateProfiler.h"
+#include "MaterialManager.h"
+#include "MeshManager.h"
 
 class VX_ALIGN(64) RenderAspect : public RenderAspectInterface
 {
@@ -69,7 +71,7 @@ protected:
 	Graphics::CommandList m_textCmdList;
 	std::vector<std::unique_ptr<Graphics::Renderer>> m_renderer;
 	vx::uint2 m_resolution;
-	SceneRenderer m_sceneRenderer;
+	//SceneRenderer m_sceneRenderer;
 	RenderCommand* m_pRenderPassFinalImage;
 	vx::mutex m_updateMutex;
 	std::vector<RenderUpdateTask> m_tasks;
@@ -99,7 +101,8 @@ protected:
 	
 	vx::StackAllocator m_allocator;
 	vx::StackAllocator m_scratchAllocator;
-
+	MeshManager m_meshManager;
+	MaterialManager m_materialManager;
 	gl::ObjectManager m_objectManager;
 	std::unique_ptr<ColdData> m_pColdData;
 

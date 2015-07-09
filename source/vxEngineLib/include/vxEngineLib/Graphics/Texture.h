@@ -58,6 +58,7 @@ namespace Graphics
 		Face();
 		Face(const Face&) = delete;
 		Face(Face &&rhs);
+		~Face();
 
 		Face& operator=(const Face&) = delete;
 		Face& operator=(Face &&rhs);
