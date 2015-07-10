@@ -26,6 +26,7 @@ SOFTWARE.
 class MeshInstance;
 
 #include <vxEngineLib/Transform.h>
+#include <vxLib/StringID.h>
 
 struct RenderUpdateTask
 {
@@ -56,4 +57,5 @@ struct RenderUpdateTextData
 struct RenderUpdateTaskCreateStaticMeshData
 {
 	const MeshInstance* instance;
+	vx::StringID materialSid;
 };

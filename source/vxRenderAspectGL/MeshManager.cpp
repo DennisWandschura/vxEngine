@@ -42,7 +42,8 @@ MeshManager::MeshManager()
 	m_capacityIndices(0),
 	m_capacityInstances(0),
 	m_objectManager(nullptr),
-	m_meshEntries()
+	m_meshEntries(),
+	m_sortedDrawCommands()
 {
 
 }
@@ -197,10 +198,20 @@ u32 MeshManager::addMeshInstance(const MeshInstance &instance, u16 materialIndex
 	auto meshSid = instance.getMeshSid();
 	auto transform = instance.getTransform();
 
-	return addMeshInstance(transform, meshSid, materialIndex, fileAspect);
+	return addMeshInstance(instance.getNameSid(), transform, meshSid, materialIndex, fileAspect);
 }
 
-u32 MeshManager::addMeshInstance(const vx::Transform &transform, const vx::StringID &meshSid, u16 materialIndex, FileAspectInterface* fileAspect)
+void MeshManager::uploadCmd(const vx::gl::DrawElementsIndirectCommand &drawCmd)
+{
+	auto drawId = drawCmd.baseInstance;
+
+	auto cmdBuffer = m_objectManager->getBuffer("meshCmdBuffer");
+	auto mappedCmdBuffer = cmdBuffer->mapRange<vx::gl::DrawElementsIndirectCommand>(sizeof(vx::gl::DrawElementsIndirectCommand) * drawId, sizeof(vx::gl::DrawElementsIndirectCommand), vx::gl::MapRange::Write);
+	*mappedCmdBuffer = drawCmd;
+	mappedCmdBuffer.unmap();
+}
+
+u32 MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::Transform &transform, const vx::StringID &meshSid, u16 materialIndex, FileAspectInterface* fileAspect)
 {
 	auto it = m_meshEntries.find(meshSid);
 	if (it == m_meshEntries.end())
@@ -220,27 +231,18 @@ u32 MeshManager::addMeshInstance(const vx::Transform &transform, const vx::Strin
 	drawCmd.instanceCount = 1;
 	drawCmd.baseInstance = drawId;
 
-	++m_sizeInstances;
+	m_sortedDrawCommands.insert(instanceSid, drawCmd);
 
-	auto cmdBuffer = m_objectManager->getBuffer("meshCmdBuffer");
-	auto mappedCmdBuffer = cmdBuffer->mapRange<vx::gl::DrawElementsIndirectCommand>(sizeof(vx::gl::DrawElementsIndirectCommand) * drawId, sizeof(vx::gl::DrawElementsIndirectCommand), vx::gl::MapRange::Write);
-	*mappedCmdBuffer = drawCmd;
-	mappedCmdBuffer.unmap();
+	uploadCmd(drawCmd);
 
 	auto packedData = drawId | (materialIndex << 16);
 	auto mappedDrawIdBuffer = m_drawIdBuffer.mapRange<u32>(sizeof(u32) * drawId, sizeof(u32), vx::gl::MapRange::Write);
 	*mappedDrawIdBuffer = packedData;
 	mappedDrawIdBuffer.unmap();
 
-	vx::TransformGpu transformGpu;
-	transformGpu.translation = transform.m_translation;
-	transformGpu.scaling = transform.m_scaling;
-	transformGpu.packedQRotation = GpuFunctions::packQRotation(vx::loadFloat4(transform.m_qRotation));
+	updateTransform(transform, drawId);
 
-	auto transformBuffer = m_objectManager->getBuffer("transformBuffer");
-	auto mappedTransformBuffer = transformBuffer->mapRange<vx::TransformGpu>(sizeof(vx::TransformGpu) * drawId, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
-	*mappedTransformBuffer = transformGpu;
-	mappedTransformBuffer.unmap();
+	++m_sizeInstances;
 
 	auto buffer = m_objectManager->getBuffer("meshParamBuffer");
 	buffer->subData(0, sizeof(u32), &m_sizeInstances);
@@ -300,10 +302,66 @@ void MeshManager::addMeshes(const vx::Mesh* meshes, u32 count)
 	}
 }
 
+void MeshManager::updateTransform(const vx::Transform &transform, u32 index)
+{
+	vx::TransformGpu transformGpu;
+	transformGpu.translation = transform.m_translation;
+	transformGpu.scaling = transform.m_scaling;
+	transformGpu.packedQRotation = GpuFunctions::packQRotation(vx::loadFloat4(transform.m_qRotation));
+
+	updateTransform(transformGpu, index);
+}
+
 void MeshManager::updateTransform(const vx::TransformGpu &transform, u32 index)
 {
 	auto transformBuffer = m_objectManager->getBuffer("transformBuffer");
 	auto mappedBuffer = transformBuffer->mapRange<vx::TransformGpu>(sizeof(vx::TransformGpu) * index, sizeof(vx::TransformGpu), vx::gl::MapRange::Write);
 	*mappedBuffer = transform;
 	mappedBuffer.unmap();
+}
+
+bool MeshManager::getDrawCommand(const vx::StringID &instanceSid, vx::gl::DrawElementsIndirectCommand* cmd)
+{
+	bool result = false;
+
+	auto it = m_sortedDrawCommands.find(instanceSid);
+	if (it != m_sortedDrawCommands.end())
+	{
+		*cmd = *it;
+		result = true;
+	}
+
+	return result;
+}
+
+void MeshManager::setMaterial(const vx::StringID &instanceSid, u32 materialIndex)
+{
+	vx::gl::DrawElementsIndirectCommand cmd;
+	auto found = getDrawCommand(instanceSid, &cmd);
+	if (found)
+	{
+		auto drawId = cmd.baseInstance;
+
+		auto packedData = drawId | (materialIndex << 16);
+
+		auto mappedDrawIdBuffer = m_drawIdBuffer.mapRange<u32>(sizeof(u32) * drawId, sizeof(u32), vx::gl::MapRange::Write);
+		*mappedDrawIdBuffer = packedData;
+		mappedDrawIdBuffer.unmap();
+	}
+}
+
+void MeshManager::setMesh(const vx::StringID &instanceSid, const vx::StringID &meshSid)
+{
+	auto itMesh = m_meshEntries.find(meshSid);
+	auto itCmd = m_sortedDrawCommands.find(instanceSid);
+
+	if (itCmd != m_sortedDrawCommands.end() && itMesh != m_meshEntries.end())
+	{
+		itCmd->firstIndex = itMesh->first;
+		itCmd->count = itMesh->count;
+
+		auto drawCmd = *itCmd;
+
+		uploadCmd(drawCmd);
+	}
 }

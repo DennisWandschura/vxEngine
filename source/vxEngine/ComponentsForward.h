@@ -28,4 +28,5 @@ namespace Component
 	struct Render;
 	struct Input;
 	struct Actor;
+	struct Usable;
 }

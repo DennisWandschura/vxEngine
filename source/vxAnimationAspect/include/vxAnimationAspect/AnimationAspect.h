@@ -39,6 +39,8 @@ class AnimationAspect : public vx::EventListener
 {
 	std::vector<Animation> m_animations;
 
+
+
 public:
 	AnimationAspect();
 	~AnimationAspect();

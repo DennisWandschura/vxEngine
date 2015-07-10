@@ -42,10 +42,10 @@ class EntityAspect;
 class PhysicsAspect;
 class EventManager;
 class Scene;
+class ActionManager;
 
 #include <vxEngineLib/EventListener.h>
 #include <vxEngineLib/InfluenceMap.h>
-#include "ActionManager.h"
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxEngineLib/NavMeshGraph.h>
 #include "ai/Squad.h"
@@ -53,9 +53,9 @@ class Scene;
 class ActorAspect : public vx::EventListener
 {
 	ai::Squad m_squad;
+	ActionManager* m_actionManager;
 	const vx::Pool<Component::Actor>* m_pActorPool{ nullptr };
 	const vx::Pool<EntityActor>* m_pEntityPool{ nullptr };
-	ActionManager m_actionManager;
 	InfluenceMap m_influenceMap;
 	NavMeshGraph m_navmeshGraph;
 	const PhysicsAspect &m_physicsAspect;
@@ -76,7 +76,7 @@ class ActorAspect : public vx::EventListener
 public:
 	explicit ActorAspect(const PhysicsAspect &physicsAspect);
 
-	void initialize(const EntityAspect &entityAspect, vx::StackAllocator* pAllocator);
+	void initialize(const EntityAspect &entityAspect, ActionManager* actionManager, vx::StackAllocator* pAllocator);
 	void shutdown();
 
 	void update();

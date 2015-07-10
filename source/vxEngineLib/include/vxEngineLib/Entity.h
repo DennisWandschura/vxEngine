@@ -46,9 +46,9 @@ struct EntityActor
 	u16 actor{ 0 };
 };
 
-struct StaticEntityAnimated
+struct StaticEntityUsable
 {
 	vx::float3 position;
 	u16 render{ 0 };
-	vx::StringID animSid;
+	u16 usable{ 0 };
 };

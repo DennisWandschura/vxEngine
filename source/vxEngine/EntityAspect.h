@@ -37,7 +37,8 @@ class RenderAspect;
 struct EntityActor;
 class Scene;
 class CreateActorData;
-struct StaticEntityAnimated;
+struct StaticEntityUsable;
+class MeshInstance;
 
 #include <vxEngineLib/EventListener.h>
 #include <vxEngineLib/Pool.h>
@@ -64,8 +65,9 @@ class EntityAspect : public vx::EventListener
 	PlayerController m_playerController;
 	vx::Pool<Component::Render> m_poolRender;
 	vx::Pool<Component::Input> m_poolInput;
+	vx::Pool<Component::Usable> m_poolUsable;
 	vx:: Pool<EntityActor> m_poolEntity;
-	vx::Pool<StaticEntityAnimated> m_poolStaticEntity;
+	vx::Pool<StaticEntityUsable> m_poolStaticEntity;
 	QuadTree m_quadTree;
 	vx::StackAllocator m_allocator;
 	std::unique_ptr<ColdData> m_coldData;
@@ -74,6 +76,8 @@ class EntityAspect : public vx::EventListener
 	void createComponentPhysics(const CreateActorData &data, u16 entityIndex);
 
 	void createActorEntity(const CreateActorData &data);
+
+	void createEntityUsable(const MeshInstance &instance, u32 gpuIndex);
 
 	//////////////////
 

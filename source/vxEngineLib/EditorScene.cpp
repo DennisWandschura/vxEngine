@@ -45,8 +45,14 @@ namespace Editor
 
 	Scene::Scene()
 		:m_meshInstances(),
-		m_spawnHumanId(EditorSceneCpp::g_invalidId),
-		m_animationNames()
+		m_selectableLights(),
+		m_selectableSpawns(),
+		m_selectableWaypoints(),
+		m_materialNames(),
+		m_meshNames(),
+		m_actorNames(),
+		m_animationNames(),
+		m_spawnHumanId(EditorSceneCpp::g_invalidId)
 	{
 
 	}

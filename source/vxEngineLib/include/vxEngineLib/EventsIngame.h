@@ -30,10 +30,23 @@ enum class IngameEvent : u16
 	Level_Started,
 	Created_NavGraph,
 	Created_InfluenceMap,
-	Create_Actor,
-	Create_Actor_Physx,
+
+	// arg1 ptr to CreateActorData
+	Physx_AddActor,
+	Physx_AddedActor,
+
+	// arg1 ptr to CreateActorData
+	Gpu_AddActor,
+	Gpu_AddedActor,
+
+	// arg1 ptr to instance
+	// arg2 gpu index of transform
+	Gpu_AddStaticEntity,
+	Gpu_AddedStaticEntity,
+
+	// arg1 ptr to EntityActor
+	// arg2 ptr to ActorComponent
 	Created_Actor,
-	Created_Actor_GPU,
-	Created_Actor_Physx,
-	Create_StaticEntity
+
+	Anim_Add
 };

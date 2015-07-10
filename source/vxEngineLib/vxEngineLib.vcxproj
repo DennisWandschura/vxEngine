@@ -268,8 +268,6 @@
     <ClInclude Include="include\vxEngineLib\Serializable.h" />
     <ClInclude Include="include\vxEngineLib\Spawn.h" />
     <ClInclude Include="include\vxEngineLib\SRWMutex.h" />
-    <ClInclude Include="include\vxEngineLib\TextureFile.h" />
-    <ClInclude Include="include\vxEngineLib\TextureRef.h" />
     <ClInclude Include="include\vxEngineLib\Timer.h" />
     <ClInclude Include="include\vxEngineLib\Transform.h" />
     <ClInclude Include="include\vxEngineLib\Triangle.h" />
@@ -350,12 +348,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Spawn.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="TextureFile.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="TextureRef.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Timer.cpp">

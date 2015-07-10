@@ -73,6 +73,7 @@ class MeshManager
 	u32 m_capacityInstances;
 	gl::ObjectManager* m_objectManager;
 	vx::sorted_vector<vx::StringID, MeshEntry> m_meshEntries;
+	vx::sorted_vector<vx::StringID, vx::gl::DrawElementsIndirectCommand> m_sortedDrawCommands;
 
 	void createVertexBuffer();
 	void createIndexBuffer();
@@ -82,6 +83,7 @@ class MeshManager
 	void createBuffers();
 
 	MeshEntry addMeshToGpu(const vx::Mesh &mesh);
+	void uploadCmd(const vx::gl::DrawElementsIndirectCommand &cmd);
 
 public:
 	MeshManager();
@@ -92,10 +94,16 @@ public:
 
 	u32 addMeshInstance(const MeshInstance &instance, u16 materialIndex, FileAspectInterface* fileAspect);
 	void addMeshInstances(const MeshManagerMeshInstanceDesc &desc);
-	u32 addMeshInstance(const vx::Transform &transform, const vx::StringID &mesh, u16 materialIndex, FileAspectInterface* fileAspect);
+	u32 addMeshInstance(const vx::StringID &instanceSid, const vx::Transform &transform, const vx::StringID &meshSid, u16 materialIndex, FileAspectInterface* fileAspect);
 
 	void addMesh(const vx::Mesh &mesh);
 	void addMeshes(const vx::Mesh* meshes, u32 count);
 
+	void updateTransform(const vx::Transform &transform, u32 index);
 	void updateTransform(const vx::TransformGpu &transform, u32 index);
+
+	bool getDrawCommand(const vx::StringID &instanceSid, vx::gl::DrawElementsIndirectCommand* cmd);
+
+	void setMaterial(const vx::StringID &instanceSid, u32 materialIndex);
+	void setMesh(const vx::StringID &instanceSid, const vx::StringID &meshSid);
 };

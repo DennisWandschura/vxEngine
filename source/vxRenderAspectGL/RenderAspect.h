@@ -35,6 +35,11 @@ namespace Editor
 	class Scene;
 }
 
+namespace vx
+{
+	class MeshFile;
+}
+
 class GpuProfiler;
 
 #include <vxEngineLib/RenderAspectInterface.h>
@@ -42,7 +47,6 @@ class GpuProfiler;
 #include <vxEngineLib/EventListener.h>
 #include <vxGL/RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
-#include "SceneRenderer.h"
 #include "Font.h"
 #include "gl/ObjectManager.h"
 #include <vxGL/ShaderManager.h>
@@ -118,8 +122,6 @@ protected:
 	void createTextures();
 	void createFrameBuffers();
 
-	bool initializeImpl(const std::string &dataDir, const EngineConfig* settings, vx::StackAllocator *pAllocator);
-
 	////////////// Event handling
 	void handleFileEvent(const vx::Event &evt);
 	//////////////
@@ -147,7 +149,7 @@ protected:
 	void taskUpdateDynamicTransforms(u8* p, u32* offset);
 	void taskCreateStaticMesh(u8* p, u32* offset);
 
-	u16 addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material);
+	u16 addActorToBuffer(const vx::StringID &actorSid, const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material);
 	u16 getActorGpuIndex();
 
 	void createOpenCL();

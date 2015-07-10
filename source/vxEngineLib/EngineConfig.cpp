@@ -27,6 +27,51 @@ SOFTWARE.
 
 EngineConfig g_engineConfig{};
 
+namespace EngineConfigCpp
+{
+	void loadTextureSettings(const Parser::Node* rendererSettingsNode, Graphics::TextureSettings* textureSettings)
+	{
+		auto textureSettingsNode = rendererSettingsNode->get("texture");
+		u32 texMode = 0;
+		textureSettingsNode->get("mode")->as(&texMode);
+
+		u32 texDim = 0;
+		textureSettingsNode->get("dim")->as(texMode, &texDim);
+
+		textureSettings->m_dim = texDim;
+	}
+
+	void loadShadowSettings(const Parser::Node* rendererSettingsNode, Graphics::ShadowRendererSettings* shadowSettings, u8* shadowMode)
+	{
+		auto shadowSettingsNode = rendererSettingsNode->get("shadow");
+
+		u32 shadowModeValue;
+		shadowSettingsNode->get("mode")->as(&shadowModeValue);
+		if (shadowModeValue != 0)
+		{
+			u32 index = shadowModeValue - 1;
+
+			shadowSettingsNode->get("resolution")->as(index, &shadowSettings->m_shadowMapResolution);
+			shadowSettingsNode->get("lights")->as(index, &shadowSettings->m_maxShadowCastingLights);
+		}
+
+		*shadowMode = shadowModeValue;
+	}
+
+	void loadVoxelSettings(const Parser::Node* rendererSettingsNode, Graphics::VoxelRendererSettings* voxelSettings, u8* voxelMode)
+	{
+		auto voxelSettingsNode = rendererSettingsNode->get("voxel_gi");
+
+		u32 voxelModeValue = 0;
+
+		voxelSettingsNode->get("mode")->as(&voxelModeValue);
+		voxelSettingsNode->get("resolution")->as(0, &voxelSettings->m_voxelTextureSize);
+		voxelSettingsNode->get("grid")->as(0, &voxelSettings->m_voxelGridDim);
+
+		*voxelMode = voxelModeValue;
+	}
+}
+
 bool EngineConfig::loadFromFile(const char* file)
 {
 	if (!m_root.createFromFile(file))
@@ -50,26 +95,13 @@ bool EngineConfig::loadFromFile(const char* file)
 		m_rendererSettings.m_renderMode = (Graphics::RendererSettings::Mode)value;
 	}
 
-	auto shadowSettings = rendererSettings->get("shadow");
-
-	u32 shadowMode;
-	shadowSettings->get("mode")->as(&shadowMode);
-	if (shadowMode != 0)
-	{
-		u32 index = shadowMode - 1;
-
-		shadowSettings->get("resolution")->as(index, &m_rendererSettings.m_shadowSettings.m_shadowMapResolution);
-		shadowSettings->get("lights")->as(index, &m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights);
-	}
-	m_rendererSettings.m_shadowMode = shadowMode;
+	EngineConfigCpp::loadTextureSettings(rendererSettings, &m_rendererSettings.m_textureSettings);
+	EngineConfigCpp::loadShadowSettings(rendererSettings, &m_rendererSettings.m_shadowSettings, &m_rendererSettings.m_shadowMode);
 
 	rendererSettings->get("maxMeshInstances")->as(&m_rendererSettings.m_maxMeshInstances);
 	rendererSettings->get("maxActiveLights")->as(&m_rendererSettings.m_maxActiveLights);
 
-	auto voxelSettings = rendererSettings->get("voxel_gi");
-	voxelSettings->get("mode")->as(&m_rendererSettings.m_voxelGIMode);
-	voxelSettings->get("resolution")->as(&m_rendererSettings.m_voxelSettings.m_voxelTextureSize);
-	voxelSettings->get("grid")->as(&m_rendererSettings.m_voxelSettings.m_voxelGridDim);
+	EngineConfigCpp::loadVoxelSettings(rendererSettings, &m_rendererSettings.m_voxelSettings, &m_rendererSettings.m_voxelGIMode);
 
 	m_threads = std::thread::hardware_concurrency();
 

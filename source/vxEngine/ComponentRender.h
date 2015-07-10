@@ -32,5 +32,7 @@ namespace Component
 	{
 		// index into transform buffer
 		u16 gpuIndex;
+		vx::float3 translation;
+		__m128 qRotation;
 	};
 }

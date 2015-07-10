@@ -23,13 +23,12 @@ SOFTWARE.
 */
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/ParserNode.h>
-#include <vxEngineLib/TextureFile.h>
 
 Material::Material()
 	:m_sid(),
-	m_albedo(),
-	m_normal(),
-	m_surface(),
+	//m_albedo(),
+	//m_normal(),
+	//m_surface(),
 	m_staticFriction(1.0f),
 	m_dynamicFriction(1.0f),
 	m_restitution(0.0f),
@@ -39,9 +38,9 @@ Material::Material()
 
 Material::Material(const vx::StringID &sid)
 	:m_sid(sid),
-	m_albedo(),
-	m_normal(),
-	m_surface(),
+	//m_albedo(),
+	//m_normal(),
+	//m_surface(),
 	m_staticFriction(1.0f),
 	m_dynamicFriction(1.0f),
 	m_restitution(0.0f),
@@ -52,9 +51,9 @@ Material::Material(const vx::StringID &sid)
 
 Material::Material(Material &&rhs) noexcept
 	:m_sid(std::move(rhs.m_sid)),
-	m_albedo(std::move(rhs.m_albedo)),
-	m_normal(std::move(rhs.m_normal)),
-	m_surface(std::move(rhs.m_surface)),
+	//m_albedo(std::move(rhs.m_albedo)),
+	//m_normal(std::move(rhs.m_normal)),
+	//m_surface(std::move(rhs.m_surface)),
 	m_staticFriction(rhs.m_staticFriction),
 	m_dynamicFriction(rhs.m_dynamicFriction),
 	m_restitution(rhs.m_restitution)
@@ -74,9 +73,9 @@ Material& Material::operator=(Material &&rhs) noexcept
 void Material::swap(Material &rhs) noexcept
 {
 	std::swap(m_sid, rhs.m_sid);
-	std::swap(m_albedo, rhs.m_albedo);
-	std::swap(m_normal, rhs.m_normal);
-	std::swap(m_surface, rhs.m_surface);
+	//std::swap(m_albedo, rhs.m_albedo);
+	//std::swap(m_normal, rhs.m_normal);
+	//std::swap(m_surface, rhs.m_surface);
 	std::swap(m_textureSid, rhs.m_textureSid);
 	std::swap(m_staticFriction, rhs.m_staticFriction);
 	std::swap(m_dynamicFriction, rhs.m_dynamicFriction);
@@ -90,12 +89,12 @@ void Material::setPhysx(f32 staticFriction, f32 dynamicFriction, f32 restitution
 	m_restitution = restitution;
 }
 
-void Material::setTextures(TextureRef &&albedo, TextureRef &&normal, TextureRef &&surface)
+/*void Material::setTextures(TextureRef &&albedo, TextureRef &&normal, TextureRef &&surface)
 {
 	m_albedo = std::move(albedo);
 	m_normal = std::move(normal);
 	m_surface = std::move(surface);
-}
+}*/
 
 void MaterialFile::load(const u8 *ptr)
 {

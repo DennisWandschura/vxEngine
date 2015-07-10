@@ -68,7 +68,7 @@ namespace Graphics
 		void createCmdBuffer();
 
 		void updateVertexBuffer();
-		void writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, const vx::uint2a &textureSize, u32 textureSlice);
+		void writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, u32 textureSize, u32 textureSlice);
 
 	public:
 		TextRenderer();

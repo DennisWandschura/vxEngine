@@ -43,6 +43,7 @@ namespace
 
 Engine::Engine()
 	:m_eventManager(),
+	m_actionManager(),
 	m_systemAspect(),
 	m_physicsAspect(),
 	m_actorAspect(m_physicsAspect),
@@ -72,6 +73,8 @@ void Engine::update()
 {
 	// process events
 	m_eventManager.update();
+
+	m_actionManager.update();
 
 	// update aspects in order
 
@@ -268,7 +271,7 @@ bool Engine::initialize()
 		return false;
 #endif
 
-	m_actorAspect.initialize(m_entityAspect, &m_allocator);
+	m_actorAspect.initialize(m_entityAspect, &m_actionManager, &m_allocator);
 
 	Locator::provide(&m_physicsAspect);
 	Locator::provide(m_renderAspect);

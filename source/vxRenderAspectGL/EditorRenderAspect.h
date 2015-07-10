@@ -29,11 +29,12 @@ class FileAspect;
 #include <vxEngineLib/EditorRenderAspectInterface.h>
 #include <vxLib/Graphics/Camera.h>
 #include "gl/ObjectManager.h"
-#include "SceneRenderer.h"
 #include <vxGL/RenderContext.h>
 #include "Graphics/CommandList.h"
 #include <vxGL/ShaderManager.h>
 #include <vxLib/Allocator/StackAllocator.h>
+#include "MaterialManager.h"
+#include "MeshManager.h"
 
 namespace Editor
 {
@@ -54,7 +55,8 @@ namespace Editor
 		vx::gl::Buffer m_cameraBuffer;
 		vx::Camera m_camera;
 		gl::ObjectManager m_objectManager;
-		SceneRenderer m_sceneRenderer;
+		MaterialManager m_materialManager;
+		MeshManager m_meshManager;
 		vx::gl::ShaderManager m_shaderManager;
 		SelectedMeshInstance m_selectedInstance;
 		vx::mat4 m_projectionMatrix;
@@ -118,7 +120,7 @@ namespace Editor
 
 		bool setSelectedMeshInstance(const Editor::MeshInstance* instance);
 		void setSelectedMeshInstanceTransform(vx::Transform &transform);
-		bool setSelectedMeshInstanceMaterial(const Reference<Material> &material) const;
+		bool setSelectedMeshInstanceMaterial(const Reference<Material> &material);
 		bool setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid);
 
 		void moveCamera(f32 dirX, f32 dirY, f32 dirZ);

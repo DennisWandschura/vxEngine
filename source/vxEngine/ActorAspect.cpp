@@ -37,15 +37,16 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include <vxEngineLib/EventsIngame.h>
 #include <vxEngineLib/FileEvents.h>
+#include "ActionManager.h"
 
 ActorAspect::ActorAspect(const PhysicsAspect &physicsAspect)
-	:m_actionManager(),
+	:m_actionManager(nullptr),
 	m_physicsAspect(physicsAspect)
 {
 
 }
 
-void ActorAspect::initialize(const EntityAspect &entityAspect, vx::StackAllocator* pAllocator)
+void ActorAspect::initialize(const EntityAspect &entityAspect, ActionManager* actionManager, vx::StackAllocator* pAllocator)
 {
 	const auto sz = 10 KBYTE;
 	m_allocator = vx::StackAllocator(pAllocator->allocate(sz, 64), sz);
@@ -57,6 +58,7 @@ void ActorAspect::initialize(const EntityAspect &entityAspect, vx::StackAllocato
 	m_pEntityPool = &entityAspect.getEntityPool();
 
 	m_squad.initialize(pAllocator);
+	m_actionManager = actionManager;
 }
 
 void ActorAspect::shutdown()
@@ -133,6 +135,7 @@ void ActorAspect::handleEvent(const vx::Event &evt)
 
 void ActorAspect::update()
 {
+	auto actionManager = m_actionManager;
 	auto p = m_pActorPool->first();
 	while (p != nullptr)
 	{
@@ -142,12 +145,10 @@ void ActorAspect::update()
 		u32 count = 0;
 		p->m_stateMachine.update(&actions, &count, &m_allocatorScratch);
 
-		m_actionManager.scheduleActions(actions, count);
+		actionManager->scheduleActions(actions, count);
 
 		m_allocatorScratch.clear(marker);
 
 		p = m_pActorPool->next_nocheck(p);
 	}
-
-	m_actionManager.update();
 }

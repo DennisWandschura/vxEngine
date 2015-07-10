@@ -25,14 +25,13 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 #include <vxLib/StringID.h>
-#include <vxEngineLib/TextureRef.h>
 
 class Material
 {
 	vx::StringID m_sid;
-	TextureRef m_albedo;
-	TextureRef m_normal;
-	TextureRef m_surface;
+	//TextureRef m_albedo;
+	//TextureRef m_normal;
+	//TextureRef m_surface;
 	f32 m_staticFriction;
 	f32 m_dynamicFriction;
 	f32 m_restitution;
@@ -51,12 +50,12 @@ public:
 	void swap(Material &rhs) noexcept;
 
 	void setPhysx(f32 staticFriction, f32 dynamicFriction, f32 restitution);
-	void setTextures(TextureRef &&albedo, TextureRef &&normal, TextureRef &&surface);
+	//void setTextures(TextureRef &&albedo, TextureRef &&normal, TextureRef &&surface);
 
 	const vx::StringID& getSid() const { return m_sid; }
-	const TextureRef& getAlbedoRef() const{ return m_albedo; }
-	const TextureRef& getNormalRef() const{ return m_normal; }
-	const TextureRef& getSurfaceRef() const{ return m_surface; }
+	//const TextureRef& getAlbedoRef() const{ return m_albedo; }
+	//const TextureRef& getNormalRef() const{ return m_normal; }
+	//const TextureRef& getSurfaceRef() const{ return m_surface; }
 
 	f32 getStaticFriction() const { return m_staticFriction; }
 	f32 getDynamicFriction() const { return m_dynamicFriction; }

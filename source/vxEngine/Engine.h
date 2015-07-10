@@ -35,6 +35,7 @@ SOFTWARE.*/
 #include <vxEngineLib/EventManager.h>
 #include "ActorAspect.h"
 #include <vxEngineLib/Scene.h>
+#include "ActionManager.h"
 #if _VX_AUDIO
 #include <vxAudio/AudioAspect.h>
 #endif
@@ -42,6 +43,7 @@ SOFTWARE.*/
 class Engine
 {
 	vx::EventManager m_eventManager;
+	ActionManager m_actionManager;
 	SystemAspect m_systemAspect;
 	PhysicsAspect m_physicsAspect;
 	ActorAspect m_actorAspect;

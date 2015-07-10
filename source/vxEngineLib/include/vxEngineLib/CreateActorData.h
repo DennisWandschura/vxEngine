@@ -37,6 +37,7 @@ class CreateActorData
 {
 	physx::PxController* m_controller;
 	vx::Transform m_transform;
+	vx::StringID m_actorSid;
 	vx::StringID m_mesh;
 	vx::StringID m_material;
 	f32 m_height;
@@ -45,9 +46,10 @@ class CreateActorData
 	u8 m_flags;
 
 public:
-	CreateActorData(const vx::Transform &transform, const vx::StringID &meshSid, const vx::StringID &materialSid, f32 height, u16 spawnIndex)
+	CreateActorData(const vx::Transform &transform, const vx::StringID &actorSid, const vx::StringID &meshSid, const vx::StringID &materialSid, f32 height, u16 spawnIndex)
 		:m_controller(nullptr),
 		m_transform(transform),
+		m_actorSid(actorSid),
 		m_mesh(meshSid),
 		m_material(materialSid),
 		m_height(height),
@@ -98,6 +100,11 @@ public:
 	const vx::StringID& getMaterialSid() const
 	{
 		return m_material;
+	}
+
+	const vx::StringID& getActorSid() const
+	{
+		return m_actorSid;
 	}
 
 	physx::PxController* getController() const

@@ -191,7 +191,7 @@ void PhysicsAspect::handleIngameEvent(const vx::Event &evt)
 {
 	auto ingameEvent = (IngameEvent)evt.code;
 
-	if (ingameEvent == IngameEvent::Create_Actor_Physx)
+	if (ingameEvent == IngameEvent::Physx_AddActor)
 	{
 		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
 
@@ -201,7 +201,7 @@ void PhysicsAspect::handleIngameEvent(const vx::Event &evt)
 
 		vx::Event evt;
 		evt.type = vx::EventType::Ingame_Event;
-		evt.code = (u32)IngameEvent::Created_Actor_Physx;
+		evt.code = (u32)IngameEvent::Physx_AddedActor;
 		evt.arg1.ptr = data;
 
 		auto evtManager = Locator::getEventManager();

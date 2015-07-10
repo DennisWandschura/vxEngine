@@ -68,9 +68,7 @@
     <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="RenderCommand.cpp" />
     <ClCompile Include="RenderCommandFinalImage.cpp" />
-    <ClCompile Include="SceneRenderer.cpp" />
     <ClCompile Include="SegmentFactory.cpp" />
-    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="TexturePool.cpp" />
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -135,9 +133,7 @@
     <ClInclude Include="RenderAspectDescription.h" />
     <ClInclude Include="RenderCommand.h" />
     <ClInclude Include="RenderCommandFinalImage.h" />
-    <ClInclude Include="SceneRenderer.h" />
     <ClInclude Include="SegmentFactory.h" />
-    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="TexturePool.h" />
     <ClInclude Include="Vertex.h" />
     <None Include="..\..\game\data\shaders\blurpassNew.pipe" />

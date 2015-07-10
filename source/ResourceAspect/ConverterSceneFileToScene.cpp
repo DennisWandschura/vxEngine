@@ -66,7 +66,12 @@ bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshIn
 
 		auto sidName = vx::make_sid(name);
 		auto sidMesh = vx::make_sid(meshFile);
-		auto sidAnimation = vx::make_sid(instance.getAnimation());
+		vx::StringID sidAnimation;
+		auto animName = instance.getAnimation();
+		if (animName[0] != '\0')
+		{
+			sidAnimation = vx::make_sid(animName);
+		}
 		auto itMesh = desc.sortedMeshes->find(sidMesh);
 		auto sidMaterial = vx::make_sid(materialFile);
 		auto itMaterial = desc.sortedMaterials->find(sidMaterial);

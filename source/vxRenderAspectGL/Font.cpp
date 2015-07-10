@@ -24,21 +24,24 @@ SOFTWARE.
 #include "Font.h"
 
 Font::Font()
-	:m_texture(),
+	:m_textureSlice(0),
+	m_textureDim(0),
 	m_atlas()
 {
 
 }
 
-Font::Font(TextureRef &&textureRef, FontAtlas &&fontAtlas)
-	: m_texture(std::move(textureRef)),
+Font::Font(u32 textureSlice, u32 dim, FontAtlas &&fontAtlas)
+	: m_textureSlice(textureSlice),
+	m_textureDim(dim),
 	m_atlas(std::move(fontAtlas))
 {
 
 }
 
 Font::Font(Font &&rhs)
-	: m_texture(std::move(rhs.m_texture)),
+	: m_textureSlice(rhs.m_textureSlice),
+	m_textureDim(rhs.m_textureDim),
 	m_atlas(std::move(rhs.m_atlas))
 {
 }
@@ -51,7 +54,8 @@ Font& Font::operator=(Font &&rhs)
 {
 	if (this != &rhs)
 	{
-		m_texture = std::move(rhs.m_texture);
+		std::swap(m_textureSlice, rhs.m_textureSlice);
+		std::swap(m_textureDim, rhs.m_textureDim);
 		m_atlas = std::move(rhs.m_atlas);
 	}
 	return *this;

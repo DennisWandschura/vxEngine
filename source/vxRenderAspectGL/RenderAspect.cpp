@@ -56,6 +56,7 @@ SOFTWARE.
 #include <vxEngineLib/Graphics/TextureFactory.h>
 #include <vxEngineLib/Graphics/Texture.h>
 #include <vxEngineLib/Material.h>
+#include <vxGL/VertexArray.h>
 
 #include "opencl/device.h"
 #include "opencl/image.h"
@@ -289,8 +290,6 @@ void RenderAspect::createUniformBuffers(f32 znear, f32 zfar)
 
 void RenderAspect::createTextures()
 {
-
-
 	{
 		vx::gl::TextureDescription desc;
 		desc.type = vx::gl::TextureType::Texture_2D;
@@ -517,20 +516,12 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 
 	printf("Used Memory (Buffers): %.2f MB\n", m_objectManager.getUsedMemoryBuffer() / 1024.f / 1024.f);
 
-	auto px = desc.settings->m_resolution.x / 2 - 100;
-	auto py = desc.settings->m_resolution.y / 2 - 25;
+	f32 px = desc.settings->m_resolution.x / 2 - 100;
+	f32 py = desc.settings->m_resolution.y * 0.45f;
 	m_pstateProfiler.initialize(vx::float2(px, py));
 
 	return RenderAspectInitializeError::OK;
 }
-
-bool RenderAspect::initializeImpl(const std::string &dataDir, const EngineConfig* engineConfig, vx::StackAllocator *pAllocator)
-{
-	
-
-	return true;
-}
-
 bool RenderAspect::initializeProfiler()
 {
 	u32 textureIndex = 0;
@@ -547,17 +538,14 @@ bool RenderAspect::initializeProfiler()
 		VX_ASSERT(b);
 		auto texId = m_materialManager.getTextureId(sid);
 
-		//auto ref = m_sceneRenderer.loadTexture(file.c_str(), &m_allocator, &m_scratchAllocator);
-		//VX_ASSERT(ref.isValid());
 		auto dim = texture.getFace(0).getDimension();
-
-		TextureRef ref(texId, textureIndex, vx::uint2(dim.x, dim.y), true);
 
 		FontAtlas fontAtlas;
 		if (!fontAtlas.loadFromFile((dataDir + "fonts/meta/VerdanaRegular.sdff").c_str()))
 			return false;
 
-		m_pColdData->m_font = Font(std::move(ref), std::move(fontAtlas));
+		VX_ASSERT(dim.x == dim.y);
+		m_pColdData->m_font = Font(textureIndex, dim.x,std::move(fontAtlas));
 
 		fontHandle = glGetTextureHandleARB(texId);
 	}
@@ -771,7 +759,7 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 	//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Loading Scene into Render");
 	//m_sceneRenderer.loadScene(scene, m_objectManager, m_fileAspect);
 
-	auto instances = scene->getMeshInstances();
+	/*auto instances = scene->getMeshInstances();
 	auto instanceCount = scene->getMeshInstanceCount();
 	for (u32 i = 0; i < instanceCount; ++i)
 	{
@@ -781,7 +769,7 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 		VX_ASSERT(b);
 
 		auto gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_fileAspect);
-	}
+	}*/
 
 
 	//auto count = m_sceneRenderer.getMeshInstanceCount();
@@ -832,12 +820,12 @@ void RenderAspect::taskCreateActorGpuIndex(u8* p, u32* offset)
 	std::size_t* address = (std::size_t*)p;
 
 	CreateActorData* data = (CreateActorData*)(*address);
-	auto gpuIndex = addActorToBuffer(data->getTransform(), data->getMeshSid(), data->getMaterialSid());
+	auto gpuIndex = addActorToBuffer(data->getActorSid(), data->getTransform(), data->getMeshSid(), data->getMaterialSid());
 	data->setGpu(gpuIndex);
 
 	vx::Event e;
 	e.arg1.ptr = data;
-	e.code = (u32)IngameEvent::Created_Actor_GPU;
+	e.code = (u32)IngameEvent::Gpu_AddedActor;
 	e.type = vx::EventType::Ingame_Event;
 
 	m_evtManager->addEvent(e);
@@ -855,7 +843,6 @@ void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
 
 	for (u32 i = 0; i < count; ++i)
 	{
-		//m_sceneRenderer.updateTransform(transforms[i], indices[i]);
 		m_meshManager.updateTransform(transforms[i], indices[i]);
 	}
 
@@ -865,13 +852,20 @@ void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
 void RenderAspect::taskCreateStaticMesh(u8* p, u32* offset)
 {
 	RenderUpdateTaskCreateStaticMeshData* data = (RenderUpdateTaskCreateStaticMeshData*)p;
+	auto &instance = *data->instance;
 
-	/*u32 gpuIndex = 0;
-	m_sceneRenderer.addStaticMeshInstance(*data->instance, &gpuIndex, m_fileAspect);
+	u32 materialIndex = 0;
+	m_materialManager.getMaterialIndex(data->materialSid, m_fileAspect,&materialIndex);
 
-	auto count = m_sceneRenderer.getMeshInstanceCount();
-	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
-	buffer->subData(0, sizeof(u32), &count);*/
+	u32 gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_fileAspect);
+
+	vx::Event e;
+	e.code = (u32)IngameEvent::Gpu_AddedStaticEntity;
+	e.type = vx::EventType::Ingame_Event;
+	e.arg1.ptr = (void*)data->instance;
+	e.arg2.u32 = gpuIndex;
+
+	m_evtManager->addEvent(e);
 
 	*offset += sizeof(RenderUpdateTaskCreateStaticMeshData);
 }
@@ -1231,14 +1225,14 @@ void RenderAspect::getProjectionMatrix(vx::mat4* m)
 	*m = m_projectionMatrix;
 }
 
-u16 RenderAspect::addActorToBuffer(const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material)
+u16 RenderAspect::addActorToBuffer(const vx::StringID &actorSid, const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material)
 {
 	vx::gl::DrawElementsIndirectCommand drawCmd;
 	u32 cmdIndex = 0;
 
 	u32 materialIndex = 0;
 	m_materialManager.getMaterialIndex(material, m_fileAspect,&materialIndex);
-	auto gpuIndex = m_meshManager.addMeshInstance(transform, mesh, materialIndex, m_fileAspect);
+	auto gpuIndex = m_meshManager.addMeshInstance(actorSid, transform, mesh, materialIndex, m_fileAspect);
 	//auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, &drawCmd, &cmdIndex, m_fileAspect);
 
 	/*auto count = m_sceneRenderer.getMeshInstanceCount();

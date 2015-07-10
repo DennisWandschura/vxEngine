@@ -46,6 +46,8 @@ SOFTWARE.
 #include <vxEngineLib/Light.h>
 #include <vxGL/Debug.h>
 #include <vxLib/ScopeGuard.h>
+#include <vxGL/VertexArray.h>
+#include <vxEngineLib/Material.h>
 
 struct InfluenceCellVertex
 {
@@ -204,7 +206,10 @@ namespace Editor
 
 		Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, renderDesc.settings, nullptr);
 
-		m_sceneRenderer.initialize(10, &m_objectManager, renderDesc.pAllocator);
+		auto maxInstances = renderDesc.settings->m_rendererSettings.m_maxMeshInstances;
+		m_meshManager.initialize(maxInstances, 0xffff + 1, 0xffff + 1, &m_objectManager);
+		m_materialManager.initialize(vx::uint3(1024, 1024, 255), maxInstances, &m_objectManager);
+		//m_sceneRenderer.initialize(10, &m_objectManager, renderDesc.pAllocator);
 
 		{
 			vx::gl::BufferDescription navmeshVertexVboDesc;
@@ -588,7 +593,8 @@ namespace Editor
 
 	void RenderAspect::shutdown(void* hwnd)
 	{
-		m_sceneRenderer.shutdown();
+		m_meshManager.shutdown();
+		m_materialManager.shutdown();
 		m_objectManager.shutdown();
 		m_coldData.reset(nullptr);
 		m_renderContext.shutdown((HWND)hwnd);
@@ -718,21 +724,29 @@ namespace Editor
 
 	void RenderAspect::addMeshInstance(const Editor::MeshInstance &instance)
 	{
-		m_sceneRenderer.editorAddMeshInstance(instance.getMeshInstance(), m_fileAspect);
+		//m_sceneRenderer.editorAddMeshInstance(instance.getMeshInstance(), m_fileAspect);
+		auto material = instance.getMaterial();
+		auto materialSid = material->getSid();
+
+		u32 materialIndex = 0;
+		auto b = m_materialManager.getMaterialIndex(materialSid,m_fileAspect, &materialIndex);
+		m_meshManager.addMeshInstance(instance.getMeshInstance(), materialIndex, m_fileAspect);
 	}
 
 	bool RenderAspect::removeMeshInstance(const vx::StringID &sid)
 	{
-		return m_sceneRenderer.editorRemoveStaticMeshInstance(sid);
+		//return m_sceneRenderer.editorRemoveStaticMeshInstance(sid);
+		return false;
 	}
 
 	bool RenderAspect::setSelectedMeshInstance(const Editor::MeshInstance* instance)
 	{
 		if (instance)
 		{
-			auto cmd = m_sceneRenderer.getDrawCommand(instance->getNameSid());
+			vx::gl::DrawElementsIndirectCommand cmd{};
+			auto found = m_meshManager.getDrawCommand(instance->getNameSid(), &cmd);
 
-			if (cmd.count == 0)
+			if (!found)
 			{
 				return false;
 			}
@@ -755,18 +769,28 @@ namespace Editor
 		{
 			auto index = m_selectedInstance.cmd.baseInstance;
 
-			m_sceneRenderer.updateTransform(transform, index);
+			m_meshManager.updateTransform(transform, index);
+			//m_sceneRenderer.updateTransform(transform, index);
 		}
 	}
 
-	bool RenderAspect::setSelectedMeshInstanceMaterial(const Reference<Material> &material) const
+	bool RenderAspect::setSelectedMeshInstanceMaterial(const Reference<Material> &material)
 	{
-		return m_sceneRenderer.setMeshInstanceMaterial(m_selectedInstance.ptr->getNameSid(), material);
+		u32 materialIndex = 0;
+		auto b = m_materialManager.getMaterialIndex(material->getSid(), m_fileAspect, &materialIndex);
+		if (b)
+		{
+			m_meshManager.setMaterial(m_selectedInstance.ptr->getNameSid(), materialIndex);
+		}
+
+		return b;
 	}
 
 	bool RenderAspect::setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid)
 	{
-		return m_sceneRenderer.setMeshInstanceMesh(sid, meshSid, m_fileAspect);
+		m_meshManager.setMesh(sid, meshSid);
+
+		return true;
 	}
 
 	void RenderAspect::moveCamera(f32 dirX, f32 dirY, f32 dirZ)
@@ -1046,11 +1070,18 @@ namespace Editor
 	{
 		auto scene = (Editor::Scene*)evt.arg2.ptr;
 
-		m_sceneRenderer.loadScene(scene, m_objectManager, m_fileAspect);
+		//m_sceneRenderer.loadScene(scene, m_objectManager, m_fileAspect);
+		auto instances = scene->getMeshInstancesEditor();
+		auto instanceCount = scene->getMeshInstanceCount();
+		for (u32 i = 0; i < instanceCount; ++i)
+		{
+			auto &instance = instances[i];
+			u32 materialIndex = 0;
+			auto b = m_materialManager.getMaterialIndex(*instance.getMaterial().get(), m_fileAspect, &materialIndex);
+			VX_ASSERT(b);
 
-		auto count = m_sceneRenderer.getMeshInstanceCount();
-		auto buffer = m_objectManager.getBuffer("meshParamBuffer");
-		buffer->subData(0, sizeof(u32), &count);
+			auto gpuIndex = m_meshManager.addMeshInstance(instance.getMeshInstance(), materialIndex, m_fileAspect);
+		}
 
 		auto lightCount = scene->getLightCount();
 		auto lights = scene->getLights();

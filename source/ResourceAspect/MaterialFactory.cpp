@@ -24,7 +24,6 @@ SOFTWARE.
 #include <vxResourceAspect/MaterialFactory.h>
 #include <vxResourceAspect/FileEntry.h>
 #include <vxEngineLib/Material.h>
-#include <vxEngineLib/TextureFile.h>
 #include <vxLib/Container/sorted_array.h>
 
 namespace MaterialFactoryCpp

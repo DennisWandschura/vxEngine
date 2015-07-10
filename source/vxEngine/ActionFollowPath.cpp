@@ -70,7 +70,7 @@ void ActionFollowPath::run()
 
 			m_lookWhereYoureGoing.getSteering(&steering);
 
-			auto currentTarget = m_arrive.getTarget();
+			//auto currentTarget = m_arrive.getTarget();
 
 			vx::float4a outVelocity;
 			auto tmpVelocity = vx::loadFloat4(velocity);

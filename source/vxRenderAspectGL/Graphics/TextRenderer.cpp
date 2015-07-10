@@ -230,14 +230,13 @@ namespace Graphics
 	{
 		u32 offset = 0;
 
-		f32 textureSlice = m_font->getTextureEntry().getSlice();
-		auto textureSize = m_font->getTextureEntry().getTextureSize();
+		f32 textureSlice = m_font->getTextureSlice();
+		auto textureSize = m_font->getTextureDim();
 
 		vx::float4a invTextureSize;
-		invTextureSize.x = 1.0f / textureSize.x;
-		invTextureSize.y = 1.0f / textureSize.y;
+		invTextureSize.x = 1.0f / textureSize;
 
-		auto vInvTexSize = _mm_shuffle_ps(invTextureSize.v, invTextureSize.v, _MM_SHUFFLE(1, 0, 1, 0));
+		auto vInvTexSize = _mm_shuffle_ps(invTextureSize.v, invTextureSize.v, _MM_SHUFFLE(0, 0, 0, 0));
 
 		for (auto &it : m_entries)
 		{
@@ -258,7 +257,7 @@ namespace Graphics
 		m_entries.clear();
 	}
 
-	void TextRenderer::writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, const vx::uint2a &textureSize, u32 textureSlice)
+	void TextRenderer::writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, u32 textureSize, u32 textureSlice)
 	{
 		auto entryText = entry.m_text.c_str();
 		auto entryTextSize = entry.m_text.size();
@@ -295,7 +294,7 @@ namespace Graphics
 				__m128 vCursorPos = { cursorPosition.x, cursorPosition.y, 0.0f, 0.0f };
 
 				auto pAtlasEntry = m_font->getAtlasEntry(ascii_code);
-				vx::float4a texRect(pAtlasEntry->x, textureSize.y - pAtlasEntry->y - pAtlasEntry->height, pAtlasEntry->width, pAtlasEntry->height);
+				vx::float4a texRect(pAtlasEntry->x, textureSize - pAtlasEntry->y - pAtlasEntry->height, pAtlasEntry->width, pAtlasEntry->height);
 
 				__m128 vAtlasPos = { pAtlasEntry->offsetX, pAtlasEntry->offsetY, 0.0f, 0.0f };
 

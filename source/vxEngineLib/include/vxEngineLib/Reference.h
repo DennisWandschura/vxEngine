@@ -178,6 +178,16 @@ public:
 		return (*this->m_ptr);
 	}
 
+	T* operator->()
+	{
+		return (T*)this->m_ptr;
+	}
+
+	const T* operator->() const
+	{
+		return (T*)this->m_ptr;
+	}
+
 	bool isValid() const
 	{
 		return (m_ptr != nullptr);

@@ -40,6 +40,11 @@ namespace Graphics
 		u32 m_voxelGridDim;
 	};
 
+	struct TextureSettings
+	{
+		u32 m_dim;
+	};
+
 	struct RendererSettings
 	{
 		enum Mode { Mode_GL, Mode_DX12 };
@@ -50,6 +55,7 @@ namespace Graphics
 		u32 m_maxActiveLights;
 		ShadowRendererSettings m_shadowSettings;
 		VoxelRendererSettings m_voxelSettings;
+		TextureSettings m_textureSettings;
 
 		u32 m_maxMeshInstances;
 	};

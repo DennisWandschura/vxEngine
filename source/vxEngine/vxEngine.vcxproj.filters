@@ -327,6 +327,9 @@
     <ClInclude Include="CollisionAvoidance.h">
       <Filter>Header Files\AI\Steering</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentUsable.h">
+      <Filter>Header Files\Entity</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

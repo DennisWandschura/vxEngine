@@ -24,16 +24,16 @@ SOFTWARE.
 */
 
 #include "FontAtlas.h"
-#include "TextureManager.h"
 
 class Font
 {
-	TextureRef m_texture;
+	u32 m_textureSlice;
+	u32 m_textureDim;
 	FontAtlas m_atlas;						// 32
 
 public:
 	Font();
-	Font(TextureRef &&textureRef, FontAtlas &&fontAtlas);
+	Font(u32 textureSlice, u32 dim, FontAtlas &&fontAtlas);
 	Font(Font &&other);
 	Font(const Font&) = delete;
 	~Font();
@@ -42,8 +42,7 @@ public:
 	Font& operator=(Font &&rhs);
 
 	const FontAtlasEntry* getAtlasEntry(u32 code) const;
-	const TextureRef& getTextureEntry() const
-	{
-		return m_texture;
-	}
+	
+	u32 getTextureSlice() const { return m_textureSlice; }
+	u32 getTextureDim() const { return m_textureDim; }
 };
