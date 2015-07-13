@@ -24,6 +24,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ai\Squad.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="input\Keys.h">
+      <Filter>Header Files\input</Filter>
+    </ClInclude>
     <ClInclude Include="Wander.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -72,9 +78,6 @@
     <ClInclude Include="CollisionAvoidance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Component.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentActor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -84,7 +87,16 @@
     <ClInclude Include="ComponentRender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentRenderManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="ComponentsForward.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentUsable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentUsableManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Condition.h">
@@ -130,9 +142,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EngineGlobals.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EntityAspect.h">
@@ -231,6 +240,18 @@
     <ClInclude Include="TargetState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Task.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskSceneCreateActorsGpu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskSceneCreateStaticMeshes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Text.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -246,11 +267,26 @@
     <ClInclude Include="VirtualBaseClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ai\Squad.h">
-      <Filter>Header Files\ai</Filter>
+    <ClInclude Include="ActionPlayAnimation.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="input\Keys.h">
-      <Filter>Header Files\input</Filter>
+    <ClInclude Include="AllocationManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentActorManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInputManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentPhysics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentPhysicsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CreatedActorData.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -385,6 +421,36 @@
     </ClCompile>
     <ClCompile Include="ai\Squad.cpp">
       <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentRenderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentUsableManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskSceneCreateActorsGpu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskSceneCreateStaticMeshes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionPlayAnimation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AllocationManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentActorManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentInputManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentPhysicsManager.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

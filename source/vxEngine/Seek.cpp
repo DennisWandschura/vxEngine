@@ -24,7 +24,7 @@ SOFTWARE.
 #include "Seek.h"
 #include <vxEngineLib/Entity.h>
 
-Seek::Seek(EntityActor* entity, const vx::float3 &target, f32 maxAccel)
+Seek::Seek(Entity* entity, const vx::float3 &target, f32 maxAccel)
 	:m_entity(entity),
 	m_targetPosition(target),
 	m_maxAcceleration(maxAccel)

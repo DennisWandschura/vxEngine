@@ -47,8 +47,6 @@ ArrayAllocator::~ArrayAllocator()
 			printf("ERROR, not all entries freed !\n");
 		}
 
-		delete[](m_memory);
-
 		m_memory = nullptr;
 		m_head = nullptr;
 		m_totalSize = 0;
@@ -57,10 +55,10 @@ ArrayAllocator::~ArrayAllocator()
 	}
 }
 
-void ArrayAllocator::create(u32 totalSize)
+void ArrayAllocator::create(u8* memory, u32 totalSize)
 {
-	m_memory = new u8[totalSize];
-	m_head = m_memory;
+	m_memory = memory;
+	m_head = memory;
 	m_totalSize = totalSize;
 	m_freeEntries = s_maxEntrieCount;
 	m_firstFreeEntry = 0;
@@ -72,6 +70,34 @@ void ArrayAllocator::create(u32 totalSize)
 		auto &entry = m_entries[i];
 		entry.nextFreeEntry = i + 1;
 	}
+}
+
+u8* ArrayAllocator::release()
+{
+	auto p = m_memory;
+
+	m_memory = nullptr;
+	m_head = nullptr;
+	m_totalSize = 0;
+	m_freeEntries = s_maxEntrieCount;
+	m_firstFreeEntry = 0;
+
+	return p;
+}
+
+u8* ArrayAllocator::allocate(u64 size)
+{
+	return nullptr;
+}
+
+u8* ArrayAllocator::allocate(u64 size, u8 alignment)
+{
+	return nullptr;
+}
+
+void ArrayAllocator::deallocate(u8 *ptr)
+{
+
 }
 
 managed_ptr_base ArrayAllocator::allocate(u32 size, u8 alignment)
@@ -112,12 +138,17 @@ managed_ptr_base ArrayAllocator::allocate(u32 size, u8 alignment)
 	--m_freeEntries;
 	m_memoryUsed += neededSize;
 
+	if(s_allocCallback)
+	{
+		s_allocCallback(neededSize, m_memory);
+	}
+
 	return ptr;
 }
 
 void ArrayAllocator::deallocate(managed_ptr_base* p)
 {
-	auto &entry = m_entries[p->entryIndex];
+	auto &entry = m_entries[p->m_entryIndex];
 	auto size = entry.size;
 
 	DebugCheck* debug = (DebugCheck*)(entry.ptr + size) - 1;
@@ -127,7 +158,7 @@ void ArrayAllocator::deallocate(managed_ptr_base* p)
 	entry.managedPtr = nullptr;
 
 	entry.nextFreeEntry = m_firstFreeEntry;
-	m_firstFreeEntry = p->entryIndex;
+	m_firstFreeEntry = p->m_entryIndex;
 	
 	fixHead(entry.ptr, size);
 	memset(entry.ptr, DebugCheck::s_magicCleared, size);
@@ -137,6 +168,11 @@ void ArrayAllocator::deallocate(managed_ptr_base* p)
 
 	++m_freeEntries;
 	m_memoryUsed -= size;
+
+	if (s_deallocCallback)
+	{
+		s_deallocCallback(size, m_memory);
+	}
 }
 
 bool ArrayAllocator::update()
@@ -279,4 +315,14 @@ void ArrayAllocator::fixHead(u8* p, u32 size)
 	{
 		m_head -= size;
 	}
+}
+
+u32 ArrayAllocator::getTotalSize() const
+{
+	return m_totalSize;
+}
+
+const u8* ArrayAllocator::getMemory() const
+{
+	return m_memory;
 }

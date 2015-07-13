@@ -22,7 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
-struct EntityActor;
+struct Entity;
 
 #include <vxLib/math/Vector.h>
 #include <vxEngineLib/AABB.h>
@@ -30,7 +30,7 @@ struct EntityActor;
 
 struct QuadTreeData
 {
-	EntityActor* entity;
+	Entity* entity;
 	vx::float3 position;
 	vx::float3 velocity;
 };
@@ -52,7 +52,7 @@ class QuadTree
 	u32 m_size;
 
 	void getDataLinear(const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
-	void getDataLinear(const EntityActor* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
+	void getDataLinear(const Entity* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
 
 public:
 	QuadTree();
@@ -64,5 +64,5 @@ public:
 	void insert(const QuadTreeData* data, u32 count);
 
 	void getData(const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
-	void getData(const EntityActor* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
+	void getData(const Entity* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
 };

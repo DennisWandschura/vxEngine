@@ -25,28 +25,40 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class ArrayAllocator;
+
 #include <vxLib/Graphics/Mesh.h>
 #include "Serializable.h"
+#include <vxEngineLib/managed_ptr.h>
 
 namespace vx
 {
+	enum class PhsyxMeshType : u32 { Triangle, Convex };
+
 	class MeshFile : public Serializable
 	{
 		vx::Mesh m_mesh;
-		const u8* m_physxData;
+		managed_ptr<u8[]> m_meshData;
+		managed_ptr<u8[]> m_physxData;
 		u32 m_physxDataSize;
+		PhsyxMeshType m_physxMeshType;
+
+		const u8* loadFromMemoryV0(const u8 *ptr, u32 size, ArrayAllocator* allocator);
+		const u8* loadFromMemoryV1(const u8 *ptr, u32 size, ArrayAllocator* allocator);
+
+		const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) override;
 
 	public:
 		explicit MeshFile(u32 version);
 		MeshFile(const MeshFile&) = delete;
 		MeshFile(MeshFile &&rhs);
-		MeshFile(u32 version, vx::Mesh &&mesh, const u8* physxData, u32 physxDataSize);
+		MeshFile(u32 version, vx::Mesh &&mesh, managed_ptr<u8[]> &&meshData, managed_ptr<u8[]> &&physxData, u32 physxDataSize, PhsyxMeshType meshType);
 		~MeshFile();
 
 		MeshFile& operator=(const MeshFile&) = delete;
 		MeshFile& operator=(MeshFile &&rhs);
 
-		const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) override;
+		const u8* loadFromMemory(const u8 *ptr, u32 size, ArrayAllocator* allocator);
 
 		void saveToFile(vx::File* file) const override;
 
@@ -56,7 +68,9 @@ namespace vx
 
 		const vx::Mesh& getMesh() const { return m_mesh; }
 		u32 getPhysxDataSize() const { return m_physxDataSize; }
-		const u8* getPhysxData() const { return m_physxData; }
+		const u8* getPhysxData() const;
+
+		PhsyxMeshType getPhysxMeshType() const;
 	};
 }
 #endif

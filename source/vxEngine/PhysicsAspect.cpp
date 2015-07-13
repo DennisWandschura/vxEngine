@@ -236,7 +236,7 @@ vx::StringID PhysicsAspect::raycast_static(const vx::float4a &origin, const vx::
 vx::StringID PhysicsAspect::raycast_static(const physx::PxVec3 &origin, const physx::PxVec3 &dir, f32 maxDistance, vx::float3* hitPosition, f32* distance) const
 {
 	physx::PxRaycastBuffer hit;
-	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eSTATIC);
+	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
 
 	auto unitDir = dir;
 	unitDir.normalize();
@@ -260,7 +260,7 @@ vx::StringID PhysicsAspect::raycast_static(const physx::PxVec3 &origin, const ph
 	return sid;
 }
 
-void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
+void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance, MeshType type)
 {
 	auto instanceSid = meshInstance.getNameSid();
 	auto meshSid = meshInstance.getMeshSid();
@@ -330,8 +330,20 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 		shape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(*itConvexMesh), *pmat);
 	}
 
+	if (type == MeshType::Static)
+	{
+		addStaticMeshInstance(transform, *shape, instanceSid);
+	}
+	else
+	{
+		addDynamicMeshInstance(transform, *shape, instanceSid);
+	}
+}
+
+void PhysicsAspect::addStaticMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid)
+{
 	auto pRigidStatic = m_pPhysics->createRigidStatic(transform);
-	pRigidStatic->attachShape(*shape);
+	pRigidStatic->attachShape(shape);
 
 	auto sidptr = (vx::StringID*)&pRigidStatic->userData;
 	sidptr->value = instanceSid.value;
@@ -339,6 +351,19 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 	m_staticMeshInstances.insert(instanceSid, pRigidStatic);
 
 	m_pScene->addActor(*pRigidStatic);
+}
+
+void PhysicsAspect::addDynamicMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid)
+{
+	auto rigidDynamic = m_pPhysics->createRigidDynamic(transform);
+	rigidDynamic->attachShape(shape);
+
+	auto sidptr = (vx::StringID*)&rigidDynamic->userData;
+	sidptr->value = instanceSid.value;
+
+	m_dynamicMeshInstances.insert(instanceSid, rigidDynamic);
+
+	m_pScene->addActor(*rigidDynamic);
 }
 
 void PhysicsAspect::processScene(const Scene* ptr)
@@ -377,7 +402,11 @@ void PhysicsAspect::processScene(const Scene* ptr)
 
 	for (auto i = 0u; i < numInstances; ++i)
 	{
-		addMeshInstance(pMeshInstances[i]);
+		auto &instance = pMeshInstances[i];
+		auto sid = instance.getAnimationSid();
+		MeshType type = (sid.value == 0) ? MeshType::Static : MeshType::Dynamic;
+
+		addMeshInstance(instance, type);
 	}
 
 	m_pScene->unlockWrite();
@@ -469,4 +498,30 @@ void PhysicsAspect::move(const vx::float4a &velocity, f32 dt, physx::PxControlle
 	v.z = velocity.z;
 
 	pController->move(v, 0.0001f, dt, filters);
+}
+
+physx::PxRigidStatic* PhysicsAspect::getStaticMesh(const vx::StringID &sid)
+{
+	physx::PxRigidStatic* result = nullptr;
+
+	auto it = m_staticMeshInstances.find(sid);
+	if (it != m_staticMeshInstances.end())
+	{
+		result = *it;
+	}
+
+	return result;
+}
+
+physx::PxRigidDynamic* PhysicsAspect::getDynamicMesh(const vx::StringID &sid)
+{
+	physx::PxRigidDynamic* result = nullptr;
+
+	auto it = m_dynamicMeshInstances.find(sid);
+	if (it != m_dynamicMeshInstances.end())
+	{
+		result = *it;
+	}
+
+	return result;
 }

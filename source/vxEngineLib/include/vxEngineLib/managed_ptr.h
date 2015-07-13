@@ -58,8 +58,10 @@ class managed_ptr_base
 
 protected:
 	u8* m_ptr;
-	ArrayAllocator* alloc;
-	unsigned entryIndex;
+	ArrayAllocator* m_alloc;
+	unsigned m_entryIndex;
+
+	void swap(managed_ptr_base &other);
 
 	void setPtr(u8* ptr)
 	{
@@ -68,21 +70,20 @@ protected:
 
 	unsigned getEntryIndex() const
 	{
-		return entryIndex;
+		return m_entryIndex;
 	}
 
 	void updateAllocator();
 
 	unsigned getEntrySize() const;
 
-	managed_ptr_base() :m_ptr(nullptr), entryIndex(), alloc(nullptr){}
+	managed_ptr_base();
 
 	managed_ptr_base(const managed_ptr_base&) = delete;
 
 	managed_ptr_base(managed_ptr_base &&rhs);
 
-	managed_ptr_base(u8* p, ArrayAllocator* alloc, int index) 
-		:m_ptr(p), entryIndex(index), alloc(alloc){}
+	managed_ptr_base(u8* p, ArrayAllocator* alloc, unsigned index);
 
 	managed_ptr_base& operator=(const managed_ptr_base&) = delete;
 	managed_ptr_base& operator=(managed_ptr_base &&rhs);
@@ -111,6 +112,11 @@ public:
 		MyBase::operator=(std::move(rhs));
 
 		return *this;
+	}
+
+	void swap(managed_ptr &other)
+	{
+		MyBase::swap(other);
 	}
 
 	T* get()
@@ -162,6 +168,11 @@ public:
 		return *this;
 	}
 
+	void swap(managed_ptr &other)
+	{
+		MyBase::swap(other);
+	}
+
 	T* get()
 	{
 		return (T*)m_ptr;
@@ -180,10 +191,10 @@ public:
 			auto p = get();
 			MyDeleter()(p, count);
 
-			alloc->deallocate(this);
+			m_alloc->deallocate(this);
 
 			m_ptr = nullptr;
-			alloc = nullptr;
+			m_alloc = nullptr;
 		}
 	}
 

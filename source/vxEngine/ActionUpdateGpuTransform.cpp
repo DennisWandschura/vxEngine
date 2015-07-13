@@ -33,7 +33,7 @@ ActionUpdateGpuTransform::ActionUpdateGpuTransform()
 
 }
 
-ActionUpdateGpuTransform::ActionUpdateGpuTransform(EntityActor* playerEntity, RenderAspectInterface* pRenderAspect)
+ActionUpdateGpuTransform::ActionUpdateGpuTransform(Entity* playerEntity, RenderAspectInterface* pRenderAspect)
 	:m_playerEntity(playerEntity),
 	m_pRenderAspect(pRenderAspect)
 {
@@ -47,8 +47,9 @@ ActionUpdateGpuTransform::~ActionUpdateGpuTransform()
 
 void ActionUpdateGpuTransform::run()
 {
-	__m128 quaternionRotation = { m_playerEntity->orientation.y, m_playerEntity->orientation.x, 0, 0 };
-	quaternionRotation = vx::quaternionRotationRollPitchYawFromVector(quaternionRotation);
+	//__m128 quaternionRotation = { m_playerEntity->orientation.y, m_playerEntity->orientation.x, 0, 0 };
+	//quaternionRotation = vx::quaternionRotationRollPitchYawFromVector(quaternionRotation);
+	__m128 quaternionRotation = vx::loadFloat4(m_playerEntity->qRotation);
 
 	RenderUpdateCameraData data;
 	data.position = vx::loadFloat3(m_playerEntity->position);

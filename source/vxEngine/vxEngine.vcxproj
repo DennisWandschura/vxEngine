@@ -172,6 +172,7 @@
     <ClInclude Include="ActionActorCreatePath.h" />
     <ClInclude Include="ActionFollowPath.h" />
     <ClInclude Include="ActionManager.h" />
+    <ClInclude Include="ActionPlayAnimation.h" />
     <ClInclude Include="ActionPlayerLookAround.h" />
     <ClInclude Include="ActionPlayerMove.h" />
     <ClInclude Include="ActionPrintText.h" />
@@ -179,12 +180,19 @@
     <ClInclude Include="ActionUpdateGpuTransform.h" />
     <ClInclude Include="ActorAspect.h" />
     <ClInclude Include="ai\Squad.h" />
+    <ClInclude Include="AllocationManager.h" />
     <ClInclude Include="CollisionAvoidance.h" />
+    <ClInclude Include="ComponentActorManager.h" />
+    <ClInclude Include="ComponentInputManager.h" />
+    <ClInclude Include="ComponentPhysics.h" />
+    <ClInclude Include="ComponentPhysicsManager.h" />
+    <ClInclude Include="ComponentRenderManager.h" />
     <ClInclude Include="ComponentUsable.h" />
+    <ClInclude Include="ComponentUsableManager.h" />
     <ClInclude Include="ConditionActorFollowingPath.h" />
     <ClInclude Include="ConditionActorHasPath.h" />
     <ClInclude Include="CpuProfiler.h" />
-    <ClInclude Include="CreateActorData.h" />
+    <ClInclude Include="CreatedActorData.h" />
     <ClInclude Include="EditorObjectColors.h" />
     <ClInclude Include="EditorPhysicsAspect.h" />
     <ClInclude Include="EngineGlobals.h" />
@@ -204,8 +212,11 @@
     <ClInclude Include="Primitive.h" />
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="SmallObjAllocator.h" />
+    <ClInclude Include="Task.h" />
+    <ClInclude Include="TaskManager.h" />
+    <ClInclude Include="TaskSceneCreateActorsGpu.h" />
+    <ClInclude Include="TaskSceneCreateStaticMeshes.h" />
     <ClInclude Include="Timer.h" />
-    <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentActor.h" />
     <ClInclude Include="ComponentInput.h" />
     <ClInclude Include="ComponentRender.h" />
@@ -231,13 +242,11 @@
     <ClInclude Include="Pool.h" />
     <ClInclude Include="PhysicsAspect.h" />
     <ClInclude Include="memory.h" />
-    <ClInclude Include="PoolAllocator.h" />
     <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="Seek.h" />
     <ClInclude Include="rtti.h" />
     <ClInclude Include="SmallObject.h" />
     <ClInclude Include="stack.h" />
-    <ClInclude Include="StackAllocator.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="StateMachine.h" />
     <ClInclude Include="Steering.h" />
@@ -256,6 +265,7 @@
     <ClCompile Include="ActionFollowPath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ActionPlayAnimation.cpp" />
     <ClCompile Include="ActionPlayerLookAround.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -283,6 +293,7 @@
     <ClCompile Include="Align.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="AllocationManager.cpp" />
     <ClCompile Include="Arrive.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -295,6 +306,10 @@
     <ClCompile Include="CollisionAvoidance.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ComponentActorManager.cpp" />
+    <ClCompile Include="ComponentInputManager.cpp" />
+    <ClCompile Include="ComponentPhysicsManager.cpp" />
+    <ClCompile Include="ComponentRenderManager.cpp" />
     <ClCompile Include="CpuProfiler.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -326,6 +341,10 @@
     <ClCompile Include="QuadTree.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ComponentUsableManager.cpp" />
+    <ClCompile Include="TaskManager.cpp" />
+    <ClCompile Include="TaskSceneCreateActorsGpu.cpp" />
+    <ClCompile Include="TaskSceneCreateStaticMeshes.cpp" />
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DLL Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

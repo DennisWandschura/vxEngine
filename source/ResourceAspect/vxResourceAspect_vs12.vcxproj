@@ -85,7 +85,6 @@
     </ClCompile>
     <ClCompile Include="MaterialFactory.cpp" />
     <ClCompile Include="SceneFactory.cpp" />
-    <ClCompile Include="TextureFileManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxResourceAspect\ConverterEditorSceneToSceneFile.h" />
@@ -99,7 +98,6 @@
     <ClInclude Include="include\vxResourceAspect\MaterialFactory.h" />
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h" />
     <ClInclude Include="include\vxResourceAspect\SceneFactory.h" />
-    <ClInclude Include="include\vxResourceAspect\TextureFileManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

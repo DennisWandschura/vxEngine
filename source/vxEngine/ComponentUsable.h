@@ -26,12 +26,18 @@ SOFTWARE.
 
 class Action;
 
-#include "Component.h"
+namespace physx
+{
+	class PxRigidStatic;
+}
+
+#include <vxEngineLib/Component.h>
 
 namespace Component
 {
-	struct Usable : public Base
+	struct Usable : public Type<Usable>
 	{
 		Action* action;
+		physx::PxRigidStatic* rigidStatic;
 	};
 }

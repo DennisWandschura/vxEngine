@@ -31,7 +31,7 @@ CollisionAvoidance::~CollisionAvoidance()
 
 }
 
-bool CollisionAvoidance::getSteering(EntityActor* currentEntity, const vx::float3 &currentPosition, const vx::float4a &inVelocity, vx::float4a* outVelocity)
+bool CollisionAvoidance::getSteering(Entity* currentEntity, const vx::float3 &currentPosition, const vx::float4a &inVelocity, vx::float4a* outVelocity)
 {
 	QuadTreeData data[2];
 

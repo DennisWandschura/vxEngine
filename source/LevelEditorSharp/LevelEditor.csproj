@@ -106,6 +106,13 @@
     <Compile Include="ActionSetMeshInstanceMesh.cs" />
     <Compile Include="ActionSetMeshInstancePosition.cs" />
     <Compile Include="ActionSetMeshInstanceRotation.cs" />
+    <Compile Include="DirectoryTreeNode.cs" />
+    <Compile Include="FileBrowser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FileBrowser.Designer.cs">
+      <DependentUpon>FileBrowser.cs</DependentUpon>
+    </Compile>
     <Compile Include="DecisionKeyDown.cs" />
     <Compile Include="DecisionKeyDownNew.cs" />
     <Compile Include="ActionMultiSelectNavMesh.cs" />
@@ -126,6 +133,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="ItemFileExtension.cs" />
     <Compile Include="MessageHandler.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Program.cs" />
@@ -135,6 +143,9 @@
     <Compile Include="Transition.cs" />
     <Compile Include="TargetState.cs" />
     <Compile Include="TransitionBase.cs" />
+    <EmbeddedResource Include="FileBrowser.resx">
+      <DependentUpon>FileBrowser.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

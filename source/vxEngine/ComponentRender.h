@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,18 +22,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
+#include <vxEngineLib/Component.h>
 #include <vxLib/math/Vector.h>
-#include "Component.h"
 
 namespace Component
 {
-	struct Render : public Base
+	struct Render : public Type<Render>
 	{
 		// index into transform buffer
 		u16 gpuIndex;
-		vx::float3 translation;
-		__m128 qRotation;
+		//vx::float3 translation;
+		//__m128 qRotation;
 	};
 }

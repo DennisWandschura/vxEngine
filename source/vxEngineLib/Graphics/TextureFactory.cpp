@@ -73,7 +73,7 @@ namespace Graphics
 		return size;
 	}
 
-	u32 size_dxtc(u32 width, u32 height, u8 compoments, TextureFormat format)
+	u32 size_dxtc(u32 width, u32 height, u8, TextureFormat format)
 	{
 		return ((width + 3) / 4)*((height + 3) / 4)*
 			(format == TextureFormat::DXT1 ? 8 : 16);
@@ -81,12 +81,12 @@ namespace Graphics
 
 	///////////////////////////////////////////////////////////////////////////////
 	// calculates size of uncompressed RGB texture in bytes
-	u32 size_rgb(u32 width, u32 height, u8 compoments, TextureFormat format)
+	u32 size_rgb(u32 width, u32 height, u8 compoments, TextureFormat)
 	{
 		return width * height * compoments;
 	}
 
-	u32 size_bc(u32 width, u32 height, u8 compoments, TextureFormat format)
+	u32 size_bc(u32 width, u32 height, u8, TextureFormat)
 	{
 		return ((width + 3) / 4)*((height + 3) / 4) * 16;
 	}
@@ -352,6 +352,8 @@ namespace Graphics
 		auto fileData = scratchAllocator->allocate(fileSize, 4);
 		VX_ASSERT(fileData != nullptr);
 
+		inFile.read(fileData, fileSize);
+
 		auto result = createDDSFromMemory(fileData, flipImage, texture, textureAllocator);
 
 		scratchAllocator->clear(marker);
@@ -544,33 +546,36 @@ namespace Graphics
 				h = clamp_size(h >> 1);
 			}
 
-			auto mipmaps = (Surface*)textureAllocator->allocate(sizeof(Surface)*mipmapCount, __alignof(Surface));
-
-			// load all mipmaps for current surface
-			for (u32 i = 0; i < mipmapCount; i++)
+			Surface* mipmaps = nullptr;
+			if (mipmapCount != 0)
 			{
-				auto &mipmap = mipmaps[i];
-				new (&mipmap) Surface{};
+				mipmaps = (Surface*)textureAllocator->allocate(sizeof(Surface)*mipmapCount, __alignof(Surface));
 
-				// calculate mipmap size
-				auto mipmapSize = (*sizefunc)(dim.x, dim.y, components, textureFormat) * dim.z;
-
-				auto mipampPixels = textureAllocator->allocate(size, 4);
-				ddsData = vx::read(mipampPixels, ddsData, mipmapSize);
-
-				mipmap.create(dimension, mipmapSize, mipampPixels);
-
-				if (flipImage)
+				// load all mipmaps for current surface
+				for (u32 i = 0; i < mipmapCount; i++)
 				{
-					flip(&mipmap, textureFormat);
+					auto &mipmap = mipmaps[i];
+					new (&mipmap) Surface{};
+
+					// calculate mipmap size
+					auto mipmapSize = (*sizefunc)(dim.x, dim.y, components, textureFormat) * dim.z;
+
+					auto mipampPixels = textureAllocator->allocate(size, 4);
+					ddsData = vx::read(mipampPixels, ddsData, mipmapSize);
+
+					mipmap.create(dimension, mipmapSize, mipampPixels);
+
+					if (flipImage)
+					{
+						flip(&mipmap, textureFormat);
+					}
+
+					// shrink to next power of 2
+					dim.x = clamp_size(dim.x >> 1);
+					dim.y = clamp_size(dim.y >> 1);
+					dim.z = clamp_size(dim.z >> 1);
 				}
-
-				// shrink to next power of 2
-				dim.x = clamp_size(dim.x >> 1);
-				dim.y = clamp_size(dim.y >> 1);
-				dim.z = clamp_size(dim.z >> 1);
 			}
-
 			face.setMipmaps(mipmaps, mipmapCount);
 		}
 

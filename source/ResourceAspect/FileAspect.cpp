@@ -148,7 +148,8 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	m_allocatorReadFile = vx::StackAllocator(pFileMemory, fileMemorySize);
 
 	const u32 meshMemorySize = 10 MBYTE;
-	m_allocatorMeshData = vx::StackAllocator(pMainAllocator->allocate(meshMemorySize, 64), meshMemorySize);
+	//m_allocatorMeshData = vx::StackAllocator(pMainAllocator->allocate(meshMemorySize, 64), meshMemorySize);
+	m_allocatorMeshData.create(pMainAllocator->allocate(meshMemorySize, 64), meshMemorySize);
 
 	const u32 textureMemorySize = 50 MBYTE;
 	auto textureMemory = pMainAllocator->allocate(textureMemorySize, 64);
@@ -212,11 +213,11 @@ bool FileAspect::loadMesh(const LoadMeshDescription &desc)
 		auto meshFilePtr = m_poolMesh.createEntry(&index, desc.fileHeader->version);
 		VX_ASSERT(meshFilePtr != nullptr);
 
-		auto marker = m_allocatorMeshData.getMarker();
+		//auto marker = m_allocatorMeshData.getMarker();
 		auto p = meshFilePtr->loadFromMemory(desc.fileData, desc.size, &m_allocatorMeshData);
 		if (p == nullptr)
 		{
-			m_allocatorMeshData.clear(marker);
+			//m_allocatorMeshData.clear(marker);
 			return false;
 		}
 
@@ -432,9 +433,11 @@ bool FileAspect::loadFileFbx(const LoadFileOfTypeDescription &desc)
 #if _VX_EDITOR
 	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Trying to load file %s\n", desc.fileNameWithPath);
 
+	vx::PhsyxMeshType physsxMeshType = (vx::PhsyxMeshType)reinterpret_cast<u32>(desc.pUserData);
+
 	std::vector<vx::FileHandle> meshFiles, animFiles;
 	FbxFactory factory;
-	factory.loadFile(desc.fileNameWithPath, std::string(s_meshFolder), std::string(s_animationFolder), m_cooking, &meshFiles, &animFiles);
+	factory.loadFile(desc.fileNameWithPath, std::string(s_meshFolder), std::string(s_animationFolder), physsxMeshType, m_cooking, &meshFiles, &animFiles, &m_allocatorMeshData);
 
 	for (auto &it : meshFiles)
 	{
@@ -916,6 +919,8 @@ void FileAspect::update()
 	vx::unique_lock<vx::mutex> lock(m_mutexFileRequests, vx::try_to_lock);
 	if (!lock.owns_lock())
 		return;
+
+	m_allocatorMeshData.update();
 
 	auto size = m_fileRequests.size();
 	lock.unlock();

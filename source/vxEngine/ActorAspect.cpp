@@ -38,27 +38,16 @@ SOFTWARE.
 #include <vxEngineLib/EventsIngame.h>
 #include <vxEngineLib/FileEvents.h>
 #include "ActionManager.h"
+#include "CreatedActorData.h"
 
-ActorAspect::ActorAspect(const PhysicsAspect &physicsAspect)
-	:m_actionManager(nullptr),
-	m_physicsAspect(physicsAspect)
+ActorAspect::ActorAspect()
 {
 
 }
 
-void ActorAspect::initialize(const EntityAspect &entityAspect, ActionManager* actionManager, vx::StackAllocator* pAllocator)
+void ActorAspect::initialize(vx::StackAllocator* allocator, AllocationManager* allocationManager)
 {
-	const auto sz = 10 KBYTE;
-	m_allocator = vx::StackAllocator(pAllocator->allocate(sz, 64), sz);
-
-	const auto szSratch = 5 KBYTE;
-	m_allocatorScratch = vx::StackAllocator(pAllocator->allocate(szSratch, 64), szSratch);
-
-	m_pActorPool = &entityAspect.getActorPool();
-	m_pEntityPool = &entityAspect.getEntityPool();
-
-	m_squad.initialize(pAllocator);
-	m_actionManager = actionManager;
+	m_squad.initialize(allocator, allocationManager);
 }
 
 void ActorAspect::shutdown()
@@ -108,10 +97,11 @@ void ActorAspect::handleIngameEvent(const vx::Event &evt)
 
 	if (ingameEvt == IngameEvent::Created_Actor)
 	{
-		auto entity = static_cast<EntityActor*>(evt.arg1.ptr);
-		auto actorComponent = static_cast<Component::Actor*>(evt.arg2.ptr);
+		auto data = static_cast<CreatedActorData*>(evt.arg1.ptr);
+		
+		m_squad.addEntity(data->entity, data->componentActor,data->componentPhysics);
 
-		m_squad.addEntity(entity, actorComponent);
+		delete(data);
 	}
 }
 
@@ -130,25 +120,5 @@ void ActorAspect::handleEvent(const vx::Event &evt)
 		break;
 	default:
 		break;
-	}
-}
-
-void ActorAspect::update()
-{
-	auto actionManager = m_actionManager;
-	auto p = m_pActorPool->first();
-	while (p != nullptr)
-	{
-		auto marker = m_allocatorScratch.getMarker();
-
-		Action** actions = 0;
-		u32 count = 0;
-		p->m_stateMachine.update(&actions, &count, &m_allocatorScratch);
-
-		actionManager->scheduleActions(actions, count);
-
-		m_allocatorScratch.clear(marker);
-
-		p = m_pActorPool->next_nocheck(p);
 	}
 }

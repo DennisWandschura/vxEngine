@@ -23,12 +23,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "Component.h"
+#include <vxEngineLib/Component.h>
 #include <vxLib/math/Vector.h>
 
 namespace Component
 {
-	struct Input : public Base
+	struct Input : public Type<Input>
 	{
 		vx::float4 velocity{ 0, 0, 0, 0 };
 		vx::float2 orientation{ vx::VX_PIDIV2, 0 };

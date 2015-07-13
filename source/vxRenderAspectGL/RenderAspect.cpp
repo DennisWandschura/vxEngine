@@ -294,7 +294,7 @@ void RenderAspect::createTextures()
 		vx::gl::TextureDescription desc;
 		desc.type = vx::gl::TextureType::Texture_2D;
 		desc.format = vx::gl::TextureFormat::RGBA16F;
-		desc.size = vx::ushort3(m_resolution.x, m_resolution.y, 1);
+		desc.size = vx::ushort3(m_resolution.x / 2, m_resolution.y / 2, 1);
 		desc.miplevels = 1;
 		m_pColdData->m_ambientColorTexture.create(desc);
 		m_pColdData->m_ambientColorTexture.makeTextureResident();
@@ -885,11 +885,6 @@ void RenderAspect::submitCommands()
 	vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
 
-	//auto instanceCount = m_sceneRenderer.getMeshInstanceCount();
-	/*auto meshCmdBuffer = m_objectManager.getBuffer("meshCmdBuffer");
-	auto meshVao = m_objectManager.getVertexArray("meshVao");
-	auto meshParamBuffer = m_objectManager.getBuffer("meshParamBuffer");*/
-
 	//CpuProfiler::pushMarker("frame");
 	m_gpuProfiler->pushGpuMarker("commands");
 	m_frame.draw();
@@ -938,7 +933,7 @@ void RenderAspect::submitCommands()
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	//CpuProfiler::pushMarker("blur");
 	m_gpuProfiler->pushGpuMarker("blur");
-	blurAmbientColor();
+	//blurAmbientColor();
 	m_gpuProfiler->popGpuMarker();
 	//CpuProfiler::popMarker();
 
@@ -1067,7 +1062,7 @@ void RenderAspect::coneTrace()
 	vx::gl::StateManager::bindFrameBuffer(m_coneTraceFB);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x / 2, m_resolution.y / 2);
 
 	auto pPipeline = m_shaderManager.getPipeline("coneTrace.pipe");
 

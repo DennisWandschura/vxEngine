@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,14 +22,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 namespace ai
 {
 	class Squad;
 }
 
-#include "Component.h"
+#include <vxEngineLib/Component.h>
 #include "StateMachine.h"
 #include <vector>
 #include <vxLib/math/Vector.h>
@@ -43,7 +43,7 @@ namespace Component
 		s8 targetCell;
 	};
 
-	struct Actor : public Base
+	struct Actor : public Type<Actor>
 	{
 		u8 m_busy;
 		u8 m_followingPath;

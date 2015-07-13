@@ -36,6 +36,8 @@ namespace physx
 	class PxController;
 	class PxControllerManager;
 	class PxRigidStatic;
+	class PxShape;
+	class PxRigidDynamic;
 }
 
 namespace vx
@@ -73,6 +75,8 @@ class PhysicsAspect : public vx::EventListener
 	static physx::PxDefaultAllocator s_defaultAllocatorCallback;
 
 protected:
+	enum class MeshType { Static, Dynamic };
+
 	physx::PxScene* m_pScene;
 	physx::PxControllerManager* m_pControllerManager;
 	physx::PxMaterial* m_pActorMaterial{ nullptr };
@@ -81,6 +85,7 @@ protected:
 	vx::sorted_vector<vx::StringID, physx::PxTriangleMesh*> m_physxMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxMaterial*> m_physxMaterials;
 	vx::sorted_vector<vx::StringID, physx::PxRigidStatic*> m_staticMeshInstances;
+	vx::sorted_vector<vx::StringID, physx::PxRigidDynamic*> m_dynamicMeshInstances;
 	physx::PxFoundation *m_pFoundation;
 	physx::PxDefaultCpuDispatcher* m_pCpuDispatcher;
 	physx::PxCooking* m_pCooking;
@@ -95,7 +100,9 @@ protected:
 	void handleIngameEvent(const vx::Event &evt);
 	////////////////
 
-	void addMeshInstance(const MeshInstance &instance);
+	void addDynamicMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid);
+	void addStaticMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid);
+	void addMeshInstance(const MeshInstance &instance, MeshType type);
 
 	vx::StringID raycast_static(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
 
@@ -119,4 +126,7 @@ public:
 	vx::StringID raycast_static(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
 	vx::StringID raycast_static(const vx::float3 &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
 	vx::StringID raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
+
+	physx::PxRigidStatic* getStaticMesh(const vx::StringID &sid);
+	physx::PxRigidDynamic* getDynamicMesh(const vx::StringID &sid);
 };

@@ -24,35 +24,35 @@ SOFTWARE.
 #include <vxEngineLib/managed_ptr.h>
 #include <vxEngineLib/ArrayAllocator.h>
 
+managed_ptr_base::managed_ptr_base()
+	:m_ptr(),
+	m_alloc(),
+	m_entryIndex()
+{
+
+}
+
+managed_ptr_base::managed_ptr_base(u8* p, ArrayAllocator* alloc, unsigned index)
+	:m_ptr(p), m_alloc(alloc), m_entryIndex(index)
+{
+}
+
 managed_ptr_base::managed_ptr_base(managed_ptr_base &&rhs)
 	:m_ptr(rhs.m_ptr),
-	entryIndex(rhs.entryIndex),
-	alloc(rhs.alloc)
+	m_alloc(rhs.m_alloc),
+	m_entryIndex(rhs.m_entryIndex)
 {
 	updateAllocator();
 
 	rhs.m_ptr = nullptr;
-	rhs.alloc = nullptr;
+	rhs.m_alloc = nullptr;
 }
 
 managed_ptr_base& managed_ptr_base::operator = (managed_ptr_base &&rhs)
 {
 	if (this != &rhs)
 	{
-		auto tmp = m_ptr;
-		auto tmpIndex = entryIndex;
-		auto tmpAlloc = alloc;
-
-		m_ptr = rhs.m_ptr;
-		entryIndex = rhs.entryIndex;
-		alloc = rhs.alloc;
-
-		rhs.m_ptr = tmp;
-		rhs.entryIndex = tmpIndex;
-		rhs.alloc = tmpAlloc;
-
-		updateAllocator();
-		rhs.updateAllocator();
+		swap(rhs);
 	}
 
 	return *this;
@@ -60,13 +60,23 @@ managed_ptr_base& managed_ptr_base::operator = (managed_ptr_base &&rhs)
 
 void managed_ptr_base::updateAllocator()
 {
-	if (alloc != nullptr)
+	if (m_alloc != nullptr)
 	{
-		alloc->updateEntry(entryIndex, this);
+		m_alloc->updateEntry(m_entryIndex, this);
 	}
 }
 
 unsigned managed_ptr_base::getEntrySize() const
 {
-	return alloc->getEntrySize(entryIndex);
+	return m_alloc->getEntrySize(m_entryIndex);
+}
+
+void managed_ptr_base::swap(managed_ptr_base &other)
+{
+	std::swap(m_ptr, other.m_ptr);
+	std::swap(m_alloc, other.m_alloc);
+	std::swap(m_entryIndex, other.m_entryIndex);
+
+	updateAllocator();
+	other.updateAllocator();
 }

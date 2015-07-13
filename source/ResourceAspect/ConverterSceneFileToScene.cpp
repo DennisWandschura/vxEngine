@@ -34,6 +34,7 @@ SOFTWARE.
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/MeshInstanceFile.h>
 #include <vxEngineLib/Reference.h>
+#include <vxLib/File/FileHandle.h>
 
 struct ConverterSceneFileToScene::CreateSceneMeshInstancesDesc
 {
@@ -70,7 +71,8 @@ bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshIn
 		auto animName = instance.getAnimation();
 		if (animName[0] != '\0')
 		{
-			sidAnimation = vx::make_sid(animName);
+			auto handle = vx::FileHandle(animName);
+			sidAnimation = handle.m_sid;
 		}
 		auto itMesh = desc.sortedMeshes->find(sidMesh);
 		auto sidMaterial = vx::make_sid(materialFile);

@@ -34,19 +34,23 @@ namespace vx
 
 class PhysicsAspect;
 class RenderAspect;
-struct EntityActor;
+struct Entity;
 class Scene;
 class CreateActorData;
-struct StaticEntityUsable;
 class MeshInstance;
+class TaskManager;
+class AllocationManager;
 
 #include <vxEngineLib/EventListener.h>
-#include <vxEngineLib/Pool.h>
 #include "PlayerController.h"
-#include "ComponentsForward.h"
 #include <vxLib/math/Vector.h>
 #include <vxLib/Allocator/StackAllocator.h>
 #include "QuadTree.h"
+#include "ComponentUsableManager.h"
+#include "ComponentRenderManager.h"
+#include "ComponentPhysicsManager.h"
+#include "ComponentInputManager.h"
+#include "ComponentActorManager.h"
 
 enum class PlayerType : u32;
 enum class FileType : u8;
@@ -56,24 +60,20 @@ class EntityAspect : public vx::EventListener
 	struct ColdData
 	{
 		const Scene* m_pCurrentScene{ nullptr };
-		EntityActor* m_pPlayer{ nullptr };
-
-		vx::Pool<Component::Actor> m_poolActor;
-
+		Entity* m_pPlayer{ nullptr };
 	};
 
 	PlayerController m_playerController;
-	vx::Pool<Component::Render> m_poolRender;
-	vx::Pool<Component::Input> m_poolInput;
-	vx::Pool<Component::Usable> m_poolUsable;
-	vx:: Pool<EntityActor> m_poolEntity;
-	vx::Pool<StaticEntityUsable> m_poolStaticEntity;
+	ComponentInputManager m_componentInputManager;
+	ComponentPhysicsManager m_componentPhysicsManager;
+	ComponentRenderManager m_componentRenderManager;
+	ComponentUsableManager m_componentUsableManager;
+	ComponentActorManager m_componentActorManager;
+	vx::Pool<Entity> m_poolEntity;
 	QuadTree m_quadTree;
 	vx::StackAllocator m_allocator;
+	TaskManager* m_taskManager;
 	std::unique_ptr<ColdData> m_coldData;
-
-	Component::Actor* createComponentActor(u16 entityIndex, EntityActor* entity, Component::Input* componentInput, u16* actorIndex);
-	void createComponentPhysics(const CreateActorData &data, u16 entityIndex);
 
 	void createActorEntity(const CreateActorData &data);
 
@@ -84,29 +84,19 @@ class EntityAspect : public vx::EventListener
 	void handleFileEvent(const vx::Event &evt);
 	void handleIngameEvent(const vx::Event &evt);
 
-	//////////////////
-
 public:
 	EntityAspect();
 
 	//////////////////
 
-	bool initialize(vx::StackAllocator* pAllocator);
+	bool initialize(vx::StackAllocator* pAllocator, TaskManager* taskManager, AllocationManager* allocManager);
 	void shutdown();
 
 	void builEntityQuadTree();
 
 	//////////////////
 
-	void updateInput(f32 dt);
-
-	// after physics->fetch
-	void updatePhysics_linear(f32 dt);
-
-	// updates camera to player position and orientation
-	void updatePlayerPositionCamera();
-	// updates transform to actor position and orientation
-	void updateActorTransforms();
+	void update(f32 dt, ActionManager* actionManager);
 
 	//////////////////
 
@@ -114,12 +104,13 @@ public:
 
 	void handleEvent(const vx::Event &evt);
 
+	void onPressedActionKey();
+
 	//////////////////
 
-	EntityActor* getPlayer(){ return m_coldData->m_pPlayer; }
+	Entity* getPlayer(){ return m_coldData->m_pPlayer; }
 
 	Component::Input& getComponentInput(u16 i);
 
-	const vx::Pool<Component::Actor>& getActorPool() const { return m_coldData->m_poolActor; }
-	const vx::Pool<EntityActor>& getEntityPool() const { return m_poolEntity; }
+	const vx::Pool<Entity>& getEntityPool() const { return m_poolEntity; }
 };

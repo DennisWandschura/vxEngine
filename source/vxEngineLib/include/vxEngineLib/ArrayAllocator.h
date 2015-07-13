@@ -24,9 +24,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+#include <vxLib/Allocator/Allocator.h>
 
-class ArrayAllocator
+class ArrayAllocator : public vx::Allocator
 {
 	static const u32 s_maxEntrieCount = 128;
 
@@ -67,12 +67,18 @@ class ArrayAllocator
 
 	void fixHead(u8* p, u32 size);
 
+	u8* allocate(u64 size) override;
+	u8* allocate(u64 size, u8 alignment) override;
+	void deallocate(u8 *ptr) override;
+
 public:
 	ArrayAllocator();
 
 	~ArrayAllocator();
 
-	void create(u32 totalSize);
+	void create(u8* memory, u32 totalSize);
+
+	u8* release();
 
 	managed_ptr_base allocate(u32 size, u8 alignment);
 
@@ -83,4 +89,7 @@ public:
 	void update(u32 maxIterations);
 
 	u32 getMemoryUsed() const { return m_memoryUsed; }
+
+	u32 getTotalSize() const override;
+	const u8* getMemory() const override;
 };

@@ -32,6 +32,7 @@ SOFTWARE.
 #include <vxEngineLib/debugPrint.h>
 
 Engine* g_pEngine{ nullptr };
+AllocationManager* g_allocationManager{nullptr};
 
 namespace
 {
@@ -39,25 +40,40 @@ namespace
 	{
 		g_pEngine->keyPressed(key);
 	}
+
+	void callbackAllocate(u32 size, const u8* ptr)
+	{
+		g_allocationManager->updateAllocation(ptr, size);
+	}
+
+	void callbackDellocate(u32 size, const u8* ptr)
+	{
+		g_allocationManager->updateDeallocation(ptr, size);
+	}
 }
 
 Engine::Engine()
 	:m_eventManager(),
 	m_actionManager(),
+	m_taskManager(),
 	m_systemAspect(),
 	m_physicsAspect(),
-	m_actorAspect(m_physicsAspect),
+	m_actorAspect(),
 	m_renderAspect(nullptr),
 	m_entityAspect(),
 	m_bRun(0),
 	m_fileAspect(),
 	m_bRunFileThread(),
+	m_allocManager(),
+	m_allocator(),
+	m_shutdown(0),
 	m_fileAspectThread(),
 	m_scene(),
 	m_renderAspectDll(nullptr),
 	m_destroyFn(nullptr)
 {
 	g_pEngine = this;
+	g_allocationManager = &m_allocManager;
 }
 
 Engine::~Engine()
@@ -76,24 +92,16 @@ void Engine::update()
 
 	m_actionManager.update();
 
+	m_taskManager.update();
+
 	// update aspects in order
 
 	m_physicsAspect.fetch();
 
 	m_systemAspect.update(g_dt);
 
-	m_actorAspect.update();
+	m_entityAspect.update(g_dt, &m_actionManager);
 
-	m_entityAspect.builEntityQuadTree();
-	m_entityAspect.updateInput(g_dt);
-
-	//CpuProfiler::pushMarker("physics");
-	m_entityAspect.updatePhysics_linear(g_dt);
-	//CpuProfiler::popMarker();
-
-	//CpuProfiler::pushMarker("actor position");
-	m_entityAspect.updatePlayerPositionCamera();
-	m_entityAspect.updateActorTransforms();
 	//CpuProfiler::popMarker();
 
 	//CpuProfiler::pushMarker("physx");
@@ -159,6 +167,8 @@ bool Engine::initializeImpl(const std::string &dataDir)
 
 	m_allocator = vx::StackAllocator(m_memory.get(), m_memory.size());
 
+	m_allocManager.registerAllocator(&m_allocator, "mainAllocator");
+
 	m_eventManager.initialize(&m_allocator, 255);
 	Locator::provide(&m_eventManager);
 
@@ -217,6 +227,8 @@ bool Engine::initialize()
 {
 	const std::string dataDir("../data/");
 
+	vx::Allocator::setCallbacks(callbackAllocate, callbackDellocate);
+
 	if (!g_engineConfig.loadFromFile("settings.txt"))
 	{
 		printf("could not load 'settings.txt'\n");
@@ -227,6 +239,8 @@ bool Engine::initialize()
 
 	if (!initializeImpl(dataDir))
 		return false;
+
+	m_taskManager.initialize(&m_allocator, 1024, &m_allocManager);
 
 	if (!m_systemAspect.initialize(g_engineConfig, ::callbackKeyPressed, nullptr))
 		return false;
@@ -263,7 +277,7 @@ bool Engine::initialize()
 	if (!m_physicsAspect.initialize())
 		return false;
 
-	if (!m_entityAspect.initialize(&m_allocator))
+	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, &m_allocManager))
 		return false;
 
 #if _VX_AUDIO
@@ -271,7 +285,7 @@ bool Engine::initialize()
 		return false;
 #endif
 
-	m_actorAspect.initialize(m_entityAspect, &m_actionManager, &m_allocator);
+	m_actorAspect.initialize(&m_allocator, &m_allocManager);
 
 	Locator::provide(&m_physicsAspect);
 	Locator::provide(m_renderAspect);
@@ -318,9 +332,14 @@ void Engine::shutdown()
 
 	Locator::reset();
 
+	m_taskManager.shutdown();
+
 	//CpuProfiler::shutdown();
 
+	m_allocator.clear();
 	m_allocator.release();
+
+	m_allocManager.print();
 
 	if (m_renderAspectDll != nullptr)
 	{
@@ -360,20 +379,12 @@ void Engine::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 
 void Engine::keyPressed(u16 key)
 {
-	if (key == vx::Keyboard::Key_Escape)
+	if (key == vx::Keyboard::Key_E)
+	{
+		m_entityAspect.onPressedActionKey();
+	}
+	else if (key == vx::Keyboard::Key_Escape)
 	{
 		stop();
-	}
-	/*else if (key == vx::Keyboard::Key_Num0)
-	{
-	dev::g_showNavGraph = dev::g_showNavGraph ^ 1;
-	}
-	else if(key == vx::Keyboard::Key_Num1)
-	{
-	dev::g_toggleRender = dev::g_toggleRender ^ 1;
-	}*/
-	else
-	{
-		m_renderAspect->keyPressed(key);
 	}
 }

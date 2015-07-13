@@ -83,6 +83,9 @@
     <ClCompile Include="EngineConfig.cpp" />
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="FileFactory.cpp" />
+    <ClCompile Include="Graphics\Surface.cpp" />
+    <ClCompile Include="Graphics\Texture.cpp" />
+    <ClCompile Include="Graphics\TextureFactory.cpp" />
     <ClCompile Include="InfluenceMap.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Locator.cpp" />
@@ -101,8 +104,6 @@
     <ClCompile Include="SceneBase.cpp" />
     <ClCompile Include="SceneFile.cpp" />
     <ClCompile Include="Spawn.cpp" />
-    <ClCompile Include="TextureFile.cpp" />
-    <ClCompile Include="TextureRef.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Triangle.cpp" />
@@ -113,6 +114,7 @@
     <ClInclude Include="include\vxEngineLib\Animation.h" />
     <ClInclude Include="include\vxEngineLib\AnimationFile.h" />
     <ClInclude Include="include\vxEngineLib\ArrayAllocator.h" />
+    <ClInclude Include="include\vxEngineLib\Component.h" />
     <ClInclude Include="include\vxEngineLib\copy.h" />
     <ClInclude Include="include\vxEngineLib\CreateActorData.h" />
     <ClInclude Include="include\vxEngineLib\debugPrint.h" />
@@ -121,6 +123,7 @@
     <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\EditorScene.h" />
     <ClInclude Include="include\vxEngineLib\EngineConfig.h" />
+    <ClInclude Include="include\vxEngineLib\Entity.h" />
     <ClInclude Include="include\vxEngineLib\Event.h" />
     <ClInclude Include="include\vxEngineLib\EventListener.h" />
     <ClInclude Include="include\vxEngineLib\EventManager.h" />
@@ -131,6 +134,10 @@
     <ClInclude Include="include\vxEngineLib\FileEvents.h" />
     <ClInclude Include="include\vxEngineLib\FileFactory.h" />
     <ClInclude Include="include\vxEngineLib\GpuFunctions.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\dds.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\Surface.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\Texture.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\TextureFactory.h" />
     <ClInclude Include="include\vxEngineLib\InfluenceMap.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Locator.h" />
@@ -165,8 +172,6 @@
     <ClInclude Include="include\vxEngineLib\Serializable.h" />
     <ClInclude Include="include\vxEngineLib\Spawn.h" />
     <ClInclude Include="include\vxEngineLib\SRWMutex.h" />
-    <ClInclude Include="include\vxEngineLib\TextureFile.h" />
-    <ClInclude Include="include\vxEngineLib\TextureRef.h" />
     <ClInclude Include="include\vxEngineLib\Timer.h" />
     <ClInclude Include="include\vxEngineLib\Transform.h" />
     <ClInclude Include="include\vxEngineLib\Triangle.h" />

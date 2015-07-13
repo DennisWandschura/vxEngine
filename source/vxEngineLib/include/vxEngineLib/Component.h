@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,14 +22,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 #include <vxLib/types.h>
 
 namespace Component
 {
-	struct Base
+	struct TypeGen
 	{
+		static u8 getType()
+		{
+			static u8 counter{ 0 };
+
+			return counter++;
+		}
+	};
+
+	template<typename T>
+	struct Type
+	{
+		static u8 s_type;
+
 		u16 entityIndex;
 	};
+
+	template<typename T>
+	u8 Type<T>::s_type = TypeGen::getType();
 }

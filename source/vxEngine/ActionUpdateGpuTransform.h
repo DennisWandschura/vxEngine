@@ -24,19 +24,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct EntityActor;
+struct Entity;
 class RenderAspectInterface;
 
 #include "Action.h"
 
 class ActionUpdateGpuTransform : public Action
 {
-	EntityActor* m_playerEntity;
+	Entity* m_playerEntity;
 	RenderAspectInterface* m_pRenderAspect;
 
 public:
 	ActionUpdateGpuTransform();
-	ActionUpdateGpuTransform(EntityActor* playerEntity, RenderAspectInterface* pRenderAspect);
+	ActionUpdateGpuTransform(Entity* playerEntity, RenderAspectInterface* pRenderAspect);
 	~ActionUpdateGpuTransform();
 
 	void run() override;

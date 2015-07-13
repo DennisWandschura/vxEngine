@@ -14,6 +14,8 @@
 #include <vxLib/util/CityHash.h>
 #include <vxEngineLib/AnimationFile.h>
 #include <vxEngineLib/debugPrint.h>
+#include <vxEngineLib/ArrayAllocator.h>
+#include <vxEngineLib/managed_ptr.h>
 
 FbxFactory::FbxFactory()
 	:m_pFbxManager(nullptr),
@@ -241,30 +243,35 @@ void getAnimationLayers(FBXSDK_NAMESPACE::FbxAnimStack* animStack, FBXSDK_NAMESP
 #endif
 }
 
-bool createPhysXMesh(const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer, physx::PxCooking* cooking)
+bool createPhysXMesh(vx::PhsyxMeshType meshType, const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer, physx::PxCooking* cooking)
 {
-	physx::PxTriangleMeshDesc meshDesc;
-	meshDesc.points.count = vertexCount;
-	meshDesc.points.stride = sizeof(vx::float3);
-	meshDesc.points.data = positions;
+	if (meshType == vx::PhsyxMeshType::Triangle)
+	{
+		physx::PxTriangleMeshDesc meshDesc;
+		meshDesc.points.count = vertexCount;
+		meshDesc.points.stride = sizeof(vx::float3);
+		meshDesc.points.data = positions;
 
-	meshDesc.triangles.count = indexCount / 3;
-	meshDesc.triangles.stride = 3 * sizeof(u32);
-	meshDesc.triangles.data = indices;
+		meshDesc.triangles.count = indexCount / 3;
+		meshDesc.triangles.stride = 3 * sizeof(u32);
+		meshDesc.triangles.data = indices;
 
-	return cooking->cookTriangleMesh(meshDesc, *writeBuffer);
+		return cooking->cookTriangleMesh(meshDesc, *writeBuffer);
+	}
+	else
+	{
+		physx::PxConvexMeshDesc convexDesc;
+		convexDesc.points.count = vertexCount;
+		convexDesc.points.stride = sizeof(vx::float3);
+		convexDesc.points.data = positions;
+		convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
+		convexDesc.vertexLimit = 256;
 
-	/*physx::PxConvexMeshDesc convexDesc;
-	convexDesc.points.count = vertexCount;
-	convexDesc.points.stride = sizeof(vx::float3);
-	convexDesc.points.data = positions;
-	convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
-	convexDesc.vertexLimit = 256;
-
-	return cooking->cookConvexMesh(convexDesc, *writeBuffer);*/
+		return cooking->cookConvexMesh(convexDesc, *writeBuffer);
+	}
 }
 
-bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const std::string &animDir, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles)
+bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const std::string &animDir, vx::PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator)
 {
 #if _VX_EDITOR
 	FbxImporter* lImporter = FbxImporter::Create(m_pFbxManager, "");
@@ -434,24 +441,27 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 		vertexCount = newVertices.size();
 		meshVertices.swap(newVertices);
 
-		auto verticesSizeInBytes = sizeof(vx::MeshVertex) * vertexCount;
-		auto indexSizeInBytes = sizeof(u32) * indexCount;
-		auto meshMemory = std::make_unique<u8[]>(verticesSizeInBytes + indexSizeInBytes);
+		u32 verticesSizeInBytes = sizeof(vx::MeshVertex) * vertexCount;
+		u32 indexSizeInBytes = sizeof(u32) * indexCount;
+		managed_ptr<u8[]> meshDataPtr = meshDataAllocator->allocate(verticesSizeInBytes + indexSizeInBytes, 4);
 
-		memcpy(meshMemory.get(), meshVertices.data(), verticesSizeInBytes);
-		memcpy(meshMemory.get() + verticesSizeInBytes, meshIndices.data(), indexSizeInBytes);
+		memcpy(meshDataPtr.get(), meshVertices.data(), verticesSizeInBytes);
+		memcpy(meshDataPtr.get() + verticesSizeInBytes, meshIndices.data(), indexSizeInBytes);
 
-		vx::Mesh mesh(meshMemory.release(), vertexCount, indexCount);
+		vx::Mesh mesh(meshDataPtr.get(), vertexCount, indexCount);
 
 		physx::PxDefaultMemoryOutputStream writeBuffer;
-		if (!createPhysXMesh(points.data(), points.size(), fbxIndices.data(), fbxIndices.size(), &writeBuffer, cooking))
+		if (!createPhysXMesh(meshType, points.data(), points.size(), fbxIndices.data(), fbxIndices.size(), &writeBuffer, cooking))
 		{
 			printf("Error creating physx mesh\n");
 			return false;
 		}
-	//	printf("hash: %llu\n", CityHash64((char*)writeBuffer.getData(), writeBuffer.getSize()));
 
-		vx::MeshFile meshFile(vx::MeshFile::getGlobalVersion(), std::move(mesh), writeBuffer.getData(), writeBuffer.getSize());
+		auto physxSize = writeBuffer.getSize();
+		managed_ptr<u8[]> physxData = meshDataAllocator->allocate(physxSize, 4);
+		memcpy(physxData.get(), writeBuffer.getData(), physxSize);
+
+		vx::MeshFile meshFile(vx::MeshFile::getGlobalVersion(), std::move(mesh), std::move(meshDataPtr), std::move(physxData), physxSize, meshType);
 
 		std::string fileName = pMesh->GetNode()->GetName();
 		std::string meshFileName = fileName + ".mesh";

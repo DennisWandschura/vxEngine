@@ -211,6 +211,7 @@
     <ClInclude Include="include\vxEngineLib\Animation.h" />
     <ClInclude Include="include\vxEngineLib\AnimationFile.h" />
     <ClInclude Include="include\vxEngineLib\ArrayAllocator.h" />
+    <ClInclude Include="include\vxEngineLib\Component.h" />
     <ClInclude Include="include\vxEngineLib\copy.h" />
     <ClInclude Include="include\vxEngineLib\CreateActorData.h" />
     <ClInclude Include="include\vxEngineLib\debugPrint.h" />

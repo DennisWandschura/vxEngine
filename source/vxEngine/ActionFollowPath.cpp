@@ -25,10 +25,12 @@ SOFTWARE.
 #include <vxEngineLib/Entity.h>
 #include "ComponentInput.h"
 #include "ComponentActor.h"
+#include "ComponentPhysics.h"
 
-ActionFollowPath::ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actor, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius)
+ActionFollowPath::ActionFollowPath(Entity* entity, Component::Input* componentInput, Component::Actor* actor, Component::Physics* componentPhysics, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius)
 	:m_componentInput(componentInput),
 	m_entity(entity),
+	m_componentPhysics(componentPhysics),
 	m_arrive(),
 	m_lookWhereYoureGoing(componentInput),
 	m_actor(actor),
@@ -45,7 +47,7 @@ void ActionFollowPath::run()
 		auto currentPosition = m_entity->position;
 
 		auto positionFoot = currentPosition;
-		positionFoot.y = m_entity->footPositionY;
+		positionFoot.y = m_componentPhysics->footPositionY;
 
 		vx::float4 velocity;
 		if (!m_arrive.getSteering(positionFoot, &steering))

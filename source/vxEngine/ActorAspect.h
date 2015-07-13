@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,46 +23,26 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
-
-namespace Component
-{
-	struct Actor;
-	struct Physics;
-}
 
 namespace vx
 {
-	template<typename T>
-	class Pool;
-
 	struct Event;
+	class StackAllocator;
 }
 
-struct EntityActor;
-class EntityAspect;
-class PhysicsAspect;
-class EventManager;
 class Scene;
-class ActionManager;
+class AllocationManager;
 
 #include <vxEngineLib/EventListener.h>
 #include <vxEngineLib/InfluenceMap.h>
-#include <vxLib/Allocator/StackAllocator.h>
 #include <vxEngineLib/NavMeshGraph.h>
 #include "ai/Squad.h"
 
 class ActorAspect : public vx::EventListener
 {
 	ai::Squad m_squad;
-	ActionManager* m_actionManager;
-	const vx::Pool<Component::Actor>* m_pActorPool{ nullptr };
-	const vx::Pool<EntityActor>* m_pEntityPool{ nullptr };
 	InfluenceMap m_influenceMap;
 	NavMeshGraph m_navmeshGraph;
-	const PhysicsAspect &m_physicsAspect;
-	vx::StackAllocator m_allocator;
-	vx::StackAllocator m_allocatorScratch;
 
 	///////////////////
 	// Event functions
@@ -74,12 +56,10 @@ class ActorAspect : public vx::EventListener
 	void createInfluenceMap(const Scene* scene);
 
 public:
-	explicit ActorAspect(const PhysicsAspect &physicsAspect);
+	ActorAspect();
 
-	void initialize(const EntityAspect &entityAspect, ActionManager* actionManager, vx::StackAllocator* pAllocator);
+	void initialize(vx::StackAllocator* allocator, AllocationManager* allocationManager);
 	void shutdown();
-
-	void update();
 
 	void handleEvent(const vx::Event &evt);
 };

@@ -73,6 +73,7 @@ namespace LevelEditor
         bool m_selectedNavMesh;
         string m_currentSceneFileName;
         ulong m_selectedMeshInstanceSid;
+        FileBrowser m_fileBrowser;
 
         Dictionary<ulong, string> m_requestedFiles;
         Dictionary<ulong, EditorNodeEntry> m_sortedMeshInstances;
@@ -116,17 +117,21 @@ namespace LevelEditor
             m_selectedMeshInstanceSid = 0;
             m_selectedSpawn = 0;
 
+            m_fileBrowser = new FileBrowser(this);
+            m_fileBrowser.Hide();
+            m_fileBrowser.Owner = this;
+
             m_actionListHead = new ActionList(null, null);
 
             createStateMachine();
 
 
-                Panel tmp = new Panel();
+            Panel tmp = new Panel();
 
-                if (!NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx, s_typeAnimation))
-                {
-                    throw new Exception();
-                }
+            if (!NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx, s_typeAnimation))
+            {
+                throw new Exception();
+            }
 
             s_form = this;
 
@@ -549,7 +554,7 @@ namespace LevelEditor
             m_animationsNode.Nodes.Clear();
 
             var count = NativeMethods.getAnimationCount();
-            for(uint i = 0;i < count; ++i)
+            for (uint i = 0; i < count; ++i)
             {
                 var sid = NativeMethods.getAnimationSidIndex(i);
                 var name = NativeMethods.getAnimationNameIndex(i);
@@ -660,7 +665,7 @@ namespace LevelEditor
                     addSceneMeshInstances();
                     addSceneAnimations();
                 }
-                else if(type == s_typeAnimation)
+                else if (type == s_typeAnimation)
                 {
                     addAnimation(sid, str);
                 }
@@ -709,27 +714,32 @@ namespace LevelEditor
             string filename = openFileDialog_importAsset.SafeFileName;
             string ext = System.IO.Path.GetExtension(filename);
 
+            importFile(filename, ext);
+        }
+
+        public void importFile(string filename, string extension)
+        {
             UInt64 sid = NativeMethods.getSid(filename);
 
-            if (ext == ".mesh")
+            if (extension == ".mesh")
             {
                 m_requestedFiles.Add(sid, filename);
 
                 NativeMethods.loadFile(filename, s_typeMesh, Form1.loadFileCallback);
             }
-            else if (ext == ".material")
+            else if (extension == ".material")
             {
                 m_requestedFiles.Add(sid, filename);
 
                 NativeMethods.loadFile(filename, s_typeMaterial, Form1.loadFileCallback);
             }
-            else if (ext == ".fbx")
+            else if (extension == ".fbx")
             {
                 m_requestedFiles.Add(sid, filename);
 
                 NativeMethods.loadFile(filename, s_typeFbx, Form1.loadFileCallback);
             }
-            else if(ext == ".animation")
+            else if (extension == ".animation")
             {
                 m_requestedFiles.Add(sid, filename);
 
@@ -1211,7 +1221,8 @@ namespace LevelEditor
 
         private void importAssetToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            openFileDialog_importAsset.ShowDialog();
+            //openFileDialog_importAsset.ShowDialog();
+            m_fileBrowser.ShowDialog();
         }
 
         private void openFileDialog1_loadScene_FileOk(object sender, CancelEventArgs e)
@@ -1581,7 +1592,7 @@ namespace LevelEditor
 
         private void numericUpDownSpawnType_ValueChanged(object sender, EventArgs e)
         {
-            if(m_editorState == EditorState.EditSpawns)
+            if (m_editorState == EditorState.EditSpawns)
             {
                 var value = numericUpDownSpawnType.Value;
                 NativeMethods.setSpawnType(m_selectedSpawn, (uint)value);
@@ -1624,6 +1635,11 @@ namespace LevelEditor
         {
             EditorEntry entry = (EditorEntry)comboBoxAnimation.SelectedItem;
             setMeshInstanceAnimation(entry.m_sid);
+        }
+
+        private void importFbxToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

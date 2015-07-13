@@ -105,7 +105,11 @@ namespace Editor
 
 		for (auto i = 0u; i < numInstances; ++i)
 		{
-			addMeshInstance(pMeshInstances[i].getMeshInstance());
+			auto &instance = pMeshInstances[i];
+			auto sid = instance.getAnimationSid();
+			MeshType type = (sid.value == 0) ? MeshType::Static : MeshType::Dynamic;
+
+			addMeshInstance(instance.getMeshInstance(), type);
 		}
 
 		m_pScene->unlockWrite();
@@ -151,7 +155,8 @@ namespace Editor
 
 	void PhysicsAspect::editorAddMeshInstance(const ::MeshInstance &instance)
 	{
-		addMeshInstance(instance);
+		VX_ASSERT(false);
+		//addMeshInstance(instance, PHysic);
 	}
 
 	void PhysicsAspect::editorSetStaticMeshInstanceMesh(const ::MeshInstance &meshInstance)

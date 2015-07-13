@@ -48,6 +48,7 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include <vxGL/VertexArray.h>
 #include <vxEngineLib/Material.h>
+#include "GpuStructs.h"
 
 struct InfluenceCellVertex
 {
@@ -124,7 +125,15 @@ namespace Editor
 		}
 
 		m_allocator = vx::StackAllocator(memory, memorySize);
-		m_scratchAllocator = vx::StackAllocator(memory, memorySize);
+
+		const auto scratchMemorySize = 5 MBYTE;
+		auto scratchMemory = renderDesc.pAllocator->allocate(scratchMemorySize, 16);
+		if (scratchMemory == nullptr)
+		{
+			return RenderAspectInitializeError::ERROR_OUT_OF_MEMORY;
+		}
+		m_scratchAllocator = vx::StackAllocator(scratchMemory, scratchMemorySize);
+
 		m_coldData = vx::make_unique<ColdData>();
 
 		vx::gl::StateManager::disable(vx::gl::Capabilities::Framebuffer_sRGB);
@@ -178,6 +187,22 @@ namespace Editor
 			m_objectManager.createBuffer("editorLightBuffer", desc);
 		}
 
+		{
+			Gpu::UniformTextureBufferBlock data;
+			//data.u_aabbTexture = m_pColdData->m_aabbTexture.getTextureHandle();
+			//data.u_ambientSlice = m_pColdData->m_ambientColorTexture.getTextureHandle();
+			//data.u_ambientImage = m_pColdData->m_ambientColorTexture.getImageHandle(0, 0, 0);
+
+			vx::gl::BufferDescription desc;
+			desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
+			desc.size = sizeof(Gpu::UniformTextureBufferBlock);
+			desc.immutable = 1;
+			desc.pData = &data;
+			desc.flags = vx::gl::BufferStorageFlags::Write;
+
+			m_objectManager.createBuffer("UniformTextureBuffer", desc);
+		}
+
 		m_shaderManager.setDefine("NOSHADOWS");
 		m_shaderManager.addParameter("maxShadowLights", 5);
 
@@ -207,8 +232,9 @@ namespace Editor
 		Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, renderDesc.settings, nullptr);
 
 		auto maxInstances = renderDesc.settings->m_rendererSettings.m_maxMeshInstances;
+
+		m_materialManager.initialize(vx::uint3(1024, 1024, 128), maxInstances, &m_objectManager);
 		m_meshManager.initialize(maxInstances, 0xffff + 1, 0xffff + 1, &m_objectManager);
-		m_materialManager.initialize(vx::uint3(1024, 1024, 255), maxInstances, &m_objectManager);
 		//m_sceneRenderer.initialize(10, &m_objectManager, renderDesc.pAllocator);
 
 		{
@@ -379,19 +405,21 @@ namespace Editor
 		auto editorTextureBuffer = m_objectManager.getBuffer("editorTextureBuffer");
 		auto editorLightBuffer = m_objectManager.getBuffer("editorLightBuffer");
 
+		auto pUniformTextureBuffer = m_objectManager.getBuffer("UniformTextureBuffer");
 		auto pCameraBufferStatic = m_objectManager.getBuffer("CameraBufferStatic");
 		auto transformBuffer = m_objectManager.getBuffer("transformBuffer");
 		auto materialBlockBuffer = m_objectManager.getBuffer("materialBlockBuffer");
-		auto pTextureBuffer = m_objectManager.getBuffer("TextureBuffer");
+		//auto pTextureBuffer = m_objectManager.getBuffer("TextureBuffer");
 
 		gl::BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
 		gl::BufferBindingManager::bindBaseUniform(2, pCameraBufferStatic->getId());
+		gl::BufferBindingManager::bindBaseUniform(3, pUniformTextureBuffer->getId());
 
 		glBindBufferBase(GL_UNIFORM_BUFFER, 8, editorTextureBuffer->getId());
 
 		gl::BufferBindingManager::bindBaseShaderStorage(0, transformBuffer->getId());
 		gl::BufferBindingManager::bindBaseShaderStorage(1, materialBlockBuffer->getId());
-		gl::BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
+		//gl::BufferBindingManager::bindBaseShaderStorage(2, pTextureBuffer->getId());
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, editorLightBuffer->getId());
 	}
 
@@ -418,10 +446,16 @@ namespace Editor
 		};
 
 		if (!Graphics::TextureFactory::createDDSFromFile("../../data/textures/editor/light.dds", true, &ddsFileLight, &m_allocator, &m_scratchAllocator))
+		{
+			puts("could not create texture light.dds");
 			return false;
+		}
 
 		if (!Graphics::TextureFactory::createDDSFromFile("../../data/textures/editor/spawnPoint.dds", true, &ddsFileSpawn, &m_allocator, &m_scratchAllocator))
+		{
+			puts("could not create texture spawnPoint.dds");
 			return false;
+		}
 
 		/*if (!ddsFileLight.loadFromFile("../../data/textures/editor/light.dds") ||
 			!ddsFileSpawn.loadFromFile("../../data/textures/editor/spawnPoint.dds"))

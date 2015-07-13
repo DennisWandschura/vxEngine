@@ -35,6 +35,8 @@ SOFTWARE.
 #include <vxLib/Container/sorted_vector.h>
 #include <vxEngineLib/Locator.h>
 #include "../PhysicsAspect.h"
+#include "../ComponentPhysics.h"
+#include "../AllocationManager.h"
 
 namespace SquadCpp
 {
@@ -122,10 +124,11 @@ namespace ai
 
 	}
 
-	void Squad::initialize(vx::StackAllocator* allocator)
+	void Squad::initialize(vx::StackAllocator* allocator, AllocationManager* allocationManager)
 	{
 		const auto memorySize = 100 KBYTE;
 		m_scratchAllocator = vx::StackAllocator(allocator->allocate(memorySize, 8), memorySize);
+		allocationManager->registerAllocator(&m_scratchAllocator, "SquadAlloc");
 
 		std::mt19937_64 gen((u64)allocator);
 		std::uniform_int_distribution<u32> dist(2, 0xffffffff / 2);
@@ -138,7 +141,7 @@ namespace ai
 		m_pseudoRandom.setMaxValue(1024);
 	}
 
-	bool Squad::addEntity(EntityActor* entity, Component::Actor* actorComponent)
+	bool Squad::addEntity(Entity* entity, Component::Actor* actorComponent, Component::Physics* componentPhysics)
 	{
 		if (m_availableCells.empty())
 			return false;
@@ -146,6 +149,7 @@ namespace ai
 		Data data;
 		data.m_entity = entity;
 		data.m_actorComponent = actorComponent;
+		data.m_componentPhysics = componentPhysics;
 
 		auto influenceCells = s_influenceMap->getCells();
 
@@ -201,7 +205,7 @@ namespace ai
 			return;
 
 		auto entityPosition = targetData->m_entity->position;
-		entityPosition.y = targetData->m_entity->footPositionY;
+		entityPosition.y = targetData->m_componentPhysics->footPositionY;
 
 		auto influenceCells = s_influenceMap->getCells();
 		auto influenceCellBounds = s_influenceMap->getBounds();
@@ -295,13 +299,13 @@ namespace ai
 		if (AStar::pathfind(desc))
 		{
 			auto &path = targetData->m_actorComponent->m_data->path;
-			/*path.reserve(outNodes.size());
+			path.reserve(outNodes.size());
 			for (u32 i = 0; i < outNodes.size(); ++i)
 			{
 				path.push_back(outNodes[i]);
-			}*/
+			}
 
-			SquadCpp::smoothPath(0.3f, outNodes, &path);
+			//SquadCpp::smoothPath(0.3f, outNodes, &path);
 
 		//	printf("destination: %f %f %f\n", endPosition.x, endPosition.y, endPosition.z);
 			targetData->m_actorComponent->m_followingPath = 1;

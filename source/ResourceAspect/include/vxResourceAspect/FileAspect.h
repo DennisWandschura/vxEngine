@@ -51,6 +51,7 @@ namespace vx
 #include <vxEngineLib/Pool.h>
 #include <vxEngineLib/SRWMutex.h>
 #include <vxEngineLib/Reference.h>
+#include <vxEngineLib/ArrayAllocator.h>
 
 class VX_ALIGN(64) FileAspect : public FileAspectInterface
 {
@@ -78,7 +79,7 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 	Logfile m_logfile;
 	vx::StackAllocator m_scratchAllocator;
 	vx::StackAllocator m_allocatorReadFile;
-	vx::StackAllocator m_allocatorMeshData;
+	ArrayAllocator m_allocatorMeshData;
 	vx::StackAllocator m_allocatorTextureData;
 	Timer m_timer;
 	vx::sorted_array<vx::StringID, vx::MeshFile*> m_sortedMeshes;
