@@ -42,6 +42,8 @@ namespace Editor
 
 	class PhysicsAspect : public ::PhysicsAspect
 	{
+		vx::sorted_vector<vx::StringID, PhysxRigidBodyType> m_meshInstances;
+
 		void handleFileEvent(const vx::Event &evt);
 
 		void processScene(const Editor::Scene* pScene);
@@ -59,11 +61,13 @@ namespace Editor
 
 		bool editorGetStaticMeshInstancePosition(const vx::StringID &sid, vx::float3* p) const;
 		void editorSetStaticMeshInstanceTransform(const ::MeshInstance &meshInstance, const vx::StringID &sid);
-		void editorAddMeshInstance(const ::MeshInstance &instance);
 		void editorSetStaticMeshInstanceMesh(const ::MeshInstance &instance);
 
 		physx::PxCooking* getCooking() { return m_pCooking; }
 
 		bool setMeshPhysxType(Reference<vx::MeshFile> &meshFile, PhsyxMeshType type, ArrayAllocator* meshDataAllocator);
+		bool setMeshInstanceRigidBodyType(const vx::StringID &instanceSid, const ::MeshInstance &meshInstance, PhysxRigidBodyType rigidBodyType);
+
+		void addMeshInstance(const ::MeshInstance &instance);
 	};
 }

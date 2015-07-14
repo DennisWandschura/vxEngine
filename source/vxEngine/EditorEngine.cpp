@@ -667,7 +667,7 @@ vx::StringID EditorEngine::createMeshInstance()
 	auto instance = m_pEditorScene->getMeshInstance(instanceSid);
 	m_renderAspect->addMeshInstance(*instance);
 
-	m_physicsAspect.editorAddMeshInstance(instance->getMeshInstance());
+	m_physicsAspect.addMeshInstance(instance->getMeshInstance());
 
 	return instanceSid;
 }
@@ -1453,4 +1453,19 @@ u32 EditorEngine::getMeshInstanceRigidBodyType(u64 sid) const
 	}
 
 	return type;
+}
+
+void EditorEngine::setMeshInstanceRigidBodyType(u64 sid, u32 type)
+{
+	auto instanceSid = vx::StringID(sid);
+	auto editorInstance = m_pEditorScene->getMeshInstance(instanceSid);
+	if (editorInstance != nullptr)
+	{
+		auto rigidBodyType = (PhysxRigidBodyType)type;
+
+		if (m_physicsAspect.setMeshInstanceRigidBodyType(instanceSid, editorInstance->getMeshInstance(), rigidBodyType))
+		{
+			editorInstance->setRigidBodyType(rigidBodyType);
+		}
+	}
 }

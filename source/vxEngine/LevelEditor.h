@@ -134,5 +134,6 @@ namespace Editor
 	extern "C" DLL_EXPORT void setMeshPhysxType(u64 sid, u32 type);
 
 	extern "C" DLL_EXPORT u32 getMeshInstanceRigidBodyType(u64 sid);
+	extern "C" DLL_EXPORT void setMeshInstanceRigidBodyType(u64 sid, u32 type);
 }
 #endif

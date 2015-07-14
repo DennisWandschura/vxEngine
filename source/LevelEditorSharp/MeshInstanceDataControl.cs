@@ -20,10 +20,12 @@ namespace LevelEditor
             InitializeComponent();
 
             m_editorForm = editorForm;
-            m_animationEntryEmpty = new EditorEntry("", 0);
+            m_animationEntryEmpty = new EditorEntry("None", 0);
 
             comboBoxRigidBody.Items.Add("Static");
             comboBoxRigidBody.Items.Add("Dynamic");
+
+            comboBoxAnimation.Items.Add(m_animationEntryEmpty);
         }
 
         public void clearMeshEntries()
@@ -94,8 +96,14 @@ namespace LevelEditor
             }
             else
             {
+                Console.WriteLine("Anim");
                 comboBoxAnimation.SelectedItem = entry;
             }
+        }
+
+        public void setRigidBodyType(uint type)
+        {
+            comboBoxRigidBody.SelectedIndex = (int)type;
         }
          
         public Float3 getTranslation()
@@ -187,12 +195,14 @@ namespace LevelEditor
         private void comboBoxAnimation_SelectedIndexChanged(object sender, EventArgs e)
         {
             EditorEntry entry = (EditorEntry)comboBoxAnimation.SelectedItem;
-           m_editorForm. setMeshInstanceAnimation(entry.m_sid);
+            m_editorForm.setMeshInstanceAnimation(entry.m_sid);
         }
 
         private void comboBoxRigidBody_SelectedIndexChanged(object sender, EventArgs e)
         {
+            var index = comboBoxRigidBody.SelectedIndex;
 
+            m_editorForm.setMeshInstanceRigidBodyType((uint)index);
         }
 
         private void texboxName_TextChanged(object sender, EventArgs e)

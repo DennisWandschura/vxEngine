@@ -564,6 +564,7 @@ namespace LevelEditor
         {
             m_sortedAnimations.Clear();
             m_animationsNode.Nodes.Clear();
+            m_meshInstanceDataControl.clearAnimationEntries();
 
             var count = NativeMethods.getAnimationCount();
             for (uint i = 0; i < count; ++i)
@@ -793,6 +794,9 @@ namespace LevelEditor
             var materialSid = NativeMethods.getMeshInstanceMaterialSid(sid);
             var meshSid = NativeMethods.getMeshInstanceMeshSid(sid);
             var animSid = NativeMethods.getMeshInstanceAnimation(sid);
+            var rigidBodyType = NativeMethods.getMeshInstanceRigidBodyType(sid);
+
+            m_meshInstanceDataControl.setRigidBodyType(rigidBodyType);
 
             EditorEntry entry;
             if (m_sortedMeshes.TryGetValue(meshSid, out entry))
@@ -822,6 +826,12 @@ namespace LevelEditor
                 m_meshInstanceDataControl.setAnimation(null);
                 //Console.WriteLine("Error getting instance animation name: {0}", animSid);
             }
+        }
+
+        public void setMeshInstanceRigidBodyType(uint type)
+        {
+            var sid = NativeMethods.getSelectedMeshInstanceSid();
+               NativeMethods.setMeshInstanceRigidBodyType(sid, type);
         }
 
         void showMeshGui()

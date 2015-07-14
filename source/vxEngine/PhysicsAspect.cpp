@@ -302,7 +302,7 @@ physx::PxTriangleMesh* PhysicsAspect::getTriangleMesh(const vx::StringID &sid, c
 	return result;
 }
 
-void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
+void PhysicsAspect::addMeshInstanceImpl(const MeshInstance &meshInstance)
 {
 	auto instanceSid = meshInstance.getNameSid();
 	auto meshSid = meshInstance.getMeshSid();
@@ -427,7 +427,7 @@ void PhysicsAspect::processScene(const Scene* ptr)
 	for (auto i = 0u; i < numInstances; ++i)
 	{
 		auto &instance = pMeshInstances[i];
-		addMeshInstance(instance);
+		addMeshInstanceImpl(instance);
 	}
 
 	m_pScene->unlockWrite();

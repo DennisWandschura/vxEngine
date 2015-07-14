@@ -37,7 +37,8 @@ SOFTWARE.
 namespace Editor
 {
 	PhysicsAspect::PhysicsAspect()
-		: ::PhysicsAspect()
+		: ::PhysicsAspect(),
+		m_meshInstances()
 	{
 
 	}
@@ -107,8 +108,12 @@ namespace Editor
 		for (auto i = 0u; i < numInstances; ++i)
 		{
 			auto &instance = pMeshInstances[i];
-			auto sid = instance.getAnimationSid();
-			addMeshInstance(instance.getMeshInstance());
+			::PhysicsAspect::addMeshInstanceImpl(instance.getMeshInstance());
+
+			auto sid = instance.getNameSid();
+			auto type = instance.getRigidBodyType();
+
+			m_meshInstances.insert(sid, type);
 		}
 
 		m_pScene->unlockWrite();
@@ -150,12 +155,6 @@ namespace Editor
 
 			(*it)->setGlobalPose(transform);
 		}
-	}
-
-	void PhysicsAspect::editorAddMeshInstance(const ::MeshInstance &instance)
-	{
-		VX_ASSERT(false);
-		//addMeshInstance(instance, PHysic);
 	}
 
 	void PhysicsAspect::editorSetStaticMeshInstanceMesh(const ::MeshInstance &meshInstance)
@@ -276,5 +275,88 @@ namespace Editor
 		}
 
 		return result;
+	}
+
+	bool PhysicsAspect::setMeshInstanceRigidBodyType(const vx::StringID &instanceSid, const ::MeshInstance &meshInstance, PhysxRigidBodyType rigidBodyType)
+	{
+		bool result = false;
+
+		auto it = m_meshInstances.find(instanceSid);
+		if (it != m_meshInstances.end())
+		{
+			auto oldType = *it;
+			if (oldType != rigidBodyType)
+			{
+				auto transform = meshInstance.getTransform();
+
+				physx::PxTransform pxTransform;
+				pxTransform.p.x = transform.m_translation.x;
+				pxTransform.p.y = transform.m_translation.y;
+				pxTransform.p.z = transform.m_translation.z;
+
+				pxTransform.q.x = transform.m_qRotation.x;
+				pxTransform.q.y = transform.m_qRotation.y;
+				pxTransform.q.z = transform.m_qRotation.z;
+				pxTransform.q.w = transform.m_qRotation.w;
+
+				switch (oldType)
+				{
+				case PhysxRigidBodyType::Static:
+				{
+					auto itBody = m_staticMeshInstances.find(instanceSid);
+					auto shapeCount = (*itBody)->getNbShapes();
+					auto shapes = vx::make_unique<physx::PxShape*[]>(shapeCount);
+					(*itBody)->getShapes(shapes.get(), shapeCount);
+
+
+					auto newBody = m_pPhysics->createRigidDynamic(pxTransform);
+					for (auto i = 0u; i < shapeCount; ++i)
+					{
+						newBody->attachShape(*shapes[i]);
+					}
+					m_dynamicMeshInstances.insert(instanceSid, newBody);
+
+					(*itBody)->release();
+					m_staticMeshInstances.erase(itBody);
+				}break;
+				case PhysxRigidBodyType::Dynamic:
+				{
+					auto itBody = m_dynamicMeshInstances.find(instanceSid);
+					auto shapeCount = (*itBody)->getNbShapes();
+					auto shapes = vx::make_unique<physx::PxShape*[]>(shapeCount);
+					(*itBody)->getShapes(shapes.get(), shapeCount);
+
+
+					auto newBody = m_pPhysics->createRigidStatic(pxTransform);
+					for (auto i = 0u; i < shapeCount; ++i)
+					{
+						newBody->attachShape(*shapes[i]);
+					}
+					m_staticMeshInstances.insert(instanceSid, newBody);
+
+					(*itBody)->release();
+					m_dynamicMeshInstances.erase(itBody);
+				}break;
+				default:
+					VX_ASSERT(false);
+					break;
+				}
+
+				*it = rigidBodyType;
+				result = true;
+			}
+		}
+
+		return result;
+	}
+
+	void PhysicsAspect::addMeshInstance(const ::MeshInstance &instance)
+	{
+		::PhysicsAspect::addMeshInstanceImpl(instance);
+
+		auto sid = instance.getNameSid();
+		auto type = instance.getRigidBodyType();
+
+		m_meshInstances.insert(sid, type);
 	}
 }

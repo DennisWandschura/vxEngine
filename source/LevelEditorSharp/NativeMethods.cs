@@ -304,5 +304,11 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void setMeshPhysxType(ulong sid, uint type);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern uint getMeshInstanceRigidBodyType(ulong sid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setMeshInstanceRigidBodyType(ulong sid, uint type);
     }
 }

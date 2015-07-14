@@ -218,4 +218,5 @@ public:
 	void setMeshPhysxType(u64 sid, u32 type);
 
 	u32 getMeshInstanceRigidBodyType(u64 sid) const;
+	void setMeshInstanceRigidBodyType(u64 sid, u32 type);
 };

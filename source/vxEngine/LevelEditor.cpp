@@ -558,5 +558,10 @@ namespace Editor
 	{
 		return g_pEditor->engine.getMeshInstanceRigidBodyType(sid);
 	}
+
+	void setMeshInstanceRigidBodyType(u64 sid, u32 type)
+	{
+		g_pEditor->engine.setMeshInstanceRigidBodyType(sid, type);
+	}
 }
 #endif

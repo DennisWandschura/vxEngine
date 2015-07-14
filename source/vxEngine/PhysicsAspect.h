@@ -108,7 +108,7 @@ protected:
 
 	void addDynamicMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid);
 	void addStaticMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid);
-	void addMeshInstance(const MeshInstance &instance);
+	void addMeshInstanceImpl(const MeshInstance &instance);
 
 	vx::StringID raycast_static(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
 
