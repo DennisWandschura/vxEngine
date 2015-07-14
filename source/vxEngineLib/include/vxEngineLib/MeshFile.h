@@ -27,14 +27,13 @@ SOFTWARE.
 
 class ArrayAllocator;
 
+#include <vxEngineLib/PhysxEnums.h>
 #include <vxLib/Graphics/Mesh.h>
 #include "Serializable.h"
 #include <vxEngineLib/managed_ptr.h>
 
 namespace vx
 {
-	enum class PhsyxMeshType : u32 { Triangle, Convex };
-
 	class MeshFile : public Serializable
 	{
 		vx::Mesh m_mesh;
@@ -65,6 +64,8 @@ namespace vx
 		u64 getCrc() const override;
 
 		static u32 getGlobalVersion();
+
+		void setPhysxMesh(managed_ptr<u8[]> &&physxData, u32 physxDataSize, PhsyxMeshType meshType);
 
 		const vx::Mesh& getMesh() const { return m_mesh; }
 		u32 getPhysxDataSize() const { return m_physxDataSize; }

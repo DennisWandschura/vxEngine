@@ -41,6 +41,7 @@ SOFTWARE.
 #include <vxEngineLib/Actor.h>
 #include "EngineGlobals.h"
 #include <vxLib/Graphics/Camera.h>
+#include <vxEngineLib/MeshFile.h>
 
 #include <Dbghelp.h>
 
@@ -1409,4 +1410,47 @@ const char* EditorEngine::getAnimationNameIndex(u32 i) const
 u64 EditorEngine::getAnimationSidIndex(u32 i) const
 {
 	return m_pEditorScene->getAnimationSidIndex(i);
+}
+
+u32 EditorEngine::getMeshPhysxType(u64 sid) const
+{
+	u32 type = 0xffffffff;
+
+	auto &meshes = m_pEditorScene->getMeshes();
+	auto it = meshes.find(vx::StringID(sid));
+	if (it != meshes.end())
+	{
+		type = (u32)(*it)->getPhysxMeshType();
+	}
+
+	return type;
+}
+
+void EditorEngine::setMeshPhysxType(u64 sid, u32 type)
+{
+	auto meshFile = m_fileAspect.getMesh(vx::StringID(sid));
+	if (meshFile.isValid())
+	{
+		auto &meshDataAllocator = m_fileAspect.getMeshDataAllocator();
+
+		if (m_physicsAspect.setMeshPhysxType(meshFile, (PhsyxMeshType)type, &meshDataAllocator))
+		{
+			auto fileName = m_fileAspect.getLoadedFileName(vx::StringID(sid));
+
+			m_fileAspect.requestSaveFile(vx::FileEntry(fileName, vx::FileType::Mesh), meshFile.get());
+		}
+	}
+}
+
+u32 EditorEngine::getMeshInstanceRigidBodyType(u64 sid) const
+{
+	u32 type = 0xffffffff;
+
+	auto it = m_pEditorScene->getMeshInstance(vx::StringID(sid));
+	if (it != nullptr)
+	{
+		type = (u32)it->getRigidBodyType();
+	}
+
+	return type;
 }

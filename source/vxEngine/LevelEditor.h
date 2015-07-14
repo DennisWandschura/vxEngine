@@ -129,5 +129,10 @@ namespace Editor
 	extern "C" DLL_EXPORT u32 getAnimationCount();
 	extern "C" DLL_EXPORT BSTR getAnimationNameIndex(u32 i);
 	extern "C" DLL_EXPORT u64 getAnimationSidIndex(u32 i);
+
+	extern "C" DLL_EXPORT u32 getMeshPhysxType(u64 sid);
+	extern "C" DLL_EXPORT void setMeshPhysxType(u64 sid, u32 type);
+
+	extern "C" DLL_EXPORT u32 getMeshInstanceRigidBodyType(u64 sid);
 }
 #endif

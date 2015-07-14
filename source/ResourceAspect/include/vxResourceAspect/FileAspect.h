@@ -82,11 +82,11 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 	ArrayAllocator m_allocatorMeshData;
 	vx::StackAllocator m_allocatorTextureData;
 	Timer m_timer;
-	vx::sorted_array<vx::StringID, vx::MeshFile*> m_sortedMeshes;
+	vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> m_sortedMeshes;
 	vx::sorted_array<vx::StringID, Reference<Material>> m_sortedMaterials;
 	vx::sorted_array<vx::StringID, Reference<vx::Animation>> m_sortedAnimations;
 	vx::sorted_array<vx::StringID, const Graphics::Texture*> m_sortedTextures;
-	vx::Pool<vx::MeshFile> m_poolMesh;
+	vx::Pool<ReferenceCounted<vx::MeshFile>> m_poolMesh;
 	vx::Pool<ReferenceCounted<Material>> m_poolMaterial;
 	vx::Pool<ReferenceCounted<vx::Animation>> m_poolAnimations;
 	vx::Pool<Graphics::Texture> m_poolTextures;
@@ -140,11 +140,13 @@ public:
 	Reference<Material> getMaterial(const vx::StringID &sid) noexcept override;
 	Reference<Material> getMaterial(const vx::StringID &id) const noexcept override;
 
-	const vx::MeshFile* getMesh(const vx::StringID &sid) const noexcept override;
+	Reference<vx::MeshFile> getMesh(const vx::StringID &sid) const noexcept override;
 	Reference<vx::Animation> getAnimation(const vx::StringID &sid) const override;
 	const char* getAnimationName(const vx::StringID &sid) const;
 
 	const char* getLoadedFileName(const vx::StringID &sid) const noexcept override;
 
 	bool releaseFile(const vx::StringID &sid, vx::FileType type);
+
+	ArrayAllocator& getMeshDataAllocator() { return m_allocatorMeshData; }
 };

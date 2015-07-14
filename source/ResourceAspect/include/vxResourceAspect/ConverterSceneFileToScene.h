@@ -54,5 +54,5 @@ class ConverterSceneFileToScene
 	static bool createSceneActors(const CreateSceneActorsDesc &desc);
 
 public:
-	static bool convert(const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes, const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials, const SceneFile &sceneFile, Scene* scene);
+	static bool convert(const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes, const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials, const SceneFile &sceneFile, Scene* scene);
 };

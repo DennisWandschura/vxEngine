@@ -31,10 +31,10 @@ namespace LevelEditor
 {
     class ActionDeselectNavMesh : Action
     {
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
         uint m_deselectedNavMesh;
 
-        public ActionDeselectNavMesh(Form1 editorForm)
+        public ActionDeselectNavMesh(EditorForm editorForm)
         {
             m_editorForm = editorForm;
             m_deselectedNavMesh = 0;

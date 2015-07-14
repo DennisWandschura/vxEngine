@@ -89,7 +89,6 @@
     <ClInclude Include="ActorAspect.h" />
     <ClInclude Include="ai\Squad.h" />
     <ClInclude Include="Align.h" />
-    <ClInclude Include="AllocationManager.h" />
     <ClInclude Include="Arrive.h" />
     <ClInclude Include="AStar.h" />
     <ClInclude Include="BVH.h" />
@@ -178,7 +177,6 @@
     <ClCompile Include="ActorAspect.cpp" />
     <ClCompile Include="ai\Squad.cpp" />
     <ClCompile Include="Align.cpp" />
-    <ClCompile Include="AllocationManager.cpp" />
     <ClCompile Include="Arrive.cpp" />
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="BVH.cpp" />

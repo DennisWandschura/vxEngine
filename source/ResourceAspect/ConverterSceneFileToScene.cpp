@@ -39,20 +39,20 @@ SOFTWARE.
 struct ConverterSceneFileToScene::CreateSceneMeshInstancesDesc
 {
 	const SceneFile *sceneFile;
-	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
 	MeshInstance* pMeshInstances;
-	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
 };
 
 struct ConverterSceneFileToScene::CreateSceneActorsDesc
 {
 	const SceneFile *sceneFile;
-	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
-	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>* sceneMeshes;
 	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
 };
 
@@ -86,7 +86,15 @@ bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshIn
 		desc.sceneMeshes->insert(sidMesh, *itMesh);
 		desc.sceneMaterials->insert(sidMaterial, *itMaterial);
 
-		desc.pMeshInstances[i] = MeshInstance(sidName, sidMesh, *itMaterial, sidAnimation, instance.getTransform());
+		MeshInstanceDesc instanceDesc;
+		instanceDesc.nameSid = sidName;
+		instanceDesc.meshSid = sidMesh;
+		instanceDesc.material = *itMaterial;
+		instanceDesc.animationSid = sidAnimation;
+		instanceDesc.transform = instance.getTransform();
+		instanceDesc.rigidBodyType = instance.getRigidBodyType();
+
+		desc.pMeshInstances[i] = MeshInstance(instanceDesc);
 	}
 
 	return true;
@@ -128,12 +136,12 @@ bool ConverterSceneFileToScene::createSceneActors(const CreateSceneActorsDesc &d
 	return true;
 }
 
-bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes, const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials, const SceneFile &sceneFile, Scene* scene)
+bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes, const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials, const SceneFile &sceneFile, Scene* scene)
 {
 	vx::sorted_vector<vx::StringID, Reference<Material>> sceneMaterials;
 	sceneMaterials.reserve(5);
 
-	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
+	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> sceneMeshes;
 
 	auto pMeshInstances = vx::make_unique<MeshInstance[]>(sceneFile.m_meshInstanceCount);
 

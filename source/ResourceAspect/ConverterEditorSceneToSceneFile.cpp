@@ -123,7 +123,7 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 			}
 
 			auto transform = it.getTransform();
-			sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, animation, transform);
+			sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, animation, transform, it.getRigidBodyType());
 		}
 	}
 

@@ -270,9 +270,6 @@
     <ClInclude Include="ActionPlayAnimation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AllocationManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentActorManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -438,9 +435,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ActionPlayAnimation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AllocationManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ComponentActorManager.cpp">

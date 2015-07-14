@@ -56,8 +56,9 @@ class ArrayAllocator : public vx::Allocator
 	u32 m_totalSize;
 	u16 m_freeEntries;
 	u16 m_firstFreeEntry;
-	Entry m_entries[s_maxEntrieCount];
 	u32 m_memoryUsed;
+	u32 m_update;
+	Entry m_entries[s_maxEntrieCount];
 
 	void updateEntries();
 

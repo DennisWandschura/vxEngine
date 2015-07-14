@@ -30,6 +30,7 @@ namespace vx
 	struct Mouse;
 	class Camera;
 	struct StringID;
+	class AllocationProfiler;
 }
 
 class PhysicsAspect;
@@ -39,7 +40,6 @@ class Scene;
 class CreateActorData;
 class MeshInstance;
 class TaskManager;
-class AllocationManager;
 
 #include <vxEngineLib/EventListener.h>
 #include "PlayerController.h"
@@ -89,7 +89,7 @@ public:
 
 	//////////////////
 
-	bool initialize(vx::StackAllocator* pAllocator, TaskManager* taskManager, AllocationManager* allocManager);
+	bool initialize(vx::StackAllocator* pAllocator, TaskManager* taskManager, vx::AllocationProfiler* allocManager);
 	void shutdown();
 
 	void builEntityQuadTree();

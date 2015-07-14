@@ -28,10 +28,10 @@ namespace vx
 {
 	struct Event;
 	class StackAllocator;
+	class AllocationProfiler;
 }
 
 class Scene;
-class AllocationManager;
 
 #include <vxEngineLib/EventListener.h>
 #include <vxEngineLib/InfluenceMap.h>
@@ -58,7 +58,7 @@ class ActorAspect : public vx::EventListener
 public:
 	ActorAspect();
 
-	void initialize(vx::StackAllocator* allocator, AllocationManager* allocationManager);
+	void initialize(vx::StackAllocator* allocator, vx::AllocationProfiler* allocationManager);
 	void shutdown();
 
 	void handleEvent(const vx::Event &evt);

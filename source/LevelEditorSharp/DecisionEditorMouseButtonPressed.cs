@@ -31,10 +31,10 @@ namespace LevelEditor
 {
     class DecisionEditorMouseButtonPressed : Decision
     {
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
         System.Windows.Forms.MouseButtons m_button;
 
-        public DecisionEditorMouseButtonPressed(DecisionTreeNode trueNode, DecisionTreeNode falseNode, Form1 editorForm, System.Windows.Forms.MouseButtons button)
+        public DecisionEditorMouseButtonPressed(DecisionTreeNode trueNode, DecisionTreeNode falseNode, EditorForm editorForm, System.Windows.Forms.MouseButtons button)
             : base(trueNode, falseNode)
         {
             m_editorForm = editorForm;

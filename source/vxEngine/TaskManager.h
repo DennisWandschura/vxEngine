@@ -24,7 +24,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class AllocationManager;
+namespace vx
+{
+	class AllocationProfiler;
+}
 
 #include <vxLib/Allocator/StackAllocator.h>
 #include "Task.h"
@@ -45,7 +48,7 @@ public:
 	TaskManager();
 	~TaskManager();
 
-	void initialize(vx::StackAllocator* allocator, u32 maxTaskCount, AllocationManager* allocManager);
+	void initialize(vx::StackAllocator* allocator, u32 maxTaskCount, vx::AllocationProfiler* allocManager);
 	void shutdown();
 
 	void update();

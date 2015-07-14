@@ -102,7 +102,7 @@ namespace Editor
 
 		Light* addLight(const Light &light);
 		// returns 1 on insert, 0 if already present
-		u8 addMesh(vx::StringID sid, const char* name, const vx::MeshFile* pMesh);
+		u8 addMesh(vx::StringID sid, const char* name, const Reference<vx::MeshFile> &mesh);
 		// returns 1 on insert, 0 if already present
 		u8 addMaterial(vx::StringID sid, const char* name, const Reference<Material> &material);
 		// returns 1 on insert, 0 if mesh or material is missing

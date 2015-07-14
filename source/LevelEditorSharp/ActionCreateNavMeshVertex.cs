@@ -31,11 +31,11 @@ namespace LevelEditor
 {
     class ActionCreateNavMeshVertex : Action
     {
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
         Float3 m_vertexPosition;
         int m_mouseX, m_mouseY;
 
-        public ActionCreateNavMeshVertex(Form1 editorForm)
+        public ActionCreateNavMeshVertex(EditorForm editorForm)
         {
             m_editorForm = editorForm;
             m_vertexPosition = new Float3();

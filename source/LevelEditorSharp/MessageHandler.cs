@@ -39,9 +39,9 @@ namespace LevelEditor
 
         IntPtr m_formHandle;
         IntPtr m_displayPanelHandle;
-        Form1 m_parent;
+        EditorForm m_parent;
 
-        public MessageHandler(Form1 editorForm, IntPtr formHandle, IntPtr panelHandle)
+        public MessageHandler(EditorForm editorForm, IntPtr formHandle, IntPtr panelHandle)
         {
             m_formHandle = formHandle;
             m_displayPanelHandle = panelHandle;

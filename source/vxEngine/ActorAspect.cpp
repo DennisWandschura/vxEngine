@@ -45,7 +45,7 @@ ActorAspect::ActorAspect()
 
 }
 
-void ActorAspect::initialize(vx::StackAllocator* allocator, AllocationManager* allocationManager)
+void ActorAspect::initialize(vx::StackAllocator* allocator, vx::AllocationProfiler* allocationManager)
 {
 	m_squad.initialize(allocator, allocationManager);
 }

@@ -260,7 +260,49 @@ vx::StringID PhysicsAspect::raycast_static(const physx::PxVec3 &origin, const ph
 	return sid;
 }
 
-void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance, MeshType type)
+physx::PxConvexMesh* PhysicsAspect::getConvexMesh(const vx::StringID &sid, const vx::MeshFile &meshFile)
+{
+	physx::PxConvexMesh* result = nullptr;
+
+	auto it = m_physxConvexMeshes.find(sid);
+	if (it == m_physxConvexMeshes.end())
+	{
+		result = processMeshConvex(meshFile);
+
+		m_physxConvexMeshes.insert(sid, result);
+		m_physxMeshTypes.insert(sid, PhsyxMeshType::Convex);
+	}
+	else
+	{
+		result = *it;
+	}
+
+	VX_ASSERT(result != nullptr);
+	return result;
+}
+
+physx::PxTriangleMesh* PhysicsAspect::getTriangleMesh(const vx::StringID &sid, const vx::MeshFile &meshFile)
+{
+	physx::PxTriangleMesh* result = nullptr;
+
+	auto it = m_physxMeshes.find(sid);
+	if (it == m_physxMeshes.end())
+	{
+		result = processTriangleMesh(meshFile);
+
+		m_physxMeshes.insert(sid, result);
+		m_physxMeshTypes.insert(sid, PhsyxMeshType::Triangle);
+	}
+	else
+	{
+		result = *it;
+	}
+
+	VX_ASSERT(result != nullptr);
+	return result;
+}
+
+void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance)
 {
 	auto instanceSid = meshInstance.getNameSid();
 	auto meshSid = meshInstance.getMeshSid();
@@ -288,49 +330,31 @@ void PhysicsAspect::addMeshInstance(const MeshInstance &meshInstance, MeshType t
 	VX_ASSERT(itPhysxMaterial != m_physxMaterials.end());
 	auto pmat = *itPhysxMaterial;
 
-	auto itPhysxTriangleMesh = m_physxMeshes.find(meshSid);
-	auto itConvexMesh = m_physxConvexMeshes.find(meshSid);
+	auto itType = m_physxMeshTypes.find(meshSid);
 
-	bool isTriangleMesh = false;
-	if (itPhysxTriangleMesh == m_physxMeshes.end() &&
-		itConvexMesh == m_physxConvexMeshes.end())
-	{
-		auto fileAspect = Locator::getFileAspect();
-		auto pMeshFile = fileAspect->getMesh(meshSid);
-
-		if (processMesh(meshSid, pMeshFile, &isTriangleMesh))
-		{
-			if (isTriangleMesh)
-			{
-				itPhysxTriangleMesh = m_physxMeshes.find(meshSid);
-			}
-			else
-			{
-				itConvexMesh = m_physxConvexMeshes.find(meshSid);
-			}
-		}
-		else
-		{
-			// error processing mesh
-			VX_ASSERT(false);
-		}
-	}
-	else
-	{
-		isTriangleMesh = (itPhysxTriangleMesh != m_physxMeshes.end());
-	}
+	auto fileAspect = Locator::getFileAspect();
+	auto meshFile = fileAspect->getMesh(meshSid);
+	auto physxType = meshFile->getPhysxMeshType();
 
 	physx::PxShape* shape = nullptr;
-	if (isTriangleMesh)
+	switch (physxType)
 	{
-		shape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*itPhysxTriangleMesh), *pmat);
-	}
-	else
+	case PhsyxMeshType::Triangle:
 	{
-		shape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(*itConvexMesh), *pmat);
+		auto triangleMesh = getTriangleMesh(meshSid, (*meshFile));
+		shape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(triangleMesh), *pmat);
+	}break;
+	case PhsyxMeshType::Convex:
+	{
+		auto convexMesh = getConvexMesh(meshSid, (*meshFile));
+		shape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(convexMesh), *pmat);
+	}break;
+	default:
+		break;
 	}
 
-	if (type == MeshType::Static)
+	PhysxRigidBodyType type = meshInstance.getRigidBodyType();
+	if (type == PhysxRigidBodyType::Static)
 	{
 		addStaticMeshInstance(transform, *shape, instanceSid);
 	}
@@ -378,8 +402,8 @@ void PhysicsAspect::processScene(const Scene* ptr)
 	for (auto i = 0u; i < meshes.size(); ++i)
 	{
 		bool isTriangleMesh = false;
-		auto pMeshFile = meshes[i];
-		if (!processMesh(keys[i], pMeshFile, &isTriangleMesh))
+		auto meshFile = meshes[i];
+		if (!addMesh(keys[i], (*meshFile)))
 		{
 			VX_ASSERT(false);
 		}
@@ -403,48 +427,50 @@ void PhysicsAspect::processScene(const Scene* ptr)
 	for (auto i = 0u; i < numInstances; ++i)
 	{
 		auto &instance = pMeshInstances[i];
-		auto sid = instance.getAnimationSid();
-		MeshType type = (sid.value == 0) ? MeshType::Static : MeshType::Dynamic;
-
-		addMeshInstance(instance, type);
+		addMeshInstance(instance);
 	}
 
 	m_pScene->unlockWrite();
 }
 
-physx::PxTriangleMesh* PhysicsAspect::processTriangleMesh(const vx::MeshFile* pMesh)
+physx::PxTriangleMesh* PhysicsAspect::processTriangleMesh(const vx::MeshFile &mesh)
 {
-	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)pMesh->getPhysxData(), pMesh->getPhysxDataSize());
+	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)mesh.getPhysxData(), mesh.getPhysxDataSize());
 
 	return m_pPhysics->createTriangleMesh(readBuffer);
 }
 
-physx::PxConvexMesh* PhysicsAspect::processMeshConvex(const vx::MeshFile* pMesh)
+physx::PxConvexMesh* PhysicsAspect::processMeshConvex(const vx::MeshFile &mesh)
 {
-	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)pMesh->getPhysxData(), pMesh->getPhysxDataSize());
+	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)mesh.getPhysxData(), mesh.getPhysxDataSize());
 
 	return m_pPhysics->createConvexMesh(readBuffer);
 }
 
-bool PhysicsAspect::processMesh(const vx::StringID &sid, const vx::MeshFile* pMeshFile, bool* isTriangleMesh)
+bool PhysicsAspect::addMesh(const vx::StringID &sid, const vx::MeshFile &meshFile)
 {
 	bool result = false;
-	*isTriangleMesh = false;
 
-	auto resultTriangleMesh = processTriangleMesh(pMeshFile);
-	if (resultTriangleMesh)
+	auto physxType = meshFile.getPhysxMeshType();
+	if (physxType == PhsyxMeshType::Triangle)
 	{
-		m_physxMeshes.insert(sid, resultTriangleMesh);
-		result = true;
-		*isTriangleMesh = true;
+		auto resultTriangleMesh = processTriangleMesh(meshFile);
+		if (resultTriangleMesh)
+		{
+			m_physxMeshes.insert(sid, resultTriangleMesh);
+			result = true;
+			m_physxMeshTypes.insert(sid, PhsyxMeshType::Triangle);
+		}
 	}
 	else
 	{
-		auto resultConvexMesh = processMeshConvex(pMeshFile);
+		auto resultConvexMesh = processMeshConvex(meshFile);
 		if (resultConvexMesh)
 		{
 			m_physxConvexMeshes.insert(sid, resultConvexMesh);
 			result = true;
+
+			m_physxMeshTypes.insert(sid, PhsyxMeshType::Convex);
 		}
 	}
 

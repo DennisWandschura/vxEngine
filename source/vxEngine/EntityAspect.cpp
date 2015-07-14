@@ -49,7 +49,7 @@ SOFTWARE.
 #include <vxEngineLib/CreateActorData.h>
 #include <vxEngineLib/Spawn.h>
 #include "ComponentUsable.h"
-#include "AllocationManager.h"
+#include <vxLib/Allocator/AllocationProfiler.h>
 #include "ComponentPhysics.h"
 #include "CreatedActorData.h"
 
@@ -68,7 +68,7 @@ EntityAspect::EntityAspect()
 {
 }
 
-bool EntityAspect::initialize(vx::StackAllocator* pAllocator, TaskManager* taskManager, AllocationManager* allocManager)
+bool EntityAspect::initialize(vx::StackAllocator* pAllocator, TaskManager* taskManager, vx::AllocationProfiler* allocManager)
 {
 	m_coldData = vx::make_unique<ColdData>();
 
@@ -84,7 +84,10 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator, TaskManager* taskM
 	//m_poolAllocatorPath = vx::PoolAllocator(pAllocator->allocate(pathPoolSize, 8), pathPoolSize, pathChunkSize, __alignof(vx::float3));
 
 	m_allocator = vx::StackAllocator(pAllocator->allocate(5 KBYTE, 16), 5 KBYTE);
+
+#if _VX_MEM_PROFILE
 	allocManager->registerAllocator(&m_allocator, "EntityAspect");
+#endif
 
 	m_playerController.initialize(pAllocator);
 

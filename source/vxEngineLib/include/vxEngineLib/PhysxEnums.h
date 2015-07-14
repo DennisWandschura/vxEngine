@@ -1,4 +1,6 @@
-﻿/*
+#pragma once
+
+/*
 The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
@@ -21,35 +23,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LevelEditor
-{
-    class ConditionEditorState : Condition
-    {
-        EditorForm m_editorForm;
-        EditorState m_state;
+#include <vxLib/types.h>
 
-        public ConditionEditorState(EditorForm editorForm, EditorState state)
-        {
-            m_editorForm = editorForm;
-            m_state = state;
-        }
-
-        public override bool test()
-        {
-            if (m_editorForm.getEditorState() == m_state)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-    }
-}
+enum class PhysxRigidBodyType : u8 { Static, Dynamic };
+enum class PhsyxMeshType : u32 { Triangle, Convex };

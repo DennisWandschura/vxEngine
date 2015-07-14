@@ -213,4 +213,9 @@ public:
 	u32 getAnimationCount() const;
 	const char* getAnimationNameIndex(u32 i) const;
 	u64 getAnimationSidIndex(u32 i) const;
+
+	u32 getMeshPhysxType(u64 sid) const;
+	void setMeshPhysxType(u64 sid, u32 type);
+
+	u32 getMeshInstanceRigidBodyType(u64 sid) const;
 };

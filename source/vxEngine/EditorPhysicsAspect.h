@@ -24,6 +24,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class ArrayAllocator;
+
+namespace physx
+{
+	class PxDefaultMemoryOutputStream;
+}
+
+template<typename T>
+class Reference;
+
 #include "PhysicsAspect.h"
 
 namespace Editor
@@ -35,6 +45,9 @@ namespace Editor
 		void handleFileEvent(const vx::Event &evt);
 
 		void processScene(const Editor::Scene* pScene);
+
+		bool createTriangleMesh(const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer);
+		bool createConvexMesh(const vx::float3* positions, u32 vertexCount, physx::PxDefaultMemoryOutputStream* writeBuffer);
 
 	public:
 		PhysicsAspect();
@@ -50,5 +63,7 @@ namespace Editor
 		void editorSetStaticMeshInstanceMesh(const ::MeshInstance &instance);
 
 		physx::PxCooking* getCooking() { return m_pCooking; }
+
+		bool setMeshPhysxType(Reference<vx::MeshFile> &meshFile, PhsyxMeshType type, ArrayAllocator* meshDataAllocator);
 	};
 }

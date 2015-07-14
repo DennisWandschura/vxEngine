@@ -31,10 +31,10 @@ namespace LevelEditor
 {
     class DecisionKeyUp : Decision
     {
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
         System.Windows.Forms.Keys m_key;
 
-        public DecisionKeyUp(DecisionTreeNode trueNode, DecisionTreeNode falseNode, Form1 editorForm, System.Windows.Forms.Keys key)
+        public DecisionKeyUp(DecisionTreeNode trueNode, DecisionTreeNode falseNode, EditorForm editorForm, System.Windows.Forms.Keys key)
             : base(trueNode, falseNode)
         {
             m_editorForm = editorForm;

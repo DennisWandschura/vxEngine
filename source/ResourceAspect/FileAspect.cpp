@@ -160,7 +160,7 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	m_logfile.create("filelog.xml");
 
 	const u32 maxCount = 255;
-	m_sortedMeshes = vx::sorted_array<vx::StringID, vx::MeshFile*>(maxCount, pMainAllocator);
+	m_sortedMeshes = vx::sorted_array<vx::StringID, Reference<vx::MeshFile>>(maxCount, pMainAllocator);
 	m_sortedMaterials = vx::sorted_array<vx::StringID, Reference<Material>>(maxCount, pMainAllocator);
 	m_sortedAnimations = vx::sorted_array<vx::StringID, Reference<vx::Animation>>(maxCount, pMainAllocator);
 	m_sortedAnimationNames = vx::sorted_array<vx::StringID, std::string>(maxCount, pMainAllocator);
@@ -214,14 +214,14 @@ bool FileAspect::loadMesh(const LoadMeshDescription &desc)
 		VX_ASSERT(meshFilePtr != nullptr);
 
 		//auto marker = m_allocatorMeshData.getMarker();
-		auto p = meshFilePtr->loadFromMemory(desc.fileData, desc.size, &m_allocatorMeshData);
+		auto p = meshFilePtr->get().loadFromMemory(desc.fileData, desc.size, &m_allocatorMeshData);
 		if (p == nullptr)
 		{
 			//m_allocatorMeshData.clear(marker);
 			return false;
 		}
 
-		it = m_sortedMeshes.insert(desc.shared.sid, meshFilePtr);
+		it = m_sortedMeshes.insert(desc.shared.sid, Reference<vx::MeshFile>(*meshFilePtr));
 
 		*desc.shared.status = vx::FileStatus::Loaded;
 
@@ -433,7 +433,7 @@ bool FileAspect::loadFileFbx(const LoadFileOfTypeDescription &desc)
 #if _VX_EDITOR
 	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Trying to load file %s\n", desc.fileNameWithPath);
 
-	vx::PhsyxMeshType physsxMeshType = (vx::PhsyxMeshType)reinterpret_cast<u32>(desc.pUserData);
+	PhsyxMeshType physsxMeshType = (PhsyxMeshType)reinterpret_cast<u32>(desc.pUserData);
 
 	std::vector<vx::FileHandle> meshFiles, animFiles;
 	FbxFactory factory;
@@ -716,18 +716,7 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 	result.type = fileType;
 
 	const char *folder = "";
-
-	switch (fileType)
-	{
-	case vx::FileType::EditorScene:
-		folder = s_sceneFolder;
-		break;
-	default:
-	{
-		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error, unhandled file type !");
-		return result;
-	}break;
-	}
+	getFolderString(fileType, &folder);
 
 	char file[64];
 	sprintf_s(file, "%s%s", folder, fileName);
@@ -768,8 +757,20 @@ LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant*
 		}
 
 		SceneFactory::deleteScene(scene);
-	}
-	break;
+	}break;
+	case vx::FileType::Mesh:
+	{
+		auto meshFileRef = (ReferenceCounted<vx::MeshFile>*)request.userData;
+		auto &meshFile = meshFileRef->get();
+
+		meshFile; meshFile.getGlobalVersion();
+
+		vx::FileFactory::saveToFile(&f, &meshFile);
+
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Saved Mesh %s", fileName);
+
+		saveResult = 1;
+	}break;
 	default:
 		return result;
 		break;
@@ -1002,16 +1003,16 @@ Reference<Material> FileAspect::getMaterial(const vx::StringID &sid) const noexc
 	return result;
 }
 
-const vx::MeshFile* FileAspect::getMesh(const vx::StringID &sid) const noexcept
+Reference<vx::MeshFile> FileAspect::getMesh(const vx::StringID &sid) const noexcept
 {
-	const vx::MeshFile *p = nullptr;
+	Reference < vx::MeshFile > result;
 
 	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedMeshes.find(sid);
 	if (it != m_sortedMeshes.end())
-		p = *it;
+		result = *it;
 
-	return p;
+	return result;
 }
 
 Reference<vx::Animation> FileAspect::getAnimation(const vx::StringID &sid) const
@@ -1065,7 +1066,7 @@ bool FileAspect::releaseFile(const vx::StringID &sid, vx::FileType type)
 		auto it = m_sortedMeshes.find(sid);
 		if (it != m_sortedMeshes.end())
 		{
-			m_poolMesh.destroyEntry((*it));
+			m_poolMesh.destroyEntry(it->get());
 			result = true;
 		}
 	}break;

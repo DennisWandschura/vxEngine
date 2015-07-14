@@ -51,7 +51,7 @@ struct SceneBaseParams
 {
 	std::vector<Light> m_pLights;
 	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
-	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
+	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> m_meshes;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	std::vector<Waypoint> m_waypoints;
@@ -72,7 +72,7 @@ class SceneBase
 protected:
 	std::vector<Light> m_pLights;
 	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
-	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
+	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> m_meshes;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	std::vector<Waypoint> m_waypoints;
@@ -113,7 +113,7 @@ public:
 
 	const Reference<Material>* getMaterial(const vx::StringID &sid) const;
 
-	const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& getMeshes() const;
+	const vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>& getMeshes() const;
 	u32 getVertexCount() const;
 
 	const Spawn* getSpawns() const;

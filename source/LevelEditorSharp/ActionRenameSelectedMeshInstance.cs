@@ -12,9 +12,9 @@ namespace LevelEditor
         ulong m_sid;
         string m_oldName;
         ulong m_oldSid;
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
 
-        public ActionRenameSelectedMeshInstance(string oldName, ulong oldSid, string newName, ulong newSid, Form1 editorForm)
+        public ActionRenameSelectedMeshInstance(string oldName, ulong oldSid, string newName, ulong newSid, EditorForm editorForm)
         {
             m_name = newName;
             m_sid = newSid;

@@ -30,6 +30,7 @@ SOFTWARE.
 #include <vxEngineLib/copy.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
+#include <vxEngineLib/MeshFile.h>
 
 namespace EditorSceneCpp
 {
@@ -220,7 +221,7 @@ namespace Editor
 
 	void Scene::removeUnusedMeshes()
 	{
-		vx::sorted_vector<vx::StringID, const vx::MeshFile*> newMeshes;
+		vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> newMeshes;
 		newMeshes.reserve(m_meshes.size());
 
 		for (auto &it : m_meshInstances)
@@ -245,7 +246,7 @@ namespace Editor
 		return &m_pLights.back();
 	}
 
-	u8 Scene::addMesh(vx::StringID sid, const char* name, const vx::MeshFile* pMesh)
+	u8 Scene::addMesh(vx::StringID sid, const char* name, const Reference<vx::MeshFile> &mesh)
 	{
 		u8 result = 0;
 		auto it = m_meshes.find(sid);
@@ -256,7 +257,7 @@ namespace Editor
 
 			m_meshNames.insert(sid, buffer);
 
-			m_meshes.insert(sid, pMesh);
+			m_meshes.insert(sid, mesh);
 			result = 1;
 		}
 
@@ -395,8 +396,13 @@ namespace Editor
 		auto meshSid = *m_meshes.keys();
 		auto material = m_materials[0];
 
-		vx::Transform transform;
-		::MeshInstance instance(nameSid, meshSid, material, vx::StringID(), transform);
+		MeshInstanceDesc desc;
+		desc.nameSid = nameSid;
+		desc.meshSid = meshSid;
+		desc.material = material;
+		desc.rigidBodyType = PhysxRigidBodyType::Static;
+
+		::MeshInstance instance(desc);
 		Editor::MeshInstance editorInstance(instance, std::move(instanceName));
 
 		m_meshInstances.insert(nameSid, editorInstance);
@@ -418,7 +424,16 @@ namespace Editor
 		if (it != m_meshInstances.end())
 		{
 			auto newSid = vx::make_sid(newName);
-			::MeshInstance newInstance(newSid, it->getMeshSid(), it->getMaterial(), it->getAnimationSid(), it->getTransform());
+
+			MeshInstanceDesc desc;
+			desc.nameSid = newSid;
+			desc.meshSid = it->getMeshSid();
+			desc.material = it->getMaterial();
+			desc.animationSid = it->getAnimationSid();
+			desc.transform = it->getTransform();
+			desc.rigidBodyType = it->getRigidBodyType();
+
+			::MeshInstance newInstance(desc);
 			Editor::MeshInstance editrInstance(newInstance, std::string(newName));
 
 			m_meshInstances.erase(it);

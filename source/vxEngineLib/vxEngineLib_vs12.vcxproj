@@ -159,6 +159,7 @@
     <ClInclude Include="include\vxEngineLib\OpenGLTypes.h" />
     <ClInclude Include="include\vxEngineLib\ParserConverter.h" />
     <ClInclude Include="include\vxEngineLib\ParserNode.h" />
+    <ClInclude Include="include\vxEngineLib\PhysxEnums.h" />
     <ClInclude Include="include\vxEngineLib\Plane.h" />
     <ClInclude Include="include\vxEngineLib\Pool.h" />
     <ClInclude Include="include\vxEngineLib\Ray.h" />

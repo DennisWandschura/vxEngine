@@ -32,6 +32,7 @@ SOFTWARE.
 #include <vxEngineLib/FileEvents.h>
 #include <vxEngineLib/EditorScene.h>
 #include <vxEngineLib/EditorMeshInstance.h>
+#include <vxEngineLib/MeshFile.h>
 
 namespace Editor
 {
@@ -80,10 +81,10 @@ namespace Editor
 
 		for (auto i = 0u; i < meshes.size(); ++i)
 		{
-			bool isTriangleMesh = false;
-			auto pMeshFile = meshes[i];
-			if (!processMesh(keys[i], pMeshFile, &isTriangleMesh))
+			auto meshFileRef = meshes[i];
+			if (!addMesh(keys[i], (*meshFileRef)))
 			{
+				printf("Error processing mesh %llu\n", keys[i].value);
 				VX_ASSERT(false);
 			}
 		}
@@ -107,9 +108,7 @@ namespace Editor
 		{
 			auto &instance = pMeshInstances[i];
 			auto sid = instance.getAnimationSid();
-			MeshType type = (sid.value == 0) ? MeshType::Static : MeshType::Dynamic;
-
-			addMeshInstance(instance.getMeshInstance(), type);
+			addMeshInstance(instance.getMeshInstance());
 		}
 
 		m_pScene->unlockWrite();
@@ -165,46 +164,29 @@ namespace Editor
 		auto rigidStaticIt = m_staticMeshInstances.find(sid);
 
 		auto meshSid = meshInstance.getMeshSid();
-		auto newTriangleMeshIt = m_physxMeshes.find(meshSid);
-		auto newConvexMeshIt = m_physxConvexMeshes.find(meshSid);
-
-		bool foundMesh = newTriangleMeshIt != m_physxMeshes.end() &&
-			newConvexMeshIt != m_physxConvexMeshes.end();
-
-		bool isTriangleMesh = false;
-		if (!foundMesh)
-		{
-			puts("process mesh begin");
-			auto fileAspect = Locator::getFileAspect();
-			auto pMeshFile = fileAspect->getMesh(meshSid);
-
-			if (!processMesh(meshSid, pMeshFile, &isTriangleMesh))
-			{
-				printf("error processing mesh\n");
-				VX_ASSERT(false);
-			}
-
-			newTriangleMeshIt = m_physxMeshes.find(meshSid);
-			newConvexMeshIt = m_physxConvexMeshes.find(meshSid);
-
-			puts("process mesh end");
-		}
+		auto fileAspect = Locator::getFileAspect();
+		auto meshFile = fileAspect->getMesh(meshSid);
+		auto physxType = meshFile->getPhysxMeshType();
 
 		auto &material = meshInstance.getMaterial();
 		auto itPhysxMaterial = m_physxMaterials.find((*material).getSid());
 
-		puts("create shape begin");
 		physx::PxShape* newShape = nullptr;
-		if (isTriangleMesh)
+		switch (physxType)
 		{
-			newShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(*newTriangleMeshIt), *(*itPhysxMaterial));
-		}
-		else
+		case PhsyxMeshType::Triangle:
 		{
-			VX_ASSERT(newConvexMeshIt != m_physxConvexMeshes.end());
-			newShape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(*newConvexMeshIt), *(*itPhysxMaterial));
+			auto triangleMesh = getTriangleMesh(meshSid, (*meshFile));
+			newShape = m_pPhysics->createShape(physx::PxTriangleMeshGeometry(triangleMesh), *(*itPhysxMaterial));
+		}break;
+		case PhsyxMeshType::Convex:
+		{
+			auto convexMesh = getConvexMesh(meshSid, (*meshFile));
+			newShape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(convexMesh), *(*itPhysxMaterial));
+		}break;
+		default:
+			break;
 		}
-		puts("create shape end");
 
 		auto shapeCount = (*rigidStaticIt)->getNbShapes();
 		VX_ASSERT(shapeCount == 1);
@@ -221,5 +203,78 @@ namespace Editor
 	void PhysicsAspect::setPosition(const vx::float3 &position, physx::PxController* pController)
 	{
 		pController->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
+	}
+
+	bool PhysicsAspect::createTriangleMesh(const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer)
+	{
+		physx::PxTriangleMeshDesc meshDesc;
+		meshDesc.points.count = vertexCount;
+		meshDesc.points.stride = sizeof(vx::float3);
+		meshDesc.points.data = positions;
+
+		meshDesc.triangles.count = indexCount / 3;
+		meshDesc.triangles.stride = 3 * sizeof(u32);
+		meshDesc.triangles.data = indices;
+
+		return m_pCooking->cookTriangleMesh(meshDesc, *writeBuffer);
+	}
+
+	bool PhysicsAspect::createConvexMesh(const vx::float3* positions, u32 vertexCount, physx::PxDefaultMemoryOutputStream* writeBuffer)
+	{
+		physx::PxConvexMeshDesc convexDesc;
+		convexDesc.points.count = vertexCount;
+		convexDesc.points.stride = sizeof(vx::float3);
+		convexDesc.points.data = positions;
+		convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
+		convexDesc.vertexLimit = 256;
+
+		return m_pCooking->cookConvexMesh(convexDesc, *writeBuffer);
+	}
+
+	bool PhysicsAspect::setMeshPhysxType(Reference<vx::MeshFile> &meshFile, PhsyxMeshType type, ArrayAllocator* meshDataAllocator)
+	{
+		auto &mesh = meshFile->getMesh();
+
+		auto vertexCount = mesh.getVertexCount();
+		auto vertices = mesh.getVertices();
+
+		auto positions = vx::make_unique<vx::float3[]>(vertexCount);
+		for (u32 i = 0; i < vertexCount; ++i)
+		{
+			positions[i] = vertices[i].position;
+		}
+
+		auto indexCount = mesh.getIndexCount();
+		auto indices = mesh.getIndices();
+
+		physx::PxDefaultMemoryOutputStream writeBuffer;
+
+		bool result = false;
+		switch (type)
+		{
+		case PhsyxMeshType::Triangle:
+		{
+			result = createTriangleMesh(positions.get(), vertexCount, indices, indexCount, &writeBuffer);
+		}break;
+		case PhsyxMeshType::Convex:
+		{
+			result = createConvexMesh(positions.get(), vertexCount, &writeBuffer);
+		}break;
+		default:
+			break;
+		}
+
+		if (result)
+		{
+			auto dataSize = writeBuffer.getSize();
+			auto data = writeBuffer.getData();
+
+			managed_ptr<u8[]> physData = meshDataAllocator->allocate(dataSize, 4);
+			memcpy(physData.get(), data, dataSize);
+
+			meshFile->setPhysxMesh(std::move(physData), dataSize, type);
+		}
+
+		return result;
 	}
 }

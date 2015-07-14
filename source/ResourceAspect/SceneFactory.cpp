@@ -45,14 +45,14 @@ SOFTWARE.
 
 struct SceneFactory::LoadSceneFileDescription
 {
-	const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes;
+	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>>* sortedMeshes;
 	const vx::sorted_array<vx::StringID, Reference<Material>>* sortedMaterials;
 	const vx::sorted_array<vx::StringID, Reference<vx::Animation>>* sortedAnimations;
 	std::vector<vx::FileEntry> *pMissingFiles;
 	SceneFile *pSceneFile;
 };
 
-bool checkMeshInstanceMesh(const vx::FileEntry &meshFileEntry, const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes, std::vector<vx::FileEntry>* missingFiles)
+bool checkMeshInstanceMesh(const vx::FileEntry &meshFileEntry, const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>>* sortedMeshes, std::vector<vx::FileEntry>* missingFiles)
 {
 	bool result = true;
 	auto itMesh = sortedMeshes->find(meshFileEntry.getSid());

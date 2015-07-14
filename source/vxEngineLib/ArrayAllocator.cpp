@@ -26,6 +26,7 @@ SOFTWARE.
 #include <vxEngineLib/managed_ptr.h>
 #include <algorithm>
 #include <vxLib/Allocator/Allocator.h>
+#include <vxLib/Allocator/AllocationProfiler.h>
 
 ArrayAllocator::ArrayAllocator()
 	:m_memory(nullptr),
@@ -33,8 +34,9 @@ ArrayAllocator::ArrayAllocator()
 	m_totalSize(0),
 	m_freeEntries(0),
 	m_firstFreeEntry(0),
-	m_entries(),
-	m_memoryUsed(0)
+	m_memoryUsed(0),
+	m_update(0),
+	m_entries()
 {
 }
 
@@ -138,10 +140,12 @@ managed_ptr_base ArrayAllocator::allocate(u32 size, u8 alignment)
 	--m_freeEntries;
 	m_memoryUsed += neededSize;
 
-	if(s_allocCallback)
+#if _VX_MEM_PROFILE
+	if(s_allocationProfiler)
 	{
-		s_allocCallback(neededSize, m_memory);
+		s_allocationProfiler->updateAllocation(m_memory, neededSize);
 	}
+#endif
 
 	return ptr;
 }
@@ -169,10 +173,14 @@ void ArrayAllocator::deallocate(managed_ptr_base* p)
 	++m_freeEntries;
 	m_memoryUsed -= size;
 
-	if (s_deallocCallback)
+	m_update = 1;
+
+#if _VX_MEM_PROFILE
+	if (s_allocationProfiler)
 	{
-		s_deallocCallback(size, m_memory);
+		s_allocationProfiler->updateDeallocation(m_memory, size);
 	}
+#endif
 }
 
 bool ArrayAllocator::update()
@@ -185,7 +193,8 @@ bool ArrayAllocator::update()
 
 	bool result = false;
 
-	if (m_memoryUsed == 0)
+	if (m_memoryUsed == 0 
+		|| m_update == 0)
 		return result;
 
 	SortedEntry sortedEntries[s_maxEntrieCount];
@@ -266,6 +275,8 @@ bool ArrayAllocator::update()
 
 		current = next;
 	}
+
+	m_update = 0;
 
 	return result;
 }

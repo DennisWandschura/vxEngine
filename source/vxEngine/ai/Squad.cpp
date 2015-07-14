@@ -36,7 +36,7 @@ SOFTWARE.
 #include <vxEngineLib/Locator.h>
 #include "../PhysicsAspect.h"
 #include "../ComponentPhysics.h"
-#include "../AllocationManager.h"
+#include <vxLib/Allocator/AllocationProfiler.h>
 
 namespace SquadCpp
 {
@@ -124,11 +124,13 @@ namespace ai
 
 	}
 
-	void Squad::initialize(vx::StackAllocator* allocator, AllocationManager* allocationManager)
+	void Squad::initialize(vx::StackAllocator* allocator, vx::AllocationProfiler* allocationManager)
 	{
 		const auto memorySize = 100 KBYTE;
 		m_scratchAllocator = vx::StackAllocator(allocator->allocate(memorySize, 8), memorySize);
+#if _VX_MEM_PROFILE
 		allocationManager->registerAllocator(&m_scratchAllocator, "SquadAlloc");
+#endif
 
 		std::mt19937_64 gen((u64)allocator);
 		std::uniform_int_distribution<u32> dist(2, 0xffffffff / 2);

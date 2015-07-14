@@ -342,9 +342,6 @@
     <ClInclude Include="TaskSceneCreateActorsGpu.h">
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
-    <ClInclude Include="AllocationManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentPhysics.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
@@ -505,9 +502,6 @@
     </ClCompile>
     <ClCompile Include="TaskManager.cpp">
       <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="AllocationManager.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ComponentPhysicsManager.cpp">
       <Filter>Source Files\Entity</Filter>

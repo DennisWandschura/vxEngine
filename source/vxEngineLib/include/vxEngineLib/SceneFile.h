@@ -61,7 +61,7 @@ namespace vx
 
 struct CreateSceneDescription
 {
-	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>, std::less<vx::StringID>> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Reference<Material>, std::less<vx::StringID>> *sortedMaterials;
 	const vx::sorted_array<vx::StringID, Reference<vx::Animation>, std::less<vx::StringID>> *sortedAnimations;
 	Scene *pScene;
@@ -69,7 +69,7 @@ struct CreateSceneDescription
 
 struct CreateEditorSceneDescription
 {
-	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>, std::less<vx::StringID>> *sortedMeshes;
 	const vx::sorted_array<vx::StringID, Reference<Material>, std::less<vx::StringID>> *sortedMaterials;
 	const vx::sorted_array<vx::StringID, Reference<vx::Animation>, std::less<vx::StringID>> *sortedAnimations;
 	const vx::sorted_vector<vx::StringID, std::string> *loadedFiles;
@@ -102,11 +102,13 @@ class SceneFile : public vx::Serializable
 
 	bool createSceneShared(const CreateSceneShared &desc);
 
-	const u8* loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+	//const u8* loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* allocator);
 	const u8* loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+	const u8* loadVersion5(const u8 *ptr, const u8* last, vx::Allocator* allocator);
 
-	u64 getCrcVersion3() const;
+	//u64 getCrcVersion3() const;
 	u64 getCrcVersion4() const;
+	u64 getCrcVersion5() const;
 
 public:
 	explicit SceneFile(u32 version);

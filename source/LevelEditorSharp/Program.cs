@@ -40,10 +40,10 @@ namespace LevelEditor
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            Form1 form;
+            EditorForm form;
             try
             {
-                form = new Form1();
+                form = new EditorForm();
             }
             catch(Exception e)
             {

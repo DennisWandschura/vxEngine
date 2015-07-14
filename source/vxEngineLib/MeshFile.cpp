@@ -168,6 +168,8 @@ namespace vx
 			ptr = loadFromMemoryV1(ptr, size, allocator);
 		}
 
+		setVersion(getGlobalVersion());
+
 		return ptr;
 	}
 
@@ -245,6 +247,13 @@ namespace vx
 	u32 MeshFile::getGlobalVersion()
 	{
 		return 1;
+	}
+
+	void MeshFile::setPhysxMesh(managed_ptr<u8[]> &&physxData, u32 physxDataSize, PhsyxMeshType meshType)
+	{
+		m_physxData = std::move(physxData);
+		m_physxDataSize = physxDataSize;
+		m_physxMeshType = meshType;
 	}
 
 	const u8* MeshFile::getPhysxData() const

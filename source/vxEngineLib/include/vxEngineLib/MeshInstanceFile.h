@@ -24,9 +24,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <vxEngineLib/PhysxEnums.h>
 #include "Transform.h"
 
-class MeshInstanceFile
+class MeshInstanceFile;
+
+class MeshInstanceFileV4
 {
 	using Buffer = char[32];
 
@@ -37,8 +40,10 @@ class MeshInstanceFile
 	vx::Transform m_transform;
 
 public:
-	MeshInstanceFile();
-	MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform);
+	MeshInstanceFileV4();
+	MeshInstanceFileV4(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform);
+
+	MeshInstanceFileV4& operator=(const MeshInstanceFile &rhs);
 
 	const char* getName() const noexcept{ return m_name; }
 	const char* getMeshFile() const noexcept{ return m_mesh; }
@@ -47,24 +52,27 @@ public:
 	const vx::Transform& getTransform() const noexcept{ return m_transform; }
 };
 
-class MeshInstanceFileOld
+class MeshInstanceFile
 {
 	using Buffer = char[32];
 
 	Buffer m_name;
 	Buffer m_mesh;
 	Buffer m_material;
+	Buffer m_animation;
 	vx::Transform m_transform;
+	PhysxRigidBodyType m_rigidBodyType;
 
 public:
-	MeshInstanceFileOld();
-	MeshInstanceFileOld(const MeshInstanceFile &rhs);
-	MeshInstanceFileOld(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::Transform &transform);
+	MeshInstanceFile();
+	MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform, PhysxRigidBodyType rigidBodyType);
+
+	MeshInstanceFile& operator=(const MeshInstanceFileV4 &rhs);
 
 	const char* getName() const noexcept{ return m_name; }
-	const char* getMeshFile() const noexcept { return m_mesh; }
+	const char* getMeshFile() const noexcept{ return m_mesh; }
 	const char* getMaterialFile() const noexcept{ return m_material; }
+	const char* getAnimation() const noexcept{ return m_animation; }
 	const vx::Transform& getTransform() const noexcept{ return m_transform; }
-
-	void convertTo(MeshInstanceFile* other) const;
+	PhysxRigidBodyType getRigidBodyType() const { return m_rigidBodyType; }
 };

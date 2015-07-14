@@ -31,7 +31,8 @@ MeshInstance::MeshInstance()
 	m_meshSid(),
 	m_material(),
 	m_animationSid(),
-	m_transform()
+	m_transform(),
+	m_rigidBodyType()
 {
 }
 
@@ -40,7 +41,8 @@ MeshInstance::MeshInstance(const MeshInstance &rhs)
 	m_meshSid(rhs.m_meshSid),
 	m_material(rhs.m_material),
 	m_animationSid(rhs.m_animationSid),
-	m_transform(rhs.m_transform)
+	m_transform(rhs.m_transform),
+	m_rigidBodyType(rhs.m_rigidBodyType)
 {
 
 }
@@ -50,17 +52,19 @@ MeshInstance::MeshInstance(MeshInstance &&rhs)
 	m_meshSid(std::move(rhs.m_meshSid)),
 	m_material(std::move(rhs.m_material)),
 	m_animationSid(std::move(rhs.m_animationSid)),
-	m_transform(std::move(rhs.m_transform))
+	m_transform(std::move(rhs.m_transform)),
+	m_rigidBodyType(rhs.m_rigidBodyType)
 {
 
 }
 
-MeshInstance::MeshInstance(const vx::StringID &nameSid, const vx::StringID &meshSid, const Reference<Material> &material, const vx::StringID &animationSid, const vx::Transform &transform)
-	:m_nameSid(nameSid),
-	m_meshSid(meshSid),
-	m_material(material),
-	m_animationSid(animationSid),
-	m_transform(transform)
+MeshInstance::MeshInstance(const MeshInstanceDesc &desc)
+	:m_nameSid(desc.nameSid),
+	m_meshSid(desc.meshSid),
+	m_material(desc.material),
+	m_animationSid(desc.animationSid),
+	m_transform(desc.transform),
+	m_rigidBodyType(desc.rigidBodyType)
 {
 }
 
@@ -78,6 +82,7 @@ MeshInstance& MeshInstance::operator = (const MeshInstance &rhs)
 		m_material = rhs.m_material;
 		m_animationSid = rhs.m_animationSid;
 		m_transform = rhs.m_transform;
+		m_rigidBodyType = rhs.m_rigidBodyType;
 	}
 	return *this;
 }
@@ -91,6 +96,7 @@ MeshInstance& MeshInstance::operator = (MeshInstance &&rhs)
 		m_material = std::move(rhs.m_material);
 		m_animationSid = std::move(rhs.m_animationSid);
 		m_transform = std::move(rhs.m_transform);
+		m_rigidBodyType = rhs.m_rigidBodyType;
 	}
 	return *this;
 }

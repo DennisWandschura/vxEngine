@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include "TaskManager.h"
 #include <algorithm>
-#include "AllocationManager.h"
+#include <vxLib/Allocator/AllocationProfiler.h>
 
 TaskManager::TaskManager()
 	:m_tasks(nullptr),
@@ -43,7 +43,7 @@ TaskManager::~TaskManager()
 
 }
 
-void TaskManager::initialize(vx::StackAllocator* allocator, u32 maxTaskCount, AllocationManager* allocManager)
+void TaskManager::initialize(vx::StackAllocator* allocator, u32 maxTaskCount, vx::AllocationProfiler* allocManager)
 {
 	m_tasks = (Task**)allocator->allocate(sizeof(Task*) * maxTaskCount, __alignof(Task*));
 	VX_ASSERT(m_tasks != nullptr);
@@ -61,8 +61,10 @@ void TaskManager::initialize(vx::StackAllocator* allocator, u32 maxTaskCount, Al
 
 	m_capacity = maxTaskCount;
 
+#if _VX_MEM_PROFILE
 	allocManager->registerAllocator(&m_allocator, "taskAlloc0");
 	allocManager->registerAllocator(&m_backAllocator, "taskAlloc1");
+#endif
 }
 
 void TaskManager::shutdown()

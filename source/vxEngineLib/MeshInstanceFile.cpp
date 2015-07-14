@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include <vxEngineLib/MeshInstanceFile.h>
 
-MeshInstanceFile::MeshInstanceFile()
+MeshInstanceFileV4::MeshInstanceFileV4()
 	:m_name(),
 	m_mesh(),
 	m_material(),
@@ -33,7 +33,7 @@ MeshInstanceFile::MeshInstanceFile()
 {
 }
 
-MeshInstanceFile::MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform)
+MeshInstanceFileV4::MeshInstanceFileV4(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform)
 	:m_name(),
 	m_mesh(),
 	m_material(),
@@ -46,7 +46,53 @@ MeshInstanceFile::MeshInstanceFile(const char(&instanceName)[32], const char(&me
 	strcpy_s(m_animation, animationName);
 }
 
-MeshInstanceFileOld::MeshInstanceFileOld()
+MeshInstanceFileV4& MeshInstanceFileV4::operator = (const MeshInstanceFile &rhs)
+{
+	strcpy_s(m_name, rhs.getName());
+	strcpy_s(m_mesh, rhs.getMeshFile());
+	strcpy_s(m_material, rhs.getMaterialFile());
+	strcpy_s(m_animation, rhs.getAnimation());
+	m_transform = rhs.getTransform();
+
+	return *this;
+}
+
+MeshInstanceFile::MeshInstanceFile()
+	:m_name(),
+	m_mesh(),
+	m_material(),
+	m_animation(),
+	m_transform(),
+	m_rigidBodyType()
+{
+}
+
+MeshInstanceFile::MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform, PhysxRigidBodyType rigidBodyType)
+	:m_name(),
+	m_mesh(),
+	m_material(),
+	m_animation(),
+	m_transform(transform),
+	m_rigidBodyType(rigidBodyType)
+{
+	strcpy_s(m_name, instanceName);
+	strcpy_s(m_mesh, meshName);
+	strcpy_s(m_material, materialName);
+	strcpy_s(m_animation, animationName);
+}
+
+MeshInstanceFile& MeshInstanceFile::operator = (const MeshInstanceFileV4 &rhs)
+{
+	strcpy_s(m_name, rhs.getName());
+	strcpy_s(m_mesh, rhs.getMeshFile());
+	strcpy_s(m_material, rhs.getMaterialFile());
+	strcpy_s(m_animation, rhs.getAnimation());
+	m_transform = rhs.getTransform();
+
+	return *this;
+}
+
+/*MeshInstanceFileOld::MeshInstanceFileOld()
 	:m_name(),
 	m_mesh(),
 	m_material(),
@@ -81,4 +127,4 @@ void MeshInstanceFileOld::convertTo(MeshInstanceFile* other) const
 	Buffer animation = {};
 
 	*other = MeshInstanceFile(m_name, m_mesh, m_material, animation, m_transform);
-}
+}*/

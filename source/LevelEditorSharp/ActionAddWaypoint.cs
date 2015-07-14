@@ -8,11 +8,11 @@ namespace LevelEditor
 {
     class ActionAddWaypoint : Action
     {
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
         Float3 m_position;
         bool m_added;
 
-        public ActionAddWaypoint(Form1 editorform)
+        public ActionAddWaypoint(EditorForm editorform)
         {
             m_editorForm = editorform;
             m_position = new Float3(0, 0, 0);

@@ -243,9 +243,9 @@ void getAnimationLayers(FBXSDK_NAMESPACE::FbxAnimStack* animStack, FBXSDK_NAMESP
 #endif
 }
 
-bool createPhysXMesh(vx::PhsyxMeshType meshType, const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer, physx::PxCooking* cooking)
+bool createPhysXMesh(PhsyxMeshType meshType, const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer, physx::PxCooking* cooking)
 {
-	if (meshType == vx::PhsyxMeshType::Triangle)
+	if (meshType == PhsyxMeshType::Triangle)
 	{
 		physx::PxTriangleMeshDesc meshDesc;
 		meshDesc.points.count = vertexCount;
@@ -271,7 +271,7 @@ bool createPhysXMesh(vx::PhsyxMeshType meshType, const vx::float3* positions, u3
 	}
 }
 
-bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const std::string &animDir, vx::PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator)
+bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator)
 {
 #if _VX_EDITOR
 	FbxImporter* lImporter = FbxImporter::Create(m_pFbxManager, "");

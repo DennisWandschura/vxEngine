@@ -30,14 +30,20 @@ namespace vx
 	class Mesh;
 }
 
-namespace YAML
-{
-	class Node;
-}
-
+#include <vxEngineLib/PhysxEnums.h>
 #include <vxLib/StringID.h>
 #include "Transform.h"
 #include <vxEngineLib/Reference.h>
+
+struct MeshInstanceDesc
+{
+	vx::StringID nameSid;
+	vx::StringID meshSid;
+	Reference<Material> material; 
+	vx::StringID animationSid;
+	vx::Transform transform;
+	PhysxRigidBodyType rigidBodyType;
+};
 
 class MeshInstance
 {
@@ -46,12 +52,13 @@ class MeshInstance
 	Reference<Material> m_material;
 	vx::StringID m_animationSid;
 	vx::Transform m_transform;
+	PhysxRigidBodyType m_rigidBodyType;
 
 public:
 	MeshInstance();
 	MeshInstance(const MeshInstance &rhs);
 	MeshInstance(MeshInstance &&rhs);
-	MeshInstance(const vx::StringID &nameSid, const vx::StringID &meshSid, const Reference<Material> &material, const vx::StringID &animationSid, const vx::Transform &transform);
+	MeshInstance(const MeshInstanceDesc &desc);
 	~MeshInstance();
 
 	MeshInstance& operator=(const MeshInstance &rhs);
@@ -62,6 +69,7 @@ public:
 	const Reference<Material>& getMaterial() const noexcept;
 	vx::StringID getAnimationSid() const noexcept{ return m_animationSid; }
 	const vx::Transform& getTransform() const noexcept { return m_transform; }
+	PhysxRigidBodyType getRigidBodyType() const { return m_rigidBodyType; }
 
 	void setTranslation(const vx::float3 &translation);
 	void setRotation(const vx::float4 &qRotation) { m_transform.m_qRotation = qRotation; }
@@ -69,4 +77,5 @@ public:
 	void setNameSid(const vx::StringID &sid) { m_nameSid = sid; }
 	void setMeshSid(const vx::StringID &sid) { m_meshSid = sid; }
 	void setAnimationSid(const vx::StringID &sid) { m_animationSid = sid; }
+	void setRigidBodyType(PhysxRigidBodyType type) { m_rigidBodyType = type; }
 };

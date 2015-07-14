@@ -26,7 +26,11 @@ SOFTWARE.
 #if defined(_DEBUG_STATIC_BUILD)
 
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
+#if _VX_MEM_PROFILE
+#pragma comment(lib, "vxLibMEMPROFILE_sd.lib")
+#else
 #pragma comment(lib, "vxLib_sd.lib")
+#endif
 
 #ifdef _VX_EDITOR
 #pragma comment(lib, "vxResourceAspect_editor_d.lib")
@@ -47,7 +51,11 @@ SOFTWARE.
 #endif
 
 #elif defined(_RELEASE_STATIC_BUILD)
+#if _VX_MEM_PROFILE
+#pragma comment(lib, "vxLibMEMPROFILE_s.lib")
+#else
 #pragma comment(lib, "vxLib_s.lib")
+#endif
 #pragma comment(lib, "vxEngineLib.lib")
 #pragma comment(lib, "vxResourceAspect.lib")
 

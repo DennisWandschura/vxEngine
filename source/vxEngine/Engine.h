@@ -37,7 +37,9 @@ SOFTWARE.*/
 #include <vxEngineLib/Scene.h>
 #include "ActionManager.h"
 #include "TaskManager.h"
-#include "AllocationManager.h"
+#if _VX_MEM_PROFILE
+#include <vxLib/Allocator/AllocationProfiler.h>
+#endif
 #if _VX_AUDIO
 #include <vxAudio/AudioAspect.h>
 #endif
@@ -56,7 +58,9 @@ class Engine
 	FileAspect m_fileAspect;
 	std::atomic_uint m_bRunFileThread;
 	std::atomic_uint m_bRunRenderThread;
-	AllocationManager m_allocManager;
+#if _VX_MEM_PROFILE
+	vx::AllocationProfiler m_allocManager;
+#endif
 	vx::StackAllocator m_allocator;
 	u32 m_shutdown;
 	vx::thread m_fileAspectThread;

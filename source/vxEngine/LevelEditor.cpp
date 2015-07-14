@@ -543,5 +543,20 @@ namespace Editor
 	{
 		return g_pEditor->engine.getAnimationSidIndex(i);
 	}
+
+	u32 getMeshPhysxType(u64 sid)
+	{
+		return g_pEditor->engine.getMeshPhysxType(sid);
+	}
+
+	void setMeshPhysxType(u64 sid, u32 type)
+	{
+		g_pEditor->engine.setMeshPhysxType(sid, type);
+	}
+
+	u32 getMeshInstanceRigidBodyType(u64 sid)
+	{
+		return g_pEditor->engine.getMeshInstanceRigidBodyType(sid);
+	}
 }
 #endif

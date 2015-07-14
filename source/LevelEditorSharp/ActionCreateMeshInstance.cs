@@ -8,10 +8,10 @@ namespace LevelEditor
 {
     class ActionCreateMeshInstance : Action
     {
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
         ulong m_instanceSid;
 
-        public ActionCreateMeshInstance(Form1 form)
+        public ActionCreateMeshInstance(EditorForm form)
         {
             m_editorForm = form;
             m_instanceSid = 0;

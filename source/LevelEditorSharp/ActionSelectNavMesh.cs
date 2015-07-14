@@ -31,13 +31,13 @@ namespace LevelEditor
 {
     class ActionSelectNavMesh : Action
     {
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
         int m_mouseX, m_mouseY;
         int m_hasPrevSelected;
         Float3 m_lastPosition;
         bool m_selected;
 
-        public ActionSelectNavMesh(Form1 editorForm)
+        public ActionSelectNavMesh(EditorForm editorForm)
         {
             m_editorForm = editorForm;
             m_mouseX = 0;

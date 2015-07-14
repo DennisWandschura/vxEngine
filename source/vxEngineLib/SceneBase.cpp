@@ -30,6 +30,7 @@ SOFTWARE.
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/Animation.h>
+#include <vxEngineLib/MeshFile.h>
 
 SceneBaseParams::SceneBaseParams()
 {
@@ -186,7 +187,7 @@ const Reference<Material>* SceneBase::getMaterial(const vx::StringID &sid) const
 	return result;
 }
 
-const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& SceneBase::getMeshes() const
+const vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>& SceneBase::getMeshes() const
 {
 	return m_meshes;
 }

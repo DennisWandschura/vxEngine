@@ -43,7 +43,7 @@ namespace LevelEditor
         }
     }
 
-    class EditorEntry
+    public class EditorEntry
     {
         string m_text;
         public ulong m_sid;

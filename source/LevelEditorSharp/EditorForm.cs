@@ -35,7 +35,7 @@ namespace LevelEditor
 {
     public enum EditorState { EditMesh, EditNavMesh, EditLights, EditSpawns, EditWaypoints };
 
-    public partial class Form1 : Form
+    public partial class EditorForm : Form
     {
         const string s_textEditMesh = "Edit Mesh";
         const string s_textEditNavMesh = "Edit Nav Mesh";
@@ -52,7 +52,7 @@ namespace LevelEditor
         const uint s_typeFbx = 4;
         const uint s_typeAnimation = 5;
 
-        static Form1 s_form;
+        static EditorForm s_form;
 
         public delegate void LoadedFileFun(UInt64 sid, UInt32 type);
 
@@ -74,6 +74,8 @@ namespace LevelEditor
         string m_currentSceneFileName;
         ulong m_selectedMeshInstanceSid;
         FileBrowser m_fileBrowser;
+        MeshInfoControl m_meshInfoControl;
+        MeshInstanceDataControl m_meshInstanceDataControl;
 
         Dictionary<ulong, string> m_requestedFiles;
         Dictionary<ulong, EditorNodeEntry> m_sortedMeshInstances;
@@ -84,9 +86,12 @@ namespace LevelEditor
         ActionList m_actionListHead;
         uint m_selectedSpawn;
 
-        public Form1()
+        public EditorForm()
         {
             InitializeComponent();
+
+            m_meshInfoControl = new MeshInfoControl(this);
+            m_meshInstanceDataControl = new MeshInstanceDataControl(this);
 
             m_meshNode = treeView_entities.Nodes.Add("Meshes");
             m_materialNode = treeView_entities.Nodes.Add("Materials");
@@ -96,8 +101,6 @@ namespace LevelEditor
 
             treeView_entities.Nodes.Add("Lights");
             m_currentSceneFileName = "untitled.scene";
-
-            groupBoxMesh.Hide();
 
             m_requestedFiles = new Dictionary<ulong, string>();
             m_sortedMeshInstances = new Dictionary<ulong, EditorNodeEntry>();
@@ -152,16 +155,23 @@ namespace LevelEditor
 
             groupBoxNavMesh.Hide();
             groupBoxNavMesh.Location = p;
-            groupBoxMesh.Location = p;
+
+            m_meshInstanceDataControl.Parent = this;
+            m_meshInstanceDataControl.Hide();
+            m_meshInstanceDataControl.Location = p;
 
             groupBoxLight.Hide();
             groupBoxLight.Location = p;
 
             groupBoxSpawn.Hide();
             groupBoxSpawn.Location = p;
+
+            m_meshInfoControl.Parent = this;
+            m_meshInfoControl.Hide();
+            m_meshInfoControl.Location = p;
         }
 
-        ~Form1()
+        ~EditorForm()
         {
         }
 
@@ -500,9 +510,10 @@ namespace LevelEditor
 
         void addSceneMeshes()
         {
-            meshInstanceComboBoxMesh.Items.Clear();
             m_sortedMeshes.Clear();
             m_meshNode.Nodes.Clear();
+
+            m_meshInstanceDataControl.clearMeshEntries();
 
             var meshCount = NativeMethods.getMeshCount();
             for (uint i = 0; i < meshCount; ++i)
@@ -520,8 +531,9 @@ namespace LevelEditor
             EditorEntry entry = new EditorEntry(name, sid);
 
             m_meshNode.Nodes.Add(meshEntry);
-            meshInstanceComboBoxMesh.Items.Add(entry);
             m_sortedMeshes.Add(meshEntry.sid, entry);
+
+            m_meshInstanceDataControl.addMeshEntry(entry);
         }
 
         void addMesh(ulong sid, string name)
@@ -590,7 +602,7 @@ namespace LevelEditor
 
         void addSceneMaterials()
         {
-            meshInstanceComboBoxMaterial.Items.Clear();
+            m_meshInstanceDataControl.clearMaterialEntries();
             m_sortedMaterials.Clear();
             m_materialNode.Nodes.Clear();
 
@@ -610,8 +622,9 @@ namespace LevelEditor
             var entry = new EditorEntry(name, sid);
 
             m_materialNode.Nodes.Add(nodeEntry);
-            meshInstanceComboBoxMaterial.Items.Add(entry);
             m_sortedMaterials.Add(nodeEntry.sid, entry);
+
+            m_meshInstanceDataControl.addMaterialEntry(entry);
         }
 
         void addMaterial(ulong sid, string name)
@@ -638,8 +651,9 @@ namespace LevelEditor
             var entry = new EditorEntry(name, sid);
 
             m_animationsNode.Nodes.Add(nodeEntry);
-            comboBoxAnimation.Items.Add(entry);
             m_sortedAnimations.Add(nodeEntry.sid, entry);
+
+            m_meshInstanceDataControl.addAnimationEntry(entry);
         }
 
         void loadedFile(UInt64 sid, UInt32 type)
@@ -725,41 +739,26 @@ namespace LevelEditor
             {
                 m_requestedFiles.Add(sid, filename);
 
-                NativeMethods.loadFile(filename, s_typeMesh, Form1.loadFileCallback);
+                NativeMethods.loadFile(filename, s_typeMesh, EditorForm.loadFileCallback);
             }
             else if (extension == ".material")
             {
                 m_requestedFiles.Add(sid, filename);
 
-                NativeMethods.loadFile(filename, s_typeMaterial, Form1.loadFileCallback);
+                NativeMethods.loadFile(filename, s_typeMaterial, EditorForm.loadFileCallback);
             }
             else if (extension == ".fbx")
             {
                 m_requestedFiles.Add(sid, filename);
 
-                NativeMethods.loadFile(filename, s_typeFbx, Form1.loadFileCallback);
+                NativeMethods.loadFile(filename, s_typeFbx, EditorForm.loadFileCallback);
             }
             else if (extension == ".animation")
             {
                 m_requestedFiles.Add(sid, filename);
 
-                NativeMethods.loadFile(filename, s_typeAnimation, Form1.loadFileCallback);
+                NativeMethods.loadFile(filename, s_typeAnimation, EditorForm.loadFileCallback);
             }
-        }
-
-        void setNumericUpDownTranslation(Float3 translation)
-        {
-            numericUpDown_translation_x.Value = (decimal)translation.x;
-            numericUpDown_translation_y.Value = (decimal)translation.y;
-            numericUpDown_translation_z.Value = (decimal)translation.z;
-        }
-
-        void setNumericUpDownRotation(Float3 rotation)
-        {
-            Console.WriteLine("setNumericUpDownRotation");
-            numericUpDown_rot_x.Value = (decimal)rotation.x;
-            numericUpDown_rot_y.Value = (decimal)rotation.y;
-            numericUpDown_rot_z.Value = (decimal)rotation.z;
         }
 
         void setNumericUpDownNavMeshPosition(Float3 translation)
@@ -781,15 +780,15 @@ namespace LevelEditor
 
             NativeMethods.getMeshInstanceRotation(sid, ref rotation);
 
-            setNumericUpDownTranslation(translation);
-            setNumericUpDownRotation(rotation);
+            m_meshInstanceDataControl.setTranslation(translation);
+            m_meshInstanceDataControl.setRotation(rotation);
         }
 
         void updateGuiSelectedMeshInstance(ulong sid)
         {
             getMeshInstanceTransform(sid);
 
-            textBoxMeshName.Text = NativeMethods.getSelectedMeshInstanceName();
+            m_meshInstanceDataControl.setInstanceName(NativeMethods.getSelectedMeshInstanceName());
 
             var materialSid = NativeMethods.getMeshInstanceMaterialSid(sid);
             var meshSid = NativeMethods.getMeshInstanceMeshSid(sid);
@@ -798,7 +797,7 @@ namespace LevelEditor
             EditorEntry entry;
             if (m_sortedMeshes.TryGetValue(meshSid, out entry))
             {
-                meshInstanceComboBoxMesh.SelectedItem = entry;
+                m_meshInstanceDataControl.setMesh(entry);
             }
             else
             {
@@ -807,7 +806,7 @@ namespace LevelEditor
 
             if (m_sortedMaterials.TryGetValue(materialSid, out entry))
             {
-                meshInstanceComboBoxMaterial.SelectedItem = entry;
+                m_meshInstanceDataControl.setMaterial(entry);
             }
             else
             {
@@ -816,11 +815,12 @@ namespace LevelEditor
 
             if (m_sortedAnimations.TryGetValue(animSid, out entry))
             {
-                comboBoxAnimation.SelectedItem = entry;
+                m_meshInstanceDataControl.setAnimation(entry);
             }
             else
             {
-                Console.WriteLine("Error getting instance animation name: {0}", animSid);
+                m_meshInstanceDataControl.setAnimation(null);
+                //Console.WriteLine("Error getting instance animation name: {0}", animSid);
             }
         }
 
@@ -834,13 +834,8 @@ namespace LevelEditor
             toolStripButtonCreateMeshInstance.Visible = false;
         }
 
-        private void setMeshInstancePosition()
+        public void setMeshInstancePosition(Float3 translation)
         {
-            Float3 translation;
-            translation.x = (float)numericUpDown_translation_x.Value;
-            translation.y = (float)numericUpDown_translation_y.Value;
-            translation.z = (float)numericUpDown_translation_z.Value;
-
             var sid = NativeMethods.getSelectedMeshInstanceSid();
 
             if (m_selectedMeshInstanceSid == sid)
@@ -850,13 +845,8 @@ namespace LevelEditor
             }
         }
 
-        private void setMeshInstanceRotation()
+        public void setMeshInstanceRotation(Float3 rotation)
         {
-            Float3 rotation;
-            rotation.x = (float)numericUpDown_rot_x.Value;
-            rotation.y = (float)numericUpDown_rot_y.Value;
-            rotation.z = (float)numericUpDown_rot_z.Value;
-
             var sid = NativeMethods.getSelectedMeshInstanceSid();
 
             if (m_selectedMeshInstanceSid == sid)
@@ -866,8 +856,33 @@ namespace LevelEditor
             }
         }
 
+        void onGetMeshPhysxType(ulong sid, string name)
+        {
+            var type = NativeMethods.getMeshPhysxType(sid);
+
+            m_meshInfoControl.setPhysxType(type);
+
+            m_meshInfoControl.setName(name);
+            m_meshInfoControl.Show();
+        }
+
+        public void setMeshPhysxType(uint type)
+        {
+            EditorNodeEntry entry = (EditorNodeEntry)treeView_entities.SelectedNode;
+            if (entry.type == s_typeMesh)
+            {
+                var currentType = NativeMethods.getMeshPhysxType(entry.sid);
+
+                if (currentType != type)
+                {
+                    NativeMethods.setMeshPhysxType(entry.sid, type);
+                }
+            }
+        }
+
         private void treeView_entities_AfterSelect(object sender, TreeViewEventArgs e)
         {
+            m_meshInfoControl.Hide();
             try
             {
                 EditorNodeEntry entry = (EditorNodeEntry)treeView_entities.SelectedNode;
@@ -883,28 +898,17 @@ namespace LevelEditor
 
                     m_selectedMeshInstanceSid = newSelectedSid;
 
-                    groupBoxMesh.Show();
+                    m_meshInstanceDataControl.Show();
+                }
+                else if (entry.type == s_typeMesh)
+                {
+                    onGetMeshPhysxType(entry.sid, entry.Text);
                 }
             }
             catch
             {
-                groupBoxMesh.Hide();
+                m_meshInstanceDataControl.Hide();
             }
-        }
-
-        private void numericUpDown_translation_x_ValueChanged(object sender, EventArgs e)
-        {
-            setMeshInstancePosition();
-        }
-
-        private void numericUpDown_translation_y_ValueChanged(object sender, EventArgs e)
-        {
-            setMeshInstancePosition();
-        }
-
-        private void numericUpDown_translation_z_ValueChanged(object sender, EventArgs e)
-        {
-            setMeshInstancePosition();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -986,7 +990,7 @@ namespace LevelEditor
             var sid = NativeMethods.deselectMeshInstance();
 
             treeView_entities.SelectedNode = null;
-            groupBoxMesh.Hide();
+            m_meshInstanceDataControl.Hide();
 
             return sid;
         }
@@ -1236,7 +1240,7 @@ namespace LevelEditor
             {
                 m_requestedFiles.Add(sid, filename);
 
-                NativeMethods.loadFile(filename, s_typeScene, Form1.loadFileCallback);
+                NativeMethods.loadFile(filename, s_typeScene, EditorForm.loadFileCallback);
                 m_currentSceneFileName = filename;
 
                 this.Text = "vxEditor: " + filename;
@@ -1297,7 +1301,7 @@ namespace LevelEditor
 
         private void comboBox_selectEditorMode_Click(object sender, EventArgs e)
         {
-
+            var item = comboBox_selectEditorMode.SelectedItem;
         }
 
         public bool isMouseDown()
@@ -1402,14 +1406,7 @@ namespace LevelEditor
             getLightData();
         }
 
-        private void meshInstanceComboBoxMaterial_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            EditorEntry item = (EditorEntry)meshInstanceComboBoxMaterial.SelectedItem;
-
-            setMeshInstanceMaterial(item.m_sid);
-        }
-
-        void setMeshInstanceMaterial(ulong materialSid)
+        public void setMeshInstanceMaterial(ulong materialSid)
         {
             var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
 
@@ -1425,7 +1422,7 @@ namespace LevelEditor
             }
         }
 
-        void setMeshInstanceAnimation(ulong animSid)
+        public void setMeshInstanceAnimation(ulong animSid)
         {
             var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
 
@@ -1451,32 +1448,6 @@ namespace LevelEditor
                 nodeEntry.Text = newName;
                 m_sortedMeshInstances.Add(newSid, nodeEntry);
             }
-        }
-
-        private void textBoxMeshName_TextChanged(object sender, EventArgs e)
-        {
-            var oldSid = NativeMethods.getSelectedMeshInstanceSid();
-
-            if (oldSid != 0)
-            {
-                var oldName = NativeMethods.getSelectedMeshInstanceName();
-
-                var newName = textBoxMeshName.Text;
-                var newSid = NativeMethods.getSid(newName);
-
-                if (newSid != oldSid)
-                {
-                    //ActionRenameSelectedMeshInstance action = new ActionRenameSelectedMeshInstance(oldName, oldSid, newName, newSid, this);
-
-                    //runAction(action);
-                    throw new Exception("not properly implemented yet");
-                }
-            }
-        }
-
-        private void textBoxMeshName_MouseLeave(object sender, EventArgs e)
-        {
-            label6.Focus();
         }
 
         private void toolStripButtonCreateMeshInstance_Click(object sender, EventArgs e)
@@ -1528,33 +1499,7 @@ namespace LevelEditor
         {
         }
 
-        private void numericUpDown_rot_x_ValueChanged(object sender, EventArgs e)
-        {
-            setMeshInstanceRotation();
-        }
-
-        private void numericUpDown_rot_y_ValueChanged(object sender, EventArgs e)
-        {
-            setMeshInstanceRotation();
-        }
-
-        private void numericUpDown_rot_z_ValueChanged(object sender, EventArgs e)
-        {
-            setMeshInstanceRotation();
-        }
-
-        private void meshInstanceComboBoxMesh_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            EditorEntry entry = (EditorEntry)meshInstanceComboBoxMesh.SelectedItem;
-
-            var newMeshSid = entry.m_sid;
-
-            var meshInstanceSid = NativeMethods.getSelectedMeshInstanceSid();
-
-            setMeshInstanceMesh(meshInstanceSid, newMeshSid);
-        }
-
-        void setMeshInstanceMesh(ulong meshInstanceSid, ulong newMeshSid)
+        public void setMeshInstanceMesh(ulong meshInstanceSid, ulong newMeshSid)
         {
             if (m_selectedMeshInstanceSid == meshInstanceSid)
             {
@@ -1629,17 +1574,6 @@ namespace LevelEditor
         private void toolStripButtonCreateSpawn_Click(object sender, EventArgs e)
         {
             NativeMethods.addSpawn();
-        }
-
-        private void comboBoxAnimation_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            EditorEntry entry = (EditorEntry)comboBoxAnimation.SelectedItem;
-            setMeshInstanceAnimation(entry.m_sid);
-        }
-
-        private void importFbxToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }

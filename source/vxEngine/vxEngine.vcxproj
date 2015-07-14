@@ -85,7 +85,7 @@
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;_DEBUG_STATIC_BUILD;_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_WINDOWS;_VX_ASSERT;NOMINMAX;_WINDOWS;_VX_PROFILER;_PHYSX_CHECKED;_DEBUG_STATIC_BUILD;_CRT_SECURE_NO_WARNINGS;_DEBUG;_VX_MEM_PROFILE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -180,7 +180,6 @@
     <ClInclude Include="ActionUpdateGpuTransform.h" />
     <ClInclude Include="ActorAspect.h" />
     <ClInclude Include="ai\Squad.h" />
-    <ClInclude Include="AllocationManager.h" />
     <ClInclude Include="CollisionAvoidance.h" />
     <ClInclude Include="ComponentActorManager.h" />
     <ClInclude Include="ComponentInputManager.h" />
@@ -293,7 +292,6 @@
     <ClCompile Include="Align.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="AllocationManager.cpp" />
     <ClCompile Include="Arrive.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

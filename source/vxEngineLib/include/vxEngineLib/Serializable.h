@@ -40,6 +40,9 @@ namespace vx
 	{
 		u32 m_version;
 
+	protected:
+		void setVersion(u32 version){ m_version = version; }
+
 	public:
 		explicit Serializable(u32 version) :m_version(version){}
 		Serializable(const Serializable &rhs) :m_version(rhs.m_version){}

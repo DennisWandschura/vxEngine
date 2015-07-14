@@ -63,6 +63,9 @@ class MeshInstance;
 #include <vxLib/math/Vector.h>
 #include <vector>
 
+enum class PhsyxMeshType : u32;
+enum class PhysxRigidBodyType : u8;
+
 class UserErrorCallback : public physx::PxErrorCallback
 {
 public:
@@ -75,12 +78,12 @@ class PhysicsAspect : public vx::EventListener
 	static physx::PxDefaultAllocator s_defaultAllocatorCallback;
 
 protected:
-	enum class MeshType { Static, Dynamic };
 
 	physx::PxScene* m_pScene;
 	physx::PxControllerManager* m_pControllerManager;
 	physx::PxMaterial* m_pActorMaterial{ nullptr };
 	physx::PxPhysics *m_pPhysics;
+	vx::sorted_vector<vx::StringID, PhsyxMeshType> m_physxMeshTypes;
 	vx::sorted_vector<vx::StringID, physx::PxConvexMesh*> m_physxConvexMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxTriangleMesh*> m_physxMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxMaterial*> m_physxMaterials;
@@ -90,10 +93,13 @@ protected:
 	physx::PxDefaultCpuDispatcher* m_pCpuDispatcher;
 	physx::PxCooking* m_pCooking;
 
-	physx::PxTriangleMesh* processTriangleMesh(const vx::MeshFile* pMesh);
-	physx::PxConvexMesh* processMeshConvex(const vx::MeshFile* pMesh);
-	bool processMesh(const vx::StringID &sid, const vx::MeshFile* pMesh, bool* isTriangleMesh);
+	physx::PxTriangleMesh* processTriangleMesh(const vx::MeshFile &mesh);
+	physx::PxConvexMesh* processMeshConvex(const vx::MeshFile &mesh);
+	bool addMesh(const vx::StringID &sid, const vx::MeshFile &meshFile);
 	void processScene(const Scene* pScene);
+
+	physx::PxConvexMesh* getConvexMesh(const vx::StringID &sid, const vx::MeshFile &meshFile);
+	physx::PxTriangleMesh* getTriangleMesh(const vx::StringID &sid, const vx::MeshFile &meshFile);
 
 	//////////////// handle Events
 	void handleFileEvent(const vx::Event &evt);
@@ -102,7 +108,7 @@ protected:
 
 	void addDynamicMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid);
 	void addStaticMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid);
-	void addMeshInstance(const MeshInstance &instance, MeshType type);
+	void addMeshInstance(const MeshInstance &instance);
 
 	vx::StringID raycast_static(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
 

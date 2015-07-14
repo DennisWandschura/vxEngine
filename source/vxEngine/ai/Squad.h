@@ -27,7 +27,11 @@ struct Waypoint;
 struct Entity;
 class InfluenceMap;
 class NavMeshGraph;
-class AllocationManager;
+
+namespace vx
+{
+	class AllocationProfiler;
+}
 
 namespace Component
 {
@@ -69,7 +73,7 @@ namespace ai
 		Squad();
 		~Squad();
 
-		void initialize(vx::StackAllocator* allocator, AllocationManager* allocationManager);
+		void initialize(vx::StackAllocator* allocator, vx::AllocationProfiler* allocationManager);
 
 		bool addEntity(Entity* entity, Component::Actor* actorComponent, Component::Physics* componentPhysics);
 

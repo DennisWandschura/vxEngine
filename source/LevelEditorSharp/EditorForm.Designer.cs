@@ -23,7 +23,7 @@ SOFTWARE.
 */
 namespace LevelEditor
 {
-    partial class Form1
+    partial class EditorForm
     {
         /// <summary>
         /// Required designer variable.
@@ -51,7 +51,7 @@ namespace LevelEditor
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EditorForm));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importAssetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -71,35 +71,6 @@ namespace LevelEditor
             this.panel_render = new System.Windows.Forms.Panel();
             this.openFileDialog_importAsset = new System.Windows.Forms.OpenFileDialog();
             this.treeView_entities = new System.Windows.Forms.TreeView();
-            this.numericUpDown_translation_x = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown_translation_y = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown_translation_z = new System.Windows.Forms.NumericUpDown();
-            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.label1 = new System.Windows.Forms.Label();
-            this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
-            this.numericUpDown_rot_z = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown_rot_y = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown_rot_x = new System.Windows.Forms.NumericUpDown();
-            this.label2 = new System.Windows.Forms.Label();
-            this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
-            this.numericUpDown_scale_z = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown_scale_y = new System.Windows.Forms.NumericUpDown();
-            this.numericUpDown_scale_x = new System.Windows.Forms.NumericUpDown();
-            this.label3 = new System.Windows.Forms.Label();
-            this.groupBoxMesh = new System.Windows.Forms.GroupBox();
-            this.flowLayoutPanel8 = new System.Windows.Forms.FlowLayoutPanel();
-            this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
-            this.textBoxMeshName = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.flowLayoutPanel9 = new System.Windows.Forms.FlowLayoutPanel();
-            this.meshInstanceComboBoxMesh = new System.Windows.Forms.ComboBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
-            this.meshInstanceComboBoxMaterial = new System.Windows.Forms.ComboBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.flowLayoutPanel14 = new System.Windows.Forms.FlowLayoutPanel();
-            this.comboBoxAnimation = new System.Windows.Forms.ComboBox();
-            this.label13 = new System.Windows.Forms.Label();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.comboBox_selectEditorMode = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripButtonCreateLight = new System.Windows.Forms.ToolStripButton();
@@ -136,24 +107,6 @@ namespace LevelEditor
             this.numericUpDownSpawnPosY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosZ = new System.Windows.Forms.NumericUpDown();
             this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_x)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_y)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_z)).BeginInit();
-            this.flowLayoutPanel1.SuspendLayout();
-            this.flowLayoutPanel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_rot_z)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_rot_y)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_rot_x)).BeginInit();
-            this.flowLayoutPanel3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_z)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_y)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_x)).BeginInit();
-            this.groupBoxMesh.SuspendLayout();
-            this.flowLayoutPanel8.SuspendLayout();
-            this.flowLayoutPanel6.SuspendLayout();
-            this.flowLayoutPanel9.SuspendLayout();
-            this.flowLayoutPanel7.SuspendLayout();
-            this.flowLayoutPanel14.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionY)).BeginInit();
@@ -340,422 +293,6 @@ namespace LevelEditor
             this.treeView_entities.Size = new System.Drawing.Size(280, 398);
             this.treeView_entities.TabIndex = 2;
             this.treeView_entities.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView_entities_AfterSelect);
-            // 
-            // numericUpDown_translation_x
-            // 
-            this.numericUpDown_translation_x.DecimalPlaces = 4;
-            this.numericUpDown_translation_x.Location = new System.Drawing.Point(60, 3);
-            this.numericUpDown_translation_x.Maximum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            0});
-            this.numericUpDown_translation_x.Minimum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            -2147483648});
-            this.numericUpDown_translation_x.Name = "numericUpDown_translation_x";
-            this.numericUpDown_translation_x.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDown_translation_x.TabIndex = 3;
-            this.numericUpDown_translation_x.ValueChanged += new System.EventHandler(this.numericUpDown_translation_x_ValueChanged);
-            // 
-            // numericUpDown_translation_y
-            // 
-            this.numericUpDown_translation_y.DecimalPlaces = 4;
-            this.numericUpDown_translation_y.Location = new System.Drawing.Point(166, 3);
-            this.numericUpDown_translation_y.Maximum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            0});
-            this.numericUpDown_translation_y.Minimum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            -2147483648});
-            this.numericUpDown_translation_y.Name = "numericUpDown_translation_y";
-            this.numericUpDown_translation_y.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDown_translation_y.TabIndex = 4;
-            this.numericUpDown_translation_y.ValueChanged += new System.EventHandler(this.numericUpDown_translation_y_ValueChanged);
-            // 
-            // numericUpDown_translation_z
-            // 
-            this.numericUpDown_translation_z.DecimalPlaces = 4;
-            this.numericUpDown_translation_z.Location = new System.Drawing.Point(272, 3);
-            this.numericUpDown_translation_z.Maximum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            0});
-            this.numericUpDown_translation_z.Minimum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            -2147483648});
-            this.numericUpDown_translation_z.Name = "numericUpDown_translation_z";
-            this.numericUpDown_translation_z.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDown_translation_z.TabIndex = 5;
-            this.numericUpDown_translation_z.ValueChanged += new System.EventHandler(this.numericUpDown_translation_z_ValueChanged);
-            // 
-            // flowLayoutPanel1
-            // 
-            this.flowLayoutPanel1.AutoSize = true;
-            this.flowLayoutPanel1.Controls.Add(this.numericUpDown_translation_z);
-            this.flowLayoutPanel1.Controls.Add(this.numericUpDown_translation_y);
-            this.flowLayoutPanel1.Controls.Add(this.numericUpDown_translation_x);
-            this.flowLayoutPanel1.Controls.Add(this.label1);
-            this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 3);
-            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(375, 26);
-            this.flowLayoutPanel1.TabIndex = 7;
-            // 
-            // label1
-            // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(51, 26);
-            this.label1.TabIndex = 8;
-            this.label1.Text = "Translate";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // flowLayoutPanel2
-            // 
-            this.flowLayoutPanel2.AutoSize = true;
-            this.flowLayoutPanel2.Controls.Add(this.numericUpDown_rot_z);
-            this.flowLayoutPanel2.Controls.Add(this.numericUpDown_rot_y);
-            this.flowLayoutPanel2.Controls.Add(this.numericUpDown_rot_x);
-            this.flowLayoutPanel2.Controls.Add(this.label2);
-            this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 35);
-            this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(363, 26);
-            this.flowLayoutPanel2.TabIndex = 9;
-            // 
-            // numericUpDown_rot_z
-            // 
-            this.numericUpDown_rot_z.DecimalPlaces = 4;
-            this.numericUpDown_rot_z.Location = new System.Drawing.Point(260, 3);
-            this.numericUpDown_rot_z.Maximum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            0});
-            this.numericUpDown_rot_z.Minimum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            -2147483648});
-            this.numericUpDown_rot_z.Name = "numericUpDown_rot_z";
-            this.numericUpDown_rot_z.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDown_rot_z.TabIndex = 5;
-            this.numericUpDown_rot_z.ValueChanged += new System.EventHandler(this.numericUpDown_rot_z_ValueChanged);
-            // 
-            // numericUpDown_rot_y
-            // 
-            this.numericUpDown_rot_y.DecimalPlaces = 4;
-            this.numericUpDown_rot_y.Location = new System.Drawing.Point(154, 3);
-            this.numericUpDown_rot_y.Maximum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            0});
-            this.numericUpDown_rot_y.Minimum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            -2147483648});
-            this.numericUpDown_rot_y.Name = "numericUpDown_rot_y";
-            this.numericUpDown_rot_y.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDown_rot_y.TabIndex = 4;
-            this.numericUpDown_rot_y.ValueChanged += new System.EventHandler(this.numericUpDown_rot_y_ValueChanged);
-            // 
-            // numericUpDown_rot_x
-            // 
-            this.numericUpDown_rot_x.DecimalPlaces = 4;
-            this.numericUpDown_rot_x.Location = new System.Drawing.Point(48, 3);
-            this.numericUpDown_rot_x.Maximum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            0});
-            this.numericUpDown_rot_x.Minimum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            -2147483648});
-            this.numericUpDown_rot_x.Name = "numericUpDown_rot_x";
-            this.numericUpDown_rot_x.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDown_rot_x.TabIndex = 3;
-            this.numericUpDown_rot_x.ValueChanged += new System.EventHandler(this.numericUpDown_rot_x_ValueChanged);
-            // 
-            // label2
-            // 
-            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 0);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(39, 26);
-            this.label2.TabIndex = 8;
-            this.label2.Text = "Rotate";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // flowLayoutPanel3
-            // 
-            this.flowLayoutPanel3.AutoSize = true;
-            this.flowLayoutPanel3.Controls.Add(this.numericUpDown_scale_z);
-            this.flowLayoutPanel3.Controls.Add(this.numericUpDown_scale_y);
-            this.flowLayoutPanel3.Controls.Add(this.numericUpDown_scale_x);
-            this.flowLayoutPanel3.Controls.Add(this.label3);
-            this.flowLayoutPanel3.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel3.Location = new System.Drawing.Point(3, 67);
-            this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-            this.flowLayoutPanel3.Size = new System.Drawing.Size(358, 26);
-            this.flowLayoutPanel3.TabIndex = 9;
-            // 
-            // numericUpDown_scale_z
-            // 
-            this.numericUpDown_scale_z.DecimalPlaces = 4;
-            this.numericUpDown_scale_z.Location = new System.Drawing.Point(255, 3);
-            this.numericUpDown_scale_z.Maximum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            0});
-            this.numericUpDown_scale_z.Minimum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            -2147483648});
-            this.numericUpDown_scale_z.Name = "numericUpDown_scale_z";
-            this.numericUpDown_scale_z.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDown_scale_z.TabIndex = 5;
-            this.numericUpDown_scale_z.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
-            // numericUpDown_scale_y
-            // 
-            this.numericUpDown_scale_y.DecimalPlaces = 4;
-            this.numericUpDown_scale_y.Location = new System.Drawing.Point(149, 3);
-            this.numericUpDown_scale_y.Maximum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            0});
-            this.numericUpDown_scale_y.Minimum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            -2147483648});
-            this.numericUpDown_scale_y.Name = "numericUpDown_scale_y";
-            this.numericUpDown_scale_y.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDown_scale_y.TabIndex = 4;
-            this.numericUpDown_scale_y.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
-            // numericUpDown_scale_x
-            // 
-            this.numericUpDown_scale_x.DecimalPlaces = 4;
-            this.numericUpDown_scale_x.Location = new System.Drawing.Point(43, 3);
-            this.numericUpDown_scale_x.Maximum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            0});
-            this.numericUpDown_scale_x.Minimum = new decimal(new int[] {
-            50000,
-            0,
-            0,
-            -2147483648});
-            this.numericUpDown_scale_x.Name = "numericUpDown_scale_x";
-            this.numericUpDown_scale_x.Size = new System.Drawing.Size(100, 20);
-            this.numericUpDown_scale_x.TabIndex = 3;
-            this.numericUpDown_scale_x.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
-            // label3
-            // 
-            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(3, 0);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(34, 26);
-            this.label3.TabIndex = 8;
-            this.label3.Text = "Scale";
-            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // groupBoxMesh
-            // 
-            this.groupBoxMesh.Controls.Add(this.flowLayoutPanel8);
-            this.groupBoxMesh.Location = new System.Drawing.Point(1977, 668);
-            this.groupBoxMesh.Name = "groupBoxMesh";
-            this.groupBoxMesh.Size = new System.Drawing.Size(419, 268);
-            this.groupBoxMesh.TabIndex = 10;
-            this.groupBoxMesh.TabStop = false;
-            this.groupBoxMesh.Text = "Mesh Instance";
-            // 
-            // flowLayoutPanel8
-            // 
-            this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel1);
-            this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel2);
-            this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel3);
-            this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel6);
-            this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel9);
-            this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel7);
-            this.flowLayoutPanel8.Controls.Add(this.flowLayoutPanel14);
-            this.flowLayoutPanel8.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel8.Location = new System.Drawing.Point(13, 19);
-            this.flowLayoutPanel8.Name = "flowLayoutPanel8";
-            this.flowLayoutPanel8.Size = new System.Drawing.Size(391, 231);
-            this.flowLayoutPanel8.TabIndex = 18;
-            // 
-            // flowLayoutPanel6
-            // 
-            this.flowLayoutPanel6.AutoSize = true;
-            this.flowLayoutPanel6.Controls.Add(this.textBoxMeshName);
-            this.flowLayoutPanel6.Controls.Add(this.label6);
-            this.flowLayoutPanel6.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel6.Location = new System.Drawing.Point(3, 99);
-            this.flowLayoutPanel6.Name = "flowLayoutPanel6";
-            this.flowLayoutPanel6.Size = new System.Drawing.Size(185, 26);
-            this.flowLayoutPanel6.TabIndex = 19;
-            // 
-            // textBoxMeshName
-            // 
-            this.textBoxMeshName.Enabled = false;
-            this.textBoxMeshName.Location = new System.Drawing.Point(47, 3);
-            this.textBoxMeshName.MaxLength = 31;
-            this.textBoxMeshName.Name = "textBoxMeshName";
-            this.textBoxMeshName.Size = new System.Drawing.Size(135, 20);
-            this.textBoxMeshName.TabIndex = 9;
-            this.textBoxMeshName.TextChanged += new System.EventHandler(this.textBoxMeshName_TextChanged);
-            this.textBoxMeshName.MouseLeave += new System.EventHandler(this.textBoxMeshName_MouseLeave);
-            // 
-            // label6
-            // 
-            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(3, 0);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(38, 26);
-            this.label6.TabIndex = 8;
-            this.label6.Text = "Name:";
-            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // flowLayoutPanel9
-            // 
-            this.flowLayoutPanel9.AutoSize = true;
-            this.flowLayoutPanel9.Controls.Add(this.meshInstanceComboBoxMesh);
-            this.flowLayoutPanel9.Controls.Add(this.label8);
-            this.flowLayoutPanel9.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel9.Location = new System.Drawing.Point(3, 131);
-            this.flowLayoutPanel9.Name = "flowLayoutPanel9";
-            this.flowLayoutPanel9.Size = new System.Drawing.Size(252, 27);
-            this.flowLayoutPanel9.TabIndex = 21;
-            // 
-            // meshInstanceComboBoxMesh
-            // 
-            this.meshInstanceComboBoxMesh.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.meshInstanceComboBoxMesh.FormattingEnabled = true;
-            this.meshInstanceComboBoxMesh.Location = new System.Drawing.Point(45, 3);
-            this.meshInstanceComboBoxMesh.Name = "meshInstanceComboBoxMesh";
-            this.meshInstanceComboBoxMesh.Size = new System.Drawing.Size(204, 21);
-            this.meshInstanceComboBoxMesh.TabIndex = 18;
-            this.meshInstanceComboBoxMesh.SelectedIndexChanged += new System.EventHandler(this.meshInstanceComboBoxMesh_SelectedIndexChanged);
-            // 
-            // label8
-            // 
-            this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(3, 0);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(36, 27);
-            this.label8.TabIndex = 8;
-            this.label8.Text = "Mesh:";
-            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // flowLayoutPanel7
-            // 
-            this.flowLayoutPanel7.AutoSize = true;
-            this.flowLayoutPanel7.Controls.Add(this.meshInstanceComboBoxMaterial);
-            this.flowLayoutPanel7.Controls.Add(this.label7);
-            this.flowLayoutPanel7.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel7.Location = new System.Drawing.Point(3, 164);
-            this.flowLayoutPanel7.Name = "flowLayoutPanel7";
-            this.flowLayoutPanel7.Size = new System.Drawing.Size(252, 27);
-            this.flowLayoutPanel7.TabIndex = 20;
-            // 
-            // meshInstanceComboBoxMaterial
-            // 
-            this.meshInstanceComboBoxMaterial.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.meshInstanceComboBoxMaterial.FormattingEnabled = true;
-            this.meshInstanceComboBoxMaterial.Location = new System.Drawing.Point(53, 3);
-            this.meshInstanceComboBoxMaterial.Name = "meshInstanceComboBoxMaterial";
-            this.meshInstanceComboBoxMaterial.Size = new System.Drawing.Size(196, 21);
-            this.meshInstanceComboBoxMaterial.TabIndex = 18;
-            this.meshInstanceComboBoxMaterial.SelectedIndexChanged += new System.EventHandler(this.meshInstanceComboBoxMaterial_SelectedIndexChanged);
-            // 
-            // label7
-            // 
-            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(3, 0);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(44, 27);
-            this.label7.TabIndex = 8;
-            this.label7.Text = "Material";
-            this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // flowLayoutPanel14
-            // 
-            this.flowLayoutPanel14.AutoSize = true;
-            this.flowLayoutPanel14.Controls.Add(this.comboBoxAnimation);
-            this.flowLayoutPanel14.Controls.Add(this.label13);
-            this.flowLayoutPanel14.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel14.Location = new System.Drawing.Point(3, 197);
-            this.flowLayoutPanel14.Name = "flowLayoutPanel14";
-            this.flowLayoutPanel14.Size = new System.Drawing.Size(261, 27);
-            this.flowLayoutPanel14.TabIndex = 21;
-            // 
-            // comboBoxAnimation
-            // 
-            this.comboBoxAnimation.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxAnimation.FormattingEnabled = true;
-            this.comboBoxAnimation.Location = new System.Drawing.Point(62, 3);
-            this.comboBoxAnimation.Name = "comboBoxAnimation";
-            this.comboBoxAnimation.Size = new System.Drawing.Size(196, 21);
-            this.comboBoxAnimation.TabIndex = 18;
-            this.comboBoxAnimation.SelectedIndexChanged += new System.EventHandler(this.comboBoxAnimation_SelectedIndexChanged);
-            // 
-            // label13
-            // 
-            this.label13.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(3, 0);
-            this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(53, 27);
-            this.label13.TabIndex = 8;
-            this.label13.Text = "Animation";
-            this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // toolStrip1
             // 
@@ -1213,7 +750,7 @@ namespace LevelEditor
             this.numericUpDownSpawnPosZ.TabIndex = 14;
             this.numericUpDownSpawnPosZ.ValueChanged += new System.EventHandler(this.numericUpDownSpawnPosZ_ValueChanged);
             // 
-            // Form1
+            // EditorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -1223,12 +760,11 @@ namespace LevelEditor
             this.Controls.Add(this.groupBoxLight);
             this.Controls.Add(this.groupBoxNavMesh);
             this.Controls.Add(this.toolStrip1);
-            this.Controls.Add(this.groupBoxMesh);
             this.Controls.Add(this.treeView_entities);
             this.Controls.Add(this.panel_render);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.Name = "Form1";
+            this.Name = "EditorForm";
             this.Text = "vxEditor";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -1238,32 +774,6 @@ namespace LevelEditor
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseMove);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_x)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_y)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_translation_z)).EndInit();
-            this.flowLayoutPanel1.ResumeLayout(false);
-            this.flowLayoutPanel1.PerformLayout();
-            this.flowLayoutPanel2.ResumeLayout(false);
-            this.flowLayoutPanel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_rot_z)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_rot_y)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_rot_x)).EndInit();
-            this.flowLayoutPanel3.ResumeLayout(false);
-            this.flowLayoutPanel3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_z)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_y)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_scale_x)).EndInit();
-            this.groupBoxMesh.ResumeLayout(false);
-            this.flowLayoutPanel8.ResumeLayout(false);
-            this.flowLayoutPanel8.PerformLayout();
-            this.flowLayoutPanel6.ResumeLayout(false);
-            this.flowLayoutPanel6.PerformLayout();
-            this.flowLayoutPanel9.ResumeLayout(false);
-            this.flowLayoutPanel9.PerformLayout();
-            this.flowLayoutPanel7.ResumeLayout(false);
-            this.flowLayoutPanel7.PerformLayout();
-            this.flowLayoutPanel14.ResumeLayout(false);
-            this.flowLayoutPanel14.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).EndInit();
@@ -1310,22 +820,6 @@ namespace LevelEditor
         private System.Windows.Forms.ToolStripMenuItem createLightToolStripMenuItem;
         private System.Windows.Forms.OpenFileDialog openFileDialog_importAsset;
         private System.Windows.Forms.TreeView treeView_entities;
-        private System.Windows.Forms.NumericUpDown numericUpDown_translation_x;
-        private System.Windows.Forms.NumericUpDown numericUpDown_translation_y;
-        private System.Windows.Forms.NumericUpDown numericUpDown_translation_z;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.NumericUpDown numericUpDown_rot_x;
-        private System.Windows.Forms.NumericUpDown numericUpDown_rot_y;
-        private System.Windows.Forms.NumericUpDown numericUpDown_rot_z;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.NumericUpDown numericUpDown_scale_x;
-        private System.Windows.Forms.NumericUpDown numericUpDown_scale_y;
-        private System.Windows.Forms.NumericUpDown numericUpDown_scale_z;
-        private System.Windows.Forms.GroupBox groupBoxMesh;
         private System.Windows.Forms.ToolStripMenuItem saveSceneToolStripMenuItem;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripMenuItem importAssetToolStripMenuItem;
@@ -1349,16 +843,6 @@ namespace LevelEditor
         private System.Windows.Forms.NumericUpDown numericUpDownLightY;
         private System.Windows.Forms.NumericUpDown numericUpDownLightZ;
         private System.Windows.Forms.ToolStripButton toolStripButtonCreateLight;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
-        private System.Windows.Forms.TextBox textBoxMeshName;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel8;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel9;
-        private System.Windows.Forms.ComboBox meshInstanceComboBoxMesh;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel7;
-        private System.Windows.Forms.ComboBox meshInstanceComboBoxMaterial;
-        private System.Windows.Forms.Label label7;
         private System.Windows.Forms.ToolStripButton toolStripButtonCreateMeshInstance;
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem undoToolStripMenuItem;
@@ -1380,9 +864,6 @@ namespace LevelEditor
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel13;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.NumericUpDown numericUpDownSpawnType;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel14;
-        private System.Windows.Forms.ComboBox comboBoxAnimation;
-        private System.Windows.Forms.Label label13;
     }
 }
 

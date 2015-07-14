@@ -44,7 +44,7 @@ namespace vx
 		header.version = data->getVersion();
 		header.crc = data->getCrc();
 
-		printf("crc: %llu\n", header.crc);
+		//printf("crc: %llu\n", header.crc);
 
 		f->write(header);
 		data->saveToFile(f);

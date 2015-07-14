@@ -17,10 +17,7 @@ namespace physx
 #include <vxLib/File/FileHandle.h>
 #include <vector>
 
-namespace vx
-{
-	enum class PhsyxMeshType : u32;
-}
+enum class PhsyxMeshType : u32;
 
 class FbxFactory
 {
@@ -31,5 +28,5 @@ public:
 	FbxFactory();
 	~FbxFactory();
 
-	bool loadFile(const char *fbxFile, const std::string &meshDir, const std::string &animDir, vx::PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator);
+	bool loadFile(const char *fbxFile, const std::string &meshDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator);
 };

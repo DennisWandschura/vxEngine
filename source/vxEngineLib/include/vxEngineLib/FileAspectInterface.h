@@ -74,7 +74,7 @@ public:
 	virtual Reference<Material> getMaterial(const vx::StringID &sid) noexcept = 0;
 	virtual Reference<Material> getMaterial(const vx::StringID &id) const noexcept = 0;
 
-	virtual const vx::MeshFile* getMesh(const vx::StringID &sid) const noexcept = 0;
+	virtual Reference<vx::MeshFile> getMesh(const vx::StringID &sid) const noexcept = 0;
 	virtual Reference<vx::Animation> getAnimation(const vx::StringID &sid) const = 0;
 
 	virtual const char* getLoadedFileName(const vx::StringID &sid) const noexcept = 0;

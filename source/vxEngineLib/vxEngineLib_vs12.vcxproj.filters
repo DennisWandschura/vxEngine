@@ -323,5 +323,8 @@
     <ClInclude Include="include\vxEngineLib\Graphics\dds.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\PhysxEnums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

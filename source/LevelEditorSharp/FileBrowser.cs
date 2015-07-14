@@ -13,10 +13,10 @@ namespace LevelEditor
 {
     public partial class FileBrowser : Form
     {
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
         DirectoryInfo m_currentDirectoryInfo;
 
-        public FileBrowser(Form1 editorForm)
+        public FileBrowser(EditorForm editorForm)
         {
             InitializeComponent();
 
@@ -32,7 +32,12 @@ namespace LevelEditor
             comboBoxFileTypes.Items.Add(new ItemFileExtension("Mesh File", ".mesh"));
             comboBoxFileTypes.Items.Add(new ItemFileExtension("FBX File", ".fbx"));
             comboBoxFileTypes.SelectedIndex = 0;
-            //updateTreeView();
+
+            comboBoxMeshPhysxType.Items.Add("Triangle Mesh");
+            comboBoxMeshPhysxType.Items.Add("Convex Mesh");
+            comboBoxMeshPhysxType.SelectedIndex = 0;
+
+            flowLayoutPanelMesh.Hide();
         }
 
         void updateTreeView()
@@ -158,6 +163,17 @@ namespace LevelEditor
 
         private void comboBoxFileTypes_SelectedIndexChanged(object sender, EventArgs e)
         {
+            var selectedType = (ItemFileExtension)comboBoxFileTypes.SelectedItem;
+            var selectedExtension = selectedType.getExtension();
+            if (selectedExtension == ".fbx")
+            {
+                flowLayoutPanelMesh.Show();
+            }
+            else
+            {
+                flowLayoutPanelMesh.Hide();
+            }
+
             updateTreeView();
         }
 

@@ -32,23 +32,12 @@ SOFTWARE.
 #include <vxEngineLib/debugPrint.h>
 
 Engine* g_pEngine{ nullptr };
-AllocationManager* g_allocationManager{nullptr};
 
-namespace
+namespace EngineCpp
 {
 	void callbackKeyPressed(u16 key)
 	{
 		g_pEngine->keyPressed(key);
-	}
-
-	void callbackAllocate(u32 size, const u8* ptr)
-	{
-		g_allocationManager->updateAllocation(ptr, size);
-	}
-
-	void callbackDellocate(u32 size, const u8* ptr)
-	{
-		g_allocationManager->updateDeallocation(ptr, size);
 	}
 }
 
@@ -64,7 +53,9 @@ Engine::Engine()
 	m_bRun(0),
 	m_fileAspect(),
 	m_bRunFileThread(),
+#if _VX_MEM_PROFILE
 	m_allocManager(),
+#endif
 	m_allocator(),
 	m_shutdown(0),
 	m_fileAspectThread(),
@@ -73,7 +64,6 @@ Engine::Engine()
 	m_destroyFn(nullptr)
 {
 	g_pEngine = this;
-	g_allocationManager = &m_allocManager;
 }
 
 Engine::~Engine()
@@ -167,7 +157,9 @@ bool Engine::initializeImpl(const std::string &dataDir)
 
 	m_allocator = vx::StackAllocator(m_memory.get(), m_memory.size());
 
+#if _VX_MEM_PROFILE
 	m_allocManager.registerAllocator(&m_allocator, "mainAllocator");
+#endif
 
 	m_eventManager.initialize(&m_allocator, 255);
 	Locator::provide(&m_eventManager);
@@ -227,7 +219,9 @@ bool Engine::initialize()
 {
 	const std::string dataDir("../data/");
 
-	vx::Allocator::setCallbacks(callbackAllocate, callbackDellocate);
+#if _VX_MEM_PROFILE
+	vx::Allocator::setProfiler(&m_allocManager);
+#endif
 
 	if (!g_engineConfig.loadFromFile("settings.txt"))
 	{
@@ -240,9 +234,13 @@ bool Engine::initialize()
 	if (!initializeImpl(dataDir))
 		return false;
 
+#if _VX_MEM_PROFILE
 	m_taskManager.initialize(&m_allocator, 1024, &m_allocManager);
+#else
+	m_taskManager.initialize(&m_allocator, 1024, nullptr);
+#endif
 
-	if (!m_systemAspect.initialize(g_engineConfig, ::callbackKeyPressed, nullptr))
+	if (!m_systemAspect.initialize(g_engineConfig, EngineCpp::callbackKeyPressed, nullptr))
 		return false;
 
 	RenderAspectDescription renderAspectDesc =
@@ -277,15 +275,24 @@ bool Engine::initialize()
 	if (!m_physicsAspect.initialize())
 		return false;
 
+#if _VX_MEM_PROFILE
 	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, &m_allocManager))
 		return false;
+#else
+	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, nullptr))
+		return false;
+#endif
 
 #if _VX_AUDIO
 	if (!m_audioAspect.initialize())
 		return false;
 #endif
 
+#if _VX_MEM_PROFILE
 	m_actorAspect.initialize(&m_allocator, &m_allocManager);
+#else
+	m_actorAspect.initialize(&m_allocator, nullptr);
+#endif
 
 	Locator::provide(&m_physicsAspect);
 	Locator::provide(m_renderAspect);
@@ -339,7 +346,9 @@ void Engine::shutdown()
 	m_allocator.clear();
 	m_allocator.release();
 
+#if _VX_MEM_PROFILE
 	m_allocManager.print();
+#endif
 
 	if (m_renderAspectDll != nullptr)
 	{

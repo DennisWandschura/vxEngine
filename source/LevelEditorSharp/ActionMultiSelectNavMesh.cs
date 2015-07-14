@@ -31,9 +31,9 @@ namespace LevelEditor
 {
     class ActionMultiSelectNavMesh : Action
     {
-        Form1 m_editorForm;
+        EditorForm m_editorForm;
 
-        public ActionMultiSelectNavMesh(Form1 editorForm)
+        public ActionMultiSelectNavMesh(EditorForm editorForm)
         {
             m_editorForm = editorForm;
         }
