@@ -316,8 +316,11 @@ namespace Editor
 					}
 					m_dynamicMeshInstances.insert(instanceSid, newBody);
 
+					m_pScene->removeActor(*(*itBody));
 					(*itBody)->release();
 					m_staticMeshInstances.erase(itBody);
+
+					m_pScene->addActor(*newBody);
 				}break;
 				case PhysxRigidBodyType::Dynamic:
 				{
@@ -334,8 +337,11 @@ namespace Editor
 					}
 					m_staticMeshInstances.insert(instanceSid, newBody);
 
+					m_pScene->removeActor(*(*itBody));
 					(*itBody)->release();
 					m_dynamicMeshInstances.erase(itBody);
+
+					m_pScene->addActor(*newBody);
 				}break;
 				default:
 					VX_ASSERT(false);
