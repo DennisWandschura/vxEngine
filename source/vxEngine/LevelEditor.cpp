@@ -563,5 +563,50 @@ namespace Editor
 	{
 		g_pEditor->engine.setMeshInstanceRigidBodyType(sid, type);
 	}
+
+	u32 getJointCount()
+	{
+		return g_pEditor->engine.getJointCount();
+	}
+
+	void getJointData(u32 i, vx::float3* p0, vx::float3* p1, u64* sid0, u64* sid1)
+	{
+		g_pEditor->engine.getJointData(i, p0, p1, sid0, sid1);
+	}
+
+	void addJoint(u64 sid)
+	{
+		g_pEditor->engine.addJoint(vx::StringID(sid));
+	}
+
+	void removeJoint(u32 index)
+	{
+		g_pEditor->engine.removeJoint(index);
+	}
+
+	bool selectJoint(s32 mouseX, s32 mouseY, u32* index)
+	{
+		return g_pEditor->engine.selectJoint(mouseX, mouseY, index);
+	}
+
+	void setJointPosition0(u32 index, const vx::float3 &p)
+	{
+		g_pEditor->engine.setJointPosition0(index, p);
+	}
+
+	void setJointPosition1(u32 index, const vx::float3 &p)
+	{
+		g_pEditor->engine.setJointPosition1(index, p);
+	}
+
+	void setJointBody0(u32 index, u64 sid)
+	{
+		g_pEditor->engine.setJointBody0(index, sid);
+	}
+
+	void setJointBody1(u32 index, u64 sid)
+	{
+		g_pEditor->engine.setJointBody1(index, sid);
+	}
 }
 #endif

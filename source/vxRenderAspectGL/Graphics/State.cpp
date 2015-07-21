@@ -29,7 +29,7 @@ namespace
 {
 	typedef void(*CapabilityFunctionProc)(vx::gl::Capabilities);
 
-	CapabilityFunctionProc g_capabilityFun[]=
+	CapabilityFunctionProc g_capabilityFun[] =
 	{
 		&vx::gl::StateManager::disable,
 		&vx::gl::StateManager::enable
@@ -38,16 +38,26 @@ namespace
 
 namespace Graphics
 {
+	enum State::GlState : u8
+	{
+		Blend,
+		Depth,
+		PolygonOffsetFill,
+		CullFace
+	};
+
 	State::State()
 		:m_fbo(0),
 		m_vao(0),
 		m_pipeline(0),
 		m_indirectBuffer(0),
 		m_paramBuffer(0),
-		m_blendState(0),
+		m_state(0 << GlState::Blend | 1 << GlState::Depth | 0 << GlState::PolygonOffsetFill | 1 << GlState::CullFace),
+		m_colorMask(1 << 0 | 1 << 1 | 1 << 2 | 1 << 3 | 1 << 4)
+		/*m_blendState(0),
 		m_depthTestState(1),
 		m_polygonOffsetFillState(0),
-		m_cullFace(1)
+		m_cullFace(1)*/
 	{
 
 	}
@@ -59,23 +69,38 @@ namespace Graphics
 
 	void State::set(const StateDescription &desc)
 	{
-		m_fbo = desc.fbo;
-		m_vao = desc.vao;
-		m_pipeline = desc.pipeline;
-		m_indirectBuffer = desc.indirectBuffer;
-		m_paramBuffer = desc.paramBuffer;
-		m_depthTestState = desc.depthState;
-		m_blendState = desc.blendState;
-		m_polygonOffsetFillState = desc.polygonOffsetFillState;
-		m_cullFace = desc.cullface;
+		m_fbo = desc.m_fbo;
+		m_vao = desc.m_vao;
+		m_pipeline = desc.m_pipeline;
+		m_indirectBuffer = desc.m_indirectBuffer;
+		m_paramBuffer = desc.m_paramBuffer;
+		/*m_depthTestState = desc.m_depthState;
+		m_blendState = desc.m_blendState;
+		m_polygonOffsetFillState = desc.m_polygonOffsetFillState;
+		m_cullFace = desc.m_cullface;*/
+		m_state = (desc.m_blendState << GlState::Blend) | (desc.m_depthState << GlState::Depth) | (desc.m_polygonOffsetFillState << GlState::PolygonOffsetFill) | (desc.m_cullface << GlState::CullFace);
+
+		m_colorMask = (desc.m_colorMask.x << 0) | (desc.m_colorMask.y << 1) | (desc.m_colorMask.z << 2) | (desc.m_colorMask.w << 3) | (desc.m_depthMask << 4);
 	}
 
 	void State::update() const
 	{
-		g_capabilityFun[m_depthTestState](vx::gl::Capabilities::Depth_Test);
-		g_capabilityFun[m_blendState](vx::gl::Capabilities::Blend);
-		g_capabilityFun[m_polygonOffsetFillState](vx::gl::Capabilities::Polygon_Offset_Fill);
-		g_capabilityFun[m_cullFace](vx::gl::Capabilities::Cull_Face);
+		auto blendState = (m_state >> GlState::Blend) & 0x1;
+		auto depthState = (m_state >> GlState::Depth) & 0x1;
+		auto polygonOffsetState = (m_state >> GlState::PolygonOffsetFill) & 0x1;
+		auto cullState = (m_state >> GlState::CullFace) & 0x1;
+
+		g_capabilityFun[blendState](vx::gl::Capabilities::Blend);
+		g_capabilityFun[depthState](vx::gl::Capabilities::Depth_Test);
+		g_capabilityFun[polygonOffsetState](vx::gl::Capabilities::Polygon_Offset_Fill);
+		g_capabilityFun[cullState](vx::gl::Capabilities::Cull_Face);
+
+		const auto mm = 1 << 0 | 1 << 1 | 1 << 2 | 1 << 3;
+		auto colorMask = m_colorMask & 0xf;
+		//vx::gl::StateManager::setColorMask(colorMask);
+
+		u8 depthMask = (m_colorMask >> 4) & 0x1;
+		//vx::gl::StateManager::setDepthMask(depthMask);
 
 		vx::gl::StateManager::bindFrameBuffer(m_fbo);
 		vx::gl::StateManager::bindVertexArray(m_vao);

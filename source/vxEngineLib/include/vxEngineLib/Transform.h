@@ -27,22 +27,6 @@ SOFTWARE.
 
 namespace vx
 {
-	struct Transform;
-
-	struct TransformOld
-	{
-		vx::float3 m_translation{ 0, 0, 0 };
-		vx::float3 m_rotation{ 0, 0, 0 };
-		f32 m_scaling{ 1.0f };
-
-		TransformOld() = default;
-
-		TransformOld(const float3 &t, const float3 &r, const f32 s)
-			:m_translation(t), m_rotation(r), m_scaling(s){}
-
-		void convertTo(Transform* transform);
-	};
-
 	struct Transform
 	{
 		vx::float3 m_translation{ 0, 0, 0 };

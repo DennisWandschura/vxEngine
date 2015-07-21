@@ -30,6 +30,9 @@ namespace Graphics
 {
 	class VolumetricLightRenderer : public Renderer
 	{
+		void createTexture();
+		void createFbo();
+
 	public:
 		VolumetricLightRenderer();
 		~VolumetricLightRenderer();

@@ -57,6 +57,8 @@ SOFTWARE.
 #include <vxEngineLib/Graphics/Texture.h>
 #include <vxEngineLib/Material.h>
 #include <vxGL/VertexArray.h>
+#include "Graphics/VolumetricLightRenderer.h"
+#include <vxEngineLib/CreateDynamicMeshData.h>
 
 #include "opencl/device.h"
 #include "opencl/image.h"
@@ -87,11 +89,53 @@ struct TaskLoadScene
 
 RenderAspect* g_renderAspect{ nullptr };
 
-namespace
+namespace RenderAspectCpp
 {
 	void __stdcall debugCallback()
 	{
 		std::abort();
+	}
+
+	f32 distancePointAABB(const vx::float3 &p, const AABB &b)
+	{
+		f32 sqDist = 0.0f;
+		for (u32 i = 0;i < 3; ++i)
+		{
+			auto v = p[i];
+
+			if (v < b.min[i])
+			{
+				sqDist += (b.min[i] - v) * (b.min[i] - v);
+			}
+
+			if (v > b.max[i])
+			{
+				sqDist += (v - b.max[i]) * (v - b.max[i]);
+			}
+		}
+
+		return sqDist;
+	}
+
+	f32 distancePointAABB2(const vx::float3 &p, const AABB &b)
+	{
+		auto vp = vx::loadFloat3(p);
+		auto bmin = vx::loadFloat3(b.min);
+		auto bmax = vx::loadFloat3(b.max);
+
+		auto vmin = _mm_min_ps(vp, bmin);
+		auto vmax = _mm_max_ps(vp, bmax);
+
+		auto vdistMin = _mm_sub_ps(bmin, vmin);
+		auto vdistMax = _mm_sub_ps(vmax, bmax);
+
+		auto d0 = vx::dot3(vdistMin, vdistMin);
+		auto d1 = vx::dot3(vdistMax, vdistMax);
+		auto dist = _mm_add_ps(d0, d1);
+
+		f32 result;
+		_mm_store_ss(&result, dist);
+		return result;
 	}
 }
 
@@ -187,6 +231,7 @@ void RenderAspect::createUniformBuffers(f32 znear, f32 zfar)
 		data.u_aabbTexture = m_pColdData->m_aabbTexture.getTextureHandle();
 		data.u_ambientSlice = m_pColdData->m_ambientColorTexture.getTextureHandle();
 		data.u_ambientImage = m_pColdData->m_ambientColorTexture.getImageHandle(0, 0, 0);
+		data.u_volumetricTexture = 0;
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -294,7 +339,7 @@ void RenderAspect::createTextures()
 		vx::gl::TextureDescription desc;
 		desc.type = vx::gl::TextureType::Texture_2D;
 		desc.format = vx::gl::TextureFormat::RGBA16F;
-		desc.size = vx::ushort3(m_resolution.x / 2, m_resolution.y / 2, 1);
+		desc.size = vx::ushort3(m_resolution.x / 4, m_resolution.y / 4, 1);
 		desc.miplevels = 1;
 		m_pColdData->m_ambientColorTexture.create(desc);
 		m_pColdData->m_ambientColorTexture.makeTextureResident();
@@ -414,7 +459,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if (desc.settings->m_renderDebug)
 	{
 		vx::gl::Debug::initialize();
-		vx::gl::Debug::setHighSeverityCallback(::debugCallback);
+		vx::gl::Debug::setHighSeverityCallback(RenderAspectCpp::debugCallback);
 		vx::gl::Debug::enableCallback(true);
 	}
 
@@ -507,6 +552,10 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		voxelRenderer->initialize(&m_allocator, nullptr);
 		m_renderer.push_back(std::move(voxelRenderer));
 	}
+
+	auto volumetricRenderer = vx::make_unique<Graphics::VolumetricLightRenderer>();
+	volumetricRenderer->initialize(&m_allocator, nullptr);
+	m_renderer.push_back(std::move(volumetricRenderer));
 
 	createOpenCL();
 
@@ -690,8 +739,11 @@ void RenderAspect::processTasks()
 		case RenderUpdateTask::Type::CreateActorGpuIndex:
 			taskCreateActorGpuIndex(p, &offset);
 			break;
-		case RenderUpdateTask::Type::CreateStaticMesh:
-			taskCreateStaticMesh(p, &offset);
+		case RenderUpdateTask::Type::AddStaticMeshInstance:
+			taskAddStaticMeshInstance(p, &offset);
+			break;
+		case RenderUpdateTask::Type::AddDynamicMeshInstance:
+			taskAddDynamicMeshInstance(p, &offset);
 			break;
 		case RenderUpdateTask::Type::TakeScreenshot:
 			taskTakeScreenshot();
@@ -849,25 +901,43 @@ void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
 	*offset += sizeof(RenderUpdateDataTransforms) + (sizeof(vx::TransformGpu) + sizeof(u32)) * count;
 }
 
-void RenderAspect::taskCreateStaticMesh(u8* p, u32* offset)
+void RenderAspect::taskAddStaticMeshInstance(u8* p, u32* offset)
 {
-	RenderUpdateTaskCreateStaticMeshData* data = (RenderUpdateTaskCreateStaticMeshData*)p;
+	RenderUpdateTaskAddStaticMeshData* data = (RenderUpdateTaskAddStaticMeshData*)p;
+
 	auto &instance = *data->instance;
 
 	u32 materialIndex = 0;
-	m_materialManager.getMaterialIndex(data->materialSid, m_fileAspect,&materialIndex);
+	m_materialManager.getMaterialIndex(data->materialSid, m_fileAspect, &materialIndex);
 
 	u32 gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_fileAspect);
 
+	*offset += sizeof(RenderUpdateTaskAddStaticMeshData);
+}
+
+void RenderAspect::taskAddDynamicMeshInstance(u8* p, u32* offset)
+{
+	std::size_t* address = (std::size_t*)p;
+
+	CreateDynamicMeshData* data = (CreateDynamicMeshData*)(*address);
+	auto &instance = *data->m_meshInstance;
+
+	u32 materialIndex = 0;
+	m_materialManager.getMaterialIndex(data->m_materialSid, m_fileAspect, &materialIndex);
+
+	u32 gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_fileAspect);
+
+	data->m_gpuIndex = gpuIndex;
+	data->increment();
+
 	vx::Event e;
-	e.code = (u32)IngameEvent::Gpu_AddedStaticEntity;
+	e.code = (u32)IngameEvent::Gpu_AddedDynamicMesh;
 	e.type = vx::EventType::Ingame_Event;
-	e.arg1.ptr = (void*)data->instance;
-	e.arg2.u32 = gpuIndex;
+	e.arg1.ptr = data;
 
 	m_evtManager->addEvent(e);
 
-	*offset += sizeof(RenderUpdateTaskCreateStaticMeshData);
+	*offset += sizeof(std::size_t);
 }
 
 void RenderAspect::submitCommands()
@@ -922,6 +992,11 @@ void RenderAspect::submitCommands()
 	gpuProfiler->popGpuMarker();
 	CpuProfiler::popMarker();*/
 
+	vx::gl::StateManager::setColorMask(1, 1, 1, 1);
+	vx::gl::StateManager::setDepthMask(1);
+	vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+	vx::gl::StateManager::enable(vx::gl::Capabilities::Cull_Face);
+
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	//vx::gl::StateManager::setClearColor(0, 0, 0, 0);
 	//CpuProfiler::pushMarker("cone trace");
@@ -933,7 +1008,7 @@ void RenderAspect::submitCommands()
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 	//CpuProfiler::pushMarker("blur");
 	m_gpuProfiler->pushGpuMarker("blur");
-	//blurAmbientColor();
+	blurAmbientColor();
 	m_gpuProfiler->popGpuMarker();
 	//CpuProfiler::popMarker();
 
@@ -975,6 +1050,7 @@ void RenderAspect::submitCommands()
 
 	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
+	m_gpuProfiler->pushGpuMarker("wait");
 	m_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 
 	m_gpuProfiler->popGpuMarker();
@@ -983,6 +1059,7 @@ void RenderAspect::submitCommands()
 void RenderAspect::endFrame()
 {
 	auto result = glClientWaitSync((GLsync)m_fence, 0, 0);
+	m_gpuProfiler->popGpuMarker();
 	//glFinish();
 	m_gpuProfiler->pushGpuMarker("swap buffer");
 
@@ -1062,7 +1139,7 @@ void RenderAspect::coneTrace()
 	vx::gl::StateManager::bindFrameBuffer(m_coneTraceFB);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	vx::gl::StateManager::setViewport(0, 0, m_resolution.x / 2, m_resolution.y / 2);
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x / 4, m_resolution.y / 4);
 
 	auto pPipeline = m_shaderManager.getPipeline("coneTrace.pipe");
 
@@ -1074,7 +1151,7 @@ void RenderAspect::coneTrace()
 
 void RenderAspect::blurAmbientColor()
 {
-	vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
+	vx::gl::StateManager::setViewport(0, 0, m_resolution.x / 4, m_resolution.y / 4);
 
 	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
 	auto pPipeline = m_shaderManager.getPipeline("blurpassNew.pipe");

@@ -227,7 +227,7 @@ namespace Graphics
 
 	Segment ShadowRenderer::createSegmentResetCmdBuffer() const
 	{
-		auto vao = s_objectManager->getVertexArray("emptyVao");
+		/*auto vao = s_objectManager->getVertexArray("emptyVao");
 		auto pipeline = s_shaderManager->getPipeline("resetLightCmdBuffer.pipe");
 
 		Graphics::StateDescription stateDesc;
@@ -241,10 +241,10 @@ namespace Graphics
 		stateDesc.polygonOffsetFillState = true;
 
 		Graphics::State state;
-		state.set(stateDesc);
+		state.set(stateDesc);*/
 
 		Segment segment;
-		segment.setState(state);
+		//segment.setState(state);
 
 		DrawArraysCommand drawCmd;
 		//drawCmd.set(GL_POINTS, 0, m_maxMeshInstanceCount * m_maxShadowLights);
@@ -255,13 +255,26 @@ namespace Graphics
 
 	Segment ShadowRenderer::createSegmentCullMeshes() const
 	{
-		auto vao = s_objectManager->getVertexArray("meshVao");
+		/*auto vao = s_objectManager->getVertexArray("meshVao");
 		auto meshCmdBuffer = s_objectManager->getBuffer("meshCmdBuffer");
 		auto paramBuffer = s_objectManager->getBuffer("meshParamBuffer");
 		auto pipeline = s_shaderManager->getPipeline("createLightCmdBuffer.pipe");
 		auto vsShader = pipeline->getVertexShader();
 
-		Graphics::StateDescription stateDesc;
+		Graphics::StateDescription stateDesc
+		{
+			0,
+			vao->getId(),
+			pipeline->getId(),
+			meshCmdBuffer->getId(),
+			paramBuffer->getId(),
+			true,
+			false,
+			true,
+			false,
+			{ 1, 1, 1, 1 },
+			1
+		};
 		stateDesc.fbo = 0;
 		stateDesc.vao = vao->getId();
 		stateDesc.blendState = false;
@@ -272,10 +285,10 @@ namespace Graphics
 		stateDesc.polygonOffsetFillState = false;
 
 		Graphics::State state;
-		state.set(stateDesc);
+		state.set(stateDesc);*/
 
 		Segment segment;
-		segment.setState(state);
+		//segment.setState(state);
 
 		/*auto maxMeshInstances = m_maxMeshInstanceCount;
 
@@ -375,15 +388,20 @@ namespace Graphics
 		auto pipeline = s_shaderManager->getPipeline("shadow.pipe");
 		auto gsShader = pipeline->getGeometryShader();
 
-		Graphics::StateDescription stateDesc;
-		stateDesc.fbo = fbo->getId();
-		stateDesc.vao = vao->getId();
-		stateDesc.blendState = false;
-		stateDesc.depthState = true;
-		stateDesc.indirectBuffer = meshCmdBuffer->getId();
-		stateDesc.paramBuffer = meshParamBuffer->getId();
-		stateDesc.pipeline = pipeline->getId();
-		stateDesc.polygonOffsetFillState = true;
+		Graphics::StateDescription stateDesc
+		{
+			fbo->getId(),
+			vao->getId(),
+			pipeline->getId(),
+			meshCmdBuffer->getId(),
+			meshParamBuffer->getId(),
+			true,
+			false,
+			true,
+			true,
+			{1, 1, 1, 1},
+			1
+		};
 
 		Graphics::State state;
 		state.set(stateDesc);

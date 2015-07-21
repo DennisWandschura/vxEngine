@@ -76,6 +76,7 @@ namespace Editor
 		void createNavMeshVao();
 		void createNavMeshVertexVao();
 		void createIndirectCmdBuffers();
+		void createVoxelSegment();
 		void createCommandList();
 		bool createEditorTextures();
 
@@ -133,6 +134,7 @@ namespace Editor
 		void updateLightBuffer(const Light* lights, u32 count);
 		void updateWaypoints(const Waypoint* w, u32 count);
 		void updateSpawns(const Spawn* spawns, u32 count);
+		void updateJoints(const Joint* joints, u32 count, const vx::sorted_vector<vx::StringID, MeshInstance> &meshinstances);
 
 		const vx::Camera& getCamera() const;
 	};

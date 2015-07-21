@@ -42,6 +42,7 @@ SOFTWARE.
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/AnimationFile.h>
 #include <vxEngineLib/EditorMeshInstance.h>
+#include <vxResourceAspect/ConverterSceneFileToEditorScene.h>
 
 struct SceneFactory::LoadSceneFileDescription
 {
@@ -264,7 +265,8 @@ bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, v
 		createSceneDescriptionDesc.sortedMeshes = desc.meshes;
 		createSceneDescriptionDesc.sortedAnimations = desc.animations;
 		createSceneDescriptionDesc.loadedFiles = desc.loadedFiles;
-		result = sceneFile.createScene(createSceneDescriptionDesc);
+
+		result = Converter::SceneFileToEditorScene::convert(&sceneFile, createSceneDescriptionDesc);
 	}
 
 	return result;
@@ -300,7 +302,8 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 		createSceneDescriptionDesc.sortedMeshes = desc.meshes;
 		createSceneDescriptionDesc.sortedAnimations = desc.animations;
 		createSceneDescriptionDesc.loadedFiles = desc.loadedFiles;
-		result = sceneFile.createScene(createSceneDescriptionDesc);
+
+		result = Converter::SceneFileToEditorScene::convert(&sceneFile, createSceneDescriptionDesc);
 	}
 	else
 	{

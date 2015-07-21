@@ -40,6 +40,7 @@ class Scene;
 class CreateActorData;
 class MeshInstance;
 class TaskManager;
+class CreateDynamicMeshData;
 
 #include <vxEngineLib/EventListener.h>
 #include "PlayerController.h"
@@ -77,7 +78,7 @@ class EntityAspect : public vx::EventListener
 
 	void createActorEntity(const CreateActorData &data);
 
-	void createEntityUsable(const MeshInstance &instance, u32 gpuIndex);
+	void createDynamicMesh(const CreateDynamicMeshData &data);
 
 	//////////////////
 

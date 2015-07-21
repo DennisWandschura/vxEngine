@@ -354,7 +354,21 @@ namespace Graphics
 		auto fsId = pipeline->getFragmentShader();
 		auto cmdBuffer = s_objectManager->getBuffer("textCmd");
 
-		StateDescription stateDesc = { 0, vao->getId(), pipeline->getId(), cmdBuffer->getId(), 0, false, true, false, true };
+		StateDescription stateDesc = 
+		{
+			0,
+			vao->getId(),
+			pipeline->getId(), 
+			cmdBuffer->getId(),
+			0, 
+			false, 
+			true, 
+			false,
+			true,
+			{1, 1, 1, 1},
+			1
+		};
+
 		State state;
 		state.set(stateDesc);
 

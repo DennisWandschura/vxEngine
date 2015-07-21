@@ -42,6 +42,7 @@
     <ClCompile Include="Graphics\Commands\DepthRangeCommand.cpp" />
     <ClCompile Include="Graphics\Commands\DrawArraysCommand.cpp" />
     <ClCompile Include="Graphics\Commands\DrawArraysIndirectCommand.cpp" />
+    <ClCompile Include="Graphics\Commands\DrawArraysInstancedCommand.cpp" />
     <ClCompile Include="Graphics\Commands\DrawElementsIndirectCommand.cpp" />
     <ClCompile Include="Graphics\Commands\FramebufferTextureCommand.cpp" />
     <ClCompile Include="Graphics\Commands\GpuProfileCommand.cpp" />
@@ -105,6 +106,7 @@
     <ClInclude Include="Graphics\Commands\DepthRangeCommand.h" />
     <ClInclude Include="Graphics\Commands\DrawArraysCommand.h" />
     <ClInclude Include="Graphics\Commands\DrawArraysIndirectCommand.h" />
+    <ClInclude Include="Graphics\Commands\DrawArraysInstancedCommand.h" />
     <ClInclude Include="Graphics\Commands\DrawElementsIndirectCommand.h" />
     <ClInclude Include="Graphics\Commands\FramebufferTextureCommand.h" />
     <ClInclude Include="Graphics\Commands\GpuProfileCommand.h" />
@@ -211,6 +213,9 @@
     <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.frag" />
     <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.geom" />
     <None Include="..\..\game\data\shaders\programs\editorDrawSpawn.vert" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawVoxelGrid.frag" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawVoxelGrid.geom" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawVoxelGrid.vert" />
     <None Include="..\..\game\data\shaders\programs\editorSelectedMesh.frag" />
     <None Include="..\..\game\data\shaders\programs\graph.fs.glsl" />
     <None Include="..\..\game\data\shaders\programs\graph.vs.glsl" />
@@ -310,7 +315,7 @@
     <TargetName>$(ProjectName)_d</TargetName>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
-    <LibraryPath>E:\dev\libraries\nvapi R343-developer\amd64;C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\lib\vs14;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
+    <LibraryPath>E:\dev\libraries\nvapi R343-developer\amd64;C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\lib\vs14;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\intel_vs14;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxRenderAspectGL\include;C:\Intel\INDE\code_builder_5.1.0.25\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\game\data\shaders\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>

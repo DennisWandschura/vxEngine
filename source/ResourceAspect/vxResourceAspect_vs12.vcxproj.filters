@@ -42,6 +42,9 @@
     <ClCompile Include="ConverterEditorSceneToSceneFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConverterSceneFileToEditorScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToScene.h">
@@ -75,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\ConverterEditorSceneToSceneFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToEditorScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

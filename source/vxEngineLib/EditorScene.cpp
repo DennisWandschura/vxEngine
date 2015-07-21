@@ -31,6 +31,7 @@ SOFTWARE.
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/MeshFile.h>
+#include <vxEngineLib/Joint.h>
 
 namespace EditorSceneCpp
 {
@@ -49,6 +50,7 @@ namespace Editor
 		m_selectableLights(),
 		m_selectableSpawns(),
 		m_selectableWaypoints(),
+		m_selectableJoints(),
 		m_materialNames(),
 		m_meshNames(),
 		m_actorNames(),
@@ -62,30 +64,17 @@ namespace Editor
 		: SceneBase(params.m_baseParams),
 		m_meshInstances(std::move(params.m_meshInstances)),
 		m_selectableLights(),
+		m_selectableWaypoints(),
+		m_selectableJoints(),
 		m_materialNames(std::move(params.m_materialNames)),
 		m_meshNames(std::move(params.m_meshNames)),
 		m_actorNames(std::move(params.m_actorNames))
 	{
 		buildSelectableLights();
 
-		m_selectableSpawns.reserve(m_spawnCount);
-		for (u32 i = 0; i < m_spawnCount; ++i)
-		{
-			auto &spawn = m_pSpawns[i];
+		buildSelectableSpawns();
 
-			AABB bounds;
-			bounds.max = spawn.position + vx::float3(0.1f);
-			bounds.min = spawn.position - vx::float3(0.1f);
-
-			std::pair<AABB, u32> selected;
-			selected.first = bounds;
-			selected.second = spawn.id;
-
-			m_selectableSpawns.push_back(selected);
-
-			if (spawn.type == PlayerType::Human)
-				m_spawnHumanId = spawn.id;
-		}
+		buildSelectableJoints();
 	}
 
 	Scene::~Scene()
@@ -102,6 +91,7 @@ namespace Editor
 			std::swap(m_selectableLights, rhs.m_selectableLights);
 			std::swap(m_selectableSpawns, rhs.m_selectableSpawns);
 			std::swap(m_selectableWaypoints, rhs.m_selectableWaypoints);
+			m_selectableJoints.swap(rhs.m_selectableJoints);
 			std::swap(m_materialNames, rhs.m_materialNames);
 			std::swap(m_meshNames, rhs.m_meshNames);
 			std::swap(m_actorNames, rhs.m_actorNames);
@@ -116,7 +106,7 @@ namespace Editor
 		m_selectableLights.reserve(m_lightCount);
 		for (u32 i = 0; i < m_lightCount; ++i)
 		{
-			auto &light = m_pLights[i];
+			auto &light = m_lights[i];
 
 			AABB bounds;
 			bounds.max = light.m_position + vx::float3(0.1f);
@@ -163,11 +153,51 @@ namespace Editor
 			bounds.max = spawn.position + vx::float3(0.1f);
 			bounds.min = spawn.position - vx::float3(0.1f);
 
+			if (spawn.type == PlayerType::Human)
+				m_spawnHumanId = spawn.id;
+
 			std::pair<AABB, u32> selected;
 			selected.first = bounds;
 			selected.second = spawn.id;
 
 			m_selectableSpawns.push_back(selected);
+		}
+	}
+
+	void Scene::buildSelectableJoints()
+	{
+		m_selectableJoints.clear();
+
+		auto jointCount = m_joints.size();
+		m_selectableJoints.reserve(jointCount);
+
+		for (u32 i = 0; i < jointCount; ++i)
+		{
+			auto &joint = m_joints[i];
+
+			auto p0 = joint.p0;
+			auto p1 = joint.p1;
+			if (joint.sid0.value != 0)
+			{
+				auto it = m_meshInstances.find(joint.sid0);
+				p0 = it->getTransform().m_translation;
+			}
+
+			if (joint.sid1.value != 0)
+			{
+				auto it = m_meshInstances.find(joint.sid1);
+				p1 = it->getTransform().m_translation;
+			}
+
+			auto vmin = vx::min(p0, p1);
+			auto vmax = vx::max(p0, p1);
+
+			SelectableWrapperIndex selectable;
+			selectable.m_bounds.max = vmax + vx::float3(0.1f);
+			selectable.m_bounds.min = vmin - vx::float3(0.1f);
+			selectable.m_index = i;
+
+			m_selectableJoints.push_back(selectable);
 		}
 	}
 
@@ -178,6 +208,7 @@ namespace Editor
 		m_selectableLights.clear();
 		m_selectableSpawns.clear();
 		m_selectableWaypoints.clear();
+		m_selectableJoints.clear();
 		m_materialNames.clear();
 		m_meshNames.clear();
 		m_actorNames.clear();
@@ -238,12 +269,12 @@ namespace Editor
 
 	Light* Scene::addLight(const Light &light)
 	{
-		m_pLights.push_back(light);
+		m_lights.push_back(light);
 		++m_lightCount;
 
 		buildSelectableLights();
 
-		return &m_pLights.back();
+		return &m_lights.back();
 	}
 
 	u8 Scene::addMesh(vx::StringID sid, const char* name, const Reference<vx::MeshFile> &mesh)
@@ -476,6 +507,11 @@ namespace Editor
 		return m_meshInstances.size();
 	}
 
+	const vx::sorted_vector<vx::StringID, MeshInstance>& Scene::getSortedMeshInstances() const
+	{
+		return m_meshInstances;
+	}
+
 	void Scene::addSpawn(Spawn &&newSpawn)
 	{
 		auto it = m_pSpawns.insert(newSpawn.id, std::move(newSpawn));
@@ -576,7 +612,7 @@ namespace Editor
 	{
 		for (u32 i = 0; i < m_lightCount; ++i)
 		{
-			auto &light = m_pLights[i];
+			auto &light = m_lights[i];
 
 			AABB bounds;
 			bounds.max = light.m_position + vx::float3(0.1f);
@@ -584,5 +620,70 @@ namespace Editor
 
 			m_selectableLights[i].m_bounds = bounds;
 		}
+	}
+
+	void Scene::addJoint(const Joint &joint)
+	{
+		m_joints.push_back(joint);
+
+		buildSelectableJoints();
+	}
+
+	void Scene::eraseJoint(u32 i)
+	{
+		auto size = m_joints.size();
+		if (i < size)
+		{
+			auto it = m_joints.begin() + i;
+			m_joints.erase(it);
+
+			buildSelectableJoints();
+		}
+	}
+
+	Joint* Scene::getJoint(const Ray &ray, u32* index)
+	{
+		Joint* result = nullptr;
+
+		f32 a, b;
+		for (auto &it : m_selectableJoints)
+		{
+			if (it.m_bounds.intersects(ray, &a, &b))
+			{
+				result = &m_joints[it.m_index];
+				*index = it.m_index;
+				break;
+			}
+		}
+
+		return result;
+	}
+
+	void Scene::setJointPosition0(u32 index, const vx::float3 &p)
+	{
+		auto &joint = m_joints[index];
+		joint.p0 = p;
+
+		buildSelectableJoints();
+	}
+
+	void Scene::setJointPosition1(u32 index, const vx::float3 &p)
+	{
+		auto &joint = m_joints[index];
+		joint.p1 = p;
+
+		buildSelectableJoints();
+	}
+
+	void Scene::setJointBody0(u32 index, u64 sid)
+	{
+		auto &joint = m_joints[index];
+		joint.sid0.value = sid;
+	}
+
+	void Scene::setJointBody1(u32 index, u64 sid)
+	{
+		auto &joint = m_joints[index];
+		joint.sid1.value = sid;
 	}
 }

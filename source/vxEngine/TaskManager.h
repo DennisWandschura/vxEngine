@@ -36,13 +36,20 @@ class TaskManager
 {
 	Task** m_tasks;
 	Task** m_backTasks;
+	Task** m_waitTasks;
 	u32 m_size;
 	u32 m_backSize;
 	u32 m_capacity;
+	u32 m_waitSize;
 	vx::StackAllocator m_allocator;
 	vx::StackAllocator m_backAllocator;
+	vx::StackAllocator m_waitAllocator;
 
 	void queueTask(Task* task);
+
+	bool runTasks();
+
+	void queueWait(Task* task);
 
 public:
 	TaskManager();
@@ -52,6 +59,8 @@ public:
 	void shutdown();
 
 	void update();
+
+	void wait();
 
 	template<typename T, typename ...Args>
 	void queueTask(Args&& ...args)

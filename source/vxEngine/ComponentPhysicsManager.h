@@ -37,6 +37,7 @@ namespace vx
 namespace physx
 {
 	class PxController;
+	class PxRigidDynamic;
 }
 
 struct Entity;
@@ -57,7 +58,7 @@ public:
 
 	void update(vx::Pool<Entity>* entities);
 
-	Component::Physics* createComponent(const vx::float3 &position, physx::PxController* controller, u16 entityIndex, u16* componentIndex);
+	Component::Physics* createComponent(const vx::float3 &position, physx::PxController* controller, physx::PxRigidDynamic* rigidDynamic, u16 entityIndex, u16* componentIndex);
 
 	Component::Physics& operator[](u32 i);
 };

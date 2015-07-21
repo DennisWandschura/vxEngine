@@ -35,6 +35,7 @@ SOFTWARE.
 #include <vxEngineLib/MeshInstanceFile.h>
 #include <vxEngineLib/Reference.h>
 #include <vxLib/File/FileHandle.h>
+#include <vxEngineLib/Joint.h>
 
 struct ConverterSceneFileToScene::CreateSceneMeshInstancesDesc
 {
@@ -207,6 +208,13 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, Ref
 		waypoints.push_back(sceneFile.m_waypoints[i]);
 	}
 
+	auto joints = std::vector<Joint>();
+	joints.reserve(sceneFile.m_jointCount);
+	for (u32 i = 0; i < sceneFile.m_jointCount; ++i)
+	{
+		joints.push_back(sceneFile.m_joints[i]);
+	}
+
 	SceneParams sceneParams;
 	sceneParams.m_baseParams.m_actors = std::move(sceneActors);
 	sceneParams.m_baseParams.m_indexCount = indexCount;
@@ -214,7 +222,7 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, Ref
 	sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
 	sceneParams.m_baseParams.m_meshes = std::move(sceneMeshes);
 	sceneParams.m_baseParams.m_navMesh = std::move(navMesh);
-	sceneParams.m_baseParams.m_pLights = std::move(pLights);
+	sceneParams.m_baseParams.m_lights = std::move(pLights);
 	sceneParams.m_baseParams.m_pSpawns = std::move(spawns);
 	sceneParams.m_baseParams.m_spawnCount = sceneFile.m_spawnCount;
 	sceneParams.m_baseParams.m_vertexCount = vertexCount;
@@ -222,6 +230,7 @@ bool ConverterSceneFileToScene::convert(const vx::sorted_array<vx::StringID, Ref
 	sceneParams.m_pMeshInstances = std::move(pMeshInstances);
 	sceneParams.m_baseParams.m_waypointCount = sceneFile.m_waypointCount;
 	sceneParams.m_baseParams.m_waypoints = std::move(waypoints);
+	sceneParams.m_baseParams.m_joints = std::move(joints);
 
 	*scene = Scene(sceneParams);
 	scene->sortMeshInstances();

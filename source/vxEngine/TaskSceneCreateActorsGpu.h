@@ -38,9 +38,7 @@ public:
 	TaskSceneCreateActorsGpu(const Scene* scene, RenderAspectInterface* renderAspect);
 	~TaskSceneCreateActorsGpu();
 
-	void run() override;
-
-	bool isFinished() const override;
+	TaskReturnType run() override;
 
 	Task* move(vx::Allocator* allocator) override;
 };

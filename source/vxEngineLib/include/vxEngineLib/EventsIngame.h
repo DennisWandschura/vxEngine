@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,7 +22,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
 #include <vxLib/types.h>
 
@@ -35,14 +35,16 @@ enum class IngameEvent : u16
 	Physx_AddActor,
 	Physx_AddedActor,
 
+	Physx_AddStaticMesh,
+
+	Physx_AddDynamicMesh,
+	Physx_AddedDynamicMesh,
+
 	// arg1 ptr to CreateActorData
 	Gpu_AddActor,
 	Gpu_AddedActor,
 
-	// arg1 ptr to instance
-	// arg2 gpu index of transform
-	Gpu_AddStaticEntity,
-	Gpu_AddedStaticEntity,
+	Gpu_AddedDynamicMesh,
 
 	// arg1 ptr to EntityActor
 	// arg2 ptr to ActorComponent

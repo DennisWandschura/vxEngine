@@ -39,6 +39,7 @@ namespace Editor
 #include <vxEngineLib/EventListener.h>
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/EditorRenderAspectInterface.h>
+#include "TaskManager.h"
 
 enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
@@ -219,4 +220,15 @@ public:
 
 	u32 getMeshInstanceRigidBodyType(u64 sid) const;
 	void setMeshInstanceRigidBodyType(u64 sid, u32 type);
+
+	u32 getJointCount() const;
+	void getJointData(u32 i, vx::float3* p0, vx::float3* p1, u64* sid0, u64* sid1) const;
+	void addJoint(const vx::StringID &sid0, const vx::StringID &sid1, const vx::float3 &p0, const vx::float3 &p1);
+	void addJoint(const vx::StringID &sid0);
+	void removeJoint(u32 index);
+	bool selectJoint(s32 mouseX, s32 mouseY, u32* index);
+	void setJointPosition0(u32 index, const vx::float3 &p);
+	void setJointPosition1(u32 index, const vx::float3 &p);
+	void setJointBody0(u32 index, u64 sid);
+	void setJointBody1(u32 index, u64 sid);
 };

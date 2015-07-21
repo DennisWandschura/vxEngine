@@ -33,12 +33,42 @@ SOFTWARE.
 #include <vxEngineLib/EditorScene.h>
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/MeshFile.h>
+#include <vxEngineLib/Joint.h>
 
 namespace Editor
 {
+	namespace PhysicsAspectCpp
+	{
+		void copy(const vx::Transform &transform, physx::PxTransform* physxTransform)
+		{
+			physxTransform->p.x = transform.m_translation.x;
+			physxTransform->p.y = transform.m_translation.y;
+			physxTransform->p.z = transform.m_translation.z;
+
+			physxTransform->q.x = transform.m_qRotation.x;
+			physxTransform->q.y = transform.m_qRotation.y;
+			physxTransform->q.z = transform.m_qRotation.z;
+			physxTransform->q.w = transform.m_qRotation.w;
+		}
+
+		void copy(const vx::float3 &src, physx::PxVec3* dst)
+		{
+			dst->x = src.x;
+			dst->y = src.y;
+			dst->z = src.z;
+		}
+
+		void copy(const vx::float4 &src, physx::PxQuat* dst)
+		{
+			dst->x = src.x;
+			dst->y = src.y;
+			dst->z = src.z;
+			dst->w = src.w;
+		}
+	}
+
 	PhysicsAspect::PhysicsAspect()
-		: ::PhysicsAspect(),
-		m_meshInstances()
+		: ::PhysicsAspect()
 	{
 
 	}
@@ -107,13 +137,16 @@ namespace Editor
 
 		for (auto i = 0u; i < numInstances; ++i)
 		{
+			void* outData = nullptr;
 			auto &instance = pMeshInstances[i];
-			::PhysicsAspect::addMeshInstanceImpl(instance.getMeshInstance());
+			::PhysicsAspect::addMeshInstanceImpl(instance.getMeshInstance(), &outData);
+		}
 
-			auto sid = instance.getNameSid();
-			auto type = instance.getRigidBodyType();
-
-			m_meshInstances.insert(sid, type);
+		auto joints = pScene->getJoints();
+		auto jointCount = pScene->getJointCount();
+		for (auto i = 0u; i < jointCount; ++i)
+		{
+			createJoint(joints[i]);
 		}
 
 		m_pScene->unlockWrite();
@@ -358,11 +391,14 @@ namespace Editor
 
 	void PhysicsAspect::addMeshInstance(const ::MeshInstance &instance)
 	{
-		::PhysicsAspect::addMeshInstanceImpl(instance);
+		void* outData = nullptr;
+		::PhysicsAspect::addMeshInstanceImpl(instance, &outData);
+	}
 
-		auto sid = instance.getNameSid();
-		auto type = instance.getRigidBodyType();
+	bool PhysicsAspect::createJoint(const Joint &joint)
+	{
+		auto ptr = ::PhysicsAspect::createJoint(joint);
 
-		m_meshInstances.insert(sid, type);
+		return (ptr != nullptr);
 	}
 }

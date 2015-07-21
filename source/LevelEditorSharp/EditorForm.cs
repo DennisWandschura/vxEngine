@@ -33,7 +33,7 @@ using System.Windows.Forms;
 
 namespace LevelEditor
 {
-    public enum EditorState { EditMesh, EditNavMesh, EditLights, EditSpawns, EditWaypoints };
+    public enum EditorState { EditMesh, EditNavMesh, EditLights, EditSpawns, EditWaypoints, EditJoints };
 
     public partial class EditorForm : Form
     {
@@ -42,6 +42,7 @@ namespace LevelEditor
         const string s_textEditLights = "Edit Lights";
         const string s_textEditSpawns = "Edit Spawns";
         const string s_textEditWaypoints = "Edit Waypoints";
+        const string s_textEditJoints = "Edit Joints";
         const int s_groupBoxEditPositionX = 2000;
         const int s_groupBoxEditPositionY = 680;
 
@@ -62,6 +63,7 @@ namespace LevelEditor
         TreeNode m_meshInstanceNode;
         TreeNode m_waypointsNode;
         TreeNode m_animationsNode;
+        TreeNode m_jointsNode;
         bool m_keyDownAlt;
         int m_mouseX;
         int m_mouseY;
@@ -76,9 +78,10 @@ namespace LevelEditor
         FileBrowser m_fileBrowser;
         MeshInfoControl m_meshInfoControl;
         MeshInstanceDataControl m_meshInstanceDataControl;
+        JointDataControl m_jointDataControl;
 
         Dictionary<ulong, string> m_requestedFiles;
-        Dictionary<ulong, EditorNodeEntry> m_sortedMeshInstances;
+        Dictionary<ulong, EditorNodeEntry> m_sortedMeshInstanceNodes;
         Dictionary<ulong, EditorEntry> m_sortedMeshes;
         Dictionary<ulong, EditorEntry> m_sortedMaterials;
         Dictionary<ulong, EditorEntry> m_sortedAnimations;
@@ -92,18 +95,20 @@ namespace LevelEditor
 
             m_meshInfoControl = new MeshInfoControl(this);
             m_meshInstanceDataControl = new MeshInstanceDataControl(this);
+            m_jointDataControl = new JointDataControl(this);
 
             m_meshNode = treeView_entities.Nodes.Add("Meshes");
             m_materialNode = treeView_entities.Nodes.Add("Materials");
             m_meshInstanceNode = treeView_entities.Nodes.Add("Mesh Instances");
             m_waypointsNode = treeView_entities.Nodes.Add("Waypoints");
             m_animationsNode = treeView_entities.Nodes.Add("Animations");
+            m_jointsNode = treeView_entities.Nodes.Add("Joints");
 
             treeView_entities.Nodes.Add("Lights");
             m_currentSceneFileName = "untitled.scene";
 
             m_requestedFiles = new Dictionary<ulong, string>();
-            m_sortedMeshInstances = new Dictionary<ulong, EditorNodeEntry>();
+            m_sortedMeshInstanceNodes = new Dictionary<ulong, EditorNodeEntry>();
             m_sortedMeshes = new Dictionary<ulong, EditorEntry>();
             m_sortedMaterials = new Dictionary<ulong, EditorEntry>();
             m_sortedAnimations = new Dictionary<ulong, EditorEntry>();
@@ -128,7 +133,6 @@ namespace LevelEditor
 
             createStateMachine();
 
-
             Panel tmp = new Panel();
 
             if (!NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx, s_typeAnimation))
@@ -147,6 +151,7 @@ namespace LevelEditor
             comboBox_selectEditorMode.Items.Add(s_textEditLights);
             comboBox_selectEditorMode.Items.Add(s_textEditSpawns);
             comboBox_selectEditorMode.Items.Add(s_textEditWaypoints);
+            comboBox_selectEditorMode.Items.Add(s_textEditJoints);
             comboBox_selectEditorMode.SelectedIndex = 0;
 
             Point p = new Point();
@@ -159,6 +164,10 @@ namespace LevelEditor
             m_meshInstanceDataControl.Parent = this;
             m_meshInstanceDataControl.Hide();
             m_meshInstanceDataControl.Location = p;
+
+            m_jointDataControl.Parent = this;
+            m_jointDataControl.Hide();
+            m_jointDataControl.Location = p;
 
             groupBoxLight.Hide();
             groupBoxLight.Location = p;
@@ -281,14 +290,24 @@ namespace LevelEditor
 
         private State createStateEditMesh()
         {
-            ActionDeselectMesh actionDeselectMesh = new ActionDeselectMesh(this);
-
             ActionCallFunction actionShowGui = new ActionCallFunction(showMeshGui);
             ActionCallFunction actionHideGui = new ActionCallFunction(hideMeshGui);
 
             State stateEditMesh = new State();
 
-            var actionOnMouseClick = createActionOnMouseClickMesh(stateEditMesh, actionDeselectMesh);
+            ActionDeselectMesh actionDeselectMesh = new ActionDeselectMesh(this);
+            ActionSelectMesh actionSelectMesh = new ActionSelectMesh(this);
+
+            TargetState stateSelectMesh = new TargetState(stateEditMesh, "stateSelectMesh");
+            stateSelectMesh.addAction(actionSelectMesh);
+
+            TargetState stateDeselectMesh = new TargetState(stateEditMesh, "destateSelectMesh");
+            stateDeselectMesh.addAction(actionDeselectMesh);
+
+            DecisionEditorMouseButtonPressed decisionMouseRightButton = new DecisionEditorMouseButtonPressed(stateDeselectMesh, null, this, MouseButtons.Right);
+            DecisionEditorMouseButtonPressed decisionMouseLeftButton = new DecisionEditorMouseButtonPressed(stateSelectMesh, decisionMouseRightButton, this, MouseButtons.Left);
+
+            ActionDecisionTree actionOnMouseClick = new ActionDecisionTree(decisionMouseLeftButton);
 
             stateEditMesh.addEntryAction(actionShowGui);
             stateEditMesh.addAction(actionOnMouseClick);
@@ -344,6 +363,35 @@ namespace LevelEditor
             return state;
         }
 
+        State createStateEditJoints()
+        {
+            State state = new State();
+
+            ActionCallFunction actionShowGui = new ActionCallFunction(showJointGui);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideJointGui);
+
+            state.addEntryAction(actionShowGui);
+            state.addExitAction(actionHideGui);
+
+            ActionDeselectJointOrMeshInstance actionDeselectJointOrMesh = new ActionDeselectJointOrMeshInstance(this);
+            ActionSelectJointOrMeshInstance actionSelectJointOrMeshInstance = new ActionSelectJointOrMeshInstance(this);
+
+            TargetState stateSelectJointOrMesh = new TargetState(state, "stateSelectJointOrMesh");
+            stateSelectJointOrMesh.addAction(actionSelectJointOrMeshInstance);
+
+            TargetState stateDeselectJointOrMesh = new TargetState(state, "stateDeselectJointOrMesh");
+            stateDeselectJointOrMesh.addAction(actionDeselectJointOrMesh);
+
+            DecisionEditorMouseButtonPressed decisionMouseRightButton = new DecisionEditorMouseButtonPressed(stateDeselectJointOrMesh, null, this, MouseButtons.Right);
+            DecisionEditorMouseButtonPressed decisionMouseLeftButton = new DecisionEditorMouseButtonPressed(stateSelectJointOrMesh, decisionMouseRightButton, this, MouseButtons.Left);
+
+            ActionDecisionTree actionOnMouseClick = new ActionDecisionTree(decisionMouseLeftButton);
+
+            state.addAction(actionOnMouseClick);
+
+            return state;
+        }
+
         void createStateMachine()
         {
             m_selectItemStateMachine = new StateMachine();
@@ -353,43 +401,57 @@ namespace LevelEditor
             ConditionEditorState conditionEditorStateEditNavMesh = new ConditionEditorState(this, EditorState.EditNavMesh);
             ConditionEditorState conditionEditorStateEditWaypoints = new ConditionEditorState(this, EditorState.EditWaypoints);
             ConditionEditorState conditionEditorStateEditSpawns = new ConditionEditorState(this, EditorState.EditSpawns);
+            ConditionEditorState conditionEditorStateEditJoints = new ConditionEditorState(this, EditorState.EditJoints);
 
             var stateEditNavMesh = createStateEditNavMesh();
             var stateEditMesh = createStateEditMesh();
             var stateEditLights = createStateEditLights();
             var stateEditWaypoints = createStateEditWaypoints();
             var stateEditSpawns = createStateEditSpawns();
+            var stateEditJoints = createStateEditJoints();
 
             Transition transitionEditMesh = new Transition(conditionEditorStateEditMesh, stateEditMesh, "transitionEditMesh");
             Transition transitionEditNavMesh = new Transition(conditionEditorStateEditNavMesh, stateEditNavMesh, "transitionEditNavMesh");
             Transition transitionEditLights = new Transition(conditionEditorStateEditLights, stateEditLights, "transitionEditLights");
             Transition transitionEditWaypoints = new Transition(conditionEditorStateEditWaypoints, stateEditWaypoints, "transitionEditWaypoints");
             Transition transitionEditSpawns = new Transition(conditionEditorStateEditSpawns, stateEditSpawns, "transitionEditSpawns");
+            Transition transitionEditJoints = new Transition(conditionEditorStateEditJoints, stateEditJoints, "transitionEditJoints");
 
             stateEditNavMesh.addTransition(transitionEditMesh);
             stateEditNavMesh.addTransition(transitionEditLights);
             stateEditNavMesh.addTransition(transitionEditWaypoints);
             stateEditNavMesh.addTransition(transitionEditSpawns);
+            stateEditNavMesh.addTransition(transitionEditJoints);
 
             stateEditMesh.addTransition(transitionEditNavMesh);
             stateEditMesh.addTransition(transitionEditLights);
             stateEditMesh.addTransition(transitionEditWaypoints);
             stateEditMesh.addTransition(transitionEditSpawns);
+            stateEditMesh.addTransition(transitionEditJoints);
 
             stateEditLights.addTransition(transitionEditNavMesh);
             stateEditLights.addTransition(transitionEditMesh);
             stateEditLights.addTransition(transitionEditWaypoints);
             stateEditLights.addTransition(transitionEditSpawns);
+            stateEditLights.addTransition(transitionEditJoints);
 
             stateEditWaypoints.addTransition(transitionEditMesh);
             stateEditWaypoints.addTransition(transitionEditNavMesh);
             stateEditWaypoints.addTransition(transitionEditLights);
             stateEditWaypoints.addTransition(transitionEditSpawns);
+            stateEditWaypoints.addTransition(transitionEditJoints);
 
             stateEditSpawns.addTransition(transitionEditMesh);
             stateEditSpawns.addTransition(transitionEditNavMesh);
             stateEditSpawns.addTransition(transitionEditLights);
             stateEditSpawns.addTransition(transitionEditWaypoints);
+            stateEditSpawns.addTransition(transitionEditJoints);
+
+            stateEditJoints.addTransition(transitionEditNavMesh);
+            stateEditJoints.addTransition(transitionEditMesh);
+            stateEditJoints.addTransition(transitionEditLights);
+            stateEditJoints.addTransition(transitionEditWaypoints);
+            stateEditJoints.addTransition(transitionEditSpawns);
 
             State emptyState = new State();
             emptyState.addTransition(transitionEditMesh);
@@ -397,6 +459,7 @@ namespace LevelEditor
             emptyState.addTransition(transitionEditLights);
             emptyState.addTransition(transitionEditWaypoints);
             emptyState.addTransition(transitionEditSpawns);
+            emptyState.addTransition(transitionEditJoints);
 
             m_selectItemStateMachine.setCurrentState(emptyState);
         }
@@ -419,6 +482,20 @@ namespace LevelEditor
         void hideSpawnGui()
         {
             toolStripButtonCreateSpawn.Visible = false;
+        }
+
+        void showJointGui()
+        {
+            toolStripButtonCreateJoint.Visible = true;
+            removeJointToolStripMenuItem.Visible = true;
+            addJointToolStripMenuItem.Visible = true;
+        }
+
+        void hideJointGui()
+        {
+            toolStripButtonCreateJoint.Visible = false;
+            removeJointToolStripMenuItem.Visible = false;
+            addJointToolStripMenuItem.Visible = false;
         }
 
         void getLightData()
@@ -547,8 +624,10 @@ namespace LevelEditor
 
         void addSceneMeshInstances()
         {
-            m_sortedMeshInstances.Clear();
+            m_sortedMeshInstanceNodes.Clear();
             m_meshInstanceNode.Nodes.Clear();
+
+            m_jointDataControl.clearMeshInstances();
 
             var meshInstanceCount = NativeMethods.getMeshInstanceCount();
             for (uint i = 0; i < meshInstanceCount; ++i)
@@ -578,10 +657,13 @@ namespace LevelEditor
 
         void insertMeshInstance(ulong sid, string name)
         {
-            var entry = new EditorNodeEntry(sid, s_typeMeshInstance, name);
+            var nodeEntry = new EditorNodeEntry(sid, s_typeMeshInstance, name);
 
-            m_sortedMeshInstances.Add(entry.sid, entry);
-            m_meshInstanceNode.Nodes.Add(entry);
+            m_sortedMeshInstanceNodes.Add(nodeEntry.sid, nodeEntry);
+            m_meshInstanceNode.Nodes.Add(nodeEntry);
+
+            EditorEntry entry = new EditorEntry(name, sid);
+            m_jointDataControl.addMeshInstance(entry);
         }
 
         public void addMeshInstance(ulong sid)
@@ -594,9 +676,9 @@ namespace LevelEditor
         public void removeMeshInstance(ulong sid)
         {
             EditorNodeEntry entry;
-            if (m_sortedMeshInstances.TryGetValue(sid, out entry))
+            if (m_sortedMeshInstanceNodes.TryGetValue(sid, out entry))
             {
-                m_sortedMeshInstances.Remove(sid);
+                m_sortedMeshInstanceNodes.Remove(sid);
                 m_meshInstanceNode.Nodes.Remove(entry);
             }
         }
@@ -657,6 +739,22 @@ namespace LevelEditor
             m_meshInstanceDataControl.addAnimationEntry(entry);
         }
 
+        void addSceneJoints()
+        {
+            m_jointsNode.Nodes.Clear();
+
+            var count = NativeMethods.getJointCount();
+            for (uint i = 0; i < count; ++i)
+            {
+                insertJoint(i);
+            }
+        }
+
+        public void insertJoint(uint index)
+        {
+            m_jointsNode.Nodes.Add("Joint" + index);
+        }
+
         void loadedFile(UInt64 sid, UInt32 type)
         {
             string str;
@@ -679,6 +777,7 @@ namespace LevelEditor
                     addSceneMaterials();
                     addSceneMeshInstances();
                     addSceneAnimations();
+                    addSceneJoints();
                 }
                 else if (type == s_typeAnimation)
                 {
@@ -831,7 +930,7 @@ namespace LevelEditor
         public void setMeshInstanceRigidBodyType(uint type)
         {
             var sid = NativeMethods.getSelectedMeshInstanceSid();
-               NativeMethods.setMeshInstanceRigidBodyType(sid, type);
+            NativeMethods.setMeshInstanceRigidBodyType(sid, type);
         }
 
         void showMeshGui()
@@ -957,7 +1056,7 @@ namespace LevelEditor
             var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
 
             EditorNodeEntry entry;
-            if (m_sortedMeshInstances.TryGetValue(instanceSid, out entry))
+            if (m_sortedMeshInstanceNodes.TryGetValue(instanceSid, out entry))
             {
                 treeView_entities.SelectedNode = entry;
             }
@@ -1302,6 +1401,10 @@ namespace LevelEditor
             {
                 m_editorState = EditorState.EditWaypoints;
             }
+            else if (selectedString == s_textEditJoints)
+            {
+                m_editorState = EditorState.EditJoints;
+            }
         }
 
         public MouseButtons getLastClickedMouseButton()
@@ -1451,12 +1554,12 @@ namespace LevelEditor
         public void onRenameMeshInstance(ulong oldSid, ulong newSid, string newName)
         {
             EditorNodeEntry nodeEntry;
-            if (m_sortedMeshInstances.TryGetValue(oldSid, out nodeEntry))
+            if (m_sortedMeshInstanceNodes.TryGetValue(oldSid, out nodeEntry))
             {
-                m_sortedMeshInstances.Remove(oldSid);
+                m_sortedMeshInstanceNodes.Remove(oldSid);
                 nodeEntry.sid = newSid;
                 nodeEntry.Text = newName;
-                m_sortedMeshInstances.Add(newSid, nodeEntry);
+                m_sortedMeshInstanceNodes.Add(newSid, nodeEntry);
             }
         }
 
@@ -1584,6 +1687,40 @@ namespace LevelEditor
         private void toolStripButtonCreateSpawn_Click(object sender, EventArgs e)
         {
             NativeMethods.addSpawn();
+        }
+
+        void createJoint()
+        {
+            var selectedSid = NativeMethods.getSelectedMeshInstanceSid();
+            NativeMethods.addJoint(selectedSid);
+
+            addSceneJoints();
+        }
+
+        private void toolStripButtonCreateJoint_Click(object sender, EventArgs e)
+        {
+            createJoint();
+        }
+
+        public void setSelectedJoint(uint index)
+        {
+            m_jointDataControl.setSelectedJoint(index);
+            m_jointDataControl.Show();
+        }
+
+        public void deselectJoint()
+        {
+            m_jointDataControl.Hide();
+        }
+
+        private void removeJointToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            m_jointDataControl.removeJoint();
+        }
+
+        private void addJointToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            createJoint();
         }
     }
 }

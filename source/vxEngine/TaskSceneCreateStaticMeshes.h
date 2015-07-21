@@ -38,9 +38,7 @@ public:
 	TaskSceneCreateStaticMeshes(const Scene* scene, RenderAspectInterface* renderAspect);
 	~TaskSceneCreateStaticMeshes();
 
-	void run() override;
-
-	bool isFinished() const override;
+	TaskReturnType run() override;
 
 	Task* move(vx::Allocator* allocator) override;
 };

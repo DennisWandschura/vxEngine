@@ -29,14 +29,19 @@ namespace vx
 	class Allocator;
 }
 
+enum class TaskReturnType
+{
+	Success,
+	Failure,
+	Retry
+};
+
 class Task
 {
 public:
 	virtual ~Task() {}
 
-	virtual void run() = 0;
-
-	virtual bool isFinished() const = 0;
+	virtual TaskReturnType run() = 0;
 
 	virtual Task* move(vx::Allocator* allocator) = 0;
 };

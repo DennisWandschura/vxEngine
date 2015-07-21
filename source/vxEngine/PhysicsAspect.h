@@ -38,6 +38,18 @@ namespace physx
 	class PxRigidStatic;
 	class PxShape;
 	class PxRigidDynamic;
+	class PxJoint;
+	class PxRigidActor;
+
+	namespace debugger
+	{
+		namespace comm
+		{
+			class PvdConnection;
+		}
+	}
+
+	typedef debugger::comm::PvdConnection PxVisualDebuggerConnection;
 }
 
 namespace vx
@@ -54,6 +66,9 @@ namespace vx
 class Scene;
 class FileAspect;
 class MeshInstance;
+class MySimulationCallback;
+class MyHitReportCallback;
+struct Joint;
 
 #include <vxEngineLib/EventListener.h>
 #include <foundation/PxErrorCallback.h>
@@ -62,6 +77,7 @@ class MeshInstance;
 #include <vxLib/StringID.h>
 #include <vxLib/math/Vector.h>
 #include <vector>
+#include "PhysicsCpuDispatcher.h"
 
 enum class PhsyxMeshType : u32;
 enum class PhysxRigidBodyType : u8;
@@ -89,9 +105,14 @@ protected:
 	vx::sorted_vector<vx::StringID, physx::PxMaterial*> m_physxMaterials;
 	vx::sorted_vector<vx::StringID, physx::PxRigidStatic*> m_staticMeshInstances;
 	vx::sorted_vector<vx::StringID, physx::PxRigidDynamic*> m_dynamicMeshInstances;
+	vx::sorted_vector<vx::StringID, PhysxRigidBodyType> m_meshInstances;
+	std::vector<physx::PxJoint*> m_joints;
 	physx::PxFoundation *m_pFoundation;
+	PhysicsCpuDispatcher m_cpuDispatcher;
 	physx::PxDefaultCpuDispatcher* m_pCpuDispatcher;
 	physx::PxCooking* m_pCooking;
+	MyHitReportCallback* m_callback;
+	physx::PxVisualDebuggerConnection* m_connection;
 
 	physx::PxTriangleMesh* processTriangleMesh(const vx::MeshFile &mesh);
 	physx::PxConvexMesh* processMeshConvex(const vx::MeshFile &mesh);
@@ -106,17 +127,19 @@ protected:
 	void handleIngameEvent(const vx::Event &evt);
 	////////////////
 
-	void addDynamicMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid);
+	void addDynamicMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid, void** outData);
 	void addStaticMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid);
-	void addMeshInstanceImpl(const MeshInstance &instance);
+	void addMeshInstanceImpl(const MeshInstance &instance, void** outData);
 
 	vx::StringID raycast_static(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
+
+	physx::PxRigidActor* PhysicsAspect::getRigidActor(const vx::StringID &sid, PhysxRigidBodyType* outType);
 
 public:
 	PhysicsAspect();
 	virtual ~PhysicsAspect();
 
-	bool initialize();
+	bool initialize(TaskManager* taskManager);
 	void shutdown();
 
 	void fetch();
@@ -126,6 +149,7 @@ public:
 
 	physx::PxController* createActor(const vx::StringID &mesh, const vx::float3 &translation);
 	physx::PxController* createActor(const vx::float3 &translation, f32 height);
+	physx::PxJoint* createJoint(const Joint &joint);
 
 	void move(const vx::float4a &velocity, f32 dt, physx::PxController* pController);
 	

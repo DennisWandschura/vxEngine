@@ -27,6 +27,7 @@ SOFTWARE.
 #include <vxLib/Allocator/StackAllocator.h>
 #include <characterkinematic/PxController.h>
 #include <vxEngineLib/Entity.h>
+#include <PxRigidDynamic.h>
 
 ComponentPhysicsManager::ComponentPhysicsManager()
 	:m_poolPhysics()
@@ -50,7 +51,7 @@ void ComponentPhysicsManager::shutdown()
 	m_poolPhysics.release();
 }
 
-Component::Physics* ComponentPhysicsManager::createComponent(const vx::float3 &position, physx::PxController* controller, u16 entityIndex, u16* componentIndex)
+Component::Physics* ComponentPhysicsManager::createComponent(const vx::float3 &position, physx::PxController* controller, physx::PxRigidDynamic* rigidDynamic, u16 entityIndex, u16* componentIndex)
 {
 	auto ptr = m_poolPhysics.createEntry(componentIndex);
 
@@ -58,6 +59,7 @@ Component::Physics* ComponentPhysicsManager::createComponent(const vx::float3 &p
 	ptr->footPositionY = 0;
 	ptr->position = position;
 	ptr->controller = controller;
+	ptr->rigidDynamic = rigidDynamic;
 
 	return ptr;
 }
@@ -69,15 +71,32 @@ void ComponentPhysicsManager::update(vx::Pool<Entity>* entities)
 	{
 		auto &entity = (*entities)[p->entityIndex];
 		//auto contactOffset = p->pRigidActor->getContactOffset();
-		auto footPosition = p->controller->getFootPosition();
-		auto position = p->controller->getPosition();
+		
+		if (p->controller)
+		{
+			auto footPosition = p->controller->getFootPosition();
+			auto position = p->controller->getPosition();
 
-		p->position.x = position.x;
-		p->position.y = position.y;
-		p->position.z = position.z;
-		p->footPositionY = footPosition.y;
+			p->position.x = position.x;
+			p->position.y = position.y;
+			p->position.z = position.z;
+			p->footPositionY = footPosition.y;
+		}
+		else
+		{
+			auto transform = p->rigidDynamic->getGlobalPose();
+			p->position.x = transform.p.x;
+			p->position.y = transform.p.y;
+			p->position.z = transform.p.z;
+
+			entity.qRotation.x = transform.q.x;
+			entity.qRotation.y = transform.q.y;
+			entity.qRotation.z = transform.q.z;
+			entity.qRotation.w = transform.q.w;
+		}
 
 		entity.position = p->position;
+
 
 		p = m_poolPhysics.next_nocheck(p);
 	}

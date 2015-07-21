@@ -32,12 +32,15 @@ namespace Gpu
 {
 	struct VoxelData
 	{
-		vx::mat4 projectionMatrix[3];
+		vx::mat4 projectionMatrix;
 		u32 dim;
 		u32 halfDim;
 		float gridCellSize;
 		float invGridCellSize;
-		vx::float4a padding[3];
+		float gridCellSizeY;
+		float invGridCellSizeY;
+		f32 offsetY;
+		f32 padding;
 	};
 
 	struct VoxelBlock
@@ -70,6 +73,7 @@ namespace Gpu
 		u64 u_ambientImage;
 		u64 u_srgb;
 		u64 u_rgb;
+		u64 u_volumetricTexture;
 	};
 
 	struct MaterialGPU

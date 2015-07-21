@@ -109,7 +109,20 @@ namespace Graphics
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glDepthMask(GL_TRUE);*/
 
-		StateDescription stateDesc = { voxelFB->getId(), meshVao->getId(), pipeline->getId(), meshCmdBuffer->getId(), meshParamBuffer->getId(), false, false, false, false};
+		StateDescription stateDesc =
+		{
+			voxelFB->getId(),
+			meshVao->getId(),
+			pipeline->getId(),
+			meshCmdBuffer->getId(),
+			meshParamBuffer->getId(),
+			false,
+			false,
+			false,
+			false,
+			{ 0, 0, 0, 0 },
+			0
+		};
 		State state;
 		state.set(stateDesc);
 
@@ -188,7 +201,20 @@ namespace Graphics
 		auto voxelFB = s_objectManager->getFramebuffer("voxelFB");
 		auto emptyVao = s_objectManager->getVertexArray("emptyVao");
 		auto voxelizeLightPipeline = s_shaderManager->getPipeline("voxelizeLight.pipe");
-		StateDescription stateDesc = { voxelFB->getId(), emptyVao->getId(), voxelizeLightPipeline->getId(), lightCmdBuffer->getId(), 0, false, false, false, false };
+		StateDescription stateDesc =
+		{
+			voxelFB->getId(),
+			emptyVao->getId(),
+			voxelizeLightPipeline->getId(),
+			lightCmdBuffer->getId(),
+			0,
+			false,
+			false,
+			false,
+			false,
+			{0, 0, 0, 0},
+			0
+		};
 		State state;
 		state.set(stateDesc);
 
@@ -239,28 +265,29 @@ namespace Graphics
 	void VoxelRenderer::createVoxelBuffer()
 	{
 		const u32 textureSizeLod = m_voxelTextureSize;
-		const f32 gridsizeLod = m_voxelGridDim;
+		const f32 gridsize = m_voxelGridDim;
+		const f32 gridSizeY = m_voxelGridDim;//5.0f;
 
 		Gpu::VoxelBlock voxelBlock;
-			auto halfDim = textureSizeLod / 2;
-			auto gridHalfSize = gridsizeLod / 2.0f;
+		auto halfDim = textureSizeLod / 2;
+		auto gridHalfSize = gridsize / 2.0f;
+		auto gridHalfSizeY = gridSizeY / 2.0f;
 
-			auto gridCellSize = gridHalfSize / halfDim;
-			auto invGridCellSize = 1.0f / gridCellSize;
+		auto gridCellSize = gridHalfSize / halfDim;
+		auto invGridCellSize = 1.0f / gridCellSize;
 
-			auto projectionMatrix = vx::MatrixOrthographicRHDX(gridsizeLod, gridsizeLod, 0.0f, gridsizeLod);
+		auto projectionMatrix = vx::MatrixOrthographicRHDX(gridsize, gridSizeY, 0.0f, gridsize);
 
-			auto backFront = projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
-			auto leftRight = projectionMatrix * vx::MatrixRotationAxis(vx::g_VXIdentityR1, vx::degToRad(90)) *vx::MatrixTranslation(-gridHalfSize, 0, 0);
-			auto topDown = projectionMatrix * vx::MatrixRotationAxis(vx::g_VXIdentityR0, vx::degToRad(90)) *vx::MatrixTranslation(0, -gridHalfSize, 0);
-			//auto projectionMatrix = vx::MatrixOrthographicOffCenterRH(-gridHalfSize, gridHalfSize, -gridHalfSize, gridHalfSize, 0.0f, -gridsizeLod);
-			voxelBlock.data.projectionMatrix[0] = leftRight;//projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
-			voxelBlock.data.projectionMatrix[1] = topDown;
-			voxelBlock.data.projectionMatrix[2] = backFront;
-			voxelBlock.data.dim = textureSizeLod;
-			voxelBlock.data.halfDim = halfDim;
-			voxelBlock.data.gridCellSize = gridCellSize;
-			voxelBlock.data.invGridCellSize = invGridCellSize;
+		auto backFront = projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
+		voxelBlock.data.projectionMatrix = backFront;
+		voxelBlock.data.dim = textureSizeLod;
+		voxelBlock.data.halfDim = halfDim;
+		voxelBlock.data.gridCellSize = gridCellSize;
+		voxelBlock.data.invGridCellSize = invGridCellSize;
+
+		voxelBlock.data.gridCellSizeY = gridHalfSizeY / halfDim;
+		voxelBlock.data.invGridCellSizeY = 1.0f / voxelBlock.data.gridCellSizeY;
+		voxelBlock.data.offsetY = 1.5f;
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;

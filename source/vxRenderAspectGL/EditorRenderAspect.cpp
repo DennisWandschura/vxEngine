@@ -49,6 +49,11 @@ SOFTWARE.
 #include <vxGL/VertexArray.h>
 #include <vxEngineLib/Material.h>
 #include "GpuStructs.h"
+#include "Graphics/Commands.h"
+#include "Graphics/Segment.h"
+#include "Graphics/State.h"
+#include <vxGL/ProgramPipeline.h>
+#include <vxEngineLib/Joint.h>
 
 struct InfluenceCellVertex
 {
@@ -60,12 +65,28 @@ namespace Editor
 {
 	//enum class RenderAspect::EditorUpdate : u32{ Update_None, Update_Mesh, Update_Material, Editor_Added_Instance, Editor_Update_Instance, Editor_Set_Scene };
 
-		void __stdcall renderDebugCallback()
-		{
-			std::abort();
-		}
+	void __stdcall renderDebugCallback()
+	{
+		std::abort();
+	}
 
-	const u32 g_maxLightCount{128};
+	struct VoxelData
+	{
+		u32 dim;
+		u32 halfDim;
+		f32 gridCellSize;
+		f32 invGridCellSize;
+		f32 gridCellSizeY;
+		f32 invGridCellSizeY;
+	};
+
+	struct JointData
+	{
+		vx::float4 p0;
+		vx::float4 p1;
+	};
+
+	const u32 g_maxLightCount{ 128 };
 
 	struct VertexPositionColor
 	{
@@ -228,6 +249,8 @@ namespace Editor
 		m_shaderManager.loadPipeline(vx::FileHandle("navmesh.pipe"), "navmesh.pipe", &m_allocator);
 		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawNavmeshConnection.pipe"), "editorDrawNavmeshConnection.pipe", &m_allocator);
 		m_shaderManager.loadPipeline(vx::FileHandle("editorSelectedMesh.pipe"), "editorSelectedMesh.pipe", &m_allocator);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawVoxelGrid.pipe"), "editorDrawVoxelGrid.pipe", &m_allocator);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawJoints.pipe"), "editorDrawJoints.pipe", &m_allocator);
 
 		Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, renderDesc.settings, nullptr);
 
@@ -235,7 +258,6 @@ namespace Editor
 
 		m_materialManager.initialize(vx::uint3(1024, 1024, 128), maxInstances, &m_objectManager);
 		m_meshManager.initialize(maxInstances, 0xffff + 1, 0xffff + 1, &m_objectManager);
-		//m_sceneRenderer.initialize(10, &m_objectManager, renderDesc.pAllocator);
 
 		{
 			vx::gl::BufferDescription navmeshVertexVboDesc;
@@ -379,6 +401,50 @@ namespace Editor
 			vao->bindVertexBuffer(*vbo, 0, 0, sizeof(VertexPositionColor));
 		}
 
+		{
+			auto gridSize = renderDesc.settings->m_rendererSettings.m_voxelSettings.m_voxelGridDim;
+			auto dim = renderDesc.settings->m_rendererSettings.m_voxelSettings.m_voxelTextureSize;
+			f32 gridSizeY = 4.0f;
+			f32 gridHalfSize = gridSize / 2.0f;
+			f32 gridHalfSizeY = gridSizeY / 2.0f;
+
+			VoxelData data;
+			data.dim = dim;
+			data.halfDim = data.dim / 2;
+			data.gridCellSize = gridHalfSize / data.halfDim;
+			data.invGridCellSize = 1.0f / data.gridCellSize;
+			data.gridCellSizeY = gridHalfSizeY / data.halfDim;
+			data.invGridCellSizeY = 1.0f / data.gridCellSizeY;
+
+			vx::gl::BufferDescription desc;
+			desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
+			desc.flags = vx::gl::BufferStorageFlags::Write;
+			desc.immutable = 1;
+			desc.pData = &data;
+			desc.size = sizeof(VoxelData);
+
+			m_objectManager.createBuffer("editorVoxelDataBuffer", desc);
+		}
+
+		{
+			vx::gl::BufferDescription desc;
+			desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
+			desc.flags = vx::gl::BufferStorageFlags::Write;
+			desc.immutable = 1;
+			desc.pData = nullptr;
+			desc.size = sizeof(JointData) * 255;
+
+			m_objectManager.createBuffer("editorJointBuffer", desc);
+
+			vx::gl::DrawArraysIndirectCommand cmd{};
+			cmd.instanceCount = 1;
+
+			desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+			desc.pData = &cmd;
+			desc.size = sizeof(cmd);
+			m_objectManager.createBuffer("editorJointCmdBuffer", desc);
+		}
+
 		m_commandList.initialize();
 		createCommandList();
 
@@ -409,13 +475,17 @@ namespace Editor
 		auto pCameraBufferStatic = m_objectManager.getBuffer("CameraBufferStatic");
 		auto transformBuffer = m_objectManager.getBuffer("transformBuffer");
 		auto materialBlockBuffer = m_objectManager.getBuffer("materialBlockBuffer");
+		auto editorVoxelDataBuffer = m_objectManager.getBuffer("editorVoxelDataBuffer");
+		auto editorJointBuffer = m_objectManager.getBuffer("editorJointBuffer");
 		//auto pTextureBuffer = m_objectManager.getBuffer("TextureBuffer");
 
 		gl::BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
 		gl::BufferBindingManager::bindBaseUniform(2, pCameraBufferStatic->getId());
 		gl::BufferBindingManager::bindBaseUniform(3, pUniformTextureBuffer->getId());
+		gl::BufferBindingManager::bindBaseUniform(4, editorVoxelDataBuffer->getId());
 
-		glBindBufferBase(GL_UNIFORM_BUFFER, 8, editorTextureBuffer->getId());
+		gl::BufferBindingManager::bindBaseUniform(8, editorTextureBuffer->getId());
+		gl::BufferBindingManager::bindBaseUniform(9, editorJointBuffer->getId());
 
 		gl::BufferBindingManager::bindBaseShaderStorage(0, transformBuffer->getId());
 		gl::BufferBindingManager::bindBaseShaderStorage(1, materialBlockBuffer->getId());
@@ -591,6 +661,44 @@ namespace Editor
 		navMeshVertexVao->bindVertexBuffer(*navMeshVertexVbo, 0, 0, sizeof(VertexPositionColor));
 	}
 
+	void RenderAspect::createVoxelSegment()
+	{
+		auto emptyVao = m_objectManager.getVertexArray("emptyVao");
+		auto pipeline = m_shaderManager.getPipeline("editorDrawVoxelGrid.pipe");
+
+		Graphics::StateDescription stateDesc
+		{
+			0,
+			emptyVao->getId(),
+			pipeline->getId(),
+			0,
+			0,
+			false,
+			true,
+			false,
+			true,
+			{1, 1, 1, 1},
+			1
+		};
+
+		Graphics::State state;
+		state.set(stateDesc);
+
+		u32 voxelDim = 128;
+
+		Graphics::DrawArraysInstancedCommand drawCmd;
+		drawCmd.set(GL_POINTS, 0, voxelDim, voxelDim * voxelDim);
+
+		//Graphics::BlendEquationCommand blendCmd;
+		//blendCmd.set();
+
+		Graphics::Segment segment;
+		segment.setState(state);
+		//segment.pushCommand(drawCmd);
+
+		//m_commandList.pushSegment(segment, "editorDrawVoxelGrid");
+	}
+
 	void RenderAspect::createCommandList()
 	{
 		vx::gl::BufferDescription bufferDesc;
@@ -623,6 +731,8 @@ namespace Editor
 		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(vx::float3));
 
 		Graphics::CommandListFactory::createFromFile("commandListEditor.txt", m_objectManager, m_shaderManager, &m_commandList);
+
+		createVoxelSegment();
 	}
 
 	void RenderAspect::shutdown(void* hwnd)
@@ -708,6 +818,20 @@ namespace Editor
 		}
 
 		m_commandList.draw();
+
+		/*{
+			auto emptyVao = m_objectManager.getVertexArray("emptyVao");
+			auto pipeline = m_shaderManager.getPipeline("editorDrawVoxelGrid.pipe");
+
+			vx::gl::StateManager::disable(vx::gl::Capabilities::Depth_Test);
+			vx::gl::StateManager::enable(vx::gl::Capabilities::Blend);
+			vx::gl::StateManager::bindVertexArray(*emptyVao);
+			vx::gl::StateManager::bindPipeline(*pipeline);
+
+			glLineWidth(1.0f);
+
+			glDrawArraysInstanced(GL_POINTS, 0, 64, 64 * 64);
+		}*/
 	}
 
 	void RenderAspect::endFrame()
@@ -763,7 +887,7 @@ namespace Editor
 		auto materialSid = material->getSid();
 
 		u32 materialIndex = 0;
-		auto b = m_materialManager.getMaterialIndex(materialSid,m_fileAspect, &materialIndex);
+		auto b = m_materialManager.getMaterialIndex(materialSid, m_fileAspect, &materialIndex);
 		m_meshManager.addMeshInstance(instance.getMeshInstance(), materialIndex, m_fileAspect);
 	}
 
@@ -1025,7 +1149,7 @@ namespace Editor
 			mappedLightBuffer[i].position.x = lights[i].m_position.x;
 			mappedLightBuffer[i].position.y = lights[i].m_position.y;
 			mappedLightBuffer[i].position.z = lights[i].m_position.z;
-			mappedLightBuffer[i].falloff= lights[i].m_falloff;
+			mappedLightBuffer[i].falloff = lights[i].m_falloff;
 			mappedLightBuffer[i].lumen = lights[i].m_lumen;
 		}
 		mappedLightBuffer.unmap();
@@ -1067,6 +1191,42 @@ namespace Editor
 		for (u32 i = 0; i < count; ++i)
 		{
 			mappedVbo[i] = spawns[i].position;
+		}
+	}
+
+	void RenderAspect::updateJoints(const Joint* joints, u32 count, const vx::sorted_vector<vx::StringID, MeshInstance> &meshinstances)
+	{
+		auto cmdBuffer = m_objectManager.getBuffer("editorJointCmdBuffer");
+		auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		mappedCmdBuffer->count = count;
+		mappedCmdBuffer.unmap();
+		
+		auto editorJointBuffer = m_objectManager.getBuffer("editorJointBuffer");
+		auto mappedBuffer = editorJointBuffer->map<JointData>(vx::gl::Map::Write_Only);
+		for (u32 i = 0; i < count; ++i)
+		{
+			auto p0 = joints[i].p0;
+			auto p1 = joints[i].p1;
+
+			if (joints[i].sid0.value != 0)
+			{
+				auto it = meshinstances.find(joints[i].sid0);
+				auto &transform = it->getTransform();
+
+				p0 += transform.m_translation;
+			}
+
+			if (joints[i].sid1.value != 0)
+			{
+				auto it = meshinstances.find(joints[i].sid1);
+				auto &transform = it->getTransform();
+
+				p1 += transform.m_translation;
+			}
+
+			mappedBuffer[i].p0 = vx::float4(p0, 1);
+			mappedBuffer[i].p1 = vx::float4(p1, 1);
+
 		}
 	}
 

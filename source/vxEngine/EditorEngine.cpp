@@ -42,6 +42,7 @@ SOFTWARE.
 #include "EngineGlobals.h"
 #include <vxLib/Graphics/Camera.h>
 #include <vxEngineLib/MeshFile.h>
+#include <vxEngineLib/Joint.h>
 
 #include <Dbghelp.h>
 
@@ -138,7 +139,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	m_resolution = resolution;
 	m_panel = panel;
 
-	if (!m_physicsAspect.initialize())
+	if (!m_physicsAspect.initialize(nullptr))
 	{
 		return false;
 	}
@@ -158,6 +159,9 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	g_engineConfig.m_rendererSettings.m_shadowMode = 0;
 	g_engineConfig.m_rendererSettings.m_voxelGIMode = 0;
 	g_engineConfig.m_rendererSettings.m_maxMeshInstances = 150;
+
+	g_engineConfig.m_rendererSettings.m_voxelSettings.m_voxelGridDim = 16;
+	g_engineConfig.m_rendererSettings.m_voxelSettings.m_voxelTextureSize = 128;
 
 	RenderAspectDescription renderAspectDesc =
 	{
@@ -290,6 +294,8 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 
 		buildNavGraph();
 		m_renderAspect->updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
+		auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
+		m_renderAspect->updateJoints(m_pEditorScene->getJoints(), m_pEditorScene->getJointCount(), sortedInstances);
 	}break;
 	case vx::FileEvent::Animation_Loaded:
 	{
@@ -1468,4 +1474,100 @@ void EditorEngine::setMeshInstanceRigidBodyType(u64 sid, u32 type)
 			editorInstance->setRigidBodyType(rigidBodyType);
 		}
 	}
+}
+
+void EditorEngine::addJoint(const vx::StringID &sid0, const vx::StringID &sid1, const vx::float3 &p0, const vx::float3 &p1)
+{
+	Joint joint;
+
+	joint.sid0 = sid0;
+	joint.sid1 = sid1;
+	joint.p0 = p0;
+	joint.q0 = {0, 0, 0, 1};
+	joint.p1= p1;
+	joint.q1 = { 0, 0, 0, 1 };
+	joint.type = JointType::Revolute;
+
+	if (m_physicsAspect.createJoint(joint))
+	{
+		puts("created joint");
+		m_pEditorScene->addJoint(joint);
+
+		auto jointCount = m_pEditorScene->getJointCount();
+		auto joints = m_pEditorScene->getJoints();
+
+		auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
+		m_renderAspect->updateJoints(joints, jointCount, sortedInstances);
+	}
+}
+
+void EditorEngine::addJoint(const vx::StringID &sid)
+{
+	auto instance = m_pEditorScene->getMeshInstance(sid);
+	if (instance)
+	{
+		auto &transform = instance->getTransform();
+
+		addJoint(sid, vx::StringID(0), transform.m_translation, transform.m_translation);
+	}
+}
+
+void EditorEngine::removeJoint(u32 index)
+{
+	m_pEditorScene->eraseJoint(index);
+	auto jointCount = m_pEditorScene->getJointCount();
+	auto joints = m_pEditorScene->getJoints();
+
+	auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
+	m_renderAspect->updateJoints(joints, jointCount, sortedInstances);
+}
+
+u32 EditorEngine::getJointCount() const
+{
+	return m_pEditorScene->getJointCount();
+}
+
+void EditorEngine::getJointData(u32 i, vx::float3* p0, vx::float3* p1, u64* sid0, u64* sid1) const
+{
+	auto joints = m_pEditorScene->getJoints();
+
+	auto &joint = joints[i];
+	*p0 = joint.p0;
+	*p1 = joint.p1;
+	*sid0 = joint.sid0.value;
+	*sid1 = joint.sid1.value;
+}
+
+bool EditorEngine::selectJoint(s32 mouseX, s32 mouseY, u32* index)
+{
+	auto ray = getRay(mouseX, mouseY);
+	ray.maxt = 10.0f;
+
+	auto joint = m_pEditorScene->getJoint(ray, index);
+
+	return (joint != nullptr);
+}
+
+void EditorEngine::setJointPosition0(u32 index, const vx::float3 &p)
+{
+	m_pEditorScene->setJointPosition0(index, p);
+	auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
+	m_renderAspect->updateJoints(m_pEditorScene->getJoints(), m_pEditorScene->getJointCount(), sortedInstances);
+}
+
+void EditorEngine::setJointPosition1(u32 index, const vx::float3 &p)
+{
+	m_pEditorScene->setJointPosition1(index, p);
+	auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
+	m_renderAspect->updateJoints(m_pEditorScene->getJoints(), m_pEditorScene->getJointCount(), sortedInstances);
+}
+
+void EditorEngine::setJointBody0(u32 index, u64 sid)
+{
+	m_pEditorScene->setJointBody0(index, sid);
+}
+
+void EditorEngine::setJointBody1(u32 index, u64 sid)
+{
+	m_pEditorScene->setJointBody1(index, sid);
 }

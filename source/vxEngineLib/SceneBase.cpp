@@ -31,6 +31,7 @@ SOFTWARE.
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/Animation.h>
 #include <vxEngineLib/MeshFile.h>
+#include <vxEngineLib/Joint.h>
 
 SceneBaseParams::SceneBaseParams()
 {
@@ -43,11 +44,15 @@ SceneBaseParams::~SceneBaseParams()
 }
 
 SceneBase::SceneBase()
-	:m_pLights(),
+	:m_lights(),
+	m_materials(),
+	m_meshes(),
 	m_pSpawns(),
 	m_actors(),
 	m_waypoints(),
 	m_animations(),
+	m_joints(),
+	m_navMesh(),
 	m_indexCount(0),
 	m_spawnCount(0),
 	m_waypointCount(0)
@@ -55,13 +60,14 @@ SceneBase::SceneBase()
 }
 
 SceneBase::SceneBase(SceneBase &&rhs)
-	: m_pLights(std::move(rhs.m_pLights)),
+	: m_lights(std::move(rhs.m_lights)),
 	m_materials(std::move(rhs.m_materials)),
 	m_meshes(std::move(rhs.m_meshes)),
 	m_pSpawns(std::move(rhs.m_pSpawns)),
 	m_actors(std::move(rhs.m_actors)),
 	m_waypoints(std::move(rhs.m_waypoints)),
 	m_animations(std::move(rhs.m_animations)),
+	m_joints(std::move(rhs.m_joints)),
 	m_navMesh(std::move(rhs.m_navMesh)),
 	m_lightCount(rhs.m_lightCount),
 	m_vertexCount(rhs.m_vertexCount),
@@ -72,13 +78,14 @@ SceneBase::SceneBase(SceneBase &&rhs)
 }
 
 SceneBase::SceneBase(SceneBaseParams &params)
-	: m_pLights(std::move(params.m_pLights)),
+	: m_lights(std::move(params.m_lights)),
 	m_materials(std::move(params.m_materials)),
 	m_meshes(std::move(params.m_meshes)),
 	m_pSpawns(std::move(params.m_pSpawns)),
 	m_actors(std::move(params.m_actors)),
 	m_waypoints(std::move(params.m_waypoints)),
 	m_animations(std::move(params.m_animations)),
+	m_joints(std::move(params.m_joints)),
 	m_navMesh(std::move(params.m_navMesh)),
 	m_lightCount(params.m_lightCount),
 	m_vertexCount(params.m_vertexCount),
@@ -92,13 +99,14 @@ SceneBase& SceneBase::operator = (SceneBase &&rhs)
 {
 	if (this != &rhs)
 	{
-		m_pLights = std::move(rhs.m_pLights);
+		m_lights = std::move(rhs.m_lights);
 		m_materials = std::move(rhs.m_materials);
 		m_meshes = std::move(rhs.m_meshes);
 		m_pSpawns = std::move(rhs.m_pSpawns);
 		m_actors = std::move(rhs.m_actors);
 		m_waypoints = std::move(rhs.m_waypoints);
 		m_animations = std::move(rhs.m_animations);
+		m_joints = std::move(rhs.m_joints);
 		std::swap(m_navMesh, rhs.m_navMesh);
 		m_lightCount = rhs.m_lightCount;
 		m_vertexCount = rhs.m_vertexCount;
@@ -116,9 +124,10 @@ SceneBase::~SceneBase()
 
 void SceneBase::reset()
 {
-	m_pLights.clear();
+	m_lights.clear();
 	m_waypoints.clear();
 	m_pSpawns.clear();
+	m_joints.clear();
 
 	m_materials.clear();
 	m_meshes.clear();
@@ -134,7 +143,7 @@ void SceneBase::reset()
 
 void SceneBase::copy(SceneBase *dst) const
 {
-	dst->m_pLights = m_pLights;
+	dst->m_lights = m_lights;
 
 	copySortedVector(&dst->m_materials, m_materials);
 	copySortedVector(&dst->m_meshes, m_meshes);
@@ -144,6 +153,7 @@ void SceneBase::copy(SceneBase *dst) const
 
 	dst->m_waypoints = m_waypoints;
 	dst->m_animations = m_animations;
+	dst->m_joints = m_joints;
 
 	m_navMesh.copy(&dst->m_navMesh);
 
@@ -156,7 +166,7 @@ void SceneBase::copy(SceneBase *dst) const
 
 const Light* SceneBase::getLights() const
 {
-	return m_pLights.data();
+	return m_lights.data();
 }
 
 u32 SceneBase::getLightCount() const
@@ -240,4 +250,14 @@ const Waypoint* SceneBase::getWaypoints() const
 u32 SceneBase::getWaypointCount() const
 {
 	return m_waypointCount;
+}
+
+const Joint* SceneBase::getJoints() const
+{
+	return m_joints.data();
+}
+
+u32 SceneBase::getJointCount() const
+{
+	return m_joints.size();
 }

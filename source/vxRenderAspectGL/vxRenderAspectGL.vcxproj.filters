@@ -204,6 +204,9 @@
     <ClCompile Include="TexturePool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\Commands\DrawArraysInstancedCommand.cpp">
+      <Filter>Source Files\Graphics\Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\game\data\shaders\include\common.h">
@@ -406,6 +409,9 @@
     </ClInclude>
     <ClInclude Include="TexturePool.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Commands\DrawArraysInstancedCommand.h">
+      <Filter>Header Files\Graphics\Commands</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -738,6 +744,15 @@
     </None>
     <None Include="..\..\game\data\shaders\blurpassNew.pipe">
       <Filter>Shader Pipelines</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawVoxelGrid.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawVoxelGrid.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\game\data\shaders\programs\editorDrawVoxelGrid.vert">
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

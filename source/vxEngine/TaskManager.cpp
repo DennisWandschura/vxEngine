@@ -29,11 +29,14 @@ SOFTWARE.
 TaskManager::TaskManager()
 	:m_tasks(nullptr),
 	m_backTasks(nullptr),
+	m_waitTasks(nullptr),
 	m_size(0),
 	m_backSize(0),
 	m_capacity(0),
+	m_waitSize(0),
 	m_allocator(),
-	m_backAllocator()
+	m_backAllocator(),
+	m_waitAllocator()
 {
 
 }
@@ -49,6 +52,8 @@ void TaskManager::initialize(vx::StackAllocator* allocator, u32 maxTaskCount, vx
 	VX_ASSERT(m_tasks != nullptr);
 	m_backTasks = (Task**)allocator->allocate(sizeof(Task*) * maxTaskCount, __alignof(Task*));
 	VX_ASSERT(m_backTasks != nullptr);
+	m_waitTasks = (Task**)allocator->allocate(sizeof(Task*) * maxTaskCount, __alignof(Task*));
+	VX_ASSERT(m_waitTasks != nullptr);
 
 	const auto memorySize = 64 KBYTE;
 	auto memory = allocator->allocate(memorySize, 64);
@@ -59,11 +64,16 @@ void TaskManager::initialize(vx::StackAllocator* allocator, u32 maxTaskCount, vx
 	VX_ASSERT(memory != nullptr);
 	m_backAllocator = vx::StackAllocator(memory, memorySize);
 
+	memory = allocator->allocate(memorySize, 64);
+	VX_ASSERT(memory != nullptr);
+	m_waitAllocator = vx::StackAllocator(memory, memorySize);
+
 	m_capacity = maxTaskCount;
 
 #if _VX_MEM_PROFILE
 	allocManager->registerAllocator(&m_allocator, "taskAlloc0");
 	allocManager->registerAllocator(&m_backAllocator, "taskAlloc1");
+	allocManager->registerAllocator(&m_waitAllocator, "taskAllocWait");
 #endif
 }
 
@@ -73,18 +83,30 @@ void TaskManager::shutdown()
 	{
 		m_tasks[i]->~Task();
 	}
+	m_size = 0;
 
 	for (u32 i = 0; i < m_backSize; ++i)
 	{
 		m_backTasks[i]->~Task();
 	}
+	m_backSize = 0;
+
+	for (u32 i = 0; i < m_waitSize; ++i)
+	{
+		m_waitTasks[i]->~Task();
+	}
+	m_waitSize = 0;
 
 	m_allocator.clear();
 	m_backAllocator.clear();
+	m_waitAllocator.clear();
 }
 
-void TaskManager::update()
+bool TaskManager::runTasks()
 {
+	if (m_size == 0)
+		return false;
+
 	m_allocator.swap(m_backAllocator);
 	std::swap(m_size, m_backSize);
 	std::swap(m_tasks, m_backTasks);
@@ -96,17 +118,39 @@ void TaskManager::update()
 	{
 		auto task = tasks[i];
 
-		task->run();
-
-		/*if (!task->isFinished())
+		auto result = task->run();
+		if (result == TaskReturnType::Retry)
 		{
-			auto newTask = task->move(&m_allocator);
-			queueTask(newTask);
-		}*/
+			Task* newTask = task->move(&m_waitAllocator);
+			queueWait(newTask);
+		}
 	}
 
 	m_backAllocator.clear();
 	m_backSize = 0;
+
+	return true;
+}
+
+void TaskManager::update()
+{
+	runTasks();
+}
+
+void TaskManager::wait()
+{
+	while (runTasks())
+		;
+
+	auto waitSize = m_waitSize;
+	for (u32 i = 0; i < waitSize; ++i)
+	{
+		auto task = m_waitTasks[i];
+		Task* newTask = task->move(&m_allocator);
+		queueTask(newTask);
+	}
+	m_waitAllocator.clear();
+	m_waitSize = 0;
 }
 
 void TaskManager::queueTask(Task* task)
@@ -114,4 +158,9 @@ void TaskManager::queueTask(Task* task)
 	VX_ASSERT(m_size < m_capacity);
 
 	m_tasks[m_size++] = task;
+}
+
+void TaskManager::queueWait(Task* task)
+{
+	m_waitTasks[m_waitSize++] = task;
 }

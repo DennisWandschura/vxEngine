@@ -212,8 +212,10 @@
     <ClInclude Include="include\vxEngineLib\AnimationFile.h" />
     <ClInclude Include="include\vxEngineLib\ArrayAllocator.h" />
     <ClInclude Include="include\vxEngineLib\Component.h" />
+    <ClInclude Include="include\vxEngineLib\ConverterSceneFileV5.h" />
     <ClInclude Include="include\vxEngineLib\copy.h" />
     <ClInclude Include="include\vxEngineLib\CreateActorData.h" />
+    <ClInclude Include="include\vxEngineLib\CreateDynamicMeshData.h" />
     <ClInclude Include="include\vxEngineLib\debugPrint.h" />
     <ClInclude Include="include\vxEngineLib\DoubleBufferRaw.h" />
     <ClInclude Include="include\vxEngineLib\EditorMeshInstance.h" />
@@ -236,6 +238,7 @@
     <ClInclude Include="include\vxEngineLib\Graphics\Texture.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\TextureFactory.h" />
     <ClInclude Include="include\vxEngineLib\InfluenceMap.h" />
+    <ClInclude Include="include\vxEngineLib\Joint.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Locator.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />
@@ -256,6 +259,7 @@
     <ClInclude Include="include\vxEngineLib\OpenGLTypes.h" />
     <ClInclude Include="include\vxEngineLib\ParserConverter.h" />
     <ClInclude Include="include\vxEngineLib\ParserNode.h" />
+    <ClInclude Include="include\vxEngineLib\PhysxEnums.h" />
     <ClInclude Include="include\vxEngineLib\Plane.h" />
     <ClInclude Include="include\vxEngineLib\Pool.h" />
     <ClInclude Include="include\vxEngineLib\Ray.h" />
@@ -287,6 +291,7 @@
     <ClCompile Include="ArrayAllocator.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ConverterSceneFileV5.cpp" />
     <ClCompile Include="DoubleBufferRaw.cpp" />
     <ClCompile Include="EditorScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -352,9 +357,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Timer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Triangle.cpp">

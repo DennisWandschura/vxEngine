@@ -95,17 +95,20 @@
     <Compile Include="ActionCreateNavMeshTriangle.cs" />
     <Compile Include="ActionCreateNavMeshVertex.cs" />
     <Compile Include="ActionDecisionTree.cs" />
+    <Compile Include="ActionDeselectJointOrMeshInstance.cs" />
     <Compile Include="ActionDeselectMesh.cs" />
     <Compile Include="ActionDeselectNavMesh.cs" />
     <Compile Include="ActionList.cs" />
     <Compile Include="ActionNode.cs" />
     <Compile Include="ActionRemoveNavMeshVertex.cs" />
     <Compile Include="ActionRenameSelectedMeshInstance.cs" />
+    <Compile Include="ActionSelectJointOrMeshInstance.cs" />
     <Compile Include="ActionSetMeshInstanceAnimation.cs" />
     <Compile Include="ActionSetMeshInstanceMaterial.cs" />
     <Compile Include="ActionSetMeshInstanceMesh.cs" />
     <Compile Include="ActionSetMeshInstancePosition.cs" />
     <Compile Include="ActionSetMeshInstanceRotation.cs" />
+    <Compile Include="DecisionSelectedJoint.cs" />
     <Compile Include="DirectoryTreeNode.cs" />
     <Compile Include="FileBrowser.cs">
       <SubType>Form</SubType>
@@ -134,6 +137,12 @@
       <DependentUpon>EditorForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ItemFileExtension.cs" />
+    <Compile Include="JointDataControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="JointDataControl.Designer.cs">
+      <DependentUpon>JointDataControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="MeshInstanceDataControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -160,6 +169,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="EditorForm.resx">
       <DependentUpon>EditorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="JointDataControl.resx">
+      <DependentUpon>JointDataControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MeshInstanceDataControl.resx">
       <DependentUpon>MeshInstanceDataControl.cs</DependentUpon>

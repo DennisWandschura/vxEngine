@@ -225,6 +225,18 @@
     <ClInclude Include="include\vxEngineLib\Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\CreateDynamicMeshData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Joint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\PhysxEnums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\ConverterSceneFileV5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">
@@ -271,9 +283,6 @@
     </ClCompile>
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <Filter>Source Files\unity</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FileFactory.cpp">
       <Filter>Source Files</Filter>
@@ -328,6 +337,9 @@
     </ClCompile>
     <ClCompile Include="Graphics\TextureFactory.cpp">
       <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterSceneFileV5.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

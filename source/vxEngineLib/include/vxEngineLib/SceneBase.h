@@ -31,6 +31,7 @@ struct Spawn;
 struct Actor;
 class SceneFile;
 struct Waypoint;
+struct Joint;
 
 template<typename T>
 class Reference;
@@ -49,13 +50,14 @@ namespace vx
 
 struct SceneBaseParams
 {
-	std::vector<Light> m_pLights;
+	std::vector<Light> m_lights;
 	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
 	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> m_meshes;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	std::vector<Waypoint> m_waypoints;
 	vx::sorted_vector<vx::StringID, Reference<vx::Animation>> m_animations;
+	std::vector<Joint> m_joints;
 	NavMesh m_navMesh;
 	u32 m_lightCount;
 	u32 m_vertexCount;
@@ -70,13 +72,14 @@ struct SceneBaseParams
 class SceneBase
 {
 protected:
-	std::vector<Light> m_pLights;
+	std::vector<Light> m_lights;
 	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
 	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> m_meshes;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	std::vector<Waypoint> m_waypoints;
 	vx::sorted_vector<vx::StringID, Reference<vx::Animation>> m_animations;
+	std::vector<Joint> m_joints;
 	NavMesh m_navMesh;
 	u32 m_lightCount{ 0 };
 	u32 m_vertexCount{ 0 };
@@ -129,4 +132,7 @@ public:
 
 	const Waypoint* getWaypoints() const;
 	u32 getWaypointCount() const;
+
+	const Joint* getJoints() const;
+	u32 getJointCount() const;
 };

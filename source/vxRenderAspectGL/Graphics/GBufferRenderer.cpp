@@ -135,7 +135,21 @@ namespace Graphics
 		auto vao = s_objectManager->getVertexArray("meshVao");
 		auto meshParamBuffer = s_objectManager->getBuffer("meshParamBuffer");
 
-		StateDescription stateDesc = { fbo->getId(), vao->getId(), pipeline->getId(), cmdbuffer->getId(), meshParamBuffer->getId(), true, false, false,true };
+		StateDescription stateDesc = 
+		{
+			fbo->getId(), 
+			vao->getId(),
+			pipeline->getId(),
+			cmdbuffer->getId(), 
+			meshParamBuffer->getId(), 
+			true, 
+			false, 
+			false,
+			true, 
+			{1, 1, 1, 1},
+			1
+		};
+
 		State state;
 		state.set(stateDesc);
 

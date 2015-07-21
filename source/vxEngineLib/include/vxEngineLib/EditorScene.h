@@ -65,10 +65,19 @@ namespace Editor
 			SelectableWrapper() :m_bounds(), m_ptr(nullptr){}
 		};
 
+		struct SelectableWrapperIndex
+		{
+			AABB m_bounds;
+			u32 m_index;
+
+			SelectableWrapperIndex() :m_bounds(), m_index(0){}
+		};
+
 		vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
 		std::vector<SelectableWrapper<Light>> m_selectableLights;
 		std::vector<std::pair<AABB, u32>> m_selectableSpawns;
 		std::vector<SelectableWrapper<Waypoint>> m_selectableWaypoints;
+		std::vector<SelectableWrapperIndex> m_selectableJoints;
 
 		vx::sorted_vector<vx::StringID, std::string> m_materialNames;
 		vx::sorted_vector<vx::StringID, std::string> m_meshNames;
@@ -79,6 +88,7 @@ namespace Editor
 		void buildSelectableLights();
 		void buildSelectableWaypoints();
 		void buildSelectableSpawns();
+		void buildSelectableJoints();
 
 		const ::MeshInstance* getMeshInstances() const override { return nullptr; }
 
@@ -114,6 +124,7 @@ namespace Editor
 		MeshInstance* getMeshInstance(const vx::StringID &sid);
 		const MeshInstance* getMeshInstancesEditor() const;
 		u32 getMeshInstanceCount() const override;
+		const vx::sorted_vector<vx::StringID, MeshInstance>& getSortedMeshInstances() const;
 
 		const char* getMeshInstanceName(const vx::StringID &sid) const;
 		const char* getMaterialName(const vx::StringID &sid) const;
@@ -140,5 +151,13 @@ namespace Editor
 		Light* getLight(const Ray &ray);
 
 		void updateLightPositions();
+
+		void addJoint(const Joint &joint);
+		void eraseJoint(u32 i);
+		Joint* getJoint(const Ray &ray, u32* index);
+		void setJointPosition0(u32 index, const vx::float3 &p);
+		void setJointPosition1(u32 index, const vx::float3 &p);
+		void setJointBody0(u32 index, u64 sid);
+		void setJointBody1(u32 index, u64 sid);
 	};
 }

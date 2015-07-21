@@ -26,6 +26,9 @@ SOFTWARE.
 #if defined(_DEBUG_STATIC_BUILD)
 
 #pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
+#ifndef _VX_EDITOR
+#pragma comment(lib, "PhysXVisualDebuggerSDKDEBUG.lib")
+#endif
 #if _VX_MEM_PROFILE
 #pragma comment(lib, "vxLibMEMPROFILE_sd.lib")
 #else

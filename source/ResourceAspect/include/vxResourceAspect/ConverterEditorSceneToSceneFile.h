@@ -32,6 +32,7 @@ namespace Editor
 class ConverterEditorSceneToSceneFile
 {
 	static void convertActors(const Editor::Scene &scene, SceneFile* sceneFile);
+	static void copyLights(const Editor::Scene &scene, SceneFile* sceneFile);
 
 public:
 	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);

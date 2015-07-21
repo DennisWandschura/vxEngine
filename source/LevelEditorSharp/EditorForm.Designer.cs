@@ -76,6 +76,7 @@ namespace LevelEditor
             this.toolStripButtonCreateLight = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCreateMeshInstance = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCreateSpawn = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonCreateJoint = new System.Windows.Forms.ToolStripButton();
             this.openFileDialog1_loadScene = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog_scene = new System.Windows.Forms.SaveFileDialog();
             this.numericUpDownNavmeshPositionZ = new System.Windows.Forms.NumericUpDown();
@@ -106,6 +107,8 @@ namespace LevelEditor
             this.numericUpDownSpawnPosX = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosZ = new System.Windows.Forms.NumericUpDown();
+            this.removeJointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addJointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).BeginInit();
@@ -198,7 +201,9 @@ namespace LevelEditor
             // 
             this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.undoToolStripMenuItem,
-            this.redoToolStripMenuItem});
+            this.redoToolStripMenuItem,
+            this.addJointToolStripMenuItem,
+            this.removeJointToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem.Text = "Edit";
@@ -206,14 +211,14 @@ namespace LevelEditor
             // undoToolStripMenuItem
             // 
             this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
-            this.undoToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.undoToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.undoToolStripMenuItem.Text = "Undo";
             this.undoToolStripMenuItem.Click += new System.EventHandler(this.undoToolStripMenuItem_Click);
             // 
             // redoToolStripMenuItem
             // 
             this.redoToolStripMenuItem.Name = "redoToolStripMenuItem";
-            this.redoToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.redoToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.redoToolStripMenuItem.Text = "Redo";
             this.redoToolStripMenuItem.Click += new System.EventHandler(this.redoToolStripMenuItem_Click);
             // 
@@ -300,7 +305,8 @@ namespace LevelEditor
             this.comboBox_selectEditorMode,
             this.toolStripButtonCreateLight,
             this.toolStripButtonCreateMeshInstance,
-            this.toolStripButtonCreateSpawn});
+            this.toolStripButtonCreateSpawn,
+            this.toolStripButtonCreateJoint});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(2544, 25);
@@ -347,6 +353,17 @@ namespace LevelEditor
             this.toolStripButtonCreateSpawn.Text = "Create Spawn";
             this.toolStripButtonCreateSpawn.Visible = false;
             this.toolStripButtonCreateSpawn.Click += new System.EventHandler(this.toolStripButtonCreateSpawn_Click);
+            // 
+            // toolStripButtonCreateJoint
+            // 
+            this.toolStripButtonCreateJoint.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonCreateJoint.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCreateJoint.Image")));
+            this.toolStripButtonCreateJoint.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonCreateJoint.Name = "toolStripButtonCreateJoint";
+            this.toolStripButtonCreateJoint.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonCreateJoint.Text = "Create Joint";
+            this.toolStripButtonCreateJoint.Visible = false;
+            this.toolStripButtonCreateJoint.Click += new System.EventHandler(this.toolStripButtonCreateJoint_Click);
             // 
             // openFileDialog1_loadScene
             // 
@@ -750,6 +767,22 @@ namespace LevelEditor
             this.numericUpDownSpawnPosZ.TabIndex = 14;
             this.numericUpDownSpawnPosZ.ValueChanged += new System.EventHandler(this.numericUpDownSpawnPosZ_ValueChanged);
             // 
+            // removeJointToolStripMenuItem
+            // 
+            this.removeJointToolStripMenuItem.Name = "removeJointToolStripMenuItem";
+            this.removeJointToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.removeJointToolStripMenuItem.Text = "Remove Joint";
+            this.removeJointToolStripMenuItem.Visible = false;
+            this.removeJointToolStripMenuItem.Click += new System.EventHandler(this.removeJointToolStripMenuItem_Click);
+            // 
+            // addJointToolStripMenuItem
+            // 
+            this.addJointToolStripMenuItem.Name = "addJointToolStripMenuItem";
+            this.addJointToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addJointToolStripMenuItem.Text = "Add Joint";
+            this.addJointToolStripMenuItem.Visible = false;
+            this.addJointToolStripMenuItem.Click += new System.EventHandler(this.addJointToolStripMenuItem_Click);
+            // 
             // EditorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -864,6 +897,9 @@ namespace LevelEditor
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel13;
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.NumericUpDown numericUpDownSpawnType;
+        private System.Windows.Forms.ToolStripButton toolStripButtonCreateJoint;
+        private System.Windows.Forms.ToolStripMenuItem removeJointToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem addJointToolStripMenuItem;
     }
 }
 

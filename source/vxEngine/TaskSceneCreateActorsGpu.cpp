@@ -1,3 +1,26 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015 Dennis Wandschura
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 #include "TaskSceneCreateActorsGpu.h"
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/RenderAspectInterface.h>
@@ -22,7 +45,7 @@ TaskSceneCreateActorsGpu::~TaskSceneCreateActorsGpu()
 
 }
 
-void TaskSceneCreateActorsGpu::run()
+TaskReturnType TaskSceneCreateActorsGpu::run()
 {
 	auto spawns = m_scene->getSpawns();
 	auto spawnCount = m_scene->getSpawnCount();
@@ -60,19 +83,15 @@ void TaskSceneCreateActorsGpu::run()
 			evtManager->addEvent(evt);
 		}
 	}
-}
 
-bool TaskSceneCreateActorsGpu::isFinished() const
-{
-	return true;
+	return TaskReturnType::Success;
 }
 
 Task* TaskSceneCreateActorsGpu::move(vx::Allocator* allocator)
 {
 	auto ptr = (TaskSceneCreateActorsGpu*)allocator->allocate(sizeof(TaskSceneCreateActorsGpu), __alignof(TaskSceneCreateActorsGpu));
 
-	ptr->m_scene = m_scene;
-	ptr->m_renderAspect = m_renderAspect;
+	new (ptr) TaskSceneCreateActorsGpu(std::move(*this));
 
 	return ptr;
 }

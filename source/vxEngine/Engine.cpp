@@ -77,15 +77,21 @@ Engine::~Engine()
 
 void Engine::update()
 {
+	//printf("physx simulate\n");
+	m_physicsAspect.update(g_dt);
+
 	// process events
 	m_eventManager.update();
 
 	m_actionManager.update();
 
+	//printf("task manager begin\n");
 	m_taskManager.update();
+	m_taskManager.wait();
+	//printf("task manager end\n");
 
 	// update aspects in order
-
+	//printf("physx fetch\n");
 	m_physicsAspect.fetch();
 
 	m_systemAspect.update(g_dt);
@@ -95,7 +101,6 @@ void Engine::update()
 	//CpuProfiler::popMarker();
 
 	//CpuProfiler::pushMarker("physx");
-	m_physicsAspect.update(g_dt);
 	//CpuProfiler::popMarker();
 }
 
@@ -272,7 +277,7 @@ bool Engine::initialize()
 
 	//m_renderAspect->makeCurrent(false);
 
-	if (!m_physicsAspect.initialize())
+	if (!m_physicsAspect.initialize(&m_taskManager))
 		return false;
 
 #if _VX_MEM_PROFILE

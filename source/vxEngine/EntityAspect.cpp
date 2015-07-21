@@ -52,6 +52,8 @@ SOFTWARE.
 #include <vxLib/Allocator/AllocationProfiler.h>
 #include "ComponentPhysics.h"
 #include "CreatedActorData.h"
+#include <vxEngineLib/CreateDynamicMeshData.h>
+#include "TaskPhysxCreateJoints.h"
 
 namespace EntityAspectCpp
 {
@@ -139,7 +141,7 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 		auto physicsAspect = Locator::getPhysicsAspect();
 		auto controller = physicsAspect->createActor(position, g_heightStanding);
 		u16 componentPhysicsIndex;
-		auto componentPhysics = m_componentPhysicsManager.createComponent(position, controller, entityIndex, &componentPhysicsIndex);
+		auto componentPhysics = m_componentPhysicsManager.createComponent(position, controller, nullptr, entityIndex, &componentPhysicsIndex);
 
 		m_coldData->m_pPlayer->addComponent(*componentPhysics, componentPhysicsIndex);
 		m_coldData->m_pPlayer->addComponent(*componentInput, inputComponentIndex);
@@ -157,7 +159,7 @@ void EntityAspect::createActorEntity(const CreateActorData &data)
 	pEntity->position = transform.m_translation;
 
 	u16 componentPhysicsIndex;
-	auto componentPhysics = m_componentPhysicsManager.createComponent(transform.m_translation, data.getController(), entityIndex, &componentPhysicsIndex);
+	auto componentPhysics = m_componentPhysicsManager.createComponent(transform.m_translation, data.getController(), nullptr, entityIndex, &componentPhysicsIndex);
 
 	u16 inputComponentIndex;
 	auto componentInput = m_componentInputManager.createComponent(entityIndex, &inputComponentIndex);
@@ -242,9 +244,11 @@ void EntityAspect::handleFileEvent(const vx::Event &evt)
 		auto scene = (const Scene*)evt.arg2.ptr;
 
 		auto renderAspect = Locator::getRenderAspect();
+		auto physicsAspect = Locator::getPhysicsAspect();
 
 		m_taskManager->queueTask<TaskSceneCreateActorsGpu>(scene, renderAspect);
 		m_taskManager->queueTask<TaskSceneCreateStaticMeshes>(scene, renderAspect);
+		m_taskManager->queueTask<TaskPhysxCreateJoints>(scene, physicsAspect);
 
 		auto spawns = scene->getSpawns();
 		auto spawnCount = scene->getSpawnCount();
@@ -268,25 +272,27 @@ void EntityAspect::handleFileEvent(const vx::Event &evt)
 	}
 }
 
-void EntityAspect::createEntityUsable(const MeshInstance &instance, u32 gpuIndex)
+void EntityAspect::createDynamicMesh(const CreateDynamicMeshData &data)
 {
 	u16 entityIndex = 0;
 	auto entity = m_poolEntity.createEntry(&entityIndex);
 
-	u16 usableIndex = 0;
-	auto componentUsable = m_componentUsableManager.createComponent(instance, entityIndex, &usableIndex);
+	auto transform = data.m_meshInstance->getTransform();
 
-	auto transform = instance.getTransform();
+	//u16 usableIndex = 0;
+	//auto componentUsable = m_componentUsableManager.createComponent(data.m_meshInstance, entityIndex, &usableIndex);
 
 	u16 renderIndex = 0;
-	auto componentRender = m_componentRenderManager.createComponent(transform, gpuIndex, entityIndex, &renderIndex);
+	auto componentRender = m_componentRenderManager.createComponent(transform, data.m_gpuIndex, entityIndex, &renderIndex);
 
-	auto position = transform.m_translation;
+	u16 physicsIndex = 0;
+	auto componentPhysics = m_componentPhysicsManager.createComponent(transform.m_translation, nullptr, data.m_rigidDynamic, entityIndex, &physicsIndex);
 
-	entity->position = position;
+	entity->position = transform.m_translation;
 	entity->qRotation = transform.m_qRotation;
 	entity->addComponent(*componentRender, renderIndex);
-	entity->addComponent(*componentUsable, usableIndex);
+	entity->addComponent(*componentPhysics, physicsIndex);
+	//entity->addComponent(*componentUsable, usableIndex);
 }
 
 void EntityAspect::handleIngameEvent(const vx::Event &evt)
@@ -294,6 +300,18 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 	IngameEvent e = (IngameEvent)evt.code;
 	switch (e)
 	{
+	case IngameEvent::Physx_AddedDynamicMesh:
+	{
+		CreateDynamicMeshData* data = (CreateDynamicMeshData*)evt.arg1.ptr;
+		data->decrement();
+
+		if (data->m_flags == 0 && data->isValid())
+		{
+			createDynamicMesh(*data);
+			delete(data);
+		}
+
+	}break;
 	case IngameEvent::Gpu_AddedActor:
 	{
 		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
@@ -314,15 +332,15 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 		}
 
 	}break;
-	case IngameEvent::Gpu_AddedStaticEntity:
+	case IngameEvent::Gpu_AddedDynamicMesh:
 	{
-		auto instance = (MeshInstance*)evt.arg1.ptr;
-		auto gpuIndex = evt.arg2.u32;
+		CreateDynamicMeshData* data = (CreateDynamicMeshData*)evt.arg1.ptr;
+		data->decrement();
 
-		auto animSid = instance->getAnimationSid();
-		if (animSid.value != 0)
+		if (data->m_flags == 0 && data->isValid())
 		{
-			createEntityUsable(*instance, gpuIndex);
+			createDynamicMesh(*data);
+			delete(data);
 		}
 	}break;
 	case IngameEvent::Created_NavGraph:

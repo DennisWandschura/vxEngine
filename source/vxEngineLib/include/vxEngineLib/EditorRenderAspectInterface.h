@@ -7,6 +7,7 @@ struct Waypoint;
 struct Spawn;
 class Material;
 class NavMesh;
+struct Joint;
 
 template<typename T>
 class Reference;
@@ -18,6 +19,7 @@ namespace vx
 }
 
 #include <vxEngineLib/RenderAspectInterface.h>
+#include <vxLib/Container/sorted_vector.h>
 
 namespace Editor
 {
@@ -46,6 +48,7 @@ namespace Editor
 		virtual void updateLightBuffer(const Light* lights, u32 count) = 0;
 		virtual void updateWaypoints(const Waypoint* w, u32 count) = 0;
 		virtual void updateSpawns(const Spawn* spawns, u32 count) = 0;
+		virtual void updateJoints(const Joint* joints, u32 count, const vx::sorted_vector<vx::StringID, Editor::MeshInstance> &meshinstances) = 0;
 
 		virtual const vx::Camera& getCamera() const = 0;
 	};

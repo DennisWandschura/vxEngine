@@ -27,6 +27,7 @@ SOFTWARE.
 namespace physx
 {
 	class PxController;
+	class PxRigidDynamic;
 }
 
 #include <vxEngineLib/Component.h>
@@ -38,6 +39,7 @@ namespace Component
 	{
 		f32 footPositionY;
 		vx::float3 position;
+		physx::PxRigidDynamic* rigidDynamic;
 		physx::PxController* controller;
 	};
 }

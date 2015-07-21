@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,42 +22,48 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/types.h>
+#include <vxLib/math/Vector.h>
 #include <string>
 
 namespace Graphics
 {
 	struct StateDescription
 	{
-		u32 fbo;
-		u32 vao;
-		u32 pipeline;
-		u32 indirectBuffer;
-		u32 paramBuffer;
-		bool depthState;
-		bool blendState;
-		bool polygonOffsetFillState;
-		bool cullface;
+		u32 m_fbo;
+		u32 m_vao;
+		u32 m_pipeline;
+		u32 m_indirectBuffer;
+		u32 m_paramBuffer;
+		bool m_depthState;
+		bool m_blendState;
+		bool m_polygonOffsetFillState;
+		bool m_cullface;
+		vx::uchar4 m_colorMask;
+		u8 m_depthMask;
 
-		StateDescription() :fbo(0), vao(0), pipeline(0), indirectBuffer(0), paramBuffer(0), depthState(true), blendState(false), polygonOffsetFillState(false), cullface(true){}
-		StateDescription(u32 f, u32 v, u32 p, u32 cmd, u32 param, bool depth, bool blend, bool polyOffsetState, bool cullFace_) 
-			:fbo(f), vao(v), pipeline(p), indirectBuffer(cmd), paramBuffer(param), depthState(depth), blendState(blend), polygonOffsetFillState(polyOffsetState), cullface(cullFace_){}
+		StateDescription() :m_fbo(0), m_vao(0), m_pipeline(0), m_indirectBuffer(0), m_paramBuffer(0), m_depthState(true), m_blendState(false), m_polygonOffsetFillState(false), m_cullface(true), m_colorMask(1, 1, 1, 1), m_depthMask(1){}
+		StateDescription(u32 fbo, u32 vao, u32 pipeline, u32 cmd, u32 param, bool depth, bool blend, bool polyOffsetState, bool cullFace, const vx::uchar4 &colorMask, u8 depthMask)
+			:m_fbo(fbo), m_vao(vao), m_pipeline(pipeline), m_indirectBuffer(cmd), m_paramBuffer(param), m_depthState(depth), m_blendState(blend), m_polygonOffsetFillState(polyOffsetState), m_cullface(cullFace), m_colorMask(colorMask), m_depthMask(depthMask) {}
 	};
 
 	class State
 	{
+		enum GlState : u8;
+
 		u32 m_fbo;
 		u32 m_vao;
 		u32 m_pipeline;
 		u32 m_indirectBuffer;
 		u32 m_paramBuffer;
 
-		u8 m_blendState;
+		u8 m_state;
+		/*u8 m_blendState;
 		u8 m_depthTestState;
 		u8 m_polygonOffsetFillState;
-		u8 m_cullFace;
+		u8 m_cullFace;*/
+
+		u8 m_colorMask;
 
 	public:
 		State();

@@ -107,6 +107,16 @@ vx::float3 decodeNormal(const vx::float2 &enc)
 	return n;
 }
 
+f32 getLuminance(const vx::float3 &color)
+{
+	return 0.2126f *color.x + 0.7152 * color.y + 0.0722 * color.z;
+}
+
+vx::float3 getAvg(const vx::float3 &color0, const vx::float3 &color1)
+{
+	return (color0 + color1) / 2.0f;
+}
+
 int main()
 {
 	auto previousHandler = std::signal(SIGABRT, signalHandler);
@@ -114,6 +124,19 @@ int main()
 	{
 		return 1;
 	}
+
+	vx::float3 colorSample = {0.7f, 0.7f, 0.7f};
+	vx::float3 color1 = { 0.2f, 0.2f, 0.2f };
+
+	auto l0 = getLuminance(colorSample);
+	auto l1 = getLuminance(color1);
+	auto weight = (l1 - l0);
+
+	auto result0 = getAvg(colorSample, color1);
+	auto result1 = colorSample + color1 * weight;
+
+	vx::uint3 c0 = result0 * 255.0f;
+	vx::uint3 c1 = result1 * 255.0f;
 
 	HANDLE hLogFile = nullptr;
 	hLogFile = CreateFileA("log.txt", GENERIC_WRITE,

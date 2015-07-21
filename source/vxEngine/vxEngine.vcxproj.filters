@@ -360,6 +360,12 @@
     <ClInclude Include="ActionPlayAnimation.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
+    <ClInclude Include="TaskPhysxCreateJoints.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsCpuDispatcher.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -514,6 +520,12 @@
     </ClCompile>
     <ClCompile Include="ActionPlayAnimation.cpp">
       <Filter>Source Files\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskPhysxCreateJoints.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsCpuDispatcher.cpp">
+      <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

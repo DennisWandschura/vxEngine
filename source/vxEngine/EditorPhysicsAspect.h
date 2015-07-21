@@ -42,8 +42,6 @@ namespace Editor
 
 	class PhysicsAspect : public ::PhysicsAspect
 	{
-		vx::sorted_vector<vx::StringID, PhysxRigidBodyType> m_meshInstances;
-
 		void handleFileEvent(const vx::Event &evt);
 
 		void processScene(const Editor::Scene* pScene);
@@ -69,5 +67,9 @@ namespace Editor
 		bool setMeshInstanceRigidBodyType(const vx::StringID &instanceSid, const ::MeshInstance &meshInstance, PhysxRigidBodyType rigidBodyType);
 
 		void addMeshInstance(const ::MeshInstance &instance);
+
+		bool createJoint(const Joint &joint);
+
+		void saveScene();
 	};
 }

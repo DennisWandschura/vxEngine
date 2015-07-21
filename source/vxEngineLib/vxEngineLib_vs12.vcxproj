@@ -103,9 +103,9 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneBase.cpp" />
     <ClCompile Include="SceneFile.cpp" />
+    <ClCompile Include="ConverterSceneFileV5.cpp" />
     <ClCompile Include="Spawn.cpp" />
     <ClCompile Include="Timer.cpp" />
-    <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +117,7 @@
     <ClInclude Include="include\vxEngineLib\Component.h" />
     <ClInclude Include="include\vxEngineLib\copy.h" />
     <ClInclude Include="include\vxEngineLib\CreateActorData.h" />
+    <ClInclude Include="include\vxEngineLib\CreateDynamicMeshData.h" />
     <ClInclude Include="include\vxEngineLib\debugPrint.h" />
     <ClInclude Include="include\vxEngineLib\DoubleBufferRaw.h" />
     <ClInclude Include="include\vxEngineLib\EditorMeshInstance.h" />
@@ -139,6 +140,7 @@
     <ClInclude Include="include\vxEngineLib\Graphics\Texture.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\TextureFactory.h" />
     <ClInclude Include="include\vxEngineLib\InfluenceMap.h" />
+    <ClInclude Include="include\vxEngineLib\Joint.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Locator.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />
@@ -170,6 +172,7 @@
     <ClInclude Include="include\vxEngineLib\Scene.h" />
     <ClInclude Include="include\vxEngineLib\SceneBase.h" />
     <ClInclude Include="include\vxEngineLib\SceneFile.h" />
+    <ClInclude Include="include\vxEngineLib\ConverterSceneFileV5.h" />
     <ClInclude Include="include\vxEngineLib\Serializable.h" />
     <ClInclude Include="include\vxEngineLib\Spawn.h" />
     <ClInclude Include="include\vxEngineLib\SRWMutex.h" />

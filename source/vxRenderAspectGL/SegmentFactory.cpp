@@ -86,15 +86,20 @@ namespace Graphics
 			CommandFactory::get().createFromNodeAndPushToSegment(entry, &segment, pipe);
 		}
 
-		Graphics::StateDescription desc;
-		desc.fbo = (fbo != nullptr) ? fbo->getId() : 0;
-		desc.vao = vao->getId();
-		desc.pipeline = pipe->getId();
-		desc.indirectBuffer = cmdBuffer->getId();
-		desc.paramBuffer = (paramBuffer != nullptr) ? paramBuffer->getId() : 0;
-		desc.depthState = depthState;
-		desc.blendState = blendState;
-		desc.polygonOffsetFillState = polygonOffsetFillStateNode;
+		Graphics::StateDescription desc
+		{
+			(fbo != nullptr) ? fbo->getId() : 0,
+			vao->getId(),
+			pipe->getId(),
+			cmdBuffer->getId(),
+			(paramBuffer != nullptr) ? paramBuffer->getId() : 0,
+			depthState,
+			blendState,
+			polygonOffsetFillStateNode,
+			1,
+			{1, 1, 1, 1},
+			1
+		};
 
 		Graphics::State state;
 		state.set(desc);

@@ -28,6 +28,17 @@ SOFTWARE.
 #include <UniformVolumetricFogBuffer.h>
 #include <vxGL/ShaderManager.h>
 #include <vxLib/File/FileHandle.h>
+#include <vxGL/Texture.h>
+#include <vxGL/Framebuffer.h>
+#include "Commands.h"
+#include "Segment.h"
+#include "State.h"
+#include <vxGL/VertexArray.h>
+#include <vxGL/ProgramPipeline.h>
+#include <vxgl/gl.h>
+#include "CommandList.h"
+#include <vxEngineLib/EngineConfig.h>
+#include "../GpuStructs.h"
 
 namespace Graphics
 {
@@ -39,6 +50,39 @@ namespace Graphics
 	VolumetricLightRenderer::~VolumetricLightRenderer()
 	{
 
+	}
+
+	void VolumetricLightRenderer::createTexture()
+	{
+		auto halfRes = s_settings->m_resolution / 2u;
+
+		vx::gl::TextureDescription desc;
+		desc.format = vx::gl::TextureFormat::RGBA16F;
+		desc.miplevels = 1;
+		desc.size = vx::ushort3(halfRes.x, halfRes.y, 1);
+		desc.sparse = 0;
+		desc.type = vx::gl::TextureType::Texture_2D;
+
+		auto sid = s_objectManager->createTexture("volumetricTexture", desc);
+		auto tex = s_objectManager->getTexture(sid);
+		tex->setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
+
+		auto handle = tex->getTextureHandle();
+		tex->makeTextureResident();
+
+		auto uniformTextureBuffer = s_objectManager->getBuffer("UniformTextureBuffer");
+		auto mappedBuffer = uniformTextureBuffer->map<Gpu::UniformTextureBufferBlock>(vx::gl::Map::Write_Only);
+		mappedBuffer->u_volumetricTexture = handle;
+	}
+
+	void VolumetricLightRenderer::createFbo()
+	{
+		auto fboSid = s_objectManager->createFramebuffer("volumetricFbo");
+		auto fbo = s_objectManager->getFramebuffer(fboSid);
+		auto colorTexture = s_objectManager->getTexture("volumetricTexture");
+
+		fbo->attachTexture(vx::gl::Attachment::Color0, *colorTexture, 0);
+		fbo->drawBuffer(vx::gl::Attachment::Color0);
 	}
 
 	void VolumetricLightRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
@@ -57,6 +101,9 @@ namespace Graphics
 		desc.pData = &data;
 		desc.size = sizeof(UniformVolumetricFogBufferBlock);
 		s_objectManager->createBuffer("volumetricFogBuffer", desc);
+
+		createTexture();
+		createFbo();
 	}
 
 	void VolumetricLightRenderer::shutdown()
@@ -66,7 +113,63 @@ namespace Graphics
 
 	void VolumetricLightRenderer::getCommandList(CommandList* cmdList)
 	{
+		auto fbo = s_objectManager->getFramebuffer("volumetricFbo");
+		auto vao = s_objectManager->getVertexArray("emptyVao");
+		auto pipeline = s_shaderManager->getPipeline("volume.pipe");
 
+		StateDescription stateDesc
+		{
+			fbo->getId(),
+			vao->getId(),
+			pipeline->getId(),
+			0,
+			0,
+			true, 
+			true,
+			false,
+			false,
+			{1, 1, 1, 1},
+			0
+		};
+
+		State state;
+		state.set(stateDesc);
+
+		Segment segment;
+		segment.setState(state);
+
+		auto halfRes = s_settings->m_resolution / 2u;
+
+		ViewportCommand viewportCmd;
+		viewportCmd.set(vx::uint2(0), halfRes);
+
+		ClearCommand clearCmd;
+		clearCmd.set(vx::gl::ClearBufferBit_Color);
+
+		BlendEquationCommand blendEquCmd;
+		blendEquCmd.set(GL_FUNC_ADD);
+
+		BlendFuncCommand blendFuncCmd;
+		blendFuncCmd.set(GL_ONE, GL_ONE);
+
+		DrawArraysCommand drawCmd;
+		drawCmd.set(GL_POINTS, 0, 1);
+
+		GpuProfilePushCommand profilePushCmd;
+		profilePushCmd.set(s_gpuProfiler, "volumetric");
+
+		GpuProfilePopCommand profilePopCmd;
+		profilePopCmd.set(s_gpuProfiler);
+
+		segment.pushCommand(profilePushCmd);
+		segment.pushCommand(viewportCmd);
+		segment.pushCommand(clearCmd);
+		segment.pushCommand(blendEquCmd);
+		segment.pushCommand(blendFuncCmd);
+		segment.pushCommand(drawCmd);
+		segment.pushCommand(profilePopCmd);
+
+		cmdList->pushSegment(segment, "drawVolumetric");
 	}
 
 	void VolumetricLightRenderer::clearData()
@@ -77,5 +180,7 @@ namespace Graphics
 	void VolumetricLightRenderer::bindBuffers()
 	{
 		auto volumetricFogBuffer = s_objectManager->getBuffer("volumetricFogBuffer");
+
+		//glBindBufferBase(GL_UNIFORM_BUFFER, 11, volumetricFogBuffer->getId());
 	}
 }

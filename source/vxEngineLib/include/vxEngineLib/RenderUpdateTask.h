@@ -30,7 +30,7 @@ class MeshInstance;
 
 struct RenderUpdateTask
 {
-	enum class Type{ UpdateCamera, UpdateDynamicTransforms, UpdateText, LoadScene, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex, CreateStaticMesh };
+	enum class Type{ UpdateCamera, UpdateDynamicTransforms, UpdateText, LoadScene, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex, AddStaticMeshInstance, AddDynamicMeshInstance};
 
 	Type type;
 };
@@ -54,7 +54,7 @@ struct RenderUpdateTextData
 	vx::float3 color;
 };
 
-struct RenderUpdateTaskCreateStaticMeshData
+struct RenderUpdateTaskAddStaticMeshData
 {
 	const MeshInstance* instance;
 	vx::StringID materialSid;

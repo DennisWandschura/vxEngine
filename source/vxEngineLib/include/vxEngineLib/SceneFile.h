@@ -30,6 +30,7 @@ struct ActorFile;
 struct Actor;
 struct Spawn;
 struct Waypoint;
+struct Joint;
 
 class MeshInstance;
 class Material;
@@ -41,6 +42,12 @@ class Reference;
 namespace Editor
 {
 	class Scene;
+}
+
+namespace Converter
+{
+	class SceneFileV5;
+	class SceneFileToEditorScene;
 }
 
 namespace vx
@@ -81,34 +88,32 @@ class SceneFile : public vx::Serializable
 	friend class ConverterSceneFileToScene;
 	friend class ConverterEditorSceneToSceneFile;
 
-	struct CreateSceneMeshInstancesDesc;
-	struct CreateSceneActorsDesc;
-	struct CreateSceneShared;
+	friend Converter::SceneFileV5;
+	friend Converter::SceneFileToEditorScene;
 
 	std::unique_ptr<MeshInstanceFile[]> m_pMeshInstances;
 	std::unique_ptr<Light[]> m_pLights;
 	std::unique_ptr<SpawnFile[]> m_pSpawns;
 	std::unique_ptr<ActorFile[]> m_pActors;
 	std::unique_ptr<Waypoint[]> m_waypoints;
+	std::unique_ptr<Joint[]> m_joints;
 	NavMesh m_navMesh;
 	u32 m_meshInstanceCount;
 	u32 m_lightCount;
 	u32 m_spawnCount;
 	u32 m_actorCount;
 	u32 m_waypointCount;
-
-	bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc);
-	bool createSceneActors(const CreateSceneActorsDesc &desc);
-
-	bool createSceneShared(const CreateSceneShared &desc);
+	u32 m_jointCount;
 
 	//const u8* loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* allocator);
 	const u8* loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator);
-	const u8* loadVersion5(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+	//const u8* loadVersion5(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+	const u8* loadVersion6(const u8 *ptr, const u8* last, vx::Allocator* allocator);
 
 	//u64 getCrcVersion3() const;
 	u64 getCrcVersion4() const;
-	u64 getCrcVersion5() const;
+	//u64 getCrcVersion5() const;
+	u64 getCrcVersion6() const;
 
 public:
 	explicit SceneFile(u32 version);
@@ -126,9 +131,6 @@ public:
 
 	const MeshInstanceFile* getMeshInstances() const noexcept;
 	u32 getNumMeshInstances() const noexcept;
-
-	u8 createScene(const CreateSceneDescription &desc);
-	u8 createScene(const CreateEditorSceneDescription &desc);
 
 	u32 getActorCount() const;
 	const ActorFile* getActors() const;

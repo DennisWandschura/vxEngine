@@ -32,6 +32,7 @@ SOFTWARE.
 #include "Commands/CpuProfileCommand.h"
 #include "Commands/DrawArraysCommand.h"
 #include "Commands/DrawArraysIndirectCommand.h"
+#include "Commands/DrawArraysInstancedCommand.h"
 #include "Commands/DrawElementsIndirectCommand.h"
 #include "Commands/FramebufferTextureCommand.h"
 #include "Commands/GpuProfileCommand.h"

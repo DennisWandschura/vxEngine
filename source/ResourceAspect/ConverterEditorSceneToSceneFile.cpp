@@ -33,6 +33,7 @@ SOFTWARE.
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/SceneFile.h>
 #include <vxEngineLib/Material.h>
+#include <vxEngineLib/Joint.h>
 
 void ConverterEditorSceneToSceneFile::convertActors(const Editor::Scene &scene, SceneFile* sceneFile)
 {
@@ -65,10 +66,8 @@ void ConverterEditorSceneToSceneFile::convertActors(const Editor::Scene &scene, 
 	sceneFile->m_actorCount = actorCount;
 }
 
-void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneFile* sceneFile)
+void ConverterEditorSceneToSceneFile::copyLights(const Editor::Scene &scene, SceneFile* sceneFile)
 {
-	convertActors(scene, sceneFile);
-
 	sceneFile->m_lightCount = scene.m_lightCount;
 	if (scene.m_lightCount != 0)
 	{
@@ -76,9 +75,15 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 		sceneFile->m_pLights = vx::make_unique<Light[]>(scene.m_lightCount);
 		for (u32 i = 0; i < scene.m_lightCount; ++i)
 		{
-			sceneFile->m_pLights[i] = scene.m_pLights[i];
+			sceneFile->m_pLights[i] = scene.m_lights[i];
 		}
 	}
+}
+
+void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneFile* sceneFile)
+{
+	convertActors(scene, sceneFile);
+	copyLights(scene, sceneFile);
 
 	scene.m_navMesh.copy(&sceneFile->m_navMesh);
 
@@ -160,6 +165,17 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 		for (u32 i = 0; i < scene.m_waypointCount; ++i)
 		{
 			sceneFile->m_waypoints[i] = scene.m_waypoints[i];
+		}
+	}
+
+	auto jointCount = scene.m_joints.size();
+	sceneFile->m_jointCount = jointCount;
+	if (jointCount != 0)
+	{
+		sceneFile->m_joints = vx::make_unique<Joint[]>(jointCount);
+		for (u32 i = 0; i < jointCount; ++i)
+		{
+			sceneFile->m_joints[i] = scene.m_joints[i];
 		}
 	}
 }

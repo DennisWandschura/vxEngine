@@ -147,7 +147,8 @@ protected:
 	void taskToggleRenderMode();
 	void taskCreateActorGpuIndex(u8* p, u32* offset);
 	void taskUpdateDynamicTransforms(u8* p, u32* offset);
-	void taskCreateStaticMesh(u8* p, u32* offset);
+	void taskAddStaticMeshInstance(u8* p, u32* offset);
+	void taskAddDynamicMeshInstance(u8* p, u32* offset);
 
 	u16 addActorToBuffer(const vx::StringID &actorSid, const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material);
 	u16 getActorGpuIndex();

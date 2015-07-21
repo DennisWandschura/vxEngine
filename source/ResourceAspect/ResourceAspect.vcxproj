@@ -275,6 +275,7 @@
     <ClCompile Include="ConverterEditorSceneToSceneFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ConverterSceneFileToEditorScene.cpp" />
     <ClCompile Include="ConverterSceneFileToScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -309,6 +310,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxResourceAspect\ConverterEditorSceneToSceneFile.h" />
+    <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToEditorScene.h" />
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToScene.h" />
     <ClInclude Include="include\vxResourceAspect\CreateSceneDescription.h" />
     <ClInclude Include="include\vxResourceAspect\FbxFactory.h" />

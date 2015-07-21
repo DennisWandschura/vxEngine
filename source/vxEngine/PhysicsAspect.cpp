@@ -35,6 +35,8 @@ SOFTWARE.
 #include <vxEngineLib/EventsIngame.h>
 #include <vxEngineLib/CreateActorData.h>
 #include <vxEngineLib/EventManager.h>
+#include <vxEngineLib/CreateDynamicMeshData.h>
+#include <vxEngineLib/Joint.h>
 
 UserErrorCallback PhysicsAspect::s_defaultErrorCallback{};
 physx::PxDefaultAllocator PhysicsAspect::s_defaultAllocatorCallback{};
@@ -47,6 +49,100 @@ void UserErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* m
 	printf("Physx Error: %d, %s %s %d\n", code, message, file, line);
 }
 
+class MySimulationCallback : public physx::PxSimulationEventCallback
+{
+public:
+	MySimulationCallback()
+	{
+
+	}
+
+	~MySimulationCallback()
+	{
+
+	}
+
+	void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
+	{
+
+	}
+
+	void onWake(physx::PxActor** actors, physx::PxU32 count) override
+	{
+
+	}
+
+	void onSleep(physx::PxActor** actors, physx::PxU32 count) override
+	{
+
+	}
+
+	void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) override
+	{
+		printf("contact\n");
+	}
+
+	void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) override
+	{
+		printf("trigger\n");
+	}
+};
+
+namespace PhysicsAspectCpp
+{
+	void copy(const vx::Transform &transform, physx::PxTransform* physxTransform)
+	{
+		physxTransform->p.x = transform.m_translation.x;
+		physxTransform->p.y = transform.m_translation.y;
+		physxTransform->p.z = transform.m_translation.z;
+
+		physxTransform->q.x = transform.m_qRotation.x;
+		physxTransform->q.y = transform.m_qRotation.y;
+		physxTransform->q.z = transform.m_qRotation.z;
+		physxTransform->q.w = transform.m_qRotation.w;
+	}
+
+	void copy(const vx::float3 &src, physx::PxVec3* dst)
+	{
+		dst->x = src.x;
+		dst->y = src.y;
+		dst->z = src.z;
+	}
+
+	void copy(const vx::float4 &src, physx::PxQuat* dst)
+	{
+		dst->x = src.x;
+		dst->y = src.y;
+		dst->z = src.z;
+		dst->w = src.w;
+	}
+}
+
+class MyHitReportCallback : public physx::PxUserControllerHitReport
+{
+public:
+	void onShapeHit(const physx::PxControllerShapeHit& hit) override
+	{
+		auto type = hit.actor->getType();
+
+		if (physx::PxActorType::eRIGID_DYNAMIC == type)
+		{
+			physx::PxRigidDynamic* ptr = (physx::PxRigidDynamic*)hit.actor;
+
+			//printf("%f %f %f\n",hit.dir.x, hit.dir.y, hit.dir.z);
+			ptr->addForce(hit.dir * 10);
+		}
+	}
+
+	void onControllerHit(const physx::PxControllersHit& hit) override
+	{
+	}
+
+	void onObstacleHit(const physx::PxControllerObstacleHit& hit) override
+	{
+	}
+};
+
 PhysicsAspect::PhysicsAspect()
 	:m_pScene(nullptr),
 	m_pControllerManager(nullptr),
@@ -55,17 +151,25 @@ PhysicsAspect::PhysicsAspect()
 	m_physxMeshes(),
 	m_physxMaterials(),
 	m_staticMeshInstances(),
+	m_meshInstances(),
 	m_pFoundation(nullptr),
 	m_pCpuDispatcher(nullptr),
-	m_pCooking(nullptr)
+	m_pCooking(nullptr),
+	m_callback(nullptr),
+	m_connection(nullptr)
 {
 }
 
 PhysicsAspect::~PhysicsAspect()
 {
+	if (m_callback)
+	{
+		delete(m_callback);
+		m_callback = nullptr;
+	}
 }
 
-bool PhysicsAspect::initialize()
+bool PhysicsAspect::initialize(TaskManager* taskManager)
 {
 	m_pFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, s_defaultAllocatorCallback,
 		s_defaultErrorCallback);
@@ -100,11 +204,16 @@ bool PhysicsAspect::initialize()
 		return false;
 	}
 
-	m_pCpuDispatcher = physx::PxDefaultCpuDispatcherCreate(0);
+	//m_pCpuDispatcher = physx::PxDefaultCpuDispatcherCreate(0);
+	m_cpuDispatcher.initialize(taskManager);
+
+	m_callback = new MyHitReportCallback();
 
 	physx::PxSceneDesc sceneDesc(toleranceScale);
-	sceneDesc.cpuDispatcher = m_pCpuDispatcher;
+	sceneDesc.cpuDispatcher = &m_cpuDispatcher;
 	sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
+//	sceneDesc.simulationEventCallback = m_callback;
+	//sceneDesc.flags |= physx::PxSceneFlag::eENABLE_KINEMATIC_PAIRS;
 
 	if (!sceneDesc.filterShader)
 		sceneDesc.filterShader = &physx::PxDefaultSimulationFilterShader;
@@ -119,15 +228,50 @@ bool PhysicsAspect::initialize()
 
 	m_pControllerManager = PxCreateControllerManager(*m_pScene);
 
+	auto pvd = m_pPhysics->getPvdConnectionManager();
+	if (pvd)
+	{
+		// setup connection parameters
+		const char*     pvd_host_ip = "127.0.0.1";  // IP of the PC which is running PVD
+		int             port = 5425;         // TCP port to connect to, where PVD is listening
+		unsigned int    timeout = 100;          // timeout in milliseconds to wait for PVD to respond,
+												// consoles and remote PCs need a higher timeout.
+		physx::PxVisualDebuggerConnectionFlags connectionFlags = physx::PxVisualDebuggerExt::getAllConnectionFlags();
+
+#ifndef _VX_EDITOR
+		m_connection = physx::PxVisualDebuggerExt::createConnection(pvd,
+			pvd_host_ip, port, timeout, connectionFlags);
+#endif
+	}
+
 	return true;
 }
 
 void PhysicsAspect::shutdown()
 {
+	if (m_pScene)
+	{
+		m_pScene->fetchResults(true);
+	}
+
+	if (m_connection)
+	{
+		m_connection->release();
+		m_connection = nullptr;
+	}
+
+	m_joints.clear();
+
 	if (m_pControllerManager)
 	{
 		m_pControllerManager->release();
 		m_pControllerManager = nullptr;
+	}
+
+	if (m_pScene)
+	{
+		m_pScene->release();
+		m_pScene = nullptr;
 	}
 
 	if (m_pCooking)
@@ -151,7 +295,11 @@ void PhysicsAspect::shutdown()
 
 void PhysicsAspect::fetch()
 {
-	m_pScene->fetchResults(true);
+	physx::PxU32 errorCode = 0;
+	if (!m_pScene->fetchResults(true, &errorCode))
+	{
+		printf("error: %u\n", errorCode);
+	}
 }
 
 void PhysicsAspect::update(const f32 dt)
@@ -191,7 +339,9 @@ void PhysicsAspect::handleIngameEvent(const vx::Event &evt)
 {
 	auto ingameEvent = (IngameEvent)evt.code;
 
-	if (ingameEvent == IngameEvent::Physx_AddActor)
+	switch (ingameEvent)
+	{
+	case IngameEvent::Physx_AddActor:
 	{
 		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
 
@@ -206,6 +356,29 @@ void PhysicsAspect::handleIngameEvent(const vx::Event &evt)
 
 		auto evtManager = Locator::getEventManager();
 		evtManager->addEvent(evt);
+	}break;
+	case IngameEvent::Physx_AddDynamicMesh:
+	{
+		auto data = (CreateDynamicMeshData*)evt.arg1.ptr;
+
+		addMeshInstanceImpl(*data->m_meshInstance, (void**)&data->m_rigidDynamic);
+		data->increment();
+
+		vx::Event evt;
+		evt.type = vx::EventType::Ingame_Event;
+		evt.code = (u32)IngameEvent::Physx_AddedDynamicMesh;
+		evt.arg1.ptr = data;
+
+		auto evtManager = Locator::getEventManager();
+		evtManager->addEvent(evt);
+	}break;
+	case IngameEvent::Physx_AddStaticMesh:
+	{
+		auto instance = (MeshInstance*)evt.arg1.ptr;
+		addMeshInstanceImpl(*instance, nullptr);
+	}break;
+	default:
+		break;
 	}
 }
 
@@ -302,7 +475,7 @@ physx::PxTriangleMesh* PhysicsAspect::getTriangleMesh(const vx::StringID &sid, c
 	return result;
 }
 
-void PhysicsAspect::addMeshInstanceImpl(const MeshInstance &meshInstance)
+void PhysicsAspect::addMeshInstanceImpl(const MeshInstance &meshInstance, void** outData)
 {
 	auto instanceSid = meshInstance.getNameSid();
 	auto meshSid = meshInstance.getMeshSid();
@@ -360,8 +533,10 @@ void PhysicsAspect::addMeshInstanceImpl(const MeshInstance &meshInstance)
 	}
 	else
 	{
-		addDynamicMeshInstance(transform, *shape, instanceSid);
+		addDynamicMeshInstance(transform, *shape, instanceSid, outData);
 	}
+
+	m_meshInstances.insert(instanceSid, type);
 }
 
 void PhysicsAspect::addStaticMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid)
@@ -377,7 +552,7 @@ void PhysicsAspect::addStaticMeshInstance(const physx::PxTransform &transform, p
 	m_pScene->addActor(*pRigidStatic);
 }
 
-void PhysicsAspect::addDynamicMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid)
+void PhysicsAspect::addDynamicMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid, void** outData)
 {
 	auto rigidDynamic = m_pPhysics->createRigidDynamic(transform);
 	rigidDynamic->attachShape(shape);
@@ -386,6 +561,8 @@ void PhysicsAspect::addDynamicMeshInstance(const physx::PxTransform &transform, 
 	sidptr->value = instanceSid.value;
 
 	m_dynamicMeshInstances.insert(instanceSid, rigidDynamic);
+
+	*outData = rigidDynamic;
 
 	m_pScene->addActor(*rigidDynamic);
 }
@@ -424,11 +601,11 @@ void PhysicsAspect::processScene(const Scene* ptr)
 		m_physxMaterials.insert(sid, pMaterial);
 	}
 
-	for (auto i = 0u; i < numInstances; ++i)
+	/*for (auto i = 0u; i < numInstances; ++i)
 	{
 		auto &instance = pMeshInstances[i];
 		addMeshInstanceImpl(instance);
-	}
+	}*/
 
 	m_pScene->unlockWrite();
 }
@@ -497,8 +674,9 @@ physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f
 	desc.position.y = translation.y;
 	desc.position.z = translation.z;
 	desc.stepOffset = 0.1f;
-
 	desc.material = m_pActorMaterial;
+	//desc.behaviorCallback = ;
+	desc.reportCallback = m_callback;
 
 	assert(desc.isValid());
 
@@ -547,6 +725,104 @@ physx::PxRigidDynamic* PhysicsAspect::getDynamicMesh(const vx::StringID &sid)
 	if (it != m_dynamicMeshInstances.end())
 	{
 		result = *it;
+	}
+
+	return result;
+}
+
+physx::PxRigidActor* PhysicsAspect::getRigidActor(const vx::StringID &sid, PhysxRigidBodyType* outType)
+{
+	physx::PxRigidActor* actor = nullptr;
+
+	auto it = m_meshInstances.find(sid);
+	if (it != m_meshInstances.end())
+	{
+		auto type = *it;
+		switch (type)
+		{
+		case PhysxRigidBodyType::Static:
+		{
+			auto itActor = m_staticMeshInstances.find(sid);
+			actor = *itActor;
+			*outType = PhysxRigidBodyType::Static;
+		}break;
+		case PhysxRigidBodyType::Dynamic:
+		{
+			auto itActor = m_dynamicMeshInstances.find(sid);
+			actor = *itActor;
+			*outType = PhysxRigidBodyType::Dynamic;
+		}break;
+		default:
+			break;
+		}
+	}
+
+	return actor;
+}
+
+physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
+{
+	physx::PxJoint* result = nullptr;
+
+	PhysxRigidBodyType type0, type1;
+
+	auto actor0 = getRigidActor(joint.sid0, &type0);
+	auto actor1 = getRigidActor(joint.sid1, &type1);
+	if (actor0 || actor1)
+	{
+		physx::PxTransform localFrame0, localFrame1;
+		localFrame0.p = {0, 0, 0};
+		localFrame0.q = {0, 0, 0, 1};
+
+		auto pose0 = actor0->getGlobalPose();
+
+		vx::float4a q = vx::quaternionRotationRollPitchYawFromVector(vx::float4a(0, vx::degToRad(90), 0, 0));
+
+		localFrame1.p = pose0.p;
+		localFrame1.p.x -= 0.1f;
+		localFrame1.p.z += 0.6f;
+		localFrame1.q = { q.x, q.y, q.z, q.w };
+
+		//auto q = vx::quaternionRotationRollPitchYawFromVector(vx::float4a(0, vx::degToRad(90), 0, 0));
+
+		//auto q1 = joint.q1;
+		//vx::storeFloat4(&q1, q);
+
+		/*PhysicsAspectCpp::copy(joint.p0, &localFrame0.p);
+		PhysicsAspectCpp::copy(joint.q0, &localFrame0.q);
+		PhysicsAspectCpp::copy(joint.p1, &localFrame1.p);
+		PhysicsAspectCpp::copy(joint.q1, &localFrame1.q);*/
+
+		/*if (actor0)
+		{
+			auto pose = actor0->getGlobalPose();
+
+			localFrame0.p = pose.p - localFrame0.p;
+		}
+
+		if (actor1)
+		{
+			auto pose = actor1->getGlobalPose();
+
+			localFrame1.p = pose.p - localFrame1.p;
+		}*/
+
+		//result = physx::PxFixedJointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
+
+		auto ptr = physx::PxRevoluteJointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
+
+		if (ptr != nullptr)
+		{
+			auto limitPair = physx::PxJointAngularLimitPair(-1.0f, 1.0f, 0.1f);
+			limitPair.damping = 20.0f;
+			
+			ptr->setLimit(limitPair);
+			ptr->setRevoluteJointFlag(physx::PxRevoluteJointFlag::eLIMIT_ENABLED, true);
+
+			m_joints.push_back(result);
+		}
+
+		result = ptr;
 	}
 
 	return result;
