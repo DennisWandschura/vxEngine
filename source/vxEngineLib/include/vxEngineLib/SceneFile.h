@@ -129,8 +129,8 @@ public:
 	void saveToFile(vx::File *file) const override;
 	//void saveToYAML(const char *file) const;
 
-	const MeshInstanceFile* getMeshInstances() const noexcept;
-	u32 getNumMeshInstances() const noexcept;
+	const MeshInstanceFile* getMeshInstances() const { return m_pMeshInstances.get(); }
+	u32 getNumMeshInstances() const;
 
 	u32 getActorCount() const;
 	const ActorFile* getActors() const;

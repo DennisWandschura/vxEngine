@@ -42,7 +42,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(ClearCommand, createFromNodeClearCommand);
+	CommandFactoryRegister g_commandFactoryClearCommand{ "ClearCommand", createFromNodeClearCommand };
 
 	void ClearCommand::set(u32 bits)
 	{

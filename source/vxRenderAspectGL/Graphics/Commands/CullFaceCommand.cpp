@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeCullFaceCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeCullFaceCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -42,7 +42,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(CullFaceCommand, createFromNodeCullFaceCommand);
+	CommandFactoryRegister g_commandFactoryCullFaceCommand{ "CullFaceCommand", createFromNodeCullFaceCommand };
 
 	void CullFaceCommand::set(u32 cullFace)
 	{

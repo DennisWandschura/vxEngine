@@ -66,16 +66,16 @@ SOFTWARE.
 
 struct PlaneSimd
 {
-	__m128 n_d;
+	vx::float4a n_d;
 
 	static PlaneSimd create(__m128 a, __m128 b, __m128 c)
 	{
 		auto normal = vx::normalize3(vx::cross3(_mm_sub_ps(b, a), _mm_sub_ps(c, a)));
-		auto d = vx::dot3(normal, a);
+		vx::float4a d = vx::dot3(normal, a);
 
 		PlaneSimd plane;
 		plane.n_d = normal;
-		plane.n_d.f[3] = d.f[0];
+		plane.n_d.w = d.x;
 
 		return plane;
 	}
@@ -793,7 +793,7 @@ void RenderAspect::taskUpdateText(u8* p, u32* offset)
 {
 	auto data = (RenderUpdateTextData*)p;
 
-	m_textRenderer->pushEntry(std::move(data->text), data->position, data->color);
+	m_textRenderer->pushEntry(data->tex, data->size, data->position, data->color);
 
 	*offset += sizeof(RenderUpdateTextData);
 }

@@ -39,6 +39,9 @@ SOFTWARE.
 #include "SmallObjAllocator.h"
 #include "SmallObject.h"
 
+//#include <DbgHelp.h>
+//#pragma comment (lib, "Dbghelp.lib")
+
 namespace
 {
 	Logfile* g_logfile{ nullptr };
@@ -151,6 +154,9 @@ int main()
 
 	SmallObjAllocator alloc(1 KBYTE);
 	SmallObject::setAllocator(&alloc);
+
+	//char buffer[256];
+	//UnDecorateSymbolName("?pushCommand@Segment@Graphics@@QEAAXAEBUProgramUniformCommand@2@PEBE@Z", buffer, 256, 0);
 
 	Timer mainTimer;
 	Logfile mainLogfile(mainTimer);

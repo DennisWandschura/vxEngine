@@ -61,15 +61,16 @@ bool CollisionAvoidance::getSteering(Entity* currentEntity, const vx::float3 &cu
 		vx::float4a otherVelocity(data[i].velocity.x, data[i].velocity.y, data[i].velocity.z, 0.0f);
 
 		auto relativePos = _mm_sub_ps(otherPositon, tmpPosition);
-		auto currentDistance = vx::length3(relativePos).f[0] - actorRadius2;
+		vx::float4a length = vx::length3(relativePos);
+		auto currentDistance = length.x - actorRadius2;
 
 		auto relativeVelocity = _mm_sub_ps(otherVelocity, currentVelocity);
 		//auto len = vx::length3(relativeVelocity);
 		//auto timeToCollision = -vx::dot(relativePos, relativeVelocity) / (len * len);
 
 		auto currentDirToTarget = vx::normalize3(relativePos);
-		auto tmp = vx::dot3(vx::normalize3(relativeVelocity), currentDirToTarget);
-		f32 ttt = -tmp.f[0];
+		vx::float4a tmp = vx::dot3(vx::normalize3(relativeVelocity), currentDirToTarget);
+		f32 ttt = -tmp.x;
 
 		if (ttt > 0.0f && currentDistance < targetDistance)
 		{

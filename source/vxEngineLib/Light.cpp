@@ -32,8 +32,8 @@ void Light::getTransformationMatrix(vx::mat4* m) const
 	auto lightDir = vx::loadFloat3(m_direction);
 
 	auto upDir = vx::cross3(x_axis, lightDir);
-	auto dot = vx::dot3(upDir, upDir);
-	if (dot.f[0] == 0.0f)
+	vx::float4a dot = vx::dot3(upDir, upDir);
+	if (dot.x == 0.0f)
 	{
 		upDir = vx::cross3(y_axis, lightDir);
 	}

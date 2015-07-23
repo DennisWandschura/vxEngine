@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeGpuProfilePushCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeGpuProfilePushCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -43,7 +43,7 @@ namespace Graphics
 		//segment->pushCommand(command);
 	}
 
-	void createFromNodeGpuProfilePopCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeGpuProfilePopCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		GpuProfilePopCommand command;
 		//command.set( );
@@ -51,8 +51,8 @@ namespace Graphics
 		//segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(GpuProfilePushCommand, createFromNodeGpuProfilePushCommand);
-	REGISTER_COMMANDFACTORY(GpuProfilePopCommand, createFromNodeGpuProfilePopCommand);
+	CommandFactoryRegister g_commandFactoryRegisterGpuProfilePushCommand{"GpuProfilePushCommand", createFromNodeGpuProfilePushCommand };
+	CommandFactoryRegister g_commandFactoryRegisterGpuProfilePopCommand{ "GpuProfilePopCommand", createFromNodeGpuProfilePopCommand };
 
 	void GpuProfilePushCommand::set(GpuProfiler* profiler, const char *name)
 	{

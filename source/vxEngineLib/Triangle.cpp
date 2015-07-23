@@ -53,14 +53,14 @@ bool Triangle::contains(const vx::float3 &point) const
 	auto u = vx::cross3(b, c);
 	auto v = vx::cross3(c, a);
 
-	auto uDotV = vx::dot3(u, v);
-	if (uDotV.f[0] < 0.0f)
+	vx::float4a uDotV = vx::dot3(u, v);
+	if (uDotV.x < 0.0f)
 		return false;
 
 	auto w = vx::cross3(a, b);
 
-	auto uDotW = vx::dot3(u, w);
-	if (uDotW.f[0] < 0.0f)
+	vx::float4a uDotW = vx::dot3(u, w);
+	if (uDotW.x < 0.0f)
 		return false;
 
 	return true;

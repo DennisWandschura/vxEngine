@@ -24,9 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-
 namespace Parser
 {
 	class Node;
@@ -40,6 +37,9 @@ namespace vx
 	}
 }
 
+#include <vxLib/Container/sorted_vector.h>
+#include <vxLib/StringID.h>
+
 namespace Graphics
 {
 	class Segment;
@@ -50,15 +50,13 @@ namespace Graphics
 		void* p;
 	};
 
-	typedef void(*CreateFromNodeAndPushFunction)(const Parser::Node &node, Segment* segment, void* p);
+	typedef void (__fastcall *CreateFromNodeAndPushFunction)(const Parser::Node &node, Segment* segment, void* p);
 
 	class CommandFactoryRegister
 	{
 	public:
 		CommandFactoryRegister(const char* id, CreateFromNodeAndPushFunction fp);
 	};
-
-#define REGISTER_COMMANDFACTORY(CLASS, FP) CommandFactoryRegister g_commandFactory##CLASS{ #CLASS, FP }
 
 	class CommandFactory
 	{

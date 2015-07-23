@@ -41,9 +41,10 @@ namespace Graphics
 {
 	struct TextRenderer::Entry
 	{
-		std::string m_text;
+		char m_text[48];
 		vx::float4 m_color;
 		vx::float2 m_position;
+		u32 m_size;
 	};
 
 	struct TextRenderer::TextVertex
@@ -205,17 +206,16 @@ namespace Graphics
 	{
 	}
 
-	void TextRenderer::pushEntry(std::string &&text, const vx::float2 &topLeftPosition, const vx::float3 &color)
+	void TextRenderer::pushEntry(const char(&text)[48], u32 size, const vx::float2 &topLeftPosition, const vx::float3 &color)
 	{
-		auto textSize = text.size();
-
 		Entry entry;
-		entry.m_text = std::move(text);
+		strncpy(entry.m_text, text, 48);
 		entry.m_position = topLeftPosition;
 		entry.m_color = vx::float4(color, 1.0f);
+		entry.m_size = size;
 
 		m_entries.push_back(std::move(entry));
-		m_size += textSize;
+		m_size += size;
 	}
 
 	void TextRenderer::update()
@@ -259,8 +259,8 @@ namespace Graphics
 
 	void TextRenderer::writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, u32 textureSize, u32 textureSlice)
 	{
-		auto entryText = entry.m_text.c_str();
-		auto entryTextSize = entry.m_text.size();
+		auto entryText = entry.m_text;
+		auto entryTextSize = entry.m_size;
 		auto entryOrigin = entry.m_position;
 		auto entryColor = vx::loadFloat4(entry.m_color);
 
@@ -388,7 +388,7 @@ namespace Graphics
 		drawText.setState(state);
 		drawText.pushCommand(blendEquCmdM);
 		drawText.pushCommand(blendFuncCmd);
-		drawText.pushCommand(uniformCmd, m_texureIndex);
+		drawText.pushCommand(uniformCmd, reinterpret_cast<u8*>(&m_texureIndex));
 		drawText.pushCommand(drawCmd);
 
 		cmdList->pushSegment(drawText, "drawText");

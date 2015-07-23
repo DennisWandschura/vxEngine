@@ -46,17 +46,6 @@ MeshInstanceFileV4::MeshInstanceFileV4(const char(&instanceName)[32], const char
 	strcpy_s(m_animation, animationName);
 }
 
-MeshInstanceFileV4& MeshInstanceFileV4::operator = (const MeshInstanceFile &rhs)
-{
-	strcpy_s(m_name, rhs.getName());
-	strcpy_s(m_mesh, rhs.getMeshFile());
-	strcpy_s(m_material, rhs.getMaterialFile());
-	strcpy_s(m_animation, rhs.getAnimation());
-	m_transform = rhs.getTransform();
-
-	return *this;
-}
-
 MeshInstanceFile::MeshInstanceFile()
 	:m_name(),
 	m_mesh(),
@@ -81,15 +70,22 @@ MeshInstanceFile::MeshInstanceFile(const char(&instanceName)[32], const char(&me
 	strcpy_s(m_animation, animationName);
 }
 
-MeshInstanceFile& MeshInstanceFile::operator = (const MeshInstanceFileV4 &rhs)
+void MeshInstanceFile::convert(const MeshInstanceFileV4 &rhs)
 {
 	strcpy_s(m_name, rhs.getName());
 	strcpy_s(m_mesh, rhs.getMeshFile());
 	strcpy_s(m_material, rhs.getMaterialFile());
 	strcpy_s(m_animation, rhs.getAnimation());
 	m_transform = rhs.getTransform();
+}
 
-	return *this;
+void MeshInstanceFileV4::convert(const MeshInstanceFile &rhs)
+{
+	strcpy_s(m_name, rhs.getName());
+	strcpy_s(m_mesh, rhs.getMeshFile());
+	strcpy_s(m_material, rhs.getMaterialFile());
+	strcpy_s(m_animation, rhs.getAnimation());
+	m_transform = rhs.getTransform();
 }
 
 /*MeshInstanceFileOld::MeshInstanceFileOld()

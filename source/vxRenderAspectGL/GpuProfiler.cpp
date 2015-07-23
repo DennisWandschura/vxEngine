@@ -159,14 +159,18 @@ void GpuProfiler::update()
 		f32 time = entry.time * 1.0e-6;
 
 		int strSize = sprintf_s(buffer, "%s %.6f", entryName, time);
-		std::string text;
-		text.reserve(strSize);
-		text.assign(buffer, buffer + strSize);
+		strSize = std::min(strSize, 47);
+		char text[48];
+		strncpy(text, buffer, strSize);
+		text[strSize] = '\0';
+		//std::string text;
+		//text.reserve(strSize);
+		//text.assign(buffer, buffer + strSize);
 
 		auto layerOffset = layer * 10.0f;
 
 		currentPosition.x = position.x + layerOffset;
-		m_textRenderer->pushEntry(std::move(text), currentPosition, vx::float3(1, 0, 1));
+		m_textRenderer->pushEntry(text, strSize, currentPosition, vx::float3(1, 0, 1));
 
 		currentPosition.y -= 15;
 

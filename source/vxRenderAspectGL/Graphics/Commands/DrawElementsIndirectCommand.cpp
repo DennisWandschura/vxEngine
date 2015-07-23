@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeDrawElementsIndirectCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeDrawElementsIndirectCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -44,7 +44,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(DrawElementsIndirectCommand, createFromNodeDrawElementsIndirectCommand);
+	CommandFactoryRegister g_commandFactoryDrawElementsIndirectCommand{ "DrawElementsIndirectCommand", createFromNodeDrawElementsIndirectCommand };
 
 	void DrawElementsIndirectCommand::set(u32 mode, u32 type, u32 offset)
 	{

@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeMultiDrawArraysIndirectCountCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeMultiDrawArraysIndirectCountCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -46,7 +46,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(MultiDrawArraysIndirectCountCommand, createFromNodeMultiDrawArraysIndirectCountCommand);
+	CommandFactoryRegister g_commandMultiDrawArraysIndirectCountCommand{ "MultiDrawArraysIndirectCountCommand", createFromNodeMultiDrawArraysIndirectCountCommand };
 
 	void MultiDrawArraysIndirectCountCommand::set(u32 mode, u32 maxDrawCount, u32 indirectOffset, u32 paramOffset)
 	{

@@ -99,7 +99,7 @@ namespace vx
 
 		p = m_mesh.loadFromMemoryData(p, m_meshData.get(), meshDataSize);
 
-		memcpy(&m_physxDataSize, p, sizeof(u32));
+		::memcpy(&m_physxDataSize, p, sizeof(u32));
 		p += sizeof(u32);
 
 		m_physxData = allocator->allocate(m_physxDataSize, 4);
@@ -109,7 +109,7 @@ namespace vx
 			return nullptr;
 		}
 
-		memcpy((void*)m_physxData.get(), p, m_physxDataSize);
+		::memcpy((void*)m_physxData.get(), p, m_physxDataSize);
 		auto end = (p + m_physxDataSize);
 
 		VX_ASSERT((end - ptr) <= size);
@@ -130,10 +130,10 @@ namespace vx
 
 		p = m_mesh.loadFromMemoryData(p, m_meshData.get(), meshDataSize);
 
-		memcpy(&m_physxDataSize, p, sizeof(u32));
+		::memcpy(&m_physxDataSize, p, sizeof(u32));
 		p += sizeof(u32);
 
-		memcpy(&m_physxMeshType, p, sizeof(PhsyxMeshType));
+		::memcpy(&m_physxMeshType, p, sizeof(PhsyxMeshType));
 		p += sizeof(PhsyxMeshType);
 
 		m_physxData = allocator->allocate(m_physxDataSize, 4);
@@ -143,7 +143,7 @@ namespace vx
 			return nullptr;
 		}
 
-		memcpy((void*)m_physxData.get(), p, m_physxDataSize);
+		::memcpy((void*)m_physxData.get(), p, m_physxDataSize);
 		auto end = (p + m_physxDataSize);
 
 		VX_ASSERT((end - ptr) <= size);
@@ -210,28 +210,28 @@ namespace vx
 		auto ptr = vx::make_unique<u8[]>(totalSize);
 		auto p = ptr.get();
 
-		memcpy(p, &vertexCount, sizeof(u32));
+		::memcpy(p, &vertexCount, sizeof(u32));
 		p += sizeof(u32);
 
-		memcpy(p, &indexCount, sizeof(u32));
+		::memcpy(p, &indexCount, sizeof(u32));
 		p += sizeof(u32);
 
-		memcpy(p, (u8*)vertices, meshVertexSize);
+		::memcpy(p, (u8*)vertices, meshVertexSize);
 		p += meshVertexSize;
 
-		memcpy(p, (u8*)indices, meshIndexSize);
+		::memcpy(p, (u8*)indices, meshIndexSize);
 		p += meshIndexSize;
 
-		memcpy(p, &m_physxDataSize, sizeof(u32));
+		::memcpy(p, &m_physxDataSize, sizeof(u32));
 		p += sizeof(u32);
 
 		if (version > 0)
 		{
-			memcpy(p, &m_physxMeshType, sizeof(PhsyxMeshType));
+			::memcpy(p, &m_physxMeshType, sizeof(PhsyxMeshType));
 			p += sizeof(PhsyxMeshType);
 		}
 
-		memcpy(p, m_physxData.get(), m_physxDataSize);
+		::memcpy(p, m_physxData.get(), m_physxDataSize);
 		p += m_physxDataSize;
 
 		auto writtenSize = p - ptr.get();

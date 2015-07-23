@@ -49,9 +49,9 @@ namespace Graphics
 		NvAPI_EnumPhysicalGPUs(gpuHandles, &gpuCount);
 		m_gpuHandle = gpuHandles[0];
 
-		NV_GPU_PERF_PSTATES_INFO info;
+		NV_GPU_PERF_PSTATES20_INFO info;
 		info.version = NV_GPU_PERF_PSTATES_INFO_VER;
-		r = NvAPI_GPU_GetPstatesInfoEx((NvPhysicalGpuHandle)m_gpuHandle, &info, 0);
+		r = NvAPI_GPU_GetPstates20((NvPhysicalGpuHandle)m_gpuHandle, &info);
 
 		m_position = position;
 
@@ -75,10 +75,10 @@ namespace Graphics
 
 		char buffer[48];
 		auto size = sprintf(buffer, "PState: %u\nGpu: %lu\nFB: %lu\nVid: %lu\nBus: %lu", (u32)currentPState, utilGPU, utilFB, utilVID, utilBUS);
-		VX_ASSERT(size <= sizeof(buffer));
+		/*VX_ASSERT(size <= sizeof(buffer));
 		std::string str;
-		str.assign(buffer, buffer + size);
+		str.assign(buffer, buffer + size);*/
 
-		textRenderer->pushEntry(std::move(str), position, vx::float3(0, 1, 0));
+		textRenderer->pushEntry(buffer, size, position, vx::float3(0, 1, 0));
 	}
 }

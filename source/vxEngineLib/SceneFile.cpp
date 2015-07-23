@@ -61,6 +61,25 @@ SceneFile::SceneFile(u32 version)
 {
 }
 
+SceneFile::SceneFile(SceneFile &&rhs)
+	:Serializable(std::move(rhs)),
+	m_pMeshInstances(std::move(rhs.m_pMeshInstances)),
+	m_pLights(std::move(rhs.m_pLights)),
+	m_pSpawns(std::move(rhs.m_pSpawns)),
+	m_pActors(std::move(rhs.m_pActors)),
+	m_waypoints(std::move(rhs.m_waypoints)),
+	m_joints(std::move(rhs.m_joints)),
+	m_navMesh(std::move(rhs.m_navMesh)),
+	m_meshInstanceCount(rhs.m_meshInstanceCount),
+	m_lightCount(rhs.m_lightCount),
+	m_spawnCount(rhs.m_spawnCount),
+	m_actorCount(rhs.m_actorCount),
+	m_waypointCount(rhs.m_waypointCount),
+	m_jointCount(rhs.m_jointCount)
+{
+
+}
+
 SceneFile::~SceneFile()
 {
 }
@@ -146,7 +165,7 @@ const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* 
 	ptr = vx::read((u8*)tmpInstances.get(), ptr, sizeof(MeshInstanceFileV4) * m_meshInstanceCount);
 	for (u32 i = 0; i < m_meshInstanceCount; ++i)
 	{
-		m_pMeshInstances[i] = tmpInstances[i];
+		m_pMeshInstances[i].convert(tmpInstances[i]);
 	}
 
 	ptr = vx::read((u8*)m_pLights.get(), ptr, sizeof(Light) * m_lightCount);
@@ -310,12 +329,7 @@ void SceneFile::saveToFile(vx::File *file) const
 	m_navMesh.saveToFile(file);
 }
 
-const MeshInstanceFile* SceneFile::getMeshInstances() const noexcept
-{
-	return m_pMeshInstances.get();
-}
-
-u32 SceneFile::getNumMeshInstances() const noexcept
+u32 SceneFile::getNumMeshInstances() const
 {
 	return m_meshInstanceCount;
 }
@@ -385,7 +399,24 @@ u64 SceneFile::getCrcVersion4() const
 		auto tmpInstances = vx::make_unique<MeshInstanceFileV4[]>(m_meshInstanceCount);
 		for (u32 i = 0; i < m_meshInstanceCount; ++i)
 		{
-			tmpInstances[i] = m_pMeshInstances[i];
+			//tmpInstances[i].convert(m_pMeshInstances[i]);
+			auto &instance = m_pMeshInstances[i];
+
+			char instanceName[32];
+			strncpy(instanceName, instance.getName(), 32);
+
+			char meshName[32];
+			strncpy(meshName, instance.getMeshFile(), 32);
+
+			char materialName[32];
+			strncpy(materialName, instance.getMaterialFile(), 32);
+
+			char animationName[32];
+			strncpy(animationName, instance.getAnimation(), 32);
+
+			auto &transform = instance.getTransform();
+
+			tmpInstances[i] = MeshInstanceFileV4(instanceName, meshName, materialName, animationName, transform);
 		}
 
 		::memcpy(ptr.get() + offset, tmpInstances.get(), meshInstanceSize);

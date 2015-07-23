@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodePolygonModeCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodePolygonModeCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -43,7 +43,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(PolygonModeCommand, createFromNodePolygonModeCommand);
+	CommandFactoryRegister g_commandFactoryPolygonModeCommand{ "PolygonModeCommand", createFromNodePolygonModeCommand };
 
 	void PolygonModeCommand::set(u32 face, u32 mode)
 	{

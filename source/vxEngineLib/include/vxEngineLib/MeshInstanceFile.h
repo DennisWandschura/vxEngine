@@ -43,7 +43,7 @@ public:
 	MeshInstanceFileV4();
 	MeshInstanceFileV4(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform);
 
-	MeshInstanceFileV4& operator=(const MeshInstanceFile &rhs);
+	void convert(const MeshInstanceFile &rhs);
 
 	const char* getName() const noexcept{ return m_name; }
 	const char* getMeshFile() const noexcept{ return m_mesh; }
@@ -67,7 +67,7 @@ public:
 	MeshInstanceFile();
 	MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform, PhysxRigidBodyType rigidBodyType);
 
-	MeshInstanceFile& operator=(const MeshInstanceFileV4 &rhs);
+	void convert(const MeshInstanceFileV4 &rhs);
 
 	const char* getName() const noexcept{ return m_name; }
 	const char* getMeshFile() const noexcept{ return m_mesh; }

@@ -53,7 +53,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(ConservativeRasterCommand, createFromNodeConservativeRasterCommand);
+	CommandFactoryRegister g_commandFactoryConservativeRasterCommand{ "ConservativeRasterCommand", createFromNodeConservativeRasterCommand };
 
 	void ConservativeRasterCommand::set(u32 active)
 	{

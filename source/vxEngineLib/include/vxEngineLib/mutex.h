@@ -28,7 +28,7 @@ namespace vx
 		std::atomic_flag m_flag;
 
 	public:
-		mutex() :m_flag(ATOMIC_FLAG_INIT) {}
+		mutex() :m_flag() {}
 		mutex(const mutex&) = delete;
 		mutex(mutex&&) = delete;
 

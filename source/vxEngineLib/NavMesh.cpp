@@ -134,8 +134,6 @@ const u8* NavMesh::load(const u8 *ptr)
 	ptr = vx::read(m_triangleCount, ptr);
 	ptr = vx::read(m_bounds, ptr);
 
-	#warning Please use a custom allocator !
-
 	auto indexCount = m_triangleCount * 3;
 
 	m_vertices = std::vector<vx::float3>(m_vertexCount);

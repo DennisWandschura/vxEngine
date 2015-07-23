@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeDepthRangeCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeDepthRangeCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -43,7 +43,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(DepthRangeCommand, createFromNodeDepthRangeCommand);
+	CommandFactoryRegister g_commandFactoryDepthRangeCommand{ "DepthRangeCommand", createFromNodeDepthRangeCommand };
 
 	void DepthRangeCommand::set(f32 n, f32 f)
 	{

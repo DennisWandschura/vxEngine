@@ -35,12 +35,14 @@ SOFTWARE.
 
 f32 AStar::heuristicDistance(const vx::float3 &fromNode, const vx::float3 &goalNode)
 {
-	return sqrtf(vx::dot3(fromNode, goalNode));
+	auto L = goalNode - fromNode;
+	return sqrtf(vx::dot3(L, L));
 }
 
 f32 AStar::heuristicDistance2(const vx::float3 &fromNode, const vx::float3 &goalNode)
 {
-	return vx::dot3(fromNode, goalNode);
+	auto L = goalNode - fromNode;
+	return vx::dot3(L, L);
 }
 
 bool AStar::pathfind(const PathFindDescription &desc)
@@ -123,7 +125,7 @@ bool AStar::pathfind(const PathFindDescription &desc)
 			auto endNodeCost = records[current].costSoFar + connection.m_cost;
 
 			NodeRecord *pEndNodeRecord = nullptr;
-			f32 endNodeHeuristic;
+			f32 endNodeHeuristic = 0.0f;
 			// if the node is closed we may have to skip
 			// or remove it from the closed list
 			if (records[endNode].category == NodeRecord::CLOSED)

@@ -48,7 +48,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(ViewportCommand, createFromNodeViewportCommand);
+	CommandFactoryRegister g_commandFactoryViewportCommand{ "ViewportCommand", createFromNodeViewportCommand };
 
 	void ViewportCommand::set(const vx::uint2 &offset, const vx::uint2 &size)
 	{

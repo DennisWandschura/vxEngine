@@ -453,7 +453,7 @@ namespace Graphics
 
 			segmentCreateShadowmap.pushCommand(fbDepthTexCmd);
 			segmentCreateShadowmap.pushCommand(clearCmd);
-			segmentCreateShadowmap.pushCommand(uniformCmd, i);
+			segmentCreateShadowmap.pushCommand(uniformCmd, reinterpret_cast<u8*>(&i));
 			segmentCreateShadowmap.pushCommand(drawCmd);
 
 			//	cmdOffset += cmdSizeInBytes;

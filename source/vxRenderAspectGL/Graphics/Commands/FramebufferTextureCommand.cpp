@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeFramebufferTextureCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeFramebufferTextureCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -45,7 +45,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(FramebufferTextureCommand, createFromNodeFramebufferTextureCommand);
+	CommandFactoryRegister g_commandFactoryFramebufferTextureCommand{ "FramebufferTextureCommand", createFromNodeFramebufferTextureCommand };
 
 	void FramebufferTextureCommand::set(u32 framebufferId, u32 attachment, u32 texture, u32 level)
 	{

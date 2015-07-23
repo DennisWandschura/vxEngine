@@ -49,9 +49,10 @@ struct VX_ALIGN(16) RenderUpdateDataTransforms
 
 struct RenderUpdateTextData
 {
-	char text[32];
+	char tex[48];
 	vx::float2 position;
 	vx::float3 color;
+	u32 size;
 };
 
 struct RenderUpdateTaskAddStaticMeshData

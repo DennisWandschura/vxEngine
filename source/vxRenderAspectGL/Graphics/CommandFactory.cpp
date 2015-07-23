@@ -22,11 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxEngineLib/ParserNode.h>
 #include "CommandFactory.h"
-#include "Segment.h"
-#include "Commands/ProgramUniformCommand.h"
-#include <vxGL/ProgramPipeline.h>
+#include <vxEngineLib/ParserNode.h>
 #include <vxLib/Singleton.h>
 
 namespace Graphics
@@ -67,8 +64,6 @@ namespace Graphics
 
 			fp(node, segment, (void*)pipeline);
 		}
-
-		//createFromNodeAndPush(node, segment, pipeline);
 	}
 
 	CommandFactory& CommandFactory::get()

@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeDrawArraysCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeDrawArraysCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -45,7 +45,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(DrawArraysCommand, createFromNodeDrawArraysCommand);
+	CommandFactoryRegister g_commandFactoryDrawArraysCommand{ "DrawArraysCommand", createFromNodeDrawArraysCommand };
 
 	void DrawArraysCommand::set(u32 mode, u32 first, u32 count)
 	{

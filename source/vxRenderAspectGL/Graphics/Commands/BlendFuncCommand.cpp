@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeBlendFuncCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeBlendFuncCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -43,7 +43,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(BlendFuncCommand, createFromNodeBlendFuncCommand);
+	CommandFactoryRegister g_commandFactoryBlendFuncCommand{ "BlendFuncCommand", createFromNodeBlendFuncCommand };
 
 	void BlendFuncCommand::set(u32 sfactor, u32 dfactor)
 	{

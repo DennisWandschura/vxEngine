@@ -24,116 +24,13 @@ SOFTWARE.
 
 #include "ProgramUniformCommand.h"
 #include <vxGL/gl.h>
-#include "../Segment.h"
 #include <vxEngineLib/ParserNode.h>
 #include "../CommandFactory.h"
 #include <vxGL/ProgramPipeline.h>
+#include "../Segment.h"
 
 namespace Graphics
 {
-	void createFromNodeProgramUniformCommand(const Parser::Node &node, Segment* segment, void* p)
-	{
-		auto paramsNode = node.get("params");
-
-		u32 params[3];
-		paramsNode->as(0, &params[0]);
-		paramsNode->as(1, &params[1]);
-		paramsNode->as(2, &params[2]);
-	//	paramsNode->as(3, &params[3]);
-
-		ProgramUniformCommand command;
-		//command.set(params[0], params[1], params[2], (vx::gl::DataType)params[3]);
-
-		auto dataTypeNode = node.get("dataType");
-		auto dataNode = node.get("data");
-
-		std::string dataType;
-		dataTypeNode->as(&dataType);
-
-		auto pipeline = (vx::gl::ProgramPipeline*)p;
-
-		if (strcmp(dataType.c_str(), "float") == 0)
-		{
-			command.set((*pipeline)[(vx::gl::ShaderProgramType)params[0]], params[1], params[2], vx::gl::DataType::Float);
-
-			if (params[2] == 1)
-			{
-				f32 value;
-				dataNode->as((float*)&value);
-
-				segment->pushCommand(command, value);
-			}
-			else if (params[2] == 3)
-			{
-				vx::float3 value;
-
-				dataNode->as(0, (float*)&value[0]);
-				dataNode->as(1, (float*)&value[1]);
-				dataNode->as(2, (float*)&value[2]);
-
-				segment->pushCommand(command, value);
-			}
-			else if (params[2] == 4)
-			{
-				vx::float4 value;
-
-				dataNode->as(0, (float*)&value[0]);
-				dataNode->as(1, (float*)&value[1]);
-				dataNode->as(2, (float*)&value[2]);
-				dataNode->as(3, (float*)&value[3]);
-
-				segment->pushCommand(command, value);
-			}
-			else
-			{
-				VX_ASSERT(false);
-			}
-		}
-		else if (strcmp(dataType.c_str(), "uint") == 0)
-		{
-			command.set((*pipeline)[(vx::gl::ShaderProgramType)params[0]], params[1], params[2], vx::gl::DataType::Unsigned_Int);
-
-			if (params[2] == 1)
-			{
-				u32 value;
-				dataNode->as((u32*)&value);
-
-				segment->pushCommand(command, value);
-			}
-			else if (params[2] == 3)
-			{
-				vx::uint3 value;
-
-				dataNode->as(0, (u32*)&value[0]);
-				dataNode->as(1, (u32*)&value[1]);
-				dataNode->as(2, (u32*)&value[2]);
-
-				segment->pushCommand(command, value);
-			}
-			else if (params[2] == 4)
-			{
-				vx::uint4 value;
-
-				dataNode->as(0, (u32*)&value[0]);
-				dataNode->as(1, (u32*)&value[1]);
-				dataNode->as(2, (u32*)&value[2]);
-				dataNode->as(3, (u32*)&value[3]);
-
-				segment->pushCommand(command, value);
-			}
-			else
-			{
-				VX_ASSERT(false);
-			}
-		}
-		else
-		{
-			VX_ASSERT(false);
-		}
-	}
-
-	REGISTER_COMMANDFACTORY(ProgramUniformCommand, createFromNodeProgramUniformCommand);
-
 	void ProgramUniformCommand::set(u32 program, u32 location, u32 count, vx::gl::DataType dataType)
 	{
 		m_program = program;
@@ -174,7 +71,7 @@ namespace Graphics
 			glProgramUniform4fv(m_program, m_location, 1, dataPtr);
 			break;
 		default:
-			assert(false);
+			VX_ASSERT(false);
 			break;
 		}
 
@@ -191,10 +88,117 @@ namespace Graphics
 			glProgramUniform1ui(m_program, m_location, *dataPtr);
 			break;
 		default:
-			assert(false);
+			VX_ASSERT(false);
 			break;
 		}
 
 		*offset += (m_count * sizeof(u32));
 	}
+
+	void __fastcall createFromNodeProgramUniformCommand(const Parser::Node &node, Graphics::Segment* segment, void* p)
+	{
+		static auto sidFloat = vx::make_sid("float");
+		static auto sidUint = vx::make_sid("uint");
+
+		auto paramsNode = node.get("params");
+
+		u32 params[3];
+		paramsNode->as(0, &params[0]);
+		paramsNode->as(1, &params[1]);
+		paramsNode->as(2, &params[2]);
+		//	paramsNode->as(3, &params[3]);
+
+		Graphics::ProgramUniformCommand command;
+		//command.set(params[0], params[1], params[2], (vx::gl::DataType)params[3]);
+
+		auto dataTypeNode = node.get("dataType");
+		auto dataNode = node.get("data");
+
+		std::string dataType;
+		dataTypeNode->as(&dataType);
+		auto sidType = vx::make_sid(dataType.c_str());
+
+		auto pipeline = (vx::gl::ProgramPipeline*)p;
+
+		if (sidType == sidFloat)
+		{
+			command.set((*pipeline)[(vx::gl::ShaderProgramType)params[0]], params[1], params[2], vx::gl::DataType::Float);
+
+			if (params[2] == 1)
+			{
+				f32 value;
+				dataNode->as((float*)&value);
+
+				segment->pushCommand(command, reinterpret_cast<u8*>(&value));
+			}
+			else if (params[2] == 3)
+			{
+				vx::float3 value;
+
+				dataNode->as(0, (float*)&value[0]);
+				dataNode->as(1, (float*)&value[1]);
+				dataNode->as(2, (float*)&value[2]);
+
+				segment->pushCommand(command, reinterpret_cast<u8*>(&value));
+			}
+			else if (params[2] == 4)
+			{
+				vx::float4 value;
+
+				dataNode->as(0, (float*)&value[0]);
+				dataNode->as(1, (float*)&value[1]);
+				dataNode->as(2, (float*)&value[2]);
+				dataNode->as(3, (float*)&value[3]);
+
+				segment->pushCommand(command, reinterpret_cast<u8*>(&value));
+			}
+			else
+			{
+				VX_ASSERT(false);
+			}
+		}
+		else if (sidType == sidUint)
+		{
+			command.set((*pipeline)[(vx::gl::ShaderProgramType)params[0]], params[1], params[2], vx::gl::DataType::Unsigned_Int);
+
+			if (params[2] == 1)
+			{
+				u32 value;
+				dataNode->as((u32*)&value);
+
+				segment->pushCommand(command, reinterpret_cast<u8*>(&value));
+			}
+			else if (params[2] == 3)
+			{
+				vx::uint3 value;
+
+				dataNode->as(0, (u32*)&value[0]);
+				dataNode->as(1, (u32*)&value[1]);
+				dataNode->as(2, (u32*)&value[2]);
+
+				segment->pushCommand(command, reinterpret_cast<u8*>(&value));
+			}
+			else if (params[2] == 4)
+			{
+				vx::uint4 value;
+
+				dataNode->as(0, (u32*)&value[0]);
+				dataNode->as(1, (u32*)&value[1]);
+				dataNode->as(2, (u32*)&value[2]);
+				dataNode->as(3, (u32*)&value[3]);
+
+				segment->pushCommand(command, reinterpret_cast<u8*>(&value));
+			}
+			else
+			{
+				VX_ASSERT(false);
+			}
+		}
+		else
+		{
+			VX_ASSERT(false);
+		}
+	}
+
+	CommandFactoryRegister g_commandFactoryProgramUniformCommand{ "ProgramUniformCommand", createFromNodeProgramUniformCommand };
 }

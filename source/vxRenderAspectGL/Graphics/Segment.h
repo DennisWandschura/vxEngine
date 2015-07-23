@@ -38,7 +38,7 @@ namespace Graphics
 		std::vector<u8> m_commmands;
 		State m_state;
 
-		void pushCommand(const u8*, u32 count);
+		void pushCommandImp(const u8*, u32 count);
 
 	public:
 		Segment();
@@ -46,9 +46,8 @@ namespace Graphics
 
 		void setState(const State &state);
 
-		template < typename T >
-		typename std::enable_if<!std::is_same<T, ProgramUniformCommand>::value, void>::type
-		pushCommand(const T &command)
+		template < typename T, typename = typename std::enable_if < !std::is_same < T, ProgramUniformCommand>::value>::type >
+		void pushCommand(const T &command)
 		{
 			static_assert(sizeof(T) >= 4u, "");
 
@@ -56,19 +55,13 @@ namespace Graphics
 			auto address = std::size_t(fn);
 
 			const u8* ptr = (u8*)&address;
-			pushCommand(ptr, sizeof(std::size_t));
+			pushCommandImp(ptr, sizeof(std::size_t));
 
 			ptr = (u8*)&command;
-			pushCommand(ptr, sizeof(T));
+			pushCommandImp(ptr, sizeof(T));
 		}
 
-		template < typename T >
-		void pushCommand(const ProgramUniformCommand &command, const T &data)
-		{
-			pushCommand(command, (const u8*)&data);
-		}
-
-		void pushCommand(const ProgramUniformCommand &command, const u8* data);
+		void pushCommand(const ProgramUniformCommand &command, unsigned char const *);
 
 		void draw() const;
 

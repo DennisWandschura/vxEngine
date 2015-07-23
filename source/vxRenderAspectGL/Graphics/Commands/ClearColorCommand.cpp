@@ -49,7 +49,7 @@ namespace Graphics
 		segment->pushCommand(cmd);
 	}
 
-	REGISTER_COMMANDFACTORY(ClearColorCommand, createFromNodeClearColorCommand);
+	CommandFactoryRegister g_commandFactoryClearColorCommand{ "ClearColorCommand", createFromNodeClearColorCommand };
 
 	void ClearColorCommand::set(const vx::float4 &clearColor)
 	{

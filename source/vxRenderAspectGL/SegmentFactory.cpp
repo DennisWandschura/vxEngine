@@ -95,7 +95,7 @@ namespace Graphics
 			(paramBuffer != nullptr) ? paramBuffer->getId() : 0,
 			depthState,
 			blendState,
-			polygonOffsetFillStateNode,
+			polygonOffsetFillState,
 			1,
 			{1, 1, 1, 1},
 			1

@@ -39,7 +39,7 @@ namespace Graphics
 
 	}
 
-	void Segment::pushCommand(const u8* ptr, u32 count)
+	void Segment::pushCommandImp(const u8* ptr, u32 count)
 	{
 		for (u32 i = 0; i < count; ++i)
 		{
@@ -52,17 +52,17 @@ namespace Graphics
 		m_state = state;
 	}
 
-	void Segment::pushCommand(const ProgramUniformCommand &command, const u8* data)
+	void Segment::pushCommand(const ProgramUniformCommand &command, unsigned char const * data)
 	{
 		static_assert(__alignof(ProgramUniformCommand) == 4, "");
 
 		CommandFunctionType fn = &ProgramUniformCommand::execute;
 		std::size_t address = (std::size_t)fn;
 		const u8* ptr = (const u8*)&address;
-		pushCommand(ptr, sizeof(std::size_t));
+		pushCommandImp(ptr, sizeof(std::size_t));
 
 		ptr = (const u8*)&command;
-		pushCommand(ptr, sizeof(ProgramUniformCommand));
+		pushCommandImp(ptr, sizeof(ProgramUniformCommand));
 
 		u8 bytePerItem = 4;
 		if (command.m_dataType == vx::gl::DataType::Float)
@@ -73,7 +73,7 @@ namespace Graphics
 			bytePerItem = 4;
 
 		auto dataSize = command.m_count * bytePerItem;
-		pushCommand(data, dataSize);
+		pushCommandImp(data, dataSize);
 	}
 
 	void Segment::draw() const

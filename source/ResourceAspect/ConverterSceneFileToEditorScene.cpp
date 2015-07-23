@@ -66,47 +66,47 @@ namespace Converter
 		u32 actorCount;
 	};
 
+	struct InstanceInserter
+	{
+		typedef void(InstanceInserter::*InserterFun)(const MeshInstance &instance, u32 i, const char* name);
+
+		InserterFun m_fp;
+		MeshInstance* m_instances;
+		vx::sorted_vector<vx::StringID, Editor::MeshInstance>* m_sortedInstances;
+
+		InstanceInserter(const CreateSceneMeshInstancesDesc &desc)
+			:m_instances(desc.pMeshInstances),
+			m_sortedInstances(desc.sortedMeshInstances)
+		{
+			if (m_instances == nullptr)
+			{
+				m_fp = &InstanceInserter::insertSorted;
+			}
+			else
+			{
+				m_fp = &InstanceInserter::insertArray;
+			}
+		}
+
+		void insertArray(const MeshInstance &instance, u32 i, const char*)
+		{
+			m_instances[i] = instance;
+		}
+
+		void insertSorted(const MeshInstance &instance, u32, const char* name)
+		{
+			Editor::MeshInstance editorInstance(instance, std::string(name));
+			m_sortedInstances->insert(instance.getNameSid(), editorInstance);
+		}
+
+		void operator()(const MeshInstance &instance, u32 i, const char* name)
+		{
+			(this->*m_fp)(instance, i, name);
+		}
+	};
+
 	bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc)
 	{
-		struct InstanceInserter
-		{
-			typedef void(InstanceInserter::*InserterFun)(const MeshInstance &instance, u32 i, const char* name);
-
-			InserterFun m_fp;
-			MeshInstance* m_instances;
-			vx::sorted_vector<vx::StringID, Editor::MeshInstance>* m_sortedInstances;
-
-			InstanceInserter(const CreateSceneMeshInstancesDesc &desc)
-				:m_instances(desc.pMeshInstances),
-				m_sortedInstances(desc.sortedMeshInstances)
-			{
-				if (m_instances == nullptr)
-				{
-					m_fp = insertSorted;
-				}
-				else
-				{
-					m_fp = insertArray;
-				}
-			}
-
-			void insertArray(const MeshInstance &instance, u32 i, const char*)
-			{
-				m_instances[i] = instance;
-			}
-
-			void insertSorted(const MeshInstance &instance, u32, const char* name)
-			{
-				Editor::MeshInstance editorInstance(instance, std::string(name));
-				m_sortedInstances->insert(instance.getNameSid(), editorInstance);
-			}
-
-			void operator()(const MeshInstance &instance, u32 i, const char* name)
-			{
-				(this->*m_fp)(instance, i, name);
-			}
-		};
-
 		InstanceInserter instanceInserter(desc);
 
 		for (auto i = 0u; i < desc.instanceCount; ++i)

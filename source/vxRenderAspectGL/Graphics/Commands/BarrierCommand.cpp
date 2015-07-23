@@ -42,7 +42,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(BarrierCommand, createFromNodeBarrierCommand);
+	CommandFactoryRegister g_commandFactoryBarrierCommand{ "BarrierCommand", createFromNodeBarrierCommand };
 
 	void BarrierCommand::set(u32 barrierBits)
 	{

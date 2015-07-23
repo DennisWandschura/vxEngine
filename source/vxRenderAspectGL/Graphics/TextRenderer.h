@@ -77,7 +77,7 @@ namespace Graphics
 		void initialize(vx::StackAllocator* scratchAllocator, const void* p) override;
 		void shutdown() override;
 
-		void pushEntry(std::string &&text, const vx::float2 &topLeftPosition, const vx::float3 &color);
+		void pushEntry(const char(&text)[48], u32 size, const vx::float2 &topLeftPosition, const vx::float3 &color);
 
 		void update();
 

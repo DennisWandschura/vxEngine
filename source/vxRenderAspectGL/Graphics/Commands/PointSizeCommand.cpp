@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodePointSizeCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodePointSizeCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -42,7 +42,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(PointSizeCommand, createFromNodePointSizeCommand);
+	CommandFactoryRegister g_commandFactoryPointSizeCommand{ "PointSizeCommand", createFromNodePointSizeCommand };
 
 	void PointSizeCommand::set(f32 pointSize)
 	{

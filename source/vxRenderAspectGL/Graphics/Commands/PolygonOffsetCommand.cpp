@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodePolygonOffsetCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodePolygonOffsetCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 
@@ -43,7 +43,7 @@ namespace Graphics
 		segment->pushCommand(command);
 	}
 
-	REGISTER_COMMANDFACTORY(PolygonOffsetCommand, createFromNodePolygonOffsetCommand);
+	CommandFactoryRegister g_commandFactoryPolygonOffsetCommand{ "PolygonOffsetCommand", createFromNodePolygonOffsetCommand };
 
 	void PolygonOffsetCommand::set(f32 factor, f32 units)
 	{
