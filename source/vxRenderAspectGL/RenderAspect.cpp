@@ -603,6 +603,7 @@ bool RenderAspect::initializeProfiler()
 	desc.font = &m_pColdData->m_font;
 	desc.maxCharacters = 512;
 	desc.textureIndex = textureIndex;
+	desc.allocator = &m_allocator;
 
 	m_textRenderer = vx::make_unique<Graphics::TextRenderer>();
 	m_textRenderer->initialize(&m_allocator, &desc);

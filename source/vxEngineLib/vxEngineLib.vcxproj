@@ -60,7 +60,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Editor|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <BasePlatformToolset>v130</BasePlatformToolset>
@@ -161,6 +161,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -180,7 +181,9 @@
       <RecognizeRestrictKeyword>true</RecognizeRestrictKeyword>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <PreprocessorDefinitions>_VX_EDITOR;_VX_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_EDITOR;_VX_ASSERT;_VX_WINDOWS;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_VX_VS12;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CallingConvention>FastCall</CallingConvention>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -221,6 +224,7 @@
     <ClInclude Include="include\vxEngineLib\ArrayAllocator.h" />
     <ClInclude Include="include\vxEngineLib\Component.h" />
     <ClInclude Include="include\vxEngineLib\ConverterSceneFileV5.h" />
+    <ClInclude Include="include\vxEngineLib\ConverterSceneFileV6.h" />
     <ClInclude Include="include\vxEngineLib\copy.h" />
     <ClInclude Include="include\vxEngineLib\CreateActorData.h" />
     <ClInclude Include="include\vxEngineLib\CreateDynamicMeshData.h" />
@@ -304,6 +308,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ConverterSceneFileV5.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ConverterSceneFileV6.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="DoubleBufferRaw.cpp">

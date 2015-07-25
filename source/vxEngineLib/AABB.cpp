@@ -292,10 +292,12 @@ bool AABB::intersects(const Plane &plane)
 
 vx::float3& AABB::operator[](u32 i)
 {
-	return v[i];
+	auto ptr = (vx::float3*)this;
+	return ptr[i];
 }
 
 const vx::float3& AABB::operator[](u32 i) const
 {
-	return v[i];
+	auto ptr = (vx::float3*)this;
+	return ptr[i];
 }

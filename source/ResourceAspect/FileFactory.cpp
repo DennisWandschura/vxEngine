@@ -70,6 +70,13 @@ SceneFile FileFactory::load(const u8* ptr, u32 fileSize, bool* result, vx::Alloc
 			data.swap(tmpData);
 			*result = true;
 		}
+
+		auto crc = data.getCrc();
+		if (crc != headerTop.crc)
+		{
+			printf("wrong crc\n");
+			*result = false;
+		}
 	}
 
 	return data;

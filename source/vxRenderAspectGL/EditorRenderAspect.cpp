@@ -1205,15 +1205,22 @@ namespace Editor
 		auto mappedBuffer = editorJointBuffer->map<JointData>(vx::gl::Map::Write_Only);
 		for (u32 i = 0; i < count; ++i)
 		{
-			auto p0 = joints[i].p0;
-			auto p1 = joints[i].p1;
+			auto p0 = vx::loadFloat3(joints[i].p0);
+
+			auto p1 = vx::loadFloat3(joints[i].p1);
+			//auto q1 = vx::loadFloat4(joints[i].q1);
+			//p1 = vx::quaternionRotation(p1, q1);
 
 			if (joints[i].sid0.value != 0)
 			{
 				auto it = meshinstances.find(joints[i].sid0);
 				auto &transform = it->getTransform();
 
-				p0 += transform.m_translation;
+				auto rotation = vx::loadFloat4(transform.m_qRotation);
+				auto translation = vx::loadFloat3(transform.m_translation);
+
+				p0 = vx::quaternionRotation(p0, rotation);
+				p0 = _mm_add_ps(p0, translation);
 			}
 
 			if (joints[i].sid1.value != 0)
@@ -1221,11 +1228,15 @@ namespace Editor
 				auto it = meshinstances.find(joints[i].sid1);
 				auto &transform = it->getTransform();
 
-				p1 += transform.m_translation;
+				auto rotation = vx::loadFloat4(transform.m_qRotation);
+				auto translation = vx::loadFloat3(transform.m_translation);
+
+				p1 = vx::quaternionRotation(p1, rotation);
+				p1 = _mm_add_ps(p1, translation);
 			}
 
-			mappedBuffer[i].p0 = vx::float4(p0, 1);
-			mappedBuffer[i].p1 = vx::float4(p1, 1);
+			vx::storeFloat4(&mappedBuffer[i].p0, p0);
+			vx::storeFloat4(&mappedBuffer[i].p1, p1);
 
 		}
 	}

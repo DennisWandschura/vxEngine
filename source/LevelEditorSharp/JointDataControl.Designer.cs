@@ -36,12 +36,24 @@
             this.numericUpDownP1X = new System.Windows.Forms.NumericUpDown();
             this.comboBoxInstance0 = new System.Windows.Forms.ComboBox();
             this.comboBoxInstance1 = new System.Windows.Forms.ComboBox();
+            this.numericUpDownQ0X = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownQ0Y = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownQ0Z = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownQ1Z = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownQ1Y = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownQ1X = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP0X)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP0Y)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP0Z)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP1Z)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP1Y)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP1X)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ0X)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ0Y)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ0Z)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1Z)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1Y)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1X)).BeginInit();
             this.SuspendLayout();
             // 
             // numericUpDownP0X
@@ -104,7 +116,7 @@
             // numericUpDownP1Z
             // 
             this.numericUpDownP1Z.DecimalPlaces = 3;
-            this.numericUpDownP1Z.Location = new System.Drawing.Point(239, 91);
+            this.numericUpDownP1Z.Location = new System.Drawing.Point(239, 130);
             this.numericUpDownP1Z.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -123,7 +135,7 @@
             // numericUpDownP1Y
             // 
             this.numericUpDownP1Y.DecimalPlaces = 3;
-            this.numericUpDownP1Y.Location = new System.Drawing.Point(133, 91);
+            this.numericUpDownP1Y.Location = new System.Drawing.Point(133, 130);
             this.numericUpDownP1Y.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -142,7 +154,7 @@
             // numericUpDownP1X
             // 
             this.numericUpDownP1X.DecimalPlaces = 3;
-            this.numericUpDownP1X.Location = new System.Drawing.Point(27, 91);
+            this.numericUpDownP1X.Location = new System.Drawing.Point(27, 130);
             this.numericUpDownP1X.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -161,7 +173,7 @@
             // comboBoxInstance0
             // 
             this.comboBoxInstance0.FormattingEnabled = true;
-            this.comboBoxInstance0.Location = new System.Drawing.Point(66, 156);
+            this.comboBoxInstance0.Location = new System.Drawing.Point(66, 205);
             this.comboBoxInstance0.Name = "comboBoxInstance0";
             this.comboBoxInstance0.Size = new System.Drawing.Size(121, 21);
             this.comboBoxInstance0.TabIndex = 6;
@@ -170,16 +182,136 @@
             // comboBoxInstance1
             // 
             this.comboBoxInstance1.FormattingEnabled = true;
-            this.comboBoxInstance1.Location = new System.Drawing.Point(66, 197);
+            this.comboBoxInstance1.Location = new System.Drawing.Point(66, 232);
             this.comboBoxInstance1.Name = "comboBoxInstance1";
             this.comboBoxInstance1.Size = new System.Drawing.Size(121, 21);
             this.comboBoxInstance1.TabIndex = 7;
             this.comboBoxInstance1.SelectedIndexChanged += new System.EventHandler(this.comboBoxInstance1_SelectedIndexChanged);
             // 
+            // numericUpDownQ0X
+            // 
+            this.numericUpDownQ0X.DecimalPlaces = 3;
+            this.numericUpDownQ0X.Location = new System.Drawing.Point(27, 91);
+            this.numericUpDownQ0X.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.numericUpDownQ0X.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownQ0X.Name = "numericUpDownQ0X";
+            this.numericUpDownQ0X.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownQ0X.TabIndex = 8;
+            this.numericUpDownQ0X.ValueChanged += new System.EventHandler(this.numericUpDownQ0X_ValueChanged);
+            // 
+            // numericUpDownQ0Y
+            // 
+            this.numericUpDownQ0Y.DecimalPlaces = 3;
+            this.numericUpDownQ0Y.Location = new System.Drawing.Point(133, 91);
+            this.numericUpDownQ0Y.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.numericUpDownQ0Y.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownQ0Y.Name = "numericUpDownQ0Y";
+            this.numericUpDownQ0Y.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownQ0Y.TabIndex = 9;
+            this.numericUpDownQ0Y.ValueChanged += new System.EventHandler(this.numericUpDownQ0Y_ValueChanged);
+            // 
+            // numericUpDownQ0Z
+            // 
+            this.numericUpDownQ0Z.DecimalPlaces = 3;
+            this.numericUpDownQ0Z.Location = new System.Drawing.Point(239, 91);
+            this.numericUpDownQ0Z.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.numericUpDownQ0Z.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownQ0Z.Name = "numericUpDownQ0Z";
+            this.numericUpDownQ0Z.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownQ0Z.TabIndex = 10;
+            this.numericUpDownQ0Z.ValueChanged += new System.EventHandler(this.numericUpDownQ0Z_ValueChanged);
+            // 
+            // numericUpDownQ1Z
+            // 
+            this.numericUpDownQ1Z.DecimalPlaces = 3;
+            this.numericUpDownQ1Z.Location = new System.Drawing.Point(239, 156);
+            this.numericUpDownQ1Z.Maximum = new decimal(new int[] {
+            360,
+            0,
+            0,
+            0});
+            this.numericUpDownQ1Z.Minimum = new decimal(new int[] {
+            360,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownQ1Z.Name = "numericUpDownQ1Z";
+            this.numericUpDownQ1Z.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownQ1Z.TabIndex = 13;
+            this.numericUpDownQ1Z.ValueChanged += new System.EventHandler(this.numericUpDownQ1Z_ValueChanged);
+            // 
+            // numericUpDownQ1Y
+            // 
+            this.numericUpDownQ1Y.DecimalPlaces = 3;
+            this.numericUpDownQ1Y.Location = new System.Drawing.Point(133, 156);
+            this.numericUpDownQ1Y.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.numericUpDownQ1Y.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownQ1Y.Name = "numericUpDownQ1Y";
+            this.numericUpDownQ1Y.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownQ1Y.TabIndex = 12;
+            this.numericUpDownQ1Y.ValueChanged += new System.EventHandler(this.numericUpDownQ1Y_ValueChanged);
+            // 
+            // numericUpDownQ1X
+            // 
+            this.numericUpDownQ1X.DecimalPlaces = 3;
+            this.numericUpDownQ1X.Location = new System.Drawing.Point(27, 156);
+            this.numericUpDownQ1X.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.numericUpDownQ1X.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDownQ1X.Name = "numericUpDownQ1X";
+            this.numericUpDownQ1X.Size = new System.Drawing.Size(100, 20);
+            this.numericUpDownQ1X.TabIndex = 11;
+            this.numericUpDownQ1X.ValueChanged += new System.EventHandler(this.numericUpDownQ1X_ValueChanged);
+            // 
             // JointDataControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.numericUpDownQ1Z);
+            this.Controls.Add(this.numericUpDownQ1Y);
+            this.Controls.Add(this.numericUpDownQ1X);
+            this.Controls.Add(this.numericUpDownQ0Z);
+            this.Controls.Add(this.numericUpDownQ0Y);
+            this.Controls.Add(this.numericUpDownQ0X);
             this.Controls.Add(this.comboBoxInstance1);
             this.Controls.Add(this.comboBoxInstance0);
             this.Controls.Add(this.numericUpDownP1Z);
@@ -196,6 +328,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP1Z)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP1Y)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP1X)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ0X)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ0Y)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ0Z)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1Z)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1Y)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1X)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -210,5 +348,11 @@
         private System.Windows.Forms.NumericUpDown numericUpDownP1X;
         private System.Windows.Forms.ComboBox comboBoxInstance0;
         private System.Windows.Forms.ComboBox comboBoxInstance1;
+        private System.Windows.Forms.NumericUpDown numericUpDownQ0X;
+        private System.Windows.Forms.NumericUpDown numericUpDownQ0Y;
+        private System.Windows.Forms.NumericUpDown numericUpDownQ0Z;
+        private System.Windows.Forms.NumericUpDown numericUpDownQ1Z;
+        private System.Windows.Forms.NumericUpDown numericUpDownQ1Y;
+        private System.Windows.Forms.NumericUpDown numericUpDownQ1X;
     }
 }

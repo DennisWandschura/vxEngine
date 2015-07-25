@@ -22,6 +22,12 @@
     <Filter Include="Source Files\Graphics">
       <UniqueIdentifier>{2071a0fb-b723-4169-ab74-5128943adaf1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Converter">
+      <UniqueIdentifier>{8dcaab95-a8de-49d4-875c-abf2ce666ca2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Converter">
+      <UniqueIdentifier>{28b3c1c9-aac5-4ab9-8f1a-9c1af83a9a80}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxEngineLib\Graphics\Surface.h">
@@ -235,7 +241,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\ConverterSceneFileV5.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\ConverterSceneFileV6.h">
+      <Filter>Header Files\Converter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -339,7 +348,10 @@
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="ConverterSceneFileV5.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterSceneFileV6.cpp">
+      <Filter>Source Files\Converter</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

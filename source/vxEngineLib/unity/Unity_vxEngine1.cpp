@@ -24,6 +24,9 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterSceneFileV5.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterSceneFileV5.cpp"
 
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterSceneFileV6.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterSceneFileV6.cpp"
+
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/DoubleBufferRaw.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\DoubleBufferRaw.cpp"
 

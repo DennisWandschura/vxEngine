@@ -35,7 +35,7 @@ class SceneFile;
 
 namespace Converter
 {
-	class SceneFileV5
+	class SceneFileV6
 	{
 	public:
 		static const u8* loadFromMemory(const u8 *ptr, const u8* last, vx::Allocator* allocator, SceneFile* sceneFile);

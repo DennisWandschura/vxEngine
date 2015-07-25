@@ -42,6 +42,7 @@ SOFTWARE.
 #include <vxEngineLib/Animation.h>
 #include <vxEngineLib/Joint.h>
 #include <vxEngineLib/ConverterSceneFileV5.h>
+#include <vxEngineLib/ConverterSceneFileV6.h>
 
 SceneFile::SceneFile(u32 version)
 	:Serializable(version),
@@ -103,51 +104,6 @@ void SceneFile::swap(SceneFile &other)
 		std::swap(m_jointCount, other.m_jointCount);
 	}
 }
-
-/*const u8* SceneFile::loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* allocator)
-{
-	ptr = vx::read(m_meshInstanceCount, ptr);
-	ptr = vx::read(m_lightCount, ptr);
-	ptr = vx::read(m_spawnCount, ptr);
-	ptr = vx::read(m_actorCount, ptr);
-	ptr = vx::read(m_waypointCount, ptr);
-
-	auto meshInstances = vx::make_unique<MeshInstanceFileOld[]>(m_meshInstanceCount);
-	m_pLights = vx::make_unique<Light[]>(m_lightCount);
-	m_pSpawns = vx::make_unique<SpawnFile[]>(m_spawnCount);
-
-	ptr = vx::read(meshInstances.get(), ptr, m_meshInstanceCount);
-	ptr = vx::read(m_pLights.get(), ptr, m_lightCount);
-	ptr = vx::read(m_pSpawns.get(), ptr, m_spawnCount);
-
-	if (m_actorCount != 0)
-	{
-		m_pActors = vx::make_unique<ActorFile[]>(m_actorCount);
-
-		ptr = vx::read(m_pActors.get(), ptr, m_actorCount);
-	}
-
-	if (m_waypointCount != 0)
-	{
-		m_waypoints = vx::make_unique<Waypoint[]>(m_waypointCount);
-
-		ptr = vx::read(m_waypoints.get(), ptr, m_waypointCount);
-	}
-
-	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
-	for (u32 i = 0; i < m_meshInstanceCount; ++i)
-	{
-		meshInstances[i].convertTo(&m_pMeshInstances[i]);
-	}
-
-	VX_ASSERT(ptr < last);
-
-	ptr = m_navMesh.load(ptr);
-
-	VX_ASSERT(ptr <= last);
-
-	return ptr;
-}*/
 
 const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator)
 {
@@ -233,7 +189,7 @@ const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* 
 	return ptr;
 }*/
 
-const u8* SceneFile::loadVersion6(const u8 *ptr, const u8* last, vx::Allocator* allocator)
+const u8* SceneFile::loadVersion7(const u8 *ptr, const u8* last, vx::Allocator* allocator)
 {
 	ptr = vx::read(m_meshInstanceCount, ptr);
 	ptr = vx::read(m_lightCount, ptr);
@@ -245,6 +201,7 @@ const u8* SceneFile::loadVersion6(const u8 *ptr, const u8* last, vx::Allocator* 
 	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
 	m_pLights = vx::make_unique<Light[]>(m_lightCount);
 	m_pSpawns = vx::make_unique<SpawnFile[]>(m_spawnCount);
+
 
 	ptr = vx::read((u8*)m_pMeshInstances.get(), ptr, sizeof(MeshInstanceFile) * m_meshInstanceCount);
 	ptr = vx::read((u8*)m_pLights.get(), ptr, sizeof(Light) * m_lightCount);
@@ -285,11 +242,7 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allo
 	auto last = ptr + size;
 
 	const u8* result = nullptr;
-	/*if (version == 3)
-	{
-		result = loadVersion3(ptr, last, allocator);
-	}
-	else*/ 
+
 	if (version == 4)
 	{
 		result = loadVersion4(ptr, last, allocator);
@@ -300,7 +253,12 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allo
 	}
 	else if (version == 6)
 	{
-		result = loadVersion6(ptr, last, allocator);
+		result = Converter::SceneFileV6::loadFromMemory(ptr, last, allocator, this);
+	}
+
+	else if (version == 7)
+	{
+		result = loadVersion7(ptr, last, allocator);
 	}
 	else
 	{
@@ -333,50 +291,6 @@ u32 SceneFile::getNumMeshInstances() const
 {
 	return m_meshInstanceCount;
 }
-
-/*u64 SceneFile::getCrcVersion3() const
-{
-	auto navMeshVertexSize = sizeof(vx::float3) * m_navMesh.getVertexCount();
-	auto navMeshTriangleSize = sizeof(u16) * m_navMesh.getTriangleCount() * 3;
-	auto navMeshSize = navMeshVertexSize + navMeshTriangleSize;
-
-	u32 meshInstanceSize = sizeof(MeshInstanceFileOld) * m_meshInstanceCount;
-	auto meshInstancesOld = std::make_unique<MeshInstanceFileOld[]>(m_meshInstanceCount);
-	for (u32 i = 0; i < m_meshInstanceCount; ++i)
-	{
-		auto &it = m_pMeshInstances[i];
-
-		meshInstancesOld[i] = MeshInstanceFileOld(it);
-	}
-
-	auto lightSize = sizeof(Light) * m_lightCount;
-	auto spawnSize = sizeof(SpawnFile) * m_spawnCount;
-	auto actorSize = sizeof(ActorFile) * m_actorCount;
-
-	auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize;
-	auto ptr = vx::make_unique<u8[]>(totalSize);
-
-	auto offset = 0;
-	::memcpy(ptr.get() + offset, meshInstancesOld.get(), meshInstanceSize);
-	offset += meshInstanceSize;
-
-	::memcpy(ptr.get() + offset, m_pLights.get(), lightSize);
-	offset += lightSize;
-
-	::memcpy(ptr.get() + offset, m_pSpawns.get(), spawnSize);
-	offset += spawnSize;
-
-	::memcpy(ptr.get() + offset, m_pActors.get(), actorSize);
-	offset += actorSize;
-
-	::memcpy(ptr.get() + offset, m_navMesh.getVertices(), navMeshVertexSize);
-	offset += navMeshVertexSize;
-
-	::memcpy(ptr.get() + offset, m_navMesh.getTriangleIndices(), navMeshTriangleSize);
-	offset += navMeshTriangleSize;
-
-	return CityHash64((char*)ptr.get(), totalSize);
-}*/
 
 u64 SceneFile::getCrcVersion4() const
 {
@@ -456,65 +370,12 @@ u64 SceneFile::getCrcVersion4() const
 	return CityHash64((char*)ptr.get(), totalSize);
 }
 
-/*u64 SceneFile::getCrcVersion5() const
+u64 SceneFile::getCrcVersion7() const
 {
-	auto navMeshVertexSize = sizeof(vx::float3) * m_navMesh.getVertexCount();
-	auto navMeshTriangleSize = sizeof(u16) * m_navMesh.getTriangleCount() * 3;
-	auto navMeshSize = navMeshVertexSize + navMeshTriangleSize;
-
-	u32 meshInstanceSize = sizeof(MeshInstanceFile) * m_meshInstanceCount;
-
-	auto lightSize = sizeof(Light) * m_lightCount;
-	auto spawnSize = sizeof(SpawnFile) * m_spawnCount;
-	auto actorSize = sizeof(ActorFile) * m_actorCount;
-
-	auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize;
-	auto ptr = vx::make_unique<u8[]>(totalSize);
-
-	auto offset = 0;
-	if (meshInstanceSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_pMeshInstances.get(), meshInstanceSize);
-		offset += meshInstanceSize;
-	}
-
-	if (lightSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_pLights.get(), lightSize);
-		offset += lightSize;
-	}
-
-	if (spawnSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_pSpawns.get(), spawnSize);
-		offset += spawnSize;
-	}
-
-	if (actorSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_pActors.get(), actorSize);
-		offset += actorSize;
-	}
-
-	if (navMeshVertexSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_navMesh.getVertices(), navMeshVertexSize);
-		offset += navMeshVertexSize;
-	}
-
-	if (navMeshTriangleSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_navMesh.getTriangleIndices(), navMeshTriangleSize);
-		offset += navMeshTriangleSize;
-	}
-
-	return CityHash64((char*)ptr.get(), totalSize);
-}*/
-
-u64 SceneFile::getCrcVersion6() const
-{
-	auto navMeshVertexSize = sizeof(vx::float3) * m_navMesh.getVertexCount();
-	auto navMeshTriangleSize = sizeof(u16) * m_navMesh.getTriangleCount() * 3;
+	auto navVertexCount = m_navMesh.getVertexCount();
+	auto navIndexCount = m_navMesh.getTriangleCount() * 3;
+	auto navMeshVertexSize = sizeof(vx::float3) * navVertexCount;
+	auto navMeshTriangleSize = sizeof(u16) * navIndexCount;
 	auto navMeshSize = navMeshVertexSize + navMeshTriangleSize;
 
 	u32 meshInstanceSize = sizeof(MeshInstanceFile) * m_meshInstanceCount;
@@ -526,61 +387,30 @@ u64 SceneFile::getCrcVersion6() const
 
 	auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize + jointSize;
 	auto ptr = vx::make_unique<u8[]>(totalSize);
+	auto current = ptr.get();
 
-	auto offset = 0;
-	if (meshInstanceSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_pMeshInstances.get(), meshInstanceSize);
-		offset += meshInstanceSize;
-	}
+	current = vx::write(current, m_pMeshInstances.get(), m_meshInstanceCount);
+	current = vx::write(current, m_pLights.get(), m_lightCount);
+	current = vx::write(current, m_pSpawns.get(), m_spawnCount);
+	current = vx::write(current, m_pActors.get(), m_actorCount);
+	current = vx::write(current, m_navMesh.getVertices(), navVertexCount);
+	current = vx::write(current, m_navMesh.getTriangleIndices(), navIndexCount);
+	current = vx::write(current, m_joints.get(), m_jointCount);
 
-	if (lightSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_pLights.get(), lightSize);
-		offset += lightSize;
-	}
-
-	if (spawnSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_pSpawns.get(), spawnSize);
-		offset += spawnSize;
-	}
-
-	if (actorSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_pActors.get(), actorSize);
-		offset += actorSize;
-	}
-
-	if (navMeshVertexSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_navMesh.getVertices(), navMeshVertexSize);
-		offset += navMeshVertexSize;
-	}
-
-	if (navMeshTriangleSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_navMesh.getTriangleIndices(), navMeshTriangleSize);
-		offset += navMeshTriangleSize;
-	}
-
-	if (jointSize != 0)
-	{
-		::memcpy(ptr.get() + offset, m_joints.get(), jointSize);
-		offset += jointSize;
-	}
+	auto last = ptr.get() + totalSize;
+	VX_ASSERT(current == last);
 
 	return CityHash64((char*)ptr.get(), totalSize);
 }
 
-u32 SceneFile::getActorCount() const 
+u32 SceneFile::getActorCount() const
 {
-	return m_actorCount; 
+	return m_actorCount;
 }
 
 const ActorFile* SceneFile::getActors() const
 {
-	return m_pActors.get(); 
+	return m_pActors.get();
 }
 
 u64 SceneFile::getCrc() const
@@ -588,28 +418,30 @@ u64 SceneFile::getCrc() const
 	auto currentVersion = getVersion();
 
 	u64 crc = 0;
-	if (currentVersion == 4)
+
+	switch (currentVersion)
 	{
+	case 4:
 		crc = getCrcVersion4();
-	}
-	else if (currentVersion == 5)
-	{
+		break;
+	case 5:
 		crc = Converter::SceneFileV5::getCrc(*this);
-	//	crc = getCrcVersion5();
-	}
-	else if (currentVersion == 6)
-	{
-		crc = getCrcVersion6();
-	}
-	else
-	{
+		break;
+	case 6:
+		crc = Converter::SceneFileV6::getCrc(*this);
+		break;
+	case 7:
+		crc = getCrcVersion7();
+		break;
+	default:
 		VX_ASSERT(false);
+		break;
 	}
-	
+
 	return crc;
 }
 
 u32 SceneFile::getGlobalVersion()
 {
-	return 6;
+	return 7;
 }

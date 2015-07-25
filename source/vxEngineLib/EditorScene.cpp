@@ -686,4 +686,18 @@ namespace Editor
 		auto &joint = m_joints[index];
 		joint.sid1.value = sid;
 	}
+
+	void Scene::setJointRotation0(u32 index, const vx::float4 &q)
+	{
+		auto &joint = m_joints[index];
+		joint.q0 = q;
+		buildSelectableJoints();
+	}
+
+	void Scene::setJointRotation1(u32 index, const vx::float4 &q)
+	{
+		auto &joint = m_joints[index];
+		joint.q1 = q;
+		buildSelectableJoints();
+	}
 }

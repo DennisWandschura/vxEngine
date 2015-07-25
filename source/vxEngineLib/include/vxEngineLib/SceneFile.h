@@ -47,6 +47,7 @@ namespace Editor
 namespace Converter
 {
 	class SceneFileV5;
+	class SceneFileV6;
 	class SceneFileToEditorScene;
 }
 
@@ -89,6 +90,7 @@ class SceneFile : public vx::Serializable
 	friend class ConverterEditorSceneToSceneFile;
 
 	friend Converter::SceneFileV5;
+	friend Converter::SceneFileV6;
 	friend Converter::SceneFileToEditorScene;
 
 	std::unique_ptr<MeshInstanceFile[]> m_pMeshInstances;
@@ -105,15 +107,11 @@ class SceneFile : public vx::Serializable
 	u32 m_waypointCount;
 	u32 m_jointCount;
 
-	//const u8* loadVersion3(const u8 *ptr, const u8* last, vx::Allocator* allocator);
 	const u8* loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator);
-	//const u8* loadVersion5(const u8 *ptr, const u8* last, vx::Allocator* allocator);
-	const u8* loadVersion6(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+	const u8* loadVersion7(const u8 *ptr, const u8* last, vx::Allocator* allocator);
 
-	//u64 getCrcVersion3() const;
 	u64 getCrcVersion4() const;
-	//u64 getCrcVersion5() const;
-	u64 getCrcVersion6() const;
+	u64 getCrcVersion7() const;
 
 public:
 	explicit SceneFile(u32 version);
@@ -124,10 +122,8 @@ public:
 	void swap(SceneFile &other);
 
 	const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) override;
-	//void loadFromYAML(const char *file);
 
 	void saveToFile(vx::File *file) const override;
-	//void saveToYAML(const char *file) const;
 
 	const MeshInstanceFile* getMeshInstances() const { return m_pMeshInstances.get(); }
 	u32 getNumMeshInstances() const;

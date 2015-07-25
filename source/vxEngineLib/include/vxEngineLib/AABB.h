@@ -35,6 +35,10 @@ struct Plane;
 
 struct AABB
 {
+#ifdef _VX_VS12
+	vx::float3 min;
+	vx::float3 max;
+#else
 	union
 	{
 		vx::float3 v[2];
@@ -44,6 +48,7 @@ struct AABB
 			vx::float3 max;
 		};
 	};
+#endif
 
 	AABB();
 	AABB(const vx::float3 &p);

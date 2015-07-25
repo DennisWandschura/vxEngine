@@ -60,8 +60,10 @@ namespace LevelEditor
 
     static class NativeMethods
     {
-        const string m_libPath = "../../../lib/vs2013/";
-        const string m_dllName = "vxEngine_vs12_d.dll";
+        //const string m_libPath = "../../../lib/vs2013/";
+        //const string m_dllName = "vxEngine_vs12_d.dll";
+        const string m_libPath = "../../../lib/";
+        const string m_dllName = "vxEngine_d.dll";
 
         public delegate void LoadFileCallback(ulong sid, uint type);
 
@@ -315,7 +317,7 @@ namespace LevelEditor
         public unsafe static extern uint getJointCount();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void getJointData(uint i, out Float3 p0, out Float3 p1, out ulong sid0, out ulong sid1);
+        public unsafe static extern void getJointData(uint i, out Float3 p0, out Float3 q0, out Float3 p1, out Float3 q1, out ulong sid0, out ulong sid1);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void addJoint(ulong sid);
@@ -337,5 +339,11 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void setJointBody1(uint index, ulong sid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setJointRotation0(uint index, ref Float3 q);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setJointRotation1(uint index, ref Float3 q);
     }
 }

@@ -79,9 +79,11 @@ struct FileAspect::FileRequest
 	enum OpenType : u8{ Load = 0, Save = 1 };
 
 	vx::FileEntry m_fileEntry;
-	void* userData{ nullptr };
-	u8 m_maxRetries{ 10 };
-	OpenType m_openType{};
+	void* userData;
+	u8 m_maxRetries;
+	OpenType m_openType;
+
+	FileRequest() :m_fileEntry(), userData(nullptr), m_maxRetries(10), m_openType(OpenType::Load) {}
 };
 
 struct FileAspect::LoadFileOfTypeDescription

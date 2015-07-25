@@ -59,6 +59,20 @@ namespace LevelEditor
             numericUpDownP1Y.Value = (decimal)p.y;
             numericUpDownP1Z.Value = (decimal)p.z;
         }
+  
+        public void setRotation0(Float3 q)
+        {
+            numericUpDownQ0X.Value = (decimal)q.x;
+            numericUpDownQ0Y.Value = (decimal)q.y;
+            numericUpDownQ0Z.Value = (decimal)q.z;
+        }
+
+        public void setRotation1(Float3 q)
+        {
+            numericUpDownQ1X.Value = (decimal)q.x;
+            numericUpDownQ1Y.Value = (decimal)q.y;
+            numericUpDownQ1Z.Value = (decimal)q.z;
+        }
 
         public void setSelectedJoint(uint index)
         {
@@ -66,13 +80,18 @@ namespace LevelEditor
 
             var p0 = new Float3();
             var p1 = new Float3();
+            var q0 = new Float3();
+            var q1 = new Float3();
             ulong sid0, sid1;
 
-            NativeMethods.getJointData(index, out p0, out p1, out sid0, out sid1);
+            NativeMethods.getJointData(index, out p0, out q0, out p1, out q1, out sid0, out sid1);
             // m_jointDataControl.setSelectedInstance0();
             //m_jointDataControl.setSelectedInstance1();
             setPosition0(p0);
             setPosition1(p1);
+
+            setRotation0(q0);
+            setRotation1(q1);
 
             EditorEntry entry;
             if (m_sortedMeshInstances.TryGetValue(sid0, out entry))
@@ -95,7 +114,7 @@ namespace LevelEditor
 
         void setJointPosition0()
         {
-            if(m_selected)
+            if (m_selected)
             {
                 var p0 = new Float3();
                 p0.x = (float)numericUpDownP0X.Value;
@@ -116,6 +135,32 @@ namespace LevelEditor
                 p0.z = (float)numericUpDownP1Z.Value;
 
                 NativeMethods.setJointPosition1(m_selectedJoint, ref p0);
+            }
+        }
+
+        void setJointRotation0()
+        {
+            if (m_selected)
+            {
+                var q0 = new Float3();
+                q0.x = (float)numericUpDownQ0X.Value;
+                q0.y = (float)numericUpDownQ0Y.Value;
+                q0.z = (float)numericUpDownQ0Z.Value;
+
+                NativeMethods.setJointRotation0(m_selectedJoint, ref q0);
+            }
+        }
+
+        void setJointRotation1()
+        {
+            if (m_selected)
+            {
+                var q0 = new Float3();
+                q0.x = (float)numericUpDownQ1X.Value;
+                q0.y = (float)numericUpDownQ1Y.Value;
+                q0.z = (float)numericUpDownQ1Z.Value;
+
+                NativeMethods.setJointRotation1(m_selectedJoint, ref q0);
             }
         }
 
@@ -174,6 +219,36 @@ namespace LevelEditor
                 var entry = (EditorEntry)comboBoxInstance1.SelectedItem;
                 NativeMethods.setJointBody1(m_selectedJoint, entry.m_sid);
             }
+        }
+
+        private void numericUpDownQ0X_ValueChanged(object sender, EventArgs e)
+        {
+            setJointRotation0();
+        }
+
+        private void numericUpDownQ0Y_ValueChanged(object sender, EventArgs e)
+        {
+            setJointRotation0();
+        }
+
+        private void numericUpDownQ0Z_ValueChanged(object sender, EventArgs e)
+        {
+            setJointRotation0();
+        }
+
+        private void numericUpDownQ1X_ValueChanged(object sender, EventArgs e)
+        {
+            setJointRotation1();
+        }
+
+        private void numericUpDownQ1Y_ValueChanged(object sender, EventArgs e)
+        {
+            setJointRotation1();
+        }
+
+        private void numericUpDownQ1Z_ValueChanged(object sender, EventArgs e)
+        {
+            setJointRotation1();
         }
     }
 }

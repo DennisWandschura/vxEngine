@@ -54,30 +54,16 @@ namespace Graphics
 		vx::float4 color;
 	};
 
-	template<typename T>
-	void createTextIndices(T* incides, u32 indexCount)
-	{
-		for (T i = 0, vertexIndex = 0; i < indexCount; i += 6, vertexIndex += 4)
-		{
-			incides[i + 0] = vertexIndex + 0;
-			incides[i + 1] = vertexIndex + 1;
-			incides[i + 2] = vertexIndex + 2;
-
-			incides[i + 3] = vertexIndex + 2;
-			incides[i + 4] = vertexIndex + 3;
-			incides[i + 5] = vertexIndex + 0;
-		}
-	}
-
 	TextRenderer::TextRenderer()
 		:m_vboId(0),
 		m_cmdId(0),
 		m_entries(),
 		m_vertices(),
+		m_entryCount(0),
 		m_size(0),
 		m_capacity(0),
-		m_font(nullptr),
-		m_texureIndex(0)
+		m_texureIndex(0),
+		m_font(nullptr)
 	{
 
 	}
@@ -123,16 +109,6 @@ namespace Graphics
 			incides[i + 4] = j + 3;
 			incides[i + 5] = j;
 		}
-		/*if (dataType == vx::gl::DataType::Unsigned_Int)
-		{
-			auto ptr = data.get();
-			createTextIndices(reinterpret_cast<u32*>(ptr), totalIndexCount);
-		}
-		else
-		{
-			auto ptr = data.get();
-			createTextIndices(reinterpret_cast<u16*>(ptr), totalIndexCount);
-		}*/
 
 		vx::gl::BufferDescription desc{};
 		desc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
@@ -190,6 +166,9 @@ namespace Graphics
 	{
 		auto desc = (TextRendererDesc*)p;
 
+		m_entries = (Entry*)desc->allocator->allocate(sizeof(Entry) * s_maxEntryCount, __alignof(Entry));
+		m_entryCount = 0;
+
 		s_shaderManager->loadPipeline(vx::FileHandle("text.pipe"), "text.pipe", scratchAllocator);
 		auto pipe = s_shaderManager->getPipeline("text.pipe");
 
@@ -208,13 +187,15 @@ namespace Graphics
 
 	void TextRenderer::pushEntry(const char(&text)[48], u32 size, const vx::float2 &topLeftPosition, const vx::float3 &color)
 	{
-		Entry entry;
+		VX_ASSERT(m_entryCount < s_maxEntryCount);
+
+		auto &entry = m_entries[m_entryCount++];
+
 		strncpy(entry.m_text, text, 48);
 		entry.m_position = topLeftPosition;
 		entry.m_color = vx::float4(color, 1.0f);
 		entry.m_size = size;
 
-		m_entries.push_back(std::move(entry));
 		m_size += size;
 	}
 
@@ -238,10 +219,16 @@ namespace Graphics
 
 		auto vInvTexSize = _mm_shuffle_ps(invTextureSize.v, invTextureSize.v, _MM_SHUFFLE(0, 0, 0, 0));
 
-		for (auto &it : m_entries)
+		auto entryCount = m_entryCount;
+		auto entries = m_entries;
+		for (u32 i = 0;i < entryCount; ++i)
+		{
+			writeEntryToVertexBuffer(vInvTexSize, entries[i], &offset, textureSize, textureSlice);
+		}
+		/*for (auto &it : m_entries)
 		{
 			writeEntryToVertexBuffer(vInvTexSize, it,&offset, textureSize, textureSlice);
-		}
+		}*/
 
 		if (offset != 0)
 		{
@@ -254,7 +241,8 @@ namespace Graphics
 		}
 
 		m_size = 0;
-		m_entries.clear();
+		//m_entries.clear();
+		m_entryCount = 0;
 	}
 
 	void TextRenderer::writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, u32 textureSize, u32 textureSlice)

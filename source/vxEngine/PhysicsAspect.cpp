@@ -771,50 +771,22 @@ physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 	if (actor0 || actor1)
 	{
 		physx::PxTransform localFrame0, localFrame1;
-		localFrame0.p = {0, 0, 0};
-		localFrame0.q = {0, 0, 0, 1};
-
-		auto pose0 = actor0->getGlobalPose();
-
-		vx::float4a q = vx::quaternionRotationRollPitchYawFromVector(vx::float4a(0, vx::degToRad(90), 0, 0));
-
-		localFrame1.p = pose0.p;
-		localFrame1.p.x -= 0.1f;
-		localFrame1.p.z += 0.6f;
-		localFrame1.q = { q.x, q.y, q.z, q.w };
-
-		//auto q = vx::quaternionRotationRollPitchYawFromVector(vx::float4a(0, vx::degToRad(90), 0, 0));
-
-		//auto q1 = joint.q1;
-		//vx::storeFloat4(&q1, q);
-
-		/*PhysicsAspectCpp::copy(joint.p0, &localFrame0.p);
+		PhysicsAspectCpp::copy(joint.p0, &localFrame0.p);
 		PhysicsAspectCpp::copy(joint.q0, &localFrame0.q);
 		PhysicsAspectCpp::copy(joint.p1, &localFrame1.p);
-		PhysicsAspectCpp::copy(joint.q1, &localFrame1.q);*/
-
-		/*if (actor0)
-		{
-			auto pose = actor0->getGlobalPose();
-
-			localFrame0.p = pose.p - localFrame0.p;
-		}
-
-		if (actor1)
-		{
-			auto pose = actor1->getGlobalPose();
-
-			localFrame1.p = pose.p - localFrame1.p;
-		}*/
+		PhysicsAspectCpp::copy(joint.q1, &localFrame1.q);
 
 		//result = physx::PxFixedJointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
+
+		//auto ptr = physx::PxD6JointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
 
 		auto ptr = physx::PxRevoluteJointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
 
 		if (ptr != nullptr)
 		{
-			auto limitPair = physx::PxJointAngularLimitPair(-1.0f, 1.0f, 0.1f);
-			limitPair.damping = 20.0f;
+			auto angle = ptr->getAngle();
+			printf("%f\n", angle);
+			auto limitPair = physx::PxJointAngularLimitPair(-3.1f, -vx::VX_PIDIV2);
 			
 			ptr->setLimit(limitPair);
 			ptr->setRevoluteJointFlag(physx::PxRevoluteJointFlag::eLIMIT_ENABLED, true);

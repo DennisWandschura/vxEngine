@@ -137,7 +137,7 @@ namespace Editor
 	extern "C" DLL_EXPORT void setMeshInstanceRigidBodyType(u64 sid, u32 type);
 
 	extern "C" DLL_EXPORT u32 getJointCount();
-	extern "C" DLL_EXPORT void getJointData(u32 i, vx::float3* p0, vx::float3* p1, u64* sid0, u64* sid1);
+	extern "C" DLL_EXPORT void getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float3* p1, vx::float3* q1, u64* sid0, u64* sid1);
 	extern "C" DLL_EXPORT void addJoint(u64 sid);
 	extern "C" DLL_EXPORT void removeJoint(u32 index);
 	extern "C" DLL_EXPORT bool selectJoint(s32 mouseX, s32 mouseY, u32* index);
@@ -145,5 +145,7 @@ namespace Editor
 	extern "C" DLL_EXPORT void setJointPosition1(u32 index, const vx::float3 &p);
 	extern "C" DLL_EXPORT void setJointBody0(u32 index, u64 sid);
 	extern "C" DLL_EXPORT void setJointBody1(u32 index, u64 sid);
+	extern "C" DLL_EXPORT void setJointRotation0(u32 index, const vx::float3 &p);
+	extern "C" DLL_EXPORT void setJointRotation1(u32 index, const vx::float3 &p);
 }
 #endif

@@ -38,29 +38,33 @@ namespace vx
 #include <vxLib/math/Vector.h>
 #include <vxLib/memory.h>
 #include <vector>
+#include <vxLib/Allocator/StackAllocator.h>
 
 namespace Graphics
 {
 	struct TextRendererDesc
 	{
 		const Font* font;
+		vx::StackAllocator* allocator;
 		u32 maxCharacters;
 		u32 textureIndex;
 	};
 
 	class TextRenderer : public Renderer
 	{
+		static const auto s_maxEntryCount = 256u;
 		struct Entry;
 		struct TextVertex;
 
 		u32 m_vboId;
 		u32 m_cmdId;
-		std::vector<Entry> m_entries;
+		Entry* m_entries;
 		std::unique_ptr<TextVertex[]> m_vertices;
+		u32 m_entryCount;
 		u32 m_size;
 		u32 m_capacity;
-		const Font* m_font;
 		u32 m_texureIndex;
+		const Font* m_font;
 
 		void createVertexBuffer();
 		void createIndexBuffer();

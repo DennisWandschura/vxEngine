@@ -1527,11 +1527,38 @@ u32 EditorEngine::getJointCount() const
 	return m_pEditorScene->getJointCount();
 }
 
-void EditorEngine::getJointData(u32 i, vx::float3* p0, vx::float3* p1, u64* sid0, u64* sid1) const
+#include <DirectXMath.h>
+
+void EditorEngine::getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float3* p1, vx::float3* q1, u64* sid0, u64* sid1) const
 {
+	auto quaternionToAngles = [](const vx::float4 &q, vx::float3* rotationDeg)
+	{
+		if (q.x == 0 && q.y == 0 && q.z == 0)
+		{
+			*rotationDeg = {0, 0, 0};
+		}
+		else
+		{
+			auto qq = vx::loadFloat4(q);
+
+			__m128 axis, axis0;
+			f32 angle, angle0;
+			DirectX::XMQuaternionToAxisAngle(&axis0, &angle0, qq);
+			vx::quaternionToAxisAngle(qq, &axis, &angle);
+			axis = vx::normalize3(axis);
+
+			//auto ttt = _mm_mul_ps(axis, _mm_load1_ps(&angle));
+
+			vx::float4a tmpAxis = axis;
+			vx::angleAxisToEuler(tmpAxis, angle, rotationDeg);
+		}
+	};
+
 	auto joints = m_pEditorScene->getJoints();
 
 	auto &joint = joints[i];
+	quaternionToAngles(joint.q0, q0);
+	quaternionToAngles(joint.q1, q1);
 	*p0 = joint.p0;
 	*p1 = joint.p1;
 	*sid0 = joint.sid0.value;
@@ -1570,4 +1597,28 @@ void EditorEngine::setJointBody0(u32 index, u64 sid)
 void EditorEngine::setJointBody1(u32 index, u64 sid)
 {
 	m_pEditorScene->setJointBody1(index, sid);
+}
+
+void EditorEngine::setJointRotation0(u32 index, const vx::float3 &q)
+{
+	auto qq = vx::quaternionRotationRollPitchYawFromVector(vx::degToRad(vx::loadFloat3(q)));
+
+	vx::float4 tmp;
+	vx::storeFloat4(&tmp, qq);
+
+	m_pEditorScene->setJointRotation0(index, tmp);
+	auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
+	m_renderAspect->updateJoints(m_pEditorScene->getJoints(), m_pEditorScene->getJointCount(), sortedInstances);
+}
+
+void EditorEngine::setJointRotation1(u32 index, const vx::float3 &q)
+{
+	auto qq = vx::quaternionRotationRollPitchYawFromVector(vx::degToRad(vx::loadFloat3(q)));
+
+	vx::float4 tmp;
+	vx::storeFloat4(&tmp, qq);
+
+	m_pEditorScene->setJointRotation1(index, tmp);
+	auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
+	m_renderAspect->updateJoints(m_pEditorScene->getJoints(), m_pEditorScene->getJointCount(), sortedInstances);
 }

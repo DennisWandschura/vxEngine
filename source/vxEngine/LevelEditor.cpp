@@ -569,9 +569,9 @@ namespace Editor
 		return g_pEditor->engine.getJointCount();
 	}
 
-	void getJointData(u32 i, vx::float3* p0, vx::float3* p1, u64* sid0, u64* sid1)
+	void getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float3* p1, vx::float3* q1, u64* sid0, u64* sid1)
 	{
-		g_pEditor->engine.getJointData(i, p0, p1, sid0, sid1);
+		g_pEditor->engine.getJointData(i, p0, q0, p1, q1, sid0, sid1);
 	}
 
 	void addJoint(u64 sid)
@@ -607,6 +607,16 @@ namespace Editor
 	void setJointBody1(u32 index, u64 sid)
 	{
 		g_pEditor->engine.setJointBody1(index, sid);
+	}
+
+	void setJointRotation0(u32 index, const vx::float3 &p)
+	{
+		g_pEditor->engine.setJointRotation0(index, p);
+	}
+
+	void setJointRotation1(u32 index, const vx::float3 &p)
+	{
+		g_pEditor->engine.setJointRotation1(index, p);
 	}
 }
 #endif

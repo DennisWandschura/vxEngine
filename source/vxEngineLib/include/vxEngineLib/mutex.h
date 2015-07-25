@@ -24,11 +24,10 @@ namespace vx
 
 	class mutex
 	{
-		//std::atomic_int m_value;
 		std::atomic_flag m_flag;
 
 	public:
-		mutex() :m_flag() {}
+		mutex() :m_flag() { m_flag.clear(); }
 		mutex(const mutex&) = delete;
 		mutex(mutex&&) = delete;
 
