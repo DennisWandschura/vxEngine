@@ -78,7 +78,7 @@ protected:
 	//SceneRenderer m_sceneRenderer;
 	RenderCommand* m_pRenderPassFinalImage;
 	vx::mutex m_updateMutex;
-	std::vector<RenderUpdateTask> m_tasks;
+	std::vector<RenderUpdateTaskType> m_tasks;
 	RenderUpdateCameraData m_updateCameraData;
 	DoubleBufferRaw m_doubleBuffer;
 	Graphics::ShadowRenderer* m_shadowRenderer;
@@ -166,8 +166,7 @@ public:
 
 	void makeCurrent(bool b) override;
 
-	void queueUpdateTask(const RenderUpdateTask &task) override;
-	void queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize) override;
+	void queueUpdateTask(RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
 	void queueUpdateCamera(const RenderUpdateCameraData &data) override;
 	void update() override;
 

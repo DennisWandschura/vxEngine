@@ -17,4 +17,6 @@ public:
 
 	bool create(u32 memorySizeBytes, ID3D12Device* device);
 	void release();
+
+	ID3D12Heap* get() { return m_heap; }
 };

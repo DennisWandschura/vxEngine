@@ -28,12 +28,7 @@ class MeshInstance;
 #include <vxEngineLib/Transform.h>
 #include <vxLib/StringID.h>
 
-struct RenderUpdateTask
-{
-	enum class Type{ UpdateCamera, UpdateDynamicTransforms, UpdateText, LoadScene, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex, AddStaticMeshInstance, AddDynamicMeshInstance};
-
-	Type type;
-};
+enum class RenderUpdateTaskType { UpdateCamera, UpdateDynamicTransforms, UpdateText, LoadScene, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex, AddStaticMeshInstance, AddDynamicMeshInstance};
 
 struct RenderUpdateCameraData
 {

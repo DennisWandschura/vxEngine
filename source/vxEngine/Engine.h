@@ -36,7 +36,7 @@ SOFTWARE.*/
 #include "ActorAspect.h"
 #include <vxEngineLib/Scene.h>
 #include "ActionManager.h"
-#include "TaskManager.h"
+#include <vxEngineLib/TaskManager.h>
 #if _VX_MEM_PROFILE
 #include <vxLib/Allocator/AllocationProfiler.h>
 #endif
@@ -48,7 +48,7 @@ class Engine
 {
 	vx::EventManager m_eventManager;
 	ActionManager m_actionManager;
-	TaskManager m_taskManager;
+	vx::TaskManager m_taskManager;
 	SystemAspect m_systemAspect;
 	PhysicsAspect m_physicsAspect;
 	ActorAspect m_actorAspect;
@@ -64,6 +64,7 @@ class Engine
 	vx::StackAllocator m_allocator;
 	u32 m_shutdown;
 	vx::thread m_fileAspectThread;
+	vx::thread m_taskManagerThread;
 	//vx::thread m_renderThread;
 #if _VX_AUDIO
 	vx::AudioAspect m_audioAspect;

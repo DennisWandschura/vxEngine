@@ -139,7 +139,7 @@ public:
 	PhysicsAspect();
 	virtual ~PhysicsAspect();
 
-	bool initialize(TaskManager* taskManager);
+	bool initialize(vx::TaskManager* taskManager);
 	void shutdown();
 
 	void fetch();

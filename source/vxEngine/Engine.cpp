@@ -39,6 +39,16 @@ namespace EngineCpp
 	{
 		g_pEngine->keyPressed(key);
 	}
+
+	void schedulerThread(vx::TaskManager* scheduler, std::atomic_uint* running)
+	{
+		while (running->load() != 0)
+		{
+			scheduler->swapBuffer();
+
+			scheduler->update();
+		}
+	}
 }
 
 Engine::Engine()
@@ -86,8 +96,8 @@ void Engine::update()
 	m_actionManager.update();
 
 	//printf("task manager begin\n");
-	m_taskManager.update();
-	m_taskManager.wait();
+	//m_taskManager.update();
+	//m_taskManager.wait();
 	//printf("task manager end\n");
 
 	// update aspects in order
@@ -177,7 +187,12 @@ bool Engine::initializeImpl(const std::string &dataDir)
 
 bool Engine::createRenderAspectGL(const RenderAspectDescription &desc)
 {
+#if _DEBUG
 	auto handle = LoadLibrary(L"../../lib/vxRenderAspectGL_d.dll");
+#else
+	auto handle = LoadLibrary(L"../../lib/vxRenderAspectGL.dll");
+#endif
+
 	if (handle == nullptr)
 		return false;
 
@@ -200,7 +215,11 @@ bool Engine::createRenderAspectGL(const RenderAspectDescription &desc)
 
 bool Engine::createRenderAspectDX12(const RenderAspectDescription &desc)
 {
+#if _DEBUG
 	auto handle = LoadLibrary(L"../../lib/vxRenderAspectDX12_d.dll");
+#else
+	auto handle = LoadLibrary(L"../../lib/vxRenderAspectDX12.dll");
+#endif
 	if (handle == nullptr)
 		return false;
 
@@ -239,10 +258,12 @@ bool Engine::initialize()
 	if (!initializeImpl(dataDir))
 		return false;
 
+	m_taskManager.initialize(2, 10);
+
 #if _VX_MEM_PROFILE
-	m_taskManager.initialize(&m_allocator, 1024, &m_allocManager);
+	//m_taskManager.initialize(1, &m_allocator, 1024, &m_allocManager);
 #else
-	m_taskManager.initialize(&m_allocator, 1024, nullptr);
+	//m_taskManager.initialize(1, &m_allocator, 1024, nullptr);
 #endif
 
 	if (!m_systemAspect.initialize(g_engineConfig, EngineCpp::callbackKeyPressed, nullptr))
@@ -257,6 +278,7 @@ bool Engine::initialize()
 		&g_engineConfig,
 		&m_fileAspect,
 		&m_eventManager,
+		&m_taskManager
 	};
 
 	auto renderMode = g_engineConfig.m_rendererSettings.m_renderMode;
@@ -314,6 +336,8 @@ bool Engine::initialize()
 	m_bRunRenderThread.store(1);
 	m_shutdown = 0;
 
+	m_taskManagerThread = vx::thread(EngineCpp::schedulerThread, &m_taskManager, &m_bRunRenderThread);
+
 	return true;
 }
 
@@ -344,7 +368,8 @@ void Engine::shutdown()
 
 	Locator::reset();
 
-	m_taskManager.shutdown();
+	m_taskManager.stop();
+	//m_taskManager.shutdown();
 
 	//CpuProfiler::shutdown();
 

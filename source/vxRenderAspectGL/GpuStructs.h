@@ -45,7 +45,7 @@ namespace Gpu
 
 	struct VoxelBlock
 	{
-		VoxelData data;
+		VoxelData data[2];
 	};
 
 	struct LightData

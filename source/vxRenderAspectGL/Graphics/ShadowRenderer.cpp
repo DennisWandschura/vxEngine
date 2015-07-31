@@ -303,12 +303,13 @@ namespace Graphics
 		return segment;
 	}
 
-	void ShadowRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
+	bool ShadowRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
 		auto maxShadowLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
 		m_maxShadowLights = maxShadowLights;
 
-		s_shaderManager->loadPipeline(vx::FileHandle("shadow.pipe"), "shadow.pipe", scratchAllocator);
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("shadow.pipe"), "shadow.pipe", scratchAllocator))
+			return false;
 		//s_shaderManager->loadPipeline(vx::FileHandle("resetLightCmdBuffer.pipe"), "resetLightCmdBuffer.pipe", scratchAllocator);
 		//s_shaderManager->loadPipeline(vx::FileHandle("createLightCmdBuffer.pipe"), "createLightCmdBuffer.pipe", scratchAllocator);
 
@@ -325,6 +326,7 @@ namespace Graphics
 		desc.flags = vx::gl::BufferStorageFlags::Write;
 
 		s_objectManager->createBuffer("ShadowTransformBuffer", desc);
+		return true;
 	}
 
 	void ShadowRenderer::shutdown()

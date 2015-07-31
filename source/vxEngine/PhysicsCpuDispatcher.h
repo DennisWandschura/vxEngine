@@ -24,19 +24,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class TaskManager;
+namespace vx
+{
+	class TaskManager;
+}
 
 #include <pxtask/PxCpuDispatcher.h>
 
 class PhysicsCpuDispatcher : public physx::PxCpuDispatcher
 {
-	TaskManager* m_taskManager;
+	vx::TaskManager* m_taskManager;
 
 public:
 	PhysicsCpuDispatcher();
 	~PhysicsCpuDispatcher();
 
-	void initialize(TaskManager* taskManager);
+	void initialize(vx::TaskManager* taskManager);
 
 	void submitTask(physx::PxBaseTask& task) override;
 

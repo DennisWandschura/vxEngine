@@ -39,4 +39,6 @@ public:
 	s32 map(MappedBuffer* mappedBuffer);
 
 	void unmap(MappedBuffer* mappedBuffer);
+
+	ID3D12Resource* get() { return m_buffer; }
 };

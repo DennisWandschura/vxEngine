@@ -27,7 +27,7 @@ SOFTWARE.
 class Scene;
 class PhysicsAspect;
 
-#include "Task.h"
+#include <vxEngineLib/Task.h>
 
 class TaskPhysxCreateJoints : public Task
 {
@@ -35,7 +35,8 @@ class TaskPhysxCreateJoints : public Task
 	PhysicsAspect* m_physicsAspect;
 
 public:
-	TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect);
+	TaskPhysxCreateJoints(u32 tid, const Scene* scene, PhysicsAspect* physicsAspect);
+	TaskPhysxCreateJoints(TaskPhysxCreateJoints &&rhs);
 	~TaskPhysxCreateJoints();
 
 	TaskReturnType run() override;

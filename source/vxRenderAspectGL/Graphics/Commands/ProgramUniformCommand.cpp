@@ -95,7 +95,7 @@ namespace Graphics
 		*offset += (m_count * sizeof(u32));
 	}
 
-	void __fastcall createFromNodeProgramUniformCommand(const Parser::Node &node, Graphics::Segment* segment, void* p)
+	void createFromNodeProgramUniformCommand(const Parser::Node &node, Segment* segment, void* p)
 	{
 		static auto sidFloat = vx::make_sid("float");
 		static auto sidUint = vx::make_sid("uint");
@@ -108,7 +108,7 @@ namespace Graphics
 		paramsNode->as(2, &params[2]);
 		//	paramsNode->as(3, &params[3]);
 
-		Graphics::ProgramUniformCommand command;
+		ProgramUniformCommand command;
 		//command.set(params[0], params[1], params[2], (vx::gl::DataType)params[3]);
 
 		auto dataTypeNode = node.get("dataType");

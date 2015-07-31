@@ -33,6 +33,8 @@ struct ID3D12DescriptorHeap;
 struct ID3D12Resource;
 struct ID3D12CommandAllocator;
 
+class Scene;
+
 #include <vxEngineLib/RenderAspectInterface.h>
 #include <d3d12.h>
 #include <vxEngineLib/mutex.h>
@@ -43,6 +45,7 @@ struct ID3D12CommandAllocator;
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
 #include "DefaultHeap.h"
+#include "CommandAllocator.h"
 
 struct MeshEntry
 {
@@ -62,6 +65,7 @@ struct MeshInstanceDrawCmd
 class RenderAspect : public RenderAspectInterface
 {
 	ID3D12CommandQueue* m_commandQueue;
+	std::vector<ID3D12CommandList*> m_cmdLists;
 	ID3D12GraphicsCommandList* m_commandList;
 	ID3D12Fence* m_fence;
 	u64 m_currentFence;
@@ -73,15 +77,12 @@ class RenderAspect : public RenderAspectInterface
 	IDXGIFactory1* m_dxgiFactory;
 	u32 m_lastSwapBuffer;
 	ID3D12DescriptorHeap* m_descriptorHeapRtv;
-	ID3D12CommandAllocator* m_commandAllocator;
+	CommandAllocator m_commandAllocator;
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_rectScissor;
-	UploadHeap m_uploadHeap;
-	UploadBuffer m_vertexUploadBuffer;
-	UploadBuffer m_indexUploadBuffer;
-	vx::mutex m_updateMutex;
-	std::vector<RenderUpdateTask> m_tasks;
-	DoubleBufferRaw m_doubleBuffer;
+	UploadBuffer m_geometryUploadBuffer;
+	ID3D12Resource* m_vertexBuffer;
+	ID3D12Resource* m_indexBuffer;
 	RenderUpdateCameraData m_updateCameraData;
 	vx::StackAllocator m_allocator;
 	u32 m_meshIndexOffset;
@@ -89,20 +90,25 @@ class RenderAspect : public RenderAspectInterface
 	std::vector<MeshInstanceDrawCmd> m_drawCommands;
 	DefaultHeap m_defaultBufferHeap;
 	DefaultHeap m_defaultGeometryHeap;
+	UploadHeap m_uploadHeap;
+	ID3D12GraphicsCommandList* m_uploadCommandList;
+	CommandAllocator m_uploadCmdAllocator;
+	vx::TaskManager* m_taskManager;
+	vx::sorted_vector<vx::StringID, ID3DBlob*> m_shaders;
 
 	bool createHeaps();
 	bool createCommandList();
 	bool createMeshBuffers();
+	bool loadShaders();
 
 	void waitForGpu();
 
 	void handleFileEvent(const vx::Event &evt);
 
 	void processTasks();
-	void taskUpdateCamera();
 	void taskTakeScreenshot();
 	void taskUpdateText(u8* p, u32* offset);
-	void taskLoadScene(u8* p, u32* offset);
+	void loadScene(Scene* scene);
 	void taskToggleRenderMode();
 	void taskCreateActorGpuIndex(u8* p, u32* offset);
 	void taskUpdateDynamicTransforms(u8* p, u32* offset);
@@ -118,8 +124,7 @@ public:
 
 	void makeCurrent(bool b);
 
-	void queueUpdateTask(const RenderUpdateTask &task);
-	void queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize);
+	void queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize);
 	void queueUpdateCamera(const RenderUpdateCameraData &data);
 	void update();
 

@@ -33,9 +33,18 @@ SOFTWARE.
 #include <vxEngineLib/EventsIngame.h>
 #include <vxEngineLib/EventTypes.h>
 
-TaskSceneCreateActorsGpu::TaskSceneCreateActorsGpu(const Scene* scene, RenderAspectInterface* renderAspect)
-	:m_scene(scene),
+TaskSceneCreateActorsGpu::TaskSceneCreateActorsGpu(u32 tid, const Scene* scene, RenderAspectInterface* renderAspect)
+	:Task(tid),
+	m_scene(scene),
 	m_renderAspect(renderAspect)
+{
+
+}
+
+TaskSceneCreateActorsGpu::TaskSceneCreateActorsGpu(TaskSceneCreateActorsGpu &&rhs)
+	:Task(std::move(rhs)),
+	m_scene(rhs.m_scene),
+	m_renderAspect(rhs.m_renderAspect)
 {
 
 }
@@ -68,12 +77,11 @@ TaskReturnType TaskSceneCreateActorsGpu::run()
 
 			CreateActorData* data = new CreateActorData(transform, it.sid, itActor->m_mesh, itActor->m_material, 2.0f, i);
 
-			RenderUpdateTask task;
-			task.type = RenderUpdateTask::Type::CreateActorGpuIndex;
+			RenderUpdateTaskType type = RenderUpdateTaskType::CreateActorGpuIndex;
 
 			std::size_t address = (std::size_t)data;
 
-			m_renderAspect->queueUpdateTask(task, (u8*)&address, sizeof(std::size_t));
+			m_renderAspect->queueUpdateTask(type, (u8*)&address, sizeof(std::size_t));
 
 			vx::Event evt;
 			evt.type = vx::EventType::Ingame_Event;

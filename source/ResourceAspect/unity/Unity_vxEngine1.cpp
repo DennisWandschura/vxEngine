@@ -3,6 +3,9 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/ResourceAspect/ConverterEditorSceneToSceneFile.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\ConverterEditorSceneToSceneFile.cpp"
 
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/ResourceAspect/ConverterSceneFileToEditorScene.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\ConverterSceneFileToEditorScene.cpp"
+
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/ResourceAspect/ConverterSceneFileToScene.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\ConverterSceneFileToScene.cpp"
 
@@ -23,8 +26,5 @@
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/ResourceAspect/SceneFactory.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\SceneFactory.cpp"
-
-#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/ResourceAspect/TextureFileManager.cpp" )
-#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\TextureFileManager.cpp"
 
 

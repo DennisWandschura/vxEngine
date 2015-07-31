@@ -492,6 +492,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformShadowTextureBuffer.h").c_str(), "UniformShadowTextureBuffer.h");
 	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformShadowTransformBuffer.h").c_str(), "UniformShadowTransformBuffer.h");
 	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformCameraBufferStatic.h").c_str(), "UniformCameraBufferStatic.h");
+	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformVoxelBuffer.h").c_str(), "UniformVoxelBuffer.h");
 
 	m_shaderManager.loadPipeline(vx::FileHandle("draw_final_image.pipe"), "draw_final_image.pipe", &m_allocator);
 	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageAlbedo.pipe"), "drawFinalImageAlbedo.pipe", &m_allocator);
@@ -549,7 +550,9 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if (desc.settings->m_rendererSettings.m_voxelGIMode != 0)
 	{
 		auto voxelRenderer = vx::make_unique<Graphics::VoxelRenderer >();
-		voxelRenderer->initialize(&m_allocator, nullptr);
+		if (!voxelRenderer->initialize(&m_allocator, nullptr))
+			return RenderAspectInitializeError::ERROR_SHADER;
+
 		m_renderer.push_back(std::move(voxelRenderer));
 	}
 
@@ -662,19 +665,13 @@ void RenderAspect::makeCurrent(bool b)
 	m_renderContext.makeCurrent(b);
 }
 
-void RenderAspect::queueUpdateTask(const RenderUpdateTask &task)
-{
-	vx::lock_guard<vx::mutex> lck(m_updateMutex);
-	m_tasks.push_back(task);
-}
-
-void RenderAspect::queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize)
+void RenderAspect::queueUpdateTask(RenderUpdateTaskType type, const u8* data, u32 dataSize)
 {
 	vx::lock_guard<vx::mutex> lck(m_updateMutex);
 
 	if (m_doubleBuffer.memcpy(data, dataSize))
 	{
-		m_tasks.push_back(task);
+		m_tasks.push_back(type);
 	}
 	else
 	{
@@ -685,13 +682,12 @@ void RenderAspect::queueUpdateTask(const RenderUpdateTask &task, const u8* data,
 
 void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 {
-	RenderUpdateTask task;
-	task.type = RenderUpdateTask::Type::UpdateCamera;
+	RenderUpdateTaskType type = RenderUpdateTaskType::UpdateCamera;
 
 	vx::lock_guard<vx::mutex> lck(m_updateMutex);
 	m_updateCameraData = data;
 
-	m_tasks.push_back(task);
+	m_tasks.push_back(type);
 }
 
 void RenderAspect::update()
@@ -726,33 +722,33 @@ void RenderAspect::processTasks()
 	{
 		auto p = backBuffer + offset;
 
-		switch (it.type)
+		switch (it)
 		{
-		case RenderUpdateTask::Type::UpdateCamera:
+		case RenderUpdateTaskType::UpdateCamera:
 			taskUpdateCamera();
 			break;
-		case RenderUpdateTask::Type::UpdateDynamicTransforms:
+		case RenderUpdateTaskType::UpdateDynamicTransforms:
 			taskUpdateDynamicTransforms(p, &offset);
 			break;
-		case RenderUpdateTask::Type::UpdateText:
+		case RenderUpdateTaskType::UpdateText:
 			taskUpdateText(p, &offset);
 			break;
-		case RenderUpdateTask::Type::CreateActorGpuIndex:
+		case RenderUpdateTaskType::CreateActorGpuIndex:
 			taskCreateActorGpuIndex(p, &offset);
 			break;
-		case RenderUpdateTask::Type::AddStaticMeshInstance:
+		case RenderUpdateTaskType::AddStaticMeshInstance:
 			taskAddStaticMeshInstance(p, &offset);
 			break;
-		case RenderUpdateTask::Type::AddDynamicMeshInstance:
+		case RenderUpdateTaskType::AddDynamicMeshInstance:
 			taskAddDynamicMeshInstance(p, &offset);
 			break;
-		case RenderUpdateTask::Type::TakeScreenshot:
+		case RenderUpdateTaskType::TakeScreenshot:
 			taskTakeScreenshot();
 			break;
-		case RenderUpdateTask::Type::LoadScene:
+		case RenderUpdateTaskType::LoadScene:
 			taskLoadScene(p, &offset);
 			break;
-		case RenderUpdateTask::Type::ToggleRenderMode:
+		case RenderUpdateTaskType::ToggleRenderMode:
 			taskToggleRenderMode();
 			break;
 		default:
@@ -1279,14 +1275,13 @@ void RenderAspect::handleFileEvent(const vx::Event &evt)
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Queuing loading Scene into Render");
 		auto pScene = (Scene*)evt.arg2.ptr;
 
-		RenderUpdateTask task;
-		task.type = RenderUpdateTask::Type::LoadScene;
+		RenderUpdateTaskType type = RenderUpdateTaskType::LoadScene;
 
 		TaskLoadScene data;
 		data.ptr = pScene;
 		data.editor = false;
 
-		queueUpdateTask(task, (u8*)&data, sizeof(TaskLoadScene));
+		queueUpdateTask(type, (u8*)&data, sizeof(TaskLoadScene));
 	}break;
 	default:
 		break;

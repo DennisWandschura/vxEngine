@@ -162,14 +162,16 @@ namespace Graphics
 		m_cmdId = cmdBuffer->getId();
 	}
 
-	void TextRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
+	bool TextRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
 	{
 		auto desc = (TextRendererDesc*)p;
 
 		m_entries = (Entry*)desc->allocator->allocate(sizeof(Entry) * s_maxEntryCount, __alignof(Entry));
 		m_entryCount = 0;
 
-		s_shaderManager->loadPipeline(vx::FileHandle("text.pipe"), "text.pipe", scratchAllocator);
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("text.pipe"), "text.pipe", scratchAllocator))
+			return false;
+
 		auto pipe = s_shaderManager->getPipeline("text.pipe");
 
 		m_font = desc->font;
@@ -179,6 +181,8 @@ namespace Graphics
 		createIndexBuffer();
 		createVao();
 		createCmdBuffer();
+
+		return true;
 	}
 
 	void TextRenderer::shutdown()

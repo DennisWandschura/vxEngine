@@ -54,7 +54,7 @@ namespace Graphics
 		LightRenderer();
 		~LightRenderer();
 
-		void initialize(vx::StackAllocator* scratchAllocator, const void* p);
+		bool initialize(vx::StackAllocator* scratchAllocator, const void* p);
 		void shutdown();
 
 		void getCommandList(CommandList* cmdList);

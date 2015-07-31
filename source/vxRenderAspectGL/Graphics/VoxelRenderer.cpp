@@ -60,7 +60,7 @@ namespace Graphics
 
 	}
 
-	void VoxelRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
+	bool VoxelRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
 		if (FLEXT_NV_conservative_raster != 0)
 		{
@@ -72,8 +72,11 @@ namespace Graphics
 
 		}
 
-		s_shaderManager->loadPipeline(vx::FileHandle("voxelize.pipe"), "voxelize.pipe", scratchAllocator);
-		s_shaderManager->loadPipeline(vx::FileHandle("voxelizeLight.pipe"), "voxelizeLight.pipe", scratchAllocator);
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("voxelize.pipe"), "voxelize.pipe", scratchAllocator))
+			return false;
+
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("voxelizeLight.pipe"), "voxelizeLight.pipe", scratchAllocator))
+			return false;
 
 		m_voxelTextureSize = s_settings->m_rendererSettings.m_voxelSettings.m_voxelTextureSize;
 		m_voxelGridDim = s_settings->m_rendererSettings.m_voxelSettings.m_voxelGridDim;
@@ -84,6 +87,8 @@ namespace Graphics
 		createVoxelBuffer();
 		createVoxelTextureBuffer();
 		createFrameBuffer();
+
+		return true;
 	}
 
 	void VoxelRenderer::shutdown()
@@ -279,15 +284,15 @@ namespace Graphics
 		auto projectionMatrix = vx::MatrixOrthographicRHDX(gridsize, gridSizeY, 0.0f, gridsize);
 
 		auto backFront = projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
-		voxelBlock.data.projectionMatrix = backFront;
-		voxelBlock.data.dim = textureSizeLod;
-		voxelBlock.data.halfDim = halfDim;
-		voxelBlock.data.gridCellSize = gridCellSize;
-		voxelBlock.data.invGridCellSize = invGridCellSize;
+		voxelBlock.data[0].projectionMatrix = backFront;
+		voxelBlock.data[0].dim = textureSizeLod;
+		voxelBlock.data[0].halfDim = halfDim;
+		voxelBlock.data[0].gridCellSize = gridCellSize;
+		voxelBlock.data[0].invGridCellSize = invGridCellSize;
 
-		voxelBlock.data.gridCellSizeY = gridHalfSizeY / halfDim;
-		voxelBlock.data.invGridCellSizeY = 1.0f / voxelBlock.data.gridCellSizeY;
-		voxelBlock.data.offsetY = 1.5f;
+		voxelBlock.data[0].gridCellSizeY = gridHalfSizeY / halfDim;
+		voxelBlock.data[0].invGridCellSizeY = 1.0f / voxelBlock.data[0].gridCellSizeY;
+		voxelBlock.data[0].offsetY = 1.5f;
 
 		vx::gl::BufferDescription desc;
 		desc.bufferType = vx::gl::BufferType::Uniform_Buffer;
@@ -343,7 +348,7 @@ namespace Graphics
 		}
 		desc.type = vx::gl::TextureType::Texture_3D;
 		desc.size = vx::ushort3(m_voxelTextureSize, m_voxelTextureSize, m_voxelTextureSize);
-		desc.miplevels = 1;// std::max((u8)1, m_mipcount);
+		desc.miplevels = 2;
 
 		for (u32 i = 0; i < 6; ++i)
 		{
@@ -370,7 +375,7 @@ namespace Graphics
 		desc.type = vx::gl::TextureType::Texture_2D;
 		desc.format = vx::gl::TextureFormat::R8;
 		desc.size = vx::ushort3(m_voxelTextureSize, m_voxelTextureSize, 1);
-		desc.samples = 8;
+		desc.miplevels = 2;
 		m_coldData->m_voxelFbTexture.create(desc);
 
 		auto voxelFBSid = s_objectManager->createFramebuffer("voxelFB");
@@ -378,7 +383,6 @@ namespace Graphics
 
 		voxelFB->attachTexture(vx::gl::Attachment::Color0, m_coldData->m_voxelFbTexture, 0);
 		voxelFB->drawBuffer(vx::gl::Attachment::Color0);
-		//glNamedFramebufferDrawBuffer(voxelFB->getId(), GL_COLOR_ATTACHMENT0);
 	}
 
 	void VoxelRenderer::debug(const vx::gl::VertexArray &vao, const vx::uint2 &resolution)

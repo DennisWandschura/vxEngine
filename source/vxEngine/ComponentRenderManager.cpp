@@ -86,10 +86,9 @@ void ComponentRenderManager::update(vx::StackAllocator* scratchAllocator, Render
 	RenderUpdateDataTransforms* renderUpdateData = (RenderUpdateDataTransforms*)dataPtr;
 	renderUpdateData->count = count;
 
-	RenderUpdateTask task;
-	task.type = RenderUpdateTask::Type::UpdateDynamicTransforms;
+	RenderUpdateTaskType type = RenderUpdateTaskType::UpdateDynamicTransforms;
 
-	renderAspect->queueUpdateTask(task, dataPtr, totalSizeInBytes);
+	renderAspect->queueUpdateTask(type, dataPtr, totalSizeInBytes);
 }
 
 Component::Render& ComponentRenderManager::operator[](u32 i)

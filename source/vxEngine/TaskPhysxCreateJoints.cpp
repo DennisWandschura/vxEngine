@@ -26,9 +26,18 @@ SOFTWARE.
 #include "PhysicsAspect.h"
 #include <vxEngineLib/Joint.h>
 
-TaskPhysxCreateJoints::TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect)
-	:m_scene(scene),
+TaskPhysxCreateJoints::TaskPhysxCreateJoints(u32 tid, const Scene* scene, PhysicsAspect* physicsAspect)
+	:Task(tid),
+	m_scene(scene),
 	m_physicsAspect(physicsAspect)
+{
+
+}
+
+TaskPhysxCreateJoints::TaskPhysxCreateJoints(TaskPhysxCreateJoints &&rhs)
+	:Task(std::move(rhs)),
+	m_scene(rhs.m_scene),
+	m_physicsAspect(rhs.m_physicsAspect)
 {
 
 }

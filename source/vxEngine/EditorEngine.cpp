@@ -182,8 +182,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 
 	//dev::g_debugRenderSettings.setVoxelize(0);
 	//dev::g_debugRenderSettings.setShadingMode(ShadingMode::Albedo);
-	RenderUpdateTask task;
-	task.type = RenderUpdateTask::Type::ToggleRenderMode;
+	RenderUpdateTaskType type = RenderUpdateTaskType::ToggleRenderMode;
 	//m_renderAspect->queueUpdateTask(task);
 
 	Locator::provide(&m_physicsAspect);

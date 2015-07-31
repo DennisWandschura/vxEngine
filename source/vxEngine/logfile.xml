@@ -1,0 +1,5 @@
+<?xml-stylesheet type='text/xsl' href='Stylesheet.xls' ?><log>
+<entry><time>00:00:00 </time><record>1</record><type>Information</type><description>Initializing Engine</description><file>D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\main.cpp</file><function>main</function><line>203</line></entry>
+<entry><time>00:00:00 </time><record>2</record><type>Error</type><description>Error initializing Engine !</description><file>D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\main.cpp</file><function>main</function><line>206</line></entry>
+<entry><time>00:00:00 </time><record>3</record><type>Information</type><description>Shutting down Engine</description><file>D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\main.cpp</file><function>main::<lambda_fe94b03b81331838276f2ba976f8366a>::operator ()</function><line>193</line></entry>
+</log>

@@ -755,4 +755,9 @@
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\game\data\shaders\include\UniformVoxelBuffer.h">
+      <Filter>Shaders\include</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

@@ -39,7 +39,6 @@ namespace Editor
 #include <vxEngineLib/EventListener.h>
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/EditorRenderAspectInterface.h>
-#include "TaskManager.h"
 
 enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 

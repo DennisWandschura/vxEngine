@@ -33,9 +33,18 @@ SOFTWARE.
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/EventsIngame.h>
 
-TaskSceneCreateStaticMeshes::TaskSceneCreateStaticMeshes(const Scene* scene, RenderAspectInterface* renderAspect)
-	:m_scene(scene),
+TaskSceneCreateStaticMeshes::TaskSceneCreateStaticMeshes(u32 tid, const Scene* scene, RenderAspectInterface* renderAspect)
+	:Task(tid),
+	m_scene(scene),
 	m_renderAspect(renderAspect)
+{
+
+}
+
+TaskSceneCreateStaticMeshes::TaskSceneCreateStaticMeshes(TaskSceneCreateStaticMeshes &&rhs)
+	:Task(std::move(rhs)),
+	m_scene(rhs.m_scene),
+	m_renderAspect(rhs.m_renderAspect)
 {
 
 }
@@ -61,14 +70,13 @@ TaskReturnType TaskSceneCreateStaticMeshes::run()
 		{
 		case PhysxRigidBodyType::Static:
 		{
-			RenderUpdateTask task;
-			task.type = RenderUpdateTask::Type::AddStaticMeshInstance;
+			RenderUpdateTaskType type = RenderUpdateTaskType::AddStaticMeshInstance;
 
 			RenderUpdateTaskAddStaticMeshData data;
 			data.instance = &instance;
 			data.materialSid = instance.getMaterial()->getSid();
 
-			m_renderAspect->queueUpdateTask(task, (u8*)&data, sizeof(RenderUpdateTaskAddStaticMeshData));
+			m_renderAspect->queueUpdateTask(type, (u8*)&data, sizeof(RenderUpdateTaskAddStaticMeshData));
 
 			vx::Event evt;
 			evt.type = vx::EventType::Ingame_Event;
@@ -86,9 +94,8 @@ TaskReturnType TaskSceneCreateStaticMeshes::run()
 
 			std::size_t address = (std::size_t)data;
 
-			RenderUpdateTask task;
-			task.type = RenderUpdateTask::Type::AddDynamicMeshInstance;
-			m_renderAspect->queueUpdateTask(task, (u8*)&address, sizeof(address));
+			RenderUpdateTaskType type = RenderUpdateTaskType::AddDynamicMeshInstance;
+			m_renderAspect->queueUpdateTask(type, (u8*)&address, sizeof(address));
 
 			vx::Event evt;
 			evt.type = vx::EventType::Ingame_Event;

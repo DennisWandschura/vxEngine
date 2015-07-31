@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 #include "PhysicsCpuDispatcher.h"
-#include "TaskManager.h"
+#include <vxEngineLib/TaskManager.h>
 #include <pxtask/PxTask.h>
 #include <new>
 #include <cstdio>
@@ -33,13 +33,13 @@ class PhysxTask : public Task
 	physx::PxBaseTask* m_task;
 
 public:
-	PhysxTask(physx::PxBaseTask* task)
-		:m_task(task)
+	PhysxTask(u32 tid, physx::PxBaseTask* task)
+		:Task(tid), m_task(task)
 	{
 	}
 
 	PhysxTask(PhysxTask &&rhs)
-		:m_task(rhs.m_task)
+		:Task(std::move(rhs)), m_task(rhs.m_task)
 	{
 	}
 
@@ -50,6 +50,7 @@ public:
 
 	TaskReturnType run() override
 	{
+		//printf("%s\n", m_task->getName());
 		m_task->run();
 		m_task->release();
 
@@ -58,11 +59,12 @@ public:
 
 	Task* move(vx::Allocator* allocator) override
 	{
-		auto ptr = (PhysxTask*)allocator->allocate(sizeof(PhysxTask), __alignof(PhysxTask));
+		/*auto ptr = (PhysxTask*)allocator->allocate(sizeof(PhysxTask), __alignof(PhysxTask));
 
 		new (ptr) PhysxTask(std::move(*this));
 
-		return ptr;
+		return ptr;*/
+		return nullptr;
 	}
 };
 
@@ -77,14 +79,14 @@ PhysicsCpuDispatcher::~PhysicsCpuDispatcher()
 
 }
 
-void PhysicsCpuDispatcher::initialize(TaskManager* taskManager)
+void PhysicsCpuDispatcher::initialize(vx::TaskManager* taskManager)
 {
 	m_taskManager = taskManager;
 }
 
 void PhysicsCpuDispatcher::submitTask(physx::PxBaseTask& task)
 {
-	m_taskManager->queueTask<PhysxTask>(&task);
+	m_taskManager->pushTask(new PhysxTask(0, &task));
 }
 
 physx::PxU32 PhysicsCpuDispatcher::getWorkerCount() const

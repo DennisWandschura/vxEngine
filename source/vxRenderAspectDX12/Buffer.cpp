@@ -1,9 +1,9 @@
 #include "Buffer.h"
 
-u64 Buffer::calculateAllocSize(u32 size)
+u64 Buffer::calculateAllocSize(u32 size, u32 alignment)
 {
-	auto allocDiv = (size + Buffer::ALIGNMENT - 1) / Buffer::ALIGNMENT;
-	auto allocSize = Buffer::ALIGNMENT * allocDiv;
+	auto allocDiv = (size + alignment - 1) / alignment;
+	auto allocSize = alignment * allocDiv;
 
 	return allocSize;
 }

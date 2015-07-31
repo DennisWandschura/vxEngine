@@ -3,7 +3,15 @@ struct VSOUT
 	float4 position : SV_POSITION;
 };
 
-float4 main(VSOUT vsout) : SV_TARGET
+struct PSOUT
 {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+	float4 color : SV_TARGET0;
+};
+
+PSOUT main(VSOUT vsout)
+{
+	PSOUT psout;
+	psout.color = float4(1, 1, 1, 1);
+
+	return psout;
 }

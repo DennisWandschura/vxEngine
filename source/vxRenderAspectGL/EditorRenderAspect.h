@@ -96,8 +96,7 @@ namespace Editor
 
 		void makeCurrent(bool b);
 
-		void queueUpdateTask(const RenderUpdateTask &task);
-		void queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize);
+		void queueUpdateTask(RenderUpdateTaskType type, const u8* data, u32 dataSize);
 		void queueUpdateCamera(const RenderUpdateCameraData &data);
 		void update();
 

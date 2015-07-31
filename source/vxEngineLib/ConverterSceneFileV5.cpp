@@ -87,44 +87,44 @@ namespace Converter
 		auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize;
 		auto ptr = vx::make_unique<u8[]>(totalSize);
 
-		auto offset = 0;
+		auto current = ptr.get();
 		if (meshInstanceSize != 0)
 		{
-			::memcpy(ptr.get() + offset, sceneFile.m_pMeshInstances.get(), meshInstanceSize);
-			offset += meshInstanceSize;
+			::memcpy(current, sceneFile.m_pMeshInstances.get(), meshInstanceSize);
+			current += meshInstanceSize;
 		}
 
 		if (lightSize != 0)
 		{
-			::memcpy(ptr.get() + offset, sceneFile.m_pLights.get(), lightSize);
-			offset += lightSize;
+			::memcpy(current, sceneFile.m_pLights.get(), lightSize);
+			current += lightSize;
 		}
 
 		if (spawnSize != 0)
 		{
-			::memcpy(ptr.get() + offset, sceneFile.m_pSpawns.get(), spawnSize);
-			offset += spawnSize;
+			::memcpy(current, sceneFile.m_pSpawns.get(), spawnSize);
+			current += spawnSize;
 		}
 
 		if (actorSize != 0)
 		{
-			::memcpy(ptr.get() + offset, sceneFile.m_pActors.get(), actorSize);
-			offset += actorSize;
+			::memcpy(current, sceneFile.m_pActors.get(), actorSize);
+			current += actorSize;
 		}
 
 		if (navMeshVertexSize != 0)
 		{
-			::memcpy(ptr.get() + offset, sceneFile.m_navMesh.getVertices(), navMeshVertexSize);
-			offset += navMeshVertexSize;
+			::memcpy(current, sceneFile.m_navMesh.getVertices(), navMeshVertexSize);
+			current += navMeshVertexSize;
 		}
 
 		if (navMeshTriangleSize != 0)
 		{
-			::memcpy(ptr.get() + offset, sceneFile.m_navMesh.getTriangleIndices(), navMeshTriangleSize);
-			offset += navMeshTriangleSize;
+			::memcpy(current, sceneFile.m_navMesh.getTriangleIndices(), navMeshTriangleSize);
+			current += navMeshTriangleSize;
 		}
 
-		auto current = ptr.get() + offset;
+
 		auto last = ptr.get() + totalSize;
 		VX_ASSERT(current == last);
 

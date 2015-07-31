@@ -44,7 +44,7 @@ SOFTWARE.
 #include "ComponentRender.h"
 #include <vxEngineLib/RenderAspectInterface.h>
 #include "TaskSceneCreateStaticMeshes.h"
-#include "TaskManager.h"
+#include <vxEngineLib/TaskManager.h>
 #include "TaskSceneCreateActorsGpu.h"
 #include <vxEngineLib/CreateActorData.h>
 #include <vxEngineLib/Spawn.h>
@@ -70,7 +70,7 @@ EntityAspect::EntityAspect()
 {
 }
 
-bool EntityAspect::initialize(vx::StackAllocator* pAllocator, TaskManager* taskManager, vx::AllocationProfiler* allocManager)
+bool EntityAspect::initialize(vx::StackAllocator* pAllocator, vx::TaskManager* taskManager, vx::AllocationProfiler* allocManager)
 {
 	m_coldData = vx::make_unique<ColdData>();
 
@@ -246,9 +246,12 @@ void EntityAspect::handleFileEvent(const vx::Event &evt)
 		auto renderAspect = Locator::getRenderAspect();
 		auto physicsAspect = Locator::getPhysicsAspect();
 
-		m_taskManager->queueTask<TaskSceneCreateActorsGpu>(scene, renderAspect);
-		m_taskManager->queueTask<TaskSceneCreateStaticMeshes>(scene, renderAspect);
-		m_taskManager->queueTask<TaskPhysxCreateJoints>(scene, physicsAspect);
+		//m_taskManager->queueTask<TaskSceneCreateActorsGpu>(0, scene, renderAspect);
+		//m_taskManager->queueTask<TaskSceneCreateStaticMeshes>(0, scene, renderAspect);
+		//m_taskManager->queueTask<TaskPhysxCreateJoints>(0, scene, physicsAspect);
+		m_taskManager->pushTask(new TaskSceneCreateActorsGpu(0, scene, renderAspect));
+		m_taskManager->pushTask(new TaskSceneCreateStaticMeshes(0, scene, renderAspect));
+		m_taskManager->pushTask(new TaskPhysxCreateJoints(0, scene, physicsAspect));
 
 		auto spawns = scene->getSpawns();
 		auto spawnCount = scene->getSpawnCount();

@@ -27,7 +27,7 @@ SOFTWARE.
 class Scene;
 class RenderAspectInterface;
 
-#include "Task.h"
+#include <vxEngineLib/Task.h>
 
 class TaskSceneCreateActorsGpu : public Task
 {
@@ -35,7 +35,8 @@ class TaskSceneCreateActorsGpu : public Task
 	RenderAspectInterface* m_renderAspect;
 
 public:
-	TaskSceneCreateActorsGpu(const Scene* scene, RenderAspectInterface* renderAspect);
+	TaskSceneCreateActorsGpu(u32 tid, const Scene* scene, RenderAspectInterface* renderAspect);
+	TaskSceneCreateActorsGpu(TaskSceneCreateActorsGpu &&rhs);
 	~TaskSceneCreateActorsGpu();
 
 	TaskReturnType run() override;

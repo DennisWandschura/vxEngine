@@ -49,7 +49,7 @@ namespace Graphics
 
 	}
 
-	void LightRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
+	bool LightRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
 	{
 		m_maxActiveLights = s_settings->m_rendererSettings.m_maxActiveLights;
 		m_activeLights = vx::make_unique<Gpu::LightData[]>(m_maxActiveLights);
@@ -75,6 +75,8 @@ namespace Graphics
 		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage| vx::gl::BufferStorageFlags::Read;
 
 		s_objectManager->createBuffer("cmdLight", desc);
+
+		return true;
 	}
 
 	void LightRenderer::shutdown()

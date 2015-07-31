@@ -33,6 +33,7 @@ namespace vx
 	class EventManager;
 	class Window;
 	class StackAllocator;
+	class TaskManager;
 }
 
 #include <vxEngineLib/EventListener.h>
@@ -53,6 +54,7 @@ struct RenderAspectDescription
 	const EngineConfig* settings;
 	FileAspectInterface* fileAspect;
 	vx::EventManager* evtManager;
+	vx::TaskManager* taskManager;
 };
 
 enum class RenderAspectInitializeError : u32 {OK, ERROR_CONTEXT, ERROR_OUT_OF_MEMORY, ERROR_SHADER};
@@ -69,8 +71,7 @@ public:
 
 	virtual void makeCurrent(bool b) = 0;
 
-	virtual void queueUpdateTask(const RenderUpdateTask &task) = 0;
-	virtual void queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize) = 0;
+	virtual void queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize) = 0;
 	virtual void queueUpdateCamera(const RenderUpdateCameraData &data) = 0;
 	virtual void update() = 0;
 

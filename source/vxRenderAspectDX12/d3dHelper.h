@@ -86,3 +86,16 @@ inline void printError(HRESULT error)
 		break;
 	}
 }
+
+inline void setResourceBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter)
+{
+	D3D12_RESOURCE_BARRIER descBarrier = {};
+
+	descBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	descBarrier.Transition.pResource = resource;
+	descBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	descBarrier.Transition.StateBefore = stateBefore;
+	descBarrier.Transition.StateAfter = stateAfter;
+
+	commandList->ResourceBarrier(1, &descBarrier);
+}

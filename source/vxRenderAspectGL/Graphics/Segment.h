@@ -61,7 +61,7 @@ namespace Graphics
 			pushCommandImp(ptr, sizeof(T));
 		}
 
-		void pushCommand(const ProgramUniformCommand &command, unsigned char const *);
+		void pushCommand(const ProgramUniformCommand &command,const u8* data);
 
 		void draw() const;
 

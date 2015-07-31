@@ -31,6 +31,10 @@ SOFTWARE.
 #include <vxEngineLib/FileEvents.h>
 #include <vxEngineLib/Scene.h>
 #include "d3dx12.h"
+#include "TaskUpdateCamera.h"
+#include <vxEngineLib/TaskManager.h>
+#include "TaskUploadGeometry.h"
+#include <d3dcompiler.h>
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/MeshFile.h>
@@ -38,6 +42,7 @@ SOFTWARE.
 struct Vertex
 {
 	vx::float3 position;
+	int index;
 };
 
 struct CameraBufferData
@@ -60,34 +65,7 @@ struct TaskLoadScene
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 10000 };
 const u32 g_maxIndexCount{ 20000 };
-const u32 g_maxMeshInstances{128};
-
-void setResourceBarrier(ID3D12GraphicsCommandList* commandList, ID3D12Resource* resource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter)
-{
-	D3D12_RESOURCE_BARRIER descBarrier = {};
-
-	descBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	descBarrier.Transition.pResource = resource;
-	descBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	descBarrier.Transition.StateBefore = stateBefore;
-	descBarrier.Transition.StateAfter = stateAfter;
-
-	commandList->ResourceBarrier(1, &descBarrier);
-}
-
-struct UploadTask
-{
-	ID3D12Resource* src;
-	ID3D12Resource* dst;
-	u32 size;
-	u32 srcOffset;
-	u32 dstOffset;
-
-	void execute(ID3D12GraphicsCommandList* cmdList)
-	{
-		cmdList->CopyBufferRegion(dst, dstOffset, src, srcOffset, size);
-	}
-};
+const u32 g_maxMeshInstances{ 128 };
 
 RenderAspect::RenderAspect()
 	:m_commandQueue(nullptr),
@@ -101,12 +79,12 @@ RenderAspect::RenderAspect()
 	m_dxgiFactory(nullptr),
 	m_lastSwapBuffer(0),
 	m_descriptorHeapRtv(nullptr),
-	m_commandAllocator(nullptr),
+	m_commandAllocator(),
 	m_uploadHeap(),
-	m_vertexUploadBuffer(),
-	m_indexUploadBuffer(),
+	m_geometryUploadBuffer(),
 	m_meshIndexOffset(0),
-	m_meshEntries()
+	m_meshEntries(),
+	m_taskManager(nullptr)
 {
 
 }
@@ -118,7 +96,7 @@ RenderAspect::~RenderAspect()
 
 bool RenderAspect::createCommandList()
 {
-	auto result = m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator, nullptr, IID_PPV_ARGS(&m_commandList));
+	auto result = m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr, IID_PPV_ARGS(&m_commandList));
 	if (result != 0)
 	{
 		puts("error creating command list");
@@ -127,7 +105,7 @@ bool RenderAspect::createCommandList()
 
 	m_commandAllocator->Reset();
 
-	m_commandList->Reset(m_commandAllocator, nullptr);
+	m_commandList->Reset(m_commandAllocator.get(), nullptr);
 
 	m_commandList->SetGraphicsRootSignature(nullptr);
 
@@ -162,26 +140,74 @@ bool RenderAspect::createHeaps()
 		return false;
 	}
 
+	auto geometryHeapSize = Buffer::calculateAllocSize(sizeof(Vertex) * g_maxVertexCount) + Buffer::calculateAllocSize(sizeof(u32) * g_maxIndexCount);
+	if (!m_defaultGeometryHeap.create(geometryHeapSize, m_device))
+	{
+		return false;
+	}
+
 	return true;
 }
 
 bool RenderAspect::createMeshBuffers()
 {
-	m_vertexUploadBuffer = m_uploadHeap.createBuffer(sizeof(Vertex) * g_maxVertexCount, D3D12_RESOURCE_FLAG_NONE, m_device);
-	m_indexUploadBuffer = m_uploadHeap.createBuffer(sizeof(u32) * g_maxIndexCount, D3D12_RESOURCE_FLAG_NONE, m_device);
+	m_geometryUploadBuffer = m_uploadHeap.createBuffer(sizeof(Vertex) * g_maxVertexCount + sizeof(u32) * g_maxIndexCount, D3D12_RESOURCE_FLAG_NONE, m_device);
 
-	if (!m_vertexUploadBuffer.isValid() ||
-		!m_indexUploadBuffer.isValid())
+	if (!m_geometryUploadBuffer.isValid())
 		return false;
+
+	D3D12_RESOURCE_DESC desc;
+	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
+	desc.Alignment = 64 KBYTE;
+	desc.Width = Buffer::calculateAllocSize(sizeof(Vertex) * g_maxVertexCount);
+	desc.Height = 1;
+	desc.DepthOrArraySize = 1;
+	desc.MipLevels = 1;
+	desc.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+	auto hresult = m_device->CreatePlacedResource(m_defaultGeometryHeap.get(), 0, &desc, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr, IID_PPV_ARGS(&m_vertexBuffer));
+	if (hresult != 0)
+		return false;
+
+	auto offset = desc.Width;
+	desc.Width = Buffer::calculateAllocSize(sizeof(u32) * g_maxIndexCount);
+
+	hresult = m_device->CreatePlacedResource(m_defaultGeometryHeap.get(), offset, &desc, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr, IID_PPV_ARGS(&m_indexBuffer));
+	if (hresult != 0)
+		return false;
+
+	return true;
+}
+
+bool RenderAspect::loadShaders()
+{
+	ID3DBlob* vsShader = nullptr;
+	auto hresult = D3DReadFileToBlob(L"../../lib/VertexShader.cso", &vsShader);
+	if (hresult != 0)
+		return false;
+
+	ID3DBlob* psShader = nullptr;
+	hresult = D3DReadFileToBlob(L"../../lib/PixelShader.cso", &psShader);
+	if (hresult != 0)
+		return false;
+
+	m_shaders.insert(vx::make_sid("VertexShader"), vsShader);
+	m_shaders.insert(vx::make_sid("PixelShader"), psShader);
 
 	return true;
 }
 
 RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &desc)
 {
+	m_taskManager = desc.taskManager;
+
 	m_allocator = vx::StackAllocator(desc.pAllocator->allocate(5 MBYTE, 64), 5 MBYTE);
 	const auto doubleBufferSizeInBytes = 5 KBYTE;
-	m_doubleBuffer = DoubleBufferRaw(&m_allocator, doubleBufferSizeInBytes);
+	//m_doubleBuffer = DoubleBufferRaw(&m_allocator, doubleBufferSizeInBytes);
 
 	auto result = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), (void**)&m_device);
 	if (result != 0)
@@ -208,7 +234,20 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator));
+	if (!m_commandAllocator.create(CommandAllocatorType::Direct, m_device))
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+
+	if (!m_uploadCmdAllocator.create(CommandAllocatorType::Direct, m_device))
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+
+	auto hresult = m_uploadCmdAllocator->Reset();
+
+	m_uploadCommandList = nullptr;
+	hresult = m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_uploadCmdAllocator.get(), nullptr, IID_PPV_ARGS(&m_uploadCommandList));
+	m_uploadCommandList->Close();
+
+	if(!loadShaders())
+		return RenderAspectInitializeError::ERROR_SHADER;
 
 	m_viewport.Height = desc.settings->m_resolution.y;
 	m_viewport.Width = desc.settings->m_resolution.x;
@@ -217,7 +256,10 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	m_viewport.TopLeftX = 0;
 	m_viewport.TopLeftY = 0;
 
-	m_rectScissor = { 0, 0, desc.settings->m_resolution.x, desc.settings->m_resolution.y };
+	m_rectScissor.left = 0;
+	m_rectScissor.top = 0;
+	m_rectScissor.right = desc.settings->m_resolution.x;
+	m_rectScissor.bottom = desc.settings->m_resolution.y;
 
 	DXGI_SWAP_CHAIN_DESC descSwapChain;
 	ZeroMemory(&descSwapChain, sizeof(descSwapChain));
@@ -294,10 +336,15 @@ void RenderAspect::waitForGpu()
 
 void RenderAspect::shutdown(void* hwnd)
 {
-	m_vertexUploadBuffer.release();
-	m_indexUploadBuffer.release();
+	m_geometryUploadBuffer.release();
 
 	m_uploadHeap.release();
+
+	for (auto &it : m_shaders)
+	{
+		it->Release();
+	}
+	m_shaders.clear();
 
 	if (m_commandList)
 	{
@@ -335,11 +382,8 @@ void RenderAspect::shutdown(void* hwnd)
 		m_dxgiFactory = nullptr;
 	}
 
-	if (m_commandAllocator)
-	{
-		m_commandAllocator->Release();
-		m_commandAllocator = nullptr;
-	}
+	m_uploadCmdAllocator.destroy();
+	m_commandAllocator.destroy();
 
 	if (m_device)
 	{
@@ -357,15 +401,33 @@ void RenderAspect::makeCurrent(bool b)
 {
 }
 
-void RenderAspect::queueUpdateTask(const RenderUpdateTask &task)
+void RenderAspect::queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize)
 {
-	vx::lock_guard<vx::mutex> lck(m_updateMutex);
-	m_tasks.push_back(task);
-}
+	switch (type)
+	{
+	case RenderUpdateTaskType::UpdateCamera:
+		break;
+	case RenderUpdateTaskType::UpdateDynamicTransforms:
+		break;
+	case RenderUpdateTaskType::UpdateText:
+		break;
+	case RenderUpdateTaskType::LoadScene:
+		break;
+	case RenderUpdateTaskType::TakeScreenshot:
+		break;
+	case RenderUpdateTaskType::ToggleRenderMode:
+		break;
+	case RenderUpdateTaskType::CreateActorGpuIndex:
+		break;
+	case RenderUpdateTaskType::AddStaticMeshInstance:
+		break;
+	case RenderUpdateTaskType::AddDynamicMeshInstance:
+		break;
+	default:
+		break;
+	}
 
-void RenderAspect::queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize)
-{
-	vx::lock_guard<vx::mutex> lck(m_updateMutex);
+	/*vx::lock_guard<vx::mutex> lck(m_updateMutex);
 
 	if (m_doubleBuffer.memcpy(data, dataSize))
 	{
@@ -375,23 +437,25 @@ void RenderAspect::queueUpdateTask(const RenderUpdateTask &task, const u8* data,
 	{
 		puts("RenderAspect::queueUpdateTask out of memory");
 		std::exit(1);
-	}
+	}*/
 }
 
 void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 {
-	RenderUpdateTask task;
+	m_taskManager->queueTask<TaskUpdateCamera>(0, data.position, data.quaternionRotation, &m_camera);
+
+	/*RenderUpdateTask task;
 	task.type = RenderUpdateTask::Type::UpdateCamera;
 
 	vx::lock_guard<vx::mutex> lck(m_updateMutex);
 	m_updateCameraData = data;
 
-	m_tasks.push_back(task);
+	m_tasks.push_back(task);*/
 }
 
 void RenderAspect::update()
 {
-	processTasks();
+	//processTasks();
 }
 
 void RenderAspect::updateProfiler(f32 dt)
@@ -404,7 +468,7 @@ void RenderAspect::submitCommands()
 	m_commandAllocator->Reset();
 
 	{
-		m_commandList->Reset(m_commandAllocator, nullptr);
+		m_commandList->Reset(m_commandAllocator.get(), nullptr);
 
 		m_commandList->SetGraphicsRootSignature(nullptr);
 
@@ -427,10 +491,23 @@ void RenderAspect::submitCommands()
 		setResourceBarrier(m_commandList, m_renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
 		m_commandList->Close();
+
+		m_cmdLists.push_back(m_commandList);
 	}
 
-	ID3D12CommandList* ppCommandLists[] = { m_commandList };
-	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	auto marker = m_allocator.getMarker();
+	u32 count = m_cmdLists.size();
+	ID3D12CommandList** ppCommandLists = (ID3D12CommandList**)m_allocator.allocate(sizeof(ID3D12CommandList*) * count, 8);
+
+	for (u32 i = 0;i < count; ++i)
+	{
+		ppCommandLists[i] = m_cmdLists[i];
+	}
+
+	m_commandQueue->ExecuteCommandLists(count, ppCommandLists);
+
+	m_allocator.clear(marker);
+	m_cmdLists.clear();
 }
 
 void RenderAspect::endFrame()
@@ -463,15 +540,14 @@ void RenderAspect::handleFileEvent(const vx::Event &evt)
 	{
 	case vx::FileEvent::Scene_Loaded:
 	{
-		auto pScene = (Scene*)evt.arg2.ptr;
+		auto scene = (Scene*)evt.arg2.ptr;
 
-		RenderUpdateTask task;
-		task.type = RenderUpdateTask::Type::LoadScene;
+		loadScene(scene);
 
-		TaskLoadScene data;
-		data.ptr = pScene;
+		//TaskLoadScene data;
+		//data.ptr = pScene;
 
-		queueUpdateTask(task, (u8*)&data, sizeof(TaskLoadScene));
+		//queueUpdateTask(type, (u8*)&data, sizeof(TaskLoadScene));
 	}break;
 	case vx::FileEvent::EditorScene_Loaded:
 	{
@@ -518,7 +594,7 @@ void RenderAspect::getAvailableVRam(u32* availableVram) const
 
 void RenderAspect::processTasks()
 {
-	vx::lock_guard<vx::mutex> lck(m_updateMutex);
+	/*vx::lock_guard<vx::mutex> lck(m_updateMutex);
 	m_doubleBuffer.swapBuffers();
 
 	auto backBuffer = m_doubleBuffer.getBackBuffer();
@@ -558,24 +634,7 @@ void RenderAspect::processTasks()
 	}
 	m_tasks.clear();
 
-	VX_ASSERT(offset == backBufferSize);
-}
-
-void RenderAspect::taskUpdateCamera()
-{
-	m_camera.setPosition(m_updateCameraData.position);
-	m_camera.setRotation(m_updateCameraData.quaternionRotation);
-
-	/*auto projectionMatrix = m_renderContext.getProjectionMatrix();
-
-	UniformCameraBufferBlock block;
-	m_camera.getViewMatrix(&block.viewMatrix);
-	block.pvMatrix = projectionMatrix * block.viewMatrix;
-	block.inversePVMatrix = vx::MatrixInverse(block.pvMatrix);
-	block.position = m_camera.getPosition();
-	block.qrotation = m_camera.getRotation();
-
-	m_cameraBuffer.subData(0, sizeof(UniformCameraBufferBlock), &block);*/
+	VX_ASSERT(offset == backBufferSize);*/
 }
 
 void RenderAspect::taskUpdateText(u8* p, u32* offset)
@@ -591,26 +650,19 @@ void RenderAspect::taskTakeScreenshot()
 {
 }
 
-void RenderAspect::taskLoadScene(u8* p, u32* offset)
+void RenderAspect::loadScene(Scene* scene)
 {
-	TaskLoadScene* data = (TaskLoadScene*)p;
-
-	/*m_sceneRenderer.loadScene(data->ptr, m_objectManager, m_fileAspect, data->editor);
-
-	auto count = m_sceneRenderer.getMeshInstanceCount();
-	auto buffer = m_objectManager.getBuffer("meshParamBuffer");
-	buffer->subData(0, sizeof(u32), &count);*/
-
-	auto scene = (Scene*)data->ptr;
-
 	auto &meshes = scene->getMeshes();
 	auto meshKeys = meshes.keys();
 	auto meshCount = meshes.size();
+
+	std::vector<UploadTaskData> uploadTasks;
 
 	u32 meshIndexOffset = m_meshIndexOffset;
 
 	u32 vertexOffsetInBytes = 0;
 	u32 indexOffsetInBytes = 0;
+	u32 uploadOffsetInBytes = 0;
 	for (u32 i = 0; i < meshCount; ++i)
 	{
 		auto &meshFile = meshes[i];
@@ -628,8 +680,16 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 
 		auto vertexSizeInBytes = sizeof(Vertex) * vertexCount;
 
-		MappedBuffer mappedVertexBuffer(vertexOffsetInBytes, vertexSizeInBytes);
-		auto error = m_vertexUploadBuffer.map(&mappedVertexBuffer);
+		UploadTaskData taskUploadVertices;
+		taskUploadVertices.src = m_geometryUploadBuffer.get();
+		taskUploadVertices.size = vertexSizeInBytes;
+		taskUploadVertices.srcOffset = uploadOffsetInBytes;
+		taskUploadVertices.dst = m_vertexBuffer;
+		taskUploadVertices.dstOffset = vertexOffsetInBytes;
+		taskUploadVertices.dstState = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+
+		MappedBuffer mappedVertexBuffer(uploadOffsetInBytes, vertexSizeInBytes);
+		auto error = m_geometryUploadBuffer.map(&mappedVertexBuffer);
 		VX_ASSERT(error == 0);
 
 		Vertex* gpuVertices = (Vertex*)mappedVertexBuffer.ptr;
@@ -637,28 +697,44 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 		{
 			gpuVertices[j].position = vertices[j].position;
 		}
-		m_vertexUploadBuffer.unmap(&mappedVertexBuffer);
+		m_geometryUploadBuffer.unmap(&mappedVertexBuffer);
 
 		vertexOffsetInBytes += vertexSizeInBytes;
+		uploadOffsetInBytes += vertexSizeInBytes;
+
+		uploadTasks.push_back(taskUploadVertices);
 
 		auto indexSizeBytes = sizeof(u32) * indexCount;
 
+		UploadTaskData taskUploadIndices;
+		taskUploadIndices.src = m_geometryUploadBuffer.get();
+		taskUploadIndices.size = indexSizeBytes;
+		taskUploadIndices.srcOffset = uploadOffsetInBytes;
+		taskUploadIndices.dst = m_indexBuffer;
+		taskUploadIndices.dstOffset = indexOffsetInBytes;
+		taskUploadIndices.dstState = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_INDEX_BUFFER;
+
 		MappedBuffer mappedIndexBuffer(indexOffsetInBytes, indexSizeBytes);
-		error = m_indexUploadBuffer.map(&mappedIndexBuffer);
+		error = m_geometryUploadBuffer.map(&mappedIndexBuffer);
 		VX_ASSERT(error == 0);
 		u32* gpuIndices = (u32*)mappedIndexBuffer.ptr;
 		for (u32 j = 0; j < vertexCount; ++j)
 		{
 			gpuIndices[j] = indices[j];
 		}
-		m_indexUploadBuffer.unmap(&mappedIndexBuffer);
+		m_geometryUploadBuffer.unmap(&mappedIndexBuffer);
 
 		m_meshEntries.insert(sid, meshEntry);
 
 		indexOffsetInBytes += indexSizeBytes;
+		uploadOffsetInBytes += indexSizeBytes;
+
+		uploadTasks.push_back(taskUploadIndices);
 
 		meshIndexOffset += indexCount;
 	}
+
+	m_taskManager->queueTask<TaskUploadGeometry>(0, &m_uploadCmdAllocator, m_uploadCommandList, std::move(uploadTasks), &m_cmdLists);
 
 	m_meshIndexOffset = meshIndexOffset;
 
@@ -680,17 +756,15 @@ void RenderAspect::taskLoadScene(u8* p, u32* offset)
 		drawCmd.baseInstance = 0;
 	}
 
-	/*auto lightCount = scene->getLightCount();
+	auto lightCount = scene->getLightCount();
 	auto lights = scene->getLights();
 
-	m_lightRenderer->setLights(lights, lightCount);
+	/*m_lightRenderer->setLights(lights, lightCount);
 
 	if (m_shadowRenderer)
 	{
 		m_shadowRenderer->setLights(lights, lightCount);
 	}*/
-
-	*offset += sizeof(TaskLoadScene);
 }
 
 void RenderAspect::taskToggleRenderMode()

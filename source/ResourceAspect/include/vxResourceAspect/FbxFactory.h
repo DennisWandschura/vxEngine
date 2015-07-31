@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef _FBX
+
 class ArrayAllocator;
 
 #include <fbxsdk/fbxsdk_nsbegin.h>
@@ -30,3 +32,23 @@ public:
 
 	bool loadFile(const char *fbxFile, const std::string &meshDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator);
 };
+#else
+
+class ArrayAllocator;
+enum class PhsyxMeshType : u32;
+
+#include <vxLib/File/FileHandle.h>
+#include <vector>
+
+class FbxFactory
+{
+public:
+	FbxFactory() {}
+	~FbxFactory() {}
+
+	bool loadFile(const char *fbxFile, const std::string &meshDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator)
+	{
+		return false;
+	}
+};
+#endif

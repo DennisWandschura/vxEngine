@@ -40,7 +40,7 @@ namespace ConservativeRasterCommandCpp
 
 namespace Graphics
 {
-	void createFromNodeConservativeRasterCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeConservativeRasterCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 

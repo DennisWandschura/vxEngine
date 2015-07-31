@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeClearColorCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeClearColorCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		ClearColorCommand cmd;
 

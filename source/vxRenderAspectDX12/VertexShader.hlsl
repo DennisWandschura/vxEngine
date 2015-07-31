@@ -1,7 +1,7 @@
 struct Vertex
 {
 	float3 position : POSITION;
-	int index : COLOR0;
+	int index : BLENDINDICES0;
 };
 
 struct VSOUT

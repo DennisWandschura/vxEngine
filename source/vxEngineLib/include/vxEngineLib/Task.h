@@ -26,50 +26,33 @@ SOFTWARE.
 
 namespace vx
 {
-	class AllocationProfiler;
+	class Allocator;
 }
 
-#include <vxLib/Allocator/StackAllocator.h>
-#include "Task.h"
-
-class TaskManager
+enum class TaskReturnType
 {
-	Task** m_tasks;
-	Task** m_backTasks;
-	Task** m_waitTasks;
-	u32 m_size;
-	u32 m_backSize;
-	u32 m_capacity;
-	u32 m_waitSize;
-	vx::StackAllocator m_allocator;
-	vx::StackAllocator m_backAllocator;
-	vx::StackAllocator m_waitAllocator;
+	Success,
+	Failure,
+	Retry
+};
 
-	void queueTask(Task* task);
+#include <vxLib/types.h>
 
-	bool runTasks();
-
-	void queueWait(Task* task);
+class Task
+{
+	u32 m_tid;
 
 public:
-	TaskManager();
-	~TaskManager();
+	explicit Task(u32 tid) :m_tid(tid) {}
 
-	void initialize(vx::StackAllocator* allocator, u32 maxTaskCount, vx::AllocationProfiler* allocManager);
-	void shutdown();
+	Task(const Task&) = delete;
+	Task(Task &&rhs) :m_tid(rhs.m_tid) {}
 
-	void update();
+	virtual ~Task() {}
 
-	void wait();
+	virtual TaskReturnType run() = 0;
 
-	template<typename T, typename ...Args>
-	void queueTask(Args&& ...args)
-	{
-		auto ptr = (T*)m_allocator.allocate(sizeof(T), __alignof(T));
-		VX_ASSERT(ptr != nullptr);
+	virtual Task* move(vx::Allocator* allocator) = 0;
 
-		new (ptr) T(std::forward<Args>(args)...);
-
-		queueTask(ptr);
-	}
+	u32 getTid() const { return m_tid; }
 };

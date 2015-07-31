@@ -1,3 +1,4 @@
+#ifdef _FBX
 #include <vxResourceAspect/FbxFactory.h>
 #include <fbxsdk.h>
 #include <memory>
@@ -388,7 +389,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 			points.push_back(vx::float3(it[0], it[1], it[2]));
 		}
 
-		std::vector<vx::MeshVertex> newVertices;
+		/*std::vector<vx::MeshVertex> newVertices;
 		newVertices.reserve(vertexCount);
 
 		std::vector<std::pair<u32, u32>> duplicateIndices;
@@ -439,7 +440,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 		}
 
 		vertexCount = newVertices.size();
-		meshVertices.swap(newVertices);
+		meshVertices.swap(newVertices);*/
 
 		u32 verticesSizeInBytes = sizeof(vx::MeshVertex) * vertexCount;
 		u32 indexSizeInBytes = sizeof(u32) * indexCount;
@@ -501,3 +502,4 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 	return false;
 #endif
 }
+#endif

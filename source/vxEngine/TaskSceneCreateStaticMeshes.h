@@ -27,7 +27,7 @@ SOFTWARE.
 class Scene;
 class RenderAspectInterface;
 
-#include "Task.h"
+#include <vxEngineLib/Task.h>
 
 class TaskSceneCreateStaticMeshes : public Task
 {
@@ -35,7 +35,8 @@ class TaskSceneCreateStaticMeshes : public Task
 	RenderAspectInterface* m_renderAspect;
 
 public:
-	TaskSceneCreateStaticMeshes(const Scene* scene, RenderAspectInterface* renderAspect);
+	TaskSceneCreateStaticMeshes(u32 tid, const Scene* scene, RenderAspectInterface* renderAspect);
+	TaskSceneCreateStaticMeshes(TaskSceneCreateStaticMeshes &&rhs);
 	~TaskSceneCreateStaticMeshes();
 
 	TaskReturnType run() override;

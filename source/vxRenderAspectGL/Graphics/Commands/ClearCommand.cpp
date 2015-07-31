@@ -29,7 +29,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	void createFromNodeClearCommand(const Parser::Node &node, Segment* segment, void*)
+	void __fastcall createFromNodeClearCommand(const Parser::Node &node, Segment* segment, void*)
 	{
 		auto paramsNode = node.get("params");
 

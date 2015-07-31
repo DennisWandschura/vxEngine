@@ -26,7 +26,7 @@ SOFTWARE.
 class Engine;
 class RenderAspect;
 class EntityAspect;
-class EngineConfig;
+struct EngineConfig;
 
 #include <vxLib\Window.h>
 #include <vxLib\RawInput.h>

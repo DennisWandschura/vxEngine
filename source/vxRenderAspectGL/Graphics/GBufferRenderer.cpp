@@ -79,7 +79,7 @@ namespace Graphics
 		s_objectManager->createTexture("gbufferDepthSlice", desc, true);
 	}
 
-	void GBufferRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
+	bool GBufferRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
 	{
 		createTextures();
 
@@ -119,7 +119,10 @@ namespace Graphics
 
 		s_objectManager->createBuffer("UniformGBufferBuffer", desc);
 
-		s_shaderManager->loadPipeline(vx::FileHandle("drawMeshToGBuffer.pipe"), "drawMeshToGBuffer.pipe", scratchAllocator);
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("drawMeshToGBuffer.pipe"), "drawMeshToGBuffer.pipe", scratchAllocator))
+			return false;
+
+		return true;
 	}
 
 	void GBufferRenderer::shutdown()

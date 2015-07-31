@@ -246,6 +246,12 @@
     <ClInclude Include="include\vxEngineLib\ConverterSceneFileV6.h">
       <Filter>Header Files\Converter</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Task.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\TaskManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">
@@ -352,6 +358,9 @@
     </ClCompile>
     <ClCompile Include="ConverterSceneFileV6.cpp">
       <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskManager.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

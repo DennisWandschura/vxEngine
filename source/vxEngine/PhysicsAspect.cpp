@@ -169,7 +169,7 @@ PhysicsAspect::~PhysicsAspect()
 	}
 }
 
-bool PhysicsAspect::initialize(TaskManager* taskManager)
+bool PhysicsAspect::initialize(vx::TaskManager* taskManager)
 {
 	m_pFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, s_defaultAllocatorCallback,
 		s_defaultErrorCallback);
@@ -784,8 +784,8 @@ physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 
 		if (ptr != nullptr)
 		{
-			auto angle = ptr->getAngle();
-			printf("%f\n", angle);
+			//auto angle = ptr->getAngle();
+			//printf("%f\n", angle);
 			auto limitPair = physx::PxJointAngularLimitPair(-3.1f, -vx::VX_PIDIV2);
 			
 			ptr->setLimit(limitPair);

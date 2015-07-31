@@ -330,13 +330,7 @@
     <ClInclude Include="ComponentRenderManager.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="Task.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
     <ClInclude Include="TaskSceneCreateStaticMeshes.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskManager.h">
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
     <ClInclude Include="TaskSceneCreateActorsGpu.h">
@@ -504,9 +498,6 @@
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
     <ClCompile Include="TaskSceneCreateActorsGpu.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskManager.cpp">
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
     <ClCompile Include="ComponentPhysicsManager.cpp">

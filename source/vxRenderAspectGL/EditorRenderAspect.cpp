@@ -754,12 +754,7 @@ namespace Editor
 
 	}
 
-	void RenderAspect::queueUpdateTask(const RenderUpdateTask &task)
-	{
-
-	}
-
-	void RenderAspect::queueUpdateTask(const RenderUpdateTask &task, const u8* data, u32 dataSize)
+	void RenderAspect::queueUpdateTask(RenderUpdateTaskType type, const u8* data, u32 dataSize)
 	{
 
 	}

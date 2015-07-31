@@ -85,9 +85,10 @@ namespace Graphics
 		fbo->drawBuffer(vx::gl::Attachment::Color0);
 	}
 
-	void VolumetricLightRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
+	bool VolumetricLightRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
 	{
-		s_shaderManager->loadPipeline(vx::FileHandle("volume.pipe"), "volume.pipe", scratchAllocator);
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("volume.pipe"), "volume.pipe", scratchAllocator))
+			return false;
 
 		UniformVolumetricFogBufferBlock data;
 		data.position = vx::float4a(0, 1.5f, 1.5f, 0);
@@ -104,6 +105,8 @@ namespace Graphics
 
 		createTexture();
 		createFbo();
+
+		return true;
 	}
 
 	void VolumetricLightRenderer::shutdown()

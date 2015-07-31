@@ -31,6 +31,7 @@ namespace vx
 	class Camera;
 	struct StringID;
 	class AllocationProfiler;
+	class TaskManager;
 }
 
 class PhysicsAspect;
@@ -39,7 +40,6 @@ struct Entity;
 class Scene;
 class CreateActorData;
 class MeshInstance;
-class TaskManager;
 class CreateDynamicMeshData;
 
 #include <vxEngineLib/EventListener.h>
@@ -73,7 +73,7 @@ class EntityAspect : public vx::EventListener
 	vx::Pool<Entity> m_poolEntity;
 	QuadTree m_quadTree;
 	vx::StackAllocator m_allocator;
-	TaskManager* m_taskManager;
+	vx::TaskManager* m_taskManager;
 	std::unique_ptr<ColdData> m_coldData;
 
 	void createActorEntity(const CreateActorData &data);
@@ -90,7 +90,7 @@ public:
 
 	//////////////////
 
-	bool initialize(vx::StackAllocator* pAllocator, TaskManager* taskManager, vx::AllocationProfiler* allocManager);
+	bool initialize(vx::StackAllocator* pAllocator, vx::TaskManager* taskManager, vx::AllocationProfiler* allocManager);
 	void shutdown();
 
 	void builEntityQuadTree();
