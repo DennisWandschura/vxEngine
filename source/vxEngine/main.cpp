@@ -36,8 +36,8 @@ SOFTWARE.
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/debugPrint.h>
 
-#include "SmallObjAllocator.h"
-#include "SmallObject.h"
+#include <vxEngineLib/SmallObjAllocator.h>
+#include <vxEngineLib/SmallObject.h>
 
 //#include <DbgHelp.h>
 //#pragma comment (lib, "Dbghelp.lib")

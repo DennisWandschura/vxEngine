@@ -27,6 +27,9 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterSceneFileV6.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterSceneFileV6.cpp"
 
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/CpuTimer.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\CpuTimer.cpp"
+
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/DoubleBufferRaw.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\DoubleBufferRaw.cpp"
 
@@ -93,8 +96,20 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/SceneFile.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\SceneFile.cpp"
 
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/SmallObjAllocator.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\SmallObjAllocator.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/SmallObject.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\SmallObject.cpp"
+
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Spawn.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Spawn.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Task.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Task.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/TaskAllocator.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\TaskAllocator.cpp"
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/TaskManager.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\TaskManager.cpp"

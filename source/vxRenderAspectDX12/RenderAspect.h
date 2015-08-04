@@ -32,6 +32,8 @@ struct ID3D12Fence;
 struct ID3D12DescriptorHeap;
 struct ID3D12Resource;
 struct ID3D12CommandAllocator;
+struct ID3D12RootSignature;
+struct ID3D12PipelineState;
 
 class Scene;
 
@@ -77,6 +79,7 @@ class RenderAspect : public RenderAspectInterface
 	IDXGIFactory1* m_dxgiFactory;
 	u32 m_lastSwapBuffer;
 	ID3D12DescriptorHeap* m_descriptorHeapRtv;
+	ID3D12DescriptorHeap* m_descriptorHeapBuffer;
 	CommandAllocator m_commandAllocator;
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_rectScissor;
@@ -91,15 +94,23 @@ class RenderAspect : public RenderAspectInterface
 	DefaultHeap m_defaultBufferHeap;
 	DefaultHeap m_defaultGeometryHeap;
 	UploadHeap m_uploadHeap;
+	ID3D12Resource* m_srvBuffer;
+	ID3D12Resource* m_constantBuffer;
+	u32 m_vertexCount;
+	u32 m_indexCount;
 	ID3D12GraphicsCommandList* m_uploadCommandList;
 	CommandAllocator m_uploadCmdAllocator;
 	vx::TaskManager* m_taskManager;
+	vx::sorted_vector<vx::StringID, ID3D12RootSignature*> m_rootSignatures;
 	vx::sorted_vector<vx::StringID, ID3DBlob*> m_shaders;
+	vx::sorted_vector<vx::StringID, ID3D12PipelineState*> m_pipelineStates;
 
 	bool createHeaps();
 	bool createCommandList();
 	bool createMeshBuffers();
 	bool loadShaders();
+	bool createRootSignature();
+	bool createPipelineState();
 
 	void waitForGpu();
 

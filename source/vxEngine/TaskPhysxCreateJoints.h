@@ -31,15 +31,18 @@ class PhysicsAspect;
 
 class TaskPhysxCreateJoints : public Task
 {
+	static thread_local f32 s_time;
+	static thread_local u64 s_counter;
+
 	const Scene* m_scene;
 	PhysicsAspect* m_physicsAspect;
 
 public:
-	TaskPhysxCreateJoints(u32 tid, const Scene* scene, PhysicsAspect* physicsAspect);
+	TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect);
 	TaskPhysxCreateJoints(TaskPhysxCreateJoints &&rhs);
 	~TaskPhysxCreateJoints();
 
 	TaskReturnType run() override;
 
-	Task* move(vx::Allocator* allocator) override;
+	f32 getTimeMs() const override;
 };

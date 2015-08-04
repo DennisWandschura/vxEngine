@@ -21,7 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "SmallObjAllocator.h"
+#include <vxEngineLib/SmallObjAllocator.h>
 #include <algorithm>
 
 void Chunk::init(u32 blockSize, u16 blockCount)
@@ -158,7 +158,7 @@ u8* ChunkAllocator::allocate()
 	}
 
 	Chunk &allocChnk = m_pChunks[m_allocChunk];
-	assert(allocChnk.freeBlocks > 0);
+	VX_ASSERT(allocChnk.freeBlocks > 0);
 	return  allocChnk.allocate(m_blockSize);
 }
 
@@ -257,23 +257,13 @@ u8* SmallObjAllocator::allocate(u32 size)
 	return m_allocators[m_lastAlloc].allocate();
 }
 
-void SmallObjAllocator::deallocate(u8* p, u32 size)
+bool SmallObjAllocator::deallocate(u8* p, u32 size)
 {
 	if (p == nullptr)
-		return;
+		return true;
 
 	if (!m_allocators[m_lastDealloc].contains(p))
 	{
-		/*auto sz = m_allocators.size();
-		for (u32 i = 0; i < sz; ++i)
-		{
-		if (m_allocators[i].contains(p))
-		{
-		m_lastDealloc = i;
-		break;
-		}
-		}*/
-
 		auto iter = std::lower_bound(m_allocators.begin(), m_allocators.end(), size, [](const ChunkAllocator &l, u32 val)
 		{
 			return l.getBlockSize() < val;
@@ -291,9 +281,12 @@ void SmallObjAllocator::deallocate(u8* p, u32 size)
 			++iter;
 		}
 
-		VX_ASSERT(found);
+		if (!found)
+			return false;
+
 		m_lastDealloc = iter - m_allocators.begin();
 	}
 
 	m_allocators[m_lastDealloc].deallocate(p);
+	return true;
 }

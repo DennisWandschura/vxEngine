@@ -24,11 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace vx
-{
-	class Allocator;
-}
-
 enum class TaskReturnType
 {
 	Success,
@@ -36,23 +31,23 @@ enum class TaskReturnType
 	Retry
 };
 
+class TaskThreadAllocator;
+
 #include <vxLib/types.h>
 
 class Task
 {
-	u32 m_tid;
+	static TaskThreadAllocator* s_allocator;
 
 public:
-	explicit Task(u32 tid) :m_tid(tid) {}
-
-	Task(const Task&) = delete;
-	Task(Task &&rhs) :m_tid(rhs.m_tid) {}
-
 	virtual ~Task() {}
 
 	virtual TaskReturnType run() = 0;
 
-	virtual Task* move(vx::Allocator* allocator) = 0;
+	virtual f32 getTimeMs() const = 0;
 
-	u32 getTid() const { return m_tid; }
+	static void setAllocator(TaskThreadAllocator* allocator);
+
+	static void* operator new(std::size_t size);
+	static void operator delete(void* p, std::size_t size);
 };

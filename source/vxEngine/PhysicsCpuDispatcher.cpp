@@ -27,14 +27,18 @@ SOFTWARE.
 #include <pxtask/PxTask.h>
 #include <new>
 #include <cstdio>
+#include <vxEngineLib/CpuTimer.h>
 
 class PhysxTask : public Task
 {
+	static thread_local f32 s_time;
+	static thread_local u64 s_counter;
+
 	physx::PxBaseTask* m_task;
 
 public:
-	PhysxTask(u32 tid, physx::PxBaseTask* task)
-		:Task(tid), m_task(task)
+	explicit PhysxTask(physx::PxBaseTask* task)
+		: m_task(task)
 	{
 	}
 
@@ -50,33 +54,34 @@ public:
 
 	TaskReturnType run() override
 	{
-		//printf("%s\n", m_task->getName());
+		CpuTimer timer;
+
 		m_task->run();
 		m_task->release();
+
+		auto time = timer.getTimeMs();
+		auto oldCounter = s_counter++;
+		s_time = (s_time * oldCounter + time) / s_counter;
 
 		return TaskReturnType::Success;
 	}
 
-	Task* move(vx::Allocator* allocator) override
+	f32 getTimeMs() const override
 	{
-		/*auto ptr = (PhysxTask*)allocator->allocate(sizeof(PhysxTask), __alignof(PhysxTask));
-
-		new (ptr) PhysxTask(std::move(*this));
-
-		return ptr;*/
-		return nullptr;
+		return s_time;
 	}
 };
+
+thread_local f32 PhysxTask::s_time{ 0.0f };
+thread_local u64 PhysxTask::s_counter{ 0 };
 
 PhysicsCpuDispatcher::PhysicsCpuDispatcher()
 	:m_taskManager(nullptr)
 {
-
 }
 
 PhysicsCpuDispatcher::~PhysicsCpuDispatcher()
 {
-
 }
 
 void PhysicsCpuDispatcher::initialize(vx::TaskManager* taskManager)
@@ -86,7 +91,9 @@ void PhysicsCpuDispatcher::initialize(vx::TaskManager* taskManager)
 
 void PhysicsCpuDispatcher::submitTask(physx::PxBaseTask& task)
 {
-	m_taskManager->pushTask(new PhysxTask(0, &task));
+	auto newTask = new PhysxTask(&task);
+
+	m_taskManager->pushTask(newTask, false);
 }
 
 physx::PxU32 PhysicsCpuDispatcher::getWorkerCount() const

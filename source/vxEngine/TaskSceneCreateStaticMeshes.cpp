@@ -32,10 +32,13 @@ SOFTWARE.
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/EventTypes.h>
 #include <vxEngineLib/EventsIngame.h>
+#include <vxEngineLib/CpuTimer.h>
 
-TaskSceneCreateStaticMeshes::TaskSceneCreateStaticMeshes(u32 tid, const Scene* scene, RenderAspectInterface* renderAspect)
-	:Task(tid),
-	m_scene(scene),
+thread_local f32 TaskSceneCreateStaticMeshes::s_time{0.0f};
+thread_local u64 TaskSceneCreateStaticMeshes::s_counter{0};
+
+TaskSceneCreateStaticMeshes::TaskSceneCreateStaticMeshes(const Scene* scene, RenderAspectInterface* renderAspect)
+	:m_scene(scene),
 	m_renderAspect(renderAspect)
 {
 
@@ -56,6 +59,8 @@ TaskSceneCreateStaticMeshes::~TaskSceneCreateStaticMeshes()
 
 TaskReturnType TaskSceneCreateStaticMeshes::run()
 {
+	CpuTimer timer;
+
 	auto evtManager = Locator::getEventManager();
 
 	auto instanceCount = m_scene->getMeshInstanceCount();
@@ -109,14 +114,15 @@ TaskReturnType TaskSceneCreateStaticMeshes::run()
 		}
 	}
 
+	++s_counter;
+	auto time = timer.getTimeMs();
+
+	s_time = (s_time * (s_counter - 1) + time) / s_counter;
+
 	return TaskReturnType::Success;
 }
 
-Task* TaskSceneCreateStaticMeshes::move(vx::Allocator* allocator)
+f32 TaskSceneCreateStaticMeshes::getTimeMs() const
 {
-	auto ptr = (TaskSceneCreateStaticMeshes*)allocator->allocate(sizeof(TaskSceneCreateStaticMeshes), __alignof(TaskSceneCreateStaticMeshes));
-
-	new (ptr) TaskSceneCreateStaticMeshes(std::move(*this));
-
-	return ptr;
+	return s_time;
 }

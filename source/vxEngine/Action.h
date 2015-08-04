@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #pragma once
 
-#include "SmallObject.h"
+#include <vxEngineLib/SmallObject.h>
 
 class Action : public SmallObject
 {

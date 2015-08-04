@@ -24,7 +24,7 @@ SOFTWARE.
 #pragma once
 
 #include <vxLib/types.h>
-#include "SmallObject.h"
+#include <vxEngineLib/SmallObject.h>
 
 class Condition : public SmallObject
 {

@@ -57,7 +57,6 @@ class Engine
 	u32 m_bRun;
 	FileAspect m_fileAspect;
 	std::atomic_uint m_bRunFileThread;
-	std::atomic_uint m_bRunRenderThread;
 #if _VX_MEM_PROFILE
 	vx::AllocationProfiler m_allocManager;
 #endif

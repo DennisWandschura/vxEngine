@@ -249,9 +249,9 @@ void EntityAspect::handleFileEvent(const vx::Event &evt)
 		//m_taskManager->queueTask<TaskSceneCreateActorsGpu>(0, scene, renderAspect);
 		//m_taskManager->queueTask<TaskSceneCreateStaticMeshes>(0, scene, renderAspect);
 		//m_taskManager->queueTask<TaskPhysxCreateJoints>(0, scene, physicsAspect);
-		m_taskManager->pushTask(new TaskSceneCreateActorsGpu(0, scene, renderAspect));
-		m_taskManager->pushTask(new TaskSceneCreateStaticMeshes(0, scene, renderAspect));
-		m_taskManager->pushTask(new TaskPhysxCreateJoints(0, scene, physicsAspect));
+		m_taskManager->pushTask(new TaskSceneCreateActorsGpu(scene, renderAspect), false);
+		m_taskManager->pushTask(new TaskSceneCreateStaticMeshes(scene, renderAspect), false);
+		m_taskManager->pushTask(new TaskPhysxCreateJoints(scene, physicsAspect), false);
 
 		auto spawns = scene->getSpawns();
 		auto spawnCount = scene->getSpawnCount();

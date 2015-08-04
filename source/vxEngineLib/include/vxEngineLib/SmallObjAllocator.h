@@ -109,20 +109,22 @@ class SmallObjAllocator
 	static const u16 s_maxObjSize = 0xffffu;
 
 	std::vector<ChunkAllocator> m_allocators;
-	u32 m_lastAlloc{ 0 };
-	u32 m_lastDealloc{ 0 };
-	u32 m_chunkSize{ 0 };
+	u32 m_lastAlloc;
+	u32 m_lastDealloc;
+	u32 m_chunkSize;
 
 	u32 createAllocator(u16 size);
 	void sortAllocators();
 
 public:
+	SmallObjAllocator():m_allocators(),m_lastAlloc(0),m_lastDealloc(0),m_chunkSize(0){}
+
 	explicit SmallObjAllocator(u32 chunkSize)
-		:m_chunkSize(chunkSize)
-	{
-	}
+		:m_allocators(), m_lastAlloc(0), m_lastDealloc(0), m_chunkSize(chunkSize) {}
+
+	void setChunkSize(u32 chunkSize) { m_chunkSize = chunkSize; }
 
 	u8* allocate(u32 size);
 
-	void deallocate(u8* p, u32 size);
+	bool deallocate(u8* p, u32 size);
 };

@@ -27,10 +27,12 @@ class TaskUploadGeometry : public Task
 	std::vector<ID3D12CommandList*>* m_cmdLists;
 
 public:
-	TaskUploadGeometry(u32 tid, CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data, std::vector<ID3D12CommandList*>* cmdLists);
+	TaskUploadGeometry(CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data, std::vector<ID3D12CommandList*>* cmdLists);
 	~TaskUploadGeometry();
 
 	TaskReturnType run() override;
 
 	Task* move(vx::Allocator* allocator) override;
+
+	f32 getTime() const override;
 };

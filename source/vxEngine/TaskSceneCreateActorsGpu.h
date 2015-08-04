@@ -31,15 +31,18 @@ class RenderAspectInterface;
 
 class TaskSceneCreateActorsGpu : public Task
 {
+	static thread_local f32 s_time;
+	static thread_local u64 s_counter;
+
 	const Scene* m_scene;
 	RenderAspectInterface* m_renderAspect;
 
 public:
-	TaskSceneCreateActorsGpu(u32 tid, const Scene* scene, RenderAspectInterface* renderAspect);
+	TaskSceneCreateActorsGpu(const Scene* scene, RenderAspectInterface* renderAspect);
 	TaskSceneCreateActorsGpu(TaskSceneCreateActorsGpu &&rhs);
 	~TaskSceneCreateActorsGpu();
 
 	TaskReturnType run() override;
 
-	Task* move(vx::Allocator* allocator) override;
+	f32 getTimeMs() const override;
 };

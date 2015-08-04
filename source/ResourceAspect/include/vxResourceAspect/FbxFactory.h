@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef _FBX
+#ifdef _VX_EDITOR
 
 class ArrayAllocator;
 

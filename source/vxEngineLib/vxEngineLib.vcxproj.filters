@@ -252,6 +252,18 @@
     <ClInclude Include="include\vxEngineLib\TaskManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\CpuTimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\SmallObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\SmallObjAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\TaskAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">
@@ -360,6 +372,21 @@
       <Filter>Source Files\Converter</Filter>
     </ClCompile>
     <ClCompile Include="TaskManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CpuTimer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SmallObjAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SmallObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Task.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

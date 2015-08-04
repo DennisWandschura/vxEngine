@@ -25,10 +25,13 @@ SOFTWARE.
 #include <vxEngineLib/Scene.h>
 #include "PhysicsAspect.h"
 #include <vxEngineLib/Joint.h>
+#include <vxEngineLib/CpuTimer.h>
 
-TaskPhysxCreateJoints::TaskPhysxCreateJoints(u32 tid, const Scene* scene, PhysicsAspect* physicsAspect)
-	:Task(tid),
-	m_scene(scene),
+thread_local f32 TaskPhysxCreateJoints::s_time{ 0.0f };
+thread_local u64 TaskPhysxCreateJoints::s_counter{ 0 };
+
+TaskPhysxCreateJoints::TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect)
+	:m_scene(scene),
 	m_physicsAspect(physicsAspect)
 {
 
@@ -49,6 +52,8 @@ TaskPhysxCreateJoints::~TaskPhysxCreateJoints()
 
 TaskReturnType TaskPhysxCreateJoints::run()
 {
+	CpuTimer timer;
+
 	auto joints = m_scene->getJoints();
 	auto jointCount = m_scene->getJointCount();
 
@@ -64,13 +69,15 @@ TaskReturnType TaskPhysxCreateJoints::run()
 		}
 	}
 
+	auto time = timer.getTimeMs();
+	auto oldCounter = s_counter++;
+
+	s_time = (s_time * oldCounter + time) / s_counter;
+
 	return result;
 }
-Task* TaskPhysxCreateJoints::move(vx::Allocator* allocator)
+
+f32 TaskPhysxCreateJoints::getTimeMs() const
 {
-	auto ptr = (TaskPhysxCreateJoints*)allocator->allocate(sizeof(TaskPhysxCreateJoints), __alignof(TaskPhysxCreateJoints));
-
-	new (ptr) TaskPhysxCreateJoints(std::move(*this));
-
-	return ptr;
+	return s_time;
 }

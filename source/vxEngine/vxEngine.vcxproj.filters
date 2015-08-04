@@ -207,12 +207,6 @@
     <ClInclude Include="PhysicsFactory.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="SmallObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SmallObjAllocator.h">
-      <Filter>Header Files\Allocator</Filter>
-    </ClInclude>
     <ClInclude Include="ActorAspect.h">
       <Filter>Header Files\AI</Filter>
     </ClInclude>
@@ -409,12 +403,6 @@
     </ClCompile>
     <ClCompile Include="Arrive.cpp">
       <Filter>Source Files\AI\Steering</Filter>
-    </ClCompile>
-    <ClCompile Include="SmallObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SmallObjAllocator.cpp">
-      <Filter>Source Files\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="Decision.cpp">
       <Filter>Source Files\AI\Decisions</Filter>

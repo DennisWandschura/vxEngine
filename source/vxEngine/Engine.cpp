@@ -40,9 +40,14 @@ namespace EngineCpp
 		g_pEngine->keyPressed(key);
 	}
 
-	void schedulerThread(vx::TaskManager* scheduler, std::atomic_uint* running)
+	void schedulerThread(vx::TaskManager* scheduler)
 	{
-		while (running->load() != 0)
+		std::atomic_uint running;
+		running.store(1);
+
+		scheduler->initializeThread(&running);
+
+		while (running.load() != 0)
 		{
 			scheduler->swapBuffer();
 
@@ -258,7 +263,7 @@ bool Engine::initialize()
 	if (!initializeImpl(dataDir))
 		return false;
 
-	m_taskManager.initialize(2, 10);
+	m_taskManager.initialize(2, 10, 30.0f, &m_allocator);
 
 #if _VX_MEM_PROFILE
 	//m_taskManager.initialize(1, &m_allocator, 1024, &m_allocManager);
@@ -333,10 +338,9 @@ bool Engine::initialize()
 
 	m_bRun = 1;
 	m_bRunFileThread.store(1);
-	m_bRunRenderThread.store(1);
 	m_shutdown = 0;
 
-	m_taskManagerThread = vx::thread(EngineCpp::schedulerThread, &m_taskManager, &m_bRunRenderThread);
+	m_taskManagerThread = vx::thread(EngineCpp::schedulerThread, &m_taskManager);
 
 	return true;
 }
@@ -369,7 +373,10 @@ void Engine::shutdown()
 	Locator::reset();
 
 	m_taskManager.stop();
-	//m_taskManager.shutdown();
+	if (m_taskManagerThread.joinable())
+		m_taskManagerThread.join();
+
+	m_taskManager.shutdown();
 
 	//CpuProfiler::shutdown();
 
@@ -408,7 +415,6 @@ void Engine::stop()
 {
 	m_bRun = 0;
 	m_bRunFileThread.store(0);
-	m_bRunRenderThread.store(0);
 }
 
 void Engine::requestLoadFile(const vx::FileEntry &fileEntry, void* p)

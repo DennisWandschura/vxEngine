@@ -1,37 +1,54 @@
 #include <vxEngineLib/TaskManager.h>
 #include <atomic>
 #include <algorithm>
+#include <vxLib/Allocator/StackAllocator.h>
 
 namespace vx
 {
 	struct Buffer
 	{
 		Task** m_tasks;
-		int m_size;
+		u32 m_size;
+		f32 m_time;
 
 		Buffer()
 			:m_tasks(nullptr),
-			m_size(0)
+			m_size(0),
+			m_time(0.0f)
 		{
 
 		}
 
 		~Buffer()
 		{
-
 		}
 
+		void initialize(u32 capacity, vx::StackAllocator* allocator)
+		{
+			m_tasks = (Task**)allocator->allocate(sizeof(Task*) * capacity, 8);
+		}
+			
 		void swap(Buffer &other)
 		{
 			std::swap(m_tasks, other.m_tasks);
 			std::swap(m_size, other.m_size);
 		}
 
-		bool pushTask(Task* task, int capacity)
+		bool pushTask(Task* task, u32 capacity, f32 maxTime, bool ignoreTime)
 		{
 			if (capacity <= m_size)
 				return false;
 
+			auto taskTime = task->getTimeMs();
+			auto bufferTime = m_time + taskTime;
+
+			if (!ignoreTime)
+			{
+				if (bufferTime >= maxTime)
+					return false;
+			}
+
+			m_time = bufferTime;
 			m_tasks[m_size++] = task;
 			return true;
 		}
@@ -39,14 +56,15 @@ namespace vx
 
 	class LocalQueue
 	{
-		struct alignas(64)
+		struct VX_ALIGN(64)
 		{
 			Buffer m_front;
 			std::mutex m_frontMutex;
+			f32 m_maxTime;
+			u32 m_capacity;
 		};
 
 		Buffer m_back;
-		int m_capacity;
 		std::atomic_int m_running;
 		TaskManager* m_scheduler;
 
@@ -56,26 +74,32 @@ namespace vx
 			m_frontMutex(),
 			m_back(),
 			m_capacity(0),
-			m_running(0),
+			m_running({0}),
 			m_scheduler(nullptr)
 		{
 
 		}
 
-		void initialize(int capacity, TaskManager* scheduler)
+		~LocalQueue()
 		{
-			m_front.m_tasks = new Task*[capacity];
-			m_back.m_tasks = new Task*[capacity];
 
+		}
+
+		void initialize(u32 capacity, f32 maxTime, TaskManager* scheduler, vx::StackAllocator* allocator)
+		{
+			m_front.initialize(capacity, allocator);
+			m_back.initialize(capacity, allocator);
+
+			m_maxTime = maxTime;
 			m_capacity = capacity;
 			m_scheduler = scheduler;
 			m_running.store(1);
 		}
 
-		bool pushTask(Task* task)
+		bool pushTask(Task* task, bool ignoreTime)
 		{
 			std::unique_lock<std::mutex> lock(m_frontMutex);
-			return m_front.pushTask(task, m_capacity);
+			return m_front.pushTask(task, m_capacity, m_maxTime, ignoreTime);
 		}
 
 		void swapBuffer()
@@ -92,20 +116,21 @@ namespace vx
 			}
 			else
 			{
-				for (int i = 0; i < m_back.m_size; ++i)
+				for (u32 i = 0; i < m_back.m_size; ++i)
 				{
 					auto task = m_back.m_tasks[i];
 					auto result = task->run();
 					if (result == TaskReturnType::Retry)
 					{
-						if (!pushTask(task))
+						if (!pushTask(task, true))
 						{
-							m_scheduler->pushTask(task);
+							m_scheduler->pushTask(task, true);
 						}
 					}
 				}
 
 				m_back.m_size = 0;
+				m_back.m_time = 0.0f;
 			}
 		}
 
@@ -120,11 +145,16 @@ namespace vx
 		}
 	};
 
-	thread_local int s_tid{ 0 };
+	thread_local u32 s_tid{ 0 };
 
-	void localThread(LocalQueue* queue, int tid)
+	void localThread(LocalQueue* queue, u32 tid, TaskAllocator* parentAlloc)
 	{
 		s_tid = tid;
+
+		TaskThreadAllocator allocator;
+		Task::setAllocator(&allocator);
+
+		parentAlloc->registerAllocator(tid, &allocator);
 
 		while (queue->isRunning())
 		{
@@ -139,43 +169,63 @@ namespace vx
 		m_queues(),
 		m_tasksBack(),
 		m_capacity(0),
-		m_threads()
+		m_threads(),
+		m_running(nullptr)
 	{
 
 	}
 
 	TaskManager::~TaskManager()
 	{
-
+		shutdown();
 	}
 
-	void TaskManager::initialize(int count, int capacity)
+	void TaskManager::initialize(u32 count, u32 capacity, f32 maxTime, vx::StackAllocator* allocator)
 	{
-		for (int i = 0; i < count; ++i)
+		m_allocator.initialize(count);
+
+		for (u32 i = 0; i < count; ++i)
 		{
-			auto ptr = (LocalQueue*)_aligned_malloc(sizeof(LocalQueue), __alignof(LocalQueue));
+			auto ptr = (LocalQueue*)allocator->allocate(sizeof(LocalQueue), __alignof(LocalQueue));
 			new (ptr) LocalQueue{};
 
-			ptr->initialize(capacity, this);
+			ptr->initialize(capacity, maxTime, this, allocator);
 			m_queues.push_back(ptr);
 
-			m_threads.push_back(std::thread(localThread, ptr, i));
+			m_threads.push_back(std::thread(localThread, ptr, i, &m_allocator));
 		}
 
 		m_capacity = capacity;
 	}
 
-	void TaskManager::pushTask(Task* task)
+	void TaskManager::initializeThread(std::atomic_uint* running)
+	{
+		m_running = running;
+	}
+
+	void TaskManager::shutdown()
+	{
+		for (auto &it : m_queues)
+		{
+			it->~LocalQueue();
+		}
+		m_queues.clear();
+		m_threads.clear();
+	}
+
+	void TaskManager::pushTask(Task* task, bool ignoreTime)
 	{
 		auto tid = s_tid;
+		pushTask(tid, task, ignoreTime);
+	}
+
+	void TaskManager::pushTask(u32 tid, Task* task, bool ignoreTime)
+	{
 		bool inserted = false;
 
-		if (tid < m_queues.size())
+		if (m_queues[tid]->pushTask(task, ignoreTime))
 		{
-			if (m_queues[tid]->pushTask(task))
-			{
-				inserted = true;
-			}
+			inserted = true;
 		}
 
 		if (!inserted)
@@ -199,9 +249,9 @@ namespace vx
 		}
 		else
 		{
-			int distributedTasks = 0;
+			u32 distributedTasks = 0;
 
-			int avgSizePerQueue = (m_tasksBack.size() + m_queues.size() - 1) / m_queues.size();
+			u32 avgSizePerQueue = (m_tasksBack.size() + m_queues.size() - 1) / m_queues.size();
 			avgSizePerQueue = std::min(m_capacity, avgSizePerQueue);
 
 			/*std::sort(m_tasksBack.begin(), m_tasksBack.end(), [](const Task* l, const Task* r)
@@ -216,12 +266,12 @@ namespace vx
 					if (m_tasksBack.empty())
 						break;
 
-					auto count = std::min(avgSizePerQueue, (int)m_tasksBack.size());
+					auto count = std::min(avgSizePerQueue, (u32)m_tasksBack.size());
 
-					for (int i = 0; i < count; ++i)
+					for (u32 i = 0; i < count; ++i)
 					{
 						auto task = m_tasksBack.back();
-						if (it->pushTask(task))
+						if (it->pushTask(task, false))
 						{
 							m_tasksBack.pop_back();
 							++distributedTasks;
@@ -235,6 +285,11 @@ namespace vx
 
 	void TaskManager::stop()
 	{
+		if (m_running)
+		{
+			m_running->store(0);
+		}
+
 		for (auto &it : m_queues)
 		{
 			it->signalStop();

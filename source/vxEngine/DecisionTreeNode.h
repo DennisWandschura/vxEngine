@@ -25,7 +25,7 @@ SOFTWARE.
 
 class TargetState;
 
-#include "SmallObject.h"
+#include <vxEngineLib/SmallObject.h>
 
 class DecisionTreeNode : public SmallObject
 {

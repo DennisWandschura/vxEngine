@@ -32,10 +32,13 @@ SOFTWARE.
 #include <vxEngineLib/EventManager.h>
 #include <vxEngineLib/EventsIngame.h>
 #include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/CpuTimer.h>
 
-TaskSceneCreateActorsGpu::TaskSceneCreateActorsGpu(u32 tid, const Scene* scene, RenderAspectInterface* renderAspect)
-	:Task(tid),
-	m_scene(scene),
+thread_local f32 TaskSceneCreateActorsGpu::s_time{0.0f};
+thread_local u64 TaskSceneCreateActorsGpu::s_counter{0};
+
+TaskSceneCreateActorsGpu::TaskSceneCreateActorsGpu(const Scene* scene, RenderAspectInterface* renderAspect)
+	:m_scene(scene),
 	m_renderAspect(renderAspect)
 {
 
@@ -56,6 +59,8 @@ TaskSceneCreateActorsGpu::~TaskSceneCreateActorsGpu()
 
 TaskReturnType TaskSceneCreateActorsGpu::run()
 {
+	CpuTimer timer;
+
 	auto spawns = m_scene->getSpawns();
 	auto spawnCount = m_scene->getSpawnCount();
 
@@ -92,14 +97,16 @@ TaskReturnType TaskSceneCreateActorsGpu::run()
 		}
 	}
 
+	auto time = timer.getTimeMs();
+
+	++s_counter;
+
+	s_time = (s_time * (s_counter - 1) + time) / s_counter;
+
 	return TaskReturnType::Success;
 }
 
-Task* TaskSceneCreateActorsGpu::move(vx::Allocator* allocator)
+f32 TaskSceneCreateActorsGpu::getTimeMs() const
 {
-	auto ptr = (TaskSceneCreateActorsGpu*)allocator->allocate(sizeof(TaskSceneCreateActorsGpu), __alignof(TaskSceneCreateActorsGpu));
-
-	new (ptr) TaskSceneCreateActorsGpu(std::move(*this));
-
-	return ptr;
+	return s_time;
 }

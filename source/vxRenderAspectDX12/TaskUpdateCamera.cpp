@@ -2,9 +2,8 @@
 #include <vxLib/Allocator/Allocator.h>
 #include <vxLib/Graphics/Camera.h>
 
-TaskUpdateCamera::TaskUpdateCamera(u32 tid, const __m128 &position, const __m128 &quaternionRotation, vx::Camera* camera)
-	:Task(tid),
-	m_position(position),
+TaskUpdateCamera::TaskUpdateCamera(const __m128 &position, const __m128 &quaternionRotation, vx::Camera* camera)
+	:m_position(position),
 	m_quaternionRotation(quaternionRotation),
 	m_camera(camera)
 {
@@ -53,4 +52,9 @@ Task* TaskUpdateCamera::move(vx::Allocator* allocator)
 	}
 
 	return ptr;
+}
+
+f32 TaskUpdateCamera::getTime() const
+{
+	return 0;
 }

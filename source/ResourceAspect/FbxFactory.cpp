@@ -1,4 +1,4 @@
-#ifdef _FBX
+#if _VX_EDITOR
 #include <vxResourceAspect/FbxFactory.h>
 #include <fbxsdk.h>
 #include <memory>
@@ -22,22 +22,18 @@ FbxFactory::FbxFactory()
 	:m_pFbxManager(nullptr),
 	m_pIOSettings(nullptr)
 {
-#if _VX_EDITOR
 	m_pFbxManager = FBXSDK_NAMESPACE::FbxManager::Create();
 
 	m_pIOSettings = FBXSDK_NAMESPACE::FbxIOSettings::Create(m_pFbxManager, IOSROOT);
 	m_pFbxManager->SetIOSettings(m_pIOSettings);
-#endif
 }
 
 FbxFactory::~FbxFactory()
 {
-#if _VX_EDITOR
 	m_pIOSettings = nullptr;
 
 	m_pFbxManager->Destroy();
 	m_pFbxManager = nullptr;
-#endif
 }
 /*void FbxFactory::loadMesh(const char *name, const FBXSDK_NAMESPACE::FbxMesh *pMesh, sorted_vector<Node, NodeCmp> *pNodes)
 {
@@ -107,17 +103,14 @@ FbxFactory::~FbxFactory()
 
 void loadAnimLayer(FBXSDK_NAMESPACE::FbxAnimStack* animStack, int index)
 {
-#if _VX_EDITOR
 	auto animLayer = animStack->GetMember<FBXSDK_NAMESPACE::FbxAnimLayer>(index);
 
 	auto count = animLayer->GetReferencedByCount();
 	printf("	%d\n", count);
-#endif
 }
 
 void getKeys(const FBXSDK_NAMESPACE::FbxAnimCurve* animCurve, FBXSDK_NAMESPACE::FbxNode* meshNode, std::map<int, FBXSDK_NAMESPACE::FbxTime>* frameTimes)
 {
-#if _VX_EDITOR
 	if (animCurve == nullptr)
 		return;
 
@@ -131,12 +124,10 @@ void getKeys(const FBXSDK_NAMESPACE::FbxAnimCurve* animCurve, FBXSDK_NAMESPACE::
 		//printf("		value: %f, second: %d, frame: %d\n", key.GetValue(), time.GetSecondCount(), );
 		frameTimes->insert(std::make_pair(time.GetFrameCount(), time));
 	}
-#endif
 }
 
 int getTranslationKeyFrames(FBXSDK_NAMESPACE::FbxNode* meshNode, FBXSDK_NAMESPACE::FbxAnimLayer* animLayer, std::vector<vx::float3>* tranlations)
 {
-#if _VX_EDITOR
 	auto lAnimCurveX = meshNode->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_X);
 	auto lAnimCurveY = meshNode->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 	auto lAnimCurveZ = meshNode->LclTranslation.GetCurve(animLayer, FBXSDK_CURVENODE_COMPONENT_Z);
@@ -162,14 +153,10 @@ int getTranslationKeyFrames(FBXSDK_NAMESPACE::FbxNode* meshNode, FBXSDK_NAMESPAC
 	}
 
 	return keyCount;
-#else
-	return 0;
-#endif
 }
 
 void getAnimationLayers(FBXSDK_NAMESPACE::FbxAnimStack* animStack, FBXSDK_NAMESPACE::FbxNode* meshNode, std::unique_ptr<vx::AnimationLayer[]>* animationLayers, u32* layerCount)
 {
-#if _VX_EDITOR
 	auto animLayerCount = animStack->GetMemberCount<FBXSDK_NAMESPACE::FbxAnimLayer>();
 
 	std::vector<vx::AnimationLayer> layers;
@@ -241,7 +228,6 @@ void getAnimationLayers(FBXSDK_NAMESPACE::FbxAnimStack* animStack, FBXSDK_NAMESP
 	{
 		(*animationLayers)[i] = std::move(layers[i]);
 	}
-#endif
 }
 
 bool createPhysXMesh(PhsyxMeshType meshType, const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer, physx::PxCooking* cooking)
@@ -274,7 +260,6 @@ bool createPhysXMesh(PhsyxMeshType meshType, const vx::float3* positions, u32 ve
 
 bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator)
 {
-#if _VX_EDITOR
 	FbxImporter* lImporter = FbxImporter::Create(m_pFbxManager, "");
 
 	// Use the first argument as the filename for the importer.
@@ -498,8 +483,5 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 	}
 
 	return true;
-#else
-	return false;
-#endif
 }
 #endif

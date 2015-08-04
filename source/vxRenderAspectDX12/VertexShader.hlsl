@@ -1,6 +1,6 @@
 struct Vertex
 {
-	float3 position : POSITION;
+	float3 position : POSITION0;
 	int index : BLENDINDICES0;
 };
 
@@ -30,7 +30,7 @@ StructuredBuffer<Transform> transformBuffer : register(t0);
 
 VSOUT main(Vertex vsin )
 {
-	float3 wsPosition = vsin.position + transformBuffer[vsin.index].translation.xyz;
+	float3 wsPosition = vsin.position;// +transformBuffer[vsin.index].translation.xyz;
 
 	VSOUT vsout;
 	vsout.position = mul(float4(wsPosition, 1), cameraBuffer.pvMatrix);

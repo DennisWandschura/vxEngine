@@ -35,6 +35,7 @@ SOFTWARE.
 #include <vxEngineLib/TaskManager.h>
 #include "TaskUploadGeometry.h"
 #include <d3dcompiler.h>
+#include <d3d12sdklayers.h>
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/MeshFile.h>
@@ -84,7 +85,9 @@ RenderAspect::RenderAspect()
 	m_geometryUploadBuffer(),
 	m_meshIndexOffset(0),
 	m_meshEntries(),
-	m_taskManager(nullptr)
+	m_taskManager(nullptr),
+	m_vertexCount(0),
+	m_indexCount(0)
 {
 
 }
@@ -134,7 +137,9 @@ bool RenderAspect::createHeaps()
 		return false;
 	}
 
-	auto defaultBufferHeapSize = Buffer::calculateAllocSize(sizeof(CameraBufferData) + sizeof(Transform) * g_maxMeshInstances);
+	auto cameraBufferSize = Buffer::calculateAllocSize(sizeof(CameraBufferData));
+	auto transformBufferSize = Buffer::calculateAllocSize(sizeof(Transform) * g_maxMeshInstances);
+	auto defaultBufferHeapSize = Buffer::calculateAllocSize(cameraBufferSize + transformBufferSize);
 	if (!m_defaultBufferHeap.create(defaultBufferHeapSize, m_device))
 	{
 		return false;
@@ -201,6 +206,151 @@ bool RenderAspect::loadShaders()
 	return true;
 }
 
+bool RenderAspect::createRootSignature()
+{
+	/*
+	D3D12_DESCRIPTOR_RANGE_TYPE RangeType;
+	UINT NumDescriptors;
+	UINT BaseShaderRegister;
+	UINT RegisterSpace;
+	UINT OffsetInDescriptorsFromTableStart;
+	*/
+	D3D12_DESCRIPTOR_RANGE range0;
+	range0.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	range0.NumDescriptors = 1;
+	range0.BaseShaderRegister = 0;
+	range0.RegisterSpace = 0;
+	range0.OffsetInDescriptorsFromTableStart = 0;
+
+	D3D12_DESCRIPTOR_RANGE range1;
+	range1.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	range1.NumDescriptors = 1;
+	range1.BaseShaderRegister = 0;
+	range1.RegisterSpace = 0;
+	range1.OffsetInDescriptorsFromTableStart = 1;
+
+	const D3D12_DESCRIPTOR_RANGE ranges[]={ range0, range1};
+
+	/*
+	UINT NumDescriptorRanges;
+	_Field_size_full_(NumDescriptorRanges)  const D3D12_DESCRIPTOR_RANGE *pDescriptorRanges;
+	*/
+	D3D12_ROOT_DESCRIPTOR_TABLE table;
+	table.NumDescriptorRanges = 2;
+	table.pDescriptorRanges = ranges;
+
+	D3D12_ROOT_PARAMETER param;
+	param.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	param.DescriptorTable = table;
+	param.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+
+	D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | // Only the input assembler stage needs access to the constant buffer.
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+
+	D3D12_ROOT_SIGNATURE_DESC desc;
+	desc.NumParameters = 1;
+	desc.pParameters = &param;
+	desc.NumStaticSamplers = 0;
+	desc.pStaticSamplers = nullptr;
+	desc.Flags = rootSignatureFlags;
+
+	ID3DBlob* blob = nullptr;
+	ID3DBlob* errorBlob = nullptr;
+	auto hresult = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &errorBlob);
+	if (hresult != 0)
+		return false;
+
+	ID3D12RootSignature* rootSignature = nullptr;
+	hresult = m_device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+	if (hresult != 0)
+		return false;
+
+	m_rootSignatures.insert(vx::make_sid("defaultShader"), rootSignature);
+
+	return true;
+}
+
+bool RenderAspect::createPipelineState()
+{
+	auto rootSig = *m_rootSignatures.find(vx::make_sid("defaultShader"));
+	auto vs = *m_shaders.find(vx::make_sid("VertexShader"));
+	auto ps = *m_shaders.find(vx::make_sid("PixelShader"));
+
+	D3D12_INPUT_ELEMENT_DESC inputLayout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_SINT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC descPso = {};
+	ZeroMemory(&descPso, sizeof(descPso));
+	descPso.InputLayout = { inputLayout, 2 };
+	descPso.pRootSignature = rootSig;
+	descPso.VS = { reinterpret_cast<BYTE*>(vs->GetBufferPointer()), vs->GetBufferSize() };
+	descPso.PS = { reinterpret_cast<BYTE*>(ps->GetBufferPointer()), ps->GetBufferSize() };
+	descPso.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	descPso.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	descPso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	descPso.SampleMask = UINT_MAX;
+	descPso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	descPso.NumRenderTargets = 1;
+	descPso.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	descPso.SampleDesc.Count = 1;
+
+	ID3D12PipelineState* pipelineState = nullptr;
+	auto hresult = m_device->CreateGraphicsPipelineState(&descPso, IID_PPV_ARGS(&pipelineState));
+	if (hresult != 0)
+	{
+		return false;
+	}
+
+	m_pipelineStates.insert(vx::make_sid("defaultState"), pipelineState);
+
+	D3D12_RESOURCE_DESC bufferDesc;
+	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	bufferDesc.Alignment = 64 KBYTE;
+	bufferDesc.Width = sizeof(CameraBufferData);
+	bufferDesc.Height = 1;
+	bufferDesc.DepthOrArraySize = 1;
+	bufferDesc.MipLevels = 1;
+	bufferDesc.Format = DXGI_FORMAT::DXGI_FORMAT_UNKNOWN;
+	bufferDesc.SampleDesc.Count = 1;
+	bufferDesc.SampleDesc.Quality = 0;
+	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	bufferDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+	m_constantBuffer = nullptr;
+	hresult = m_device->CreatePlacedResource(m_defaultBufferHeap.get(), 0, &bufferDesc, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr, IID_PPV_ARGS(&m_constantBuffer));
+
+	auto offset = Buffer::calculateAllocSize(sizeof(CameraBufferData));
+
+	bufferDesc.Width = sizeof(Transform) * g_maxMeshInstances;
+	m_srvBuffer = nullptr;
+	hresult = m_device->CreatePlacedResource(m_defaultBufferHeap.get(), offset, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_srvBuffer));
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbufferDesc;
+	cbufferDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
+	cbufferDesc.SizeInBytes = (sizeof(CameraBufferData) + 255) & ~255;
+	m_device->CreateConstantBufferView(&cbufferDesc, m_descriptorHeapBuffer->GetCPUDescriptorHandleForHeapStart());
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.NumElements = g_maxMeshInstances;
+	srvDesc.Buffer.StructureByteStride = sizeof(Transform);
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	//m_device->CreateShaderResourceView(m_srvBuffer, &srvDesc, m_descriptorHeapBuffer->GetCPUDescriptorHandleForHeapStart());
+	//m_descriptorHeapBuffer->
+
+	return true;
+}
+
 RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &desc)
 {
 	m_taskManager = desc.taskManager;
@@ -209,7 +359,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	const auto doubleBufferSizeInBytes = 5 KBYTE;
 	//m_doubleBuffer = DoubleBufferRaw(&m_allocator, doubleBufferSizeInBytes);
 
-	auto result = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), (void**)&m_device);
+	auto result = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_device));
 	if (result != 0)
 	{
 		puts("Error creating device");
@@ -247,6 +397,9 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	m_uploadCommandList->Close();
 
 	if(!loadShaders())
+		return RenderAspectInitializeError::ERROR_SHADER;
+
+	if(!createRootSignature())
 		return RenderAspectInitializeError::ERROR_SHADER;
 
 	m_viewport.Height = desc.settings->m_resolution.y;
@@ -295,6 +448,16 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
+	descHeap.NumDescriptors = 16;
+	descHeap.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	descHeap.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	result = m_device->CreateDescriptorHeap(&descHeap, IID_PPV_ARGS(&m_descriptorHeapBuffer));
+	if (result != 0)
+	{
+		puts("Error CreateDescriptorHeap");
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
+
 	m_swapChain->GetBuffer(0, IID_PPV_ARGS(&m_renderTarget));
 	m_device->CreateRenderTargetView(m_renderTarget, nullptr, m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart());
 
@@ -306,6 +469,11 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 
 	if (!createMeshBuffers())
 		return RenderAspectInitializeError::ERROR_CONTEXT;
+
+	if (!createPipelineState())
+	{
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
 
 	m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
 	m_currentFence = 1;
@@ -339,6 +507,12 @@ void RenderAspect::shutdown(void* hwnd)
 	m_geometryUploadBuffer.release();
 
 	m_uploadHeap.release();
+
+	for (auto &it : m_rootSignatures)
+	{
+		it->Release();
+	}
+	m_rootSignatures.clear();
 
 	for (auto &it : m_shaders)
 	{
@@ -442,7 +616,7 @@ void RenderAspect::queueUpdateTask(const RenderUpdateTaskType type, const u8* da
 
 void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 {
-	m_taskManager->queueTask<TaskUpdateCamera>(0, data.position, data.quaternionRotation, &m_camera);
+	m_taskManager->pushTask(new TaskUpdateCamera(data.position, data.quaternionRotation, &m_camera));
 
 	/*RenderUpdateTask task;
 	task.type = RenderUpdateTask::Type::UpdateCamera;
@@ -465,20 +639,26 @@ void RenderAspect::updateProfiler(f32 dt)
 
 void RenderAspect::submitCommands()
 {
+	auto defaultState = *m_pipelineStates.find(vx::make_sid("defaultState"));
+	auto rootSig = *m_rootSignatures.find(vx::make_sid("defaultShader"));
+
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+	vertexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+	vertexBufferView.SizeInBytes = sizeof(Vertex) * m_vertexCount;
+	vertexBufferView.StrideInBytes = sizeof(Vertex);
+
+	D3D12_INDEX_BUFFER_VIEW indexBufferView;
+	indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+	indexBufferView.SizeInBytes = sizeof(u32) * m_indexCount;
+	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+
 	m_commandAllocator->Reset();
 
 	{
 		m_commandList->Reset(m_commandAllocator.get(), nullptr);
 
-		m_commandList->SetGraphicsRootSignature(nullptr);
-
 		m_commandList->RSSetViewports(1, &m_viewport);
 		m_commandList->RSSetScissorRects(1, &m_rectScissor);
-
-		for (auto &it : m_drawCommands)
-		{
-			m_commandList->DrawIndexedInstanced(it.indexCount, it.instanceCount, it.firstIndex, it.baseVertex, it.baseInstance);
-		}
 
 		setResourceBarrier(m_commandList, m_renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
@@ -490,7 +670,19 @@ void RenderAspect::submitCommands()
 
 		setResourceBarrier(m_commandList, m_renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
-		m_commandList->Close();
+		m_commandList->SetGraphicsRootSignature(rootSig);
+		m_commandList->SetPipelineState(defaultState);
+		m_commandList->SetDescriptorHeaps(1, &m_descriptorHeapBuffer);
+		m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffer->GetGPUDescriptorHandleForHeapStart());
+		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		m_commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+		m_commandList->IASetIndexBuffer(&indexBufferView);
+		for (auto &it : m_drawCommands)
+		{
+			m_commandList->DrawIndexedInstanced(it.indexCount, it.instanceCount, it.firstIndex, it.baseVertex, it.baseInstance);
+		}
+
+		auto hresult = m_commandList->Close();
 
 		m_cmdLists.push_back(m_commandList);
 	}
@@ -660,6 +852,9 @@ void RenderAspect::loadScene(Scene* scene)
 
 	u32 meshIndexOffset = m_meshIndexOffset;
 
+	u32 totalVertexCount = 0;
+	u32 totalIndexCount = 0;
+
 	u32 vertexOffsetInBytes = 0;
 	u32 indexOffsetInBytes = 0;
 	u32 uploadOffsetInBytes = 0;
@@ -673,6 +868,9 @@ void RenderAspect::loadScene(Scene* scene)
 		auto vertices = mesh.getVertices();
 		auto indexCount = mesh.getIndexCount();
 		auto indices = mesh.getIndices();
+
+		totalVertexCount += vertexCount;
+		totalIndexCount += indexCount;
 
 		MeshEntry meshEntry;
 		meshEntry.indexStart = meshIndexOffset;
@@ -734,7 +932,9 @@ void RenderAspect::loadScene(Scene* scene)
 		meshIndexOffset += indexCount;
 	}
 
-	m_taskManager->queueTask<TaskUploadGeometry>(0, &m_uploadCmdAllocator, m_uploadCommandList, std::move(uploadTasks), &m_cmdLists);
+	//m_taskManager->pushTask(new );
+	TaskUploadGeometry task(&m_uploadCmdAllocator, m_uploadCommandList, std::move(uploadTasks), &m_cmdLists);
+	task.run();
 
 	m_meshIndexOffset = meshIndexOffset;
 
@@ -755,6 +955,9 @@ void RenderAspect::loadScene(Scene* scene)
 		drawCmd.baseVertex = 0;
 		drawCmd.baseInstance = 0;
 	}
+
+	m_vertexCount =+ totalVertexCount;
+	m_indexCount += totalIndexCount;
 
 	auto lightCount = scene->getLightCount();
 	auto lights = scene->getLights();

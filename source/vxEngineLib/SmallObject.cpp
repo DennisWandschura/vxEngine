@@ -21,8 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "SmallObject.h"
-#include "SmallObjAllocator.h"
+#include <vxEngineLib/SmallObject.h>
+#include <vxEngineLib/SmallObjAllocator.h>
 
 SmallObjAllocator* SmallObject::s_pAllocator{ nullptr };
 
