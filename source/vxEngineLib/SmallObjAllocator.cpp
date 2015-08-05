@@ -107,6 +107,40 @@ void ChunkAllocator::init(u16 blockSize, u16 blockCount)
 	m_blockCount = blockCount;
 }
 
+u16 ChunkAllocator::push_back()
+{
+	//assert(m_size != 0xff);
+	if (m_size == 0xffff)
+	{
+		printf("%i\n", m_size);
+		VX_ASSERT(false);
+	}
+
+	if (m_size == m_capacity)
+	{
+		auto newCap = m_capacity + 1;
+
+		auto ptr = new Chunk[newCap];
+
+		std::move(m_pChunks, m_pChunks + m_size, ptr);
+
+		std::swap(ptr, m_pChunks);
+		m_capacity = newCap;
+
+		delete[](ptr);
+	}
+
+	Chunk newChunk;
+	newChunk.init(m_blockSize, m_blockCount);
+
+	m_pChunks[m_size] = newChunk;
+
+	auto index = m_size;
+	++m_size;
+
+	return index;
+}
+
 u8* ChunkAllocator::allocate()
 {
 	if (m_size == 0 ||

@@ -24,17 +24,58 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+class SmallObjAllocator;
 
-class CpuTimer
+#include <vector>
+#include <vxEngineLib/SmallObjAllocator.h>
+
+template<typename T>
+class SmallObjectThreaded
 {
-	static s64 s_frequency;
-
-	s64 m_start;
+	static std::vector<SmallObjAllocator*> s_allocators;
+	static thread_local SmallObjAllocator* s_allocator;
 
 public:
-	CpuTimer();
-	~CpuTimer();
+	static void setAllocator(SmallObjAllocator* allocator)
+	{
+		if (s_allocator == nullptr)
+		{
+			s_allocator = allocator;
+			s_allocators.push_back(allocator);
+		}
+	}
 
-	f32 getTimeMs() const;
+	static void* operator new(std::size_t size)
+	{
+		return s_allocator->allocate(size);
+	}
+
+	static void operator delete(void* p, std::size_t size)
+	{
+		bool found = true;
+		if (!s_allocator->deallocate((u8*)p, static_cast<u32>(size)))
+		{
+			found = false;
+
+			for (auto &it : s_allocators)
+			{
+				if (it->deallocate((u8*)p, static_cast<u32>(size)))
+				{
+					found = true;
+					break;
+				}
+			}
+		}
+
+		if (!found)
+		{
+			delete(p);
+		}
+	}
 };
+
+template<typename T>
+std::vector<SmallObjAllocator*> SmallObjectThreaded<T>::s_allocators = {};
+
+template<typename T>
+thread_local SmallObjAllocator* SmallObjectThreaded<T>::s_allocator = nullptr;

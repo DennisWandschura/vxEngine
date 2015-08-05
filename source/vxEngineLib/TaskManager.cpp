@@ -70,6 +70,14 @@ namespace vx
 		std::atomic_int m_running;
 		TaskManager* m_scheduler;
 
+		void rescheduleTask(Task* task)
+		{
+			if (!pushTask(task, true))
+			{
+				m_scheduler->pushTask(task, true);
+			}
+		}
+
 	public:
 		LocalQueue()
 			:m_front(),
@@ -118,16 +126,35 @@ namespace vx
 			}
 			else
 			{
+				Task* waitingTask = nullptr;
+
 				for (u32 i = 0; i < m_back.m_size; ++i)
 				{
 					auto task = m_back.m_tasks[i];
 					auto result = task->run();
 					if (result == TaskReturnType::Retry)
 					{
-						if (!pushTask(task, true))
+						rescheduleTask(task);
+					}
+					else if (result == TaskReturnType::WaitingForEvents)
+					{
+						if (waitingTask == nullptr)
 						{
-							m_scheduler->pushTask(task, true);
+							waitingTask = task;
 						}
+						else
+						{
+							rescheduleTask(task);
+						}
+					}
+				}
+
+				if (waitingTask)
+				{
+					auto result = waitingTask->run();
+					if (result != TaskReturnType::Success)
+					{
+						rescheduleTask(waitingTask);
 					}
 				}
 

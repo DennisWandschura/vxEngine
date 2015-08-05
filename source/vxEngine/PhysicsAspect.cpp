@@ -37,6 +37,7 @@ SOFTWARE.
 #include <vxEngineLib/MessageManager.h>
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include <vxEngineLib/Joint.h>
+#include <vxEngineLib/Event.h>
 
 UserErrorCallback PhysicsAspect::s_defaultErrorCallback{};
 physx::PxDefaultAllocator PhysicsAspect::s_defaultAllocatorCallback{};
@@ -148,6 +149,7 @@ PhysicsAspect::PhysicsAspect()
 	m_pControllerManager(nullptr),
 	m_pActorMaterial(nullptr),
 	m_pPhysics(nullptr),
+	m_evtFetch(),
 	m_physxMeshes(),
 	m_physxMaterials(),
 	m_staticMeshInstances(),
@@ -244,6 +246,8 @@ bool PhysicsAspect::initialize(vx::TaskManager* taskManager)
 #endif
 	}
 
+	m_evtFetch = new Event();
+
 	return true;
 }
 
@@ -300,10 +304,12 @@ void PhysicsAspect::fetch()
 	{
 		printf("error: %u\n", errorCode);
 	}
+	m_evtFetch->set();
 }
 
 void PhysicsAspect::update(const f32 dt)
 {
+	m_evtFetch->clear();
 	m_pScene->simulate(dt);
 }
 

@@ -345,7 +345,13 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 	{
 		auto physicsAspect = Locator::getPhysicsAspect();
 		auto scene = (Scene*)evt.arg1.ptr;
-		m_taskManager->pushTask(new TaskPhysxCreateJoints(scene, physicsAspect), false);
+		auto fetchEvt = physicsAspect->getEventPhysicsFetch();
+
+		std::vector<shared_ptr<Event>> events;
+		events.push_back(fetchEvt);
+		auto task = new TaskPhysxCreateJoints(scene, physicsAspect, std::move(events));
+
+		m_taskManager->pushTask(task, false);
 	}break;
 	case IngameMessage::Created_NavGraph:
 	{

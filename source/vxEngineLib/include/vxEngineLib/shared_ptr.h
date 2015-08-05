@@ -24,17 +24,88 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
-
-class CpuTimer
+template<typename T>
+struct shared_ptr
 {
-	static s64 s_frequency;
+	T* ptr;
 
-	s64 m_start;
+	void increment()
+	{
+		if (ptr)
+		{
+			ptr->increment();
+		}
+	}
 
-public:
-	CpuTimer();
-	~CpuTimer();
+	void cleanup()
+	{
+		if (ptr)
+		{
+			auto refCount = ptr->decrement();
+			if (refCount < 0)
+			{
+				puts("errr");
+			}
 
-	f32 getTimeMs() const;
+			if (refCount <= 0)
+			{
+				delete(ptr);
+			}
+		}
+	}
+
+	shared_ptr() :ptr(nullptr) {}
+	shared_ptr(T* p) :ptr(p) { increment(); }
+	shared_ptr(const shared_ptr &rhs)
+		:ptr(rhs.ptr)
+	{
+		increment();
+	}
+
+	shared_ptr(shared_ptr &&rhs)
+		:ptr(rhs.ptr)
+	{
+		rhs.ptr = nullptr;
+	}
+
+	~shared_ptr()
+	{
+		cleanup();
+
+		ptr = nullptr;
+	}
+
+	shared_ptr& operator=(const shared_ptr &rhs)
+	{
+		if (this != &rhs)
+		{
+			cleanup();
+			ptr = rhs.ptr;
+			increment();
+		}
+
+		return *this;
+	}
+
+	shared_ptr& operator=(shared_ptr &&rhs)
+	{
+		if (this != &rhs)
+		{
+			auto tmp = ptr;
+			ptr = rhs.ptr;
+			rhs.ptr = tmp;
+		}
+
+		return *this;
+	}
+
+	T* operator->()
+	{
+		return ptr;
+	}
+
+	const T* operator->() const
+	{
+		return ptr;
+	}
 };

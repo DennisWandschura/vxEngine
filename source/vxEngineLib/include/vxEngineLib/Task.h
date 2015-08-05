@@ -28,47 +28,38 @@ enum class TaskReturnType : unsigned int
 {
 	Success,
 	Failure,
-	Retry
+	Retry,
+	WaitingForEvents
 };
 
 class SmallObjAllocator;
-class Event;
 
 #include <vxLib/types.h>
 #include <atomic>
 #include <vector>
+#include <vxEngineLib/SmallObjectThreaded.h>
+#include <vxEngineLib/shared_ptr.h>
+#include <vxEngineLib/Event.h>
 
-class Task
+class Task : public SmallObjectThreaded<Task>
 {
-	static std::vector<SmallObjAllocator*> s_allocators;
-	static thread_local SmallObjAllocator* s_allocator;
-
-	friend class Event;
-
-	std::atomic_int m_eventCount;
-	Event* m_event;
+	shared_ptr<Event> m_event;
+	std::vector<shared_ptr<Event>> m_events;
 
 protected:
 	virtual TaskReturnType runImpl() = 0;
 
 public:
-	Task() :m_eventCount(0), m_event(nullptr){}
+	Task() :m_event(), m_events(){}
+	explicit Task(shared_ptr<Event> &&evt) :m_event(std::move(evt)), m_events() {}
+	Task(shared_ptr<Event> &&evt, std::vector<shared_ptr<Event>> &&events) :m_event(std::move(evt)), m_events(std::move(events)) {}
 
 	Task(const Task&) = delete;
 	Task(Task &&rhs) = delete;
 
 	virtual ~Task() {}
 
-	void attachEvent(Event* evt);
-
 	TaskReturnType run();
 
-	bool isReady() const { return (m_eventCount.load() == 0); }
-
 	virtual f32 getTimeMs() const = 0;
-
-	static void setAllocator(SmallObjAllocator* allocator);
-
-	static void* operator new(std::size_t size);
-	static void operator delete(void* p, std::size_t size);
 };

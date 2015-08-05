@@ -28,12 +28,12 @@ SmallObjAllocator* SmallObject::s_pAllocator{ nullptr };
 
 void* SmallObject::operator new(std::size_t size)
 {
-	return s_pAllocator->allocate(size);
+	return s_pAllocator->allocate(static_cast<u32>(size));
 }
 
 void SmallObject::operator delete(void* p, std::size_t size)
 {
-	s_pAllocator->deallocate((u8*)p, size);
+	s_pAllocator->deallocate((u8*)p, static_cast<u32>(size));
 }
 
 void SmallObject::setAllocator(SmallObjAllocator* pAllocator)

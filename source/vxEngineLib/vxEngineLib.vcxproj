@@ -145,7 +145,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ExceptionHandling>false</ExceptionHandling>
@@ -284,8 +284,10 @@
     <ClInclude Include="include\vxEngineLib\SceneBase.h" />
     <ClInclude Include="include\vxEngineLib\SceneFile.h" />
     <ClInclude Include="include\vxEngineLib\Serializable.h" />
+    <ClInclude Include="include\vxEngineLib\shared_ptr.h" />
     <ClInclude Include="include\vxEngineLib\SmallObjAllocator.h" />
     <ClInclude Include="include\vxEngineLib\SmallObject.h" />
+    <ClInclude Include="include\vxEngineLib\SmallObjectThreaded.h" />
     <ClInclude Include="include\vxEngineLib\Spawn.h" />
     <ClInclude Include="include\vxEngineLib\SRWMutex.h" />
     <ClInclude Include="include\vxEngineLib\Task.h" />
@@ -334,9 +336,6 @@
     </ClCompile>
     <ClCompile Include="EngineConfig.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Event.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="MessageManager.cpp">

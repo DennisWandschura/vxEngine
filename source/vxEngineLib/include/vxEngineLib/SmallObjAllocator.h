@@ -49,39 +49,13 @@ class ChunkAllocator
 	Chunk* m_pChunks{ nullptr };
 	u16 m_blockSize{ 0 };
 	u16 m_blockCount{ 0 };
-	u8 m_size{ 0 };
-	u8 m_capacity{ 0 };
-	u8 m_allocChunk{ 0 };
-	u8 m_deallocChunk{ 0 };
+	u16 m_size{ 0 };
+	u16 m_capacity{ 0 };
+	u16 m_allocChunk{ 0 };
+	u16 m_deallocChunk{ 0 };
 
 	// adds a new chuck and returns its index
-	u16 push_back()
-	{
-		assert(m_size != 0xff);
-		if (m_size == m_capacity)
-		{
-			auto newCap = m_capacity + 1;
-
-			auto ptr = new Chunk[newCap];
-
-			std::move(m_pChunks, m_pChunks + m_size, ptr);
-
-			std::swap(ptr, m_pChunks);
-			m_capacity = newCap;
-
-			delete[](ptr);
-		}
-
-		Chunk newChunk;
-		newChunk.init(m_blockSize, m_blockCount);
-
-		m_pChunks[m_size] = newChunk;
-
-		auto index = m_size;
-		++m_size;
-
-		return index;
-	}
+	u16 push_back();
 
 public:
 	ChunkAllocator() = default;

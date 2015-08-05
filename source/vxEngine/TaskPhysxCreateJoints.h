@@ -38,7 +38,7 @@ class TaskPhysxCreateJoints : public Task
 	PhysicsAspect* m_physicsAspect;
 
 public:
-	TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect);
+	TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect, std::vector<shared_ptr<Event>> events);
 	~TaskPhysxCreateJoints();
 
 	TaskReturnType runImpl() override;
