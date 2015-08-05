@@ -42,17 +42,12 @@ public:
 	{
 	}
 
-	PhysxTask(PhysxTask &&rhs)
-		:Task(std::move(rhs)), m_task(rhs.m_task)
-	{
-	}
-
 	~PhysxTask()
 	{
 
 	}
 
-	TaskReturnType run() override
+	TaskReturnType runImpl() override
 	{
 		CpuTimer timer;
 

@@ -2,6 +2,8 @@
 #include <atomic>
 #include <algorithm>
 #include <vxLib/Allocator/StackAllocator.h>
+#include <vxEngineLib/Event.h>
+#include <vxEngineLib/SmallObjAllocator.h>
 
 namespace vx
 {
@@ -27,7 +29,7 @@ namespace vx
 		{
 			m_tasks = (Task**)allocator->allocate(sizeof(Task*) * capacity, 8);
 		}
-			
+
 		void swap(Buffer &other)
 		{
 			std::swap(m_tasks, other.m_tasks);
@@ -74,7 +76,7 @@ namespace vx
 			m_frontMutex(),
 			m_back(),
 			m_capacity(0),
-			m_running({0}),
+			m_running({ 0 }),
 			m_scheduler(nullptr)
 		{
 
@@ -147,14 +149,13 @@ namespace vx
 
 	thread_local u32 s_tid{ 0 };
 
-	void localThread(LocalQueue* queue, u32 tid, TaskAllocator* parentAlloc)
+	void localThread(LocalQueue* queue, u32 tid)
 	{
 		s_tid = tid;
 
-		TaskThreadAllocator allocator;
+		SmallObjAllocator allocator(1024);
 		Task::setAllocator(&allocator);
-
-		parentAlloc->registerAllocator(tid, &allocator);
+		Event::setAllocator(&allocator);
 
 		while (queue->isRunning())
 		{
@@ -182,8 +183,6 @@ namespace vx
 
 	void TaskManager::initialize(u32 count, u32 capacity, f32 maxTime, vx::StackAllocator* allocator)
 	{
-		m_allocator.initialize(count);
-
 		for (u32 i = 0; i < count; ++i)
 		{
 			auto ptr = (LocalQueue*)allocator->allocate(sizeof(LocalQueue), __alignof(LocalQueue));
@@ -192,7 +191,7 @@ namespace vx
 			ptr->initialize(capacity, maxTime, this, allocator);
 			m_queues.push_back(ptr);
 
-			m_threads.push_back(std::thread(localThread, ptr, i, &m_allocator));
+			m_threads.push_back(std::thread(localThread, ptr, i));
 		}
 
 		m_capacity = capacity;

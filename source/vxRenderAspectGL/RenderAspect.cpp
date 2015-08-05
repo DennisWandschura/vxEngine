@@ -29,16 +29,16 @@ SOFTWARE.
 #include "gl/BufferBindingManager.h"
 //#include "developer.h"
 #include <vxGL/ProgramPipeline.h>
-#include <vxEngineLib/Event.h>
-#include <vxEngineLib/EventTypes.h>
-#include <vxEngineLib/EventsIngame.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/MessageTypes.h>
+#include <vxEngineLib/IngameMessage.h>
 //#include "ScreenshotFactory.h"
 #include "DebugRenderSettings.h"
 #include <vxLib/Keyboard.h>
 #include <vxEngineLib/debugPrint.h>
 #include "GpuProfiler.h"
 #include <vxEngineLib/CreateActorData.h>
-#include <vxEngineLib/EventManager.h>
+#include <vxEngineLib/MessageManager.h>
 #include "Graphics/Renderer.h"
 #include "Graphics/ShadowRenderer.h"
 #include "Graphics/VoxelRenderer.h"
@@ -46,7 +46,7 @@ SOFTWARE.
 #include <vxLib/Window.h>
 //#include "CpuProfiler.h"
 #include "Graphics/CommandListFactory.h"
-#include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/FileMessage.h>
 #include <vxEngineLib/EngineConfig.h>
 #include <vxLib/File/FileHandle.h>
 #include "Graphics/GBufferRenderer.h"
@@ -158,7 +158,7 @@ RenderAspect::RenderAspect()
 	m_renderContext(),
 	m_camera(),
 	m_fileAspect(nullptr),
-	m_evtManager(nullptr),
+	m_msgManager(nullptr),
 	m_pColdData()
 {
 	g_renderAspect = this;
@@ -437,7 +437,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	contextDesc.windowClass = desc.window->getClassName();
 
 	m_fileAspect = desc.fileAspect;
-	m_evtManager = desc.evtManager;
+	m_msgManager = desc.msgManager;
 
 	m_gpuProfiler = vx::make_unique<GpuProfiler>();
 	m_pColdData = vx::make_unique<ColdData>();
@@ -872,12 +872,12 @@ void RenderAspect::taskCreateActorGpuIndex(u8* p, u32* offset)
 	auto gpuIndex = addActorToBuffer(data->getActorSid(), data->getTransform(), data->getMeshSid(), data->getMaterialSid());
 	data->setGpu(gpuIndex);
 
-	vx::Event e;
+	vx::Message e;
 	e.arg1.ptr = data;
-	e.code = (u32)IngameEvent::Gpu_AddedActor;
-	e.type = vx::EventType::Ingame_Event;
+	e.code = (u32)IngameMessage::Gpu_AddedActor;
+	e.type = vx::MessageType::Ingame_Event;
 
-	m_evtManager->addEvent(e);
+	m_msgManager->addMessage(e);
 
 	*offset += sizeof(std::size_t);
 }
@@ -927,12 +927,12 @@ void RenderAspect::taskAddDynamicMeshInstance(u8* p, u32* offset)
 	data->m_gpuIndex = gpuIndex;
 	data->increment();
 
-	vx::Event e;
-	e.code = (u32)IngameEvent::Gpu_AddedDynamicMesh;
-	e.type = vx::EventType::Ingame_Event;
+	vx::Message e;
+	e.code = (u32)IngameMessage::Gpu_AddedDynamicMesh;
+	e.type = vx::MessageType::Ingame_Event;
 	e.arg1.ptr = data;
 
-	m_evtManager->addEvent(e);
+	m_msgManager->addMessage(e);
 
 	*offset += sizeof(std::size_t);
 }
@@ -1252,25 +1252,25 @@ void RenderAspect::takeScreenshot()
 	//ScreenshotFactory::writeScreenshotToFile(m_resolution, pScreenshotData);
 }
 
-void RenderAspect::handleEvent(const vx::Event &evt)
+void RenderAspect::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case(vx::EventType::File_Event) :
-		handleFileEvent(evt);
+	case(vx::MessageType::File_Event) :
+		handleFileMessage(evt);
 		break;
 	default:
 		break;
 	}
 }
 
-void RenderAspect::handleFileEvent(const vx::Event &evt)
+void RenderAspect::handleFileMessage(const vx::Message &evt)
 {
-	auto fileEvent = (vx::FileEvent)evt.code;
+	auto fileEvent = (vx::FileMessage)evt.code;
 
 	switch (fileEvent)
 	{
-	case vx::FileEvent::Scene_Loaded:
+	case vx::FileMessage::Scene_Loaded:
 	{
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Queuing loading Scene into Render");
 		auto pScene = (Scene*)evt.arg2.ptr;

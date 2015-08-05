@@ -38,6 +38,7 @@ SOFTWARE.
 
 #include <vxEngineLib/SmallObjAllocator.h>
 #include <vxEngineLib/SmallObject.h>
+#include <vxEngineLib/Event.h>
 
 //#include <DbgHelp.h>
 //#pragma comment (lib, "Dbghelp.lib")
@@ -154,6 +155,8 @@ int main()
 
 	SmallObjAllocator alloc(1 KBYTE);
 	SmallObject::setAllocator(&alloc);
+	Task::setAllocator(&alloc);
+	Event::setAllocator(&alloc);
 
 	//char buffer[256];
 	//UnDecorateSymbolName("?pushCommand@Segment@Graphics@@QEAAXAEBUProgramUniformCommand@2@PEBE@Z", buffer, 256, 0);

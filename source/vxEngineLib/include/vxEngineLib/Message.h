@@ -23,27 +23,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+#include <vxLib/Variant.h>
 
 namespace vx
 {
-	enum class FileEvent : u16
-	{
-		// arg1 contains sid of filename, arg2 contains ptr to scene
-		Scene_Loaded,
-		EditorScene_Loaded,
-		// arg1 contains sid to file, arg2 contains ptr
-		Texture_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Material_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Mesh_Loaded,
-		Wav_Loaded,
-		Animation_Loaded,
+	enum class MessageType : u8;
 
-		Scene_Existing,
-		Texture_Existing,
-		Material_Existing,
-		Mesh_Existing
+	struct Message
+	{
+		// type of event
+		MessageType type;
+		// additional filter
+		u16 filter;
+		// specific event code of type
+		u32 code;
+		vx::Variant arg1;
+		vx::Variant arg2;
 	};
+
 }

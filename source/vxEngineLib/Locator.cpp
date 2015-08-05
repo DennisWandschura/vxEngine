@@ -24,17 +24,17 @@ SOFTWARE.
 #include <vxEngineLib/Locator.h>
 #include <vxLib/types.h>
 
-vx::EventManager* Locator::s_pEventManager{ nullptr };
+vx::MessageManager* Locator::s_pEventManager{ nullptr };
 PhysicsAspect* Locator::s_pPhysicsAspect{ nullptr };
 FileAspect* Locator::s_pFileAspect{ nullptr };
 RenderAspectInterface* Locator::s_pRenderAspect{nullptr};
 
-void Locator::provide(vx::EventManager* p)
+void Locator::provide(vx::MessageManager* p)
 {
 	s_pEventManager = p;
 }
 
-vx::EventManager* Locator::getEventManager()
+vx::MessageManager* Locator::getMessageManager()
 {
 	VX_ASSERT(s_pEventManager);
 	return s_pEventManager;

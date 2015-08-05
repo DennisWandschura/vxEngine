@@ -47,11 +47,15 @@ namespace vx
 #include <vxLib/Container/sorted_array.h>
 #include <vxLib/StringID.h>
 #include <vxLib/Graphics\Mesh.h>
-#include <vxEngineLib/EventTypesFwd.h>
 #include <vxEngineLib/Pool.h>
 #include <vxEngineLib/SRWMutex.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/ArrayAllocator.h>
+
+namespace vx
+{
+	enum class FileMessage : u16;
+}
 
 class VX_ALIGN(64) FileAspect : public FileAspectInterface
 {
@@ -90,7 +94,7 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 	vx::Pool<ReferenceCounted<Material>> m_poolMaterial;
 	vx::Pool<ReferenceCounted<vx::Animation>> m_poolAnimations;
 	vx::Pool<Graphics::Texture> m_poolTextures;
-	vx::EventManager* m_eventManager;
+	vx::MessageManager* m_msgManager;
 	physx::PxCooking* m_cooking;
 	vx::sorted_array<vx::StringID, std::string> m_sortedAnimationNames;
 
@@ -99,7 +103,7 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 	void getFolderString(vx::FileType fileType, const char** folder);
 	const u8* readFile(const char *file, u32* fileSize);
 
-	void pushFileEvent(vx::FileEvent code,vx::Variant arg1, vx::Variant arg2);
+	void pushFileEvent(vx::FileMessage code, vx::Variant arg1, vx::Variant arg2);
 
 	LoadFileReturnType loadFile(const vx::FileEntry &file, std::vector<vx::FileEntry>* missingFiles, void* pUserData);
 	bool loadMesh(const LoadMeshDescription &desc);
@@ -126,7 +130,7 @@ public:
 	FileAspect();
 	~FileAspect();
 
-	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager, physx::PxCooking* cooking) override;
+	bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::MessageManager* msgManager, physx::PxCooking* cooking) override;
 	void shutdown() override;
 
 	void reset() override;

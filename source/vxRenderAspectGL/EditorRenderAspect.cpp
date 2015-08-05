@@ -29,10 +29,10 @@ SOFTWARE.
 #include "Graphics/CommandListFactory.h"
 #include <vxEngineLib/Graphics/TextureFactory.h>
 #include <vxEngineLib/Graphics/Texture.h>
-#include <vxEngineLib/Event.h>
+#include <vxEngineLib/Message.h>
 #include <vxEngineLib/EditorScene.h>
-#include <vxEngineLib/FileEvents.h>
-#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/FileMessage.h>
+#include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/InfluenceMap.h>
@@ -835,14 +835,14 @@ namespace Editor
 		m_renderContext.swapBuffers();
 	}
 
-	void RenderAspect::handleEvent(const vx::Event &evt)
+	void RenderAspect::handleMessage(const vx::Message &evt)
 	{
 		switch (evt.type)
 		{
-		case(vx::EventType::File_Event) :
+		case(vx::MessageType::File_Event) :
 			handleFileEvent(evt);
 			break;
-		case(vx::EventType::Editor_Event) :
+		case(vx::MessageType::Editor_Event) :
 			//handleEditorEvent(evt);
 			break;
 		default:
@@ -1266,7 +1266,7 @@ namespace Editor
 		}
 	}
 
-	void RenderAspect::handleLoadScene(const vx::Event &evt)
+	void RenderAspect::handleLoadScene(const vx::Message &evt)
 	{
 		auto scene = (Editor::Scene*)evt.arg2.ptr;
 
@@ -1302,13 +1302,13 @@ namespace Editor
 		updateSpawns(spawns, spawnCount);
 	}
 
-	void RenderAspect::handleFileEvent(const vx::Event &evt)
+	void RenderAspect::handleFileEvent(const vx::Message &evt)
 	{
-		if ((vx::FileEvent)evt.code == vx::FileEvent::EditorScene_Loaded)
+		if ((vx::FileMessage)evt.code == vx::FileMessage::EditorScene_Loaded)
 		{
 			handleLoadScene(evt);
 		}
-		else if ((vx::FileEvent)evt.code == vx::FileEvent::Mesh_Loaded)
+		else if ((vx::FileMessage)evt.code == vx::FileMessage::Mesh_Loaded)
 		{
 			//handleLoadMesh(evt);
 		}

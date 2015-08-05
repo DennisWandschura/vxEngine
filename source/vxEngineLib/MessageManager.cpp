@@ -21,53 +21,53 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include <vxEngineLib/EventManager.h>
-#include <vxEngineLib/Event.h>
-#include <vxEngineLib/EventTypes.h>
-#include <vxEngineLib/EventListener.h>
+#include <vxEngineLib/MessageManager.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/MessageTypes.h>
+#include <vxEngineLib/MessageListener.h>
 
 namespace vx
 {
-	EventManager::EventManager()
+	MessageManager::MessageManager()
 		:m_evtMutex(),
 		m_events(),
-		m_eventListeners()
+		m_MessageListeners()
 	{
 	}
 
-	EventManager::~EventManager()
+	MessageManager::~MessageManager()
 	{
 
 	}
 
-	void EventManager::initialize(vx::StackAllocator* allocator, u32 maxEvtCount)
+	void MessageManager::initialize(vx::StackAllocator* allocator, u32 maxEvtCount)
 	{
-		auto memory = allocator->allocate(sizeof(vx::Event) * maxEvtCount * 2, __alignof(vx::Event));
-		m_events = DoubleBuffer<vx::Event>((vx::Event*)memory, maxEvtCount);
+		auto memory = allocator->allocate(sizeof(Message) * maxEvtCount * 2, __alignof(Message));
+		m_events = DoubleBuffer<Message>((Message*)memory, maxEvtCount);
 	}
 
-	void EventManager::registerListener(vx::EventListener* ptr, u64 priority, u16 filter)
+	void MessageManager::registerListener(MessageListener* ptr, u64 priority, u16 filter)
 	{
 		Listener listener;
 		listener.ptr = ptr;
 		listener.mask = filter;
 
-		m_eventListeners.push_back(std::make_pair(priority, listener));
+		m_MessageListeners.push_back(std::make_pair(priority, listener));
 
-		std::sort(m_eventListeners.begin(), m_eventListeners.end(), [](const std::pair<u64, Listener> &lhs, const std::pair<u64, Listener> &rhs)
+		std::sort(m_MessageListeners.begin(), m_MessageListeners.end(), [](const std::pair<u64, Listener> &lhs, const std::pair<u64, Listener> &rhs)
 		{
 			return lhs.first > rhs.first;
 		});
 	}
 
-	void EventManager::update()
+	void MessageManager::update()
 	{
 		vx::unique_lock<vx::mutex> lck(m_evtMutex);
 		m_events.swapBuffers();
 		lck.unlock();
 
 		auto evtCount = m_events.sizeBack();
-		for (auto &a : m_eventListeners)
+		for (auto &a : m_MessageListeners)
 		{
 			for (u32 i = 0; i < evtCount; ++i)
 			{
@@ -75,13 +75,13 @@ namespace vx
 				auto m = ((u32)it.type & a.second.mask);
 				if (m != 0)
 				{
-					a.second.ptr->handleEvent(it);
+					a.second.ptr->handleMessage(it);
 				}
 			}
 		}
 	}
 
-	void EventManager::addEvent(const vx::Event &evt)
+	void MessageManager::addMessage(const Message &evt)
 	{
 		vx::lock_guard<vx::mutex> g(m_evtMutex);
 		auto result = m_events.push(evt);

@@ -30,13 +30,13 @@ class FileAspectInterface;
 
 namespace vx
 {
-	class EventManager;
+	class MessageManager;
 	class Window;
 	class StackAllocator;
 	class TaskManager;
 }
 
-#include <vxEngineLib/EventListener.h>
+#include <vxEngineLib/MessageListener.h>
 #include <vxLib/math/matrix.h>
 #include <string>
 #include <vxEngineLib/RenderUpdateTask.h>
@@ -53,13 +53,13 @@ struct RenderAspectDescription
 	vx::StackAllocator* pAllocator;
 	const EngineConfig* settings;
 	FileAspectInterface* fileAspect;
-	vx::EventManager* evtManager;
+	vx::MessageManager* msgManager;
 	vx::TaskManager* taskManager;
 };
 
 enum class RenderAspectInitializeError : u32 {OK, ERROR_CONTEXT, ERROR_OUT_OF_MEMORY, ERROR_SHADER};
 
-class RenderAspectInterface : public vx::EventListener
+class RenderAspectInterface : public vx::MessageListener
 {
 public:
 	virtual ~RenderAspectInterface() {}
@@ -80,7 +80,7 @@ public:
 	virtual void submitCommands() = 0;
 	virtual void endFrame() = 0;
 
-	virtual void handleEvent(const vx::Event &evt) override = 0;
+	virtual void handleMessage(const vx::Message &evt) override = 0;
 
 	virtual void keyPressed(u16 key) = 0;
 

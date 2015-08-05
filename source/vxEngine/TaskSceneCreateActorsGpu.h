@@ -39,10 +39,9 @@ class TaskSceneCreateActorsGpu : public Task
 
 public:
 	TaskSceneCreateActorsGpu(const Scene* scene, RenderAspectInterface* renderAspect);
-	TaskSceneCreateActorsGpu(TaskSceneCreateActorsGpu &&rhs);
 	~TaskSceneCreateActorsGpu();
 
-	TaskReturnType run() override;
+	TaskReturnType runImpl() override;
 
 	f32 getTimeMs() const override;
 };

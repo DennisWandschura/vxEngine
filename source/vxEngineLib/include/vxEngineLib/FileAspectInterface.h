@@ -39,7 +39,7 @@ class Reference;
 namespace vx
 {
 	class StackAllocator;
-	class EventManager;
+	class MessageManager;
 	class FileEntry;
 	struct StringID;
 	class MeshFile;
@@ -60,7 +60,7 @@ class FileAspectInterface
 public:
 	virtual ~FileAspectInterface(){}
 
-	virtual bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager, physx::PxCooking* cooking) = 0;
+	virtual bool initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::MessageManager* msgManager, physx::PxCooking* cooking) = 0;
 	virtual void shutdown() = 0;
 
 	virtual void reset() = 0;

@@ -28,10 +28,10 @@ SOFTWARE.
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/CreateActorData.h>
 #include <vxEngineLib/Locator.h>
-#include <vxEngineLib/Event.h>
-#include <vxEngineLib/EventManager.h>
-#include <vxEngineLib/EventsIngame.h>
-#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/MessageManager.h>
+#include <vxEngineLib/IngameMessage.h>
+#include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/CpuTimer.h>
 
 thread_local f32 TaskSceneCreateActorsGpu::s_time{0.0f};
@@ -44,27 +44,19 @@ TaskSceneCreateActorsGpu::TaskSceneCreateActorsGpu(const Scene* scene, RenderAsp
 
 }
 
-TaskSceneCreateActorsGpu::TaskSceneCreateActorsGpu(TaskSceneCreateActorsGpu &&rhs)
-	:Task(std::move(rhs)),
-	m_scene(rhs.m_scene),
-	m_renderAspect(rhs.m_renderAspect)
-{
-
-}
-
 TaskSceneCreateActorsGpu::~TaskSceneCreateActorsGpu()
 {
 
 }
 
-TaskReturnType TaskSceneCreateActorsGpu::run()
+TaskReturnType TaskSceneCreateActorsGpu::runImpl()
 {
 	CpuTimer timer;
 
 	auto spawns = m_scene->getSpawns();
 	auto spawnCount = m_scene->getSpawnCount();
 
-	auto evtManager = Locator::getEventManager();
+	auto evtManager = Locator::getMessageManager();
 
 	for (u32 i = 0; i < spawnCount; ++i)
 	{
@@ -88,12 +80,12 @@ TaskReturnType TaskSceneCreateActorsGpu::run()
 
 			m_renderAspect->queueUpdateTask(type, (u8*)&address, sizeof(std::size_t));
 
-			vx::Event evt;
-			evt.type = vx::EventType::Ingame_Event;
-			evt.code = (u32)IngameEvent::Physx_AddActor;
+			vx::Message evt;
+			evt.type = vx::MessageType::Ingame_Event;
+			evt.code = (u32)IngameMessage::Physx_AddActor;
 			evt.arg1.ptr = data;
 
-			evtManager->addEvent(evt);
+			evtManager->addMessage(evt);
 		}
 	}
 

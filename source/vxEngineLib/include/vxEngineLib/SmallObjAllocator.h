@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 #include <vector>
+#include <mutex>
 
 struct Chunk
 {
@@ -108,6 +109,7 @@ class SmallObjAllocator
 {
 	static const u16 s_maxObjSize = 0xffffu;
 
+	std::mutex m_mutex;
 	std::vector<ChunkAllocator> m_allocators;
 	u32 m_lastAlloc;
 	u32 m_lastDealloc;
@@ -117,12 +119,8 @@ class SmallObjAllocator
 	void sortAllocators();
 
 public:
-	SmallObjAllocator():m_allocators(),m_lastAlloc(0),m_lastDealloc(0),m_chunkSize(0){}
-
 	explicit SmallObjAllocator(u32 chunkSize)
 		:m_allocators(), m_lastAlloc(0), m_lastDealloc(0), m_chunkSize(chunkSize) {}
-
-	void setChunkSize(u32 chunkSize) { m_chunkSize = chunkSize; }
 
 	u8* allocate(u32 size);
 

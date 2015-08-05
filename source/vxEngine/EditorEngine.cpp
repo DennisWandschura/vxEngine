@@ -23,8 +23,8 @@ SOFTWARE.
 */
 
 #include "EditorEngine.h"
-#include <vxEngineLib/Event.h>
-#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/Locator.h>
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/Ray.h>
@@ -34,7 +34,7 @@ SOFTWARE.
 #include <vxEngineLib/EngineConfig.h>
 #include <vxEngineLib/debugPrint.h>
 #include "developer.h"
-#include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/FileMessage.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/Spawn.h>
@@ -53,7 +53,7 @@ u32 g_editorTypeFbx{ 0xffffffff };
 u32 g_editorTypeAnimation{ 0xffffffff };
 
 EditorEngine::EditorEngine()
-	:m_eventManager(),
+	:m_msgManager(),
 	m_physicsAspect(),
 	m_renderAspect(),
 	m_fileAspect(),
@@ -92,9 +92,9 @@ bool EditorEngine::initializeImpl(const std::string &dataDir)
 
 	m_scratchAllocator = vx::StackAllocator(m_allocator.allocate(1 MBYTE, 64), 1 MBYTE);
 
-	m_eventManager.initialize(&m_allocator, 256);
+	m_msgManager.initialize(&m_allocator, 256);
 
-	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_eventManager, m_physicsAspect.getCooking()))
+	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_msgManager, m_physicsAspect.getCooking()))
 		return false;
 
 	Locator::provide(&m_fileAspect);
@@ -104,8 +104,6 @@ bool EditorEngine::initializeImpl(const std::string &dataDir)
 
 bool EditorEngine::createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc)
 {
-
-	//auto handle = LoadLibrary(L"../../../lib/vs2013/vxRenderAspectGL_vs12_d.dll");
 	auto handle = LoadLibrary(L"../../../lib/vxRenderAspectGL_d.dll");
 	if (handle == nullptr)
 		return false;
@@ -171,7 +169,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 		&m_allocator,
 		&g_engineConfig,
 		&m_fileAspect,
-		&m_eventManager
+		&m_msgManager
 	};
 	//renderAspectDesc.hwnd = m_panel;
 
@@ -187,10 +185,10 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 
 	Locator::provide(&m_physicsAspect);
 
-	m_eventManager.initialize(&m_allocator, 255);
-	m_eventManager.registerListener(m_renderAspect, 1, (u8)vx::EventType::File_Event);
-	m_eventManager.registerListener(&m_physicsAspect, 1, (u8)vx::EventType::File_Event);
-	m_eventManager.registerListener(this, 1, (u8)vx::EventType::File_Event);
+	m_msgManager.initialize(&m_allocator, 255);
+	m_msgManager.registerListener(m_renderAspect, 1, (u8)vx::MessageType::File_Event);
+	m_msgManager.registerListener(&m_physicsAspect, 1, (u8)vx::MessageType::File_Event);
+	m_msgManager.registerListener(this, 1, (u8)vx::MessageType::File_Event);
 
 	//m_bRun = 1;
 	m_bRunFileThread.store(1);
@@ -237,11 +235,11 @@ void EditorEngine::buildNavGraph()
 	m_renderAspect->updateNavMeshGraphNodesBuffer(graph);
 }
 
-void EditorEngine::handleEvent(const vx::Event &evt)
+void EditorEngine::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case(vx::EventType::File_Event) :
+	case(vx::MessageType::File_Event) :
 		handleFileEvent(evt);
 		break;
 	default:
@@ -249,13 +247,13 @@ void EditorEngine::handleEvent(const vx::Event &evt)
 	}
 }
 
-void EditorEngine::handleFileEvent(const vx::Event &evt)
+void EditorEngine::handleFileEvent(const vx::Message &evt)
 {
-	auto fe = (vx::FileEvent)evt.code;
+	auto fe = (vx::FileMessage)evt.code;
 
 	switch (fe)
 	{
-	case vx::FileEvent::Mesh_Loaded:
+	case vx::FileMessage::Mesh_Loaded:
 	{
 		auto sid = vx::StringID(evt.arg1.u64);
 		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
@@ -271,9 +269,9 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		delete(pStr);
 
 	}break;
-	case vx::FileEvent::Texture_Loaded:
+	case vx::FileMessage::Texture_Loaded:
 		break;
-	case vx::FileEvent::Material_Loaded:
+	case vx::FileMessage::Material_Loaded:
 	{
 		auto sid = vx::StringID(evt.arg1.u64);
 		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
@@ -286,7 +284,7 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		delete(pStr);
 
 	}break;
-	case vx::FileEvent::EditorScene_Loaded:
+	case vx::FileMessage::EditorScene_Loaded:
 	{
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded Scene");
 		call_editorCallback(vx::StringID(evt.arg1.u64));
@@ -296,7 +294,7 @@ void EditorEngine::handleFileEvent(const vx::Event &evt)
 		auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
 		m_renderAspect->updateJoints(m_pEditorScene->getJoints(), m_pEditorScene->getJointCount(), sortedInstances);
 	}break;
-	case vx::FileEvent::Animation_Loaded:
+	case vx::FileMessage::Animation_Loaded:
 	{
 		auto sid = vx::StringID(evt.arg1.u64);
 		if (evt.arg2.ptr)
@@ -349,7 +347,7 @@ void EditorEngine::editor_start()
 
 void EditorEngine::editor_render()
 {
-	m_eventManager.update();
+	m_msgManager.update();
 
 	m_renderAspect->update();
 

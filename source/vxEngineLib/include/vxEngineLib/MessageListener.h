@@ -25,14 +25,14 @@ SOFTWARE.
 
 namespace vx
 {
-	struct Event;
+	struct Message;
 
-	class EventListener
+	class MessageListener
 	{
 	protected:
-		~EventListener(){}
+		~MessageListener(){}
 
 	public:
-		virtual void handleEvent(const Event &evt) = 0;
+		virtual void handleMessage(const Message &evt) = 0;
 	};
 }

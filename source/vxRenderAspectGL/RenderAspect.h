@@ -44,7 +44,7 @@ class GpuProfiler;
 
 #include <vxEngineLib/RenderAspectInterface.h>
 #include "RenderAspectDescription.h"
-#include <vxEngineLib/EventListener.h>
+#include <vxEngineLib/MessageListener.h>
 #include <vxGL/RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
 #include "Font.h"
@@ -101,7 +101,7 @@ protected:
 	vx::mat4 m_projectionMatrix;
 	cl::Context m_context;
 	FileAspectInterface* m_fileAspect;
-	vx::EventManager* m_evtManager;
+	vx::MessageManager* m_msgManager;
 	
 	vx::StackAllocator m_allocator;
 	vx::StackAllocator m_scratchAllocator;
@@ -123,7 +123,7 @@ protected:
 	void createFrameBuffers();
 
 	////////////// Event handling
-	void handleFileEvent(const vx::Event &evt);
+	void handleFileMessage(const vx::Message &msg);
 	//////////////
 
 	void bindBuffers();
@@ -175,7 +175,7 @@ public:
 	void submitCommands() override;
 	void endFrame() override;
 
-	virtual void handleEvent(const vx::Event &evt) override;
+	virtual void handleMessage(const vx::Message &msg) override;
 
 	void keyPressed(u16 key) override;
 

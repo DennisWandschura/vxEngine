@@ -22,11 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "ActorAspect.h"
-#include <vxEngineLib/EventTypes.h>
-#include <vxEngineLib/Event.h>
+#include <vxEngineLib/MessageTypes.h>
+#include <vxEngineLib/Message.h>
 #include <vxEngineLib/Locator.h>
 #include <vxEngineLib/Scene.h>
-#include <vxEngineLib/EventManager.h>
+#include <vxEngineLib/MessageManager.h>
 #include <vxEngineLib/Pool.h>
 #include "ComponentActor.h"
 #include "EntityAspect.h"
@@ -35,8 +35,8 @@ SOFTWARE.
 #include "AStar.h"
 #include <vxEngineLib/NavNode.h>
 #include <vxLib/ScopeGuard.h>
-#include <vxEngineLib/EventsIngame.h>
-#include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/IngameMessage.h>
+#include <vxEngineLib/FileMessage.h>
 #include "ActionManager.h"
 #include "CreatedActorData.h"
 
@@ -61,41 +61,42 @@ void ActorAspect::createInfluenceMap(const Scene* scene)
 	m_influenceMap.initialize(navmesh, scene->getWaypoints(), scene->getWaypointCount());
 }
 
-void ActorAspect::handleFileEvent(const vx::Event &evt)
+void ActorAspect::handleFileEvent(const vx::Message &evt)
 {
-	if (evt.code == (u32)vx::FileEvent::Scene_Loaded)
+	if (evt.code == (u32)vx::FileMessage::Scene_Loaded)
 	{
 		auto pCurrentScene = reinterpret_cast<const Scene*>(evt.arg2.ptr);
 		auto &navmesh = pCurrentScene->getNavMesh();
 
 		m_navmeshGraph.initialize(navmesh);
 
-		vx::Event evt;
+		vx::Message evt;
 		evt.arg1.ptr = &m_navmeshGraph;
-		evt.type = vx::EventType::Ingame_Event;
-		evt.code = (u32)IngameEvent::Created_NavGraph;
+		evt.type = vx::MessageType::Ingame_Event;
+		evt.code = (u32)IngameMessage::Created_NavGraph;
 
-		auto pEvtManager = Locator::getEventManager();
-		pEvtManager->addEvent(evt);
+		auto pEvtManager = Locator::getMessageManager();
+		pEvtManager->addMessage(evt);
 
 		createInfluenceMap(pCurrentScene);
-		vx::Event evtInfluence;
-		evtInfluence.arg1.ptr = &m_influenceMap;
-		evtInfluence.type = vx::EventType::Ingame_Event;
-		evtInfluence.code = (u32)IngameEvent::Created_InfluenceMap;
 
-		pEvtManager->addEvent(evtInfluence);
+		vx::Message evtInfluence;
+		evtInfluence.arg1.ptr = &m_influenceMap;
+		evtInfluence.type = vx::MessageType::Ingame_Event;
+		evtInfluence.code = (u32)IngameMessage::Created_InfluenceMap;
+
+		pEvtManager->addMessage(evtInfluence);
 
 		ai::Squad::provide(&m_influenceMap, &m_navmeshGraph);
 		m_squad.updateAfterProvide();
 	}
 }
 
-void ActorAspect::handleIngameEvent(const vx::Event &evt)
+void ActorAspect::handleIngameMessage(const vx::Message &evt)
 {
-	auto ingameEvt = (IngameEvent)evt.code;
+	auto ingameEvt = (IngameMessage)evt.code;
 
-	if (ingameEvt == IngameEvent::Created_Actor)
+	if (ingameEvt == IngameMessage::Created_Actor)
 	{
 		auto data = static_cast<CreatedActorData*>(evt.arg1.ptr);
 		
@@ -105,17 +106,17 @@ void ActorAspect::handleIngameEvent(const vx::Event &evt)
 	}
 }
 
-void ActorAspect::handleEvent(const vx::Event &evt)
+void ActorAspect::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case vx::EventType::AI_Event:
+	case vx::MessageType::AI_Event:
 		//handleAIEvent(evt);
 		break;
-	case vx::EventType::Ingame_Event:
-		handleIngameEvent(evt);
+	case vx::MessageType::Ingame_Event:
+		handleIngameMessage(evt);
 		break;
-	case vx::EventType::File_Event:
+	case vx::MessageType::File_Event:
 		handleFileEvent(evt);
 		break;
 	default:

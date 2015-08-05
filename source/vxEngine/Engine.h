@@ -32,7 +32,7 @@ SOFTWARE.*/
 #include "memory.h"
 #include "LevelEditor.h"
 #include "EntityAspect.h"
-#include <vxEngineLib/EventManager.h>
+#include <vxEngineLib/MessageManager.h>
 #include "ActorAspect.h"
 #include <vxEngineLib/Scene.h>
 #include "ActionManager.h"
@@ -46,7 +46,7 @@ SOFTWARE.*/
 
 class Engine
 {
-	vx::EventManager m_eventManager;
+	vx::MessageManager m_msgManager;
 	ActionManager m_actionManager;
 	vx::TaskManager m_taskManager;
 	SystemAspect m_systemAspect;
@@ -94,7 +94,7 @@ public:
 
 	void stop();
 
-	void handleEvent(const vx::Event &evt);
+	void handleMessage(const vx::Message &evt);
 	void keyPressed(u16 key);
 
 	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);

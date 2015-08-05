@@ -28,7 +28,7 @@ SOFTWARE.
 #include "developer.h"
 #include "EngineGlobals.h"
 #include "CpuProfiler.h"
-#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/debugPrint.h>
 
 Engine* g_pEngine{ nullptr };
@@ -57,7 +57,7 @@ namespace EngineCpp
 }
 
 Engine::Engine()
-	:m_eventManager(),
+	:m_msgManager(),
 	m_actionManager(),
 	m_taskManager(),
 	m_systemAspect(),
@@ -96,7 +96,7 @@ void Engine::update()
 	m_physicsAspect.update(g_dt);
 
 	// process events
-	m_eventManager.update();
+	m_msgManager.update();
 
 	m_actionManager.update();
 
@@ -181,10 +181,10 @@ bool Engine::initializeImpl(const std::string &dataDir)
 	m_allocManager.registerAllocator(&m_allocator, "mainAllocator");
 #endif
 
-	m_eventManager.initialize(&m_allocator, 255);
-	Locator::provide(&m_eventManager);
+	m_msgManager.initialize(&m_allocator, 255);
+	Locator::provide(&m_msgManager);
 
-	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_eventManager, nullptr))
+	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_msgManager, nullptr))
 		return false;
 
 	return true;
@@ -282,7 +282,7 @@ bool Engine::initialize()
 		&m_allocator,
 		&g_engineConfig,
 		&m_fileAspect,
-		&m_eventManager,
+		&m_msgManager,
 		&m_taskManager
 	};
 
@@ -331,10 +331,10 @@ bool Engine::initialize()
 	Locator::provide(&m_fileAspect);
 
 	// register aspects that receive events
-	m_eventManager.registerListener(m_renderAspect, 3, (u8)vx::EventType::File_Event);
-	m_eventManager.registerListener(&m_physicsAspect, 2, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event);
-	m_eventManager.registerListener(&m_entityAspect, 1, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event);
-	m_eventManager.registerListener(&m_actorAspect, 2, (u8)vx::EventType::File_Event | (u8)vx::EventType::Ingame_Event | (u8)vx::EventType::AI_Event);
+	m_msgManager.registerListener(m_renderAspect, 3, (u8)vx::MessageType::File_Event);
+	m_msgManager.registerListener(&m_physicsAspect, 2, (u8)vx::MessageType::File_Event | (u8)vx::MessageType::Ingame_Event);
+	m_msgManager.registerListener(&m_entityAspect, 1, (u8)vx::MessageType::File_Event | (u8)vx::MessageType::Ingame_Event);
+	m_msgManager.registerListener(&m_actorAspect, 2, (u8)vx::MessageType::File_Event | (u8)vx::MessageType::Ingame_Event | (u8)vx::MessageType::AI_Event);
 
 	m_bRun = 1;
 	m_bRunFileThread.store(1);

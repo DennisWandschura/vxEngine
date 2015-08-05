@@ -37,20 +37,12 @@ TaskPhysxCreateJoints::TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* 
 
 }
 
-TaskPhysxCreateJoints::TaskPhysxCreateJoints(TaskPhysxCreateJoints &&rhs)
-	:Task(std::move(rhs)),
-	m_scene(rhs.m_scene),
-	m_physicsAspect(rhs.m_physicsAspect)
-{
-
-}
-
 TaskPhysxCreateJoints::~TaskPhysxCreateJoints()
 {
 
 }
 
-TaskReturnType TaskPhysxCreateJoints::run()
+TaskReturnType TaskPhysxCreateJoints::runImpl()
 {
 	CpuTimer timer;
 

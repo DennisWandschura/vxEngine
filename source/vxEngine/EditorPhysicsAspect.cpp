@@ -27,9 +27,9 @@ SOFTWARE.
 #include <vxResourceAspect/FileAspect.h>
 #include <vxEngineLib/Locator.h>
 #include <vxEngineLib/Material.h>
-#include <vxEngineLib/EventTypes.h>
-#include <vxEngineLib/Event.h>
-#include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/MessageTypes.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/FileMessage.h>
 #include <vxEngineLib/EditorScene.h>
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/MeshFile.h>
@@ -78,12 +78,12 @@ namespace Editor
 
 	}
 
-	void PhysicsAspect::handleFileEvent(const vx::Event &evt)
+	void PhysicsAspect::handleFileEvent(const vx::Message &evt)
 	{
-		auto fileEvent = (vx::FileEvent)evt.code;
+		auto fileEvent = (vx::FileMessage)evt.code;
 		switch (fileEvent)
 		{
-		case vx::FileEvent::EditorScene_Loaded:
+		case vx::FileMessage::EditorScene_Loaded:
 			processScene((Editor::Scene*)evt.arg2.ptr);
 			break;
 		default:
@@ -91,11 +91,11 @@ namespace Editor
 		}
 	}
 
-	void PhysicsAspect::handleEvent(const vx::Event &evt)
+	void PhysicsAspect::handleMessage(const vx::Message &evt)
 	{
 		switch (evt.type)
 		{
-		case(vx::EventType::File_Event) :
+		case(vx::MessageType::File_Event) :
 			handleFileEvent(evt);
 			break;
 		default:

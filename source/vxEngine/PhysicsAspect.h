@@ -70,7 +70,7 @@ class MySimulationCallback;
 class MyHitReportCallback;
 struct Joint;
 
-#include <vxEngineLib/EventListener.h>
+#include <vxEngineLib/MessageListener.h>
 #include <foundation/PxErrorCallback.h>
 #include <extensions/PxDefaultAllocator.h>
 #include <vxLib/Container/sorted_vector.h>
@@ -88,7 +88,7 @@ public:
 	void reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line) override;
 };
 
-class PhysicsAspect : public vx::EventListener
+class PhysicsAspect : public vx::MessageListener
 {
 	static UserErrorCallback s_defaultErrorCallback;
 	static physx::PxDefaultAllocator s_defaultAllocatorCallback;
@@ -123,8 +123,8 @@ protected:
 	physx::PxTriangleMesh* getTriangleMesh(const vx::StringID &sid, const vx::MeshFile &meshFile);
 
 	//////////////// handle Events
-	void handleFileEvent(const vx::Event &evt);
-	void handleIngameEvent(const vx::Event &evt);
+	void handleFileEvent(const vx::Message &evt);
+	void handleIngameMessage(const vx::Message &evt);
 	////////////////
 
 	void addDynamicMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid, void** outData);
@@ -145,7 +145,7 @@ public:
 	void fetch();
 	void update(const f32 dt);
 
-	virtual void handleEvent(const vx::Event &evt) override;
+	virtual void handleMessage(const vx::Message &evt) override;
 
 	physx::PxController* createActor(const vx::StringID &mesh, const vx::float3 &translation);
 	physx::PxController* createActor(const vx::float3 &translation, f32 height);

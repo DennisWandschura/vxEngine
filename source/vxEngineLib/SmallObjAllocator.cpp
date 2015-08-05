@@ -52,12 +52,12 @@ u8* Chunk::allocate(u32 blockSize)
 
 void Chunk::deallocate(u8* p, u32 blockSize)
 {
-	assert(p >= ptr);
+	VX_ASSERT(p >= ptr);
 	auto toRelease = p;
-	assert((toRelease - ptr) % blockSize == 0);
+	VX_ASSERT((toRelease - ptr) % blockSize == 0);
 	*toRelease = firstFreeBlock;
 	firstFreeBlock = ((toRelease - ptr) / blockSize);
-	assert(firstFreeBlock == (toRelease - ptr) / blockSize);
+	VX_ASSERT(firstFreeBlock == (toRelease - ptr) / blockSize);
 
 	++freeBlocks;
 }
@@ -229,6 +229,8 @@ u8* SmallObjAllocator::allocate(u32 size)
 		return (u8*)::operator new(size);
 	}
 
+	std::lock_guard<std::mutex> guard(m_mutex);
+
 	if (m_allocators.size() == 0 ||
 		m_allocators[m_lastAlloc].getBlockSize() < size)
 	{
@@ -261,6 +263,8 @@ bool SmallObjAllocator::deallocate(u8* p, u32 size)
 {
 	if (p == nullptr)
 		return true;
+
+	std::lock_guard<std::mutex> guard(m_mutex);
 
 	if (!m_allocators[m_lastDealloc].contains(p))
 	{

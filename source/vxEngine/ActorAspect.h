@@ -26,19 +26,19 @@ SOFTWARE.
 
 namespace vx
 {
-	struct Event;
+	struct Message;
 	class StackAllocator;
 	class AllocationProfiler;
 }
 
 class Scene;
 
-#include <vxEngineLib/EventListener.h>
+#include <vxEngineLib/MessageListener.h>
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/NavMeshGraph.h>
 #include "ai/Squad.h"
 
-class ActorAspect : public vx::EventListener
+class ActorAspect : public vx::MessageListener
 {
 	ai::Squad m_squad;
 	InfluenceMap m_influenceMap;
@@ -48,8 +48,8 @@ class ActorAspect : public vx::EventListener
 	// Event functions
 	///////////////////
 
-	void handleFileEvent(const vx::Event &evt);
-	void handleIngameEvent(const vx::Event &evt);
+	void handleFileEvent(const vx::Message &evt);
+	void handleIngameMessage(const vx::Message &evt);
 
 	///////////////////
 
@@ -61,5 +61,5 @@ public:
 	void initialize(vx::StackAllocator* allocator, vx::AllocationProfiler* allocationManager);
 	void shutdown();
 
-	void handleEvent(const vx::Event &evt);
+	void handleMessage(const vx::Message &evt);
 };

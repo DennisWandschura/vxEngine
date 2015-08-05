@@ -29,7 +29,6 @@ SOFTWARE.
 #include <mutex>
 #include <atomic>
 #include <thread>
-#include <vxEngineLib/TaskAllocator.h>
 
 namespace vx
 {
@@ -49,7 +48,6 @@ namespace vx
 		u32 m_capacity;
 		std::vector<std::thread> m_threads;
 		std::atomic_uint* m_running;
-		TaskAllocator m_allocator;
 
 	public:
 		TaskManager();

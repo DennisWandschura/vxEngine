@@ -29,15 +29,15 @@ SOFTWARE.
 #include "PhysicsDefines.h"
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/Actor.h>
-#include <vxEngineLib/Event.h>
-#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/Locator.h>
-#include <vxEngineLib/EventManager.h>
+#include <vxEngineLib/MessageManager.h>
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/NavGraph.h>
-#include <vxEngineLib/EventsIngame.h>
+#include <vxEngineLib/IngameMessage.h>
 #include "EngineGlobals.h"
-#include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/FileMessage.h>
 #include <vxEngineLib/MeshInstance.h>
 #include <vxResourceAspect/FileAspect.h>
 #include <vxEngineLib/Material.h>
@@ -185,13 +185,13 @@ void EntityAspect::createActorEntity(const CreateActorData &data)
 	createdData->componentActor = componentActor;
 	createdData->componentPhysics = componentPhysics;
 
-	vx::Event evt;
-	evt.type = vx::EventType::Ingame_Event;
-	evt.code = (u32)IngameEvent::Created_Actor;
+	vx::Message evt;
+	evt.type = vx::MessageType::Ingame_Event;
+	evt.code = (u32)IngameMessage::Created_Actor;
 	evt.arg1.ptr = createdData;
 
-	auto pEvtManager = Locator::getEventManager();
-	pEvtManager->addEvent(evt);
+	auto pEvtManager = Locator::getMessageManager();
+	pEvtManager->addMessage(evt);
 }
 
 void EntityAspect::update(f32 dt, ActionManager* actionManager)
@@ -214,14 +214,14 @@ Component::Input& EntityAspect::getComponentInput(u16 i)
 	return m_componentInputManager[i];
 }
 
-void EntityAspect::handleEvent(const vx::Event &evt)
+void EntityAspect::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case vx::EventType::Ingame_Event:
-		handleIngameEvent(evt);
+	case vx::MessageType::Ingame_Event:
+		handleIngameMessage(evt);
 		break;
-	case vx::EventType::File_Event:
+	case vx::MessageType::File_Event:
 		handleFileEvent(evt);
 		break;
 	default:
@@ -229,33 +229,28 @@ void EntityAspect::handleEvent(const vx::Event &evt)
 	}
 }
 
-void EntityAspect::handleFileEvent(const vx::Event &evt)
+void EntityAspect::handleFileEvent(const vx::Message &evt)
 {
-	if (evt.code == (u32)vx::FileEvent::Scene_Loaded)
+	if (evt.code == (u32)vx::FileMessage::Scene_Loaded)
 	{
-		vx::Event e;
+		vx::Message e;
 		e.arg1 = evt.arg2;
-		e.type = vx::EventType::Ingame_Event;
-		e.code = (u32)IngameEvent::Level_Started;
+		e.type = vx::MessageType::Ingame_Event;
+		e.code = (u32)IngameMessage::Level_Started;
 
-		auto pEvtManager = Locator::getEventManager();
-		pEvtManager->addEvent(e);
+		auto pEvtManager = Locator::getMessageManager();
+		pEvtManager->addMessage(e);
 
 		auto scene = (const Scene*)evt.arg2.ptr;
 
 		auto renderAspect = Locator::getRenderAspect();
-		auto physicsAspect = Locator::getPhysicsAspect();
 
-		//m_taskManager->queueTask<TaskSceneCreateActorsGpu>(0, scene, renderAspect);
-		//m_taskManager->queueTask<TaskSceneCreateStaticMeshes>(0, scene, renderAspect);
-		//m_taskManager->queueTask<TaskPhysxCreateJoints>(0, scene, physicsAspect);
 		m_taskManager->pushTask(new TaskSceneCreateActorsGpu(scene, renderAspect), false);
 		m_taskManager->pushTask(new TaskSceneCreateStaticMeshes(scene, renderAspect), false);
-		m_taskManager->pushTask(new TaskPhysxCreateJoints(scene, physicsAspect), false);
 
 		auto spawns = scene->getSpawns();
 		auto spawnCount = scene->getSpawnCount();
-		auto evtManager = Locator::getEventManager();
+		auto evtManager = Locator::getMessageManager();
 
 		for (u32 i = 0; i < spawnCount; ++i)
 		{
@@ -298,12 +293,12 @@ void EntityAspect::createDynamicMesh(const CreateDynamicMeshData &data)
 	//entity->addComponent(*componentUsable, usableIndex);
 }
 
-void EntityAspect::handleIngameEvent(const vx::Event &evt)
+void EntityAspect::handleIngameMessage(const vx::Message &evt)
 {
-	IngameEvent e = (IngameEvent)evt.code;
+	IngameMessage e = (IngameMessage)evt.code;
 	switch (e)
 	{
-	case IngameEvent::Physx_AddedDynamicMesh:
+	case IngameMessage::Physx_AddedDynamicMesh:
 	{
 		CreateDynamicMeshData* data = (CreateDynamicMeshData*)evt.arg1.ptr;
 		data->decrement();
@@ -315,7 +310,7 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 		}
 
 	}break;
-	case IngameEvent::Gpu_AddedActor:
+	case IngameMessage::Gpu_AddedActor:
 	{
 		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
 
@@ -325,7 +320,7 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 			delete(data);
 		}
 	}break;
-	case IngameEvent::Physx_AddedActor:
+	case IngameMessage::Physx_AddedActor:
 	{
 		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
 		if (data->isValid())
@@ -335,7 +330,7 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 		}
 
 	}break;
-	case IngameEvent::Gpu_AddedDynamicMesh:
+	case IngameMessage::Gpu_AddedDynamicMesh:
 	{
 		CreateDynamicMeshData* data = (CreateDynamicMeshData*)evt.arg1.ptr;
 		data->decrement();
@@ -346,7 +341,13 @@ void EntityAspect::handleIngameEvent(const vx::Event &evt)
 			delete(data);
 		}
 	}break;
-	case IngameEvent::Created_NavGraph:
+	case IngameMessage::Physx_CreatedScene:
+	{
+		auto physicsAspect = Locator::getPhysicsAspect();
+		auto scene = (Scene*)evt.arg1.ptr;
+		m_taskManager->pushTask(new TaskPhysxCreateJoints(scene, physicsAspect), false);
+	}break;
+	case IngameMessage::Created_NavGraph:
 	{
 	}break;
 	default:

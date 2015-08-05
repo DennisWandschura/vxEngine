@@ -29,15 +29,15 @@ SOFTWARE.
 #include <vxLib/File/File.h>
 #include <vxLib/ScopeGuard.h>
 #include <vxEngineLib/Light.h>
-#include <vxEngineLib/EventManager.h>
-#include <vxEngineLib/Event.h>
-#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/MessageManager.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/MessageTypes.h>
 #include <vxLib/File/FileHeader.h>
 #include <vxEngineLib/debugPrint.h>
 #include <vxEngineLib/AnimationFile.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/Material.h>
-#include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/FileMessage.h>
 #include <vxResourceAspect/FbxFactory.h>
 #include <vxEngineLib/AnimationFile.h>
 #include <vxEngineLib/FileFactory.h>
@@ -129,7 +129,7 @@ FileAspect::FileAspect()
 	m_poolMesh(),
 	m_poolMaterial(),
 	m_poolTextures(),
-	m_eventManager(nullptr),
+	m_msgManager(nullptr),
 	m_cooking(nullptr)
 {
 }
@@ -138,9 +138,9 @@ FileAspect::~FileAspect()
 {
 }
 
-bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::EventManager* evtManager, physx::PxCooking* cooking)
+bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::string &dataDir, vx::MessageManager* msgManager, physx::PxCooking* cooking)
 {
-	m_eventManager = evtManager;
+	m_msgManager = msgManager;
 	const auto fileMemorySize = 5 MBYTE;
 	auto pFileMemory = pMainAllocator->allocate(fileMemorySize, 64);
 	if (!pFileMemory)
@@ -372,15 +372,15 @@ const u8* FileAspect::readFile(const char *file, u32* fileSize)
 	return pData;
 }
 
-void FileAspect::pushFileEvent(vx::FileEvent code, vx::Variant arg1, vx::Variant arg2)
+void FileAspect::pushFileEvent(vx::FileMessage code, vx::Variant arg1, vx::Variant arg2)
 {
-	vx::Event e;
+	vx::Message e;
 	e.arg1 = arg1;
 	e.arg2 = arg2;
-	e.type = vx::EventType::File_Event;
+	e.type = vx::MessageType::File_Event;
 	e.code = (u32)code;
 
-	m_eventManager->addEvent(e);
+	m_msgManager->addMessage(e);
 }
 
 bool FileAspect::loadFileAnimation(const LoadFileOfTypeDescription &desc)
@@ -491,7 +491,7 @@ bool FileAspect::loadFileMesh(const LoadFileOfTypeDescription &desc)
 		vx::Variant arg2;
 		arg2.ptr = desc.pUserData;
 
-		pushFileEvent(vx::FileEvent::Mesh_Loaded, arg1, arg2);
+		pushFileEvent(vx::FileMessage::Mesh_Loaded, arg1, arg2);
 		result = true;
 
 		//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded mesh '%s' %llu", desc.fileName, desc.sid.value);
@@ -539,7 +539,7 @@ void FileAspect::loadFileTexture(const LoadFileOfTypeDescription &desc)
 		vx::Variant arg2;
 		arg2.ptr = ptr;
 
-		pushFileEvent(vx::FileEvent::Texture_Loaded, arg1, arg2);
+		pushFileEvent(vx::FileMessage::Texture_Loaded, arg1, arg2);
 
 		//printf("Texture %s : %llu\n", desc.fileName, desc.sid.value);
 	}
@@ -574,7 +574,7 @@ void FileAspect::loadFileMaterial(const LoadFileOfTypeDescription &desc)
 		vx::Variant arg2;
 		arg2.ptr = desc.pUserData;
 
-		pushFileEvent(vx::FileEvent::Material_Loaded, arg1, arg2);
+		pushFileEvent(vx::FileMessage::Material_Loaded, arg1, arg2);
 
 		//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded material '%s'", desc.fileName);
 	}
@@ -611,7 +611,7 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 			vx::Variant arg2;
 			arg2.ptr = desc.pUserData; 
 
-			pushFileEvent(vx::FileEvent::Scene_Loaded, arg1, arg2);
+			pushFileEvent(vx::FileMessage::Scene_Loaded, arg1, arg2);
 
 			desc.result->result = 1;
 			desc.result->type = vx::FileType::Scene;
@@ -627,7 +627,7 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 			vx::Variant arg2;
 			arg2.ptr = desc.pUserData;
 
-			pushFileEvent(vx::FileEvent::EditorScene_Loaded, arg1, arg2);
+			pushFileEvent(vx::FileMessage::EditorScene_Loaded, arg1, arg2);
 
 			desc.result->result = 1;
 			desc.result->type = vx::FileType::EditorScene;
@@ -654,7 +654,7 @@ void FileAspect::loadFileOfType(const LoadFileOfTypeDescription &desc)
 			vx::Variant arg2;
 			arg2.ptr = desc.pUserData;
 
-			pushFileEvent(vx::FileEvent::Animation_Loaded, arg1, arg2);
+			pushFileEvent(vx::FileMessage::Animation_Loaded, arg1, arg2);
 		}
 	}
 	default:
@@ -847,25 +847,25 @@ void FileAspect::onExistingFile(const FileRequest* request, const vx::StringID &
 	vx::Variant arg2;
 	arg2.ptr = request->userData;
 
-	vx::FileEvent fileEvent;
+	vx::FileMessage fileEvent;
 	switch (fileType)
 	{
 	case vx::FileType::Invalid:
 		break;
 	case vx::FileType::Mesh:
-		fileEvent = vx::FileEvent::Mesh_Existing;
+		fileEvent = vx::FileMessage::Mesh_Existing;
 		break;
 	case vx::FileType::Texture:
-		fileEvent = vx::FileEvent::Texture_Existing;
+		fileEvent = vx::FileMessage::Texture_Existing;
 		break;
 	case vx::FileType::Material:
-		fileEvent = vx::FileEvent::Material_Existing;
+		fileEvent = vx::FileMessage::Material_Existing;
 		break;
 	case vx::FileType::Scene:
-		fileEvent = vx::FileEvent::Scene_Existing;
+		fileEvent = vx::FileMessage::Scene_Existing;
 		break;
 	case vx::FileType::EditorScene:
-		fileEvent = vx::FileEvent::Scene_Existing;
+		fileEvent = vx::FileMessage::Scene_Existing;
 		break;
 	default:
 		break;

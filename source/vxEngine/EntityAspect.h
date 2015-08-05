@@ -42,7 +42,7 @@ class CreateActorData;
 class MeshInstance;
 class CreateDynamicMeshData;
 
-#include <vxEngineLib/EventListener.h>
+#include <vxEngineLib/MessageListener.h>
 #include "PlayerController.h"
 #include <vxLib/math/Vector.h>
 #include <vxLib/Allocator/StackAllocator.h>
@@ -56,7 +56,7 @@ class CreateDynamicMeshData;
 enum class PlayerType : u32;
 enum class FileType : u8;
 
-class EntityAspect : public vx::EventListener
+class EntityAspect : public vx::MessageListener
 {
 	struct ColdData
 	{
@@ -82,8 +82,8 @@ class EntityAspect : public vx::EventListener
 
 	//////////////////
 
-	void handleFileEvent(const vx::Event &evt);
-	void handleIngameEvent(const vx::Event &evt);
+	void handleFileEvent(const vx::Message &evt);
+	void handleIngameMessage(const vx::Message &evt);
 
 public:
 	EntityAspect();
@@ -103,7 +103,7 @@ public:
 
 	void createPlayerEntity(const vx::float3 &position);
 
-	void handleEvent(const vx::Event &evt);
+	void handleMessage(const vx::Message &evt);
 
 	void onPressedActionKey();
 

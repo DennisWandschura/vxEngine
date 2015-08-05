@@ -23,32 +23,41 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
-
-enum class IngameEvent : u16
+namespace vx
 {
-	Level_Started,
-	Created_NavGraph,
-	Created_InfluenceMap,
+	struct Message;
+	class MessageListener;
+}
 
-	// arg1 ptr to CreateActorData
-	Physx_AddActor,
-	Physx_AddedActor,
+#include <vector>
+#include <vxLib/Container/sorted_array.h>
+#include <vxLib/Container/DoubleBuffer.h>
+#include <vxEngineLib/mutex.h>
 
-	Physx_AddStaticMesh,
+namespace vx
+{
+	class MessageManager
+	{
+		struct Listener
+		{
+			MessageListener* ptr;
+			u32 mask;
+		};
 
-	Physx_AddDynamicMesh,
-	Physx_AddedDynamicMesh,
+		vx::mutex m_evtMutex;
+		DoubleBuffer<Message> m_events;
+		std::vector<std::pair<u64, Listener>> m_MessageListeners;
 
-	// arg1 ptr to CreateActorData
-	Gpu_AddActor,
-	Gpu_AddedActor,
+	public:
+		MessageManager();
+		~MessageManager();
 
-	Gpu_AddedDynamicMesh,
+		void initialize(vx::StackAllocator* allocator, u32 maxEvtCount);
 
-	// arg1 ptr to EntityActor
-	// arg2 ptr to ActorComponent
-	Created_Actor,
+		void registerListener(MessageListener* ptr, u64 priority, u16 filter);
 
-	Anim_Add
-};
+		void update();
+
+		void addMessage(const Message &evt);
+	};
+}

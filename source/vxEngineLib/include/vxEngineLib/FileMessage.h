@@ -27,8 +27,23 @@ SOFTWARE.
 
 namespace vx
 {
-	enum class EventType : u8;
-	enum class FileEvent : u16;
-	enum class IngameEvent : u16;
-	enum class AIEvent : u16;
+	enum class FileMessage : u16
+	{
+		// arg1 contains sid of filename, arg2 contains ptr to scene
+		Scene_Loaded,
+		EditorScene_Loaded,
+		// arg1 contains sid to file, arg2 contains ptr
+		Texture_Loaded,
+		// arg1 contains sid to file, arg2 userdata
+		Material_Loaded,
+		// arg1 contains sid to file, arg2 userdata
+		Mesh_Loaded,
+		Wav_Loaded,
+		Animation_Loaded,
+
+		Scene_Existing,
+		Texture_Existing,
+		Material_Existing,
+		Mesh_Existing
+	};
 }

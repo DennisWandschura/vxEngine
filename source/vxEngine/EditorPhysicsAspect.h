@@ -42,7 +42,7 @@ namespace Editor
 
 	class PhysicsAspect : public ::PhysicsAspect
 	{
-		void handleFileEvent(const vx::Event &evt);
+		void handleFileEvent(const vx::Message &evt);
 
 		void processScene(const Editor::Scene* pScene);
 
@@ -53,7 +53,7 @@ namespace Editor
 		PhysicsAspect();
 		~PhysicsAspect();
 
-		void handleEvent(const vx::Event &evt) override;
+		void handleMessage(const vx::Message &evt) override;
 
 		void setPosition(const vx::float3 &position, physx::PxController* pController);
 

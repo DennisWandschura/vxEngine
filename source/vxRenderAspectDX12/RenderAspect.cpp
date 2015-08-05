@@ -26,9 +26,9 @@ SOFTWARE.
 #include "d3dHelper.h"
 #include <vxLib/Window.h>
 #include <vxEngineLib/EngineConfig.h>
-#include <vxEngineLib/Event.h>
+#include <vxEngineLib/Message.h>
 #include <vxEngineLib/EventTypes.h>
-#include <vxEngineLib/FileEvents.h>
+#include <vxEngineLib/FileMessage.h>
 #include <vxEngineLib/Scene.h>
 #include "d3dx12.h"
 #include "TaskUpdateCamera.h"

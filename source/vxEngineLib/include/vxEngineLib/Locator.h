@@ -25,7 +25,7 @@ SOFTWARE.
 
 namespace vx
 {
-	class EventManager;
+	class MessageManager;
 }
 class PhysicsAspect;
 class FileAspect;
@@ -33,14 +33,14 @@ class RenderAspectInterface;
 
 class Locator
 {
-	static vx::EventManager* s_pEventManager;
+	static vx::MessageManager* s_pEventManager;
 	static PhysicsAspect* s_pPhysicsAspect;
 	static FileAspect* s_pFileAspect;
 	static RenderAspectInterface* s_pRenderAspect;
 
 public:
-	static void provide(vx::EventManager* p);
-	static vx::EventManager* getEventManager();
+	static void provide(vx::MessageManager* p);
+	static vx::MessageManager* getMessageManager();
 
 	static void provide(PhysicsAspect* p);
 	static PhysicsAspect* getPhysicsAspect();

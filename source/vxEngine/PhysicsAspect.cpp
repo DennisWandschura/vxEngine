@@ -23,18 +23,18 @@ SOFTWARE.
 */
 #include "PhysicsAspect.h"
 #include <PxPhysicsAPI.h>
-#include <vxEngineLib/Event.h>
-#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Locator.h>
 #include <vxEngineLib/Material.h>
 #include <vxResourceAspect/FileAspect.h>
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/MeshFile.h>
-#include <vxEngineLib/FileEvents.h>
-#include <vxEngineLib/EventsIngame.h>
+#include <vxEngineLib/FileMessage.h>
+#include <vxEngineLib/IngameMessage.h>
 #include <vxEngineLib/CreateActorData.h>
-#include <vxEngineLib/EventManager.h>
+#include <vxEngineLib/MessageManager.h>
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include <vxEngineLib/Joint.h>
 
@@ -307,14 +307,14 @@ void PhysicsAspect::update(const f32 dt)
 	m_pScene->simulate(dt);
 }
 
-void PhysicsAspect::handleEvent(const vx::Event &evt)
+void PhysicsAspect::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case(vx::EventType::Ingame_Event) :
-		handleIngameEvent(evt);
+	case(vx::MessageType::Ingame_Event) :
+		handleIngameMessage(evt);
 		break;
-	case(vx::EventType::File_Event) :
+	case(vx::MessageType::File_Event) :
 		handleFileEvent(evt);
 		break;
 	default:
@@ -322,12 +322,12 @@ void PhysicsAspect::handleEvent(const vx::Event &evt)
 	}
 }
 
-void PhysicsAspect::handleFileEvent(const vx::Event &evt)
+void PhysicsAspect::handleFileEvent(const vx::Message &evt)
 {
-	auto fileEvent = (vx::FileEvent)evt.code;
+	auto fileEvent = (vx::FileMessage)evt.code;
 	switch (fileEvent)
 	{
-	case vx::FileEvent::Scene_Loaded:
+	case vx::FileMessage::Scene_Loaded:
 		processScene((Scene*)evt.arg2.ptr);
 		break;
 	default:
@@ -335,13 +335,13 @@ void PhysicsAspect::handleFileEvent(const vx::Event &evt)
 	}
 }
 
-void PhysicsAspect::handleIngameEvent(const vx::Event &evt)
+void PhysicsAspect::handleIngameMessage(const vx::Message &evt)
 {
-	auto ingameEvent = (IngameEvent)evt.code;
+	auto ingameMessage = (IngameMessage)evt.code;
 
-	switch (ingameEvent)
+	switch (ingameMessage)
 	{
-	case IngameEvent::Physx_AddActor:
+	case IngameMessage::Physx_AddActor:
 	{
 		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
 
@@ -349,30 +349,30 @@ void PhysicsAspect::handleIngameEvent(const vx::Event &evt)
 		auto controller = createActor(transform.m_translation, data->getHeight());
 		data->setPhysx(controller);
 
-		vx::Event evt;
-		evt.type = vx::EventType::Ingame_Event;
-		evt.code = (u32)IngameEvent::Physx_AddedActor;
+		vx::Message evt;
+		evt.type = vx::MessageType::Ingame_Event;
+		evt.code = (u32)IngameMessage::Physx_AddedActor;
 		evt.arg1.ptr = data;
 
-		auto evtManager = Locator::getEventManager();
-		evtManager->addEvent(evt);
+		auto evtManager = Locator::getMessageManager();
+		evtManager->addMessage(evt);
 	}break;
-	case IngameEvent::Physx_AddDynamicMesh:
+	case IngameMessage::Physx_AddDynamicMesh:
 	{
 		auto data = (CreateDynamicMeshData*)evt.arg1.ptr;
 
 		addMeshInstanceImpl(*data->m_meshInstance, (void**)&data->m_rigidDynamic);
 		data->increment();
 
-		vx::Event evt;
-		evt.type = vx::EventType::Ingame_Event;
-		evt.code = (u32)IngameEvent::Physx_AddedDynamicMesh;
+		vx::Message evt;
+		evt.type = vx::MessageType::Ingame_Event;
+		evt.code = (u32)IngameMessage::Physx_AddedDynamicMesh;
 		evt.arg1.ptr = data;
 
-		auto evtManager = Locator::getEventManager();
-		evtManager->addEvent(evt);
+		auto evtManager = Locator::getMessageManager();
+		evtManager->addMessage(evt);
 	}break;
-	case IngameEvent::Physx_AddStaticMesh:
+	case IngameMessage::Physx_AddStaticMesh:
 	{
 		auto instance = (MeshInstance*)evt.arg1.ptr;
 		addMeshInstanceImpl(*instance, nullptr);
@@ -567,11 +567,9 @@ void PhysicsAspect::addDynamicMeshInstance(const physx::PxTransform &transform, 
 	m_pScene->addActor(*rigidDynamic);
 }
 
-void PhysicsAspect::processScene(const Scene* ptr)
+void PhysicsAspect::processScene(const Scene* pScene)
 {
 	m_pScene->lockWrite();
-
-	auto pScene = (Scene*)ptr;
 
 	auto &meshes = pScene->getMeshes();
 	auto keys = meshes.keys();
@@ -608,6 +606,14 @@ void PhysicsAspect::processScene(const Scene* ptr)
 	}*/
 
 	m_pScene->unlockWrite();
+
+	vx::Message e;
+	e.arg1.ptr = (void*)pScene;
+	e.type = vx::MessageType::Ingame_Event;
+	e.code = (u32)IngameMessage::Physx_CreatedScene;
+
+	auto pEvtManager = Locator::getMessageManager();
+	pEvtManager->addMessage(e);
 }
 
 physx::PxTriangleMesh* PhysicsAspect::processTriangleMesh(const vx::MeshFile &mesh)

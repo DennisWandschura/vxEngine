@@ -23,41 +23,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace vx
-{
-	struct Event;
-	class EventListener;
-}
-
-#include <vector>
-#include <vxLib/Container/sorted_array.h>
-#include <vxLib/Container/DoubleBuffer.h>
-#include <vxEngineLib/mutex.h>
+#include <vxLib/types.h>
 
 namespace vx
 {
-	class EventManager
+	enum class MessageType : u8
 	{
-		struct Listener
-		{
-			vx::EventListener* ptr;
-			u32 mask;
-		};
-
-		vx::mutex m_evtMutex;
-		DoubleBuffer<vx::Event> m_events;
-		std::vector<std::pair<u64, Listener>> m_eventListeners;
-
-	public:
-		EventManager();
-		~EventManager();
-
-		void initialize(vx::StackAllocator* allocator, u32 maxEvtCount);
-
-		void registerListener(vx::EventListener* ptr, u64 priority, u16 filter);
-
-		void update();
-
-		void addEvent(const vx::Event &evt);
+		File_Event = 1 << 0,
+		Ingame_Event = 1 << 1,
+		AI_Event = 1 << 2,
+		Editor_Event = 1 << 3
 	};
 }

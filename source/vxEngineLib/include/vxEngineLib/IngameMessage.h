@@ -25,13 +25,32 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-namespace vx
+enum class IngameMessage : u16
 {
-	enum class EventType : u8
-	{
-		File_Event = 1 << 0,
-		Ingame_Event = 1 << 1,
-		AI_Event = 1 << 2,
-		Editor_Event = 1 << 3
-	};
-}
+	Level_Started,
+	Created_NavGraph,
+	Created_InfluenceMap,
+
+	Physx_CreatedScene,
+
+	// arg1 ptr to CreateActorData
+	Physx_AddActor,
+	Physx_AddedActor,
+
+	Physx_AddStaticMesh,
+
+	Physx_AddDynamicMesh,
+	Physx_AddedDynamicMesh,
+
+	// arg1 ptr to CreateActorData
+	Gpu_AddActor,
+	Gpu_AddedActor,
+
+	Gpu_AddedDynamicMesh,
+
+	// arg1 ptr to EntityActor
+	// arg2 ptr to ActorComponent
+	Created_Actor,
+
+	Anim_Add
+};

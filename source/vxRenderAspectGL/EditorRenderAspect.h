@@ -80,8 +80,8 @@ namespace Editor
 		void createCommandList();
 		bool createEditorTextures();
 
-		void handleLoadScene(const vx::Event &evt);
-		void handleFileEvent(const vx::Event &evt);
+		void handleLoadScene(const vx::Message &evt);
+		void handleFileEvent(const vx::Message &evt);
 
 		void bindBuffers();
 
@@ -105,7 +105,7 @@ namespace Editor
 		void submitCommands();
 		void endFrame();
 
-		void handleEvent(const vx::Event &evt) override;
+		void handleMessage(const vx::Message &evt) override;
 
 		void keyPressed(u16 key);
 

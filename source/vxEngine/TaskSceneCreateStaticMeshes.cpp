@@ -28,10 +28,10 @@ SOFTWARE.
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include <vxEngineLib/Locator.h>
-#include <vxEngineLib/EventManager.h>
-#include <vxEngineLib/Event.h>
-#include <vxEngineLib/EventTypes.h>
-#include <vxEngineLib/EventsIngame.h>
+#include <vxEngineLib/MessageManager.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/MessageTypes.h>
+#include <vxEngineLib/IngameMessage.h>
 #include <vxEngineLib/CpuTimer.h>
 
 thread_local f32 TaskSceneCreateStaticMeshes::s_time{0.0f};
@@ -44,24 +44,16 @@ TaskSceneCreateStaticMeshes::TaskSceneCreateStaticMeshes(const Scene* scene, Ren
 
 }
 
-TaskSceneCreateStaticMeshes::TaskSceneCreateStaticMeshes(TaskSceneCreateStaticMeshes &&rhs)
-	:Task(std::move(rhs)),
-	m_scene(rhs.m_scene),
-	m_renderAspect(rhs.m_renderAspect)
-{
-
-}
-
 TaskSceneCreateStaticMeshes::~TaskSceneCreateStaticMeshes()
 {
 
 }
 
-TaskReturnType TaskSceneCreateStaticMeshes::run()
+TaskReturnType TaskSceneCreateStaticMeshes::runImpl()
 {
 	CpuTimer timer;
 
-	auto evtManager = Locator::getEventManager();
+	auto evtManager = Locator::getMessageManager();
 
 	auto instanceCount = m_scene->getMeshInstanceCount();
 	auto instances = m_scene->getMeshInstances();
@@ -83,12 +75,12 @@ TaskReturnType TaskSceneCreateStaticMeshes::run()
 
 			m_renderAspect->queueUpdateTask(type, (u8*)&data, sizeof(RenderUpdateTaskAddStaticMeshData));
 
-			vx::Event evt;
-			evt.type = vx::EventType::Ingame_Event;
-			evt.code = (u32)IngameEvent::Physx_AddStaticMesh;
+			vx::Message evt;
+			evt.type = vx::MessageType::Ingame_Event;
+			evt.code = (u32)IngameMessage::Physx_AddStaticMesh;
 			evt.arg1.ptr = (void*)&instance;
 
-			evtManager->addEvent(evt);
+			evtManager->addMessage(evt);
 
 		}break;
 		case PhysxRigidBodyType::Dynamic:
@@ -102,12 +94,12 @@ TaskReturnType TaskSceneCreateStaticMeshes::run()
 			RenderUpdateTaskType type = RenderUpdateTaskType::AddDynamicMeshInstance;
 			m_renderAspect->queueUpdateTask(type, (u8*)&address, sizeof(address));
 
-			vx::Event evt;
-			evt.type = vx::EventType::Ingame_Event;
-			evt.code = (u32)IngameEvent::Physx_AddDynamicMesh;
+			vx::Message evt;
+			evt.type = vx::MessageType::Ingame_Event;
+			evt.code = (u32)IngameMessage::Physx_AddDynamicMesh;
 			evt.arg1.ptr = data;
 
-			evtManager->addEvent(evt);
+			evtManager->addMessage(evt);
 		}break;
 		default:
 			break;

@@ -39,10 +39,9 @@ class TaskPhysxCreateJoints : public Task
 
 public:
 	TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect);
-	TaskPhysxCreateJoints(TaskPhysxCreateJoints &&rhs);
 	~TaskPhysxCreateJoints();
 
-	TaskReturnType run() override;
+	TaskReturnType runImpl() override;
 
 	f32 getTimeMs() const override;
 };

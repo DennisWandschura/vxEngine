@@ -28,7 +28,7 @@ namespace Editor
 	class Scene;
 }
 
-#include <vxEngineLib/EventManager.h>
+#include <vxEngineLib/MessageManager.h>
 #include "SystemAspect.h"
 #include "EditorPhysicsAspect.h"
 #include <vxResourceAspect/FileAspect.h>
@@ -36,13 +36,13 @@ namespace Editor
 #include "memory.h"
 #include "LevelEditor.h"
 #include "Editor.h"
-#include <vxEngineLib/EventListener.h>
+#include <vxEngineLib/MessageListener.h>
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/EditorRenderAspectInterface.h>
 
 enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
-class EditorEngine : public vx::EventListener
+class EditorEngine : public vx::MessageListener
 {
 	struct SelectedNavMeshVertices
 	{
@@ -60,7 +60,7 @@ class EditorEngine : public vx::EventListener
 		};
 	};
 
-	vx::EventManager m_eventManager;
+	vx::MessageManager m_msgManager;
 	Editor::PhysicsAspect m_physicsAspect;
 	Editor::RenderAspectInterface* m_renderAspect;
 	Editor::Scene* m_pEditorScene{ nullptr };
@@ -91,7 +91,7 @@ class EditorEngine : public vx::EventListener
 	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);
 
-	void handleFileEvent(const vx::Event &evt);
+	void handleFileEvent(const vx::Message &evt);
 
 	vx::float4a getRayDir(s32 mouseX, s32 mouseY);
 
@@ -124,7 +124,7 @@ public:
 
 	void stop();
 
-	void handleEvent(const vx::Event &evt);
+	void handleMessage(const vx::Message &evt);
 
 	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
 

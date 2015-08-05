@@ -39,10 +39,9 @@ class TaskSceneCreateStaticMeshes : public Task
 
 public:
 	TaskSceneCreateStaticMeshes(const Scene* scene, RenderAspectInterface* renderAspect);
-	TaskSceneCreateStaticMeshes(TaskSceneCreateStaticMeshes &&rhs);
 	~TaskSceneCreateStaticMeshes();
 
-	TaskReturnType run() override;
+	TaskReturnType runImpl() override;
 
 	f32 getTimeMs() const override;
 };

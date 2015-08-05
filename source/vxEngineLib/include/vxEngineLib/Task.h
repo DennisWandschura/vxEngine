@@ -24,29 +24,50 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-enum class TaskReturnType
+enum class TaskReturnType : unsigned int
 {
 	Success,
 	Failure,
 	Retry
 };
 
-class TaskThreadAllocator;
+class SmallObjAllocator;
+class Event;
 
 #include <vxLib/types.h>
+#include <atomic>
+#include <vector>
 
 class Task
 {
-	static TaskThreadAllocator* s_allocator;
+	static std::vector<SmallObjAllocator*> s_allocators;
+	static thread_local SmallObjAllocator* s_allocator;
+
+	friend class Event;
+
+	std::atomic_int m_eventCount;
+	Event* m_event;
+
+protected:
+	virtual TaskReturnType runImpl() = 0;
 
 public:
+	Task() :m_eventCount(0), m_event(nullptr){}
+
+	Task(const Task&) = delete;
+	Task(Task &&rhs) = delete;
+
 	virtual ~Task() {}
 
-	virtual TaskReturnType run() = 0;
+	void attachEvent(Event* evt);
+
+	TaskReturnType run();
+
+	bool isReady() const { return (m_eventCount.load() == 0); }
 
 	virtual f32 getTimeMs() const = 0;
 
-	static void setAllocator(TaskThreadAllocator* allocator);
+	static void setAllocator(SmallObjAllocator* allocator);
 
 	static void* operator new(std::size_t size);
 	static void operator delete(void* p, std::size_t size);
