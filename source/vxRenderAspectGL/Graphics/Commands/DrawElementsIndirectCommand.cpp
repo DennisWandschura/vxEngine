@@ -46,6 +46,19 @@ namespace Graphics
 
 	CommandFactoryRegister g_commandFactoryDrawElementsIndirectCommand{ "DrawElementsIndirectCommand", createFromNodeDrawElementsIndirectCommand };
 
+	DrawElementsIndirectCommand::DrawElementsIndirectCommand()
+		:m_mode(0),
+		m_type(0),
+		m_offset(0)
+	{
+
+	}
+
+	DrawElementsIndirectCommand::~DrawElementsIndirectCommand()
+	{
+
+	}
+
 	void DrawElementsIndirectCommand::set(u32 mode, u32 type, u32 offset)
 	{
 		m_mode = mode;

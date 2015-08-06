@@ -120,7 +120,7 @@ class Reference
 	{
 		if (m_ptr)
 		{
-			auto refCount = m_ptr->decrement();
+			 m_ptr->decrement();
 		}
 	}
 

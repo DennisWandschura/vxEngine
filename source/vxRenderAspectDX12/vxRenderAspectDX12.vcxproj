@@ -90,7 +90,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOMINMAX;_VX_ASSERT;_VX_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_VX_ASSERT;_VX_WINDOWS;_VX_NO_EXCEPTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -135,28 +135,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Buffer.h" />
-    <ClInclude Include="CommandAllocator.h" />
+    <ClInclude Include="BufferView.h" />
+    <ClInclude Include="d3d.h" />
     <ClInclude Include="d3dHelper.h" />
     <ClInclude Include="d3dx12.h" />
-    <ClInclude Include="DefaultHeap.h" />
+    <ClInclude Include="DescriptorHeap.h" />
+    <ClInclude Include="Device.h" />
     <ClInclude Include="dllExport.h" />
+    <ClInclude Include="Heap.h" />
     <ClInclude Include="RenderAspect.h" />
+    <ClInclude Include="ResourceBarrier.h" />
     <ClInclude Include="TaskUpdateCamera.h" />
     <ClInclude Include="TaskUploadGeometry.h" />
-    <ClInclude Include="UploadBuffer.h" />
-    <ClInclude Include="UploadHeap.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Buffer.cpp" />
-    <ClCompile Include="CommandAllocator.cpp" />
-    <ClCompile Include="DefaultHeap.cpp" />
+    <ClCompile Include="BufferView.cpp" />
+    <ClCompile Include="DescriptorHeap.cpp" />
+    <ClCompile Include="Device.cpp" />
     <ClCompile Include="dllExport.cpp" />
+    <ClCompile Include="Heap.cpp" />
     <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="TaskUpdateCamera.cpp" />
     <ClCompile Include="TaskUploadGeometry.cpp" />
-    <ClCompile Include="UploadBuffer.cpp" />
-    <ClCompile Include="UploadHeap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">

@@ -24,7 +24,7 @@ SOFTWARE.
 #include <vxEngineLib/SmallObjAllocator.h>
 #include <algorithm>
 
-void Chunk::init(u32 blockSize, u16 blockCount)
+void Chunk::init(u32 blockSize, u8 blockCount)
 {
 	ptr = new u8[blockSize * blockCount];
 	freeBlocks = blockCount;
@@ -55,8 +55,10 @@ void Chunk::deallocate(u8* p, u32 blockSize)
 	VX_ASSERT(p >= ptr);
 	auto toRelease = p;
 	VX_ASSERT((toRelease - ptr) % blockSize == 0);
+
 	*toRelease = firstFreeBlock;
-	firstFreeBlock = ((toRelease - ptr) / blockSize);
+	firstFreeBlock = static_cast<u8>((toRelease - ptr) / blockSize);
+
 	VX_ASSERT(firstFreeBlock == (toRelease - ptr) / blockSize);
 
 	++freeBlocks;
@@ -101,7 +103,7 @@ ChunkAllocator::~ChunkAllocator()
 	m_pChunks = nullptr;
 }
 
-void ChunkAllocator::init(u16 blockSize, u16 blockCount)
+void ChunkAllocator::init(u16 blockSize, u8 blockCount)
 {
 	m_blockSize = blockSize;
 	m_blockCount = blockCount;
@@ -236,7 +238,7 @@ u32 SmallObjAllocator::createAllocator(u16 size)
 {
 	auto mod = m_chunkSize & size;
 	auto blockCount = (m_chunkSize / size) + mod;
-	blockCount = std::min(blockCount, 0xffffu);
+	blockCount = std::min(blockCount, 0xffu);
 
 	ChunkAllocator alloc;
 	alloc.init(size, blockCount);
@@ -244,7 +246,7 @@ u32 SmallObjAllocator::createAllocator(u16 size)
 	auto index = m_allocators.size();
 	m_allocators.push_back(std::move(alloc));
 
-	return index;
+	return static_cast<u32>(index);
 }
 
 void SmallObjAllocator::sortAllocators()
@@ -322,7 +324,7 @@ bool SmallObjAllocator::deallocate(u8* p, u32 size)
 		if (!found)
 			return false;
 
-		m_lastDealloc = iter - m_allocators.begin();
+		m_lastDealloc = static_cast<u32>(iter - m_allocators.begin());
 	}
 
 	m_allocators[m_lastDealloc].deallocate(p);

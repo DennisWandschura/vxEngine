@@ -16,6 +16,9 @@
     <Filter Include="Source Files\unity">
       <UniqueIdentifier>{15272fc5-8212-4779-8e8f-755ad57fc6a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Tasks">
+      <UniqueIdentifier>{198c21d7-561a-4126-aa26-a73ae72d7243}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileAspect.cpp">
@@ -49,6 +52,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConverterSceneFileToEditorScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -88,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToEditorScene.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadMesh.h">
+      <Filter>Header Files\Tasks</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

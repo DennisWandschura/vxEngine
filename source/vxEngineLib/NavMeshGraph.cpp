@@ -181,8 +181,8 @@ namespace NavMeshGraphCpp
 
 				NavConnection connection;
 				connection.m_cost = vx::distance3(fromNode->position, toNode->position);
-				connection.m_fromNode = fromIndex;
-				connection.m_toNode = toIndex;
+				connection.m_fromNode = static_cast<u16>(fromIndex);
+				connection.m_toNode = static_cast<u16>(toIndex);
 
 				flatConnections.push_back(connection);
 
@@ -198,7 +198,7 @@ namespace NavMeshGraphCpp
 			auto itConnection = connections.find(buildNode.position);
 
 			nodes[i].m_position = buildNode.position;
-			nodes[i].m_connectionCount = itConnection->connections.size();
+			nodes[i].m_connectionCount = static_cast<u32>(itConnection->connections.size());
 			nodes[i].m_connectionOffset = buildNode.connectionOffset;
 		}
 

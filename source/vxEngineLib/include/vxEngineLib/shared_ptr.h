@@ -27,52 +27,49 @@ SOFTWARE.
 template<typename T>
 struct shared_ptr
 {
-	T* ptr;
+	T* m_ptr;
 
 	void increment()
 	{
-		if (ptr)
+		if (m_ptr)
 		{
-			ptr->increment();
+			m_ptr->increment();
 		}
 	}
 
 	void cleanup()
 	{
-		if (ptr)
+		if (m_ptr)
 		{
-			auto refCount = ptr->decrement();
-			if (refCount < 0)
-			{
-				puts("errr");
-			}
+			auto refCount = m_ptr->decrement() - 1;
 
-			if (refCount <= 0)
+			if (refCount == 0)
 			{
-				delete(ptr);
+				delete(m_ptr);
 			}
 		}
 	}
 
-	shared_ptr() :ptr(nullptr) {}
-	shared_ptr(T* p) :ptr(p) { increment(); }
+public:
+	shared_ptr() :m_ptr(nullptr) {}
+	shared_ptr(T* p) :m_ptr(p) { increment(); }
+
 	shared_ptr(const shared_ptr &rhs)
-		:ptr(rhs.ptr)
+		:m_ptr(rhs.m_ptr)
 	{
 		increment();
 	}
 
 	shared_ptr(shared_ptr &&rhs)
-		:ptr(rhs.ptr)
+		:m_ptr(rhs.m_ptr)
 	{
-		rhs.ptr = nullptr;
+		rhs.m_ptr = nullptr;
 	}
 
 	~shared_ptr()
 	{
 		cleanup();
-
-		ptr = nullptr;
+		m_ptr = nullptr;
 	}
 
 	shared_ptr& operator=(const shared_ptr &rhs)
@@ -80,10 +77,10 @@ struct shared_ptr
 		if (this != &rhs)
 		{
 			cleanup();
-			ptr = rhs.ptr;
+
+			m_ptr = rhs.m_ptr;
 			increment();
 		}
-
 		return *this;
 	}
 
@@ -91,21 +88,29 @@ struct shared_ptr
 	{
 		if (this != &rhs)
 		{
-			auto tmp = ptr;
-			ptr = rhs.ptr;
-			rhs.ptr = tmp;
+			auto tmp = m_ptr;
+			m_ptr = rhs.m_ptr;
+			rhs.m_ptr = tmp;
 		}
-
 		return *this;
 	}
 
 	T* operator->()
 	{
-		return ptr;
+		return m_ptr;
 	}
 
 	const T* operator->() const
 	{
-		return ptr;
+		return m_ptr;
+	}
+
+	T* get() { return m_ptr; }
+
+	const T* get() const { return m_ptr; }
+
+	operator bool()
+	{
+		return (m_ptr != nullptr);
 	}
 };

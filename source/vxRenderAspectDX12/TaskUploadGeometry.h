@@ -3,7 +3,7 @@
 struct ID3D12GraphicsCommandList;
 struct ID3D12Resource;
 struct ID3D12CommandList;
-class CommandAllocator;
+struct ID3D12CommandAllocator;
 
 #include <vxEngineLib/Task.h>
 #include <vxLib/types.h>
@@ -21,18 +21,16 @@ struct UploadTaskData
 
 class TaskUploadGeometry : public Task
 {
-	CommandAllocator* m_cmdAllocator;
+	ID3D12CommandAllocator* m_cmdAllocator;
 	ID3D12GraphicsCommandList* m_commandList;
 	std::vector<UploadTaskData> m_data;
 	std::vector<ID3D12CommandList*>* m_cmdLists;
 
+	TaskReturnType runImpl() override;
+
 public:
-	TaskUploadGeometry(CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data, std::vector<ID3D12CommandList*>* cmdLists);
+	TaskUploadGeometry(ID3D12CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data, std::vector<ID3D12CommandList*>* cmdLists);
 	~TaskUploadGeometry();
 
-	TaskReturnType run() override;
-
-	Task* move(vx::Allocator* allocator) override;
-
-	f32 getTime() const override;
+	f32 getTimeMs() const override;
 };

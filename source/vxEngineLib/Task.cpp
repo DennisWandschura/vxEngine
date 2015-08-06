@@ -13,7 +13,7 @@ TaskReturnType Task::run()
 	}
 
 	auto result = runImpl();
-	if (result == TaskReturnType::Success && m_event.ptr)
+	if (result == TaskReturnType::Success && m_event.get() != nullptr)
 	{
 		m_event->set();
 	}

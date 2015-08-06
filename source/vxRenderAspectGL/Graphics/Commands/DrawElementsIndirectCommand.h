@@ -33,6 +33,9 @@ namespace Graphics
 		u32 m_type;
 		u32 m_offset;
 
+		DrawElementsIndirectCommand();
+		~DrawElementsIndirectCommand();
+
 		void set(u32 mode, u32 type, u32 offset = 0);
 
 		static void execute(const u8* p, u32* offset);

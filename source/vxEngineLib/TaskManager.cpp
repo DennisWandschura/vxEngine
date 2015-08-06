@@ -247,17 +247,25 @@ namespace vx
 
 	void TaskManager::pushTask(u32 tid, Task* task, bool ignoreTime)
 	{
-		bool inserted = false;
-
-		if (m_queues[tid]->pushTask(task, ignoreTime))
+		auto sz = m_queues.size();
+		if (sz == 0)
 		{
-			inserted = true;
+			task->run();
 		}
-
-		if (!inserted)
+		else
 		{
-			std::unique_lock<std::mutex> lock(m_mutexFront);
-			m_tasksFront.push_back(task);
+			bool inserted = false;
+
+			if (m_queues[tid]->pushTask(task, ignoreTime))
+			{
+				inserted = true;
+			}
+
+			if (!inserted)
+			{
+				std::unique_lock<std::mutex> lock(m_mutexFront);
+				m_tasksFront.push_back(task);
+			}
 		}
 	}
 
@@ -277,7 +285,7 @@ namespace vx
 		{
 			u32 distributedTasks = 0;
 
-			u32 avgSizePerQueue = (m_tasksBack.size() + m_queues.size() - 1) / m_queues.size();
+			u32 avgSizePerQueue = static_cast<u32>((m_tasksBack.size() + m_queues.size() - 1) / m_queues.size());
 			avgSizePerQueue = std::min(m_capacity, avgSizePerQueue);
 
 			/*std::sort(m_tasksBack.begin(), m_tasksBack.end(), [](const Task* l, const Task* r)

@@ -25,11 +25,12 @@ SOFTWARE.
 #if _VX_EDITOR
 #else
 #define _CRTDBG_MAP_ALLOC
+#include "Engine.h"
+
 #include <stdlib.h>
 #include <crtdbg.h>
 
 #include <vxLib/ScopeGuard.h>
-#include "Engine.h"
 #include <vxEngineLib/Logfile.h>
 #include <vxEngineLib/Timer.h>
 #include <csignal>

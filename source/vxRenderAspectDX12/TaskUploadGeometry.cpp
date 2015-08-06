@@ -1,9 +1,8 @@
 #include "TaskUploadGeometry.h"
 #include <d3d12.h>
-#include "CommandAllocator.h"
 #include "d3dHelper.h"
 
-TaskUploadGeometry::TaskUploadGeometry(CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data, 
+TaskUploadGeometry::TaskUploadGeometry(ID3D12CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data,
 	std::vector<ID3D12CommandList*>* cmdLists)
 	:m_cmdAllocator(cmdAllocator), 
 	m_commandList(commandList),
@@ -17,16 +16,15 @@ TaskUploadGeometry::~TaskUploadGeometry()
 {
 }
 
-TaskReturnType TaskUploadGeometry::run()
+TaskReturnType TaskUploadGeometry::runImpl()
 {
-	auto allocator = m_cmdAllocator->get();
-	auto hresult = allocator->Reset();
+	auto hresult = m_cmdAllocator->Reset();
 	if (hresult != 0)
 	{
 		printf("error allocator->reset()\n");
 	}
 
-	hresult = m_commandList->Reset(allocator, nullptr);
+	hresult = m_commandList->Reset(m_cmdAllocator, nullptr);
 	if (hresult != 0)
 	{
 		printf("error m_commandList->reset()\n");
@@ -55,12 +53,7 @@ TaskReturnType TaskUploadGeometry::run()
 	return TaskReturnType::Success;
 }
 
-Task* TaskUploadGeometry::move(vx::Allocator* allocator)
-{
-	return nullptr;
-}
-
-f32 TaskUploadGeometry::getTime() const
+f32 TaskUploadGeometry::getTimeMs() const
 {
 	return 0;
 }

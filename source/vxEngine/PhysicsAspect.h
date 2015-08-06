@@ -72,14 +72,14 @@ struct Joint;
 class Event;
 
 #include <vxEngineLib/MessageListener.h>
-#include <foundation/PxErrorCallback.h>
-#include <extensions/PxDefaultAllocator.h>
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
 #include <vxLib/math/Vector.h>
+#include <vxEngineLib/shared_ptr.h>
+#include <foundation/PxErrorCallback.h>
+#include <extensions/PxDefaultAllocator.h>
 #include <vector>
 #include "PhysicsCpuDispatcher.h"
-#include <vxEngineLib/shared_ptr.h>
 
 enum class PhsyxMeshType : u32;
 enum class PhysxRigidBodyType : u8;
@@ -102,6 +102,7 @@ protected:
 	physx::PxMaterial* m_pActorMaterial{ nullptr };
 	physx::PxPhysics *m_pPhysics;
 	shared_ptr<Event> m_evtFetch;
+	shared_ptr<Event> m_evtBlock;
 	vx::sorted_vector<vx::StringID, PhsyxMeshType> m_physxMeshTypes;
 	vx::sorted_vector<vx::StringID, physx::PxConvexMesh*> m_physxConvexMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxTriangleMesh*> m_physxMeshes;
@@ -149,6 +150,7 @@ public:
 	void update(const f32 dt);
 
 	const shared_ptr<Event>& getEventPhysicsFetch() const {return m_evtFetch;}
+	const shared_ptr<Event>& getEventBlockSimulate() const { return m_evtBlock; }
 
 	virtual void handleMessage(const vx::Message &evt) override;
 

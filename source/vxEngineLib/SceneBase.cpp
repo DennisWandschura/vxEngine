@@ -259,5 +259,5 @@ const Joint* SceneBase::getJoints() const
 
 u32 SceneBase::getJointCount() const
 {
-	return m_joints.size();
+	return static_cast<u32>(m_joints.size());
 }

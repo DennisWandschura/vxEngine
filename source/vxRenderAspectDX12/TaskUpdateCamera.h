@@ -14,14 +14,11 @@ class TaskUpdateCamera : public Task
 	__m128 m_quaternionRotation;
 	vx::Camera* m_camera;
 
+	TaskReturnType runImpl() override;
+
 public:
 	TaskUpdateCamera(const __m128 &position, const __m128 &quaternionRotation, vx::Camera* camera);
-	TaskUpdateCamera(TaskUpdateCamera &&rhs);
 	~TaskUpdateCamera();
 
-	TaskReturnType run() override;
-
-	Task* move(vx::Allocator* allocator) override;
-
-	f32 getTime() const override;
+	f32 getTimeMs() const override;
 };

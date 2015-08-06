@@ -289,17 +289,18 @@ Reference<Material> FileAspect::loadMaterial(const LoadMaterialDescription &desc
 		factoryDesc.textureFiles = &m_sortedTextures;
 		factoryDesc.missingFiles = desc.missingFiles;
 		factoryDesc.material = &material;
-		auto result = MaterialFactory::load(factoryDesc);
+		auto bresult = MaterialFactory::load(factoryDesc);
 
-		if (result)
+		if (bresult)
 		{
 			u16 index;
 			auto materialPtr = m_poolMaterial.createEntry(&index, std::move(material));
 			VX_ASSERT(materialPtr != nullptr);
 
-			m_sortedMaterials.insert(desc.shared.sid, Reference<Material>(*materialPtr));
+			Reference<Material> ref(*materialPtr);
+			m_sortedMaterials.insert(desc.shared.sid, ref);
 
-			result = materialPtr;
+			result = ref;
 			*desc.shared.status = vx::FileStatus::Loaded;
 			LOG_ARGS(m_logfile, "Loaded Material '%s'\n", false, desc.shared.filename);
 		}

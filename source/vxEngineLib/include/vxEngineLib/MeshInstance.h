@@ -64,8 +64,8 @@ public:
 	MeshInstance& operator=(const MeshInstance &rhs);
 	MeshInstance& operator=(MeshInstance &&rhs);
 
-	vx::StringID getNameSid() const noexcept{ return m_nameSid; }
-	vx::StringID getMeshSid() const noexcept { return m_meshSid; }
+	const vx::StringID& getNameSid() const{ return m_nameSid; }
+	const vx::StringID& getMeshSid() const { return m_meshSid; }
 	const Reference<Material>& getMaterial() const noexcept;
 	vx::StringID getAnimationSid() const noexcept{ return m_animationSid; }
 	const vx::Transform& getTransform() const noexcept { return m_transform; }

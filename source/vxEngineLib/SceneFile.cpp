@@ -307,7 +307,7 @@ u64 SceneFile::getCrcVersion4() const
 	auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize;
 	auto ptr = vx::make_unique<u8[]>(totalSize);
 
-	auto offset = 0;
+	s64 offset = 0;
 	if (meshInstanceSize != 0)
 	{
 		auto tmpInstances = vx::make_unique<MeshInstanceFileV4[]>(m_meshInstanceCount);

@@ -364,19 +364,19 @@ namespace Parser
 
 	bool Node::as(bool* data) const
 	{
-		*data = strtol(m_data.c_str(), nullptr, 10);
+		*data = static_cast<bool>(strtol(m_data.c_str(), nullptr, 10));
 		return true;
 	}
 
 	bool Node::as(u8* data) const
 	{
-		*data = strtoul(m_data.c_str(), nullptr, 10);
+		*data = static_cast<u8>(strtoul(m_data.c_str(), nullptr, 10));
 		return true;
 	}
 
 	bool Node::as(s8* data) const
 	{
-		*data = strtol(m_data.c_str(), nullptr, 10);
+		*data = static_cast<s8>(strtol(m_data.c_str(), nullptr, 10));
 		return true;
 	}
 

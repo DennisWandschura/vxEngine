@@ -247,6 +247,9 @@ bool PhysicsAspect::initialize(vx::TaskManager* taskManager)
 	}
 
 	m_evtFetch = new Event();
+	m_evtBlock = new Event();
+
+	m_evtBlock->set();
 
 	return true;
 }
@@ -309,6 +312,9 @@ void PhysicsAspect::fetch()
 
 void PhysicsAspect::update(const f32 dt)
 {
+	while (!m_evtBlock->test())
+		;
+
 	m_evtFetch->clear();
 	m_pScene->simulate(dt);
 }

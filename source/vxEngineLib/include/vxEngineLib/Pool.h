@@ -119,7 +119,7 @@ namespace vx
 
 			auto index = ptr - reinterpret_cast<pointer>(m_ptr);
 
-			PoolBase::destroyEntry((u8*)ptr, index);
+			PoolBase::destroyEntry((u8*)ptr, static_cast<u16>(index));
 		}
 
 		reference operator[](u16 i)

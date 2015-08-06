@@ -27,7 +27,7 @@ SOFTWARE.
 #include <vxLib/Window.h>
 #include <vxEngineLib/EngineConfig.h>
 #include <vxEngineLib/Message.h>
-#include <vxEngineLib/EventTypes.h>
+#include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/FileMessage.h>
 #include <vxEngineLib/Scene.h>
 #include "d3dx12.h"
@@ -36,6 +36,7 @@ SOFTWARE.
 #include "TaskUploadGeometry.h"
 #include <d3dcompiler.h>
 #include <d3d12sdklayers.h>
+#include <dxgi1_4.h>
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/MeshFile.h>
@@ -69,17 +70,10 @@ const u32 g_maxIndexCount{ 20000 };
 const u32 g_maxMeshInstances{ 128 };
 
 RenderAspect::RenderAspect()
-	:m_commandQueue(nullptr),
+	:m_device(),
 	m_commandList(nullptr),
-	m_fence(nullptr),
-	m_currentFence(0),
-	m_handleEvent(nullptr),
-	m_renderTarget(nullptr),
-	m_device(nullptr),
-	m_swapChain(nullptr),
-	m_dxgiFactory(nullptr),
-	m_lastSwapBuffer(0),
-	m_descriptorHeapRtv(nullptr),
+	m_renderTarget(),
+	m_descriptorHeapRtv(),
 	m_commandAllocator(),
 	m_uploadHeap(),
 	m_geometryUploadBuffer(),
@@ -99,29 +93,13 @@ RenderAspect::~RenderAspect()
 
 bool RenderAspect::createCommandList()
 {
-	auto result = m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr, IID_PPV_ARGS(&m_commandList));
+	auto device = m_device.getDevice();
+	auto result = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr, IID_PPV_ARGS(&m_commandList));
 	if (result != 0)
 	{
 		puts("error creating command list");
 		return false;
 	}
-
-	m_commandAllocator->Reset();
-
-	m_commandList->Reset(m_commandAllocator.get(), nullptr);
-
-	m_commandList->SetGraphicsRootSignature(nullptr);
-
-	m_commandList->RSSetViewports(1, &m_viewport);
-	m_commandList->RSSetScissorRects(1, &m_rectScissor);
-
-	setResourceBarrier(m_commandList, m_renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-	float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-	m_commandList->ClearRenderTargetView(m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart(), clearColor, 0, nullptr);
-	m_commandList->OMSetRenderTargets(1, &m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart(), true, nullptr);
-
-	setResourceBarrier(m_commandList, m_renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
 	m_commandList->Close();
 
@@ -130,23 +108,26 @@ bool RenderAspect::createCommandList()
 
 bool RenderAspect::createHeaps()
 {
-	auto uploadHeapSize = Buffer::calculateAllocSize(sizeof(Vertex) * g_maxVertexCount) + Buffer::calculateAllocSize(sizeof(u32) * g_maxIndexCount);
+	auto vertexBufferSize = d3d::getAlignedSize(sizeof(Vertex) * g_maxVertexCount, 64 KBYTE);
+	auto indexBufferSize = d3d::getAlignedSize(sizeof(u32) * g_maxIndexCount, 64 KBYTE);
 
-	if (!m_uploadHeap.create(uploadHeapSize, m_device))
+	auto uploadHeapSize = vertexBufferSize + indexBufferSize;
+	if (!m_uploadHeap.createBufferHeap(uploadHeapSize, D3D12_HEAP_TYPE_UPLOAD, &m_device))
 	{
 		return false;
 	}
 
-	auto cameraBufferSize = Buffer::calculateAllocSize(sizeof(CameraBufferData));
-	auto transformBufferSize = Buffer::calculateAllocSize(sizeof(Transform) * g_maxMeshInstances);
-	auto defaultBufferHeapSize = Buffer::calculateAllocSize(cameraBufferSize + transformBufferSize);
-	if (!m_defaultBufferHeap.create(defaultBufferHeapSize, m_device))
+	auto cameraBufferSize = d3d::getAlignedSize(sizeof(CameraBufferData), 64 KBYTE);
+	auto transformBufferSize = d3d::getAlignedSize(sizeof(Transform) * g_maxMeshInstances, 64 KBYTE);
+
+	auto defaultBufferHeapSize = cameraBufferSize + transformBufferSize;
+	if (!m_defaultBufferHeap.createBufferHeap(defaultBufferHeapSize, D3D12_HEAP_TYPE_DEFAULT, &m_device))
 	{
 		return false;
 	}
 
-	auto geometryHeapSize = Buffer::calculateAllocSize(sizeof(Vertex) * g_maxVertexCount) + Buffer::calculateAllocSize(sizeof(u32) * g_maxIndexCount);
-	if (!m_defaultGeometryHeap.create(geometryHeapSize, m_device))
+	auto geometryHeapSize = vertexBufferSize + indexBufferSize;
+	if (!m_defaultGeometryHeap.createBufferHeap(geometryHeapSize, D3D12_HEAP_TYPE_DEFAULT,& m_device))
 	{
 		return false;
 	}
@@ -156,15 +137,20 @@ bool RenderAspect::createHeaps()
 
 bool RenderAspect::createMeshBuffers()
 {
-	m_geometryUploadBuffer = m_uploadHeap.createBuffer(sizeof(Vertex) * g_maxVertexCount + sizeof(u32) * g_maxIndexCount, D3D12_RESOURCE_FLAG_NONE, m_device);
+	auto device = m_device.getDevice();
 
-	if (!m_geometryUploadBuffer.isValid())
+	auto vertexBufferSize = d3d::getAlignedSize(sizeof(Vertex) * g_maxVertexCount, 64 KBYTE);
+	auto indexBufferSize = d3d::getAlignedSize(sizeof(u32) * g_maxIndexCount, 64 KBYTE);
+
+	if (!m_uploadHeap.createBufferHeap(indexBufferSize + vertexBufferSize, D3D12_HEAP_TYPE_UPLOAD, &m_device))
+	{
 		return false;
+	}
 
 	D3D12_RESOURCE_DESC desc;
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
 	desc.Alignment = 64 KBYTE;
-	desc.Width = Buffer::calculateAllocSize(sizeof(Vertex) * g_maxVertexCount);
+	desc.Width = vertexBufferSize;
 	desc.Height = 1;
 	desc.DepthOrArraySize = 1;
 	desc.MipLevels = 1;
@@ -174,14 +160,14 @@ bool RenderAspect::createMeshBuffers()
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	auto hresult = m_device->CreatePlacedResource(m_defaultGeometryHeap.get(), 0, &desc, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr, IID_PPV_ARGS(&m_vertexBuffer));
+	auto hresult = device->CreatePlacedResource(m_defaultGeometryHeap.get(), 0, &desc, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr, IID_PPV_ARGS(m_vertexBuffer.getAddressOf()));
 	if (hresult != 0)
 		return false;
 
 	auto offset = desc.Width;
-	desc.Width = Buffer::calculateAllocSize(sizeof(u32) * g_maxIndexCount);
+	desc.Width = indexBufferSize;
 
-	hresult = m_device->CreatePlacedResource(m_defaultGeometryHeap.get(), offset, &desc, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr, IID_PPV_ARGS(&m_indexBuffer));
+	hresult = device->CreatePlacedResource(m_defaultGeometryHeap.get(), offset, &desc, D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr, IID_PPV_ARGS(m_indexBuffer.getAddressOf()));
 	if (hresult != 0)
 		return false;
 
@@ -208,6 +194,8 @@ bool RenderAspect::loadShaders()
 
 bool RenderAspect::createRootSignature()
 {
+	auto device = m_device.getDevice();
+
 	/*
 	D3D12_DESCRIPTOR_RANGE_TYPE RangeType;
 	UINT NumDescriptors;
@@ -265,7 +253,7 @@ bool RenderAspect::createRootSignature()
 		return false;
 
 	ID3D12RootSignature* rootSignature = nullptr;
-	hresult = m_device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+	hresult = device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 	if (hresult != 0)
 		return false;
 
@@ -276,6 +264,8 @@ bool RenderAspect::createRootSignature()
 
 bool RenderAspect::createPipelineState()
 {
+	auto device = m_device.getDevice();
+
 	auto rootSig = *m_rootSignatures.find(vx::make_sid("defaultShader"));
 	auto vs = *m_shaders.find(vx::make_sid("VertexShader"));
 	auto ps = *m_shaders.find(vx::make_sid("PixelShader"));
@@ -302,7 +292,7 @@ bool RenderAspect::createPipelineState()
 	descPso.SampleDesc.Count = 1;
 
 	ID3D12PipelineState* pipelineState = nullptr;
-	auto hresult = m_device->CreateGraphicsPipelineState(&descPso, IID_PPV_ARGS(&pipelineState));
+	auto hresult = device->CreateGraphicsPipelineState(&descPso, IID_PPV_ARGS(&pipelineState));
 	if (hresult != 0)
 	{
 		return false;
@@ -323,19 +313,17 @@ bool RenderAspect::createPipelineState()
 	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	bufferDesc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	m_constantBuffer = nullptr;
-	hresult = m_device->CreatePlacedResource(m_defaultBufferHeap.get(), 0, &bufferDesc, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr, IID_PPV_ARGS(&m_constantBuffer));
+	hresult = device->CreatePlacedResource(m_defaultBufferHeap.get(), 0, &bufferDesc, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, nullptr, IID_PPV_ARGS(m_constantBuffer.getAddressOf()));
 
-	auto offset = Buffer::calculateAllocSize(sizeof(CameraBufferData));
+	auto offset = 64 KBYTE;
 
 	bufferDesc.Width = sizeof(Transform) * g_maxMeshInstances;
-	m_srvBuffer = nullptr;
-	hresult = m_device->CreatePlacedResource(m_defaultBufferHeap.get(), offset, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&m_srvBuffer));
+	hresult = device->CreatePlacedResource(m_defaultBufferHeap.get(), offset, &bufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(m_srvBuffer.getAddressOf()));
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbufferDesc;
 	cbufferDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
 	cbufferDesc.SizeInBytes = (sizeof(CameraBufferData) + 255) & ~255;
-	m_device->CreateConstantBufferView(&cbufferDesc, m_descriptorHeapBuffer->GetCPUDescriptorHandleForHeapStart());
+	device->CreateConstantBufferView(&cbufferDesc, m_descriptorHeapBuffer->GetCPUDescriptorHandleForHeapStart());
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -359,41 +347,29 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	const auto doubleBufferSizeInBytes = 5 KBYTE;
 	//m_doubleBuffer = DoubleBufferRaw(&m_allocator, doubleBufferSizeInBytes);
 
-	auto result = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&m_device));
-	if (result != 0)
+	if (!m_device.initialize(*desc.window))
 	{
-		puts("Error creating device");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	result = CreateDXGIFactory1(IID_PPV_ARGS(&m_dxgiFactory));
-	if (result != 0)
+	auto device = m_device.getDevice();
+
+	auto hresult = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_commandAllocator.getAddressOf()));
+	if (hresult != 0)
 	{
-		puts("Error creating dxgi factory");
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
+	
+	hresult = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_uploadCmdAllocator.getAddressOf()));
+	if (hresult != 0)
+	{
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	D3D12_COMMAND_QUEUE_DESC queueDesc;
-	ZeroMemory(&queueDesc, sizeof(queueDesc));
-	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	result = m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue));
-	if (result != 0)
-	{
-		puts("Error creating queue");
-		return RenderAspectInitializeError::ERROR_CONTEXT;
-	}
-
-	if (!m_commandAllocator.create(CommandAllocatorType::Direct, m_device))
-		return RenderAspectInitializeError::ERROR_CONTEXT;
-
-	if (!m_uploadCmdAllocator.create(CommandAllocatorType::Direct, m_device))
-		return RenderAspectInitializeError::ERROR_CONTEXT;
-
-	auto hresult = m_uploadCmdAllocator->Reset();
+	hresult = m_uploadCmdAllocator->Reset();
 
 	m_uploadCommandList = nullptr;
-	hresult = m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_uploadCmdAllocator.get(), nullptr, IID_PPV_ARGS(&m_uploadCommandList));
+	hresult = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_uploadCmdAllocator.get(), nullptr, IID_PPV_ARGS(&m_uploadCommandList));
 	m_uploadCommandList->Close();
 
 	if(!loadShaders())
@@ -402,8 +378,8 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if(!createRootSignature())
 		return RenderAspectInitializeError::ERROR_SHADER;
 
-	m_viewport.Height = desc.settings->m_resolution.y;
-	m_viewport.Width = desc.settings->m_resolution.x;
+	m_viewport.Height = (f32)desc.settings->m_resolution.y;
+	m_viewport.Width = (f32)desc.settings->m_resolution.x;
 	m_viewport.MaxDepth = 1.0f;
 	m_viewport.MinDepth = 0.0f;
 	m_viewport.TopLeftX = 0;
@@ -414,35 +390,11 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	m_rectScissor.right = desc.settings->m_resolution.x;
 	m_rectScissor.bottom = desc.settings->m_resolution.y;
 
-	DXGI_SWAP_CHAIN_DESC descSwapChain;
-	ZeroMemory(&descSwapChain, sizeof(descSwapChain));
-	descSwapChain.BufferCount = g_swapChainBufferCount;
-	descSwapChain.BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	descSwapChain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	descSwapChain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-	descSwapChain.OutputWindow = desc.window->getHwnd();
-	descSwapChain.SampleDesc.Count = 1;
-	descSwapChain.Windowed = 1;
-
-	result = m_dxgiFactory->CreateSwapChain(
-		m_commandQueue, // Swap chain needs the queue so it can force a flush on it
-		&descSwapChain,
-		&m_swapChain
-		);
-
-	if (result != 0)
-	{
-		puts("Error creating swap chain");
-		printError(result);
-		return RenderAspectInitializeError::ERROR_CONTEXT;
-	}
-
 	D3D12_DESCRIPTOR_HEAP_DESC descHeap = {};
-	descHeap.NumDescriptors = 1;
+	descHeap.NumDescriptors = 2;
 	descHeap.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	descHeap.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	result = m_device->CreateDescriptorHeap(&descHeap, IID_PPV_ARGS(&m_descriptorHeapRtv));
-	if (result != 0)
+	if (!m_descriptorHeapRtv.create(descHeap, &m_device))
 	{
 		puts("Error CreateDescriptorHeap");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
@@ -451,15 +403,22 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	descHeap.NumDescriptors = 16;
 	descHeap.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	descHeap.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	result = m_device->CreateDescriptorHeap(&descHeap, IID_PPV_ARGS(&m_descriptorHeapBuffer));
-	if (result != 0)
+	if (!m_descriptorHeapBuffer.create(descHeap, &m_device))
 	{
 		puts("Error CreateDescriptorHeap");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	m_swapChain->GetBuffer(0, IID_PPV_ARGS(&m_renderTarget));
-	m_device->CreateRenderTargetView(m_renderTarget, nullptr, m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart());
+	auto rtvHandleCpu = m_descriptorHeapRtv.getHandleCpu();
+	auto swapChain = m_device.getSwapChain();
+	m_currentBuffer = 0;
+	for (u32 i = 0; i < 2; ++i)
+	{
+		swapChain->GetBuffer(i, IID_PPV_ARGS(m_renderTarget[i].getAddressOf()));
+
+		device->CreateRenderTargetView(m_renderTarget[i].get(), nullptr, rtvHandleCpu);
+		rtvHandleCpu.offset(1);
+	}
 
 	if (!createHeaps())
 		return RenderAspectInitializeError::ERROR_CONTEXT;
@@ -475,38 +434,14 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
-	m_currentFence = 1;
-
-	m_handleEvent = CreateEventEx(nullptr, FALSE, FALSE, EVENT_ALL_ACCESS);
-
-	waitForGpu();
-
 	return RenderAspectInitializeError::OK;
-}
-
-void RenderAspect::waitForGpu()
-{
-	const UINT64 fence = m_currentFence;
-	m_commandQueue->Signal(m_fence, fence);
-	++m_currentFence;
-
-	//
-	// Let the previous frame finish before continuing
-	//
-
-	if (m_fence->GetCompletedValue() < fence)
-	{
-		m_fence->SetEventOnCompletion(fence, m_handleEvent);
-		WaitForSingleObject(m_handleEvent, INFINITE);
-	}
 }
 
 void RenderAspect::shutdown(void* hwnd)
 {
-	m_geometryUploadBuffer.release();
+	m_geometryUploadBuffer.destroy();
 
-	m_uploadHeap.release();
+	m_uploadHeap.destroy();
 
 	for (auto &it : m_rootSignatures)
 	{
@@ -526,44 +461,12 @@ void RenderAspect::shutdown(void* hwnd)
 		m_commandList = nullptr;
 	}
 
-	if (m_descriptorHeapRtv)
-	{
-		m_descriptorHeapRtv->Release();
-		m_descriptorHeapRtv = nullptr;
-	}
-
-	if (m_fence)
-	{
-		m_fence->Release();
-		m_fence = nullptr;
-	}
-
-	if (m_swapChain)
-	{
-		m_swapChain->Release();
-		m_swapChain = nullptr;
-	}
-
-	if (m_commandQueue)
-	{
-		m_commandQueue->Release();
-		m_commandQueue = nullptr;
-	}
-
-	if (m_dxgiFactory)
-	{
-		m_dxgiFactory->Release();
-		m_dxgiFactory = nullptr;
-	}
+	m_descriptorHeapRtv.destroy();
 
 	m_uploadCmdAllocator.destroy();
 	m_commandAllocator.destroy();
 
-	if (m_device)
-	{
-		m_device->Release();
-		m_device = nullptr;
-	}
+	m_device.shutdown();
 }
 
 bool RenderAspect::initializeProfiler()
@@ -616,7 +519,7 @@ void RenderAspect::queueUpdateTask(const RenderUpdateTaskType type, const u8* da
 
 void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 {
-	m_taskManager->pushTask(new TaskUpdateCamera(data.position, data.quaternionRotation, &m_camera));
+	//m_taskManager->pushTask(new TaskUpdateCamera(data.position, data.quaternionRotation, &m_camera));
 
 	/*RenderUpdateTask task;
 	task.type = RenderUpdateTask::Type::UpdateCamera;
@@ -643,7 +546,7 @@ void RenderAspect::submitCommands()
 	auto rootSig = *m_rootSignatures.find(vx::make_sid("defaultShader"));
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-	vertexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+	vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
 	vertexBufferView.SizeInBytes = sizeof(Vertex) * m_vertexCount;
 	vertexBufferView.StrideInBytes = sizeof(Vertex);
 
@@ -660,7 +563,7 @@ void RenderAspect::submitCommands()
 		m_commandList->RSSetViewports(1, &m_viewport);
 		m_commandList->RSSetScissorRects(1, &m_rectScissor);
 
-		setResourceBarrier(m_commandList, m_renderTarget, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		setResourceBarrier(m_commandList, m_renderTarget[m_currentBuffer].get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 		m_commandList->ClearRenderTargetView(m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart(), clearColor, 0, nullptr);
@@ -668,9 +571,9 @@ void RenderAspect::submitCommands()
 		auto tmp = m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart();
 		m_commandList->OMSetRenderTargets(1, &tmp, true, nullptr);
 
-		setResourceBarrier(m_commandList, m_renderTarget, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+		setResourceBarrier(m_commandList, m_renderTarget[m_currentBuffer].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
-		m_commandList->SetGraphicsRootSignature(rootSig);
+		/*m_commandList->SetGraphicsRootSignature(rootSig);
 		m_commandList->SetPipelineState(defaultState);
 		m_commandList->SetDescriptorHeaps(1, &m_descriptorHeapBuffer);
 		m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffer->GetGPUDescriptorHandleForHeapStart());
@@ -680,7 +583,7 @@ void RenderAspect::submitCommands()
 		for (auto &it : m_drawCommands)
 		{
 			m_commandList->DrawIndexedInstanced(it.indexCount, it.instanceCount, it.firstIndex, it.baseVertex, it.baseInstance);
-		}
+		}*/
 
 		auto hresult = m_commandList->Close();
 
@@ -688,7 +591,7 @@ void RenderAspect::submitCommands()
 	}
 
 	auto marker = m_allocator.getMarker();
-	u32 count = m_cmdLists.size();
+	u32 count = (u32)m_cmdLists.size();
 	ID3D12CommandList** ppCommandLists = (ID3D12CommandList**)m_allocator.allocate(sizeof(ID3D12CommandList*) * count, 8);
 
 	for (u32 i = 0;i < count; ++i)
@@ -696,7 +599,7 @@ void RenderAspect::submitCommands()
 		ppCommandLists[i] = m_cmdLists[i];
 	}
 
-	m_commandQueue->ExecuteCommandLists(count, ppCommandLists);
+	m_device.executeCommandLists(count, ppCommandLists);
 
 	m_allocator.clear(marker);
 	m_cmdLists.clear();
@@ -704,33 +607,31 @@ void RenderAspect::submitCommands()
 
 void RenderAspect::endFrame()
 {
-	m_swapChain->Present(1, 0);
-	m_lastSwapBuffer = (1 + m_lastSwapBuffer) % g_swapChainBufferCount;
-	m_swapChain->GetBuffer(m_lastSwapBuffer, IID_PPV_ARGS(&m_renderTarget));
-	m_device->CreateRenderTargetView(m_renderTarget, nullptr, m_descriptorHeapRtv->GetCPUDescriptorHandleForHeapStart());
+	m_device.swapBuffer();
+	m_device.waitForGpu();
 
-	waitForGpu();
+	m_currentBuffer = m_device.getCurrentBackBufferIndex();
 }
 
-void RenderAspect::handleEvent(const vx::Event &evt)
+void RenderAspect::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case(vx::EventType::File_Event) :
-		handleFileEvent(evt);
+	case(vx::MessageType::File_Event) :
+		handleFileMessage(evt);
 		break;
 	default:
 		break;
 	}
 }
 
-void RenderAspect::handleFileEvent(const vx::Event &evt)
+void RenderAspect::handleFileMessage(const vx::Message &evt)
 {
-	auto fileEvent = (vx::FileEvent)evt.code;
+	auto fileEvent = (vx::FileMessage)evt.code;
 
 	switch (fileEvent)
 	{
-	case vx::FileEvent::Scene_Loaded:
+	case vx::FileMessage::Scene_Loaded:
 	{
 		auto scene = (Scene*)evt.arg2.ptr;
 
@@ -741,7 +642,7 @@ void RenderAspect::handleFileEvent(const vx::Event &evt)
 
 		//queueUpdateTask(type, (u8*)&data, sizeof(TaskLoadScene));
 	}break;
-	case vx::FileEvent::EditorScene_Loaded:
+	case vx::FileMessage::EditorScene_Loaded:
 	{
 		/*auto pScene = (Scene*)evt.arg2.ptr;
 
@@ -844,7 +745,7 @@ void RenderAspect::taskTakeScreenshot()
 
 void RenderAspect::loadScene(Scene* scene)
 {
-	auto &meshes = scene->getMeshes();
+	/*auto &meshes = scene->getMeshes();
 	auto meshKeys = meshes.keys();
 	auto meshCount = meshes.size();
 

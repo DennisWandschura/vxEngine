@@ -30,12 +30,12 @@ SOFTWARE.
 struct Chunk
 {
 	u8* ptr{ nullptr };
-	u16 freeBlocks{ 0 };
-	u16 firstFreeBlock{ 0 };
+	u8 freeBlocks{ 0 };
+	u8 firstFreeBlock{ 0 };
 
 	Chunk() = default;
 
-	void init(u32 blockSize, u16 blockCount);
+	void init(u32 blockSize, u8 blockCount);
 
 	u8* allocate(u32 blockSize);
 
@@ -48,7 +48,7 @@ class ChunkAllocator
 {
 	Chunk* m_pChunks{ nullptr };
 	u16 m_blockSize{ 0 };
-	u16 m_blockCount{ 0 };
+	u8 m_blockCount{ 0 };
 	u16 m_size{ 0 };
 	u16 m_capacity{ 0 };
 	u16 m_allocChunk{ 0 };
@@ -67,7 +67,7 @@ public:
 
 	~ChunkAllocator();
 
-	void init(u16 blockSize, u16 blockCount);
+	void init(u16 blockSize, u8 blockCount);
 
 	u8* allocate();
 

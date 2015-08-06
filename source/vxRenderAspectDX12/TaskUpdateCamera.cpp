@@ -9,21 +9,12 @@ TaskUpdateCamera::TaskUpdateCamera(const __m128 &position, const __m128 &quatern
 {
 }
 
-TaskUpdateCamera::TaskUpdateCamera(TaskUpdateCamera &&rhs)
-	:Task(std::move(rhs)),
-	m_position(rhs.m_position),
-	m_quaternionRotation(rhs.m_quaternionRotation),
-	m_camera(rhs.m_camera)
-{
-
-}
-
 TaskUpdateCamera::~TaskUpdateCamera()
 {
 
 }
 
-TaskReturnType TaskUpdateCamera::run()
+TaskReturnType TaskUpdateCamera::runImpl()
 {
 	m_camera->setPosition(m_position);
 	m_camera->setRotation(m_quaternionRotation);
@@ -42,19 +33,7 @@ TaskReturnType TaskUpdateCamera::run()
 	return TaskReturnType::Success;
 }
 
-Task* TaskUpdateCamera::move(vx::Allocator* allocator)
+f32 TaskUpdateCamera::getTimeMs() const
 {
-	auto ptr = (TaskUpdateCamera*)allocator->allocate(sizeof(TaskUpdateCamera), __alignof(TaskUpdateCamera));
-
-	if (ptr != nullptr)
-	{
-		new (ptr) TaskUpdateCamera(std::move(*this));
-	}
-
-	return ptr;
-}
-
-f32 TaskUpdateCamera::getTime() const
-{
-	return 0;
+	return 0.0f;
 }

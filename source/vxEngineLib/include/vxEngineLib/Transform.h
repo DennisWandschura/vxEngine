@@ -44,5 +44,6 @@ namespace vx
 		vx::float3 translation;
 		f32 scaling;
 		vx::uint2 packedQRotation;
+		f32 padding[2];
 	};
 }

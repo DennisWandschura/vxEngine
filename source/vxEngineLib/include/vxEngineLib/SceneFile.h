@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct MeshInstanceFile;
+class MeshInstanceFile;
 struct Light;
 struct SpawnFile;
 struct ActorFile;
