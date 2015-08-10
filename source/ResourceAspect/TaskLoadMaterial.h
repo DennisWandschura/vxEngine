@@ -24,10 +24,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace Graphics
+{
+	class Texture;
+}
+
 namespace vx
 {
-	class MeshFile;
+	class TaskManager;
 }
+
+class Material;
 
 template<typename T>
 class ResourceManager;
@@ -37,24 +44,29 @@ class ResourceManager;
 #include <vxLib/StringID.h>
 #include <vxEngineLib/managed_ptr.h>
 
-struct TaskLoadMeshDesc
+struct TaskLoadMaterialDesc
 {
-	ResourceManager<vx::MeshFile>* m_meshManager;
 	std::string m_fileNameWithPath;
-	vx::StringID m_sid;
 	shared_ptr<Event> evt;
+	ResourceManager<Material>* m_materialManager;
+	ResourceManager<Graphics::Texture>* m_textureManager;
+	vx::StringID m_sid;
+	vx::TaskManager* m_taskManager;
 };
 
-class TaskLoadMesh : public TaskLoadFile
+class TaskLoadMaterial : public Task
 {
-	ResourceManager<vx::MeshFile>* m_meshManager;
+	std::string m_fileNameWithPath;
+	ResourceManager<Material>* m_materialManager;
+	ResourceManager<Graphics::Texture>* m_textureManager;
 	vx::StringID m_sid;
+	vx::TaskManager* m_taskManager;
 
 	TaskReturnType runImpl() override;
 
 public:
-	explicit TaskLoadMesh(TaskLoadMeshDesc &&desc);
-	~TaskLoadMesh();
+	TaskLoadMaterial(TaskLoadMaterialDesc &&desc);
+	~TaskLoadMaterial();
 
-	f32 getTimeMs() const override;
+	f32 getTimeMs() const override { return 0.0f; }
 };

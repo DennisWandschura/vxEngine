@@ -29,6 +29,7 @@ SOFTWARE.
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/stb_image.h>
 #include <vxEngineLib/memcpy.h>
+#include <vxEngineLib/ArrayAllocator.h>
 
 namespace Graphics
 {
@@ -339,7 +340,7 @@ namespace Graphics
 		}
 	}
 
-	bool TextureFactory::createDDSFromFile(const char* ddsFile, bool flipImage, Texture* texture, vx::StackAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
+	bool TextureFactory::createDDSFromFile(const char* ddsFile, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
 	{
 		vx::File inFile;
 		if (!inFile.open(ddsFile, vx::FileAccess::Read))
@@ -361,7 +362,7 @@ namespace Graphics
 		return result;
 	}
 
-	bool TextureFactory::createDDSFromMemory(const u8* ddsData, bool flipImage, Texture* texture, vx::StackAllocator* textureAllocator)
+	bool TextureFactory::createDDSFromMemory(const u8* ddsData, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator)
 	{
 		u32 magic;
 		ddsData = vx::read(magic, ddsData);
@@ -500,7 +501,7 @@ namespace Graphics
 		}
 
 		auto faceCount = (u32)(textureType == TextureType::Cubemap ? 6 : 1);
-		Face* faces = (Face*)textureAllocator->allocate(sizeof(Face) * faceCount, __alignof(Face));
+		auto faces = textureAllocator->allocate<Face[]>(sizeof(Face) * faceCount, __alignof(Face));
 		// load all surfaces for the image (6 surfaces for cubemaps)
 		for (u32 n = 0; n < faceCount; ++n)
 		{
@@ -512,10 +513,10 @@ namespace Graphics
 			u32 size = (*sizefunc)(dimension.x, dimension.y, components, textureFormat) * dimension.z;
 
 			// load surface
-			u8 *pixels = textureAllocator->allocate(size, 4);
-			ddsData = vx::read(pixels, ddsData, size);
+			auto pixels = textureAllocator->allocate<u8[]>(size, 4);
+			ddsData = vx::read(pixels.get(), ddsData, size);
 
-			face.create(dimension, size, pixels);
+			face.create(dimension, size, std::move(pixels));
 
 			if (flipImage)
 			{
@@ -546,10 +547,10 @@ namespace Graphics
 				h = clamp_size(h >> 1);
 			}
 
-			Surface* mipmaps = nullptr;
+			managed_ptr<Surface[]> mipmaps;
 			if (mipmapCount != 0)
 			{
-				mipmaps = (Surface*)textureAllocator->allocate(sizeof(Surface)*mipmapCount, __alignof(Surface));
+				mipmaps = textureAllocator->allocate<Surface[]>(sizeof(Surface)*mipmapCount, __alignof(Surface));
 
 				// load all mipmaps for current surface
 				for (u32 i = 0; i < mipmapCount; i++)
@@ -560,10 +561,10 @@ namespace Graphics
 					// calculate mipmap size
 					auto mipmapSize = (*sizefunc)(dim.x, dim.y, components, textureFormat) * dim.z;
 
-					auto mipampPixels = textureAllocator->allocate(size, 4);
-					ddsData = vx::read(mipampPixels, ddsData, mipmapSize);
+					auto mipampPixels = textureAllocator->allocate<u8[]>(size, 4);
+					ddsData = vx::read(mipampPixels.get(), ddsData, mipmapSize);
 
-					mipmap.create(dimension, mipmapSize, mipampPixels);
+					mipmap.create(dimension, mipmapSize, std::move(mipampPixels));
 
 					if (flipImage)
 					{
@@ -576,7 +577,7 @@ namespace Graphics
 					dim.z = clamp_size(dim.z >> 1);
 				}
 			}
-			face.setMipmaps(mipmaps, mipmapCount);
+			face.setMipmaps(std::move(mipmaps), mipmapCount);
 		}
 
 		// swap cubemaps on y axis (since image is flipped in OGL)
@@ -587,7 +588,7 @@ namespace Graphics
 			faces[3] = std::move(faces[2]);
 			faces[2] = std::move(tmp);
 		}
-		texture->create(faces, textureFormat, textureType, components);
+		texture->create(std::move(faces), textureFormat, textureType, components);
 		return true;
 	}
 
@@ -612,7 +613,7 @@ namespace Graphics
 		}
 	}
 
-	bool TextureFactory::createPngFromFile(const char* pngFile, bool flip, Texture* texture, vx::StackAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
+	bool TextureFactory::createPngFromFile(const char* pngFile, bool flip, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
 	{
 		vx::File inFile;
 		if (!inFile.open(pngFile, vx::FileAccess::Read))
@@ -635,7 +636,7 @@ namespace Graphics
 		return result;
 	}
 
-	bool TextureFactory::createPngFromMemory(const u8* pngData, u32 size, bool flip, Texture* texture, vx::StackAllocator* textureAllocator)
+	bool TextureFactory::createPngFromMemory(const u8* pngData, u32 size, bool flip, Texture* texture, ArrayAllocator* textureAllocator)
 	{
 		s32 x, y, comp;
 		auto data = stbi_load_from_memory(pngData, size, &x, &y, &comp, 0);
@@ -649,15 +650,15 @@ namespace Graphics
 
 		auto dataSize = x * y * comp;
 
-		auto face = (Face*)textureAllocator->allocate(sizeof(Face), __alignof(Face));
-		auto faceData = textureAllocator->allocate(dataSize, 4);
-		VX_ASSERT(faceData != nullptr);
+		auto face = textureAllocator->allocate<Face[]>(sizeof(Face), __alignof(Face));
+		auto faceData = textureAllocator->allocate<u8[]>(dataSize, 4);
+		VX_ASSERT(faceData.get() != nullptr);
 
-		memcpy(faceData, data, dataSize);
+		memcpy(faceData.get(), data, dataSize);
 
 		stbi_image_free(data);
 
-		face->create(vx::uint3(x, y, 1), dataSize, faceData);
+		face[0].create(vx::uint3(x, y, 1), dataSize, std::move(faceData));
 
 		TextureFormat format = TextureFormat::RGBA;
 		switch (comp)
@@ -678,7 +679,7 @@ namespace Graphics
 			break;
 		}
 
-		texture->create(face, format, TextureType::Flat, comp);
+		texture->create(std::move(face), format, TextureType::Flat, comp);
 		return true;
 	}
 }

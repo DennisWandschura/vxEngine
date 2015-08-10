@@ -47,7 +47,8 @@ public:
 
 	static void* operator new(std::size_t size)
 	{
-		return s_allocator->allocate(size);
+		VX_ASSERT(size == static_cast<u32>(size));
+		return s_allocator->allocate(static_cast<u32>(size));
 	}
 
 	static void operator delete(void* p, std::size_t size)

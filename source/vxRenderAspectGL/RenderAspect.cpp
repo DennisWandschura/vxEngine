@@ -456,6 +456,8 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	m_allocator = vx::StackAllocator(desc.pAllocator->allocate(5 MBYTE, 64), 5 MBYTE);
 	m_scratchAllocator = vx::StackAllocator(desc.pAllocator->allocate(10 MBYTE, 64), 10 MBYTE);
 
+	m_textureAllocator.create(desc.pAllocator->allocate(5 MBYTE, 64), 5 MBYTE);
+
 	if (desc.settings->m_renderDebug)
 	{
 		vx::gl::Debug::initialize();
@@ -584,7 +586,7 @@ bool RenderAspect::initializeProfiler()
 		auto sid = vx::make_sid("verdana.png");
 
 		Graphics::Texture texture;
-		Graphics::TextureFactory::createPngFromFile(file.c_str(), true, &texture, &m_allocator, &m_scratchAllocator);
+		Graphics::TextureFactory::createPngFromFile(file.c_str(), true, &texture, &m_textureAllocator, &m_scratchAllocator);
 
 		auto b = m_materialManager.getTextureIndex(sid, texture, &textureIndex);
 		VX_ASSERT(b);

@@ -29,10 +29,10 @@ namespace vx
 	class MessageListener;
 }
 
-#include <vector>
 #include <vxLib/Container/sorted_array.h>
 #include <vxLib/Container/DoubleBuffer.h>
 #include <vxEngineLib/mutex.h>
+#include <vector>
 
 namespace vx
 {

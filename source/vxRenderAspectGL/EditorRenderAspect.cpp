@@ -54,6 +54,7 @@ SOFTWARE.
 #include "Graphics/State.h"
 #include <vxGL/ProgramPipeline.h>
 #include <vxEngineLib/Joint.h>
+#include <vxEngineLib/ArrayAllocator.h>
 
 struct InfluenceCellVertex
 {
@@ -515,13 +516,16 @@ namespace Editor
 			m_allocator.clear(allocMarker);
 		};
 
-		if (!Graphics::TextureFactory::createDDSFromFile("../../data/textures/editor/light.dds", true, &ddsFileLight, &m_allocator, &m_scratchAllocator))
+		ArrayAllocator tmpAllocator;
+		tmpAllocator.create(m_allocator.allocate(5 MBYTE), 5 MBYTE);
+
+		if (!Graphics::TextureFactory::createDDSFromFile("../../data/textures/editor/light.dds", true, &ddsFileLight, &tmpAllocator, &m_scratchAllocator))
 		{
 			puts("could not create texture light.dds");
 			return false;
 		}
 
-		if (!Graphics::TextureFactory::createDDSFromFile("../../data/textures/editor/spawnPoint.dds", true, &ddsFileSpawn, &m_allocator, &m_scratchAllocator))
+		if (!Graphics::TextureFactory::createDDSFromFile("../../data/textures/editor/spawnPoint.dds", true, &ddsFileSpawn, &tmpAllocator, &m_scratchAllocator))
 		{
 			puts("could not create texture spawnPoint.dds");
 			return false;

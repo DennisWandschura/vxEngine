@@ -91,7 +91,7 @@ namespace vx
 		u32 meshDataSize = 0;
 		auto p = m_mesh.loadFromMemoryDataSize(ptr, &meshDataSize);
 
-		m_meshData = allocator->allocate(meshDataSize, 4);
+		m_meshData = allocator->allocate<u8[]>(meshDataSize, 4);
 		if (m_meshData.get() == nullptr)
 		{
 			return nullptr;
@@ -102,7 +102,7 @@ namespace vx
 		::memcpy(&m_physxDataSize, p, sizeof(u32));
 		p += sizeof(u32);
 
-		m_physxData = allocator->allocate(m_physxDataSize, 4);
+		m_physxData = allocator->allocate<u8[]>(m_physxDataSize, 4);
 		if (m_physxData.get() == nullptr)
 		{
 			m_physxDataSize = 0;
@@ -122,7 +122,7 @@ namespace vx
 		u32 meshDataSize = 0;
 		auto p = m_mesh.loadFromMemoryDataSize(ptr, &meshDataSize);
 
-		m_meshData = allocator->allocate(meshDataSize, 4);
+		m_meshData = allocator->allocate<u8[]>(meshDataSize, 4);
 		if (m_meshData.get() == nullptr)
 		{
 			return nullptr;
@@ -136,7 +136,7 @@ namespace vx
 		::memcpy(&m_physxMeshType, p, sizeof(PhsyxMeshType));
 		p += sizeof(PhsyxMeshType);
 
-		m_physxData = allocator->allocate(m_physxDataSize, 4);
+		m_physxData = allocator->allocate<u8[]>(m_physxDataSize, 4);
 		if (m_physxData.get() == nullptr)
 		{
 			m_physxDataSize = 0;

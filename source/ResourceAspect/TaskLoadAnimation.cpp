@@ -21,66 +21,67 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "TaskLoadMesh.h"
+#include "TaskLoadAnimation.h"
+#include <vxEngineLib/AnimationFile.h>
 #include <vxResourceAspect/ResourceManager.h>
-#include <vxLib/ScopeGuard.h>
-#include <vxLib/File/File.h>
-#include <vxEngineLib/MeshFile.h>
-#include <vxLib/File/FileHeader.h>
 
-TaskLoadMesh::TaskLoadMesh(TaskLoadMeshDesc &&desc)
-	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_meshManager->getScratchAllocator(), desc.m_meshManager->getScratchAllocatorMutex(),std::move(desc.evt)),
-	m_meshManager(desc.m_meshManager),
+TaskLoadAnimation::TaskLoadAnimation(TaskLoadAnimationDesc &&desc)
+	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_animationManager->getScratchAllocator(), desc.m_animationManager->getScratchAllocatorMutex(), std::move(desc.evt)),
+	m_animationManager(desc.m_animationManager),
 	m_sid(desc.m_sid)
 {
+
 }
 
-TaskLoadMesh::~TaskLoadMesh()
+TaskLoadAnimation::~TaskLoadAnimation()
 {
 
 }
 
-TaskReturnType TaskLoadMesh::runImpl()
+TaskReturnType TaskLoadAnimation::runImpl()
 {
-	auto ptr = m_meshManager->find(m_sid);
+	auto ptr = m_animationManager->find(m_sid);
 	if (ptr.get() != nullptr)
 	{
 		return TaskReturnType::Success;
 	}
 
 	u8* fileData = nullptr;
-	u32 fileDataSize = 0;
-
-	if (!loadFromFile(&fileData, &fileDataSize))
+	u32 fileSize = 0;
+	if (!loadFromFile(&fileData, &fileSize))
 	{
 		return TaskReturnType::Failure;
 	}
 
-	vx::FileHeader header;
-	memcpy(&header, fileData, sizeof(vx::FileHeader));
-	auto meshFileDataBegin = fileData + sizeof(vx::FileHeader);
-	fileDataSize -= sizeof(vx::FileHeader);
-
-	if (header.magic != header.s_magic)
+	const u8* dataBegin = nullptr;
+	u32 dataSize = 0;
+	u64 headerCrc = 0;
+	if (!readAndCheckHeader(fileData, fileSize, &dataBegin, &dataSize, &headerCrc))
 	{
 		return TaskReturnType::Failure;
 	}
 
-	auto entry = m_meshManager->insertEntry(m_sid, header.version);
-	if (!entry)
+	vx::AnimationFile animFile(vx::AnimationFile::getGlobalVersion());
+
+	animFile.loadFromMemory(dataBegin, fileSize, nullptr);
+	auto crc = animFile.getCrc();
+
+	if (headerCrc != crc)
 	{
-		VX_ASSERT(false);
+		//	printf("wrong crc: %llu %llu\n", headerTop.crc, crc);
 		return TaskReturnType::Failure;
 	}
 
-	std::unique_lock<std::mutex> dataLock;
-	auto dataAllocator = m_meshManager->lockDataAllocator(&dataLock);
-	entry->loadFromMemory(meshFileDataBegin, fileDataSize, dataAllocator);
+	auto ref = m_animationManager->insertEntry(m_sid, std::move(animFile.getAnimation()));
+	if (ref.get() == nullptr)
+	{
+		return TaskReturnType::Failure;
+	}
 
 	return TaskReturnType::Success;
 }
 
-f32 TaskLoadMesh::getTimeMs() const
+f32 TaskLoadAnimation::getTimeMs() const
 {
 	return 0.0f;
 }

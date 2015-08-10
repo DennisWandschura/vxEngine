@@ -33,6 +33,7 @@ namespace vx
 
 class Scene;
 
+#include <vxLib/types.h>
 #include <vxEngineLib/MessageListener.h>
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/NavMeshGraph.h>

@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <vxLib/type_traits.h>
+
 template<typename T>
 struct shared_ptr
 {
@@ -93,6 +95,13 @@ public:
 			rhs.m_ptr = tmp;
 		}
 		return *this;
+	}
+
+	void swap(shared_ptr &other)
+	{
+		auto tmp = m_ptr;
+		m_ptr = other.m_ptr;
+		other.m_ptr = tmp;
 	}
 
 	T* operator->()

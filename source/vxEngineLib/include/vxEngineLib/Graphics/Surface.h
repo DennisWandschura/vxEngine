@@ -24,6 +24,7 @@ SOFTWARE.
 */
 
 #include <vxLib/math/Vector.h>
+#include <vxEngineLib/managed_ptr.h>
 #include <vxLib/memory.h>
 
 namespace Graphics
@@ -32,7 +33,7 @@ namespace Graphics
 	{
 		vx::uint3 m_dimension;
 		u32 m_size;
-		u8* m_pixels;
+		managed_ptr<u8[]> m_pixels;
 
 	public:
 		Surface();
@@ -43,14 +44,14 @@ namespace Graphics
 		Surface& operator=(const Surface&) = delete;
 		Surface& operator=(Surface &&rhs);
 
-		void create(const vx::uint3 &dimension, u32 size, u8* pixels);
+		void create(const vx::uint3 &dimension, u32 size, managed_ptr<u8[]> &&pixels);
 
 		void clear();
 
 		const vx::uint3& getDimension() const { return m_dimension; }
 		u32 getSize() const { return m_size; }
 
-		u8* getPixels() { return m_pixels; }
-		const u8* getPixels() const { return m_pixels; }
+		u8* getPixels() { return m_pixels.get(); }
+		const u8* getPixels() const { return m_pixels.get(); }
 	};
 }

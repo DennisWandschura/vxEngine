@@ -24,37 +24,56 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class Scene;
+class Material;
+
 namespace vx
 {
 	class MeshFile;
+	class TaskManager;
+	struct Animation;
+	class FileEntry;
 }
 
 template<typename T>
 class ResourceManager;
 
-#include "TaskLoadFile.h"
+#include <vxEngineLib/Task.h>
 #include <string>
-#include <vxLib/StringID.h>
-#include <vxEngineLib/managed_ptr.h>
+#include <vxLib/Allocator/StackAllocator.h>
 
-struct TaskLoadMeshDesc
+struct TaskLoadSceneDesc
 {
+	std::string m_filenameWithPath;
 	ResourceManager<vx::MeshFile>* m_meshManager;
-	std::string m_fileNameWithPath;
-	vx::StringID m_sid;
-	shared_ptr<Event> evt;
+	ResourceManager<Material>* m_materialManager;
+	ResourceManager<vx::Animation>* m_animationManager;
+	Scene* m_scene;
+	vx::TaskManager* m_taskManager;
+	shared_ptr<Event> m_evt;
 };
 
-class TaskLoadMesh : public TaskLoadFile
+class TaskLoadScene : public Task
 {
+	std::string m_filenameWithPath;
 	ResourceManager<vx::MeshFile>* m_meshManager;
-	vx::StringID m_sid;
+	ResourceManager<Material>* m_materialManager;
+	ResourceManager<vx::Animation>* m_animationManager;
+	Scene* m_scene;
+	vx::StackAllocator m_scratchAllocator;
+	vx::TaskManager* m_taskManager;
+
+	bool loadFile(u8** data, u32* fileSize);
 
 	TaskReturnType runImpl() override;
 
-public:
-	explicit TaskLoadMesh(TaskLoadMeshDesc &&desc);
-	~TaskLoadMesh();
+	void createTaskLoadMesh(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events);
+	void createTaskLoadAnimation(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events);
+	void createTaskLoadMaterial(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events);
 
-	f32 getTimeMs() const override;
+public:
+	TaskLoadScene(TaskLoadSceneDesc &&rhs);
+	~TaskLoadScene();
+
+	f32 getTimeMs() const override { return 0.0f; }
 };

@@ -301,7 +301,7 @@ namespace Editor
 			auto dataSize = writeBuffer.getSize();
 			auto data = writeBuffer.getData();
 
-			managed_ptr<u8[]> physData = meshDataAllocator->allocate(dataSize, 4);
+			managed_ptr<u8[]> physData = meshDataAllocator->allocate<u8[]>(dataSize, 4);
 			memcpy(physData.get(), data, dataSize);
 
 			meshFile->setPhysxMesh(std::move(physData), dataSize, type);

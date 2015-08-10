@@ -19,6 +19,9 @@
     <Filter Include="Header Files\Tasks">
       <UniqueIdentifier>{198c21d7-561a-4126-aa26-a73ae72d7243}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Tasks">
+      <UniqueIdentifier>{43d9eb4c-20da-4e32-829f-62cc7efe82e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileAspect.cpp">
@@ -54,8 +57,32 @@
     <ClCompile Include="ConverterSceneFileToEditorScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TaskLoadMesh.cpp">
+    <ClCompile Include="ResourceAspect.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadMesh.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadScene.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadFile.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadAnimation.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadMaterial.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneFactoryNew.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterSceneFileToSceneNew.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadTexture.cpp">
+      <Filter>Source Files\Tasks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -69,9 +96,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxResourceAspect\CreateSceneDescription.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\FileAspect.h">
@@ -96,6 +120,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TaskLoadMesh.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadScene.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxResourceAspect\ResourceManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadAnimation.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadFile.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadMaterial.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadTexture.h">
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
   </ItemGroup>

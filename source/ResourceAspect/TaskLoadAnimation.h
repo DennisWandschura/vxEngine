@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,36 +24,35 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+template<typename T>
+class ResourceManager;
+
 namespace vx
 {
-	template<typename K, typename T, typename C>
-	class sorted_array;
-
-	template<typename K, typename T, typename Cmp>
-	class sorted_vector;
-
-	class MeshFile;
-	class FileEntry;
-	
-	struct StringID;
 	struct Animation;
-}
+};
 
-template<typename T>
-class Reference;
+#include "TaskLoadFile.h"
+#include <vxLib/StringID.h>
 
-class Material;
-
-#include <vector>
-
-namespace Factory
+struct TaskLoadAnimationDesc
 {
-	struct CreateSceneDescription
-	{
-		const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>>* meshes;
-		const vx::sorted_array<vx::StringID, Reference<Material>>* materials;
-		const vx::sorted_array<vx::StringID, Reference<vx::Animation>>* animations;
-		const vx::sorted_vector<vx::StringID, std::string>* loadedFiles;
-		std::vector<vx::FileEntry>* pMissingFiles;
-	};
-}
+	std::string m_fileNameWithPath;
+	shared_ptr<Event> evt;
+	ResourceManager<vx::Animation>* m_animationManager;
+	vx::StringID m_sid;
+};
+
+class TaskLoadAnimation : public TaskLoadFile
+{
+	ResourceManager<vx::Animation>* m_animationManager;
+	vx::StringID m_sid;
+
+	TaskReturnType runImpl() override;
+
+public:
+	TaskLoadAnimation(TaskLoadAnimationDesc &&desc);
+	~TaskLoadAnimation();
+
+	f32 getTimeMs() const override;
+};

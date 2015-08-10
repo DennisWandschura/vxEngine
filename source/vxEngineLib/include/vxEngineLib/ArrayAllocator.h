@@ -25,6 +25,7 @@ SOFTWARE.
 */
 
 #include <vxLib/Allocator/Allocator.h>
+#include <vxEngineLib/managed_ptr.h>
 
 class ArrayAllocator : public vx::Allocator
 {
@@ -72,6 +73,8 @@ class ArrayAllocator : public vx::Allocator
 	u8* allocate(u64 size, u8 alignment) override;
 	void deallocate(u8 *ptr) override;
 
+	managed_ptr_base allocate(u32 size, u8 alignment);
+
 public:
 	ArrayAllocator();
 
@@ -81,7 +84,11 @@ public:
 
 	u8* release();
 
-	managed_ptr_base allocate(u32 size, u8 alignment);
+	template<typename T>
+	managed_ptr<T> allocate(u32 size, u8 alignment)
+	{
+		return managed_ptr<T>(allocate(size, alignment));
+	}
 
 	void deallocate(managed_ptr_base* p);
 

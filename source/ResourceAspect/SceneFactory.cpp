@@ -27,7 +27,6 @@ SOFTWARE.
 #include <vxResourceAspect/ConverterEditorSceneToSceneFile.h>
 #include <vxResourceAspect/FileFactory.h>
 #include <vxResourceAspect/FileEntry.h>
-#include <vxResourceAspect/CreateSceneDescription.h>
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/MeshInstance.h>
 #include <vxLib/Container/sorted_array.h>
@@ -137,15 +136,6 @@ bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, cons
 				result = false;
 			}
 		}
-
-		/*auto itMaterial = desc.sortedMaterials->find(materialFileEntry.getSid());
-		if (itMaterial == desc.sortedMaterials->end())
-		{
-			desc.pMissingFiles->push_back(materialFileEntry);
-			//printf("could not find material: %s\n", materialFile);
-
-			result = false;
-		}*/
 	}
 
 	return result;
@@ -197,7 +187,7 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene)
 {
 	auto marker = scratchAllocator->getMarker();
 	bool result = false;
@@ -240,7 +230,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc,
 	return result;
 }
 
-bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, vx::File* file, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene)
+bool SceneFactory::createFromFile(const Factory::CreateSceneDesc &desc, vx::File* file, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene)
 {
 	bool result = false;
 	SceneFile sceneFile = FileFactory::load(file, &result, scratchAllocator, nullptr);
@@ -272,7 +262,7 @@ bool SceneFactory::createFromFile(const Factory::CreateSceneDescription &desc, v
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescription &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene* pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene* pScene)
 {
 	auto marker = scratchAllocator->getMarker();
 	bool result = false;

@@ -51,7 +51,7 @@ namespace Graphics
 
 	class Face : public Surface
 	{
-		Surface* m_mipmaps;
+		managed_ptr<Surface[]> m_mipmaps;
 		u32 m_mipmapCount;
 
 	public:
@@ -63,8 +63,8 @@ namespace Graphics
 		Face& operator=(const Face&) = delete;
 		Face& operator=(Face &&rhs);
 
-		void create(const vx::uint3 &dimension, u32 size, u8* pixels);
-		void setMipmaps(Surface* mipmaps, u32 count);
+		void create(const vx::uint3 &dimension, u32 size, managed_ptr<u8[]> &&pixels);
+		void setMipmaps(managed_ptr<Surface[]> &&mipmaps, u32 count);
 
 		void clear();
 
@@ -75,7 +75,7 @@ namespace Graphics
 
 	class Texture
 	{
-		Face* m_faces;
+		managed_ptr<Face[]> m_faces;
 		u32 m_faceCount;
 		TextureFormat m_format;
 		TextureType m_type;
@@ -90,7 +90,7 @@ namespace Graphics
 		Texture& operator=(const Texture&) = delete;
 		Texture& operator=(Texture &&rhs);
 
-		void create(Face* faces, TextureFormat format, TextureType type, u8 components);
+		void create(managed_ptr<Face[]> &&faces, TextureFormat format, TextureType type, u8 components);
 		void clear();
 
 		Face& getFace(u32 i) { return m_faces[i]; }

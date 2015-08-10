@@ -59,6 +59,8 @@ ArrayAllocator::~ArrayAllocator()
 
 void ArrayAllocator::create(u8* memory, u32 totalSize)
 {
+	VX_ASSERT(memory);
+
 	m_memory = memory;
 	m_head = memory;
 	m_totalSize = totalSize;

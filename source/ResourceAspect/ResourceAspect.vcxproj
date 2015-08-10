@@ -285,6 +285,7 @@
     <ClCompile Include="ConverterSceneFileToScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ConverterSceneFileToSceneNew.cpp" />
     <ClCompile Include="FbxFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -305,10 +306,17 @@
     <ClCompile Include="MaterialFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ResourceAspect.cpp" />
     <ClCompile Include="SceneFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="SceneFactoryNew.cpp" />
+    <ClCompile Include="TaskLoadAnimation.cpp" />
+    <ClCompile Include="TaskLoadFile.cpp" />
+    <ClCompile Include="TaskLoadMaterial.cpp" />
     <ClCompile Include="TaskLoadMesh.cpp" />
+    <ClCompile Include="TaskLoadScene.cpp" />
+    <ClCompile Include="TaskLoadTexture.cpp" />
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Editor|x64'">true</ExcludedFromBuild>
@@ -319,7 +327,6 @@
     <ClInclude Include="include\vxResourceAspect\ConverterEditorSceneToSceneFile.h" />
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToEditorScene.h" />
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToScene.h" />
-    <ClInclude Include="include\vxResourceAspect\CreateSceneDescription.h" />
     <ClInclude Include="include\vxResourceAspect\FbxFactory.h" />
     <ClInclude Include="include\vxResourceAspect\FileAspect.h" />
     <ClInclude Include="include\vxResourceAspect\FileEntry.h" />
@@ -327,8 +334,14 @@
     <ClInclude Include="include\vxResourceAspect\LoadFileCallback.h" />
     <ClInclude Include="include\vxResourceAspect\MaterialFactory.h" />
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h" />
+    <ClInclude Include="include\vxResourceAspect\ResourceManager.h" />
     <ClInclude Include="include\vxResourceAspect\SceneFactory.h" />
+    <ClInclude Include="TaskLoadAnimation.h" />
+    <ClInclude Include="TaskLoadFile.h" />
+    <ClInclude Include="TaskLoadMaterial.h" />
     <ClInclude Include="TaskLoadMesh.h" />
+    <ClInclude Include="TaskLoadScene.h" />
+    <ClInclude Include="TaskLoadTexture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

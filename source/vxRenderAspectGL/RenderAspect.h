@@ -63,6 +63,7 @@ class GpuProfiler;
 #include "Graphics/PStateProfiler.h"
 #include "MaterialManager.h"
 #include "MeshManager.h"
+#include  <vxEngineLib/ArrayAllocator.h>
 
 class VX_ALIGN(64) RenderAspect : public RenderAspectInterface
 {
@@ -104,6 +105,7 @@ protected:
 	vx::MessageManager* m_msgManager;
 	
 	vx::StackAllocator m_allocator;
+	ArrayAllocator m_textureAllocator;
 	vx::StackAllocator m_scratchAllocator;
 	MeshManager m_meshManager;
 	MaterialManager m_materialManager;

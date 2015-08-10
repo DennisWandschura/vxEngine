@@ -102,7 +102,7 @@ vx::float3 decodeNormal(const vx::float2 &enc)
 	scth.y = cos(tmp);
 
 	vx::float2 scphi;
-	scphi.x = (1.0 - ang.y*ang.y);
+	scphi.x = (1.0f - ang.y*ang.y);
 	scphi.y = ang.y;
 
 	n.x = scth.y * scphi.x;
@@ -114,7 +114,7 @@ vx::float3 decodeNormal(const vx::float2 &enc)
 
 f32 getLuminance(const vx::float3 &color)
 {
-	return 0.2126f *color.x + 0.7152 * color.y + 0.0722 * color.z;
+	return 0.2126f *color.x + 0.7152f * color.y + 0.0722f * color.z;
 }
 
 vx::float3 getAvg(const vx::float3 &color0, const vx::float3 &color1)
@@ -214,14 +214,6 @@ int main()
 	LOG(mainLogfile, "Starting", false);
 
 	engine.start();
-
-	std::atomic_int sizeFront;
-	int sizeBack = 0;
-
-	std::atomic<void*> ptr;
-	void* ptrBack;
-
-	__cplusplus;
 
 	return 0;
 }

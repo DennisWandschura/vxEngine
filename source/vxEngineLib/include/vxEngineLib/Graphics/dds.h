@@ -25,9 +25,11 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
+#ifndef MAKEFOURCC
 #define MAKEFOURCC(ch0, ch1, ch2, ch3)                              \
                 ((u32)(u8)(ch0) | ((u32)(u8)(ch1) << 8) |   \
                 ((u32)(u8)(ch2) << 16) | ((u32)(u8)(ch3) << 24 ))
+#endif
 
 typedef enum D3D10_RESOURCE_DIMENSION
 {

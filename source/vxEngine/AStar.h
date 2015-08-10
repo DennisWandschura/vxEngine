@@ -37,8 +37,8 @@ namespace vx
 	class array;
 }
 
-#include <vector>
 #include <vxLib/math/Vector.h>
+#include <vector>
 
 struct AStar
 {

@@ -25,7 +25,6 @@ SOFTWARE.
 #include <vxResourceAspect/MaterialFactory.h>
 #include <vxResourceAspect/SceneFactory.h>
 #include <vxResourceAspect/FileFactory.h>
-#include <vxResourceAspect/CreateSceneDescription.h>
 #include <vxLib/File/File.h>
 #include <vxLib/ScopeGuard.h>
 #include <vxEngineLib/Light.h>
@@ -129,8 +128,7 @@ FileAspect::FileAspect()
 	m_poolMesh(),
 	m_poolMaterial(),
 	m_poolTextures(),
-	m_msgManager(nullptr),
-	m_cooking(nullptr)
+	m_msgManager(nullptr)
 {
 }
 
@@ -157,7 +155,8 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	auto textureMemory = pMainAllocator->allocate(textureMemorySize, 64);
 	if (textureMemory == nullptr)
 		return false;
-	m_allocatorTextureData = vx::StackAllocator(textureMemory, textureMemorySize);
+
+	m_allocatorTextureData.create(textureMemory, textureMemorySize);
 
 	m_logfile.create("filelog.xml");
 
@@ -172,8 +171,6 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	createPool(maxCount, &m_poolMaterial, pMainAllocator);
 	createPool(maxCount, &m_poolAnimations, pMainAllocator);
 	createPool(maxCount, &m_poolTextures, pMainAllocator);
-
-	m_cooking = cooking;
 
 	strcpy_s(s_textureFolder, (dataDir + "textures/").c_str());
 	strcpy_s(s_materialFolder, (dataDir + "materials/").c_str());
@@ -241,7 +238,7 @@ bool FileAspect::loadFileScene(const LoadFileOfTypeDescription &desc, bool edito
 {
 	bool result = false;
 	{
-		Factory::CreateSceneDescription factoryDesc;
+		Factory::CreateSceneDesc factoryDesc;
 		factoryDesc.loadedFiles = &m_loadedFiles;
 		factoryDesc.materials = &m_sortedMaterials;
 		factoryDesc.meshes = &m_sortedMeshes;

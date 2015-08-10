@@ -26,35 +26,25 @@ SOFTWARE.
 
 namespace vx
 {
-	class MeshFile;
+	class StackAllocator;
 }
 
-template<typename T>
-class ResourceManager;
-
-#include "TaskLoadFile.h"
+#include <vxEngineLib/Task.h>
 #include <string>
-#include <vxLib/StringID.h>
-#include <vxEngineLib/managed_ptr.h>
 
-struct TaskLoadMeshDesc
+class TaskLoadFile : public Task
 {
-	ResourceManager<vx::MeshFile>* m_meshManager;
+	vx::StackAllocator* m_scratchAllocator;
+	std::mutex* m_mutex;
+
+protected:
 	std::string m_fileNameWithPath;
-	vx::StringID m_sid;
-	shared_ptr<Event> evt;
-};
 
-class TaskLoadMesh : public TaskLoadFile
-{
-	ResourceManager<vx::MeshFile>* m_meshManager;
-	vx::StringID m_sid;
+	bool loadFromFile(u8** ptr, u32* fileSize);
+	bool readAndCheckHeader(const u8* fileData, u32 fileSize, const u8** dataBegin, u32* dataSize, u64* crc);
 
-	TaskReturnType runImpl() override;
+	TaskLoadFile(std::string &&fileNameWithPath, vx::StackAllocator* scratchAllocator, std::mutex* mutex, shared_ptr<Event> &&evt);
 
 public:
-	explicit TaskLoadMesh(TaskLoadMeshDesc &&desc);
-	~TaskLoadMesh();
-
-	f32 getTimeMs() const override;
+	virtual ~TaskLoadFile();
 };

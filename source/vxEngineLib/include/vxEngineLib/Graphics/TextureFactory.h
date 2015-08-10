@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class ArrayAllocator;
+
 namespace vx
 {
 	class StackAllocator;
@@ -38,10 +40,10 @@ namespace Graphics
 	class TextureFactory
 	{
 	public:
-		static bool createDDSFromFile(const char* ddsFile, bool flipImage, Texture* texture, vx::StackAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
-		static bool createPngFromFile(const char* pngFile, bool flipImage, Texture* texture, vx::StackAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
+		static bool createDDSFromFile(const char* ddsFile, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
+		static bool createPngFromFile(const char* pngFile, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
 
-		static bool createDDSFromMemory(const u8* ddsData, bool flipImage, Texture* texture, vx::StackAllocator* textureAllocator);
-		static bool createPngFromMemory(const u8* pngData, u32 size, bool flipImage, Texture* texture, vx::StackAllocator* textureAllocator);
+		static bool createDDSFromMemory(const u8* ddsData, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator);
+		static bool createPngFromMemory(const u8* pngData, u32 size, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator);
 	};
 }

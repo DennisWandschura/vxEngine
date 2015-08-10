@@ -32,6 +32,9 @@ namespace Graphics
 	class Texture;
 }
 
+template<typename T>
+class ResourceManager;
+
 namespace vx
 {
 	template<typename K, typename T,typename C>
@@ -52,8 +55,17 @@ struct MaterialFactoryLoadDescription
 	Material* material;
 };
 
+struct MaterialFactoryLoadDescNew
+{
+	const char *fileNameWithPath;
+	const ResourceManager<Graphics::Texture>* m_textureManager;
+	std::vector<vx::FileEntry>* missingFiles;
+	Material* material;
+};
+
 class MaterialFactory
 {
 public:
 	static bool load(const MaterialFactoryLoadDescription &desc);
+	static bool load(const MaterialFactoryLoadDescNew &desc);
 };

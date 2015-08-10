@@ -202,4 +202,9 @@ public:
 	{
 		return m_ptr;
 	}
+
+	explicit operator bool() const
+	{	// test for non-null pointer
+		return (m_ptr != nullptr);
+	}
 };

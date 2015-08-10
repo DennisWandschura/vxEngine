@@ -136,7 +136,7 @@ void Engine::mainLoop()
 		QueryPerformanceCounter(&current);
 
 		auto frameTicks = (current.QuadPart - last.QuadPart) * 1000;
-		f32 frameTime = frameTicks * invFrequency * 0.001f;
+		f32 frameTime = static_cast<f32>(frameTicks * invFrequency) * 0.001f;
 		frameTime = fminf(frameTime, g_dt);
 
 		accum += frameTime;
@@ -175,7 +175,7 @@ bool Engine::initializeImpl(const std::string &dataDir)
 {
 	m_memory = Memory(100 MBYTE, 64);
 
-	m_allocator = vx::StackAllocator(m_memory.get(), m_memory.size());
+	m_allocator = vx::StackAllocator(m_memory.get(), static_cast<u32>(m_memory.size()));
 
 #if _VX_MEM_PROFILE
 	m_allocManager.registerAllocator(&m_allocator, "mainAllocator");

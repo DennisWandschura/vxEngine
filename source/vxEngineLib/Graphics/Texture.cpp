@@ -28,17 +28,16 @@ namespace Graphics
 {
 	Face::Face()
 		:Surface(),
-		m_mipmaps(nullptr),
+		m_mipmaps(),
 		m_mipmapCount(0)
 	{
 	}
 
 	Face::Face(Face &&rhs)
 		: Graphics::Surface(std::move(rhs)),
-		m_mipmaps(rhs.m_mipmaps),
+		m_mipmaps(std::move(rhs.m_mipmaps)),
 		m_mipmapCount(rhs.m_mipmapCount)
 	{
-		rhs.m_mipmaps = nullptr;
 		rhs.m_mipmapCount = 0;
 	}
 
@@ -58,17 +57,16 @@ namespace Graphics
 		return *this;
 	}
 
-	void Face::create(const vx::uint3 &dimension, u32 size, u8* pixels)
+	void Face::create(const vx::uint3 &dimension, u32 size, managed_ptr<u8[]> &&pixels)
 	{
-		Graphics::Surface::create(dimension, size, pixels);
+		Graphics::Surface::create(dimension, size, std::move(pixels));
 
-		m_mipmaps = nullptr;
 		m_mipmapCount = 0;
 	}
 
-	void Face::setMipmaps(Surface* mipmaps, u32 count)
+	void Face::setMipmaps(managed_ptr<Surface[]> &&mipmaps, u32 count)
 	{
-		m_mipmaps = mipmaps;
+		m_mipmaps = std::move(mipmaps);
 		m_mipmapCount = count;
 	}
 
@@ -76,20 +74,17 @@ namespace Graphics
 	{
 		Graphics::Surface::clear();
 
-		auto current = m_mipmaps;
-		auto end = m_mipmaps + m_mipmapCount;
-		while (current != end)
+		for (u32 i = 0;i < m_mipmapCount; ++i)
 		{
-			current->clear();
-			++current;
+			m_mipmaps[i].clear();
 		}
 
-		m_mipmaps = nullptr;
+		m_mipmaps.clear();
 		m_mipmapCount = 0;
 	}
 
 	Texture::Texture()
-		:m_faces(nullptr),
+		:m_faces(),
 		m_faceCount(0),
 		m_format(),
 		m_type(),
@@ -98,13 +93,12 @@ namespace Graphics
 	}
 
 	Texture::Texture(Texture &&rhs)
-		:m_faces(rhs.m_faces),
+		:m_faces(std::move(rhs.m_faces)),
 		m_faceCount(rhs.m_faceCount),
 		m_format(rhs.m_format),
 		m_type(rhs.m_type),
 		m_components(rhs.m_components)
 	{
-		rhs.m_faces = nullptr;
 		rhs.m_faceCount = 0;
 		rhs.m_components = 0;
 	}
@@ -128,36 +122,28 @@ namespace Graphics
 		return *this;
 	}
 
-	void Texture::create(Face* faces, TextureFormat format, TextureType type, u8 components)
+	void Texture::create(managed_ptr<Face[]> &&faces, TextureFormat format, TextureType type, u8 components)
 	{
 		clear();
 
-		m_faces = faces;
+		m_faces = std::move(faces);
 		m_faceCount = 1;
 		m_format = format;
 		m_type = type;
 		m_components = components;
 
 		if (type == TextureType::Cubemap)
-			m_faceCount = 1;
+			m_faceCount = 6;
 	}
 
 	void Texture::clear()
 	{
-		if (m_faces != nullptr)
+		for (u32 i = 0;i < m_faceCount; ++i)
 		{
-			auto beg = m_faces;
-			auto end = m_faces + m_faceCount;
-
-			while (beg != end)
-			{
-				beg->clear();
-				++beg;
-			}
-
-			m_faces = nullptr;
-			m_faceCount = 0;
-			m_components = 0;
+			m_faces[i].clear();
 		}
+		m_faces.clear();
+		m_faceCount = 0;
+		m_components = 0;
 	}
 }

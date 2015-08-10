@@ -25,6 +25,7 @@ SOFTWARE.
 
 class MeshInstance;
 class Scene;
+class Event;
 
 namespace Editor
 {
@@ -51,6 +52,8 @@ namespace vx
 #include <vxEngineLib/SRWMutex.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/ArrayAllocator.h>
+#include <vxEngineLib/shared_ptr.h>
+#include <mutex>
 
 namespace vx
 {
@@ -80,11 +83,12 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 		vx::mutex m_mutexFileRequests;
 		mutable vx::SRWMutex m_mutexLoadedFiles;
 	};
+	ArrayAllocator m_fileAllocator;
+	ArrayAllocator m_allocatorMeshData;
 	Logfile m_logfile;
 	vx::StackAllocator m_scratchAllocator;
 	vx::StackAllocator m_allocatorReadFile;
-	ArrayAllocator m_allocatorMeshData;
-	vx::StackAllocator m_allocatorTextureData;
+	ArrayAllocator m_allocatorTextureData;
 	Timer m_timer;
 	vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> m_sortedMeshes;
 	vx::sorted_array<vx::StringID, Reference<Material>> m_sortedMaterials;
@@ -95,7 +99,6 @@ class VX_ALIGN(64) FileAspect : public FileAspectInterface
 	vx::Pool<ReferenceCounted<vx::Animation>> m_poolAnimations;
 	vx::Pool<Graphics::Texture> m_poolTextures;
 	vx::MessageManager* m_msgManager;
-	physx::PxCooking* m_cooking;
 	vx::sorted_array<vx::StringID, std::string> m_sortedAnimationNames;
 
 	vx::sorted_vector<vx::StringID, std::string> m_loadedFiles;
