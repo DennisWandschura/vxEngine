@@ -56,7 +56,7 @@ TaskReturnType TaskLoadMaterial::runImpl()
 
 	std::vector<vx::FileEntry> missingFiles;
 
-	Material material;
+	Material material(m_sid);
 
 	MaterialFactoryLoadDescNew loadMaterialDesc;
 	loadMaterialDesc.fileNameWithPath = m_fileNameWithPath.c_str();

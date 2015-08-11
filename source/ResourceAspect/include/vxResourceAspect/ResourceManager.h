@@ -49,7 +49,7 @@ public:
 	ResourceManager():m_mutexData(), m_poolData(), m_sortedData(), m_mutexScratchAllocator(), m_scratchAllocator(), m_mutexDataAllocator(), m_dataAllocator(){}
 	~ResourceManager() {}
 
-	bool initialize(u16 capacity, u32 dataSizeInBytes, u32 scratchSizeInBytes,vx::StackAllocator* allocator)
+	bool initialize(u16 capacity, u32 dataSizeInBytes, u32 scratchSizeInBytes, vx::StackAllocator* allocator)
 	{
 		auto sizeInBytes = sizeof(T) * capacity;
 		auto poolPtr = allocator->allocate(sizeInBytes, 64);
@@ -125,7 +125,6 @@ public:
 		}
 		else
 		{
-
 			u16 index = 0xffff;
 			auto ptr = m_poolData.createEntry(&index, std::forward<Args>(args)...);
 			if (ptr != nullptr)

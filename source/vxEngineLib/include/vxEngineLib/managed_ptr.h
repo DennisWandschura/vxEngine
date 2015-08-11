@@ -99,6 +99,7 @@ public:
 	managed_ptr() :MyBase(){}
 	managed_ptr(MyBase &&rhs): MyBase(std::move(rhs)){}
 	managed_ptr(managed_ptr &&rhs) :MyBase(std::move(rhs)){}
+	managed_ptr(const managed_ptr&) = delete;
 
 	~managed_ptr()
 	{
@@ -153,6 +154,7 @@ public:
 	managed_ptr() :MyBase(){}
 	managed_ptr(MyBase &&rhs) : MyBase(std::move(rhs)){}
 	managed_ptr(managed_ptr &&rhs) :MyBase(std::move(rhs)){}
+	managed_ptr(const managed_ptr&) = delete;
 
 	~managed_ptr()
 	{

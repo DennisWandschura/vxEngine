@@ -48,10 +48,10 @@ namespace Graphics
 
 	Face& Face::operator = (Face &&rhs)
 	{
-		Graphics::Surface::operator=(std::move(rhs));
 		if (this != &rhs)
 		{
-			std::swap(m_mipmaps, rhs.m_mipmaps);
+			Graphics::Surface::operator=(std::move(rhs));
+			m_mipmaps.swap(rhs.m_mipmaps);
 			std::swap(m_mipmapCount, rhs.m_mipmapCount);
 		}
 		return *this;
@@ -112,7 +112,7 @@ namespace Graphics
 	{
 		if (this != &rhs)
 		{
-			std::swap(m_faces, rhs.m_faces);
+			m_faces.swap(rhs.m_faces);
 			std::swap(m_faceCount, rhs.m_faceCount);
 			std::swap(m_format, rhs.m_format);
 			std::swap(m_type, rhs.m_type);
