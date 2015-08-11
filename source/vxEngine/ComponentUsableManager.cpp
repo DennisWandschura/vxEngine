@@ -27,7 +27,7 @@ SOFTWARE.
 #include "ComponentUsable.h"
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Locator.h>
-#include <vxResourceAspect/FileAspect.h>
+#include <vxResourceAspect/ResourceAspect.h>
 #include <vxEngineLib/Animation.h>
 
 ComponentUsableManager::ComponentUsableManager()
@@ -58,8 +58,8 @@ Component::Usable* ComponentUsableManager::createComponent(const MeshInstance &i
 
 	auto animSid = instance.getAnimationSid();
 	
-	auto fileAspect = Locator::getFileAspect();
-	auto animation = fileAspect->getAnimation(animSid);
+	auto resourceAspect = Locator::getResourceAspect();
+	auto animation = resourceAspect->getAnimation(animSid);
 
 	componentUsable->action = nullptr;
 	componentUsable->entityIndex = entityIndex;

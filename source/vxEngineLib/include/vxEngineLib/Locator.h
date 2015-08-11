@@ -28,14 +28,14 @@ namespace vx
 	class MessageManager;
 }
 class PhysicsAspect;
-class FileAspect;
+class ResourceAspect;
 class RenderAspectInterface;
 
 class Locator
 {
 	static vx::MessageManager* s_pEventManager;
 	static PhysicsAspect* s_pPhysicsAspect;
-	static FileAspect* s_pFileAspect;
+	static ResourceAspect* s_pResourceAspect;
 	static RenderAspectInterface* s_pRenderAspect;
 
 public:
@@ -45,8 +45,8 @@ public:
 	static void provide(PhysicsAspect* p);
 	static PhysicsAspect* getPhysicsAspect();
 
-	static void provide(FileAspect* p);
-	static FileAspect* getFileAspect();
+	static void provide(ResourceAspect* p);
+	static ResourceAspect* getResourceAspect();
 
 	static void provide(RenderAspectInterface* p);
 	static RenderAspectInterface* getRenderAspect();

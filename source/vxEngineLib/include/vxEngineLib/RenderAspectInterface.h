@@ -26,6 +26,7 @@ SOFTWARE.
 
 class FileAspect;
 struct EngineConfig;
+class ResourceAspectInterface;
 class FileAspectInterface;
 
 namespace vx
@@ -52,7 +53,7 @@ struct RenderAspectDescription
 	const void* tmpHwnd;
 	vx::StackAllocator* pAllocator;
 	const EngineConfig* settings;
-	FileAspectInterface* fileAspect;
+	ResourceAspectInterface* resourceAspect;
 	vx::MessageManager* msgManager;
 	vx::TaskManager* taskManager;
 };

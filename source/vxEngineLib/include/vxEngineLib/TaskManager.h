@@ -58,8 +58,8 @@ namespace vx
 		void initializeThread(std::atomic_uint* running);
 		void shutdown();
 
-		void pushTask(Task* task, bool ignoreTime);
-		void pushTask(u32 tid, Task* task, bool ignoreTime);
+		void pushTask(Task* task);
+		void pushTask(u32 tid, Task* task);
 
 		void swapBuffer();
 

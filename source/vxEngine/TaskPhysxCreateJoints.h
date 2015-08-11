@@ -36,7 +36,7 @@ class TaskPhysxCreateJoints : public Task
 
 	const Scene* m_scene;
 	PhysicsAspect* m_physicsAspect;
-	shared_ptr<Event> m_blockEvt;
+	//shared_ptr<Event> m_blockEvt;
 
 public:
 	TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect, std::vector<shared_ptr<Event>> events, shared_ptr<Event> &&blockEvt);

@@ -101,7 +101,7 @@ namespace Editor
 	};
 
 	RenderAspect::RenderAspect()
-		:m_fileAspect(nullptr)
+		:m_resourceAspect(nullptr)
 	{
 
 	}
@@ -119,7 +119,7 @@ namespace Editor
 		m_resolution = resolution;
 		m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(renderDesc.settings->m_fov), (f32)resolution.x / (f32)resolution.y, znear, zfar);
 
-		m_fileAspect = renderDesc.fileAspect;
+		m_resourceAspect = renderDesc.resourceAspect;
 
 		vx::gl::ContextDescription contextDesc;
 		contextDesc.tmpHwnd = (HWND)renderDesc.tmpHwnd;
@@ -886,8 +886,8 @@ namespace Editor
 		auto materialSid = material->getSid();
 
 		u32 materialIndex = 0;
-		auto b = m_materialManager.getMaterialIndex(materialSid, m_fileAspect, &materialIndex);
-		m_meshManager.addMeshInstance(instance.getMeshInstance(), materialIndex, m_fileAspect);
+		auto b = m_materialManager.getMaterialIndex(materialSid, m_resourceAspect, &materialIndex);
+		m_meshManager.addMeshInstance(instance.getMeshInstance(), materialIndex, m_resourceAspect);
 	}
 
 	bool RenderAspect::removeMeshInstance(const vx::StringID &sid)
@@ -934,7 +934,7 @@ namespace Editor
 	bool RenderAspect::setSelectedMeshInstanceMaterial(const Reference<Material> &material)
 	{
 		u32 materialIndex = 0;
-		auto b = m_materialManager.getMaterialIndex(material->getSid(), m_fileAspect, &materialIndex);
+		auto b = m_materialManager.getMaterialIndex(material->getSid(), m_resourceAspect, &materialIndex);
 		if (b)
 		{
 			m_meshManager.setMaterial(m_selectedInstance.ptr->getNameSid(), materialIndex);
@@ -1281,10 +1281,10 @@ namespace Editor
 		{
 			auto &instance = instances[i];
 			u32 materialIndex = 0;
-			auto b = m_materialManager.getMaterialIndex(*instance.getMaterial().get(), m_fileAspect, &materialIndex);
+			auto b = m_materialManager.getMaterialIndex(*instance.getMaterial().get(), m_resourceAspect, &materialIndex);
 			VX_ASSERT(b);
 
-			auto gpuIndex = m_meshManager.addMeshInstance(instance.getMeshInstance(), materialIndex, m_fileAspect);
+			auto gpuIndex = m_meshManager.addMeshInstance(instance.getMeshInstance(), materialIndex, m_resourceAspect);
 		}
 
 		auto lightCount = scene->getLightCount();

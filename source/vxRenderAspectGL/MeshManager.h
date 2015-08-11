@@ -26,7 +26,7 @@ SOFTWARE.
 */
 
 class MeshInstance;
-class FileAspectInterface;
+class ResourceAspectInterface;
 
 namespace vx
 {
@@ -48,7 +48,7 @@ namespace gl
 struct MeshManagerMeshInstanceDesc
 {
 	const MeshInstance* instances;
-	FileAspectInterface* fileAspect;
+	ResourceAspectInterface* resourceAspect;
 	u16* materialIndices;
 	u32* outDrawIds;
 	u32 instanceCount;
@@ -92,9 +92,9 @@ public:
 	void initialize(u32 maxInstances, u32 maxVertices, u32 maxIndices, gl::ObjectManager* objectManager);
 	void shutdown();
 
-	u32 addMeshInstance(const MeshInstance &instance, u16 materialIndex, FileAspectInterface* fileAspect);
+	u32 addMeshInstance(const MeshInstance &instance, u16 materialIndex, ResourceAspectInterface* resourceAspect);
 	void addMeshInstances(const MeshManagerMeshInstanceDesc &desc);
-	u32 addMeshInstance(const vx::StringID &instanceSid, const vx::Transform &transform, const vx::StringID &meshSid, u16 materialIndex, FileAspectInterface* fileAspect);
+	u32 addMeshInstance(const vx::StringID &instanceSid, const vx::Transform &transform, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect);
 
 	void addMesh(const vx::Mesh &mesh);
 	void addMeshes(const vx::Mesh* meshes, u32 count);

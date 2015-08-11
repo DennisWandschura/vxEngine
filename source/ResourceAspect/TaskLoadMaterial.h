@@ -52,6 +52,7 @@ struct TaskLoadMaterialDesc
 	ResourceManager<Graphics::Texture>* m_textureManager;
 	vx::StringID m_sid;
 	vx::TaskManager* m_taskManager;
+	const char* m_textureFolder;
 };
 
 class TaskLoadMaterial : public Task
@@ -61,6 +62,7 @@ class TaskLoadMaterial : public Task
 	ResourceManager<Graphics::Texture>* m_textureManager;
 	vx::StringID m_sid;
 	vx::TaskManager* m_taskManager;
+	const char* m_textureFolder;
 
 	TaskReturnType runImpl() override;
 

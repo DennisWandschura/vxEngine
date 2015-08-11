@@ -33,6 +33,12 @@ enum class TaskReturnType : unsigned int
 	Timeout
 };
 
+namespace vx
+{
+	struct TaskBuffer;
+	class TaskManager;
+}
+
 class SmallObjAllocator;
 
 #include <vxLib/types.h>
@@ -45,12 +51,17 @@ class SmallObjAllocator;
 
 class Task : public SmallObjectThreaded<Task>
 {
+	friend vx::TaskBuffer;
+	friend vx::TaskManager;
+
 	shared_ptr<Event> m_event;
 	std::vector<shared_ptr<Event>> m_events;
 	CpuTimer m_timer;
 	f32 m_timeoutTime;
 
 	bool checkTimeout();
+	void setEventStatus(EventStatus status);
+	void setEventStatus(EventStatus status, bool hasEvent);
 
 protected:
 	virtual TaskReturnType runImpl() = 0;

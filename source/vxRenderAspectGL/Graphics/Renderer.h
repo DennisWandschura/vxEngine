@@ -41,8 +41,8 @@ namespace vx
 struct EngineConfig;
 class GpuProfiler;
 
-#include <vector>
 #include <vxLib/types.h>
+#include <vector>
 
 namespace Graphics
 {

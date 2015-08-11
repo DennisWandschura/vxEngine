@@ -59,6 +59,47 @@ ResourceAspect::~ResourceAspect()
 
 }
 
+void ResourceAspect::setDirectories(const std::string &dataDir)
+{
+	strcpy_s(s_textureFolder, (dataDir + "textures/").c_str());
+	strcpy_s(s_materialFolder, (dataDir + "materials/").c_str());
+	strcpy_s(s_sceneFolder, (dataDir + "scenes/").c_str());
+	strcpy_s(s_meshFolder, (dataDir + "mesh/").c_str());
+	strcpy_s(s_animationFolder, (dataDir + "animation/").c_str());
+
+	//strcpy_s(FileAspectCpp::g_assetFolder, (dataDir + "../../assets/").c_str());
+}
+
+bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, vx::TaskManager* taskManager, vx::MessageManager* msgManager)
+{
+	if (!m_meshData.initialize(255, 10 MBYTE, 5 MBYTE, mainAllocator))
+		return false;
+
+	if (!m_materialData.initialize(255, 0, 5 MBYTE, mainAllocator))
+		return false;
+
+	if (!m_animationData.initialize(64, 0, 5 MBYTE, mainAllocator))
+		return false;
+
+	if (!m_textureData.initialize(128, 50 MBYTE, 15 MBYTE, mainAllocator))
+		return false;
+
+	m_taskManager = taskManager;
+	m_msgManager = msgManager;
+
+	setDirectories(dataDir);
+
+	return true;
+}
+
+void ResourceAspect::shutdown()
+{
+	m_textureData.shutdown();
+	m_animationData.shutdown();
+	m_materialData.shutdown();
+	m_meshData.shutdown();
+}
+
 void ResourceAspect::pushFileMessage(vx::FileMessage type, vx::Variant arg1, vx::Variant arg2)
 {
 	vx::Message msg;
@@ -104,15 +145,27 @@ void ResourceAspect::update()
 	requests.reserve(m_requests.size());
 	for (auto &it : m_requests)
 	{
-		if (it.m_event->test())
+		auto evtStatus = it.m_event->getStatus();
+		switch (evtStatus)
+		{
+		case EventStatus::Error:
+			VX_ASSERT(false);
+			break;
+		case EventStatus::Complete:
 		{
 			sendFileMessage(it);
-		}
-		else
-		{
+			m_meshData.clearScratchAllocator();
+			m_animationData.clearScratchAllocator();
+			m_materialData.clearScratchAllocator();
+			m_textureData.clearScratchAllocator();
+		}break;
+		default:
 			requests.push_back(it);
+			break;
 		}
 	}
+
+	m_requests.swap(requests);
 }
 
 void ResourceAspect::pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const shared_ptr<Event> &evt, void* userData)
@@ -147,6 +200,12 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 			VX_ASSERT(false);
 		}
 
+		TaskLoadSceneDirectories directories;
+		directories.meshDir = s_meshFolder;
+		directories.materialDir = s_materialFolder;
+		directories.textureDir = s_textureFolder;
+		directories.animDir = s_animationFolder;
+
 		auto evt = shared_ptr<Event>(new Event());
 		auto scene = (Scene*)p;
 		TaskLoadSceneDesc desc
@@ -155,13 +214,15 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 			&m_meshData,
 			&m_materialData,
 			&m_animationData,
+			&m_textureData,
 			scene,
 			m_taskManager,
-			evt
+			evt,
+			directories
 		};
 
 		auto task = new TaskLoadScene(std::move(desc));
-		m_taskManager->pushTask(task, false);
+		m_taskManager->pushTask(task);
 
 		pushFileRequest(type, sid, evt, p);
 	}break;
@@ -219,11 +280,4 @@ Reference<vx::MeshFile> ResourceAspect::getMesh(const vx::StringID &sid) const
 Reference<vx::Animation> ResourceAspect::getAnimation(const vx::StringID &sid) const
 {
 	return m_animationData.find(sid);
-}
-
-const char* ResourceAspect::getAnimationName(const vx::StringID &sid) const
-{
-	const char* result = nullptr;
-
-	return result;
 }

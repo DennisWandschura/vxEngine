@@ -24,8 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class FileAspect;
-
 #include <vxEngineLib/EditorRenderAspectInterface.h>
 #include <vxLib/Graphics/Camera.h>
 #include "gl/ObjectManager.h"
@@ -62,7 +60,7 @@ namespace Editor
 		vx::mat4 m_projectionMatrix;
 		vx::StackAllocator m_allocator;
 		vx::StackAllocator m_scratchAllocator;
-		FileAspectInterface* m_fileAspect;
+		ResourceAspectInterface* m_resourceAspect;
 		std::unique_ptr<ColdData> m_coldData;
 		vx::float2 m_resolution;
 
@@ -96,7 +94,7 @@ namespace Editor
 
 		void makeCurrent(bool b);
 
-		void queueUpdateTask(RenderUpdateTaskType type, const u8* data, u32 dataSize);
+		void queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
 		void queueUpdateCamera(const RenderUpdateCameraData &data);
 		void update();
 

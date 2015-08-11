@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,17 +22,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vector>
 #include "State.h"
+#include <vector>
 #include <memory>
 
 namespace Graphics
 {
-	class ProgramUniformCommand;
-
-	class ProgramUniformData;
+	struct ProgramUniformCommand;
 
 	class Segment
 	{
@@ -61,7 +59,7 @@ namespace Graphics
 			pushCommandImp(ptr, sizeof(T));
 		}
 
-		void pushCommand(const ProgramUniformCommand &command,const u8* data);
+		void pushCommand(const ProgramUniformCommand &command, const u8* data);
 
 		void draw() const;
 

@@ -37,6 +37,7 @@ SOFTWARE.*/
 #include <vxEngineLib/Scene.h>
 #include "ActionManager.h"
 #include <vxEngineLib/TaskManager.h>
+#include <vxResourceAspect/ResourceAspect.h>
 #if _VX_MEM_PROFILE
 #include <vxLib/Allocator/AllocationProfiler.h>
 #endif
@@ -55,14 +56,13 @@ class Engine
 	RenderAspectInterface* m_renderAspect;
 	EntityAspect m_entityAspect;
 	u32 m_bRun;
-	FileAspect m_fileAspect;
-	std::atomic_uint m_bRunFileThread;
+	ResourceAspect m_resourceAspect;
 #if _VX_MEM_PROFILE
 	vx::AllocationProfiler m_allocManager;
 #endif
 	vx::StackAllocator m_allocator;
 	u32 m_shutdown;
-	vx::thread m_fileAspectThread;
+	//std::thread m_fileAspectThread;
 	vx::thread m_taskManagerThread;
 	//vx::thread m_renderThread;
 #if _VX_AUDIO
@@ -76,7 +76,6 @@ class Engine
 	bool createRenderAspectGL(const RenderAspectDescription &desc);
 	bool createRenderAspectDX12(const RenderAspectDescription &desc);
 
-	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);
 
 	void update();

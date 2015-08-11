@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 #include "TexturePool.h"
-#include <vxEngineLib/FileAspectInterface.h>
+#include <vxEngineLib/ResourceAspectInterface.h>
 #include <vxEngineLib/Graphics/Texture.h>
 
 namespace TexturePoolCpp
@@ -96,9 +96,9 @@ void TexturePool::shutdown()
 	m_texture.destroy();
 }
 
-bool TexturePool::addTexture(const vx::StringID &sid, FileAspectInterface* fileAspect, u32* index)
+bool TexturePool::addTexture(const vx::StringID &sid, ResourceAspectInterface* resourceAspect, u32* index)
 {
-	auto texture = fileAspect->getTexture(sid);
+	auto texture = resourceAspect->getTexture(sid);
 
 	return addTexture(sid, *texture, index);
 }
@@ -128,14 +128,14 @@ bool TexturePool::addTexture(const vx::StringID &sid, const Graphics::Texture &t
 	return true;
 }
 
-bool TexturePool::getTextureIndex(const vx::StringID &sid, FileAspectInterface* fileAspect, u32* index)
+bool TexturePool::getTextureIndex(const vx::StringID &sid, ResourceAspectInterface* resourceAspect, u32* index)
 {
 	bool result = false;
 
 	auto it = m_indices.find(sid);
 	if (it == m_indices.end())
 	{
-		result = addTexture(sid, fileAspect, index);
+		result = addTexture(sid, resourceAspect, index);
 	}
 	else
 	{

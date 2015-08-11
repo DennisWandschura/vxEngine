@@ -88,7 +88,7 @@ void PhysicsCpuDispatcher::submitTask(physx::PxBaseTask& task)
 {
 	auto newTask = new PhysxTask(&task);
 
-	m_taskManager->pushTask(newTask, false);
+	m_taskManager->pushTask(newTask);
 }
 
 physx::PxU32 PhysicsCpuDispatcher::getWorkerCount() const

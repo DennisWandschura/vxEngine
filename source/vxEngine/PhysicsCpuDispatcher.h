@@ -29,6 +29,7 @@ namespace vx
 	class TaskManager;
 }
 
+#include <vxLib/types.h>
 #include <pxtask/PxCpuDispatcher.h>
 
 class PhysicsCpuDispatcher : public physx::PxCpuDispatcher

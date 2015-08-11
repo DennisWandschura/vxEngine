@@ -31,7 +31,7 @@ namespace Editor
 #include <vxEngineLib/MessageManager.h>
 #include "SystemAspect.h"
 #include "EditorPhysicsAspect.h"
-#include <vxResourceAspect/FileAspect.h>
+#include <vxResourceAspect/ResourceAspect.h>
 #include "thread.h"
 #include "memory.h"
 #include "LevelEditor.h"
@@ -66,13 +66,8 @@ class EditorEngine : public vx::MessageListener
 	Editor::Scene* m_pEditorScene{ nullptr };
 	InfluenceMap m_influenceMap;
 	vx::mutex m_editorMutex;
-	struct VX_ALIGN(64)
-	{
-		FileAspect m_fileAspect;
-		std::atomic_uint m_bRunFileThread;
-	};
+	ResourceAspect m_resourceAspect;
 	Selected m_selected;
-	vx::thread m_fileAspectThread;
 	vx::StackAllocator m_allocator;
 	vx::StackAllocator m_scratchAllocator;
 	u32 m_shutdown{ 0 };
@@ -88,7 +83,6 @@ class EditorEngine : public vx::MessageListener
 	// calls the callback provided by editor_loadFile
 	bool call_editorCallback(const vx::StringID &sid);
 
-	void loopFileThread();
 	bool initializeImpl(const std::string &dataDir);
 
 	void handleFileEvent(const vx::Message &evt);
@@ -115,7 +109,6 @@ public:
 
 	void editor_saveScene(const char* name);
 
-	void editor_start();
 	void editor_render();
 	void editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f);
 

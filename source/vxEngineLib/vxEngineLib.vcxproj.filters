@@ -267,6 +267,9 @@
     <ClInclude Include="include\vxEngineLib\shared_ptr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\ResourceAspectInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">

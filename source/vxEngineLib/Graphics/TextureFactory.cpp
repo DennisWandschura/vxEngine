@@ -505,7 +505,7 @@ namespace Graphics
 		// load all surfaces for the image (6 surfaces for cubemaps)
 		for (u32 n = 0; n < faceCount; ++n)
 		{
-			new(&faces[n]) Face{};
+			textureAllocator->construct<Face>(&faces[n]);
 			// get reference to newly added texture object
 			auto &face = faces[n];
 
@@ -555,8 +555,8 @@ namespace Graphics
 				// load all mipmaps for current surface
 				for (u32 i = 0; i < mipmapCount; i++)
 				{
+					textureAllocator->construct<Surface>(&mipmaps[i]);
 					auto &mipmap = mipmaps[i];
-					new (&mipmap) Surface{};
 
 					// calculate mipmap size
 					auto mipmapSize = (*sizefunc)(dim.x, dim.y, components, textureFormat) * dim.z;
@@ -652,12 +652,17 @@ namespace Graphics
 
 		auto face = textureAllocator->allocate<Face[]>(sizeof(Face), __alignof(Face));
 		auto faceData = textureAllocator->allocate<u8[]>(dataSize, 4);
-		VX_ASSERT(faceData.get() != nullptr);
+		if (faceData.get() == nullptr)
+		{
+			VX_ASSERT(false);
+		}
+
 
 		memcpy(faceData.get(), data, dataSize);
 
 		stbi_image_free(data);
 
+		textureAllocator->construct<Face>(&face[0]);
 		face[0].create(vx::uint3(x, y, 1), dataSize, std::move(faceData));
 
 		TextureFormat format = TextureFormat::RGBA;

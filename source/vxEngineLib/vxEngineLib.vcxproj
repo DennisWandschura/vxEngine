@@ -280,6 +280,7 @@
     <ClInclude Include="include\vxEngineLib\RenderAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\RendererSettings.h" />
     <ClInclude Include="include\vxEngineLib\RenderUpdateTask.h" />
+    <ClInclude Include="include\vxEngineLib\ResourceAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\Scene.h" />
     <ClInclude Include="include\vxEngineLib\SceneBase.h" />
     <ClInclude Include="include\vxEngineLib\SceneFile.h" />

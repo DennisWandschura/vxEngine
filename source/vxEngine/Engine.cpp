@@ -24,7 +24,7 @@ SOFTWARE.
 #include "Engine.h"
 #include <vxEngineLib/Timer.h>
 #include <vxEngineLib/EngineConfig.h>
-#include <vxEngineLib\/Locator.h>
+#include <vxEngineLib/Locator.h>
 #include "developer.h"
 #include "EngineGlobals.h"
 #include "CpuProfiler.h"
@@ -66,14 +66,12 @@ Engine::Engine()
 	m_renderAspect(nullptr),
 	m_entityAspect(),
 	m_bRun(0),
-	m_fileAspect(),
-	m_bRunFileThread(),
+	m_resourceAspect(),
 #if _VX_MEM_PROFILE
 	m_allocManager(),
 #endif
 	m_allocator(),
 	m_shutdown(0),
-	m_fileAspectThread(),
 	m_scene(),
 	m_renderAspectDll(nullptr),
 	m_destroyFn(nullptr)
@@ -99,6 +97,8 @@ void Engine::update()
 	m_msgManager.update();
 
 	m_actionManager.update();
+
+	m_resourceAspect.update();
 
 	//printf("task manager begin\n");
 	//m_taskManager.update();
@@ -159,21 +159,9 @@ void Engine::mainLoop()
 	}
 }
 
-void Engine::loopFileThread()
-{
-	while (m_bRunFileThread.load() != 0)
-	{
-		// do work
-		m_fileAspect.update();
-
-		// sleep for a bit
-		std::this_thread::yield();
-	}
-}
-
 bool Engine::initializeImpl(const std::string &dataDir)
 {
-	m_memory = Memory(100 MBYTE, 64);
+	m_memory = Memory(200 MBYTE, 64);
 
 	m_allocator = vx::StackAllocator(m_memory.get(), static_cast<u32>(m_memory.size()));
 
@@ -184,7 +172,7 @@ bool Engine::initializeImpl(const std::string &dataDir)
 	m_msgManager.initialize(&m_allocator, 255);
 	Locator::provide(&m_msgManager);
 
-	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_msgManager, nullptr))
+	if (!m_resourceAspect.initialize(&m_allocator, dataDir, &m_taskManager, &m_msgManager))
 		return false;
 
 	return true;
@@ -281,7 +269,7 @@ bool Engine::initialize()
 		nullptr,
 		&m_allocator,
 		&g_engineConfig,
-		&m_fileAspect,
+		&m_resourceAspect,
 		&m_msgManager,
 		&m_taskManager
 	};
@@ -328,7 +316,7 @@ bool Engine::initialize()
 
 	Locator::provide(&m_physicsAspect);
 	Locator::provide(m_renderAspect);
-	Locator::provide(&m_fileAspect);
+	Locator::provide(&m_resourceAspect);
 
 	// register aspects that receive events
 	m_msgManager.registerListener(m_renderAspect, 3, (u8)vx::MessageType::File_Event);
@@ -337,7 +325,6 @@ bool Engine::initialize()
 	m_msgManager.registerListener(&m_actorAspect, 2, (u8)vx::MessageType::File_Event | (u8)vx::MessageType::Ingame_Event | (u8)vx::MessageType::AI_Event);
 
 	m_bRun = 1;
-	m_bRunFileThread.store(1);
 	m_shutdown = 0;
 
 	m_taskManagerThread = vx::thread(EngineCpp::schedulerThread, &m_taskManager);
@@ -347,9 +334,6 @@ bool Engine::initialize()
 
 void Engine::shutdown()
 {
-	m_fileAspectThread.join();
-	//m_renderThread.join();
-
 	m_scene.reset();
 
 #if _VX_AUDIO
@@ -367,7 +351,7 @@ void Engine::shutdown()
 	}
 
 	m_systemAspect.shutdown();
-	m_fileAspect.shutdown();
+	m_resourceAspect.shutdown();
 	m_shutdown = 1;
 
 	Locator::reset();
@@ -398,8 +382,6 @@ void Engine::shutdown()
 
 void Engine::start()
 {
-	m_fileAspectThread = vx::thread(&Engine::loopFileThread, this);
-
 	//RenderAspectThreadDesc desc{ &m_systemAspect.getWindow(), &g_engineConfig};
 	//m_renderThread = vx::thread(&Engine::renderLoop, this, desc);
 
@@ -414,12 +396,11 @@ void Engine::start()
 void Engine::stop()
 {
 	m_bRun = 0;
-	m_bRunFileThread.store(0);
 }
 
 void Engine::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 {
-	m_fileAspect.requestLoadFile(fileEntry, p);
+	m_resourceAspect.requestLoadFile(fileEntry, p);
 }
 
 void Engine::keyPressed(u16 key)

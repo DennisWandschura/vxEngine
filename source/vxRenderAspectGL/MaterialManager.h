@@ -47,8 +47,8 @@ class MaterialManager
 
 	void createBuffer(u32 maxInstances);
 
-	bool addMaterial(const Material &material, FileAspectInterface* fileAspect, u32* index);
-	bool addMaterial(const vx::StringID &materialSid, FileAspectInterface* fileAspect, u32* index);
+	bool addMaterial(const Material &material, ResourceAspectInterface* resourceAspect, u32* index);
+	bool addMaterial(const vx::StringID &materialSid, ResourceAspectInterface* resourceAspect, u32* index);
 
 public:
 	MaterialManager();
@@ -57,8 +57,8 @@ public:
 	void initialize(const vx::uint3 &textureDim, u32 maxInstances, gl::ObjectManager* objectManager);
 	void shutdown();
 
-	bool getMaterialIndex(const Material &material, FileAspectInterface* fileAspect, u32* index);
-	bool getMaterialIndex(const vx::StringID &materialSid, FileAspectInterface* fileAspect, u32* index);
+	bool getMaterialIndex(const Material &material, ResourceAspectInterface* resourceAspect, u32* index);
+	bool getMaterialIndex(const vx::StringID &materialSid, ResourceAspectInterface* resourceAspect, u32* index);
 
 	bool getTextureIndex(const vx::StringID &sid, const Graphics::Texture &texture, u32* index);
 

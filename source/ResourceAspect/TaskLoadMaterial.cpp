@@ -35,7 +35,8 @@ TaskLoadMaterial::TaskLoadMaterial(TaskLoadMaterialDesc &&desc)
 	m_materialManager(desc.m_materialManager),
 	m_textureManager(desc.m_textureManager),
 	m_sid(desc.m_sid),
-	m_taskManager(desc.m_taskManager)
+	m_taskManager(desc.m_taskManager),
+	m_textureFolder(desc.m_textureFolder)
 {
 
 }
@@ -67,21 +68,31 @@ TaskReturnType TaskLoadMaterial::runImpl()
 	{
 		if (missingFiles.size() != 0)
 		{
+			char fileNameWithPath[64];
 			std::vector<shared_ptr<Event>> events;
+
 			for(auto &it : missingFiles)
 			{
-				auto evt = shared_ptr<Event>(new Event());
-				TaskLoadTextureDesc loadTexDesc;
+				auto fileName = it.getString();
+
+				auto returnCode = sprintf_s(fileNameWithPath, "%s%s", m_textureFolder, fileName);
+				if (returnCode == -1)
 				{
-					it.getString(),
+					VX_ASSERT(false);
+				}
+
+				auto evt = shared_ptr<Event>(new Event());
+				TaskLoadTextureDesc loadTexDesc
+				{
+					std::string(fileNameWithPath),
 					evt,
 					it.getSid(),
-					m_textureManager;
+					m_textureManager
 				};
 
 				auto task = new TaskLoadTexture(std::move(loadTexDesc));
 
-				m_taskManager->pushTask(task, false);
+				m_taskManager->pushTask(task);
 
 				events.push_back(evt);
 			}

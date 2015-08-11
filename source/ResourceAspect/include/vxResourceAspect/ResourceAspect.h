@@ -25,22 +25,15 @@ SOFTWARE.
 */
 
 class Event;
-class Material;
 
 namespace vx
 {
-	struct Animation;
-	class MeshFile;
 	class FileEntry;
 	class TaskManager;
 	class MessageManager;
 }
 
-namespace Graphics
-{
-	class Texture;
-}
-
+#include <vxEngineLib/ResourceAspectInterface.h>
 #include <vxResourceAspect/ResourceManager.h>
 #include <vxEngineLib/shared_ptr.h>
 #include <vector>
@@ -52,7 +45,7 @@ namespace vx
 	enum class FileType : u8;
 }
 
-class ResourceAspect
+class ResourceAspect : public ResourceAspectInterface
 {
 	static char s_textureFolder[32];
 	static char s_materialFolder[32];
@@ -71,6 +64,8 @@ class ResourceAspect
 	vx::TaskManager* m_taskManager;
 	vx::MessageManager* m_msgManager;
 
+	void setDirectories(const std::string &dataDir);
+
 	void sendFileMessage(const FileRequest &request);
 	void pushFileMessage(vx::FileMessage type, vx::Variant arg1, vx::Variant arg2);
 
@@ -80,19 +75,18 @@ public:
 	ResourceAspect();
 	~ResourceAspect();
 
+	bool initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, vx::TaskManager* taskManager, vx::MessageManager* msgManager);
+	void shutdown();
+
 	void update();
 
 	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
 	void requestSaveFile(const vx::FileEntry &fileEntry, void* p);
 
-	Reference<Graphics::Texture> getTexture(const vx::StringID &sid) const;
-
-	Reference<Material> getMaterial(const vx::StringID &sid) const;
-
-	Reference<vx::MeshFile> getMesh(const vx::StringID &sid) const;
-
-	Reference<vx::Animation> getAnimation(const vx::StringID &sid) const;
-	const char* getAnimationName(const vx::StringID &sid) const;
+	Reference<Graphics::Texture> getTexture(const vx::StringID &sid) const override;
+	Reference<Material> getMaterial(const vx::StringID &sid) const override;
+	Reference<vx::MeshFile> getMesh(const vx::StringID &sid) const override;
+	Reference<vx::Animation> getAnimation(const vx::StringID &sid) const override;
 
 	//const char* getLoadedFileName(const vx::StringID &sid) const;
 };

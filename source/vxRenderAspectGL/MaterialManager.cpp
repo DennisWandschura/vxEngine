@@ -26,7 +26,7 @@ SOFTWARE.
 #include <vxEngineLib/Material.h>
 #include <vxGL/Buffer.h>
 #include "gl/ObjectManager.h"
-#include <vxEngineLib/FileAspectInterface.h>
+#include <vxEngineLib/ResourceAspectInterface.h>
 #include <vxEngineLib/Graphics/Texture.h>
 #include <vxEngineLib/Reference.h>
 #include "GpuStructs.h"
@@ -119,17 +119,17 @@ void MaterialManager::shutdown()
 	m_poolRgb.shutdown();
 }
 
-bool MaterialManager::addMaterial(const vx::StringID &materialSid, FileAspectInterface* fileAspect, u32* index)
+bool MaterialManager::addMaterial(const vx::StringID &materialSid, ResourceAspectInterface* resourceAspect, u32* index)
 {
-	Reference<Material> material = fileAspect->getMaterial(materialSid);
+	Reference<Material> material = resourceAspect->getMaterial(materialSid);
 	auto ptr = material.get();
 	if (ptr == nullptr)
 		return false;
 
-	return addMaterial(*ptr, fileAspect, index);
+	return addMaterial(*ptr, resourceAspect, index);
 }
 
-bool MaterialManager::addMaterial(const Material &material, FileAspectInterface* fileAspect, u32* index)
+bool MaterialManager::addMaterial(const Material &material, ResourceAspectInterface* resourceAspect, u32* index)
 {
 	if (m_materialFreeEntries == 0)
 		return false;
@@ -138,27 +138,27 @@ bool MaterialManager::addMaterial(const Material &material, FileAspectInterface*
 	auto normalSid = material.m_textureSid[1];
 	auto surfaceSid = material.m_textureSid[2];
 
-	auto comp = fileAspect->getTexture(diffuseSid)->getComponents();
+	auto comp = resourceAspect->getTexture(diffuseSid)->getComponents();
 	VX_ASSERT(comp == 4);
 	u32 indexDiffuse = 0;
-	if (!m_poolSrgba.getTextureIndex(diffuseSid, fileAspect, &indexDiffuse))
+	if (!m_poolSrgba.getTextureIndex(diffuseSid, resourceAspect, &indexDiffuse))
 	{
 		return false;
 	}
 
-	comp = fileAspect->getTexture(normalSid)->getComponents();
+	comp = resourceAspect->getTexture(normalSid)->getComponents();
 	VX_ASSERT(comp == 3);
 	u32 indexNormal = 0;
-	if (!m_poolRgb.getTextureIndex(normalSid, fileAspect, &indexNormal))
+	if (!m_poolRgb.getTextureIndex(normalSid, resourceAspect, &indexNormal))
 	{
 		return false;
 	}
 
-	comp = fileAspect->getTexture(surfaceSid)->getComponents();
+	comp = resourceAspect->getTexture(surfaceSid)->getComponents();
 	VX_ASSERT(comp == 4);
 
 	u32 indexSurface = 0;
-	if (!m_poolSrgba.getTextureIndex(surfaceSid, fileAspect, &indexSurface))
+	if (!m_poolSrgba.getTextureIndex(surfaceSid, resourceAspect, &indexSurface))
 	{
 		return false;
 	}
@@ -183,7 +183,7 @@ bool MaterialManager::addMaterial(const Material &material, FileAspectInterface*
 	return true;
 }
 
-bool MaterialManager::getMaterialIndex(const Material &material, FileAspectInterface* fileAspect, u32* index)
+bool MaterialManager::getMaterialIndex(const Material &material, ResourceAspectInterface* resourceAspect, u32* index)
 {
 	bool result = false;
 
@@ -191,7 +191,7 @@ bool MaterialManager::getMaterialIndex(const Material &material, FileAspectInter
 	auto it = m_materialIndices.find(materialSid);
 	if (it == m_materialIndices.end())
 	{
-		result = addMaterial(material, fileAspect, index);
+		result = addMaterial(material, resourceAspect, index);
 	}
 	else
 	{
@@ -202,14 +202,14 @@ bool MaterialManager::getMaterialIndex(const Material &material, FileAspectInter
 	return result;
 }
 
-bool MaterialManager::getMaterialIndex(const vx::StringID &materialSid, FileAspectInterface* fileAspect, u32* index)
+bool MaterialManager::getMaterialIndex(const vx::StringID &materialSid, ResourceAspectInterface* resourceAspect, u32* index)
 {
 	bool result = false;
 
 	auto it = m_materialIndices.find(materialSid);
 	if (it == m_materialIndices.end())
 	{
-		result = addMaterial(materialSid, fileAspect, index);
+		result = addMaterial(materialSid, resourceAspect, index);
 	}
 	else
 	{

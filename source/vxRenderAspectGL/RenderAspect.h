@@ -43,7 +43,6 @@ namespace vx
 class GpuProfiler;
 
 #include <vxEngineLib/RenderAspectInterface.h>
-#include "RenderAspectDescription.h"
 #include <vxEngineLib/MessageListener.h>
 #include <vxGL/RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
@@ -101,7 +100,7 @@ protected:
 	vx::Camera m_camera;
 	vx::mat4 m_projectionMatrix;
 	cl::Context m_context;
-	FileAspectInterface* m_fileAspect;
+	ResourceAspectInterface* m_resourceAspect;
 	vx::MessageManager* m_msgManager;
 	
 	vx::StackAllocator m_allocator;
@@ -168,7 +167,7 @@ public:
 
 	void makeCurrent(bool b) override;
 
-	void queueUpdateTask(RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
+	void queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
 	void queueUpdateCamera(const RenderUpdateCameraData &data) override;
 	void update() override;
 

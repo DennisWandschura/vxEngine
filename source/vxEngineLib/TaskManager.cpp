@@ -7,13 +7,13 @@
 
 namespace vx
 {
-	struct Buffer
+	struct TaskBuffer
 	{
 		Task** m_tasks;
 		u32 m_size;
 		f32 m_time;
 
-		Buffer()
+		TaskBuffer()
 			:m_tasks(nullptr),
 			m_size(0),
 			m_time(0.0f)
@@ -21,7 +21,7 @@ namespace vx
 
 		}
 
-		~Buffer()
+		~TaskBuffer()
 		{
 		}
 
@@ -30,13 +30,13 @@ namespace vx
 			m_tasks = (Task**)allocator->allocate(sizeof(Task*) * capacity, 8);
 		}
 
-		void swap(Buffer &other)
+		void swap(TaskBuffer &other)
 		{
 			std::swap(m_tasks, other.m_tasks);
 			std::swap(m_size, other.m_size);
 		}
 
-		bool pushTask(Task* task, u32 capacity, f32 maxTime, bool ignoreTime)
+		bool pushTask(Task* task, u32 capacity, f32 maxTime)
 		{
 			if (capacity <= m_size)
 				return false;
@@ -44,14 +44,14 @@ namespace vx
 			auto taskTime = task->getTimeMs();
 			auto bufferTime = m_time + taskTime;
 
-			if (!ignoreTime)
-			{
-				if (bufferTime >= maxTime)
-					return false;
-			}
+			if (bufferTime >= maxTime)
+				return false;
 
 			m_time = bufferTime;
 			m_tasks[m_size++] = task;
+
+			task->setEventStatus(EventStatus::Queued);
+
 			return true;
 		}
 	};
@@ -60,21 +60,21 @@ namespace vx
 	{
 		struct VX_ALIGN(64)
 		{
-			Buffer m_front;
+			TaskBuffer m_front;
 			std::mutex m_frontMutex;
 			f32 m_maxTime;
 			u32 m_capacity;
 		};
 
-		Buffer m_back;
+		TaskBuffer m_back;
 		std::atomic_int m_running;
 		TaskManager* m_scheduler;
 
 		void rescheduleTask(Task* task)
 		{
-			if (!pushTask(task, true))
+			if (!pushTask(task))
 			{
-				m_scheduler->pushTask(task, true);
+				m_scheduler->pushTask(task);
 			}
 		}
 
@@ -106,10 +106,10 @@ namespace vx
 			m_running.store(1);
 		}
 
-		bool pushTask(Task* task, bool ignoreTime)
+		bool pushTask(Task* task)
 		{
 			std::unique_lock<std::mutex> lock(m_frontMutex);
-			return m_front.pushTask(task, m_capacity, m_maxTime, ignoreTime);
+			return m_front.pushTask(task, m_capacity, m_maxTime);
 		}
 
 		void swapBuffer()
@@ -239,15 +239,19 @@ namespace vx
 		m_threads.clear();
 	}
 
-	void TaskManager::pushTask(Task* task, bool ignoreTime)
+	void TaskManager::pushTask(Task* task)
 	{
 		auto tid = s_tid;
-		pushTask(tid, task, ignoreTime);
+		pushTask(tid, task);
 	}
 
-	void TaskManager::pushTask(u32 tid, Task* task, bool ignoreTime)
+	void TaskManager::pushTask(u32 tid, Task* task)
 	{
+		VX_ASSERT(tid >= 0);
+
 		auto sz = m_queues.size();
+		VX_ASSERT(tid < sz);
+			
 		if (sz == 0)
 		{
 			task->run();
@@ -256,7 +260,7 @@ namespace vx
 		{
 			bool inserted = false;
 
-			if (m_queues[tid]->pushTask(task, ignoreTime))
+			if (m_queues[tid]->pushTask(task))
 			{
 				inserted = true;
 			}
@@ -264,6 +268,7 @@ namespace vx
 			if (!inserted)
 			{
 				std::unique_lock<std::mutex> lock(m_mutexFront);
+				task->setEventStatus(EventStatus::Queued);
 				m_tasksFront.push_back(task);
 			}
 		}
@@ -305,7 +310,7 @@ namespace vx
 					for (u32 i = 0; i < count; ++i)
 					{
 						auto task = m_tasksBack.back();
-						if (it->pushTask(task, false))
+						if (it->pushTask(task))
 						{
 							m_tasksBack.pop_back();
 							++distributedTasks;

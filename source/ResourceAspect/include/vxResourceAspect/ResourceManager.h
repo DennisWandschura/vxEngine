@@ -49,23 +49,60 @@ public:
 	ResourceManager():m_mutexData(), m_poolData(), m_sortedData(), m_mutexScratchAllocator(), m_scratchAllocator(), m_mutexDataAllocator(), m_dataAllocator(){}
 	~ResourceManager() {}
 
-	void initialize(u16 maxCount, vx::StackAllocator* allocator)
+	bool initialize(u16 capacity, u32 dataSizeInBytes, u32 scratchSizeInBytes,vx::StackAllocator* allocator)
 	{
-		auto sizeInBytes = sizeof(T) * maxCount;
-		m_poolData.initialize(allocator->allocate(sizeInBytes, 64), maxCount);
+		auto sizeInBytes = sizeof(T) * capacity;
+		auto poolPtr = allocator->allocate(sizeInBytes, 64);
+		if (poolPtr == nullptr)
+			return false;
 
-		m_sortedData = vx::sorted_array<vx::StringID, Reference<T>>(maxCount, allocator);
+		m_poolData.initialize(poolPtr, capacity);
 
-		m_allocator.create(allocator->allocate(64 KBYTE, 4), 64 KBYTE);
+		m_sortedData = vx::sorted_array<vx::StringID, Reference<T>>(capacity, allocator);
+
+		auto scratchPtr = allocator->allocate(scratchSizeInBytes, 4);
+		if (scratchPtr == nullptr)
+			return false;
+		m_scratchAllocator = vx::StackAllocator(scratchPtr, scratchSizeInBytes);
+
+		if (dataSizeInBytes != 0)
+		{
+			auto dataPtr = allocator->allocate(dataSizeInBytes, 4);
+			if (dataPtr == nullptr)
+				return false;
+
+			m_dataAllocator.create(dataPtr, dataSizeInBytes);
+		}
+
+		return true;
 	}
 
 	void shutdown()
 	{
-		std::lock_guard<std::mutex> guard(m_mutexData);
+		std::lock_guard<std::mutex> guard(m_mutexDataAllocator);
+		m_dataAllocator.release();
 
-		m_allocator.release();
+		std::lock_guard<std::mutex> guard1(m_mutexScratchAllocator);
+		m_scratchAllocator.release();
+
+		std::lock_guard<std::mutex> guard2(m_mutexData);
 		m_sortedData.cleanup();
 		m_poolData.release();
+	}
+
+	u32 getMarker()
+	{
+		return m_scratchAllocator.getMarker();
+	}
+
+	void clearScratchAllocator()
+	{
+		m_scratchAllocator.clear();
+	}
+
+	void clearScratchAllocator(u32 marker)
+	{
+		m_scratchAllocator.clear(marker);
 	}
 
 	void update()

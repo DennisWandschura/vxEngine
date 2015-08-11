@@ -157,7 +157,7 @@ RenderAspect::RenderAspect()
 	m_shaderManager(),
 	m_renderContext(),
 	m_camera(),
-	m_fileAspect(nullptr),
+	m_resourceAspect(nullptr),
 	m_msgManager(nullptr),
 	m_pColdData()
 {
@@ -436,7 +436,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	contextDesc.hInstance = desc.window->getHinstance();
 	contextDesc.windowClass = desc.window->getClassName();
 
-	m_fileAspect = desc.fileAspect;
+	m_resourceAspect = desc.resourceAspect;
 	m_msgManager = desc.msgManager;
 
 	m_gpuProfiler = vx::make_unique<GpuProfiler>();
@@ -907,9 +907,9 @@ void RenderAspect::taskAddStaticMeshInstance(u8* p, u32* offset)
 	auto &instance = *data->instance;
 
 	u32 materialIndex = 0;
-	m_materialManager.getMaterialIndex(data->materialSid, m_fileAspect, &materialIndex);
+	m_materialManager.getMaterialIndex(data->materialSid, m_resourceAspect, &materialIndex);
 
-	u32 gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_fileAspect);
+	u32 gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_resourceAspect);
 
 	*offset += sizeof(RenderUpdateTaskAddStaticMeshData);
 }
@@ -922,9 +922,9 @@ void RenderAspect::taskAddDynamicMeshInstance(u8* p, u32* offset)
 	auto &instance = *data->m_meshInstance;
 
 	u32 materialIndex = 0;
-	m_materialManager.getMaterialIndex(data->m_materialSid, m_fileAspect, &materialIndex);
+	m_materialManager.getMaterialIndex(data->m_materialSid, m_resourceAspect, &materialIndex);
 
-	u32 gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_fileAspect);
+	u32 gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_resourceAspect);
 
 	data->m_gpuIndex = gpuIndex;
 	data->increment();
@@ -1301,8 +1301,8 @@ u16 RenderAspect::addActorToBuffer(const vx::StringID &actorSid, const vx::Trans
 	u32 cmdIndex = 0;
 
 	u32 materialIndex = 0;
-	m_materialManager.getMaterialIndex(material, m_fileAspect,&materialIndex);
-	auto gpuIndex = m_meshManager.addMeshInstance(actorSid, transform, mesh, materialIndex, m_fileAspect);
+	m_materialManager.getMaterialIndex(material, m_resourceAspect, &materialIndex);
+	auto gpuIndex = m_meshManager.addMeshInstance(actorSid, transform, mesh, materialIndex, m_resourceAspect);
 	//auto gpuIndex = m_sceneRenderer.addActorToBuffer(transform, mesh, material, &drawCmd, &cmdIndex, m_fileAspect);
 
 	/*auto count = m_sceneRenderer.getMeshInstanceCount();

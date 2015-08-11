@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class FileAspectInterface;
+class ResourceAspectInterface;
 
 namespace Graphics
 {
@@ -44,7 +44,7 @@ class TexturePool
 	u32 m_freeEntries;
 	vx::gl::Texture m_texture;
 
-	bool addTexture(const vx::StringID &sid, FileAspectInterface* fileAspect, u32* index);
+	bool addTexture(const vx::StringID &sid, ResourceAspectInterface* resourceAspect, u32* index);
 	bool addTexture(const vx::StringID &sid, const Graphics::Texture &texture, u32* index);
 
 public:
@@ -54,7 +54,7 @@ public:
 	void initialize(const vx::uint3 &textureDim, vx::gl::TextureFormat format);
 	void shutdown();
 
-	bool getTextureIndex(const vx::StringID &sid, FileAspectInterface* fileAspect, u32* index);
+	bool getTextureIndex(const vx::StringID &sid, ResourceAspectInterface* resourceAspect, u32* index);
 	bool getTextureIndex(const vx::StringID &sid, const Graphics::Texture &texture, u32* index);
 
 	u32 getTextureId(const vx::StringID &sid) const;

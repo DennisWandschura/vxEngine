@@ -27,7 +27,7 @@ SOFTWARE.
 #include <vxGL/VertexArray.h>
 #include "Vertex.h"
 #include <vxEngineLib/MeshInstance.h>
-#include <vxEngineLib/FileAspectInterface.h>
+#include <vxEngineLib/ResourceAspectInterface.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/GpuFunctions.h>
 
@@ -184,21 +184,21 @@ void MeshManager::addMeshInstances(const MeshManagerMeshInstanceDesc &desc)
 	auto count = desc.instanceCount;
 	auto instances = desc.instances;
 	auto outDrawIds = desc.outDrawIds;
-	auto fileAspect = desc.fileAspect;
+	auto resourceAspect = desc.resourceAspect;
 	auto materialIndices = desc.materialIndices;
 
 	for (u32 i = 0;i < count; ++i)
 	{
-		outDrawIds[i] = addMeshInstance(instances[i], materialIndices[i], fileAspect);
+		outDrawIds[i] = addMeshInstance(instances[i], materialIndices[i], resourceAspect);
 	}
 }
 
-u32 MeshManager::addMeshInstance(const MeshInstance &instance, u16 materialIndex, FileAspectInterface* fileAspect)
+u32 MeshManager::addMeshInstance(const MeshInstance &instance, u16 materialIndex, ResourceAspectInterface* resourceAspect)
 {
 	auto meshSid = instance.getMeshSid();
 	auto transform = instance.getTransform();
 
-	return addMeshInstance(instance.getNameSid(), transform, meshSid, materialIndex, fileAspect);
+	return addMeshInstance(instance.getNameSid(), transform, meshSid, materialIndex, resourceAspect);
 }
 
 void MeshManager::uploadCmd(const vx::gl::DrawElementsIndirectCommand &drawCmd)
@@ -211,12 +211,12 @@ void MeshManager::uploadCmd(const vx::gl::DrawElementsIndirectCommand &drawCmd)
 	mappedCmdBuffer.unmap();
 }
 
-u32 MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::Transform &transform, const vx::StringID &meshSid, u16 materialIndex, FileAspectInterface* fileAspect)
+u32 MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::Transform &transform, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect)
 {
 	auto it = m_meshEntries.find(meshSid);
 	if (it == m_meshEntries.end())
 	{
-		auto meshFile = fileAspect->getMesh(meshSid);
+		auto meshFile = resourceAspect->getMesh(meshSid);
 		auto &mesh = meshFile->getMesh();
 		auto meshEntry = addMeshToGpu(mesh);
 

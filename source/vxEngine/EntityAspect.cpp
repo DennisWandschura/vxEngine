@@ -245,8 +245,8 @@ void EntityAspect::handleFileEvent(const vx::Message &evt)
 
 		auto renderAspect = Locator::getRenderAspect();
 
-		m_taskManager->pushTask(new TaskSceneCreateActorsGpu(scene, renderAspect), false);
-		m_taskManager->pushTask(new TaskSceneCreateStaticMeshes(scene, renderAspect), false);
+		m_taskManager->pushTask(new TaskSceneCreateActorsGpu(scene, renderAspect));
+		m_taskManager->pushTask(new TaskSceneCreateStaticMeshes(scene, renderAspect));
 
 		auto spawns = scene->getSpawns();
 		auto spawnCount = scene->getSpawnCount();
@@ -352,7 +352,7 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 		events.push_back(fetchEvt);
 		auto task = new TaskPhysxCreateJoints(scene, physicsAspect, std::move(events), std::move(evtBlock));
 
-		m_taskManager->pushTask(task, false);
+		m_taskManager->pushTask(task);
 	}break;
 	case IngameMessage::Created_NavGraph:
 	{

@@ -38,9 +38,22 @@ namespace vx
 template<typename T>
 class ResourceManager;
 
+namespace Graphics
+{
+	class Texture;
+}
+
 #include <vxEngineLib/Task.h>
 #include <string>
 #include <vxLib/Allocator/StackAllocator.h>
+
+struct TaskLoadSceneDirectories
+{
+	const char* meshDir;
+	const char* materialDir;
+	const char* textureDir;
+	const char* animDir;
+};
 
 struct TaskLoadSceneDesc
 {
@@ -48,9 +61,11 @@ struct TaskLoadSceneDesc
 	ResourceManager<vx::MeshFile>* m_meshManager;
 	ResourceManager<Material>* m_materialManager;
 	ResourceManager<vx::Animation>* m_animationManager;
+	ResourceManager<Graphics::Texture>* m_textureManager;
 	Scene* m_scene;
 	vx::TaskManager* m_taskManager;
 	shared_ptr<Event> m_evt;
+	TaskLoadSceneDirectories m_directories;
 };
 
 class TaskLoadScene : public Task
@@ -59,9 +74,11 @@ class TaskLoadScene : public Task
 	ResourceManager<vx::MeshFile>* m_meshManager;
 	ResourceManager<Material>* m_materialManager;
 	ResourceManager<vx::Animation>* m_animationManager;
+	ResourceManager<Graphics::Texture>* m_textureManager;
 	Scene* m_scene;
 	vx::StackAllocator m_scratchAllocator;
 	vx::TaskManager* m_taskManager;
+	TaskLoadSceneDirectories m_directories;
 
 	bool loadFile(u8** data, u32* fileSize);
 

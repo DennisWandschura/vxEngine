@@ -272,9 +272,6 @@
     <ClInclude Include="RenderAspect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderAspectDescription.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RenderCommand.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -43,9 +43,11 @@ TaskLoadScene::TaskLoadScene(TaskLoadSceneDesc &&rhs)
 	m_meshManager(rhs.m_meshManager),
 	m_materialManager(rhs.m_materialManager),
 	m_animationManager(rhs.m_animationManager),
+	m_textureManager(rhs.m_textureManager),
 	m_scene(rhs.m_scene),
 	m_scratchAllocator((u8*)_aligned_malloc(TaskLoadSceneCpp::g_allocSize, 16), TaskLoadSceneCpp::g_allocSize),
-	m_taskManager(rhs.m_taskManager)
+	m_taskManager(rhs.m_taskManager),
+	m_directories(rhs.m_directories)
 {
 }
 
@@ -77,47 +79,76 @@ bool TaskLoadScene::loadFile(u8** outData, u32* outFileSize)
 
 void TaskLoadScene::createTaskLoadMesh(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events)
 {
+	auto fileName = it.getString();
+
+	char fileNameWithPath[64];
+	auto returnCode = sprintf_s(fileNameWithPath, "%s%s", m_directories.meshDir, fileName);
+	if (returnCode == -1)
+	{
+		VX_ASSERT(false);
+	}
+
 	auto evt = shared_ptr<Event>(new Event());
 
 	TaskLoadMeshDesc desc;
-	desc.m_fileNameWithPath = it.getString();
+	desc.m_fileNameWithPath = std::string(fileNameWithPath);
 	desc.m_meshManager = m_meshManager;
 	desc.m_sid = it.getSid();
 	desc.evt = evt;
 
 	auto task = new TaskLoadMesh(std::move(desc));
-	m_taskManager->pushTask(task, false);
+	m_taskManager->pushTask(task);
 	events->push_back(evt);
 }
 
 void TaskLoadScene::createTaskLoadMaterial(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events)
 {
+	auto fileName = it.getString();
+
+	char fileNameWithPath[64];
+	auto returnCode = sprintf_s(fileNameWithPath, "%s%s", m_directories.materialDir, fileName);
+	if (returnCode == -1)
+	{
+		VX_ASSERT(false);
+	}
+
 	auto evt = shared_ptr<Event>(new Event());
 
 	TaskLoadMaterialDesc desc;
-	desc.m_fileNameWithPath = it.getString();
+	desc.m_fileNameWithPath = std::string(fileNameWithPath);
 	desc.m_materialManager = m_materialManager;
+	desc.m_textureManager = m_textureManager;
 	desc.m_sid = it.getSid();
 	desc.evt = evt;
 	desc.m_taskManager = m_taskManager;
+	desc.m_textureFolder = m_directories.textureDir;
 
 	auto task = new TaskLoadMaterial(std::move(desc));
-	m_taskManager->pushTask(task, false);
+	m_taskManager->pushTask(task);
 	events->push_back(evt);
 }
 
 void TaskLoadScene::createTaskLoadAnimation(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events)
 {
+	auto fileName = it.getString();
+
+	char fileNameWithPath[64];
+	auto returnCode = sprintf_s(fileNameWithPath, "%s%s", m_directories.animDir, fileName);
+	if (returnCode == -1)
+	{
+		VX_ASSERT(false);
+	}
+
 	auto evt = shared_ptr<Event>(new Event());
 
 	TaskLoadAnimationDesc desc;
-	desc.m_fileNameWithPath = it.getString();
+	desc.m_fileNameWithPath = std::string(fileNameWithPath);
 	desc.m_animationManager = m_animationManager;
 	desc.m_sid = it.getSid();
 	desc.evt = evt;
 
 	auto task = new TaskLoadAnimation(std::move(desc));
-	m_taskManager->pushTask(task, false);
+	m_taskManager->pushTask(task);
 	events->push_back(evt);
 }
 

@@ -33,8 +33,8 @@ namespace vx
 }
 
 #include "Renderer.h"
-#include <memory>
 #include <vxLib/math/Vector.h>
+#include <memory>
 
 namespace Graphics
 {

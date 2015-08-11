@@ -43,6 +43,7 @@ SOFTWARE.
 #include <vxLib/Graphics/Camera.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/Joint.h>
+#include <vxResourceAspect/FileEntry.h>
 
 #include <Dbghelp.h>
 
@@ -56,9 +57,7 @@ EditorEngine::EditorEngine()
 	:m_msgManager(),
 	m_physicsAspect(),
 	m_renderAspect(),
-	m_fileAspect(),
-	m_bRunFileThread(),
-	m_fileAspectThread(),
+	m_resourceAspect(),
 	m_previousSceneLoaded(false)
 {
 }
@@ -72,18 +71,6 @@ EditorEngine::~EditorEngine()
 	}
 }
 
-void EditorEngine::loopFileThread()
-{
-	while (m_bRunFileThread.load() != 0)
-	{
-		// do work
-		m_fileAspect.update();
-
-		// sleep for a bit
-		std::this_thread::yield();
-	}
-}
-
 bool EditorEngine::initializeImpl(const std::string &dataDir)
 {
 	m_memory = Memory(128 MBYTE, 64);
@@ -94,10 +81,11 @@ bool EditorEngine::initializeImpl(const std::string &dataDir)
 
 	m_msgManager.initialize(&m_allocator, 256);
 
-	if (!m_fileAspect.initialize(&m_allocator, dataDir, &m_msgManager, m_physicsAspect.getCooking()))
+	//if (!m_resourceAspect.initialize(&m_allocator, dataDir, &m_msgManager, m_physicsAspect.getCooking()))
+	if (!m_resourceAspect.initialize(&m_allocator, dataDir, nullptr, &m_msgManager))
 		return false;
 
-	Locator::provide(&m_fileAspect);
+	Locator::provide(&m_resourceAspect);
 
 	return true;
 }
@@ -168,7 +156,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 		tmp,
 		&m_allocator,
 		&g_engineConfig,
-		&m_fileAspect,
+		&m_resourceAspect,
 		&m_msgManager
 	};
 	//renderAspectDesc.hwnd = m_panel;
@@ -191,7 +179,6 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	m_msgManager.registerListener(this, 1, (u8)vx::MessageType::File_Event);
 
 	//m_bRun = 1;
-	m_bRunFileThread.store(1);
 	m_shutdown = 0;
 
 	memset(&m_selected, 0, sizeof(m_selected));
@@ -201,8 +188,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 
 void EditorEngine::shutdownEditor()
 {
-	m_fileAspectThread.join();
-	m_fileAspect.shutdown();
+	m_resourceAspect.shutdown();
 
 	m_physicsAspect.shutdown();
 	if (m_renderAspect)
@@ -219,7 +205,6 @@ void EditorEngine::shutdownEditor()
 
 void EditorEngine::stop()
 {
-	m_bRunFileThread.store(0);
 }
 
 void EditorEngine::buildNavGraph()
@@ -261,7 +246,7 @@ void EditorEngine::handleFileEvent(const vx::Message &evt)
 		if (call_editorCallback(sid))
 		{
 			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded mesh %llu %s", sid.value, pStr->c_str());
-			auto meshFile = m_fileAspect.getMesh(sid);
+			auto meshFile = m_resourceAspect.getMesh(sid);
 
 			m_pEditorScene->addMesh(sid, pStr->c_str(), meshFile);
 
@@ -278,7 +263,7 @@ void EditorEngine::handleFileEvent(const vx::Message &evt)
 		if (call_editorCallback(sid))
 		{
 			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded material %llu  %s", sid.value, pStr->c_str());
-			auto material = m_fileAspect.getMaterial(sid);
+			auto material = m_resourceAspect.getMaterial(sid);
 			m_pEditorScene->addMaterial(sid, pStr->c_str(), material);
 		}
 		delete(pStr);
@@ -308,9 +293,10 @@ void EditorEngine::handleFileEvent(const vx::Message &evt)
 		}
 		else
 		{
-			auto str = m_fileAspect.getAnimationName(sid);
-			if (str)
-				m_pEditorScene->addAnimation(sid, std::move(std::string(str)));
+			VX_ASSERT(false);
+			//auto str = m_resourceAspect.getAnimationName(sid);
+			//if (str)
+			//	m_pEditorScene->addAnimation(sid, std::move(std::string(str)));
 		}
 	}break;
 	default:
@@ -321,14 +307,14 @@ void EditorEngine::handleFileEvent(const vx::Message &evt)
 
 void EditorEngine::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 {
-	m_fileAspect.requestLoadFile(fileEntry, p);
+	m_resourceAspect.requestLoadFile(fileEntry, p);
 }
 
 void EditorEngine::editor_saveScene(const char* name)
 {
 	auto sceneCopy = new Editor::Scene();
 	m_pEditorScene->copy(sceneCopy);
-	m_fileAspect.requestSaveFile(vx::FileEntry(name, vx::FileType::EditorScene), sceneCopy);
+	m_resourceAspect.requestSaveFile(vx::FileEntry(name, vx::FileType::EditorScene), sceneCopy);
 }
 
 void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u32 typeAnimation)
@@ -338,11 +324,6 @@ void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u
 	g_editorTypeScene = scene;
 	g_editorTypeFbx = fbx;
 	g_editorTypeAnimation = typeAnimation;
-}
-
-void EditorEngine::editor_start()
-{
-	m_fileAspectThread = vx::thread(&EditorEngine::loopFileThread, this);
 }
 
 void EditorEngine::editor_render()
@@ -404,7 +385,7 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	vx::lock_guard<vx::mutex> guard(m_editorMutex);
 	m_requestedFiles.insert(fileEntry.getSid(), std::make_pair(f, type));
 
-	m_fileAspect.requestLoadFile(fileEntry, p);
+	m_resourceAspect.requestLoadFile(fileEntry, p);
 }
 
 void EditorEngine::editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ)
@@ -1431,17 +1412,18 @@ u32 EditorEngine::getMeshPhysxType(u64 sid) const
 
 void EditorEngine::setMeshPhysxType(u64 sid, u32 type)
 {
-	auto meshFile = m_fileAspect.getMesh(vx::StringID(sid));
+	auto meshFile = m_resourceAspect.getMesh(vx::StringID(sid));
 	if (meshFile.isValid())
 	{
-		auto &meshDataAllocator = m_fileAspect.getMeshDataAllocator();
+		VX_ASSERT(false);
+		/*auto &meshDataAllocator = m_resourceAspect.getMeshDataAllocator();
 
 		if (m_physicsAspect.setMeshPhysxType(meshFile, (PhsyxMeshType)type, &meshDataAllocator))
 		{
-			auto fileName = m_fileAspect.getLoadedFileName(vx::StringID(sid));
+			auto fileName = m_resourceAspect.getLoadedFileName(vx::StringID(sid));
 
 			m_fileAspect.requestSaveFile(vx::FileEntry(fileName, vx::FileType::Mesh), meshFile.get());
-		}
+		}*/
 	}
 }
 

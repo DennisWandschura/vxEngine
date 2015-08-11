@@ -31,6 +31,15 @@ class SmallObjAllocator;
 #include <vector>
 #include <vxEngineLib/SmallObjectThreaded.h>
 
+enum class EventStatus : s32
+{
+	Timeout = -2,
+	Error = -1,
+	Complete = 0,
+	Queued = 1,
+	Running = 2
+};
+
 class Event : public SmallObjectThreaded<Event>
 {
 	std::atomic_int m_flag;
@@ -50,18 +59,13 @@ public:
 		return m_refCount.fetch_sub(1);
 	}
 
-	void set()
+	void setStatus(EventStatus status)
 	{
-		m_flag.store(1);
+		m_flag.store((u32)status);
 	}
 
-	void clear()
+	EventStatus getStatus() const
 	{
-		m_flag.store(0);
-	}
-
-	bool test() const
-	{
-		return (m_flag.load() != 0);
+		return (EventStatus)m_flag.load();
 	}
 };

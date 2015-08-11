@@ -24,7 +24,7 @@ SOFTWARE.
 #include "EditorPhysicsAspect.h"
 #include <PxPhysicsAPI.h>
 #include <vxEngineLib/MeshInstance.h>
-#include <vxResourceAspect/FileAspect.h>
+#include <vxResourceAspect/ResourceAspect.h>
 #include <vxEngineLib/Locator.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/MessageTypes.h>
@@ -196,8 +196,8 @@ namespace Editor
 		auto rigidStaticIt = m_staticMeshInstances.find(sid);
 
 		auto meshSid = meshInstance.getMeshSid();
-		auto fileAspect = Locator::getFileAspect();
-		auto meshFile = fileAspect->getMesh(meshSid);
+		auto resourceAspect = Locator::getResourceAspect();
+		auto meshFile = resourceAspect->getMesh(meshSid);
 		auto physxType = meshFile->getPhysxMeshType();
 
 		auto &material = meshInstance.getMaterial();

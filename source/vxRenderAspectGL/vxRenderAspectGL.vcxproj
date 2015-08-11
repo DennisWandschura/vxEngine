@@ -291,7 +291,6 @@
     <ClInclude Include="MeshManager.h" />
     <ClInclude Include="ProgramUniformBinding.h" />
     <ClInclude Include="RenderAspect.h" />
-    <ClInclude Include="RenderAspectDescription.h" />
     <ClInclude Include="RenderCommand.h" />
     <ClInclude Include="RenderCommandFinalImage.h" />
     <ClInclude Include="SegmentFactory.h" />

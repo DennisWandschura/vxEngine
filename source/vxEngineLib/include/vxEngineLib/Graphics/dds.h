@@ -25,12 +25,6 @@ SOFTWARE.
 
 #include <vxLib/types.h>
 
-#ifndef MAKEFOURCC
-#define MAKEFOURCC(ch0, ch1, ch2, ch3)                              \
-                ((u32)(u8)(ch0) | ((u32)(u8)(ch1) << 8) |   \
-                ((u32)(u8)(ch2) << 16) | ((u32)(u8)(ch3) << 24 ))
-#endif
-
 typedef enum D3D10_RESOURCE_DIMENSION
 {
 	D3D10_RESOURCE_DIMENSION_UNKNOWN = 0,
@@ -96,15 +90,15 @@ typedef struct
 #define DDS_ALPHA       0x00000002  // DDPF_ALPHA
 #define DDS_PAL8        0x00000020  // DDPF_PALETTEINDEXED8
 
-const unsigned long DDSF_ALPHAPIXELS = 0x00000001l;
-const unsigned long DDSF_FOURCC = 0x00000004l;
-const unsigned long DDSF_RGB = 0x00000040l;
-const unsigned long DDSF_RGBA = 0x00000041l;
+const u32 DDSF_ALPHAPIXELS = 0x00000001;
+const u32 DDSF_FOURCC = 0x00000004;
+const u32 DDSF_RGB = 0x00000040;
+const u32 DDSF_RGBA = 0x00000041;
 
-const unsigned long FOURCC_DXT1 = 0x31545844l; //(MAKEFOURCC('D','X','T','1'))
-const unsigned long FOURCC_DXT3 = 0x33545844l; //(MAKEFOURCC('D','X','T','3'))
-const unsigned long FOURCC_DXT5 = 0x35545844l; //(MAKEFOURCC('D','X','T','5'))
-const unsigned long FOURCC_DX10 = MAKEFOURCC('D', 'X', '1', '0');
+const u32 FOURCC_DXT1 = 0x31545844; //(MAKEFOURCC('D','X','T','1'))
+const u32 FOURCC_DXT3 = 0x33545844; //(MAKEFOURCC('D','X','T','3'))
+const u32 FOURCC_DXT5 = 0x35545844; //(MAKEFOURCC('D','X','T','5'))
+const u32 FOURCC_DX10 = 'd' | ('x' << 8) | ('1' << 16) | ('0' << 24); //MAKEFOURCC('D', 'X', '1', '0');
 
 #define DDSCAPS2_CUBEMAP 0x200
 #define DDSCAPS2_VOLUME 0x200000

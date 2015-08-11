@@ -28,7 +28,7 @@ SOFTWARE.
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Locator.h>
 #include <vxEngineLib/Material.h>
-#include <vxResourceAspect/FileAspect.h>
+#include <vxResourceAspect/ResourceAspect.h>
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/FileMessage.h>
@@ -149,7 +149,7 @@ PhysicsAspect::PhysicsAspect()
 	m_pControllerManager(nullptr),
 	m_pActorMaterial(nullptr),
 	m_pPhysics(nullptr),
-	m_evtFetch(),
+	//m_evtFetch(),
 	m_physxMeshes(),
 	m_physxMaterials(),
 	m_staticMeshInstances(),
@@ -249,7 +249,8 @@ bool PhysicsAspect::initialize(vx::TaskManager* taskManager)
 	m_evtFetch = new Event();
 	m_evtBlock = new Event();
 
-	m_evtBlock->set();
+	m_evtBlock->setStatus(EventStatus::Complete);
+	m_evtFetch->setStatus(EventStatus::Queued);
 
 	return true;
 }
@@ -307,15 +308,15 @@ void PhysicsAspect::fetch()
 	{
 		printf("error: %u\n", errorCode);
 	}
-	m_evtFetch->set();
+	m_evtFetch->setStatus(EventStatus::Complete);
 }
 
 void PhysicsAspect::update(const f32 dt)
 {
-	while (!m_evtBlock->test())
+	while (m_evtBlock->getStatus() != EventStatus::Complete)
 		;
 
-	m_evtFetch->clear();
+	m_evtFetch->setStatus(EventStatus::Queued);
 	m_pScene->simulate(dt);
 }
 
@@ -517,8 +518,8 @@ void PhysicsAspect::addMeshInstanceImpl(const MeshInstance &meshInstance, void**
 
 	auto itType = m_physxMeshTypes.find(meshSid);
 
-	auto fileAspect = Locator::getFileAspect();
-	auto meshFile = fileAspect->getMesh(meshSid);
+	auto resourceAspect = Locator::getResourceAspect();
+	auto meshFile = resourceAspect->getMesh(meshSid);
 	auto physxType = meshFile->getPhysxMeshType();
 
 	physx::PxShape* shape = nullptr;

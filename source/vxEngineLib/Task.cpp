@@ -10,28 +10,63 @@ bool Task::checkTimeout()
 	return (time >= m_timeoutTime);
 }
 
+void Task::setEventStatus(EventStatus status, bool hasEvent)
+{
+	if (hasEvent)
+	{
+		m_event->setStatus(status);
+	}
+}
+
+void Task::setEventStatus(EventStatus status)
+{
+	if (m_event.get() != nullptr)
+	{
+		m_event->setStatus(status);
+	}
+}
+
 TaskReturnType Task::run()
 {
+	auto hasEvent = (m_event.get() != nullptr);
+
 	if (m_timeoutTime != 0.0f)
 	{
 		if (checkTimeout())
 		{
+			m_event->setStatus(EventStatus::Timeout);
 			return TaskReturnType::Timeout;
 		}
 	}
 
 	for (auto &it : m_events)
 	{
-		if (!it->test())
+		auto evtStatus = it->getStatus();
+		if (static_cast<s32>(evtStatus) > 0)
 		{
 			return TaskReturnType::WaitingForEvents;
 		}
 	}
 
+	setEventStatus(EventStatus::Running, hasEvent);
 	auto result = runImpl();
-	if (result == TaskReturnType::Success && m_event.get() != nullptr)
+
+	switch (result)
 	{
-		m_event->set();
+	case TaskReturnType::Success:
+		setEventStatus(EventStatus::Complete, hasEvent);
+		break;
+	case TaskReturnType::Failure:
+		setEventStatus(EventStatus::Error, hasEvent);
+		break;
+	case TaskReturnType::Retry:
+		setEventStatus(EventStatus::Queued, hasEvent);
+		break;
+	case TaskReturnType::Timeout:
+		setEventStatus(EventStatus::Error, hasEvent);
+		break;
+	default:
+		break;
 	}
 
 	return result;

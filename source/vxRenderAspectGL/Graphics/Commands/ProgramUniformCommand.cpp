@@ -95,7 +95,7 @@ namespace Graphics
 		*offset += (m_count * sizeof(u32));
 	}
 
-	void createFromNodeProgramUniformCommand(const Parser::Node &node, Segment* segment, void* p)
+	void __fastcall createFromNodeProgramUniformCommand(const Parser::Node &node, Segment* segment, void* p)
 	{
 		static auto sidFloat = vx::make_sid("float");
 		static auto sidUint = vx::make_sid("uint");
