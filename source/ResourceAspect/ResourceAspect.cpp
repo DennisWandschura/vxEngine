@@ -43,7 +43,7 @@ char ResourceAspect::s_animationFolder[32] = { "data/animation/" };
 
 struct ResourceAspect::FileRequest
 {
-	shared_ptr<Event> m_event;
+	Event m_event;
 	vx::StringID m_sid;
 	vx::FileType m_type;
 	void* userData;
@@ -145,7 +145,7 @@ void ResourceAspect::update()
 	requests.reserve(m_requests.size());
 	for (auto &it : m_requests)
 	{
-		auto evtStatus = it.m_event->getStatus();
+		auto evtStatus = it.m_event.getStatus();
 		switch (evtStatus)
 		{
 		case EventStatus::Error:
@@ -168,7 +168,7 @@ void ResourceAspect::update()
 	m_requests.swap(requests);
 }
 
-void ResourceAspect::pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const shared_ptr<Event> &evt, void* userData)
+void ResourceAspect::pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, void* userData)
 {
 	FileRequest request;
 	request.m_event = evt;
@@ -206,7 +206,7 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 		directories.textureDir = s_textureFolder;
 		directories.animDir = s_animationFolder;
 
-		auto evt = shared_ptr<Event>(new Event());
+		auto evt = Event::createEvent();
 		auto scene = (Scene*)p;
 		TaskLoadSceneDesc desc
 		{

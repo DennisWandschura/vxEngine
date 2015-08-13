@@ -1,12 +1,13 @@
 struct Vertex
 {
 	float3 position : POSITION0;
-	int index : BLENDINDICES0;
+	float3 color : COLOR0;
 };
 
-struct VSOUT
+struct PSIN
 {
 	float4 position : SV_POSITION;
+	float3 color : COLOR0;
 };
 
 struct CameraData
@@ -26,14 +27,16 @@ cbuffer CameraBuffer : register(b0)
 	CameraData cameraBuffer;
 };
 
-StructuredBuffer<Transform> transformBuffer : register(t0);
+//StructuredBuffer<Transform> transformBuffer : register(t0);
 
-VSOUT main(Vertex vsin )
+PSIN main(Vertex vsin )
 {
-	float3 wsPosition = vsin.position;// +transformBuffer[vsin.index].translation.xyz;
+	float4 wsPosition = float4(vsin.position, 1);// +transformBuffer[vsin.index].translation.xyz;
 
-	VSOUT vsout;
-	vsout.position = mul(float4(wsPosition, 1), cameraBuffer.pvMatrix);
+	PSIN vsout;
+	vsout.position = mul(cameraBuffer.pvMatrix, wsPosition);
+	vsout.color = vsin.color;
+	//vsout.position = wsPosition;
 
 	return vsout;
 }

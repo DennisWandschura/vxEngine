@@ -78,7 +78,7 @@ bool EngineConfig::loadFromFile(const char* file)
 		return false;
 
 	m_root.get("resolution")->as(&m_resolution);
-	m_root.get("fov")->as(&m_fov);
+	m_root.get("fov")->as(&m_fovDeg);
 	m_root.get("z_near")->as(&m_zNear);
 	m_root.get("z_far")->as(&m_zFar);
 	m_root.get("vsync")->as(&m_vsync);

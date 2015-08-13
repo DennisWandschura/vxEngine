@@ -64,7 +64,7 @@ struct TaskLoadSceneDesc
 	ResourceManager<Graphics::Texture>* m_textureManager;
 	Scene* m_scene;
 	vx::TaskManager* m_taskManager;
-	shared_ptr<Event> m_evt;
+	Event m_evt;
 	TaskLoadSceneDirectories m_directories;
 };
 
@@ -84,9 +84,9 @@ class TaskLoadScene : public Task
 
 	TaskReturnType runImpl() override;
 
-	void createTaskLoadMesh(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events);
-	void createTaskLoadAnimation(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events);
-	void createTaskLoadMaterial(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events);
+	void createTaskLoadMesh(const vx::FileEntry &it, std::vector<Event>* events);
+	void createTaskLoadAnimation(const vx::FileEntry &it, std::vector<Event>* events);
+	void createTaskLoadMaterial(const vx::FileEntry &it, std::vector<Event>* events);
 
 public:
 	TaskLoadScene(TaskLoadSceneDesc &&rhs);

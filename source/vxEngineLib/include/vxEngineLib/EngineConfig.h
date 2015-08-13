@@ -34,7 +34,7 @@ struct EngineConfig
 
 	vx::uint2 m_resolution{1920, 1080};
 
-	f32 m_fov{66.0f};
+	f32 m_fovDeg{66.0f};
 	f32 m_zNear{0.1f};
 	f32 m_zFar{250.f};
 	u32 m_threads{1};

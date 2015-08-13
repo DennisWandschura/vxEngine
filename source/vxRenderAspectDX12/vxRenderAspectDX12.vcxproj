@@ -139,6 +139,7 @@
     <ClInclude Include="d3d.h" />
     <ClInclude Include="d3dHelper.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="DefaultRenderer.h" />
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="dllExport.h" />
@@ -147,9 +148,11 @@
     <ClInclude Include="ResourceBarrier.h" />
     <ClInclude Include="TaskUpdateCamera.h" />
     <ClInclude Include="TaskUploadGeometry.h" />
+    <ClInclude Include="UploadManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferView.cpp" />
+    <ClCompile Include="DefaultRenderer.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="dllExport.cpp" />
@@ -157,6 +160,7 @@
     <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="TaskUpdateCamera.cpp" />
     <ClCompile Include="TaskUploadGeometry.cpp" />
+    <ClCompile Include="UploadManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">

@@ -117,7 +117,7 @@ namespace Editor
 		f32 znear = renderDesc.settings->m_zNear;
 		f32 zfar = renderDesc.settings->m_zFar;
 		m_resolution = resolution;
-		m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(renderDesc.settings->m_fov), (f32)resolution.x / (f32)resolution.y, znear, zfar);
+		m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(renderDesc.settings->m_fovDeg), (f32)resolution.x / (f32)resolution.y, znear, zfar);
 
 		m_resourceAspect = renderDesc.resourceAspect;
 

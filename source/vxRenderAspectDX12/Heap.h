@@ -9,6 +9,7 @@ enum D3D12_HEAP_TYPE;
 enum D3D12_RESOURCE_STATES;
 
 #include "d3d.h"
+#include <memory>
 
 namespace d3d
 {
@@ -16,7 +17,14 @@ namespace d3d
 
 	class Heap
 	{
+		struct Page;
+
 		Object<ID3D12Heap> m_heap;
+		std::unique_ptr<Page[]> m_pages;
+		u32 m_pageCount;
+		u32 m_pageSize;
+
+		void init(u64 size, u64 alignment);
 
 	public:
 		Heap(); 

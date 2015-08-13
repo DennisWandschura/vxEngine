@@ -27,9 +27,9 @@ SOFTWARE.
 class Task;
 class SmallObjAllocator;
 
+#include <vxEngineLib/shared_ptr.h>
 #include <atomic>
 #include <vector>
-#include <vxEngineLib/SmallObjectThreaded.h>
 
 enum class EventStatus : s32
 {
@@ -40,32 +40,26 @@ enum class EventStatus : s32
 	Running = 2
 };
 
-class Event : public SmallObjectThreaded<Event>
+class Event
 {
-	std::atomic_int m_flag;
-	std::atomic_int m_refCount;
+	class Data;
+
+	shared_ptr<Data> m_data;
 
 public:
-	Event() :m_flag(0), m_refCount(0) {}
-	~Event() {}
+	Event();
+	Event(const Event &rhs);
+	Event(Event &&rhs);
+	~Event();
 
-	void increment()
-	{
-		m_refCount.fetch_add(1);
-	}
+	Event& operator=(const Event &rhs);
+	Event& operator=(Event &&rhs);
 
-	int decrement()
-	{
-		return m_refCount.fetch_sub(1);
-	}
+	void setStatus(EventStatus status);
+	EventStatus getStatus() const;
 
-	void setStatus(EventStatus status)
-	{
-		m_flag.store((u32)status);
-	}
+	bool isValid() const;
 
-	EventStatus getStatus() const
-	{
-		return (EventStatus)m_flag.load();
-	}
+	static Event createEvent();
+	static void setAllocator(SmallObjAllocator* allocator);
 };

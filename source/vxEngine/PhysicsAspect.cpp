@@ -246,11 +246,11 @@ bool PhysicsAspect::initialize(vx::TaskManager* taskManager)
 #endif
 	}
 
-	m_evtFetch = new Event();
-	m_evtBlock = new Event();
+	m_evtFetch = Event::createEvent();
+	m_evtBlock = Event::createEvent();
 
-	m_evtBlock->setStatus(EventStatus::Complete);
-	m_evtFetch->setStatus(EventStatus::Queued);
+	m_evtBlock.setStatus(EventStatus::Complete);
+	m_evtFetch.setStatus(EventStatus::Queued);
 
 	return true;
 }
@@ -308,15 +308,15 @@ void PhysicsAspect::fetch()
 	{
 		printf("error: %u\n", errorCode);
 	}
-	m_evtFetch->setStatus(EventStatus::Complete);
+	m_evtFetch.setStatus(EventStatus::Complete);
 }
 
 void PhysicsAspect::update(const f32 dt)
 {
-	while (m_evtBlock->getStatus() != EventStatus::Complete)
+	while (m_evtBlock.getStatus() != EventStatus::Complete)
 		;
 
-	m_evtFetch->setStatus(EventStatus::Queued);
+	m_evtFetch.setStatus(EventStatus::Queued);
 	m_pScene->simulate(dt);
 }
 

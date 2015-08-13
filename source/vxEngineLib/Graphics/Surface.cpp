@@ -1,4 +1,5 @@
 #include <vxEngineLib/Graphics/Surface.h>
+#include <vxEngineLib/ArrayAllocator.h>
 #include <algorithm>
 
 namespace Graphics

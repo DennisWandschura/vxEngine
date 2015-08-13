@@ -1,17 +1,10 @@
-struct VSOUT
+struct PSIN
 {
 	float4 position : SV_POSITION;
+	float3 color : COLOR0;
 };
 
-struct PSOUT
+float4 main(PSIN input) : SV_TARGET
 {
-	float4 color : SV_TARGET0;
-};
-
-PSOUT main(VSOUT vsout)
-{
-	PSOUT psout;
-	psout.color = float4(1, 1, 1, 1);
-
-	return psout;
+	return float4(input.color, 1.0f);
 }

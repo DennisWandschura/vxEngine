@@ -348,7 +348,7 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 		auto fetchEvt = physicsAspect->getEventPhysicsFetch();
 		auto evtBlock = physicsAspect->getEventBlockSimulate();
 
-		std::vector<shared_ptr<Event>> events;
+		std::vector<Event> events;
 		events.push_back(fetchEvt);
 		auto task = new TaskPhysxCreateJoints(scene, physicsAspect, std::move(events), std::move(evtBlock));
 

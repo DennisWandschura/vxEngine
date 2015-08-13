@@ -42,7 +42,7 @@ struct TaskLoadMeshDesc
 	ResourceManager<vx::MeshFile>* m_meshManager;
 	std::string m_fileNameWithPath;
 	vx::StringID m_sid;
-	shared_ptr<Event> evt;
+	Event evt;
 };
 
 class TaskLoadMesh : public TaskLoadFile

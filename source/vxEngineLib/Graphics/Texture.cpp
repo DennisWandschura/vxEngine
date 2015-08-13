@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 #include <vxEngineLib/Graphics/Texture.h>
+#include <vxEngineLib/ArrayAllocator.h>
 
 namespace Graphics
 {

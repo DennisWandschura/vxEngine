@@ -4,8 +4,17 @@
 
 namespace d3d
 {
+	struct Heap::Page
+	{
+		u32 offset;
+		u32 size;
+	};
+
 	Heap::Heap()
-		:m_heap()
+		:m_heap(),
+		m_pages(),
+		m_pageCount(0),
+		m_pageSize(0)
 	{
 
 	}
@@ -14,11 +23,33 @@ namespace d3d
 	{
 	}
 
+	void Heap::init(u64 size, u64 alignment)
+	{
+		m_pageSize = alignment;
+		m_pageCount = size / m_pageSize;
+		m_pages = std::make_unique<Page[]>(m_pageCount);
+
+		u32 offset = 0;
+		for (u32 i = 0; i < m_pageCount; ++i)
+		{
+			m_pages[i].offset = offset;
+			m_pages[i].size = m_pageSize;
+
+			offset += m_pageSize;
+		}
+	}
+
 	bool Heap::create(const D3D12_HEAP_DESC &desc, Device* device)
 	{
 		auto d3dDevice = device->getDevice();
 
-		return (d3dDevice->CreateHeap(&desc, IID_PPV_ARGS(m_heap.getAddressOf())) == 0);
+		auto result = (d3dDevice->CreateHeap(&desc, IID_PPV_ARGS(m_heap.getAddressOf())) == 0);
+		if (result)
+		{
+			init(desc.SizeInBytes, desc.Alignment);
+		}
+
+		return result;
 	}
 
 	void Heap::destroy()
@@ -46,7 +77,7 @@ namespace d3d
 		desc.SizeInBytes = size;
 		desc.Flags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
 
-		return (d3dDevice->CreateHeap(&desc, IID_PPV_ARGS(m_heap.getAddressOf())) == 0);
+		return create(desc, device);
 	}
 
 	bool Heap::createResource(const D3D12_RESOURCE_DESC &desc, u64 offset, D3D12_RESOURCE_STATES state, ID3D12Resource** resource, Device* device)

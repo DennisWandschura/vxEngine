@@ -41,6 +41,12 @@ namespace d3d
 
 		void executeCommandLists(u32 count, ID3D12CommandList** lists);
 
+		template<u32 SIZE>
+		void executeCommandLists(ID3D12CommandList*(&lists)[SIZE])
+		{
+			executeCommandLists(SIZE, lists);
+		}
+
 		void swapBuffer();
 		void waitForGpu();
 

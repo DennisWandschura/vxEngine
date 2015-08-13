@@ -133,7 +133,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	if (!initializeImpl(dataDir))
 		return false;
 
-	g_engineConfig.m_fov = 66.0f;
+	g_engineConfig.m_fovDeg = 66.0f;
 	g_engineConfig.m_zFar = 250.0f;
 	g_engineConfig.m_renderDebug = true;
 	g_engineConfig.m_resolution = resolution;

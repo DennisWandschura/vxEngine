@@ -77,7 +77,7 @@ bool TaskLoadScene::loadFile(u8** outData, u32* outFileSize)
 	return true;
 }
 
-void TaskLoadScene::createTaskLoadMesh(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events)
+void TaskLoadScene::createTaskLoadMesh(const vx::FileEntry &it, std::vector<Event>* events)
 {
 	auto fileName = it.getString();
 
@@ -88,7 +88,7 @@ void TaskLoadScene::createTaskLoadMesh(const vx::FileEntry &it, std::vector<shar
 		VX_ASSERT(false);
 	}
 
-	auto evt = shared_ptr<Event>(new Event());
+	auto evt = Event::createEvent();
 
 	TaskLoadMeshDesc desc;
 	desc.m_fileNameWithPath = std::string(fileNameWithPath);
@@ -101,7 +101,7 @@ void TaskLoadScene::createTaskLoadMesh(const vx::FileEntry &it, std::vector<shar
 	events->push_back(evt);
 }
 
-void TaskLoadScene::createTaskLoadMaterial(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events)
+void TaskLoadScene::createTaskLoadMaterial(const vx::FileEntry &it, std::vector<Event>* events)
 {
 	auto fileName = it.getString();
 
@@ -112,7 +112,7 @@ void TaskLoadScene::createTaskLoadMaterial(const vx::FileEntry &it, std::vector<
 		VX_ASSERT(false);
 	}
 
-	auto evt = shared_ptr<Event>(new Event());
+	auto evt = Event::createEvent();
 
 	TaskLoadMaterialDesc desc;
 	desc.m_fileNameWithPath = std::string(fileNameWithPath);
@@ -128,7 +128,7 @@ void TaskLoadScene::createTaskLoadMaterial(const vx::FileEntry &it, std::vector<
 	events->push_back(evt);
 }
 
-void TaskLoadScene::createTaskLoadAnimation(const vx::FileEntry &it, std::vector<shared_ptr<Event>>* events)
+void TaskLoadScene::createTaskLoadAnimation(const vx::FileEntry &it, std::vector<Event>* events)
 {
 	auto fileName = it.getString();
 
@@ -139,7 +139,7 @@ void TaskLoadScene::createTaskLoadAnimation(const vx::FileEntry &it, std::vector
 		VX_ASSERT(false);
 	}
 
-	auto evt = shared_ptr<Event>(new Event());
+	auto evt = Event::createEvent();
 
 	TaskLoadAnimationDesc desc;
 	desc.m_fileNameWithPath = std::string(fileNameWithPath);
@@ -180,7 +180,7 @@ TaskReturnType TaskLoadScene::runImpl()
 	auto result = TaskReturnType::Success;
 	if (!created)
 	{
-		std::vector<shared_ptr<Event>> fileEvents;
+		std::vector<Event> fileEvents;
 
 		for (auto &it : missingFiles)
 		{

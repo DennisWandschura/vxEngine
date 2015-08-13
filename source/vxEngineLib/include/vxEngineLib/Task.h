@@ -45,7 +45,6 @@ class SmallObjAllocator;
 #include <atomic>
 #include <vector>
 #include <vxEngineLib/SmallObjectThreaded.h>
-#include <vxEngineLib/shared_ptr.h>
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/CpuTimer.h>
 
@@ -54,8 +53,8 @@ class Task : public SmallObjectThreaded<Task>
 	friend vx::TaskBuffer;
 	friend vx::TaskManager;
 
-	shared_ptr<Event> m_event;
-	std::vector<shared_ptr<Event>> m_events;
+	Event m_event;
+	std::vector<Event> m_events;
 	CpuTimer m_timer;
 	f32 m_timeoutTime;
 
@@ -67,12 +66,12 @@ protected:
 	virtual TaskReturnType runImpl() = 0;
 
 	void setTimeoutTime(f32 timeMs) { m_timeoutTime = timeMs; }
-	void setEventList(std::vector<shared_ptr<Event>>* rhs) { rhs->swap(m_events); }
+	void setEventList(std::vector<Event>* rhs) { rhs->swap(m_events); }
 
 public:
 	Task() :m_event(), m_events(), m_timer(), m_timeoutTime(0.0f) {}
-	explicit Task(shared_ptr<Event> &&evt) :m_event(std::move(evt)), m_events() {}
-	Task(shared_ptr<Event> &&evt, std::vector<shared_ptr<Event>> &&events) :m_event(std::move(evt)), m_events(std::move(events)) {}
+	explicit Task(Event &&evt) :m_event(std::move(evt)), m_events() {}
+	Task(Event &&evt, std::vector<Event> &&events) :m_event(std::move(evt)), m_events(std::move(events)) {}
 
 	Task(const Task&) = delete;
 	Task(Task &&rhs) = delete;

@@ -3,11 +3,12 @@
 #include "d3dHelper.h"
 
 TaskUploadGeometry::TaskUploadGeometry(ID3D12CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data,
-	std::vector<ID3D12CommandList*>* cmdLists)
+	std::vector<ID3D12CommandList*>* cmdLists, std::mutex* mutex)
 	:m_cmdAllocator(cmdAllocator), 
 	m_commandList(commandList),
 	m_data(std::move(data)),
-	m_cmdLists(cmdLists)
+	m_cmdLists(cmdLists),
+	m_mutexCmdList(mutex)
 {
 
 }
@@ -49,6 +50,7 @@ TaskReturnType TaskUploadGeometry::runImpl()
 
 	m_data.clear();
 
+	std::lock_guard<std::mutex> guard(*m_mutexCmdList);
 	m_cmdLists->push_back(m_commandList);
 	return TaskReturnType::Success;
 }

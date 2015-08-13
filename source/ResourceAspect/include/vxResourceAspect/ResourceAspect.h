@@ -69,7 +69,7 @@ class ResourceAspect : public ResourceAspectInterface
 	void sendFileMessage(const FileRequest &request);
 	void pushFileMessage(vx::FileMessage type, vx::Variant arg1, vx::Variant arg2);
 
-	void pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const shared_ptr<Event> &evt, void* userData);
+	void pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, void* userData);
 
 public:
 	ResourceAspect();

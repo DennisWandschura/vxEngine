@@ -29,9 +29,6 @@ SOFTWARE.
 class Material
 {
 	vx::StringID m_sid;
-	//TextureRef m_albedo;
-	//TextureRef m_normal;
-	//TextureRef m_surface;
 	f32 m_staticFriction;
 	f32 m_dynamicFriction;
 	f32 m_restitution;
@@ -39,7 +36,7 @@ class Material
 public:
 	vx::StringID m_textureSid[3];
 
-	Material();
+	//Material();
 	explicit Material(const vx::StringID &sid);
 	Material(const Material&) = delete;
 	Material(Material &&rhs) noexcept;

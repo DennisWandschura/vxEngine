@@ -420,7 +420,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 {
 	//m_projectionMatrix = MatrixPerspectiveFovRH(params.fovRad, screenAspect, params.nearZ, params.farZ);
 	auto screenAspect = (f32)desc.settings->m_resolution.x / (f32)desc.settings->m_resolution.y;
-	auto fovRad = vx::degToRad(desc.settings->m_fov);
+	auto fovRad = vx::degToRad(desc.settings->m_fovDeg);
 	m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(fovRad, screenAspect, desc.settings->m_zNear, desc.settings->m_zFar);
 
 	vx::gl::OpenGLDescription glDescription;

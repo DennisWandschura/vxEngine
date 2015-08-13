@@ -38,7 +38,7 @@ namespace vx
 struct TaskLoadAnimationDesc
 {
 	std::string m_fileNameWithPath;
-	shared_ptr<Event> evt;
+	Event evt;
 	ResourceManager<vx::Animation>* m_animationManager;
 	vx::StringID m_sid;
 };

@@ -26,7 +26,7 @@ SOFTWARE.
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/File/FileHeader.h>
 
-TaskLoadFile::TaskLoadFile(std::string &&fileNameWithPath, vx::StackAllocator* scratchAllocator, std::mutex* mutex, shared_ptr<Event> &&evt)
+TaskLoadFile::TaskLoadFile(std::string &&fileNameWithPath, vx::StackAllocator* scratchAllocator, std::mutex* mutex, Event &&evt)
 	:Task(std::move(evt)),
 	m_fileNameWithPath(std::move(fileNameWithPath)),
 	m_scratchAllocator(scratchAllocator),

@@ -34,6 +34,7 @@ struct ID3D12Resource;
 struct ID3D12CommandAllocator;
 struct ID3D12RootSignature;
 struct ID3D12PipelineState;
+struct ID3D12CommandSignature;
 
 class Scene;
 
@@ -48,6 +49,9 @@ class Scene;
 #include "Device.h"
 #include "Heap.h"
 #include "DescriptorHeap.h"
+#include <mutex>
+#include "DefaultRenderer.h"
+#include "UploadManager.h"
 
 struct MeshEntry
 {
@@ -67,46 +71,39 @@ struct MeshInstanceDrawCmd
 class RenderAspect : public RenderAspectInterface
 {
 	d3d::Device m_device;
-
+	std::mutex m_mutexCmdList;
+	std::vector<MeshInstanceDrawCmd> m_drawCommands;
 	std::vector<ID3D12CommandList*> m_cmdLists;
 	ID3D12GraphicsCommandList* m_commandList;
 	d3d::Object<ID3D12Resource> m_renderTarget[2];
+	d3d::Object<ID3D12Resource> m_indirectCmdBuffer;
 	u32 m_currentBuffer;
+	u32 m_lastBuffer;
+	u32 m_indexCount;
+	u32 m_vertexCount;
+	u32 m_instanceCount;
+	d3d::Object<ID3D12CommandSignature> m_commandSignature;
 	vx::Camera m_camera;
+	DefaultRenderer m_defaultRenderer;
+	vx::mat4 m_projectionMatrix;
+	UploadManager m_uploadManager;
+	d3d::Object<ID3D12Resource> m_constantBuffer;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::DescriptorHeap m_descriptorHeapBuffer;
 	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_rectScissor;
-	d3d::Object<ID3D12Resource> m_geometryUploadBuffer;
 	d3d::Object<ID3D12Resource> m_vertexBuffer;
 	d3d::Object<ID3D12Resource> m_indexBuffer;
-	d3d::Object<ID3D12Resource> m_instanceIdBuffer;
-	RenderUpdateCameraData m_updateCameraData;
-	vx::StackAllocator m_allocator;
-	u32 m_meshIndexOffset;
-	vx::sorted_vector<vx::StringID, MeshEntry> m_meshEntries;
-	std::vector<MeshInstanceDrawCmd> m_drawCommands;
-	d3d::Heap m_defaultBufferHeap;
-	d3d::Heap m_defaultGeometryHeap;
-	d3d::Heap m_uploadHeap;
-	d3d::Object<ID3D12Resource> m_srvBuffer;
-	d3d::Object<ID3D12Resource> m_constantBuffer;
-	u32 m_vertexCount;
-	u32 m_indexCount;
-	ID3D12GraphicsCommandList* m_uploadCommandList;
-	d3d::Object<ID3D12CommandAllocator> m_uploadCmdAllocator;
+	d3d::Heap m_bufferHeap;
+	d3d::Heap m_geometryHeap;
 	vx::TaskManager* m_taskManager;
-	vx::sorted_vector<vx::StringID, ID3D12RootSignature*> m_rootSignatures;
-	vx::sorted_vector<vx::StringID, ID3DBlob*> m_shaders;
-	vx::sorted_vector<vx::StringID, ID3D12PipelineState*> m_pipelineStates;
+	vx::sorted_vector<vx::StringID, MeshEntry> m_meshEntries;
 
 	bool createHeaps();
 	bool createCommandList();
 	bool createMeshBuffers();
-	bool loadShaders();
-	bool createRootSignature();
-	bool createPipelineState();
+	bool createConstantBuffers();
 
 	void handleFileMessage(const vx::Message &msg);
 
@@ -117,6 +114,8 @@ class RenderAspect : public RenderAspectInterface
 	void taskToggleRenderMode();
 	void taskCreateActorGpuIndex(u8* p, u32* offset);
 	void taskUpdateDynamicTransforms(u8* p, u32* offset);
+
+	void updateCamera(const RenderUpdateCameraData &data);
 
 public:
 	RenderAspect();

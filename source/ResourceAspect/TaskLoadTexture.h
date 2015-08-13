@@ -19,7 +19,7 @@ namespace vx
 struct TaskLoadTextureDesc
 {
 	std::string m_fileNameWithPath;
-	shared_ptr<Event> evt;
+	Event evt;
 	vx::StringID m_sid;
 	ResourceManager<Graphics::Texture>* m_textureManager;
 };

@@ -30,7 +30,7 @@ SOFTWARE.
 thread_local f32 TaskPhysxCreateJoints::s_time{ 0.0f };
 thread_local u64 TaskPhysxCreateJoints::s_counter{ 0 };
 
-TaskPhysxCreateJoints::TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect, std::vector<shared_ptr<Event>> events, shared_ptr<Event> &&blockEvt)
+TaskPhysxCreateJoints::TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect, std::vector<Event> events, Event &&blockEvt)
 	:Task(std::move(blockEvt), std::move(events)),
 	m_scene(scene),
 	m_physicsAspect(physicsAspect)

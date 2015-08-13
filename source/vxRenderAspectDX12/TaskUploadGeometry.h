@@ -25,11 +25,12 @@ class TaskUploadGeometry : public Task
 	ID3D12GraphicsCommandList* m_commandList;
 	std::vector<UploadTaskData> m_data;
 	std::vector<ID3D12CommandList*>* m_cmdLists;
+	std::mutex* m_mutexCmdList;
 
 	TaskReturnType runImpl() override;
 
 public:
-	TaskUploadGeometry(ID3D12CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data, std::vector<ID3D12CommandList*>* cmdLists);
+	TaskUploadGeometry(ID3D12CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data, std::vector<ID3D12CommandList*>* cmdLists, std::mutex* mutex);
 	~TaskUploadGeometry();
 
 	f32 getTimeMs() const override;

@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <vxEngineLib/AnimationFile.h>
 #include <vxLib/util/CityHash.h>
 #include <vxLib/File/File.h>
-#include <vxEngineLib/AnimationFile.h>
 #include <vxEngineLib/memcpy.h>
 
 namespace vx

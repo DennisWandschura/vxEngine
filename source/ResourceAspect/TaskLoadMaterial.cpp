@@ -69,7 +69,7 @@ TaskReturnType TaskLoadMaterial::runImpl()
 		if (missingFiles.size() != 0)
 		{
 			char fileNameWithPath[64];
-			std::vector<shared_ptr<Event>> events;
+			std::vector<Event> events;
 
 			for(auto &it : missingFiles)
 			{
@@ -81,7 +81,7 @@ TaskReturnType TaskLoadMaterial::runImpl()
 					VX_ASSERT(false);
 				}
 
-				auto evt = shared_ptr<Event>(new Event());
+				auto evt = Event::createEvent();
 				TaskLoadTextureDesc loadTexDesc
 				{
 					std::string(fileNameWithPath),
