@@ -262,22 +262,27 @@ void ResourceAspect::requestSaveFile(const vx::FileEntry &fileEntry, void* p)
 
 }
 
-Reference<Graphics::Texture> ResourceAspect::getTexture(const vx::StringID &sid) const
+const Graphics::Texture* ResourceAspect::getTexture(const vx::StringID &sid) const
 {
 	return m_textureData.find(sid);
 }
 
-Reference<Material> ResourceAspect::getMaterial(const vx::StringID &sid) const
+const Material* ResourceAspect::getMaterial(const vx::StringID &sid) const
 {
 	return m_materialData.find(sid);
 }
 
-Reference<vx::MeshFile> ResourceAspect::getMesh(const vx::StringID &sid) const
+Material* ResourceAspect::getMaterial(const vx::StringID &sid)
+{
+	return m_materialData.find(sid);
+}
+
+const vx::MeshFile* ResourceAspect::getMesh(const vx::StringID &sid) const
 {
 	return m_meshData.find(sid);
 }
 
-Reference<vx::Animation> ResourceAspect::getAnimation(const vx::StringID &sid) const
+const vx::Animation* ResourceAspect::getAnimation(const vx::StringID &sid) const
 {
 	return m_animationData.find(sid);
 }

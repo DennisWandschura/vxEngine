@@ -40,21 +40,21 @@ SOFTWARE.
 struct ConverterSceneFileToScene::CreateSceneMeshInstancesDesc
 {
 	const SceneFile *sceneFile;
-	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
 	MeshInstance* pMeshInstances;
-	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>* sceneMeshes;
-	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 };
 
 struct ConverterSceneFileToScene::CreateSceneActorsDesc
 {
 	const SceneFile *sceneFile;
-	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
-	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>* sceneMeshes;
-	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 };
 
 bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc)
@@ -139,16 +139,16 @@ bool ConverterSceneFileToScene::createSceneActors(const CreateSceneActorsDesc &d
 
 bool ConverterSceneFileToScene::convert
 (
-	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes,
-	const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials,
+	const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes,
+	const vx::sorted_array<vx::StringID, Material*> *sortedMaterials,
 	const SceneFile &sceneFile,
 	Scene* scene
 	)
 {
-	vx::sorted_vector<vx::StringID, Reference<Material>> sceneMaterials;
+	vx::sorted_vector<vx::StringID, Material*> sceneMaterials;
 	sceneMaterials.reserve(5);
 
-	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> sceneMeshes;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 
 	auto pMeshInstances = vx::make_unique<MeshInstance[]>(sceneFile.m_meshInstanceCount);
 

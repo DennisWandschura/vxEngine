@@ -38,7 +38,7 @@ namespace MaterialFactoryCpp
 		bool lresult = true;
 
 		auto ref = textureManager->find(sid);
-		if (ref.get() == nullptr)
+		if (ref == nullptr)
 		{
 			missingFiles->push_back(fileEntry);
 			lresult = false;

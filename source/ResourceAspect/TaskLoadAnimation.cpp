@@ -41,7 +41,7 @@ TaskLoadAnimation::~TaskLoadAnimation()
 TaskReturnType TaskLoadAnimation::runImpl()
 {
 	auto ptr = m_animationManager->find(m_sid);
-	if (ptr.get() != nullptr)
+	if (ptr != nullptr)
 	{
 		return TaskReturnType::Success;
 	}
@@ -73,7 +73,7 @@ TaskReturnType TaskLoadAnimation::runImpl()
 	}
 
 	auto ref = m_animationManager->insertEntry(m_sid, std::move(animFile.getAnimation()));
-	if (ref.get() == nullptr)
+	if (ref == nullptr)
 	{
 		return TaskReturnType::Failure;
 	}

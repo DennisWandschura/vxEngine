@@ -39,7 +39,7 @@ struct MeshInstanceDesc
 {
 	vx::StringID nameSid;
 	vx::StringID meshSid;
-	Reference<Material> material; 
+	const Material* material;
 	vx::StringID animationSid;
 	vx::Transform transform;
 	PhysxRigidBodyType rigidBodyType;
@@ -49,7 +49,7 @@ class MeshInstance
 {
 	vx::StringID m_nameSid;
 	vx::StringID m_meshSid;
-	Reference<Material> m_material;
+	const Material* m_material;
 	vx::StringID m_animationSid;
 	vx::Transform m_transform;
 	PhysxRigidBodyType m_rigidBodyType;
@@ -66,14 +66,14 @@ public:
 
 	const vx::StringID& getNameSid() const{ return m_nameSid; }
 	const vx::StringID& getMeshSid() const { return m_meshSid; }
-	const Reference<Material>& getMaterial() const noexcept;
+	const Material* getMaterial() const noexcept;
 	vx::StringID getAnimationSid() const noexcept{ return m_animationSid; }
 	const vx::Transform& getTransform() const noexcept { return m_transform; }
 	PhysxRigidBodyType getRigidBodyType() const { return m_rigidBodyType; }
 
 	void setTranslation(const vx::float3 &translation);
 	void setRotation(const vx::float4 &qRotation) { m_transform.m_qRotation = qRotation; }
-	void setMaterial(const Reference<Material> &material);
+	void setMaterial(const Material* material);
 	void setNameSid(const vx::StringID &sid) { m_nameSid = sid; }
 	void setMeshSid(const vx::StringID &sid) { m_meshSid = sid; }
 	void setAnimationSid(const vx::StringID &sid) { m_animationSid = sid; }

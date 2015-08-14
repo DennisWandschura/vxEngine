@@ -263,7 +263,7 @@ void EditorEngine::handleFileEvent(const vx::Message &evt)
 		if (call_editorCallback(sid))
 		{
 			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Loaded material %llu  %s", sid.value, pStr->c_str());
-			auto material = m_resourceAspect.getMaterial(sid);
+			Material* material = m_resourceAspect.getMaterial(sid);
 			m_pEditorScene->addMaterial(sid, pStr->c_str(), material);
 		}
 		delete(pStr);
@@ -554,7 +554,7 @@ u64 EditorEngine::getMeshInstanceMaterialSid(u64 instanceSid) const
 	auto meshInstance = m_pEditorScene->getMeshInstance(sid);
 	if (meshInstance)
 	{
-		auto &material = meshInstance->getMaterial();
+		auto material = meshInstance->getMaterial();
 		sidValue = (*material).getSid().value;
 	}
 
@@ -674,9 +674,9 @@ void EditorEngine::setMeshInstanceMaterial(u64 instanceSid, u64 materialSid)
 		auto sceneMaterial = m_pEditorScene->getMaterial(vx::StringID(materialSid));
 		if (sceneMaterial != nullptr)
 		{
-			if (m_renderAspect->setSelectedMeshInstanceMaterial(*sceneMaterial))
+			if (m_renderAspect->setSelectedMeshInstanceMaterial(sceneMaterial))
 			{
-				meshInstance->setMaterial(*sceneMaterial);
+				meshInstance->setMaterial(sceneMaterial);
 			}
 		}
 	}
@@ -1413,7 +1413,7 @@ u32 EditorEngine::getMeshPhysxType(u64 sid) const
 void EditorEngine::setMeshPhysxType(u64 sid, u32 type)
 {
 	auto meshFile = m_resourceAspect.getMesh(vx::StringID(sid));
-	if (meshFile.isValid())
+	if (meshFile == nullptr)
 	{
 		VX_ASSERT(false);
 		/*auto &meshDataAllocator = m_resourceAspect.getMeshDataAllocator();

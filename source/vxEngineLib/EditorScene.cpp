@@ -252,7 +252,7 @@ namespace Editor
 
 	void Scene::removeUnusedMeshes()
 	{
-		vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> newMeshes;
+		vx::sorted_vector<vx::StringID, const vx::MeshFile*> newMeshes;
 		newMeshes.reserve(m_meshes.size());
 
 		for (auto &it : m_meshInstances)
@@ -277,7 +277,7 @@ namespace Editor
 		return &m_lights.back();
 	}
 
-	u8 Scene::addMesh(vx::StringID sid, const char* name, const Reference<vx::MeshFile> &mesh)
+	u8 Scene::addMesh(vx::StringID sid, const char* name, const vx::MeshFile* mesh)
 	{
 		u8 result = 0;
 		auto it = m_meshes.find(sid);
@@ -295,7 +295,7 @@ namespace Editor
 		return result;
 	}
 
-	u8 Scene::addMaterial(vx::StringID sid, const char* name, const Reference<Material> &material)
+	u8 Scene::addMaterial(vx::StringID sid, const char* name, Material* material)
 	{
 		u8 result = 0;
 		auto it = m_materials.find(sid);

@@ -121,12 +121,11 @@ void MaterialManager::shutdown()
 
 bool MaterialManager::addMaterial(const vx::StringID &materialSid, ResourceAspectInterface* resourceAspect, u32* index)
 {
-	Reference<Material> material = resourceAspect->getMaterial(materialSid);
-	auto ptr = material.get();
-	if (ptr == nullptr)
+	const Material* material = resourceAspect->getMaterial(materialSid);
+	if (material == nullptr)
 		return false;
 
-	return addMaterial(*ptr, resourceAspect, index);
+	return addMaterial(*material, resourceAspect, index);
 }
 
 bool MaterialManager::addMaterial(const Material &material, ResourceAspectInterface* resourceAspect, u32* index)

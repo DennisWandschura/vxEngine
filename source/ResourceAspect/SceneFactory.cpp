@@ -45,14 +45,14 @@ SOFTWARE.
 
 struct SceneFactory::LoadSceneFileDescription
 {
-	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>>* sortedMeshes;
-	const vx::sorted_array<vx::StringID, Reference<Material>>* sortedMaterials;
-	const vx::sorted_array<vx::StringID, Reference<vx::Animation>>* sortedAnimations;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*>* sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::Animation*>* sortedAnimations;
 	std::vector<vx::FileEntry> *pMissingFiles;
 	SceneFile *pSceneFile;
 };
 
-bool checkMeshInstanceMesh(const vx::FileEntry &meshFileEntry, const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>>* sortedMeshes, std::vector<vx::FileEntry>* missingFiles)
+bool checkMeshInstanceMesh(const vx::FileEntry &meshFileEntry, const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes, std::vector<vx::FileEntry>* missingFiles)
 {
 	bool result = true;
 	auto itMesh = sortedMeshes->find(meshFileEntry.getSid());
@@ -69,7 +69,7 @@ bool checkMeshInstanceMesh(const vx::FileEntry &meshFileEntry, const vx::sorted_
 	return result;
 }
 
-bool checkMeshInstanceMaterial(const vx::FileEntry &materialFileEntry, const vx::sorted_array<vx::StringID, Reference<Material>>* sortedMaterials, std::vector<vx::FileEntry>* missingFiles)
+bool checkMeshInstanceMaterial(const vx::FileEntry &materialFileEntry, const vx::sorted_array<vx::StringID, Material*>* sortedMaterials, std::vector<vx::FileEntry>* missingFiles)
 {
 	bool result = true;
 	auto it = sortedMaterials->find(materialFileEntry.getSid());
@@ -86,7 +86,7 @@ bool checkMeshInstanceMaterial(const vx::FileEntry &materialFileEntry, const vx:
 	return result;
 }
 
-bool checkMeshInstanceAnimation(const vx::FileEntry &animationFileEntry, const vx::sorted_array<vx::StringID, Reference<vx::Animation>>* sortedAnimations, std::vector<vx::FileEntry>* missingFiles)
+bool checkMeshInstanceAnimation(const vx::FileEntry &animationFileEntry, const vx::sorted_array<vx::StringID, vx::Animation*>* sortedAnimations, std::vector<vx::FileEntry>* missingFiles)
 {
 	bool result = true;
 

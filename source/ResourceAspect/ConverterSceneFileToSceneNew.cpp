@@ -44,8 +44,8 @@ struct ConverterSceneFileToScene::CreateSceneMeshInstancesNewDesc
 	const ResourceManager<vx::MeshFile>* meshManager;
 	const ResourceManager<Material>* materialManager;
 	MeshInstance* pMeshInstances;
-	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>* sceneMeshes;
-	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 };
 
 struct ConverterSceneFileToScene::CreateSceneActorsNewDesc
@@ -54,8 +54,8 @@ struct ConverterSceneFileToScene::CreateSceneActorsNewDesc
 	const ResourceManager<vx::MeshFile>* meshManager;
 	const ResourceManager<Material>* materialManager;
 	vx::sorted_vector<vx::StringID, Actor>* sceneActors;
-	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>* sceneMeshes;
-	vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+	vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 };
 
 bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshInstancesNewDesc &desc)
@@ -76,22 +76,22 @@ bool ConverterSceneFileToScene::createSceneMeshInstances(const CreateSceneMeshIn
 			auto handle = vx::FileHandle(animName);
 			sidAnimation = handle.m_sid;
 		}
-		auto meshRef = desc.meshManager->find(sidMesh);
+		auto meshPtr = desc.meshManager->find(sidMesh);
 		auto sidMaterial = vx::make_sid(materialFile);
-		auto materialRef = desc.materialManager->find(sidMaterial);
+		auto materialPtr = desc.materialManager->find(sidMaterial);
 
-		if (meshRef.get() == nullptr || materialRef.get() == nullptr)
+		if (meshPtr == nullptr || materialPtr == nullptr)
 		{
 			return false;
 		}
 
-		desc.sceneMeshes->insert(sidMesh, meshRef);
-		desc.sceneMaterials->insert(sidMaterial, materialRef);
+		desc.sceneMeshes->insert(sidMesh, meshPtr);
+		desc.sceneMaterials->insert(sidMaterial, materialPtr);
 
 		MeshInstanceDesc instanceDesc;
 		instanceDesc.nameSid = sidName;
 		instanceDesc.meshSid = sidMesh;
-		instanceDesc.material = materialRef;
+		instanceDesc.material = materialPtr;
 		instanceDesc.animationSid = sidAnimation;
 		instanceDesc.transform = instance.getTransform();
 		instanceDesc.rigidBodyType = instance.getRigidBodyType();
@@ -118,7 +118,7 @@ bool ConverterSceneFileToScene::createSceneActors(const CreateSceneActorsNewDesc
 			auto sidMaterial = vx::make_sid(actor.m_material);
 			auto materialRef = desc.materialManager->find(sidMaterial);
 
-			if (meshRef.get() == nullptr || materialRef.get() == nullptr)
+			if (meshRef == nullptr || materialRef == nullptr)
 			{
 				return false;
 			}
@@ -146,10 +146,10 @@ bool ConverterSceneFileToScene::convert
 	Scene* scene
 	)
 {
-	vx::sorted_vector<vx::StringID, Reference<Material>> sceneMaterials;
+	vx::sorted_vector<vx::StringID, Material*> sceneMaterials;
 	sceneMaterials.reserve(5);
 
-	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> sceneMeshes;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 
 	auto pMeshInstances = vx::make_unique<MeshInstance[]>(sceneFile.m_meshInstanceCount);
 

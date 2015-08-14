@@ -95,8 +95,8 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 		for (u32 i = 0; i < meshInstanceCount; ++i)
 		{
 			auto &it = scene.m_meshInstances[i];
-			auto &material = it.getMaterial();
-			auto materialSid = (*material).getSid();
+			auto material = it.getMaterial();
+			auto materialSid = material->getSid();
 
 			auto instanceName = scene.getMeshInstanceName(it.getNameSid());
 			auto instanceMeshName = scene.getMeshName(it.getMeshSid());

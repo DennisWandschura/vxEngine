@@ -200,7 +200,7 @@ namespace Editor
 		auto meshFile = resourceAspect->getMesh(meshSid);
 		auto physxType = meshFile->getPhysxMeshType();
 
-		auto &material = meshInstance.getMaterial();
+		auto material = meshInstance.getMaterial();
 		auto itPhysxMaterial = m_physxMaterials.find((*material).getSid());
 
 		physx::PxShape* newShape = nullptr;

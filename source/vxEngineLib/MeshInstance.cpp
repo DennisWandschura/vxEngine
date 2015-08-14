@@ -106,12 +106,12 @@ void MeshInstance::setTranslation(const vx::float3 &translation)
 	m_transform.m_translation = translation;
 }
 
-const Reference<Material>& MeshInstance::getMaterial() const noexcept
+const Material* MeshInstance::getMaterial() const noexcept
 {
 	return m_material;
 }
 
-void MeshInstance::setMaterial(const Reference<Material> &material)
+void MeshInstance::setMaterial(const Material* material)
 {
 	m_material = material;
 }

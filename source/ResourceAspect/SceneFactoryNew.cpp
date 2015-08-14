@@ -16,7 +16,7 @@ namespace SceneFactoryCpp
 	void checkResource(const ResourceManager<T>* resManager, const vx::FileEntry &fileEntry, std::vector<vx::FileEntry>* missingFiles, bool* result)
 	{
 		auto meshRef = resManager->find(fileEntry.getSid());
-		if (meshRef.get() == nullptr)
+		if (meshRef == nullptr)
 		{
 			missingFiles->push_back(fileEntry);
 			*result = false;

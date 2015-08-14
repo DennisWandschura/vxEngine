@@ -161,9 +161,9 @@ bool FileAspect::initialize(vx::StackAllocator *pMainAllocator, const std::strin
 	m_logfile.create("filelog.xml");
 
 	const u32 maxCount = 255;
-	m_sortedMeshes = vx::sorted_array<vx::StringID, Reference<vx::MeshFile>>(maxCount, pMainAllocator);
-	m_sortedMaterials = vx::sorted_array<vx::StringID, Reference<Material>>(maxCount, pMainAllocator);
-	m_sortedAnimations = vx::sorted_array<vx::StringID, Reference<vx::Animation>>(maxCount, pMainAllocator);
+	m_sortedMeshes = vx::sorted_array<vx::StringID, vx::MeshFile*>(maxCount, pMainAllocator);
+	m_sortedMaterials = vx::sorted_array<vx::StringID, Material*>(maxCount, pMainAllocator);
+	m_sortedAnimations = vx::sorted_array<vx::StringID, vx::Animation*>(maxCount, pMainAllocator);
 	m_sortedAnimationNames = vx::sorted_array<vx::StringID, std::string>(maxCount, pMainAllocator);
 	m_sortedTextures = vx::sorted_array<vx::StringID, const Graphics::Texture*>(maxCount, pMainAllocator);
 
@@ -213,14 +213,14 @@ bool FileAspect::loadMesh(const LoadMeshDescription &desc)
 		VX_ASSERT(meshFilePtr != nullptr);
 
 		//auto marker = m_allocatorMeshData.getMarker();
-		auto p = meshFilePtr->get().loadFromMemory(desc.fileData, desc.size, &m_allocatorMeshData);
+		auto p = meshFilePtr->loadFromMemory(desc.fileData, desc.size, &m_allocatorMeshData);
 		if (p == nullptr)
 		{
 			//m_allocatorMeshData.clear(marker);
 			return false;
 		}
 
-		it = m_sortedMeshes.insert(desc.shared.sid, Reference<vx::MeshFile>(*meshFilePtr));
+		it = m_sortedMeshes.insert(desc.shared.sid, meshFilePtr);
 
 		*desc.shared.status = vx::FileStatus::Loaded;
 
@@ -270,9 +270,9 @@ bool FileAspect::loadFileScene(const LoadFileOfTypeDescription &desc, bool edito
 	return result;
 }
 
-Reference<Material> FileAspect::loadMaterial(const LoadMaterialDescription &desc)
+Material* FileAspect::loadMaterial(const LoadMaterialDescription &desc)
 {
-	Reference<Material> result;
+	Material* result = nullptr;
 
 	vx::lock_guard<vx::SRWMutex> lock(m_mutexLoadedFiles);
 
@@ -294,10 +294,9 @@ Reference<Material> FileAspect::loadMaterial(const LoadMaterialDescription &desc
 			auto materialPtr = m_poolMaterial.createEntry(&index, std::move(material));
 			VX_ASSERT(materialPtr != nullptr);
 
-			Reference<Material> ref(*materialPtr);
-			m_sortedMaterials.insert(desc.shared.sid, ref);
+			m_sortedMaterials.insert(desc.shared.sid, materialPtr);
 
-			result = ref;
+			result = materialPtr;
 			*desc.shared.status = vx::FileStatus::Loaded;
 			LOG_ARGS(m_logfile, "Loaded Material '%s'\n", false, desc.shared.filename);
 		}
@@ -422,7 +421,7 @@ bool FileAspect::loadFileAnimation(const LoadFileOfTypeDescription &desc)
 	}
 
 	vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded Animation %s %llu\n", desc.fileName, desc.sid.value);
-	m_sortedAnimations.insert(desc.sid, *ptr);
+	m_sortedAnimations.insert(desc.sid, ptr);
 	m_sortedAnimationNames.insert(desc.sid, std::string(desc.fileName));
 
 	return true;
@@ -561,7 +560,7 @@ void FileAspect::loadFileMaterial(const LoadFileOfTypeDescription &desc)
 	loadDesc.shared.status = &desc.result->status;
 
 	auto result = loadMaterial(loadDesc);
-	if (result.isValid())
+	if (result != nullptr)
 	{
 		desc.result->result = 1;
 		desc.result->type = vx::FileType::Material;
@@ -979,9 +978,9 @@ const Graphics::Texture* FileAspect::getTexture(const vx::StringID &sid) const n
 	return result;
 }
 
-Reference<Material> FileAspect::getMaterial(const vx::StringID &sid) noexcept
+Material* FileAspect::getMaterial(const vx::StringID &sid) noexcept
 {
-	Reference<Material> result;
+	Material* result = nullptr;
 
 	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedMaterials.find(sid);
@@ -991,9 +990,9 @@ Reference<Material> FileAspect::getMaterial(const vx::StringID &sid) noexcept
 	return result;
 }
 
-Reference<Material> FileAspect::getMaterial(const vx::StringID &sid) const noexcept
+const Material* FileAspect::getMaterial(const vx::StringID &sid) const noexcept
 {
-	Reference<Material> result;
+	const Material* result = nullptr;
 
 	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedMaterials.find(sid);
@@ -1003,9 +1002,9 @@ Reference<Material> FileAspect::getMaterial(const vx::StringID &sid) const noexc
 	return result;
 }
 
-Reference<vx::MeshFile> FileAspect::getMesh(const vx::StringID &sid) const noexcept
+const vx::MeshFile* FileAspect::getMesh(const vx::StringID &sid) const noexcept
 {
-	Reference < vx::MeshFile > result;
+	const vx::MeshFile* result = nullptr;
 
 	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedMeshes.find(sid);
@@ -1015,9 +1014,9 @@ Reference<vx::MeshFile> FileAspect::getMesh(const vx::StringID &sid) const noexc
 	return result;
 }
 
-Reference<vx::Animation> FileAspect::getAnimation(const vx::StringID &sid) const
+const vx::Animation* FileAspect::getAnimation(const vx::StringID &sid) const
 {
-	Reference<vx::Animation> p;
+	const vx::Animation* p = nullptr;
 
 	vx::shared_lock_guard<vx::SRWMutex> guard(m_mutexLoadedFiles);
 	auto it = m_sortedAnimations.find(sid);
@@ -1066,7 +1065,7 @@ bool FileAspect::releaseFile(const vx::StringID &sid, vx::FileType type)
 		auto it = m_sortedMeshes.find(sid);
 		if (it != m_sortedMeshes.end())
 		{
-			m_poolMesh.destroyEntry(it->get());
+			m_poolMesh.destroyEntry(*it);
 			result = true;
 		}
 	}break;
@@ -1075,7 +1074,7 @@ bool FileAspect::releaseFile(const vx::StringID &sid, vx::FileType type)
 		auto it = m_sortedMaterials.find(sid);
 		if (it != m_sortedMaterials.end())
 		{
-			m_poolMaterial.destroyEntry(it->get());
+			m_poolMaterial.destroyEntry(*it);
 			result = true;
 		}
 	}break;

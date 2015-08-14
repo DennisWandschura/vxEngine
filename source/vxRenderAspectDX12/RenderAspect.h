@@ -37,6 +37,7 @@ struct ID3D12PipelineState;
 struct ID3D12CommandSignature;
 
 class Scene;
+class ResourceAspect;
 
 #include <vxEngineLib/RenderAspectInterface.h>
 #include <d3d12.h>
@@ -77,6 +78,7 @@ class RenderAspect : public RenderAspectInterface
 	ID3D12GraphicsCommandList* m_commandList;
 	d3d::Object<ID3D12Resource> m_renderTarget[2];
 	d3d::Object<ID3D12Resource> m_indirectCmdBuffer;
+	d3d::Object<ID3D12Resource> m_depthTexture;
 	u32 m_currentBuffer;
 	u32 m_lastBuffer;
 	u32 m_indexCount;
@@ -88,17 +90,23 @@ class RenderAspect : public RenderAspectInterface
 	vx::mat4 m_projectionMatrix;
 	UploadManager m_uploadManager;
 	d3d::Object<ID3D12Resource> m_constantBuffer;
+	d3d::Object<ID3D12Resource> m_transformBuffer;
+	d3d::DescriptorHeap m_descriptorHeapDsv;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::DescriptorHeap m_descriptorHeapBuffer;
 	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_rectScissor;
 	d3d::Object<ID3D12Resource> m_vertexBuffer;
+	d3d::Object<ID3D12Resource> m_meshIndexBuffer;
 	d3d::Object<ID3D12Resource> m_indexBuffer;
 	d3d::Heap m_bufferHeap;
 	d3d::Heap m_geometryHeap;
+	d3d::Object<ID3D12Resource> m_textureBuffer;
+	d3d::Heap m_textureHeap;
 	vx::TaskManager* m_taskManager;
 	vx::sorted_vector<vx::StringID, MeshEntry> m_meshEntries;
+	ResourceAspectInterface* m_resourceAspect;
 
 	bool createHeaps();
 	bool createCommandList();

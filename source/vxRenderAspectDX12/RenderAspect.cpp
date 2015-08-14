@@ -40,6 +40,9 @@ SOFTWARE.
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/MeshFile.h>
+#include <vxEngineLib/Material.h>
+#include "Vertex.h"
+#include "Transform.h"
 
 // Graphics root signature parameter offsets.
 enum GraphicsRootParameters
@@ -53,23 +56,11 @@ struct IndirectCommand
 	D3D12_GPU_VIRTUAL_ADDRESS cbv;
 	D3D12_DRAW_ARGUMENTS drawArguments;
 };
-
-struct Vertex
-{
-	vx::float3 position;
-	vx::float3 color;
-};
-
 struct CameraBufferData
 {
 	vx::float4a cameraPosition;
 	vx::mat4 pvMatrix;
 	vx::mat4 cameraViewMatrix;
-};
-
-struct Transform
-{
-	vx::float4 translation;
 };
 
 struct TaskLoadScene
@@ -100,7 +91,8 @@ RenderAspect::RenderAspect()
 	m_renderTarget(),
 	m_descriptorHeapRtv(),
 	m_commandAllocator(),
-	m_taskManager(nullptr)
+	m_taskManager(nullptr),
+	m_resourceAspect(nullptr)
 {
 
 }
@@ -130,7 +122,7 @@ bool RenderAspect::createHeaps()
 	if (!m_bufferHeap.createBufferHeap(64u KBYTE * 4, D3D12_HEAP_TYPE_DEFAULT, &m_device))
 		return false;
 
-	auto geometryHeapSize = d3d::getAlignedSize(sizeof(Vertex) * g_maxVertexCount, 64 KBYTE) + d3d::getAlignedSize(sizeof(u32) * g_maxIndexCount, 64 KBYTE);
+	auto geometryHeapSize = d3d::getAlignedSize(sizeof(Vertex) * g_maxVertexCount, 64 KBYTE) + d3d::getAlignedSize(sizeof(u32) * g_maxIndexCount, 64 KBYTE) + 64 KBYTE;
 	if (!m_geometryHeap.createBufferHeap(geometryHeapSize, D3D12_HEAP_TYPE_UPLOAD, &m_device))
 		return false;
 
@@ -140,6 +132,23 @@ bool RenderAspect::createHeaps()
 	descHeap.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	descHeap.NodeMask = 1;
 	if (!m_descriptorHeapBuffer.create(descHeap, &m_device))
+		return false;
+
+	D3D12_HEAP_PROPERTIES props
+	{
+		D3D12_HEAP_TYPE_DEFAULT,
+		D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+		D3D12_MEMORY_POOL_UNKNOWN,
+		0,
+		0
+	};
+
+	D3D12_HEAP_DESC textureHeapDesc;
+	textureHeapDesc.Alignment = 64u KBYTE;
+	textureHeapDesc.Flags = D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
+	textureHeapDesc.Properties = props;
+	textureHeapDesc.SizeInBytes = d3d::getAlignedSize(512u MBYTE, 64u KBYTE);
+	if (!m_textureHeap.create(textureHeapDesc, &m_device))
 		return false;
 
 	return true;
@@ -158,6 +167,10 @@ bool RenderAspect::createConstantBuffers()
 	if (!m_bufferHeap.createResourceBuffer(64u KBYTE, 64u KBYTE, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, m_indirectCmdBuffer.getAddressOf(), &m_device))
 		return false;
 
+	auto transformBufferSize = d3d::getAlignedSize(sizeof(Transform) * g_maxMeshInstances, 64 KBYTE);
+	if (!m_bufferHeap.createResourceBuffer(transformBufferSize, 64u KBYTE * 2, D3D12_RESOURCE_STATE_GENERIC_READ, m_transformBuffer.getAddressOf(), &m_device))
+		return false;
+
 	auto vertexBufferSize = d3d::getAlignedSize(sizeof(Vertex) * g_maxVertexCount, 64 KBYTE);
 	if (!m_geometryHeap.createResourceBuffer(vertexBufferSize, 0, D3D12_RESOURCE_STATE_GENERIC_READ, m_vertexBuffer.getAddressOf(), &m_device))
 		return false;
@@ -166,12 +179,16 @@ bool RenderAspect::createConstantBuffers()
 	if (!m_geometryHeap.createResourceBuffer(indexBufferSize, vertexBufferSize, D3D12_RESOURCE_STATE_GENERIC_READ, m_indexBuffer.getAddressOf(), &m_device))
 		return false;
 
+	if (!m_geometryHeap.createResourceBuffer(64 KBYTE, vertexBufferSize + indexBufferSize, D3D12_RESOURCE_STATE_GENERIC_READ, m_meshIndexBuffer.getAddressOf(), &m_device))
+		return false;
+
 	return true;
 }
 
 RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &desc)
 {
 	m_taskManager = desc.taskManager;
+	m_resourceAspect = desc.resourceAspect;
 
 	auto screenAspect = (f32)desc.settings->m_resolution.x / (f32)desc.settings->m_resolution.y;
 	auto fovRad = vx::degToRad(desc.settings->m_fovDeg);
@@ -193,8 +210,9 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	m_viewport.Height = (f32)desc.settings->m_resolution.y;
-	m_viewport.Width = (f32)desc.settings->m_resolution.x;
+	auto resolution = desc.settings->m_resolution;
+	m_viewport.Height = (f32)resolution.y;
+	m_viewport.Width = (f32)resolution.x;
 	m_viewport.MaxDepth = 1.0f;
 	m_viewport.MinDepth = 0.0f;
 	m_viewport.TopLeftX = 0;
@@ -202,8 +220,8 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 
 	m_rectScissor.left = 0;
 	m_rectScissor.top = 0;
-	m_rectScissor.right = desc.settings->m_resolution.x;
-	m_rectScissor.bottom = desc.settings->m_resolution.y;
+	m_rectScissor.right = resolution.x;
+	m_rectScissor.bottom = resolution.y;
 
 	D3D12_DESCRIPTOR_HEAP_DESC descHeap = {};
 	descHeap.NumDescriptors = 2;
@@ -212,6 +230,16 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if (!m_descriptorHeapRtv.create(descHeap, &m_device))
 	{
 		puts("Error CreateDescriptorHeap");
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
+
+	D3D12_DESCRIPTOR_HEAP_DESC descHeapDsv = {};
+	descHeapDsv.NumDescriptors = 1;
+	descHeapDsv.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	descHeapDsv.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	if (!m_descriptorHeapDsv.create(descHeapDsv, &m_device))
+	{
+		puts("Error CreateDescriptorHeapDsv");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
@@ -249,6 +277,24 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
+	{
+		D3D12_RESOURCE_DESC resDesc;
+		resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		resDesc.Alignment = 64 KBYTE;
+		// 1024, 1024, 128
+		resDesc.Width = 1024;
+		resDesc.Height = 1024;
+		resDesc.DepthOrArraySize = 64;
+		resDesc.MipLevels = 0;
+		resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		resDesc.SampleDesc.Count = 1;
+		resDesc.SampleDesc.Quality = 0;
+		resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+		if (!m_textureHeap.createResource(resDesc, 0, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, m_textureBuffer.getAddressOf(), &m_device))
+			return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
+
 	D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[1] = {};
 	//argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT_BUFFER_VIEW;
 	//argumentDescs[0].ConstantBufferView.RootParameterIndex = Cbv;
@@ -261,23 +307,22 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	cmdSigDesc.pArgumentDescs = argumentDescs;
 	hresult = device->CreateCommandSignature(&cmdSigDesc, nullptr, IID_PPV_ARGS(m_commandSignature.getAddressOf()));
 
-	{
-		D3D12_DRAW_INDEXED_ARGUMENTS cmd{};
-		m_uploadManager.pushUpload((u8*)&cmd, m_indirectCmdBuffer.get(), 0, sizeof(D3D12_DRAW_INDEXED_ARGUMENTS), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
-		u32 count = 0;
-		m_uploadManager.pushUpload((u8*)&count, m_indirectCmdBuffer.get(), 256, sizeof(u32), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
+	depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+	depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
+	depthOptimizedClearValue.DepthStencil.Stencil = 0;
 
-		auto list = m_uploadManager.update();
-
-		ID3D12CommandList* lists[]=
-		{
-			list
-		};
-
-		m_device.executeCommandLists(1, lists);
-		m_device.waitForGpu();
-	}
+	hresult = m_device.getDevice()->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), 
+		D3D12_HEAP_FLAG_NONE, 
+		&CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, resolution.x, resolution.y, 1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL),
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&depthOptimizedClearValue,
+		IID_PPV_ARGS(m_depthTexture.getAddressOf())
+		);
+	if (hresult != 0)
+		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	return RenderAspectInitializeError::OK;
 }
@@ -320,7 +365,7 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	bufferData.pvMatrix = m_projectionMatrix * viewMatrix;
 
 	u32 offset = m_currentBuffer * d3d::getAlignedSize(sizeof(CameraBufferData), 256);
-	m_uploadManager.pushUpload((u8*)&bufferData, m_constantBuffer.get(), offset, sizeof(CameraBufferData), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+	m_uploadManager.pushUpload((u8*)&bufferData, m_constantBuffer.get(), 0, sizeof(CameraBufferData), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 }
 
 void RenderAspect::queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize)
@@ -403,21 +448,63 @@ void createSRView(ID3D12Resource* buffer, d3d::DescriptorHandleCpu* cpuHandle, I
 
 void RenderAspect::submitCommands()
 {
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	srvDesc.Buffer.NumElements = m_instanceCount;
+	srvDesc.Buffer.StructureByteStride = sizeof(Transform);
+	/*
+	DXGI_FORMAT Format;
+	D3D12_SRV_DIMENSION ViewDimension;
+	UINT Shader4ComponentMapping;
+	union
+	{
+	D3D12_BUFFER_SRV Buffer;
+	D3D12_TEX1D_SRV Texture1D;
+	D3D12_TEX1D_ARRAY_SRV Texture1DArray;
+	D3D12_TEX2D_SRV Texture2D;
+	D3D12_TEX2D_ARRAY_SRV Texture2DArray;
+	D3D12_TEX2DMS_SRV Texture2DMS;
+	D3D12_TEX2DMS_ARRAY_SRV Texture2DMSArray;
+	D3D12_TEX3D_SRV Texture3D;
+	D3D12_TEXCUBE_SRV TextureCube;
+	D3D12_TEXCUBE_ARRAY_SRV TextureCubeArray;
+	} 	;
+	*/
+
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
 	vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
 	vertexBufferView.SizeInBytes = sizeof(Vertex) * m_vertexCount;
 	vertexBufferView.StrideInBytes = sizeof(Vertex);
+
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewMeshIndices;
+	vertexBufferViewMeshIndices.BufferLocation = m_meshIndexBuffer->GetGPUVirtualAddress();
+	vertexBufferViewMeshIndices.SizeInBytes = sizeof(u32) * g_maxMeshInstances;
+	vertexBufferViewMeshIndices.StrideInBytes = sizeof(u32);
+
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2] =
+	{
+		vertexBufferView,
+		vertexBufferViewMeshIndices
+	};
 
 	D3D12_INDEX_BUFFER_VIEW indexBufferView;
 	indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
 	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 	indexBufferView.SizeInBytes = sizeof(u32) * m_indexCount;
 
-	u32 cameraBufferOffset = m_lastBuffer * d3d::getAlignedSize(sizeof(CameraBufferData), 256);
+	//u32 cameraBufferOffset = m_lastBuffer * d3d::getAlignedSize(sizeof(CameraBufferData), 256);
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbufferViewDesc{};
-	cbufferViewDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress() + cameraBufferOffset;
+	cbufferViewDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
 	cbufferViewDesc.SizeInBytes = d3d::getAlignedSize(sizeof(CameraBufferData), 256);
-	m_device.getDevice()->CreateConstantBufferView(&cbufferViewDesc, m_descriptorHeapBuffer->GetCPUDescriptorHandleForHeapStart());
+
+	auto descriptorHeapBufferHandle = m_descriptorHeapBuffer.getHandleCpu();
+	m_device.getDevice()->CreateConstantBufferView(&cbufferViewDesc, descriptorHeapBufferHandle);
+	descriptorHeapBufferHandle.offset(1);
+	m_device.getDevice()->CreateShaderResourceView(m_transformBuffer.get(), &srvDesc, descriptorHeapBufferHandle);
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	rtvHandle.offset(m_currentBuffer);
@@ -427,12 +514,26 @@ void RenderAspect::submitCommands()
 		rtvHandle
 	};
 
+	auto dsvHandle = m_descriptorHeapDsv.getHandleCpu();
+	const D3D12_CPU_DESCRIPTOR_HANDLE dsvHandles[] =
+	{
+		dsvHandle
+	};
+
 	ID3D12DescriptorHeap* heaps[]=
 	{
 		m_descriptorHeapBuffer.get()
+		//m_descriptorHeapDsv.get()
 	};
 
 	const f32 clearColor[] = { 0.10f, 0.22f, 0.5f, 1 };
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc;
+	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	depthViewDesc.Flags = D3D12_DSV_FLAG_NONE;
+	depthViewDesc.Texture2D.MipSlice = 0;
+	m_device.getDevice()->CreateDepthStencilView(m_depthTexture.get(), &depthViewDesc, m_descriptorHeapDsv.getHandleCpu());
 
 	m_commandAllocator->Reset();
 	m_commandList->Reset(m_commandAllocator.get(), nullptr);
@@ -446,24 +547,21 @@ void RenderAspect::submitCommands()
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[m_currentBuffer].get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-	m_commandList->OMSetRenderTargets(1, rtvHandles, FALSE, nullptr);
+	m_commandList->OMSetRenderTargets(1, rtvHandles, FALSE, dsvHandles);
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+	m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
 	m_commandList->IASetIndexBuffer(&indexBufferView);
 
 	for(auto &it : m_drawCommands)
 	{
-		m_commandList->DrawIndexedInstanced(it.indexCount, 1, it.firstIndex, 0, it.baseInstance);
+		m_commandList->DrawIndexedInstanced(it.indexCount, it.instanceCount, it.firstIndex, 0, it.baseInstance);
 	}
-	//m_commandList->DrawIndexedInstanced(m_indexCount, 1, 0, 0, 0);
 	//m_commandList->ExecuteIndirect(m_commandSignature.get(), 1, m_indirectCmdBuffer.get(), 0, m_indirectCmdBuffer.get(), 256);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[m_currentBuffer].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-
-	//
-	//m_commandList->SetGraphicsRootDescriptorTable(0, descHeap);
 
 	auto hresult = m_commandList->Close();
 	if (hresult != 0)
@@ -648,7 +746,7 @@ void RenderAspect::loadScene(Scene* scene)
 		for (u32 j = 0; j < meshVertexCount; ++j)
 		{
 			vertexPtr[j + vertexOffset].position = meshVertices[j].position;
-			vertexPtr[j + vertexOffset].color = {1, 0, 0};
+			vertexPtr[j + vertexOffset].texCoords = meshVertices[j].texCoords;
 		}
 
 		for (u32 j = 0; j < meshIndexCount; ++j)
@@ -673,10 +771,19 @@ void RenderAspect::loadScene(Scene* scene)
 
 	auto meshInstances = scene->getMeshInstances();
 	auto meshInstanceCount = scene->getMeshInstanceCount();
+
+	u32* meshIndex = nullptr;
+	m_meshIndexBuffer->Map(0, nullptr, (void**)&meshIndex);
 	for (u32 i = 0; i < meshInstanceCount; ++i)
 	{
 		auto &meshInstance = meshInstances[i];
+		auto material = meshInstance.getMaterial();
+
+		auto diffuseTextureSid = material->m_textureSid[0];
+
 		auto meshEntryIt = m_meshEntries.find(meshInstance.getMeshSid());
+
+		meshIndex[i] = i;
 
 		MeshInstanceDrawCmd cmd;
 		cmd.baseInstance = i;
@@ -685,7 +792,18 @@ void RenderAspect::loadScene(Scene* scene)
 		cmd.indexCount = meshEntryIt->indexCount;
 		cmd.instanceCount = 1;
 		m_drawCommands.push_back(cmd);
+
+		auto meshTransform = meshInstance.getTransform();
+
+		Transform transform;
+		transform.translation = vx::float4(meshTransform.m_translation, 1);
+
+		auto transformOffset = sizeof(Transform)* i;
+		m_uploadManager.pushUpload((u8*)&transform, m_transformBuffer.get(), transformOffset, sizeof(Transform), D3D12_RESOURCE_STATE_GENERIC_READ);
 	}
+	m_meshIndexBuffer->Unmap(0, nullptr);
+
+	m_instanceCount = meshInstanceCount;
 
 	/*
 
@@ -727,7 +845,7 @@ void RenderAspect::loadScene(Scene* scene)
 	cmd.BaseVertexLocation = 0;
 	cmd.StartInstanceLocation = 0;*/
 
-	//m_uploadManager.pushUpload((u8*)&cmd, m_indirectCmdBuffer.get(), 0, sizeof(D3D12_DRAW_INDEXED_ARGUMENTS), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	//
 }
 
 void RenderAspect::taskToggleRenderMode()

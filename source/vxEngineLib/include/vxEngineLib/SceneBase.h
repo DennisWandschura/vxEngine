@@ -51,12 +51,12 @@ namespace vx
 struct SceneBaseParams
 {
 	std::vector<Light> m_lights;
-	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
-	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> m_meshes;
+	vx::sorted_vector<vx::StringID, Material*> m_materials;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	std::vector<Waypoint> m_waypoints;
-	vx::sorted_vector<vx::StringID, Reference<vx::Animation>> m_animations;
+	vx::sorted_vector<vx::StringID, vx::Animation*> m_animations;
 	std::vector<Joint> m_joints;
 	NavMesh m_navMesh;
 	u32 m_lightCount;
@@ -73,12 +73,12 @@ class SceneBase
 {
 protected:
 	std::vector<Light> m_lights;
-	vx::sorted_vector<vx::StringID, Reference<Material>> m_materials;
-	vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> m_meshes;
+	vx::sorted_vector<vx::StringID, Material*> m_materials;
+	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	std::vector<Waypoint> m_waypoints;
-	vx::sorted_vector<vx::StringID, Reference<vx::Animation>> m_animations;
+	vx::sorted_vector<vx::StringID, vx::Animation*> m_animations;
 	std::vector<Joint> m_joints;
 	NavMesh m_navMesh;
 	u32 m_lightCount{ 0 };
@@ -111,12 +111,12 @@ public:
 	const Light* getLights() const;
 	u32 getLightCount() const;
 
-	const Reference<Material>* getMaterials() const;
+	Material** getMaterials() const;
 	u32 getMaterialCount() const;
 
-	const Reference<Material>* getMaterial(const vx::StringID &sid) const;
+	const Material* getMaterial(const vx::StringID &sid) const;
 
-	const vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>& getMeshes() const;
+	const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& getMeshes() const;
 	u32 getVertexCount() const;
 
 	const Spawn* getSpawns() const;
@@ -124,7 +124,7 @@ public:
 
 	const vx::sorted_vector<vx::StringID, Actor>& getActors() const;
 
-	const Reference<vx::Animation>* getAnimations() const;
+	vx::Animation** getAnimations() const;
 	u32 getAnimationCount() const;
 
 	NavMesh& getNavMesh();

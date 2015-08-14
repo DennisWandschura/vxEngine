@@ -49,7 +49,7 @@ TaskLoadMaterial::~TaskLoadMaterial()
 TaskReturnType TaskLoadMaterial::runImpl()
 {
 	auto ptr = m_materialManager->find(m_sid);
-	if (ptr.get() != nullptr)
+	if (ptr != nullptr)
 	{
 		return TaskReturnType::Success;
 	}
@@ -110,7 +110,7 @@ TaskReturnType TaskLoadMaterial::runImpl()
 	}
 
 	auto ref = m_materialManager->insertEntry(m_sid, std::move(material));
-	if (ref.get() == nullptr)
+	if (ref == nullptr)
 	{
 		return TaskReturnType::Failure;
 	}

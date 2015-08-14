@@ -43,7 +43,7 @@ TaskLoadMesh::~TaskLoadMesh()
 TaskReturnType TaskLoadMesh::runImpl()
 {
 	auto ptr = m_meshManager->find(m_sid);
-	if (ptr.get() != nullptr)
+	if (ptr != nullptr)
 	{
 		return TaskReturnType::Success;
 	}

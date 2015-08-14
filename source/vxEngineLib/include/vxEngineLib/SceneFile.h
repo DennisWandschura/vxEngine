@@ -69,17 +69,17 @@ namespace vx
 
 struct CreateSceneDescription
 {
-	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>, std::less<vx::StringID>> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Reference<Material>, std::less<vx::StringID>> *sortedMaterials;
-	const vx::sorted_array<vx::StringID, Reference<vx::Animation>, std::less<vx::StringID>> *sortedAnimations;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*, std::less<vx::StringID>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::Animation*, std::less<vx::StringID>> *sortedAnimations;
 	Scene *pScene;
 };
 
 struct CreateEditorSceneDescription
 {
-	const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>, std::less<vx::StringID>> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Reference<Material>, std::less<vx::StringID>> *sortedMaterials;
-	const vx::sorted_array<vx::StringID, Reference<vx::Animation>, std::less<vx::StringID>> *sortedAnimations;
+	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*, std::less<vx::StringID>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::Animation*, std::less<vx::StringID>> *sortedAnimations;
 	const vx::sorted_vector<vx::StringID, std::string> *loadedFiles;
 	Editor::Scene *pScene;
 };

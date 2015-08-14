@@ -36,8 +36,8 @@ template<typename T>
 class ResourceManager
 {
 	mutable std::mutex m_mutexData;
-	vx::Pool<ReferenceCounted<T>> m_poolData;
-	vx::sorted_array<vx::StringID, Reference<T>> m_sortedData;
+	vx::Pool<T> m_poolData;
+	vx::sorted_array<vx::StringID, T*> m_sortedData;
 
 	std::mutex m_mutexScratchAllocator;
 	vx::StackAllocator m_scratchAllocator;
@@ -58,7 +58,7 @@ public:
 
 		m_poolData.initialize(poolPtr, capacity);
 
-		m_sortedData = vx::sorted_array<vx::StringID, Reference<T>>(capacity, allocator);
+		m_sortedData = vx::sorted_array<vx::StringID, T*>(capacity, allocator);
 
 		auto scratchPtr = allocator->allocate(scratchSizeInBytes, 4);
 		if (scratchPtr == nullptr)
@@ -112,11 +112,11 @@ public:
 	}
 
 	template<typename ...Args>
-	Reference<T> insertEntry(const vx::StringID &sid, Args&& ...args)
+	T* insertEntry(const vx::StringID &sid, Args&& ...args)
 	{
 		std::lock_guard<std::mutex> guard(m_mutexData);
 
-		Reference<T> result;
+		T* result = nullptr;
 
 		auto it = m_sortedData.find(sid);
 		if (it != m_sortedData.end())
@@ -129,8 +129,8 @@ public:
 			auto ptr = m_poolData.createEntry(&index, std::forward<Args>(args)...);
 			if (ptr != nullptr)
 			{
-				result = (*ptr);
-				m_sortedData.insert(sid, result);
+				result = ptr;
+				m_sortedData.insert(sid, ptr);
 			}
 		}
 
@@ -153,9 +153,9 @@ public:
 		return &m_dataAllocator;
 	}
 
-	Reference<T> find(const vx::StringID &sid) const
+	T* find(const vx::StringID &sid) const
 	{
-		Reference<T> result;
+		T* result = nullptr;
 
 		std::lock_guard<std::mutex> guard(m_mutexData);
 		auto it = m_sortedData.find(sid);

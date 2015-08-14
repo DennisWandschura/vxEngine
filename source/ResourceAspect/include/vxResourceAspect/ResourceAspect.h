@@ -83,10 +83,11 @@ public:
 	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
 	void requestSaveFile(const vx::FileEntry &fileEntry, void* p);
 
-	Reference<Graphics::Texture> getTexture(const vx::StringID &sid) const override;
-	Reference<Material> getMaterial(const vx::StringID &sid) const override;
-	Reference<vx::MeshFile> getMesh(const vx::StringID &sid) const override;
-	Reference<vx::Animation> getAnimation(const vx::StringID &sid) const override;
+	const Graphics::Texture* getTexture(const vx::StringID &sid) const override;
+	const Material* getMaterial(const vx::StringID &sid) const override;
+	Material* getMaterial(const vx::StringID &sid);
+	const vx::MeshFile* getMesh(const vx::StringID &sid) const override;
+	const vx::Animation* getAnimation(const vx::StringID &sid) const override;
 
 	//const char* getLoadedFileName(const vx::StringID &sid) const;
 };

@@ -931,7 +931,7 @@ namespace Editor
 		}
 	}
 
-	bool RenderAspect::setSelectedMeshInstanceMaterial(const Reference<Material> &material)
+	bool RenderAspect::setSelectedMeshInstanceMaterial(const Material* material)
 	{
 		u32 materialIndex = 0;
 		auto b = m_materialManager.getMaterialIndex(material->getSid(), m_resourceAspect, &materialIndex);
@@ -1281,7 +1281,7 @@ namespace Editor
 		{
 			auto &instance = instances[i];
 			u32 materialIndex = 0;
-			auto b = m_materialManager.getMaterialIndex(*instance.getMaterial().get(), m_resourceAspect, &materialIndex);
+			auto b = m_materialManager.getMaterialIndex(*instance.getMaterial(), m_resourceAspect, &materialIndex);
 			VX_ASSERT(b);
 
 			auto gpuIndex = m_meshManager.addMeshInstance(instance.getMeshInstance(), materialIndex, m_resourceAspect);

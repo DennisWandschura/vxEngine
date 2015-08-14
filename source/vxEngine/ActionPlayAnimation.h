@@ -11,7 +11,7 @@ namespace physx
 
 class ActionPlayAnimation : public Action
 {
-	Reference<vx::Animation> m_animation;
+	vx::Animation* m_animation;
 	u32 m_currentFrame;
 	u32 m_frameCount;
 	physx::PxRigidDynamic* m_rigidDynamic;

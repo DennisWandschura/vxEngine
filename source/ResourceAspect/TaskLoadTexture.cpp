@@ -24,7 +24,7 @@ TaskReturnType TaskLoadTexture::runImpl()
 	static const auto pngSid = vx::make_sid(".png");
 
 	auto tmp = m_textureManager->find(m_sid);
-	if (tmp.get() != nullptr)
+	if (tmp != nullptr)
 	{
 		return TaskReturnType::Success;
 	}
@@ -56,7 +56,7 @@ TaskReturnType TaskLoadTexture::runImpl()
 	if (result)
 	{
 		auto ref = m_textureManager->insertEntry(m_sid, std::move(texture));
-		VX_ASSERT(ref.get() != nullptr);
+		VX_ASSERT(ref != nullptr);
 	}
 
 	return TaskReturnType::Success;

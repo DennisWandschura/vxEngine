@@ -504,7 +504,7 @@ void PhysicsAspect::addMeshInstanceImpl(const MeshInstance &meshInstance, void**
 
 	assert(transform.isValid());
 
-	auto &material = meshInstance.getMaterial();
+	auto material = meshInstance.getMaterial();
 	auto materialSid = (*material).getSid();
 	auto itPhysxMaterial = m_physxMaterials.find(materialSid);
 	if (itPhysxMaterial == m_physxMaterials.end())

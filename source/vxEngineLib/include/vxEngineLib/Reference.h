@@ -31,7 +31,7 @@ template<typename T>
 class ReferenceCounted
 {
 	T m_data;
-	std::atomic_uint32_t m_refCount;
+	std::atomic_int32_t m_refCount;
 
 public:
 	ReferenceCounted() :m_data(), m_refCount() {}
@@ -59,17 +59,17 @@ public:
 
 	ReferenceCounted& operator=(const ReferenceCounted&) = delete;
 
-	u32 increment()
+	void increment()
 	{
-		return ++m_refCount;
+		m_refCount.fetch_add(1);
 	}
 
-	u32 decrement()
+	s32 decrement()
 	{
-		return --m_refCount;
+		return m_refCount.fetch_sub(1);
 	}
 
-	u32 getRefCount() const
+	s32 getRefCount() const
 	{
 		return m_refCount.load();
 	}
@@ -120,7 +120,11 @@ class Reference
 	{
 		if (m_ptr)
 		{
-			 m_ptr->decrement();
+			 auto refCount = m_ptr->decrement() - 1;
+			 if (refCount == 0)
+			 {
+				 //delete(m_ptr);
+			 }
 		}
 	}
 

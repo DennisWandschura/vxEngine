@@ -59,7 +59,7 @@ namespace Editor
 
 		virtual bool setSelectedMeshInstance(const Editor::MeshInstance* instance) = 0;
 		virtual void setSelectedMeshInstanceTransform(vx::Transform &transform) = 0;
-		virtual bool setSelectedMeshInstanceMaterial(const Reference<Material> &material) = 0;
+		virtual bool setSelectedMeshInstanceMaterial(const Material* material) = 0;
 		virtual bool setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid) = 0;
 
 		virtual void moveCamera(f32 dirX, f32 dirY, f32 dirZ) = 0;

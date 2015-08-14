@@ -19,15 +19,15 @@ namespace Converter
 {
 	struct CreateSceneShared
 	{
-		const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes;
-		const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
-		const vx::sorted_array<vx::StringID, Reference<vx::Animation>, std::less<vx::StringID>> *sortedAnimations;
+		const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+		const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+		const vx::sorted_array<vx::StringID, vx::Animation*, std::less<vx::StringID>> *sortedAnimations;
 		MeshInstance* pMeshInstances;
 		MeshInstanceFile* meshInstancesFile;
 		vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
-		vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>* sceneMeshes;
-		vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
-		vx::sorted_vector<vx::StringID, Reference<vx::Animation>>* sceneAnimations;
+		vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+		vx::sorted_vector<vx::StringID, vx::Animation*>* sceneAnimations;
 		vx::sorted_vector<vx::StringID, Actor>* sceneActors;
 		vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 		Spawn* sceneSpawns;
@@ -42,26 +42,26 @@ namespace Converter
 
 	struct CreateSceneMeshInstancesDesc
 	{
-		const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes;
-		const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
-		const vx::sorted_array<vx::StringID, Reference<vx::Animation>, std::less<vx::StringID>> *sortedAnimations;
+		const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+		const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
+		const vx::sorted_array<vx::StringID, vx::Animation*, std::less<vx::StringID>> *sortedAnimations;
 		MeshInstance* pMeshInstances;
 		MeshInstanceFile* meshInstancesFile;
 		vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
-		vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>* sceneMeshes;
-		vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
-		vx::sorted_vector<vx::StringID, Reference<vx::Animation>>* sceneAnimations;
+		vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
+		vx::sorted_vector<vx::StringID, vx::Animation*>* sceneAnimations;
 		vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 		u32 instanceCount;
 	};
 
 	struct CreateSceneActorsDesc
 	{
-		const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>> *sortedMeshes;
-		const vx::sorted_array<vx::StringID, Reference<Material>> *sortedMaterials;
+		const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes;
+		const vx::sorted_array<vx::StringID, Material*> *sortedMaterials;
 		vx::sorted_vector<vx::StringID, Actor>* sceneActors;
-		vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>>* sceneMeshes;
-		vx::sorted_vector<vx::StringID, Reference<Material>>* sceneMaterials;
+		vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
+		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 		const ActorFile* actorsSrc;
 		u32 actorCount;
 	};
@@ -260,12 +260,12 @@ namespace Converter
 
 	bool SceneFileToEditorScene::convert(SceneFile* src, const CreateEditorSceneDescription &desc)
 	{
-		vx::sorted_vector<vx::StringID, Reference<Material>> sceneMaterials;
+		vx::sorted_vector<vx::StringID, Material*> sceneMaterials;
 		sceneMaterials.reserve(5);
 
-		vx::sorted_vector<vx::StringID, Reference<vx::Animation>> sceneAnimations;
+		vx::sorted_vector<vx::StringID, vx::Animation*> sceneAnimations;
 
-		vx::sorted_vector<vx::StringID, Reference<vx::MeshFile>> sceneMeshes;
+		vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 		vx::sorted_vector<vx::StringID, Actor> sceneActors;
 
 		auto instanceCount = src->m_meshInstanceCount;

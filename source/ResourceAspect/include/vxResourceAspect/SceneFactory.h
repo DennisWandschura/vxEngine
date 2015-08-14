@@ -62,9 +62,9 @@ namespace Factory
 {
 	struct CreateSceneDesc
 	{
-		const vx::sorted_array<vx::StringID, Reference<vx::MeshFile>>* meshes;
-		const vx::sorted_array<vx::StringID, Reference<Material>>* materials;
-		const vx::sorted_array<vx::StringID, Reference<vx::Animation>>* animations;
+		const vx::sorted_array<vx::StringID, vx::MeshFile*>* meshes;
+		const vx::sorted_array<vx::StringID, Material*>* materials;
+		const vx::sorted_array<vx::StringID, vx::Animation*>* animations;
 		const vx::sorted_vector<vx::StringID, std::string>* loadedFiles;
 		std::vector<vx::FileEntry>* pMissingFiles;
 	};

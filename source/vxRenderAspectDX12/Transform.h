@@ -24,18 +24,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct D3D12_CONSTANT_BUFFER_VIEW_DESC;
-struct D3D12_SHADER_RESOURCE_VIEW_DESC;
-struct ID3D12Resource;
+#include <vxLib/math/Vector.h>
 
-namespace d3d
+struct Transform
 {
-	struct DescriptorHandleCpu;
-	class Device;
-
-	struct BufferView
-	{
-		static void createConstantBufferView(const D3D12_CONSTANT_BUFFER_VIEW_DESC &desc, DescriptorHandleCpu handle, Device* device);
-		static void createShaderResourceView(ID3D12Resource* resource, const D3D12_SHADER_RESOURCE_VIEW_DESC &desc, DescriptorHandleCpu handle, Device* device);
-	};
-}
+	vx::float4 translation;
+};
