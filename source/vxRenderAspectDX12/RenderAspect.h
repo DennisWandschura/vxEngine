@@ -35,9 +35,11 @@ struct ID3D12CommandAllocator;
 struct ID3D12RootSignature;
 struct ID3D12PipelineState;
 struct ID3D12CommandSignature;
+struct D3D12_SHADER_RESOURCE_VIEW_DESC;
 
 class Scene;
 class ResourceAspect;
+struct ResourceView;
 
 #include <vxEngineLib/RenderAspectInterface.h>
 #include <d3d12.h>
@@ -53,37 +55,21 @@ class ResourceAspect;
 #include <mutex>
 #include "DefaultRenderer.h"
 #include "UploadManager.h"
-
-struct MeshEntry
-{
-	u32 indexStart;
-	u32 indexCount;
-};
-
-struct MeshInstanceDrawCmd
-{
-	u32 indexCount;
-	u32 instanceCount;
-	u32 firstIndex;
-	u32 baseVertex;
-	u32 baseInstance;
-};
+#include "MeshManager.h"
 
 class RenderAspect : public RenderAspectInterface
 {
 	d3d::Device m_device;
 	std::mutex m_mutexCmdList;
-	std::vector<MeshInstanceDrawCmd> m_drawCommands;
+	std::vector<DrawIndexedCommand> m_drawCommands;
 	std::vector<ID3D12CommandList*> m_cmdLists;
 	ID3D12GraphicsCommandList* m_commandList;
 	d3d::Object<ID3D12Resource> m_renderTarget[2];
 	d3d::Object<ID3D12Resource> m_indirectCmdBuffer;
 	d3d::Object<ID3D12Resource> m_depthTexture;
+	vx::sorted_vector<vx::StringID, ResourceView> m_resourceViews;
 	u32 m_currentBuffer;
 	u32 m_lastBuffer;
-	u32 m_indexCount;
-	u32 m_vertexCount;
-	u32 m_instanceCount;
 	d3d::Object<ID3D12CommandSignature> m_commandSignature;
 	vx::Camera m_camera;
 	DefaultRenderer m_defaultRenderer;
@@ -97,15 +83,11 @@ class RenderAspect : public RenderAspectInterface
 	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_rectScissor;
-	d3d::Object<ID3D12Resource> m_vertexBuffer;
-	d3d::Object<ID3D12Resource> m_meshIndexBuffer;
-	d3d::Object<ID3D12Resource> m_indexBuffer;
 	d3d::Heap m_bufferHeap;
-	d3d::Heap m_geometryHeap;
 	d3d::Object<ID3D12Resource> m_textureBuffer;
 	d3d::Heap m_textureHeap;
+	MeshManager m_meshManager;
 	vx::TaskManager* m_taskManager;
-	vx::sorted_vector<vx::StringID, MeshEntry> m_meshEntries;
 	ResourceAspectInterface* m_resourceAspect;
 
 	bool createHeaps();
@@ -124,6 +106,9 @@ class RenderAspect : public RenderAspectInterface
 	void taskUpdateDynamicTransforms(u8* p, u32* offset);
 
 	void updateCamera(const RenderUpdateCameraData &data);
+
+	void createCbvCamera();
+	void updateSrvTransform(u32 instanceCount);
 
 public:
 	RenderAspect();

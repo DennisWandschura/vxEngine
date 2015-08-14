@@ -25,6 +25,8 @@ SOFTWARE.
 */
 
 struct ID3D12Resource;
+struct D3D12_VERTEX_BUFFER_VIEW;
+struct D3D12_INDEX_BUFFER_VIEW;
 
 class MeshInstance;
 struct Vertex;
@@ -62,7 +64,7 @@ class MeshManager
 
 	d3d::Object<ID3D12Resource> m_vertexBuffer;
 	d3d::Object<ID3D12Resource> m_indexBuffer;
-	d3d::Object<ID3D12Resource> m_instanceIndexBuffer;
+	d3d::Object<ID3D12Resource> m_drawIdBuffer;
 	vx::sorted_vector<vx::StringID, MeshEntry> m_meshEntries;
 	u32 m_vertexCount;
 	u32 m_indexCount;
@@ -85,5 +87,16 @@ public:
 
 	bool initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device);
 
-	void addMeshInstance(const MeshInstance &meshInstance, const ResourceAspectInterface* resourceAspect);
+	void addMeshInstance(const MeshInstance &meshInstance, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* cmd);
+
+	d3d::Object<ID3D12Resource>& getVertexBuffer() { return m_vertexBuffer;}
+	d3d::Object<ID3D12Resource>& getIndexBuffer() { return m_indexBuffer; }
+	d3d::Object<ID3D12Resource>& getDrawIdBuffer() { return m_drawIdBuffer; }
+
+	u32 getInstanceCount() const { return m_instanceCount; }
+
+	D3D12_VERTEX_BUFFER_VIEW getVertexBufferView();
+	D3D12_VERTEX_BUFFER_VIEW getDrawIdBufferView();
+
+	D3D12_INDEX_BUFFER_VIEW getIndexBufferView();
 };

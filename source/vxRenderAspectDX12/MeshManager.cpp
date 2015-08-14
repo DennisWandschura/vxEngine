@@ -40,7 +40,7 @@ struct MeshManager::MeshEntry
 MeshManager::MeshManager()
 	:m_vertexBuffer(),
 	m_indexBuffer(),
-	m_instanceIndexBuffer(),
+	m_drawIdBuffer(),
 	m_meshEntries(),
 	m_vertexCount(0),
 	m_indexCount(0),
@@ -52,7 +52,11 @@ MeshManager::MeshManager()
 
 MeshManager::~MeshManager()
 {
-
+	auto ptr = m_scratchAllocator.release();
+	if (ptr)
+	{
+		::operator delete(ptr);
+	}
 }
 
 bool MeshManager::createHeap(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device)
@@ -76,7 +80,7 @@ bool MeshManager::createBuffers(u32 vertexCount, u32 indexCount, u32 instanceCou
 	if (!m_geometryHeap.createResourceBuffer(indexBufferSize, vertexBufferSize, D3D12_RESOURCE_STATE_GENERIC_READ, m_indexBuffer.getAddressOf(), device))
 		return false;
 
-	if (!m_geometryHeap.createResourceBuffer(instanceBufferSize, vertexBufferSize + indexBufferSize, D3D12_RESOURCE_STATE_GENERIC_READ, m_instanceIndexBuffer.getAddressOf(), device))
+	if (!m_geometryHeap.createResourceBuffer(instanceBufferSize, vertexBufferSize + indexBufferSize, D3D12_RESOURCE_STATE_GENERIC_READ, m_drawIdBuffer.getAddressOf(), device))
 		return false;
 
 	return true;
@@ -89,6 +93,9 @@ bool MeshManager::initialize(u32 vertexCount, u32 indexCount, u32 instanceCount,
 
 	if (!createBuffers(vertexCount, indexCount, instanceCount, device))
 		return false;
+
+	auto scratchAllocSize = 64 KBYTE;
+	m_scratchAllocator = vx::StackAllocator((u8*)::operator new(scratchAllocSize), scratchAllocSize);
 
 	return true;
 }
@@ -176,7 +183,7 @@ const MeshManager::MeshEntry* MeshManager::getMeshEntry(const vx::StringID &sid)
 	return result;
 }
 
-void MeshManager::addMeshInstance(const MeshInstance &meshInstance, const ResourceAspectInterface* resourceAspect)
+void MeshManager::addMeshInstance(const MeshInstance &meshInstance, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* outCmd)
 {
 	auto meshSid = meshInstance.getMeshSid();
 	auto meshEntry = getMeshEntry(meshSid);
@@ -195,10 +202,47 @@ void MeshManager::addMeshInstance(const MeshInstance &meshInstance, const Resour
 	cmd.indexCount = meshEntry->indexCount;
 	cmd.instanceCount = 1;
 
-	auto meshTransform = meshInstance.getTransform();
+	u32* indexPtr = nullptr;
+	m_drawIdBuffer->Map(0, nullptr, (void**)&indexPtr);
+	indexPtr[baseInstance] = baseInstance;
+	m_drawIdBuffer->Unmap(0, nullptr);
 
-	Transform transform;
-	transform.translation = vx::float4(meshTransform.m_translation, 1);
+	*outCmd = cmd;
 
-	auto transformOffsetInBytes = sizeof(Transform) * baseInstance;
+	//auto meshTransform = meshInstance.getTransform();
+
+	//Transform transform;
+	//transform.translation = vx::float4(meshTransform.m_translation, 1);
+
+	//auto transformOffsetInBytes = sizeof(Transform) * baseInstance;
+}
+
+D3D12_VERTEX_BUFFER_VIEW MeshManager::getVertexBufferView()
+{
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
+	vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
+	vertexBufferView.SizeInBytes = sizeof(Vertex) * m_vertexCount;
+	vertexBufferView.StrideInBytes = sizeof(Vertex);
+
+	return vertexBufferView;
+}
+
+D3D12_VERTEX_BUFFER_VIEW MeshManager::getDrawIdBufferView()
+{
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewMeshIndices;
+	vertexBufferViewMeshIndices.BufferLocation = m_drawIdBuffer->GetGPUVirtualAddress();
+	vertexBufferViewMeshIndices.SizeInBytes = sizeof(u32) * m_instanceCount;
+	vertexBufferViewMeshIndices.StrideInBytes = sizeof(u32);
+
+	return vertexBufferViewMeshIndices;
+}
+
+D3D12_INDEX_BUFFER_VIEW MeshManager::getIndexBufferView()
+{
+	D3D12_INDEX_BUFFER_VIEW indexBufferView;
+	indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
+	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	indexBufferView.SizeInBytes = sizeof(u32) * m_indexCount;
+
+	return indexBufferView;
 }

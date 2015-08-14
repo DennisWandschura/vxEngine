@@ -44,6 +44,22 @@ SOFTWARE.
 #include "Vertex.h"
 #include "Transform.h"
 
+struct ResourceView
+{
+	enum class Type : u32
+	{
+		VertexBufferView,
+		IndexBufferView
+	};
+
+	Type type;
+	union
+	{
+		D3D12_VERTEX_BUFFER_VIEW vbv;
+		D3D12_INDEX_BUFFER_VIEW ibv;
+	};
+};
+
 // Graphics root signature parameter offsets.
 enum GraphicsRootParameters
 {
@@ -85,9 +101,6 @@ namespace RenderAspectCpp
 RenderAspect::RenderAspect()
 	:m_device(),
 	m_commandList(nullptr),
-	m_indexCount(0),
-	m_vertexCount(0),
-	m_instanceCount(0),
 	m_renderTarget(),
 	m_descriptorHeapRtv(),
 	m_commandAllocator(),
@@ -99,7 +112,6 @@ RenderAspect::RenderAspect()
 
 RenderAspect::~RenderAspect()
 {
-
 }
 
 bool RenderAspect::createCommandList()
@@ -120,10 +132,6 @@ bool RenderAspect::createCommandList()
 bool RenderAspect::createHeaps()
 {
 	if (!m_bufferHeap.createBufferHeap(64u KBYTE * 4, D3D12_HEAP_TYPE_DEFAULT, &m_device))
-		return false;
-
-	auto geometryHeapSize = d3d::getAlignedSize(sizeof(Vertex) * g_maxVertexCount, 64 KBYTE) + d3d::getAlignedSize(sizeof(u32) * g_maxIndexCount, 64 KBYTE) + 64 KBYTE;
-	if (!m_geometryHeap.createBufferHeap(geometryHeapSize, D3D12_HEAP_TYPE_UPLOAD, &m_device))
 		return false;
 
 	D3D12_DESCRIPTOR_HEAP_DESC descHeap = {};
@@ -169,17 +177,6 @@ bool RenderAspect::createConstantBuffers()
 
 	auto transformBufferSize = d3d::getAlignedSize(sizeof(Transform) * g_maxMeshInstances, 64 KBYTE);
 	if (!m_bufferHeap.createResourceBuffer(transformBufferSize, 64u KBYTE * 2, D3D12_RESOURCE_STATE_GENERIC_READ, m_transformBuffer.getAddressOf(), &m_device))
-		return false;
-
-	auto vertexBufferSize = d3d::getAlignedSize(sizeof(Vertex) * g_maxVertexCount, 64 KBYTE);
-	if (!m_geometryHeap.createResourceBuffer(vertexBufferSize, 0, D3D12_RESOURCE_STATE_GENERIC_READ, m_vertexBuffer.getAddressOf(), &m_device))
-		return false;
-
-	auto indexBufferSize = d3d::getAlignedSize(sizeof(u32) * g_maxIndexCount, 64 KBYTE);
-	if (!m_geometryHeap.createResourceBuffer(indexBufferSize, vertexBufferSize, D3D12_RESOURCE_STATE_GENERIC_READ, m_indexBuffer.getAddressOf(), &m_device))
-		return false;
-
-	if (!m_geometryHeap.createResourceBuffer(64 KBYTE, vertexBufferSize + indexBufferSize, D3D12_RESOURCE_STATE_GENERIC_READ, m_meshIndexBuffer.getAddressOf(), &m_device))
 		return false;
 
 	return true;
@@ -324,6 +321,12 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if (hresult != 0)
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
+	if(!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, &m_device))
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+
+	createCbvCamera();
+	updateSrvTransform(0);
+
 	return RenderAspectInitializeError::OK;
 }
 
@@ -430,23 +433,17 @@ void RenderAspect::updateProfiler(f32 dt)
 {
 }
 
-void createSRView(ID3D12Resource* buffer, d3d::DescriptorHandleCpu* cpuHandle, ID3D12Device* device)
+void RenderAspect::createCbvCamera()
 {
-	D3D12_SHADER_RESOURCE_VIEW_DESC desc;
-	desc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-	desc.Format = DXGI_FORMAT_UNKNOWN;
-	desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	desc.Buffer.FirstElement = 0;
-	desc.Buffer.NumElements = g_maxMeshInstances;
-	desc.Buffer.StructureByteStride = sizeof(Transform);
-	desc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbufferViewDesc{};
+	cbufferViewDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
+	cbufferViewDesc.SizeInBytes = d3d::getAlignedSize(sizeof(CameraBufferData), 256);
 
-	cpuHandle->offset(1);
-
-	device->CreateShaderResourceView(buffer, &desc, *cpuHandle);
+	auto descriptorHeapBufferHandle = m_descriptorHeapBuffer.getHandleCpu();
+	m_device.getDevice()->CreateConstantBufferView(&cbufferViewDesc, descriptorHeapBufferHandle);
 }
 
-void RenderAspect::submitCommands()
+void RenderAspect::updateSrvTransform(u32 instanceCount)
 {
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -454,76 +451,28 @@ void RenderAspect::submitCommands()
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Buffer.FirstElement = 0;
 	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-	srvDesc.Buffer.NumElements = m_instanceCount;
+	srvDesc.Buffer.NumElements = instanceCount;
 	srvDesc.Buffer.StructureByteStride = sizeof(Transform);
-	/*
-	DXGI_FORMAT Format;
-	D3D12_SRV_DIMENSION ViewDimension;
-	UINT Shader4ComponentMapping;
-	union
-	{
-	D3D12_BUFFER_SRV Buffer;
-	D3D12_TEX1D_SRV Texture1D;
-	D3D12_TEX1D_ARRAY_SRV Texture1DArray;
-	D3D12_TEX2D_SRV Texture2D;
-	D3D12_TEX2D_ARRAY_SRV Texture2DArray;
-	D3D12_TEX2DMS_SRV Texture2DMS;
-	D3D12_TEX2DMS_ARRAY_SRV Texture2DMSArray;
-	D3D12_TEX3D_SRV Texture3D;
-	D3D12_TEXCUBE_SRV TextureCube;
-	D3D12_TEXCUBE_ARRAY_SRV TextureCubeArray;
-	} 	;
-	*/
-
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-	vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
-	vertexBufferView.SizeInBytes = sizeof(Vertex) * m_vertexCount;
-	vertexBufferView.StrideInBytes = sizeof(Vertex);
-
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewMeshIndices;
-	vertexBufferViewMeshIndices.BufferLocation = m_meshIndexBuffer->GetGPUVirtualAddress();
-	vertexBufferViewMeshIndices.SizeInBytes = sizeof(u32) * g_maxMeshInstances;
-	vertexBufferViewMeshIndices.StrideInBytes = sizeof(u32);
-
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2] =
-	{
-		vertexBufferView,
-		vertexBufferViewMeshIndices
-	};
-
-	D3D12_INDEX_BUFFER_VIEW indexBufferView;
-	indexBufferView.BufferLocation = m_indexBuffer->GetGPUVirtualAddress();
-	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
-	indexBufferView.SizeInBytes = sizeof(u32) * m_indexCount;
-
-	//u32 cameraBufferOffset = m_lastBuffer * d3d::getAlignedSize(sizeof(CameraBufferData), 256);
-	D3D12_CONSTANT_BUFFER_VIEW_DESC cbufferViewDesc{};
-	cbufferViewDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
-	cbufferViewDesc.SizeInBytes = d3d::getAlignedSize(sizeof(CameraBufferData), 256);
 
 	auto descriptorHeapBufferHandle = m_descriptorHeapBuffer.getHandleCpu();
-	m_device.getDevice()->CreateConstantBufferView(&cbufferViewDesc, descriptorHeapBufferHandle);
 	descriptorHeapBufferHandle.offset(1);
 	m_device.getDevice()->CreateShaderResourceView(m_transformBuffer.get(), &srvDesc, descriptorHeapBufferHandle);
+}
 
+void RenderAspect::submitCommands()
+{
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	rtvHandle.offset(m_currentBuffer);
 
-	const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[] =
-	{
-		rtvHandle
-	};
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[1];
+	rtvHandles[0] = rtvHandle;
 
-	auto dsvHandle = m_descriptorHeapDsv.getHandleCpu();
-	const D3D12_CPU_DESCRIPTOR_HANDLE dsvHandles[] =
-	{
-		dsvHandle
-	};
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandles[1];
+	dsvHandles[0] = m_descriptorHeapDsv.getHandleCpu();
 
-	ID3D12DescriptorHeap* heaps[]=
+	ID3D12DescriptorHeap* heaps[] =
 	{
 		m_descriptorHeapBuffer.get()
-		//m_descriptorHeapDsv.get()
 	};
 
 	const f32 clearColor[] = { 0.10f, 0.22f, 0.5f, 1 };
@@ -549,15 +498,23 @@ void RenderAspect::submitCommands()
 
 	m_commandList->OMSetRenderTargets(1, rtvHandles, FALSE, dsvHandles);
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	m_commandList->ClearDepthStencilView(dsvHandles[0], D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
-	m_commandList->IASetIndexBuffer(&indexBufferView);
-
-	for(auto &it : m_drawCommands)
+	if (!m_drawCommands.empty())
 	{
-		m_commandList->DrawIndexedInstanced(it.indexCount, it.instanceCount, it.firstIndex, 0, it.baseInstance);
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
+		vertexBufferViews[0] = m_resourceViews.find(vx::make_sid("meshVertexBufferView"))->vbv;
+		vertexBufferViews[1] = m_resourceViews.find(vx::make_sid("meshDrawIdBufferView"))->vbv;
+		auto indexBufferView = m_resourceViews.find(vx::make_sid("meshIndexBufferView"))->ibv;
+
+		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
+		m_commandList->IASetIndexBuffer(&indexBufferView);
+
+		for (auto &it : m_drawCommands)
+		{
+			m_commandList->DrawIndexedInstanced(it.indexCount, it.instanceCount, it.firstIndex, 0, it.baseInstance);
+		}
 	}
 	//m_commandList->ExecuteIndirect(m_commandSignature.get(), 1, m_indirectCmdBuffer.get(), 0, m_indirectCmdBuffer.get(), 256);
 
@@ -721,59 +678,9 @@ void RenderAspect::taskTakeScreenshot()
 
 void RenderAspect::loadScene(Scene* scene)
 {
-	auto &meshes = scene->getMeshes();
-	auto meshKeys = meshes.keys();
-	auto meshCount = meshes.size();
-
-	u32 indexOffset = 0;
-	u32 vertexOffset = 0;
-
-	Vertex* vertexPtr = nullptr;
-	m_vertexBuffer->Map(0, nullptr, (void**)&vertexPtr);
-
-	u32* indexPtr = nullptr;
-	m_indexBuffer->Map(0, nullptr, (void**)&indexPtr);
-	for (u32 i = 0; i < meshCount; ++i)
-	{
-		auto meshFile = meshes[i];
-		auto &mesh = meshFile->getMesh();
-
-		auto meshVertices = mesh.getVertices();
-		auto meshVertexCount = mesh.getVertexCount();
-		auto meshIndices = mesh.getIndices();
-		auto meshIndexCount = mesh.getIndexCount();
-
-		for (u32 j = 0; j < meshVertexCount; ++j)
-		{
-			vertexPtr[j + vertexOffset].position = meshVertices[j].position;
-			vertexPtr[j + vertexOffset].texCoords = meshVertices[j].texCoords;
-		}
-
-		for (u32 j = 0; j < meshIndexCount; ++j)
-		{
-			indexPtr[j + indexOffset] = meshIndices[j] + vertexOffset;
-		}
-
-		MeshEntry meshEntry;
-		meshEntry.indexCount = meshIndexCount;
-		meshEntry.indexStart = indexOffset;
-
-		indexOffset += meshIndexCount;
-		vertexOffset += meshVertexCount;
-
-		m_indexCount += meshIndexCount;
-		m_vertexCount += meshVertexCount;
-
-		m_meshEntries.insert(meshKeys[i], meshEntry);
-	}
-	m_vertexBuffer->Unmap(0, nullptr);
-	m_indexBuffer->Unmap(0, nullptr);
-
 	auto meshInstances = scene->getMeshInstances();
 	auto meshInstanceCount = scene->getMeshInstanceCount();
 
-	u32* meshIndex = nullptr;
-	m_meshIndexBuffer->Map(0, nullptr, (void**)&meshIndex);
 	for (u32 i = 0; i < meshInstanceCount; ++i)
 	{
 		auto &meshInstance = meshInstances[i];
@@ -781,16 +688,9 @@ void RenderAspect::loadScene(Scene* scene)
 
 		auto diffuseTextureSid = material->m_textureSid[0];
 
-		auto meshEntryIt = m_meshEntries.find(meshInstance.getMeshSid());
+		DrawIndexedCommand cmd;
+		m_meshManager.addMeshInstance(meshInstance, m_resourceAspect, &cmd);
 
-		meshIndex[i] = i;
-
-		MeshInstanceDrawCmd cmd;
-		cmd.baseInstance = i;
-		cmd.baseVertex = 0;
-		cmd.firstIndex = meshEntryIt->indexStart;
-		cmd.indexCount = meshEntryIt->indexCount;
-		cmd.instanceCount = 1;
 		m_drawCommands.push_back(cmd);
 
 		auto meshTransform = meshInstance.getTransform();
@@ -798,54 +698,27 @@ void RenderAspect::loadScene(Scene* scene)
 		Transform transform;
 		transform.translation = vx::float4(meshTransform.m_translation, 1);
 
-		auto transformOffset = sizeof(Transform)* i;
+		auto transformOffset = sizeof(Transform) * cmd.baseInstance;
 		m_uploadManager.pushUpload((u8*)&transform, m_transformBuffer.get(), transformOffset, sizeof(Transform), D3D12_RESOURCE_STATE_GENERIC_READ);
 	}
-	m_meshIndexBuffer->Unmap(0, nullptr);
 
-	m_instanceCount = meshInstanceCount;
+	ResourceView meshVertexBufferView;
+	meshVertexBufferView.type = ResourceView::Type::VertexBufferView;
+	meshVertexBufferView.vbv = m_meshManager.getVertexBufferView();;
+	m_resourceViews.insert(vx::make_sid("meshVertexBufferView"), meshVertexBufferView);
 
-	/*
+	ResourceView meshDrawIdBufferView;
+	meshDrawIdBufferView.type = ResourceView::Type::VertexBufferView;
+	meshDrawIdBufferView.vbv = m_meshManager.getDrawIdBufferView();
+	m_resourceViews.insert(vx::make_sid("meshDrawIdBufferView"), meshDrawIdBufferView);
 
-	auto meshSid = mehsInstances[0].getMeshSid();
-	auto meshIt = meshes.find(meshSid);
+	ResourceView meshIndexBufferView;
+	meshIndexBufferView.type = ResourceView::Type::IndexBufferView;
+	meshIndexBufferView.ibv = m_meshManager.getIndexBufferView();
+	m_resourceViews.insert(vx::make_sid("meshIndexBufferView"), meshIndexBufferView);
 
-	auto vertices = (*meshIt)->getMesh().getVertices();
-	auto vertexCount = (*meshIt)->getMesh().getVertexCount();
-
-	auto indices = (*meshIt)->getMesh().getIndices();
-	auto indexCount = (*meshIt)->getMesh().getIndexCount();
-
-	auto meshVertices = std::make_unique<Vertex[]>(vertexCount);
-	for (u32 i = 0; i < vertexCount; ++i)
-	{
-		meshVertices[i].position = vertices[i].position;
-		meshVertices[i].color = {1, 0, 0};
-	}
-
-	auto vertexSizeInBytes = sizeof(Vertex) * vertexCount;
-	Vertex* vertexPtr = nullptr;
-	m_vertexBuffer->Map(0, nullptr, (void**)&vertexPtr);
-	memcpy(vertexPtr, meshVertices.get(), vertexSizeInBytes);
-	m_vertexBuffer->Unmap(0, nullptr);
-
-	auto indexCountInBytes = sizeof(u32) * indexCount;
-	void* indexPtr = nullptr;
-	m_indexBuffer->Map(0, nullptr, &indexPtr);
-	memcpy(indexPtr, indices, indexCountInBytes);
-	m_indexBuffer->Unmap(0, nullptr);
-
-	m_indexCount += indexCount;
-	m_vertexCount += vertexCount;*/
-
-	/*D3D12_DRAW_INDEXED_ARGUMENTS cmd;
-	cmd.IndexCountPerInstance = indexCount;
-	cmd.InstanceCount = 1;
-	cmd.StartIndexLocation = 0;
-	cmd.BaseVertexLocation = 0;
-	cmd.StartInstanceLocation = 0;*/
-
-	//
+	auto instanceCount = m_meshManager.getInstanceCount();
+	updateSrvTransform(instanceCount);
 }
 
 void RenderAspect::taskToggleRenderMode()
