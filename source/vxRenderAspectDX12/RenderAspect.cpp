@@ -43,6 +43,7 @@ SOFTWARE.
 #include <vxEngineLib/Material.h>
 #include "Vertex.h"
 #include "Transform.h"
+#include "CameraBufferData.h"
 
 struct ResourceView
 {
@@ -71,12 +72,6 @@ struct IndirectCommand
 {
 	D3D12_GPU_VIRTUAL_ADDRESS cbv;
 	D3D12_DRAW_ARGUMENTS drawArguments;
-};
-struct CameraBufferData
-{
-	vx::float4a cameraPosition;
-	vx::mat4 pvMatrix;
-	vx::mat4 cameraViewMatrix;
 };
 
 struct TaskLoadScene
@@ -172,7 +167,9 @@ bool RenderAspect::createConstantBuffers()
 	if (!m_bufferHeap.createResourceBuffer(64u KBYTE, 0, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, m_constantBuffer.getAddressOf(), &m_device))
 		return false;
 
-	if (!m_bufferHeap.createResourceBuffer(64u KBYTE, 64u KBYTE, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, m_indirectCmdBuffer.getAddressOf(), &m_device))
+	auto drawCmdSize = d3d::getAlignedSize(sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * g_maxMeshInstances, 256) + 256;
+	drawCmdSize = d3d::getAlignedSize(drawCmdSize, 64 KBYTE);
+	if (!m_bufferHeap.createResourceBuffer(drawCmdSize, 64u KBYTE, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, m_indirectCmdBuffer.getAddressOf(), &m_device))
 		return false;
 
 	auto transformBufferSize = d3d::getAlignedSize(sizeof(Transform) * g_maxMeshInstances, 64 KBYTE);
@@ -293,8 +290,6 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	}
 
 	D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[1] = {};
-	//argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT_BUFFER_VIEW;
-	//argumentDescs[0].ConstantBufferView.RootParameterIndex = Cbv;
 	argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
 
 	D3D12_COMMAND_SIGNATURE_DESC cmdSigDesc;
@@ -321,7 +316,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if (hresult != 0)
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
-	if(!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, &m_device))
+	if(!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, &m_device, desc.pAllocator))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	createCbvCamera();
@@ -332,6 +327,10 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 
 void RenderAspect::shutdown(void* hwnd)
 {
+	m_device.waitForGpu();
+
+	m_meshManager.shutdown();
+
 	if (m_commandList)
 	{
 		m_commandList->Release();
@@ -511,12 +510,15 @@ void RenderAspect::submitCommands()
 		m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
 		m_commandList->IASetIndexBuffer(&indexBufferView);
 
-		for (auto &it : m_drawCommands)
+		auto cmdCount = m_drawCommands.size();
+		/*for (auto &it : m_drawCommands)
 		{
 			m_commandList->DrawIndexedInstanced(it.indexCount, it.instanceCount, it.firstIndex, 0, it.baseInstance);
-		}
+		}*/
+
+		auto countOffset = d3d::getAlignedSize(sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * g_maxMeshInstances, 256);
+		m_commandList->ExecuteIndirect(m_commandSignature.get(), cmdCount, m_indirectCmdBuffer.get(), 0, m_indirectCmdBuffer.get(), countOffset);
 	}
-	//m_commandList->ExecuteIndirect(m_commandSignature.get(), 1, m_indirectCmdBuffer.get(), 0, m_indirectCmdBuffer.get(), 256);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[m_currentBuffer].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
@@ -700,7 +702,23 @@ void RenderAspect::loadScene(Scene* scene)
 
 		auto transformOffset = sizeof(Transform) * cmd.baseInstance;
 		m_uploadManager.pushUpload((u8*)&transform, m_transformBuffer.get(), transformOffset, sizeof(Transform), D3D12_RESOURCE_STATE_GENERIC_READ);
+
+		auto cmdOffset = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * cmd.baseInstance;
+
+		D3D12_DRAW_INDEXED_ARGUMENTS cmdArgs;
+		cmdArgs.BaseVertexLocation = cmd.baseVertex;
+		cmdArgs.IndexCountPerInstance = cmd.indexCount;
+		cmdArgs.InstanceCount = cmd.instanceCount;
+		cmdArgs.StartIndexLocation = cmd.firstIndex;
+		cmdArgs.StartInstanceLocation = cmd.baseInstance;
+		m_uploadManager.pushUpload((u8*)&cmdArgs, m_indirectCmdBuffer.get(), cmdOffset, sizeof(D3D12_DRAW_INDEXED_ARGUMENTS), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	//	m_indirectCmdBuffer;
 	}
+	auto instanceCount = m_meshManager.getInstanceCount();
+
+	auto countOffset = d3d::getAlignedSize(sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * g_maxMeshInstances, 256);
+	u32 count = instanceCount;
+	m_uploadManager.pushUpload((u8*)&count, m_indirectCmdBuffer.get(), countOffset, sizeof(u32), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
 	ResourceView meshVertexBufferView;
 	meshVertexBufferView.type = ResourceView::Type::VertexBufferView;
@@ -717,7 +735,7 @@ void RenderAspect::loadScene(Scene* scene)
 	meshIndexBufferView.ibv = m_meshManager.getIndexBufferView();
 	m_resourceViews.insert(vx::make_sid("meshIndexBufferView"), meshIndexBufferView);
 
-	auto instanceCount = m_meshManager.getInstanceCount();
+	
 	updateSrvTransform(instanceCount);
 }
 

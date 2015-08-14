@@ -136,6 +136,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BufferView.h" />
+    <ClInclude Include="CameraBufferData.h" />
     <ClInclude Include="d3d.h" />
     <ClInclude Include="d3dHelper.h" />
     <ClInclude Include="d3dx12.h" />

@@ -47,16 +47,10 @@ MeshManager::MeshManager()
 	m_instanceCount(0),
 	m_geometryHeap()
 {
-
 }
 
 MeshManager::~MeshManager()
 {
-	auto ptr = m_scratchAllocator.release();
-	if (ptr)
-	{
-		::operator delete(ptr);
-	}
 }
 
 bool MeshManager::createHeap(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device)
@@ -86,18 +80,37 @@ bool MeshManager::createBuffers(u32 vertexCount, u32 indexCount, u32 instanceCou
 	return true;
 }
 
-bool MeshManager::initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device)
+bool MeshManager::initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device, vx::StackAllocator* allocator)
 {
+	auto scratchAllocSize = 64 KBYTE;
+	auto scratchPtr = allocator->allocate(scratchAllocSize);
+	if (scratchPtr == nullptr)
+		return false;
+
 	if (!createHeap(vertexCount, indexCount, instanceCount, device))
 		return false;
 
 	if (!createBuffers(vertexCount, indexCount, instanceCount, device))
 		return false;
 
-	auto scratchAllocSize = 64 KBYTE;
-	m_scratchAllocator = vx::StackAllocator((u8*)::operator new(scratchAllocSize), scratchAllocSize);
+	m_scratchAllocator = vx::StackAllocator(scratchPtr, scratchAllocSize);
 
 	return true;
+}
+
+void MeshManager::shutdown()
+{
+	m_scratchAllocator.release();
+
+	m_drawIdBuffer.destroy();
+	m_indexBuffer.destroy();
+	m_vertexBuffer.destroy();
+	m_geometryHeap.destroy();
+
+	m_meshEntries.clear();
+	m_vertexCount = 0;
+	m_indexCount = 0;
+	m_instanceCount = 0;
 }
 
 void MeshManager::uploadVertices(const Vertex* vertices, u32 count, u32 offset)

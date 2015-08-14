@@ -11,12 +11,7 @@ struct PSIN
 	float3 color : COLOR0;
 };
 
-struct CameraData
-{
-	float4 cameraPosition;
-	float4x4 pvMatrix;
-	float4x4 cameraViewMatrix;
-};
+#include "CameraBufferData.h"
 
 struct Transform
 {
@@ -25,7 +20,7 @@ struct Transform
 
 cbuffer CameraBuffer : register(b0)
 {
-	CameraData cameraBuffer;
+	CameraBufferData cameraBuffer;
 };
 
 StructuredBuffer<Transform> s_transforms : register(t0);

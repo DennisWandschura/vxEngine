@@ -85,7 +85,8 @@ public:
 	MeshManager();
 	~MeshManager();
 
-	bool initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device);
+	bool initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device, vx::StackAllocator* allocator);
+	void shutdown();
 
 	void addMeshInstance(const MeshInstance &meshInstance, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* cmd);
 

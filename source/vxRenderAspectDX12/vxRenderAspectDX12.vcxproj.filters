@@ -22,6 +22,9 @@
     <Filter Include="Source Files\Tasks">
       <UniqueIdentifier>{43d312a1-b43f-4c8e-898c-af615f49da02}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Gpu">
+      <UniqueIdentifier>{9f126c40-d39a-43b0-9715-9bc48e3332c4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -74,6 +77,9 @@
     </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraBufferData.h">
+      <Filter>Header Files\Gpu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
