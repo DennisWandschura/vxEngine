@@ -28,8 +28,19 @@ SOFTWARE.
 
 struct UploadManager::UploadTask
 {
+	UploadTaskType type;
+	union
+	{
+		UploadTaskBuffer buffer;
+		UploadTaskTexture texture;
+	};
+
+	UploadTask() {}
+};
+
+struct QueuedBufferTask
+{
 	ID3D12Resource* dst;
-	u32 srcOffset;
 	u32 dstOffset;
 	u32 size;
 	u32 state;
@@ -37,11 +48,15 @@ struct UploadManager::UploadTask
 
 struct UploadManager::QueuedUploadTask
 {
-	ID3D12Resource* dst;
+	UploadTaskType type;
 	std::unique_ptr<u8[]> m_data;
-	u32 dstOffset;
-	u32 size;
-	u32 state;
+	union
+	{
+		UploadTaskTextureDesc texture;
+		QueuedBufferTask buffer;
+	};
+
+	QueuedUploadTask() {}
 };
 
 struct UploadManager::UploadDesc
@@ -69,12 +84,20 @@ UploadManager::~UploadManager()
 
 }
 
-bool UploadManager::initialize(d3d::Device* device)
+bool UploadManager::createHeap(d3d::Device* device)
 {
 	auto bufferSize = d3d::getAlignedSize(10u MBYTE, 64u KBYTE);
 	if (!m_heap.createBufferHeap(bufferSize, D3D12_HEAP_TYPE_UPLOAD, device))
 		return false;
 
+	return true;
+}
+bool UploadManager::initialize(d3d::Device* device)
+{
+	if (!createHeap(device))
+		return false;
+
+	auto bufferSize = d3d::getAlignedSize(10u MBYTE, 64u KBYTE);
 	if (!m_heap.createResourceBuffer(bufferSize, 0, D3D12_RESOURCE_STATE_GENERIC_READ, m_uploadBuffer.getAddressOf(), device))
 		return false;
 
@@ -100,7 +123,34 @@ void UploadManager::uploadData(const UploadDesc &desc)
 	m_uploadBuffer->Unmap(0, &desc.range);
 }
 
-bool UploadManager::tryUpload(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state)
+void UploadManager::pushTaskBuffer(ID3D12Resource* dstBuffer, u32 offset, u32 dstOffset, u32 size, u32 state)
+{
+	UploadTask job;
+	job.type = UploadTaskType::Buffer;
+	job.buffer.dst = dstBuffer;
+	job.buffer.srcOffset = offset;
+	job.buffer.dstOffset = dstOffset;
+	job.buffer.size = size;
+	job.buffer.state = state;
+
+	m_tasks.push_back(job);
+}
+
+void UploadManager::pushTaskTexture(const UploadTaskTextureDesc &desc, u32 srcOffset)
+{
+	UploadTask job;
+	job.type = UploadTaskType::Texture;
+	job.texture.dst = desc.dst;
+	job.texture.dim = desc.dim;
+	job.texture.format = desc.format;
+	job.texture.rowPitch = desc.rowPitch;
+	job.texture.srcOffset = srcOffset;
+	job.texture.dstOffset = desc.slice;
+	job.texture.state = desc.state;
+	m_tasks.push_back(job);
+}
+
+bool UploadManager::tryUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state)
 {
 	auto offset = m_size;
 	auto alignedSize = d3d::getAlignedSize(size, 256);
@@ -117,32 +167,65 @@ bool UploadManager::tryUpload(const u8* data, ID3D12Resource* dstBuffer, u32 dst
 	desc.size = size;
 
 	uploadData(desc);
+	pushTaskBuffer(dstBuffer, offset, dstOffset, size, state);
 
-	UploadTask job;
-	job.dst = dstBuffer;
-	job.srcOffset = offset;
-	job.dstOffset = dstOffset;
-	job.size = size;
-	job.state = state;
-
-	m_tasks.push_back(job);
 	m_size = newSize;
 
 	return true;
 }
 
-void UploadManager::pushUpload(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state)
+void UploadManager::pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state)
 {
-	if (!tryUpload(data, dstBuffer, dstOffset, size, state))
+	if (!tryUploadBuffer(data, dstBuffer, dstOffset, size, state))
 	{
 		QueuedUploadTask queuedTask;
-		queuedTask.dst = dstBuffer;
+		queuedTask.type = UploadTaskType::Buffer;
 		queuedTask.m_data = std::make_unique<u8[]>(size);
-		queuedTask.state = state;
-		queuedTask.dstOffset = dstOffset;
-		queuedTask.size = size;
+		queuedTask.buffer.dst = dstBuffer;
+		queuedTask.buffer.state = state;
+		queuedTask.buffer.dstOffset = dstOffset;
+		queuedTask.buffer.size = size;
 
 		memcpy(queuedTask.m_data.get(), data, size);
+
+		m_queue.push_back(std::move(queuedTask));
+	}
+}
+
+bool UploadManager::tryUploadTexture(const UploadTaskTextureDesc &desc)
+{
+	auto offset = d3d::getAlignedSize(m_size, 64 KBYTE);
+	auto alignedSize = d3d::getAlignedSize(desc.dataSize, 256);
+
+	auto newSize = offset + alignedSize;
+	if (newSize >= m_capacity)
+	{
+		return false;
+	}
+
+	UploadDesc uploadDesc;
+	uploadDesc.range.Begin = offset;
+	uploadDesc.range.End = offset + alignedSize;
+	uploadDesc.data = desc.data;
+	uploadDesc.size = desc.dataSize;
+	uploadData(uploadDesc);
+
+	pushTaskTexture(desc, offset);
+
+	m_size = newSize;
+}
+
+void UploadManager::pushUploadTexture(const UploadTaskTextureDesc &desc)
+{
+	if (!tryUploadTexture(desc))
+	{
+		QueuedUploadTask queuedTask;
+		queuedTask.type = UploadTaskType::Texture;
+		queuedTask.m_data = std::make_unique<u8[]>(desc.dataSize);
+		queuedTask.texture = desc;
+		queuedTask.texture.data = queuedTask.m_data.get();
+
+		memcpy(queuedTask.m_data.get(), desc.data, desc.dataSize);
 
 		m_queue.push_back(std::move(queuedTask));
 	}
@@ -158,9 +241,25 @@ void UploadManager::processQueue()
 
 	for (auto &it : m_queue)
 	{
-		if (!tryUpload(it.m_data.get(), it.dst, it.dstOffset, it.size, it.state))
+		switch (it.type)
 		{
-			newQueue.push_back(std::move(it));
+		case UploadTaskType::Buffer:
+		{
+			if (!tryUploadBuffer(it.m_data.get(), it.buffer.dst, it.buffer.dstOffset, it.buffer.size, it.buffer.state))
+			{
+				newQueue.push_back(std::move(it));
+			}
+		}break;
+		case UploadTaskType::Texture:
+		{
+			if (!tryUploadTexture(it.texture))
+			{
+				newQueue.push_back(std::move(it));
+			}
+
+		}break;
+		default:
+			break;
 		}
 	}
 
@@ -171,12 +270,37 @@ void UploadManager::processTasks()
 {
 	for (auto &it : m_tasks)
 	{
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, (D3D12_RESOURCE_STATES)it.state, D3D12_RESOURCE_STATE_COPY_DEST));
+		switch (it.type)
+		{
+		case UploadTaskType::Buffer:
+		{
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.buffer.dst, (D3D12_RESOURCE_STATES)it.buffer.state, D3D12_RESOURCE_STATE_COPY_DEST));
+			m_commandList->CopyBufferRegion(it.buffer.dst, it.buffer.dstOffset, m_uploadBuffer.get(), it.buffer.srcOffset, it.buffer.size);
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.buffer.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.buffer.state));
+		}break;
+		case UploadTaskType::Texture:
+		{
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.texture.dst, (D3D12_RESOURCE_STATES)it.texture.state, D3D12_RESOURCE_STATE_COPY_DEST));
 
-		m_commandList->CopyBufferRegion(it.dst, it.dstOffset, m_uploadBuffer.get(), it.srcOffset, it.size);
+			CD3DX12_TEXTURE_COPY_LOCATION dstLoc(it.texture.dst, it.texture.dstOffset);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.state));
+			D3D12_TEXTURE_COPY_LOCATION srcLoc;
+			srcLoc.pResource = m_uploadBuffer.get();
+			srcLoc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+			srcLoc.PlacedFootprint.Offset = it.texture.srcOffset;
+			srcLoc.PlacedFootprint.Footprint.Depth = 1;
+			srcLoc.PlacedFootprint.Footprint.Format = (DXGI_FORMAT)it.texture.format;
+			srcLoc.PlacedFootprint.Footprint.Width = it.texture.dim.x;
+			srcLoc.PlacedFootprint.Footprint.Height = it.texture.dim.y;
+			srcLoc.PlacedFootprint.Footprint.RowPitch = it.texture.rowPitch;
+
+			m_commandList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
+
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.texture.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.texture.state));
+		}break;
+		}
 	}
+	m_tasks.clear();
 }
 
 ID3D12GraphicsCommandList* UploadManager::update()
@@ -191,7 +315,8 @@ ID3D12GraphicsCommandList* UploadManager::update()
 	auto hresult = m_commandList->Close();
 	if (hresult != 0)
 	{
-		printf("erro upload\n");
+		printf("error upload\n");
+		VX_ASSERT(false);
 	}
 
 	m_size = 0;

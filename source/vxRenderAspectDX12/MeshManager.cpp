@@ -196,7 +196,7 @@ const MeshManager::MeshEntry* MeshManager::getMeshEntry(const vx::StringID &sid)
 	return result;
 }
 
-void MeshManager::addMeshInstance(const MeshInstance &meshInstance, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* outCmd)
+void MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* outCmd)
 {
 	auto meshSid = meshInstance.getMeshSid();
 	auto meshEntry = getMeshEntry(meshSid);
@@ -215,9 +215,13 @@ void MeshManager::addMeshInstance(const MeshInstance &meshInstance, const Resour
 	cmd.indexCount = meshEntry->indexCount;
 	cmd.instanceCount = 1;
 
-	u32* indexPtr = nullptr;
-	m_drawIdBuffer->Map(0, nullptr, (void**)&indexPtr);
-	indexPtr[baseInstance] = baseInstance;
+	u16 elementId = baseInstance;
+	VX_ASSERT(elementId == baseInstance);
+	u32 drawId = baseInstance | (materialIndex << 16);
+
+	u32* drawIdPtr = nullptr;
+	m_drawIdBuffer->Map(0, nullptr, (void**)&drawIdPtr);
+	drawIdPtr[baseInstance] = drawId;
 	m_drawIdBuffer->Unmap(0, nullptr);
 
 	*outCmd = cmd;

@@ -38,9 +38,44 @@ namespace d3d
 #include "Heap.h"
 #include <vector>
 #include <vxLib/Allocator/StackAllocator.h>
+#include <vxLib/math/Vector.h>
+
+struct UploadTaskTexture
+{
+	ID3D12Resource* dst;
+	vx::uint2 dim;
+	u32 format;
+	u32 rowPitch;
+	u32 srcOffset;
+	u32 dstOffset;
+	u32 state;
+};
+
+struct UploadTaskTextureDesc
+{
+	ID3D12Resource* dst;
+	const u8* data;
+	vx::uint2 dim;
+	u32 format;
+	u32 rowPitch;
+	u32 slice;
+	u32 dataSize;
+	u32 state;
+};
+
+struct UploadTaskBuffer
+{
+	ID3D12Resource* dst;
+	u32 srcOffset;
+	u32 dstOffset;
+	u32 size;
+	u32 state;
+};
 
 class UploadManager
 {
+	enum class UploadTaskType :u32 { Buffer, Texture };
+
 	struct UploadTask;
 	struct QueuedUploadTask;
 
@@ -55,9 +90,15 @@ class UploadManager
 	d3d::Object<ID3D12Resource> m_uploadBuffer;
 	d3d::Heap m_heap;
 
+	bool createHeap(d3d::Device* device);
+
 	void uploadData(const UploadDesc &desc);
 
-	bool tryUpload(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state);
+	bool tryUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state);
+	void pushTaskBuffer(ID3D12Resource* dstBuffer, u32 offset, u32 dstOffset, u32 size, u32 state);
+
+	bool tryUploadTexture(const UploadTaskTextureDesc &desc);
+	void pushTaskTexture(const UploadTaskTextureDesc &desc, u32 srcOffset);
 
 	void processQueue();
 	void processTasks();
@@ -68,7 +109,8 @@ public:
 
 	bool initialize(d3d::Device* device);
 
-	void pushUpload(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state);
+	void pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state);
+	void pushUploadTexture(const UploadTaskTextureDesc &desc);
 
 	ID3D12GraphicsCommandList* update();
 };

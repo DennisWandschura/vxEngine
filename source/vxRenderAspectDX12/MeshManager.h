@@ -88,7 +88,7 @@ public:
 	bool initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device, vx::StackAllocator* allocator);
 	void shutdown();
 
-	void addMeshInstance(const MeshInstance &meshInstance, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* cmd);
+	void addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* cmd);
 
 	d3d::Object<ID3D12Resource>& getVertexBuffer() { return m_vertexBuffer;}
 	d3d::Object<ID3D12Resource>& getIndexBuffer() { return m_indexBuffer; }

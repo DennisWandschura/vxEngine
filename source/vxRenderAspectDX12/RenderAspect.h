@@ -56,6 +56,7 @@ struct ResourceView;
 #include "DefaultRenderer.h"
 #include "UploadManager.h"
 #include "MeshManager.h"
+#include "MaterialManager.h"
 
 class RenderAspect : public RenderAspectInterface
 {
@@ -84,9 +85,8 @@ class RenderAspect : public RenderAspectInterface
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_rectScissor;
 	d3d::Heap m_bufferHeap;
-	d3d::Object<ID3D12Resource> m_textureBuffer;
-	d3d::Heap m_textureHeap;
 	MeshManager m_meshManager;
+	MaterialManager m_materialManager;
 	vx::TaskManager* m_taskManager;
 	ResourceAspectInterface* m_resourceAspect;
 

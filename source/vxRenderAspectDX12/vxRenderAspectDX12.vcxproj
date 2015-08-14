@@ -144,7 +144,9 @@
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="dllExport.h" />
+    <ClInclude Include="Freelist.h" />
     <ClInclude Include="Heap.h" />
+    <ClInclude Include="MaterialManager.h" />
     <ClInclude Include="MeshManager.h" />
     <ClInclude Include="RenderAspect.h" />
     <ClInclude Include="ResourceBarrier.h" />
@@ -161,6 +163,7 @@
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="dllExport.cpp" />
     <ClCompile Include="Heap.cpp" />
+    <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="MeshManager.cpp" />
     <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="TaskUpdateCamera.cpp" />
