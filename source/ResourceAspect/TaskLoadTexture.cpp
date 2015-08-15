@@ -4,11 +4,13 @@
 #include <vxEngineLib/Graphics/Texture.h>
 #include <vxEngineLib/Graphics/TextureFactory.h>
 #include <vxResourceAspect/ResourceManager.h>
+#include <vxEngineLib/CpuTimer.h>
 
 TaskLoadTexture::TaskLoadTexture(TaskLoadTextureDesc &&desc)
 	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_textureManager->getScratchAllocator(), desc.m_textureManager->getScratchAllocatorMutex(), std::move(desc.evt)),
 	m_textureManager(desc.m_textureManager),
-	m_sid(desc.m_sid)
+	m_sid(desc.m_sid),
+	m_flipImage(desc.flipImage)
 {
 
 }
@@ -20,6 +22,8 @@ TaskLoadTexture::~TaskLoadTexture()
 
 TaskReturnType TaskLoadTexture::runImpl()
 {
+	CpuTimer timer;
+
 	static const auto ddsSid = vx::make_sid(".dds");
 	static const auto pngSid = vx::make_sid(".png");
 
@@ -45,12 +49,12 @@ TaskReturnType TaskLoadTexture::runImpl()
 	if (extensionSid == ddsSid)
 	{
 		auto dataAllocator = m_textureManager->lockDataAllocator(&lock);
-		result = Graphics::TextureFactory::createDDSFromMemory(fileData, true, &texture, dataAllocator);
+		result = Graphics::TextureFactory::createDDSFromMemory(fileData, m_flipImage, &texture, dataAllocator);
 	}
 	else if (extensionSid == pngSid)
 	{
 		auto dataAllocator = m_textureManager->lockDataAllocator(&lock);
-		result = Graphics::TextureFactory::createPngFromMemory(fileData, fileSize, true, &texture, dataAllocator);
+		result = Graphics::TextureFactory::createPngFromMemory(fileData, fileSize, m_flipImage, &texture, dataAllocator);
 	}
 
 	if (result)
@@ -59,5 +63,13 @@ TaskReturnType TaskLoadTexture::runImpl()
 		VX_ASSERT(ref != nullptr);
 	}
 
+	//auto timeMs = timer.getTimeMs();
+	//printf("tex load time: %f\n", timeMs);
+
 	return TaskReturnType::Success;
+}
+
+f32 TaskLoadTexture::getTimeMs() const
+{
+	return 0.1f; 
 }

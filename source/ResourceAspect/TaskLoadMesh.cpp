@@ -27,6 +27,7 @@ SOFTWARE.
 #include <vxLib/File/File.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxLib/File/FileHeader.h>
+#include <vxEngineLib/CpuTimer.h>
 
 TaskLoadMesh::TaskLoadMesh(TaskLoadMeshDesc &&desc)
 	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_meshManager->getScratchAllocator(), desc.m_meshManager->getScratchAllocatorMutex(),std::move(desc.evt)),
@@ -42,6 +43,8 @@ TaskLoadMesh::~TaskLoadMesh()
 
 TaskReturnType TaskLoadMesh::runImpl()
 {
+	//CpuTimer timer;
+
 	auto ptr = m_meshManager->find(m_sid);
 	if (ptr != nullptr)
 	{
@@ -77,10 +80,13 @@ TaskReturnType TaskLoadMesh::runImpl()
 	auto dataAllocator = m_meshManager->lockDataAllocator(&dataLock);
 	entry->loadFromMemory(meshFileDataBegin, fileDataSize, dataAllocator);
 
+	//auto timeMs = timer.getTimeMs();
+	//printf("mesh load time: %f\n", timeMs);
+
 	return TaskReturnType::Success;
 }
 
 f32 TaskLoadMesh::getTimeMs() const
 {
-	return 0.0f;
+	return 0.0001f;
 }

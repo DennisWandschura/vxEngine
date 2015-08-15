@@ -71,7 +71,7 @@ EditorEngine::~EditorEngine()
 	}
 }
 
-bool EditorEngine::initializeImpl(const std::string &dataDir)
+bool EditorEngine::initializeImpl(const std::string &dataDir, bool flipTextures)
 {
 	m_memory = Memory(128 MBYTE, 64);
 
@@ -82,7 +82,7 @@ bool EditorEngine::initializeImpl(const std::string &dataDir)
 	m_msgManager.initialize(&m_allocator, 256);
 
 	//if (!m_resourceAspect.initialize(&m_allocator, dataDir, &m_msgManager, m_physicsAspect.getCooking()))
-	if (!m_resourceAspect.initialize(&m_allocator, dataDir, nullptr, &m_msgManager))
+	if (!m_resourceAspect.initialize(&m_allocator, dataDir, nullptr, &m_msgManager, flipTextures))
 		return false;
 
 	Locator::provide(&m_resourceAspect);
@@ -130,9 +130,6 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 		return false;
 	}
 
-	if (!initializeImpl(dataDir))
-		return false;
-
 	g_engineConfig.m_fovDeg = 66.0f;
 	g_engineConfig.m_zFar = 250.0f;
 	g_engineConfig.m_renderDebug = true;
@@ -148,6 +145,10 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 
 	g_engineConfig.m_rendererSettings.m_voxelSettings.m_voxelGridDim = 16;
 	g_engineConfig.m_rendererSettings.m_voxelSettings.m_voxelTextureSize = 128;
+
+	bool flipTextures = (g_engineConfig.m_rendererSettings.m_renderMode == Graphics::RendererSettings::Mode_GL);
+	if (!initializeImpl(dataDir, flipTextures))
+		return false;
 
 	RenderAspectDescription renderAspectDesc =
 	{

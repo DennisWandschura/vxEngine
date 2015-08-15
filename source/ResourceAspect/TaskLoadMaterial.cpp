@@ -36,7 +36,8 @@ TaskLoadMaterial::TaskLoadMaterial(TaskLoadMaterialDesc &&desc)
 	m_textureManager(desc.m_textureManager),
 	m_sid(desc.m_sid),
 	m_taskManager(desc.m_taskManager),
-	m_textureFolder(desc.m_textureFolder)
+	m_textureFolder(desc.m_textureFolder),
+	m_flipImage(desc.m_flipImage)
 {
 
 }
@@ -87,7 +88,8 @@ TaskReturnType TaskLoadMaterial::runImpl()
 					std::string(fileNameWithPath),
 					evt,
 					it.getSid(),
-					m_textureManager
+					m_textureManager,
+					m_flipImage
 				};
 
 				auto task = new TaskLoadTexture(std::move(loadTexDesc));

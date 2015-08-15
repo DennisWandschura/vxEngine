@@ -210,9 +210,22 @@ bool UploadManager::tryUploadTexture(const UploadTaskTextureDesc &desc)
 	uploadDesc.size = desc.dataSize;
 	uploadData(uploadDesc);
 
+	/*D3D12_SUBRESOURCE_DATA textureData = {};
+	textureData.pData = desc.data;
+	textureData.RowPitch = desc.rowPitch;
+	textureData.SlicePitch = desc.rowPitch * desc.dim.y;
+
+	u8* ptr = nullptr;
+	auto hresult = m_uploadBuffer->Map(0, nullptr, (void**)&ptr);
+	D3D12_MEMCPY_DEST DestData = { ptr + offset, desc.rowPitch, desc.rowPitch * desc.dim.y };
+	MemcpySubresource(&DestData, &textureData, (SIZE_T)desc.rowPitch, desc.dim.x, 1);
+	m_uploadBuffer->Unmap(0, nullptr);*/
+
 	pushTaskTexture(desc, offset);
 
 	m_size = newSize;
+
+	return true;
 }
 
 void UploadManager::pushUploadTexture(const UploadTaskTextureDesc &desc)

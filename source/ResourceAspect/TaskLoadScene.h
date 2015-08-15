@@ -66,6 +66,7 @@ struct TaskLoadSceneDesc
 	vx::TaskManager* m_taskManager;
 	Event m_evt;
 	TaskLoadSceneDirectories m_directories;
+	bool m_flipImage;
 };
 
 class TaskLoadScene : public Task
@@ -79,6 +80,7 @@ class TaskLoadScene : public Task
 	vx::StackAllocator m_scratchAllocator;
 	vx::TaskManager* m_taskManager;
 	TaskLoadSceneDirectories m_directories;
+	bool m_flipImage;
 
 	bool loadFile(u8** data, u32* fileSize);
 

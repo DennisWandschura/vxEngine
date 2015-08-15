@@ -47,7 +47,8 @@ TaskLoadScene::TaskLoadScene(TaskLoadSceneDesc &&rhs)
 	m_scene(rhs.m_scene),
 	m_scratchAllocator((u8*)_aligned_malloc(TaskLoadSceneCpp::g_allocSize, 16), TaskLoadSceneCpp::g_allocSize),
 	m_taskManager(rhs.m_taskManager),
-	m_directories(rhs.m_directories)
+	m_directories(rhs.m_directories),
+	m_flipImage(rhs.m_flipImage)
 {
 }
 
@@ -122,6 +123,7 @@ void TaskLoadScene::createTaskLoadMaterial(const vx::FileEntry &it, std::vector<
 	desc.evt = evt;
 	desc.m_taskManager = m_taskManager;
 	desc.m_textureFolder = m_directories.textureDir;
+	desc.m_flipImage = m_flipImage;
 
 	auto task = new TaskLoadMaterial(std::move(desc));
 	m_taskManager->pushTask(task);

@@ -83,7 +83,7 @@ class EditorEngine : public vx::MessageListener
 	// calls the callback provided by editor_loadFile
 	bool call_editorCallback(const vx::StringID &sid);
 
-	bool initializeImpl(const std::string &dataDir);
+	bool initializeImpl(const std::string &dataDir, bool flipTextures);
 
 	void handleFileEvent(const vx::Message &evt);
 

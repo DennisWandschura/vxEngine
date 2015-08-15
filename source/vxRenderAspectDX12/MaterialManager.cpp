@@ -1,3 +1,27 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015 Dennis Wandschura
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 #include "MaterialManager.h"
 #include <d3d12.h>
 #include <vxEngineLib/Material.h>
@@ -62,7 +86,7 @@ bool MaterialManager::createSrgbTextureArray(const vx::uint2 &textureResolution,
 	resDesc.SampleDesc.Quality = 0;
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-	if (!m_textureHeap.createResource(resDesc, 0, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, m_textureBuffer.getAddressOf(), device))
+	if (!m_textureHeap.createResource(resDesc, 0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, m_textureBuffer.getAddressOf(), device))
 		return false;
 
 	return true;
@@ -95,6 +119,23 @@ void MaterialManager::addTexture(u32 slice, const vx::StringID &sid, const Resou
 	auto dataSize = face.getSize();
 	auto data = face.getPixels();
 
+	/*D3D12_BOX dstBox;
+	dstBox.left = 0;
+	dstBox.right = dim.x;
+	dstBox.top = 0;
+	dstBox.bottom = dim.y;
+	dstBox.front = 0;
+	dstBox.back = 1;
+
+	u8* ptr = nullptr;
+	auto hresult = m_textureBuffer->Map(0, nullptr, (void**)&ptr);
+	//D3D12_MEMCPY_DEST DestData = { pData + pLayouts[i].Offset, pLayouts[i].Footprint.RowPitch, pLayouts[i].Footprint.RowPitch * pNumRows[i] };
+	//MemcpySubresource(&DestData, &pSrcData[i], (SIZE_T)pRowSizesInBytes[i], pNumRows[i], pLayouts[i].Footprint.Depth);
+	//hresult = m_textureBuffer->WriteToSubresource(0, nullptr, data, dim.x * 4, 1);
+	m_textureBuffer->Unmap(0, nullptr);
+	int i = 0;
+	++i;*/
+
 	UploadTaskTextureDesc desc;
 	desc.dst = m_textureBuffer.get();
 	desc.dataSize = dataSize;
@@ -104,11 +145,11 @@ void MaterialManager::addTexture(u32 slice, const vx::StringID &sid, const Resou
 	desc.format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	desc.rowPitch = dim.x * 4;
 	desc.slice = slice;
-	desc.state = D3D12_RESOURCE_STATE_GENERIC_READ;
+	desc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 	uploadManager->pushUploadTexture(desc);
 }
 
-bool MaterialManager::addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager)
+bool MaterialManager::addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* outSlice)
 {
 	auto diffuseTextureSid = material->m_textureSid[0];
 
@@ -134,6 +175,8 @@ bool MaterialManager::addMaterial(const Material* material, const ResourceAspect
 	{
 		slice = it->slice;
 	}
+
+	*outSlice = slice;
 
 	return true;
 }

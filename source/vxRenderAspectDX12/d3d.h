@@ -71,4 +71,10 @@ namespace d3d
 		alignment = alignment - 1;
 		return (size + alignment) & ~alignment;
 	}
+
+	template<u32 SZ, u32 ALIGNMENT>
+	struct AlignedSize
+	{
+		enum : u32 { size = SZ + (ALIGNMENT - 1) & ~(ALIGNMENT - 1) };
+	};
 }

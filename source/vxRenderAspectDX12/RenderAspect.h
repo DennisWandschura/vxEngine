@@ -109,6 +109,7 @@ class RenderAspect : public RenderAspectInterface
 
 	void createCbvCamera();
 	void updateSrvTransform(u32 instanceCount);
+	void createSrvTextures(u32 texureCount);
 
 public:
 	RenderAspect();

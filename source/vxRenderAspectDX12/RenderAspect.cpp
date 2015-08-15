@@ -288,6 +288,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	createCbvCamera();
+	createSrvTextures(64);
 	updateSrvTransform(0);
 
 	return RenderAspectInitializeError::OK;
@@ -426,6 +427,24 @@ void RenderAspect::updateSrvTransform(u32 instanceCount)
 	m_device.getDevice()->CreateShaderResourceView(m_transformBuffer.get(), &srvDesc, descriptorHeapBufferHandle);
 }
 
+void RenderAspect::createSrvTextures(u32 texureCount)
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Texture2DArray.ArraySize = texureCount;
+	srvDesc.Texture2DArray.FirstArraySlice = 0;
+	srvDesc.Texture2DArray.MipLevels = 1;
+	srvDesc.Texture2DArray.MostDetailedMip = 0;
+	//srvDesc.Texture2DArray.PlaneSlice = ;
+	//srvDesc.Texture2DArray.ResourceMinLODClamp = ;
+
+	auto descriptorHeapBufferHandle = m_descriptorHeapBuffer.getHandleCpu();
+	descriptorHeapBufferHandle.offset(2);
+	m_device.getDevice()->CreateShaderResourceView(m_materialManager.getTextureBuffer().get(), &srvDesc, descriptorHeapBufferHandle);
+}
+
 void RenderAspect::submitCommands()
 {
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
@@ -460,6 +479,7 @@ void RenderAspect::submitCommands()
 	m_commandList->SetDescriptorHeaps(1, heaps);
 	m_defaultRenderer.submitCommands(m_commandList);
 	m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffer->GetGPUDescriptorHandleForHeapStart());
+	m_commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffer->GetGPUDescriptorHandleForHeapStart());
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[m_currentBuffer].get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
@@ -650,10 +670,11 @@ void RenderAspect::loadScene(Scene* scene)
 	{
 		auto &meshInstance = meshInstances[i];
 		auto material = meshInstance.getMaterial();
-		m_materialManager.addMaterial(material, m_resourceAspect, &m_uploadManager);
+		u32 materialIndex = 0;
+		m_materialManager.addMaterial(material, m_resourceAspect, &m_uploadManager, &materialIndex);
 
 		DrawIndexedCommand cmd;
-		m_meshManager.addMeshInstance(meshInstance, 0, m_resourceAspect, &cmd);
+		m_meshManager.addMeshInstance(meshInstance, materialIndex, m_resourceAspect, &cmd);
 
 		m_drawCommands.push_back(cmd);
 

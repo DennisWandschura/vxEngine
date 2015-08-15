@@ -70,7 +70,7 @@ void ResourceAspect::setDirectories(const std::string &dataDir)
 	//strcpy_s(FileAspectCpp::g_assetFolder, (dataDir + "../../assets/").c_str());
 }
 
-bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, vx::TaskManager* taskManager, vx::MessageManager* msgManager)
+bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures)
 {
 	if (!m_meshData.initialize(255, 10 MBYTE, 5 MBYTE, mainAllocator))
 		return false;
@@ -88,6 +88,8 @@ bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::st
 	m_msgManager = msgManager;
 
 	setDirectories(dataDir);
+
+	m_flipTextures = flipTextures;
 
 	return true;
 }
@@ -218,7 +220,8 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 			scene,
 			m_taskManager,
 			evt,
-			directories
+			directories,
+			m_flipTextures
 		};
 
 		auto task = new TaskLoadScene(std::move(desc));

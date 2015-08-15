@@ -53,6 +53,7 @@ struct TaskLoadMaterialDesc
 	vx::StringID m_sid;
 	vx::TaskManager* m_taskManager;
 	const char* m_textureFolder;
+	bool m_flipImage;
 };
 
 class TaskLoadMaterial : public Task
@@ -63,6 +64,7 @@ class TaskLoadMaterial : public Task
 	vx::StringID m_sid;
 	vx::TaskManager* m_taskManager;
 	const char* m_textureFolder;
+	bool m_flipImage;
 
 	TaskReturnType runImpl() override;
 

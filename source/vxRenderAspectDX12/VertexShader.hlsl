@@ -10,7 +10,9 @@ struct Vertex
 struct PSIN
 {
 	float4 position : SV_POSITION;
-	float3 color : COLOR0;
+	float3 wsPosition : POSITION1;
+	float2 texCoords : TEXCOORD0;
+	uint materialId : BLENDINDICES0;
 };
 
 struct Transform
@@ -38,8 +40,9 @@ PSIN main(Vertex input)
 
 	PSIN vsout;
 	vsout.position = mul(cameraBuffer.pvMatrix, wsPosition);
-	vsout.color = float3(input.texCoords, ccc);
-	//vsout.position = wsPosition;
+	vsout.wsPosition = wsPosition.xyz;
+	vsout.texCoords = input.texCoords;
+	vsout.materialId = materialId;
 
 	return vsout;
 }

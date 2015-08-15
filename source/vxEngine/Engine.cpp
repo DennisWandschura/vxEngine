@@ -172,7 +172,8 @@ bool Engine::initializeImpl(const std::string &dataDir)
 	m_msgManager.initialize(&m_allocator, 255);
 	Locator::provide(&m_msgManager);
 
-	if (!m_resourceAspect.initialize(&m_allocator, dataDir, &m_taskManager, &m_msgManager))
+	bool flipTextures = (g_engineConfig.m_rendererSettings.m_renderMode == Graphics::RendererSettings::Mode_GL);
+	if (!m_resourceAspect.initialize(&m_allocator, dataDir, &m_taskManager, &m_msgManager, flipTextures))
 		return false;
 
 	return true;

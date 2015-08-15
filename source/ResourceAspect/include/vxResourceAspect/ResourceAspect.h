@@ -63,6 +63,7 @@ class ResourceAspect : public ResourceAspectInterface
 	ResourceManager<Graphics::Texture> m_textureData;
 	vx::TaskManager* m_taskManager;
 	vx::MessageManager* m_msgManager;
+	bool m_flipTextures;
 
 	void setDirectories(const std::string &dataDir);
 
@@ -75,7 +76,7 @@ public:
 	ResourceAspect();
 	~ResourceAspect();
 
-	bool initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, vx::TaskManager* taskManager, vx::MessageManager* msgManager);
+	bool initialize(vx::StackAllocator* mainAllocator, const std::string &dataDir, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures);
 	void shutdown();
 
 	void update();
