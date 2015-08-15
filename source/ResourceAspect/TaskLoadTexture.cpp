@@ -49,12 +49,12 @@ TaskReturnType TaskLoadTexture::runImpl()
 	if (extensionSid == ddsSid)
 	{
 		auto dataAllocator = m_textureManager->lockDataAllocator(&lock);
-		result = Graphics::TextureFactory::createDDSFromMemory(fileData, m_flipImage, &texture, dataAllocator);
+		result = Graphics::TextureFactory::createDDSFromMemory(fileData, true, &texture, dataAllocator);
 	}
 	else if (extensionSid == pngSid)
 	{
 		auto dataAllocator = m_textureManager->lockDataAllocator(&lock);
-		result = Graphics::TextureFactory::createPngFromMemory(fileData, fileSize, m_flipImage, &texture, dataAllocator);
+		result = Graphics::TextureFactory::createPngFromMemory(fileData, fileSize, true, &texture, dataAllocator);
 	}
 
 	if (result)

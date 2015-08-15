@@ -124,8 +124,12 @@ void MeshManager::uploadVertices(const Vertex* vertices, u32 count, u32 offset)
 
 	Vertex* vertexPtr = nullptr;
 	m_vertexBuffer->Map(0, &range, (void**)&vertexPtr);
-	vertexPtr = vertexPtr + offset;
-	memcpy(vertexPtr, vertices, sizeInBytes);
+	for (u32 i = 0; i < count; ++i)
+	{
+		vertexPtr[i + offset] = vertices[i];
+	}
+	//vertexPtr = vertexPtr + offset;
+	//memcpy(vertexPtr, vertices, sizeInBytes);
 	m_vertexBuffer->Unmap(0, &range);
 }
 

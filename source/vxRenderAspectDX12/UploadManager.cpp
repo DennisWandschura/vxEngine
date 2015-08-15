@@ -152,9 +152,9 @@ void UploadManager::pushTaskTexture(const UploadTaskTextureDesc &desc, u32 srcOf
 
 bool UploadManager::tryUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state)
 {
-	auto offset = m_size;
+	auto offset = d3d::getAlignedSize(m_size, 256);;
 	auto alignedSize = d3d::getAlignedSize(size, 256);
-	auto newSize = m_size + alignedSize;
+	auto newSize = offset + alignedSize;
 	if (newSize >= m_capacity)
 	{
 		return false;
@@ -195,7 +195,7 @@ void UploadManager::pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, 
 bool UploadManager::tryUploadTexture(const UploadTaskTextureDesc &desc)
 {
 	auto offset = d3d::getAlignedSize(m_size, 64 KBYTE);
-	auto alignedSize = d3d::getAlignedSize(desc.dataSize, 256);
+	auto alignedSize = d3d::getAlignedSize(desc.dataSize, 64 KBYTE);
 
 	auto newSize = offset + alignedSize;
 	if (newSize >= m_capacity)
@@ -209,17 +209,6 @@ bool UploadManager::tryUploadTexture(const UploadTaskTextureDesc &desc)
 	uploadDesc.data = desc.data;
 	uploadDesc.size = desc.dataSize;
 	uploadData(uploadDesc);
-
-	/*D3D12_SUBRESOURCE_DATA textureData = {};
-	textureData.pData = desc.data;
-	textureData.RowPitch = desc.rowPitch;
-	textureData.SlicePitch = desc.rowPitch * desc.dim.y;
-
-	u8* ptr = nullptr;
-	auto hresult = m_uploadBuffer->Map(0, nullptr, (void**)&ptr);
-	D3D12_MEMCPY_DEST DestData = { ptr + offset, desc.rowPitch, desc.rowPitch * desc.dim.y };
-	MemcpySubresource(&DestData, &textureData, (SIZE_T)desc.rowPitch, desc.dim.x, 1);
-	m_uploadBuffer->Unmap(0, nullptr);*/
 
 	pushTaskTexture(desc, offset);
 
@@ -295,7 +284,19 @@ void UploadManager::processTasks()
 		{
 			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.texture.dst, (D3D12_RESOURCE_STATES)it.texture.state, D3D12_RESOURCE_STATE_COPY_DEST));
 
-			CD3DX12_TEXTURE_COPY_LOCATION dstLoc(it.texture.dst, it.texture.dstOffset);
+			D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
+			footprint.Offset = it.texture.srcOffset;
+			footprint.Footprint.Depth = 1;
+			footprint.Footprint.Format = (DXGI_FORMAT)it.texture.format;
+			footprint.Footprint.Height = it.texture.dim.y;
+			footprint.Footprint.RowPitch = it.texture.rowPitch;
+			footprint.Footprint.Width = it.texture.dim.x;
+
+			CD3DX12_TEXTURE_COPY_LOCATION Dst(it.texture.dst, it.texture.dstOffset);
+			CD3DX12_TEXTURE_COPY_LOCATION Src(m_uploadBuffer.get(), footprint);
+			m_commandList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
+
+			/*CD3DX12_TEXTURE_COPY_LOCATION dstLoc(it.texture.dst, it.texture.dstOffset);
 
 			D3D12_TEXTURE_COPY_LOCATION srcLoc;
 			srcLoc.pResource = m_uploadBuffer.get();
@@ -307,7 +308,7 @@ void UploadManager::processTasks()
 			srcLoc.PlacedFootprint.Footprint.Height = it.texture.dim.y;
 			srcLoc.PlacedFootprint.Footprint.RowPitch = it.texture.rowPitch;
 
-			m_commandList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);
+			m_commandList->CopyTextureRegion(&dstLoc, 0, 0, 0, &srcLoc, nullptr);*/
 
 			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.texture.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.texture.state));
 		}break;

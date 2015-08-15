@@ -40,7 +40,8 @@ float4 main(PSIN input) : SV_TARGET
 	//float invGamma = 1.0 / 2.2;
 	//diffuseColor = pow(diffuseColor, float4(invGamma, invGamma, invGamma, invGamma));
 
-	float lightIntensity = lightning(input.wsPosition);
+//	float lightIntensity = lightning(input.wsPosition);
+	float lightIntensity = 1.0;
 
 	return float4(diffuseColor.xyz * lightIntensity, 1.0f);
 }
