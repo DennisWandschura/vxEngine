@@ -58,7 +58,7 @@ namespace MaterialManagerCpp
 
 MaterialManager::MaterialManager()
 	:m_poolSrgba(),
-	m_poolRgb(),
+	m_poolRgba(),
 	m_materialEntries(),
 	m_materialFreeEntries(0),
 	m_materialFirstFreeEntry(0),
@@ -95,10 +95,10 @@ void MaterialManager::initialize(const vx::uint3 &textureDim, u32 maxInstances, 
 	}
 
 	m_poolSrgba.initialize(textureDim, vx::gl::TextureFormat::SRGBA8);
-	m_poolRgb.initialize(textureDim, vx::gl::TextureFormat::RGB8);
+	m_poolRgba.initialize(textureDim, vx::gl::TextureFormat::RGBA8);
 
 	auto handle0 = m_poolSrgba.getTextureHandle();
-	auto handle1 = m_poolRgb.getTextureHandle();
+	auto handle1 = m_poolRgba.getTextureHandle();
 
 	auto uniformTextureBuffer = objectManager->getBuffer("UniformTextureBuffer");
 	auto mappedBuffer = uniformTextureBuffer->map<Gpu::UniformTextureBufferBlock>(vx::gl::Map::Write_Only);
@@ -116,7 +116,7 @@ void MaterialManager::initialize(const vx::uint3 &textureDim, u32 maxInstances, 
 void MaterialManager::shutdown()
 {
 	m_poolSrgba.shutdown();
-	m_poolRgb.shutdown();
+	m_poolRgba.shutdown();
 }
 
 bool MaterialManager::addMaterial(const vx::StringID &materialSid, ResourceAspectInterface* resourceAspect, u32* index)
@@ -146,9 +146,9 @@ bool MaterialManager::addMaterial(const Material &material, ResourceAspectInterf
 	}
 
 	comp = resourceAspect->getTexture(normalSid)->getComponents();
-	VX_ASSERT(comp == 3);
+	VX_ASSERT(comp == 4);
 	u32 indexNormal = 0;
-	if (!m_poolRgb.getTextureIndex(normalSid, resourceAspect, &indexNormal))
+	if (!m_poolRgba.getTextureIndex(normalSid, resourceAspect, &indexNormal))
 	{
 		return false;
 	}
@@ -229,7 +229,7 @@ bool MaterialManager::getTextureIndex(const vx::StringID &sid, const Graphics::T
 	}
 	else if (comp == 3)
 	{
-		result = m_poolRgb.getTextureIndex(sid, texture, index);
+		result = m_poolRgba.getTextureIndex(sid, texture, index);
 	}
 
 	return result;
@@ -240,7 +240,7 @@ u32 MaterialManager::getTextureId(const vx::StringID &sid) const
 	auto id = m_poolSrgba.getTextureId(sid);
 	if (id == 0)
 	{
-		id = m_poolRgb.getTextureId(sid);
+		id = m_poolRgba.getTextureId(sid);
 	}
 
 	return id;
