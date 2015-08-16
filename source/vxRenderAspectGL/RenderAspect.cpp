@@ -586,7 +586,7 @@ bool RenderAspect::initializeProfiler()
 		auto sid = vx::make_sid("verdana.png");
 
 		Graphics::Texture texture;
-		Graphics::TextureFactory::createPngFromFile(file.c_str(), true, &texture, &m_textureAllocator, &m_scratchAllocator);
+		Graphics::TextureFactory::createPngFromFile(file.c_str(), true, true, &texture, &m_textureAllocator, &m_scratchAllocator);
 
 		auto b = m_materialManager.getTextureIndex(sid, texture, &textureIndex);
 		VX_ASSERT(b);
