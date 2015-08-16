@@ -29,7 +29,9 @@ SOFTWARE.
 #include <vxLib/Graphics/Mesh.h>
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/ResourceAspectInterface.h>
-#include "Transform.h"
+#include "Vertex.h"
+
+#include "ConverterMesh.h"
 
 struct MeshManager::MeshEntry
 {
@@ -59,7 +61,7 @@ bool MeshManager::createHeap(u32 vertexCount, u32 indexCount, u32 instanceCount,
 	auto indexBufferSize = d3d::getAlignedSize(sizeof(u32) * vertexCount, 64 KBYTE);
 	auto instanceBufferSize = d3d::getAlignedSize(sizeof(u32) * vertexCount, 64 KBYTE);
 
-	return m_geometryHeap.createBufferHeap(vertexBufferSize+ indexBufferSize+ instanceBufferSize, D3D12_HEAP_TYPE_UPLOAD, device);
+	return m_geometryHeap.createBufferHeap(vertexBufferSize + indexBufferSize + instanceBufferSize, D3D12_HEAP_TYPE_UPLOAD, device);
 }
 
 bool MeshManager::createBuffers(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device)
@@ -159,12 +161,16 @@ const MeshManager::MeshEntry* MeshManager::addMeshEntry(const vx::StringID &sid,
 	auto vertexOffset = m_vertexCount;
 	auto indexOffset = m_indexCount;
 
+	MeshQ meshQ;
+	ConverterMesh::convertMesh(mesh, &meshQ);
+
 	auto marker = m_scratchAllocator.getMarker();
 	auto vertices = (Vertex*)m_scratchAllocator.allocate(sizeof(Vertex) * meshVertexCount);
 
 	for (u32 j = 0; j < meshVertexCount; ++j)
 	{
 		vertices[j].position = meshVertices[j].position;
+		vertices[j].normal = meshVertices[j].normal;
 		vertices[j].texCoords = meshVertices[j].texCoords;
 	}
 	uploadVertices(vertices, meshVertexCount, vertexOffset);

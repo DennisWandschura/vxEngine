@@ -32,13 +32,13 @@ namespace Editor
 #include "SystemAspect.h"
 #include "EditorPhysicsAspect.h"
 #include <vxResourceAspect/ResourceAspect.h>
-#include "thread.h"
 #include "memory.h"
 #include "LevelEditor.h"
 #include "Editor.h"
 #include <vxEngineLib/MessageListener.h>
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/EditorRenderAspectInterface.h>
+#include <vxEngineLib/TaskManager.h>
 
 enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
@@ -65,6 +65,7 @@ class EditorEngine : public vx::MessageListener
 	Editor::RenderAspectInterface* m_renderAspect;
 	Editor::Scene* m_pEditorScene{ nullptr };
 	InfluenceMap m_influenceMap;
+	vx::TaskManager m_taskManager;
 	vx::mutex m_editorMutex;
 	ResourceAspect m_resourceAspect;
 	Selected m_selected;

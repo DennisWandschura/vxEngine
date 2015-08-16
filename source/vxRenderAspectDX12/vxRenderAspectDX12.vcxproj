@@ -135,8 +135,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AdjacencyTreeBuilder.h" />
     <ClInclude Include="BufferView.h" />
-    <ClInclude Include="CameraBufferData.h" />
+    <ClInclude Include="ConverterMesh.h" />
+    <ClInclude Include="GpuCameraBufferData.h" />
     <ClInclude Include="d3d.h" />
     <ClInclude Include="d3dHelper.h" />
     <ClInclude Include="d3dx12.h" />
@@ -145,35 +147,55 @@
     <ClInclude Include="Device.h" />
     <ClInclude Include="dllExport.h" />
     <ClInclude Include="Freelist.h" />
+    <ClInclude Include="GBufferRenderer.h" />
+    <ClInclude Include="GpuQuaternion.h" />
     <ClInclude Include="Heap.h" />
+    <ClInclude Include="mat3.h" />
     <ClInclude Include="MaterialManager.h" />
     <ClInclude Include="MeshManager.h" />
+    <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RenderAspect.h" />
     <ClInclude Include="ResourceBarrier.h" />
     <ClInclude Include="TaskUpdateCamera.h" />
     <ClInclude Include="TaskUploadGeometry.h" />
-    <ClInclude Include="Transform.h" />
+    <ClInclude Include="TextureManager.h" />
+    <ClInclude Include="GpuTransform.h" />
     <ClInclude Include="UploadManager.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferView.cpp" />
+    <ClCompile Include="ConverterMesh.cpp" />
     <ClCompile Include="DefaultRenderer.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="dllExport.cpp" />
+    <ClCompile Include="GBufferRenderer.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="MeshManager.cpp" />
     <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="TaskUpdateCamera.cpp" />
     <ClCompile Include="TaskUploadGeometry.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="UploadManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="MeshVertex.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="PixelShader.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="PsGBuffer.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

@@ -46,11 +46,11 @@ SOFTWARE.
 
 #ifdef _VX_NOAUDIO
 #else
-#pragma comment(lib, "libvorbis_static_d.lib")
+/*#pragma comment(lib, "libvorbis_static_d.lib")
 #pragma comment(lib, "libvorbisfile_static_d.lib")
 #pragma comment(lib, "libogg_static_d.lib")
 #pragma comment(lib, "OpenAL32.lib")
-#pragma comment(lib, "vxAudioAspect_d.lib")
+#pragma comment(lib, "vxAudioAspect_d.lib")*/
 #endif
 
 #elif defined(_RELEASE_STATIC_BUILD)

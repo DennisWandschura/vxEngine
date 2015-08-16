@@ -23,10 +23,10 @@ SOFTWARE.
 */
 #include "TaskLoadFile.h"
 #include <vxLib/File/File.h>
-#include <vxLib/Allocator/StackAllocator.h>
+#include <vxEngineLib/ArrayAllocator.h>
 #include <vxLib/File/FileHeader.h>
 
-TaskLoadFile::TaskLoadFile(std::string &&fileNameWithPath, vx::StackAllocator* scratchAllocator, std::mutex* mutex, Event &&evt)
+TaskLoadFile::TaskLoadFile(std::string &&fileNameWithPath, ArrayAllocator* scratchAllocator, std::mutex* mutex, Event &&evt)
 	:Task(std::move(evt)),
 	m_fileNameWithPath(std::move(fileNameWithPath)),
 	m_scratchAllocator(scratchAllocator),
@@ -40,7 +40,7 @@ TaskLoadFile::~TaskLoadFile()
 
 }
 
-bool TaskLoadFile::loadFromFile(u8** outPtr, u32* outFileSize)
+bool TaskLoadFile::loadFromFile(managed_ptr<u8[]>* outPtr, u32* outFileSize)
 {
 	vx::File f;
 	if (!f.open(m_fileNameWithPath.c_str(), vx::FileAccess::Read))
@@ -54,19 +54,19 @@ bool TaskLoadFile::loadFromFile(u8** outPtr, u32* outFileSize)
 	VX_ASSERT(fileSize != 0);
 
 	std::unique_lock<std::mutex> lock(*m_mutex);
-	auto ptr = m_scratchAllocator->allocate(static_cast<u32>(fileSize), 4);
-	if (ptr == nullptr)
+	*outPtr = m_scratchAllocator->allocate<u8[]>(static_cast<u32>(fileSize), 4);
+	if (outPtr->get() == nullptr)
 	{
 		return false;
 	}
 	lock.unlock();
 
-	if (!f.read(ptr, static_cast<u32>(fileSize)))
+	if (!f.read(outPtr->get(), static_cast<u32>(fileSize)))
 	{
 		return false;
 	}
 
-	*outPtr = ptr;
+	//outPtr->swap(ptr);
 	*outFileSize = static_cast<u32>(fileSize);
 
 	return true;

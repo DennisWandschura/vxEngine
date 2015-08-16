@@ -44,7 +44,7 @@ namespace Editor
 	{
 		void handleFileEvent(const vx::Message &evt);
 
-		void processScene(const Editor::Scene* pScene);
+		void processScene(const Scene* pScene);
 
 		bool createTriangleMesh(const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer);
 		bool createConvexMesh(const vx::float3* positions, u32 vertexCount, physx::PxDefaultMemoryOutputStream* writeBuffer);

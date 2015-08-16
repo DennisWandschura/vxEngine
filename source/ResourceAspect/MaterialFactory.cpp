@@ -30,22 +30,38 @@ SOFTWARE.
 
 namespace MaterialFactoryCpp
 {
-	bool checkTextureFile(const char(&filename)[32], const ResourceManager<Graphics::Texture>* textureManager, std::vector<vx::FileEntry>* missingFiles, vx::StringID* outSid)
+	struct CheckTextureFileDesc
 	{
-		vx::FileEntry fileEntry(filename, vx::FileType::Texture);
-		vx::StringID sid = vx::make_sid(filename);
+		const char* filename;
+		const ResourceManager<Graphics::Texture>* textureManager;
+		MissingTextureFile* missingFiles;
+		u32* count; 
+		vx::StringID* outSid;
+		bool srgb;
+	};
+
+	bool checkTextureFile(const CheckTextureFileDesc &desc)
+	{
+		vx::FileEntry fileEntry(desc.filename, vx::FileType::Texture);
+		auto sid = fileEntry.getSid();
 
 		bool lresult = true;
 
-		auto ref = textureManager->find(sid);
+		auto ref = desc.textureManager->find(sid);
 		if (ref == nullptr)
 		{
-			missingFiles->push_back(fileEntry);
+			auto index = *desc.count;
+
+			desc.missingFiles[index].fileEntry = fileEntry;
+			desc.missingFiles[index].srgb = desc.srgb;
+
+			++(*desc.count);
+
 			lresult = false;
 		}
 		else
 		{
-			*outSid = sid;
+			*desc.outSid = sid;
 		}
 
 		return lresult;
@@ -114,13 +130,33 @@ bool MaterialFactory::load(const MaterialFactoryLoadDescNew &desc)
 	{
 		result = true;
 		// make sure all texture files are loaded
+		MaterialFactoryCpp::CheckTextureFileDesc checkDesc;
+		checkDesc.filename = materialFile.m_albedo.data;
+		checkDesc.textureManager = desc.m_textureManager;
+		checkDesc.missingFiles = desc.missingFiles;
+		checkDesc.count = desc.missingFilesCount;
+		checkDesc.outSid = &texSid[0];
+		checkDesc.srgb = true;
 
-		if (!MaterialFactoryCpp::checkTextureFile(materialFile.m_albedo.data, desc.m_textureManager, desc.missingFiles, &texSid[0]))
+		if (!MaterialFactoryCpp::checkTextureFile(checkDesc))
 			result = false;
-		if (!MaterialFactoryCpp::checkTextureFile(materialFile.m_normal.data, desc.m_textureManager, desc.missingFiles, &texSid[1]))
+
+		checkDesc.filename = materialFile.m_normal.data;
+		checkDesc.outSid = &texSid[1];
+		checkDesc.srgb = false;
+		if (!MaterialFactoryCpp::checkTextureFile(checkDesc))
 			result = false;
-		if (!MaterialFactoryCpp::checkTextureFile(materialFile.m_surface.data, desc.m_textureManager, desc.missingFiles, &texSid[2]))
+
+		checkDesc.filename = materialFile.m_surface.data;
+		checkDesc.outSid = &texSid[2];
+		checkDesc.srgb = false;
+		if (!MaterialFactoryCpp::checkTextureFile(checkDesc))
 			result = false;
+
+		/*if (!MaterialFactoryCpp::checkTextureFile(materialFile.m_normal.data, desc.m_textureManager, desc.missingFiles, desc.missingFilesCount, &texSid[1]))
+			result = false;
+		if (!MaterialFactoryCpp::checkTextureFile(materialFile.m_surface.data, desc.m_textureManager, desc.missingFiles, desc.missingFilesCount, &texSid[2]))
+			result = false;*/
 	}
 
 	if (result)

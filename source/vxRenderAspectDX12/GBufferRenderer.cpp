@@ -21,23 +21,26 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "DefaultRenderer.h"
-#include <d3dcompiler.h>
+
+#include "GBufferRenderer.h"
 #include <d3d12.h>
+#include <d3dcompiler.h>
 #include "d3dx12.h"
 
-DefaultRenderer::DefaultRenderer()
+GBufferRenderer::GBufferRenderer()
+	:m_rootSignature(),
+	m_pipelineState(),
+	m_shaders()
 {
 
 }
 
-DefaultRenderer::~DefaultRenderer()
+GBufferRenderer::~GBufferRenderer()
 {
 
 }
 
-
-bool DefaultRenderer::loadShaders()
+bool GBufferRenderer::loadShaders()
 {
 	auto hresult = D3DReadFileToBlob(L"../../lib/VertexShader.cso", m_shaders[0].getAddressOf());
 	if (hresult != 0)
@@ -51,7 +54,7 @@ bool DefaultRenderer::loadShaders()
 	return true;
 }
 
-bool DefaultRenderer::createRootSignature(ID3D12Device* device)
+bool GBufferRenderer::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangesVS[2];
 	rangesVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
@@ -63,6 +66,13 @@ bool DefaultRenderer::createRootSignature(ID3D12Device* device)
 	CD3DX12_ROOT_PARAMETER rootParameters[2];
 	rootParameters[0].InitAsDescriptorTable(2, rangesVS, D3D12_SHADER_VISIBILITY_VERTEX);
 	rootParameters[1].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
+
+	D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
 	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
@@ -95,13 +105,21 @@ bool DefaultRenderer::createRootSignature(ID3D12Device* device)
 	return true;
 }
 
-bool DefaultRenderer::createPipelineState(ID3D12Device* device)
+bool GBufferRenderer::createPipelineState(ID3D12Device* device)
 {
+	/*
+	float3 position : POSITION0;
+	float3 normal : NORMAL0;
+	float3 tangent : TANGENT0;
+	float2 uv : TEXCOORD0;
+	uint drawId : BLENDINDICES0;
+	*/
 	D3D12_INPUT_ELEMENT_DESC inputLayout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
 	};
 
@@ -116,17 +134,8 @@ bool DefaultRenderer::createPipelineState(ID3D12Device* device)
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	psoDesc.NumRenderTargets = 4;
-	/*
-	float4 diffuseSlice : SV_TARGET0;
-	float4 normalSlice : SV_TARGET1;
-	float4 tangentSlice : SV_TARGET2;
-	float4 surfaceSlice : SV_TARGET3;
-	*/
+	psoDesc.NumRenderTargets = 1;
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	psoDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	psoDesc.RTVFormats[2] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	psoDesc.RTVFormats[3] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	psoDesc.SampleDesc.Count = 1;
 
@@ -137,7 +146,7 @@ bool DefaultRenderer::createPipelineState(ID3D12Device* device)
 	return true;
 }
 
-bool DefaultRenderer::initialize(ID3D12Device* device)
+bool GBufferRenderer::initialize(ID3D12Device* device)
 {
 	if (!loadShaders())
 		return false;
@@ -149,10 +158,4 @@ bool DefaultRenderer::initialize(ID3D12Device* device)
 		return false;
 
 	return true;
-}
-
-void DefaultRenderer::submitCommands(ID3D12GraphicsCommandList* cmdList)
-{
-	cmdList->SetPipelineState(m_pipelineState.get());
-	cmdList->SetGraphicsRootSignature(m_rootSignature.get());
 }

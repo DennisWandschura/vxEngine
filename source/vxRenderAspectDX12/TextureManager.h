@@ -1,4 +1,3 @@
-#ifdef _VX_WINDOWS
 #pragma once
 
 /*
@@ -25,17 +24,47 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/math/matrix.h>
+struct ID3D12Resource;
 
-typedef vx::float4a float4;
-typedef vx::mat4 float4x4;
-
-#else
-#endif
-
-struct CameraBufferData
+namespace vx
 {
-	float4 cameraPosition;
-	float4x4 pvMatrix;
-	float4x4 cameraViewMatrix;
+	class StackAllocator;
+}
+
+namespace d3d
+{
+	class Heap;
+	class Device;
+}
+
+namespace Graphics
+{
+	class Texture;
+}
+
+#include <vxLib/math/Vector.h>
+#include "Freelist.h"
+#include "d3d.h"
+#include <vxLib/StringID.h>
+
+class TextureManager
+{
+	struct Entry;
+
+	Freelist m_freelist;
+	Entry* m_entries;
+	u32 m_capacity;
+	u32 m_format;
+	d3d::Resource m_textureBuffer;
+
+	bool createTextureBuffer(const vx::uint3 &textureDim, u32 dxgiFormat, u32* heapOffset, d3d::Heap* heap, d3d::Device* device);
+
+public:
+	TextureManager();
+	~TextureManager();
+
+	bool initialize(vx::StackAllocator* allocator, const vx::uint3 &textureDim, u32 dxgiFormat, u32* heapOffset, d3d::Heap* heap, d3d::Device* device);
+
+	bool addTexture(const vx::StringID &sid, const Graphics::Texture &texture, u32* slice);
+	bool removeTexture(const vx::StringID &sid);
 };

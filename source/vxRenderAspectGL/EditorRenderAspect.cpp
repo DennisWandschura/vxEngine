@@ -139,7 +139,7 @@ namespace Editor
 		vx::gl::Debug::setHighSeverityCallback(renderDebugCallback);
 		vx::gl::Debug::enableCallback(true);
 
-		const auto memorySize = 5 MBYTE;
+		const auto memorySize = 10 MBYTE;
 		auto memory = renderDesc.pAllocator->allocate(memorySize, 16);
 		if (memory == nullptr)
 		{

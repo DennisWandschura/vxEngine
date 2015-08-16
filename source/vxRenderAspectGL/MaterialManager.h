@@ -37,7 +37,7 @@ namespace gl
 class MaterialManager
 {
 	TexturePool m_poolSrgba;
-	TexturePool m_poolRgb;
+	TexturePool m_poolRgba;
 
 	vx::sorted_vector<vx::StringID, u32> m_materialIndices;
 	std::unique_ptr<u32[]> m_materialEntries;

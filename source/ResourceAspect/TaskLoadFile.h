@@ -24,26 +24,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace vx
-{
-	class StackAllocator;
-}
+class ArrayAllocator;
 
 #include <vxEngineLib/Task.h>
 #include <string>
+#include <vxEngineLib/managed_ptr.h>
 
 class TaskLoadFile : public Task
 {
-	vx::StackAllocator* m_scratchAllocator;
+	ArrayAllocator* m_scratchAllocator;
 	std::mutex* m_mutex;
 
 protected:
 	std::string m_fileNameWithPath;
 
-	bool loadFromFile(u8** ptr, u32* fileSize);
+	bool loadFromFile(managed_ptr<u8[]>* ptr, u32* fileSize);
 	bool readAndCheckHeader(const u8* fileData, u32 fileSize, const u8** dataBegin, u32* dataSize, u64* crc);
 
-	TaskLoadFile(std::string &&fileNameWithPath, vx::StackAllocator* scratchAllocator, std::mutex* mutex, Event &&evt);
+	TaskLoadFile(std::string &&fileNameWithPath, ArrayAllocator* scratchAllocator, std::mutex* mutex, Event &&evt);
 
 public:
 	virtual ~TaskLoadFile();

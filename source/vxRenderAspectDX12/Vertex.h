@@ -29,5 +29,6 @@ SOFTWARE.
 struct Vertex
 {
 	vx::float3 position;
+	vx::float3 normal;
 	vx::float2 texCoords;
 };

@@ -57,6 +57,7 @@ struct ResourceView;
 #include "UploadManager.h"
 #include "MeshManager.h"
 #include "MaterialManager.h"
+#include "GBufferRenderer.h"
 
 class RenderAspect : public RenderAspectInterface
 {
@@ -74,6 +75,7 @@ class RenderAspect : public RenderAspectInterface
 	d3d::Object<ID3D12CommandSignature> m_commandSignature;
 	vx::Camera m_camera;
 	DefaultRenderer m_defaultRenderer;
+	GBufferRenderer m_gbufferRenderer;
 	vx::mat4 m_projectionMatrix;
 	UploadManager m_uploadManager;
 	d3d::Object<ID3D12Resource> m_constantBuffer;

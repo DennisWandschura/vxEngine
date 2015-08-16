@@ -26,21 +26,21 @@ SOFTWARE.
 #include <vxEngineLib/Light.h>
 #include <vxEngineLib/Transform.h>
 #include <vxEngineLib/EditorScene.h>
+#include <vxLib/File/FileHandle.h>
+#include <vxEngineLib/SmallObject.h>
 
 #ifdef _VX_EDITOR
 namespace Editor
 {
 	struct Editor
 	{
-		Timer clock;
-		Logfile logfile;
+		//Timer clock;
+		//Logfile logfile;
 		EditorEngine engine;
 		Editor::Scene scene;
 
 		Editor()
-			:clock(),
-			logfile(clock),
-			engine(),
+			:engine(),
 			scene()
 		{
 		}
@@ -48,6 +48,7 @@ namespace Editor
 
 	Editor* g_pEditor{ nullptr };
 	void* g_pMemory{ nullptr };
+	SmallObjAllocator* g_alloc{nullptr};
 	LARGE_INTEGER g_last{};
 	f64 g_invFrequency{ 1.0 };
 	const u32 g_hz = 40u;
@@ -82,16 +83,22 @@ namespace Editor
 
 		auto pEditor = new(g_pMemory)Editor();
 
-		pEditor->logfile.create("editor_log.xml");
+		g_alloc = new SmallObjAllocator(1 KBYTE);
+		SmallObject::setAllocator(g_alloc);
+		Task::setAllocator(g_alloc);
+		Event::setAllocator(g_alloc);
+
+		//pEditor->logfile.create("editor_log.xml");
 		if (!pEditor->engine.initializeEditor((HWND)hwndPanel, (HWND)hwndTmp, vx::uint2(panelSizeX, panelSizeY), &pEditor->scene))
 			return false;
 
 		g_pEditor = pEditor;
 
-		g_pEditor->engine.editor_start();
+		//g_pEditor->engine.editor_start();
 
-		auto frequency = Timer::getFrequency();
-		g_invFrequency = 1.0 / frequency;
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency(&frequency);
+		g_invFrequency = 1.0 / frequency.QuadPart;
 		QueryPerformanceCounter(&g_last);
 
 		return true;
@@ -104,8 +111,14 @@ namespace Editor
 			puts("Shutting down...");
 			g_pEditor->engine.stop();
 			g_pEditor->engine.shutdownEditor();
-			g_pEditor->logfile.close();
 			destroy(g_pEditor);
+		}
+
+		if (g_alloc)
+		{
+			delete(g_alloc);
+			Task::setAllocator(nullptr);
+			Event::setAllocator(nullptr);
 		}
 
 		::operator delete(g_pMemory);

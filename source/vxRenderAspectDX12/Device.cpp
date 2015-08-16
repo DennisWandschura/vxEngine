@@ -134,6 +134,7 @@ namespace d3d
 	void Device::swapBuffer()
 	{
 		m_swapChain->Present(1, 0);
+		//m_swapChain->Present1();
 	}
 
 	void Device::waitForGpu()

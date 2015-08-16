@@ -31,16 +31,104 @@ SOFTWARE.
 
 struct MaterialManager::MaterialEntry
 {
+	u32 diffuseSlice;
+	u32 normalSlice;
+	u32 surfaceSlice;
+};
+
+struct MaterialManager::AddTextureDesc
+{
+	const Graphics::Texture* texture;
+	UploadManager* uploadManager;
+	ID3D12Resource* textureBuffer;
 	u32 slice;
 };
 
-MaterialManager::MaterialManager()
-	:m_entries(),
-	m_freelistData(),
+struct MaterialManager::TryGetTextureDesc
+{
+	vx::StringID sid;
+	const Graphics::Texture* texture;
+	const ResourceAspectInterface* resourceAspect;
+	UploadManager* uploadManager; 
+	ID3D12Resource* textureBuffer; 
+	u32* slice;
+};
+
+MaterialManager::TextureArray::TextureArray()
+	:m_freelistData(),
 	m_freelist(),
-	m_textureBuffer(),
-	m_textureHeap(),
-	m_textureOffset(0)
+	m_format(),
+	m_capacity(0)
+{
+
+}
+
+MaterialManager::TextureArray::~TextureArray()
+{
+
+}
+
+void MaterialManager::TextureArray::initialize(u32 maxTextureCount, u32 format)
+{
+	m_freelistData = std::make_unique<u32[]>(maxTextureCount);
+	m_freelist.create((u8*)m_freelistData.get(), maxTextureCount, sizeof(u32));
+	m_format = format;
+	m_capacity = maxTextureCount;
+}
+
+void MaterialManager::TextureArray::addTexture(const AddTextureDesc &desc)
+{
+	auto &face = desc.texture->getFace(0);
+
+	auto dim = face.getDimension();
+	auto dataSize = face.getSize();
+	auto data = face.getPixels();
+
+	UploadTaskTextureDesc uploadDesc;
+	uploadDesc.dst = desc.textureBuffer;
+	uploadDesc.dataSize = dataSize;
+	uploadDesc.data = data;
+	uploadDesc.dim.x = dim.x;
+	uploadDesc.dim.y = dim.y;
+	uploadDesc.format = m_format;
+	uploadDesc.rowPitch = dim.x * 4;
+	uploadDesc.slice = desc.slice;
+	uploadDesc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.uploadManager->pushUploadTexture(uploadDesc);
+}
+
+bool MaterialManager::TextureArray::tryGetTexture(const TryGetTextureDesc &desc)
+{
+	auto it = m_sortedEntries.find(desc.sid);
+	if (it == m_sortedEntries.end())
+	{
+		auto ptr = (u32*)m_freelist.insertEntry((u8*)m_freelistData.get(), sizeof(u32));
+		if (ptr == nullptr)
+			return false;
+
+		auto textureSlice = ptr - m_freelistData.get();
+
+		AddTextureDesc addDesc;
+		addDesc.texture = desc.texture;
+		addDesc.slice = textureSlice;
+		addDesc.textureBuffer = desc.textureBuffer;
+		addDesc.uploadManager = desc.uploadManager;
+		addTexture(addDesc);
+
+		it = m_sortedEntries.insert(desc.sid, textureSlice);
+	}
+
+	*desc.slice = *it;
+	return true;
+}
+
+MaterialManager::MaterialManager()
+	:m_materialEntries(),
+	m_texturesSrgba(),
+	m_texturesRgba(),
+	m_textureBufferSrgba(),
+	m_textureBufferRgba(),
+	m_textureHeap()
 {
 
 }
@@ -72,8 +160,10 @@ bool MaterialManager::createHeap(d3d::Device* device)
 	return true;
 }
 
-bool MaterialManager::createSrgbTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device)
+bool MaterialManager::createSrgbaTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device, u32* offset)
 {
+	auto thisOffset = d3d::getAlignedSize(4 * textureResolution.x * textureResolution.y, 64 KBYTE);
+
 	D3D12_RESOURCE_DESC resDesc;
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resDesc.Alignment = 64 KBYTE;
@@ -86,97 +176,125 @@ bool MaterialManager::createSrgbTextureArray(const vx::uint2 &textureResolution,
 	resDesc.SampleDesc.Quality = 0;
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-	if (!m_textureHeap.createResource(resDesc, 0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, m_textureBuffer.getAddressOf(), device))
+	if (!m_textureHeap.createResource(resDesc, *offset, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, m_textureBufferSrgba.getAddressOf(), device))
 		return false;
+
+	*offset += thisOffset;
 
 	return true;
 }
 
-bool MaterialManager::initialize(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device)
+bool MaterialManager::createRgbaTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device, u32* offset)
+{
+	auto thisOffset = d3d::getAlignedSize(4 * textureResolution.x * textureResolution.y, 64 KBYTE);
+
+	D3D12_RESOURCE_DESC resDesc;
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resDesc.Alignment = 64 KBYTE;
+	resDesc.Width = textureResolution.x;
+	resDesc.Height = textureResolution.y;
+	resDesc.DepthOrArraySize = maxTextureCount;
+	resDesc.MipLevels = 1;
+	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	if (!m_textureHeap.createResource(resDesc, *offset, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, m_textureBufferRgba.getAddressOf(), device))
+		return false;
+
+	*offset += thisOffset;
+
+	return true;
+}
+
+bool MaterialManager::initialize(const vx::uint2 &textureResolution, u32 srbgaCount, u32 rgbaCount, d3d::Device* device)
 {
 	if (!createHeap(device))
 		return false;
 
-	if (!createSrgbTextureArray(textureResolution, maxTextureCount, device))
+	u32 offset = 0;
+	if (!createSrgbaTextureArray(textureResolution, srbgaCount, device, &offset))
 		return false;
 
-	m_textureOffset = textureResolution.x * textureResolution.y * 4;
+	if (!createRgbaTextureArray(textureResolution, rgbaCount, device, &offset))
+		return false;
 
-	m_freelistData = std::make_unique<u32[]>(maxTextureCount);
-	m_freelist.create((u8*)m_freelistData.get(), maxTextureCount, sizeof(u32));
+	m_texturesSrgba.initialize(srbgaCount, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
+	m_texturesRgba.initialize(rgbaCount, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	return true;
 }
 
-void MaterialManager::addTexture(u32 slice, const vx::StringID &sid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager)
+bool MaterialManager::tryGetTexture(const vx::StringID &sid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* slice)
 {
 	auto texture = resourceAspect->getTexture(sid);
-
 	auto format = texture->getFormat();
-	auto &face = texture->getFace(0);
 
-	auto dim = face.getDimension();
-	auto dataSize = face.getSize();
-	auto data = face.getPixels();
+	if (format == Graphics::TextureFormat::SRGBA)
+	{
+		TryGetTextureDesc tryDesc;
+		tryDesc.sid = sid;
+		tryDesc.texture = texture;
+		tryDesc.resourceAspect = resourceAspect;
+		tryDesc.uploadManager = uploadManager;
+		tryDesc.textureBuffer = m_textureBufferSrgba.get();
+		tryDesc.slice = slice;
 
-	/*D3D12_BOX dstBox;
-	dstBox.left = 0;
-	dstBox.right = dim.x;
-	dstBox.top = 0;
-	dstBox.bottom = dim.y;
-	dstBox.front = 0;
-	dstBox.back = 1;
+		if (!m_texturesSrgba.tryGetTexture(tryDesc))
+			return false;
+	}
+	else if (format == Graphics::TextureFormat::RGBA)
+	{
+		TryGetTextureDesc tryDesc;
+		tryDesc.sid = sid;
+		tryDesc.texture = texture;
+		tryDesc.resourceAspect = resourceAspect;
+		tryDesc.uploadManager = uploadManager;
+		tryDesc.textureBuffer = m_textureBufferRgba.get();
+		tryDesc.slice = slice;
 
-	u8* ptr = nullptr;
-	auto hresult = m_textureBuffer->Map(0, nullptr, (void**)&ptr);
-	//D3D12_MEMCPY_DEST DestData = { pData + pLayouts[i].Offset, pLayouts[i].Footprint.RowPitch, pLayouts[i].Footprint.RowPitch * pNumRows[i] };
-	//MemcpySubresource(&DestData, &pSrcData[i], (SIZE_T)pRowSizesInBytes[i], pNumRows[i], pLayouts[i].Footprint.Depth);
-	//hresult = m_textureBuffer->WriteToSubresource(0, nullptr, data, dim.x * 4, 1);
-	m_textureBuffer->Unmap(0, nullptr);
-	int i = 0;
-	++i;*/
+		if (!m_texturesRgba.tryGetTexture(tryDesc))
+			return false;
+	}
+	else
+	{
+		return false;
+	}
 
-	UploadTaskTextureDesc desc;
-	desc.dst = m_textureBuffer.get();
-	desc.dataSize = dataSize;
-	desc.data = data;
-	desc.dim.x = dim.x;
-	desc.dim.y = dim.y;
-	desc.format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	desc.rowPitch = dim.x * 4;
-	desc.slice = slice;
-	desc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	uploadManager->pushUploadTexture(desc);
+	return true;
 }
 
 bool MaterialManager::addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* outSlice)
 {
-	auto diffuseTextureSid = material->m_textureSid[0];
-
-	u32 slice = 0;
-	auto it = m_entries.find(diffuseTextureSid);
-	if (it == m_entries.end())
+	auto materialSid = material->getSid();
+	auto iterMaterial = m_materialEntries.find(materialSid);
+	if (iterMaterial == m_materialEntries.end())
 	{
-		auto ptr = (u32*)m_freelist.insertEntry((u8*)m_freelistData.get(), sizeof(u32));
-		if (ptr == nullptr)
+		auto diffuseTextureSid = material->m_textureSid[0];
+		auto normalTextureSid = material->m_textureSid[1];
+		auto surfaceTextureSid = material->m_textureSid[2];
+
+		u32 diffuseSlice = 0;
+		if (!tryGetTexture(diffuseTextureSid, resourceAspect, uploadManager, &diffuseSlice))
 			return false;
 
-		auto textureIndex = ptr - m_freelistData.get();
-		addTexture(textureIndex, diffuseTextureSid, resourceAspect, uploadManager);
+		u32 normalSlice = 0;
+		if (!tryGetTexture(normalTextureSid, resourceAspect, uploadManager, &normalSlice))
+			return false;
+
+		u32 surfaceSlice = 0;
+		if (!tryGetTexture(surfaceTextureSid, resourceAspect, uploadManager, &surfaceSlice))
+			return false;
 
 		MaterialEntry entry;
-		entry.slice = textureIndex;
-		m_entries.insert(diffuseTextureSid, entry);
-
-		slice = textureIndex;
-
-	}
-	else
-	{
-		slice = it->slice;
+		entry.diffuseSlice = diffuseSlice;
+		entry.normalSlice = normalSlice;
+		entry.surfaceSlice = surfaceSlice;
+		iterMaterial = m_materialEntries.insert(materialSid, entry);
 	}
 
-	*outSlice = slice;
+	*outSlice = iterMaterial->diffuseSlice;
 
 	return true;
 }

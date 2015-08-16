@@ -59,7 +59,7 @@ class managed_ptr_base
 protected:
 	u8* m_ptr;
 	ArrayAllocator* m_alloc;
-	unsigned m_entryIndex;
+	u32 m_entryIndex;
 
 	void swap(managed_ptr_base &other);
 

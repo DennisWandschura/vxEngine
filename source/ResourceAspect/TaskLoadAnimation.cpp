@@ -24,6 +24,7 @@ SOFTWARE.
 #include "TaskLoadAnimation.h"
 #include <vxEngineLib/AnimationFile.h>
 #include <vxResourceAspect/ResourceManager.h>
+#include <vxLib/ScopeGuard.h>
 
 TaskLoadAnimation::TaskLoadAnimation(TaskLoadAnimationDesc &&desc)
 	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_animationManager->getScratchAllocator(), desc.m_animationManager->getScratchAllocatorMutex(), std::move(desc.evt)),
@@ -46,17 +47,24 @@ TaskReturnType TaskLoadAnimation::runImpl()
 		return TaskReturnType::Success;
 	}
 
-	u8* fileData = nullptr;
+	managed_ptr<u8[]> fileData;
 	u32 fileSize = 0;
 	if (!loadFromFile(&fileData, &fileSize))
 	{
 		return TaskReturnType::Failure;
 	}
 
+	SCOPE_EXIT
+	{
+		std::unique_lock<std::mutex> scratchLock;
+		auto scratchAlloc = m_animationManager->lockScratchAllocator(&scratchLock);
+		fileData.clear();
+	};
+
 	const u8* dataBegin = nullptr;
 	u32 dataSize = 0;
 	u64 headerCrc = 0;
-	if (!readAndCheckHeader(fileData, fileSize, &dataBegin, &dataSize, &headerCrc))
+	if (!readAndCheckHeader(fileData.get(), fileSize, &dataBegin, &dataSize, &headerCrc))
 	{
 		return TaskReturnType::Failure;
 	}

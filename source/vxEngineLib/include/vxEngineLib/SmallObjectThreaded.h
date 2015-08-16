@@ -48,6 +48,7 @@ public:
 	static void* operator new(std::size_t size)
 	{
 		VX_ASSERT(size == static_cast<u32>(size));
+		VX_ASSERT(s_allocator != nullptr);
 		return s_allocator->allocate(static_cast<u32>(size));
 	}
 

@@ -40,7 +40,7 @@ class ResourceManager
 	vx::sorted_array<vx::StringID, T*> m_sortedData;
 
 	std::mutex m_mutexScratchAllocator;
-	vx::StackAllocator m_scratchAllocator;
+	ArrayAllocator m_scratchAllocator;
 
 	std::mutex m_mutexDataAllocator;
 	ArrayAllocator m_dataAllocator;
@@ -63,7 +63,7 @@ public:
 		auto scratchPtr = allocator->allocate(scratchSizeInBytes, 4);
 		if (scratchPtr == nullptr)
 			return false;
-		m_scratchAllocator = vx::StackAllocator(scratchPtr, scratchSizeInBytes);
+		m_scratchAllocator.create(scratchPtr, scratchSizeInBytes);
 
 		if (dataSizeInBytes != 0)
 		{
@@ -90,20 +90,21 @@ public:
 		m_poolData.release();
 	}
 
-	u32 getMarker()
-	{
-		return m_scratchAllocator.getMarker();
-	}
-
 	void clearScratchAllocator()
 	{
+		std::unique_lock<std::mutex> lockData(m_mutexScratchAllocator);
 		m_scratchAllocator.clear();
+	}
+
+	/*u32 getMarker()
+	{
+		return m_scratchAllocator.getMarker();
 	}
 
 	void clearScratchAllocator(u32 marker)
 	{
 		m_scratchAllocator.clear(marker);
-	}
+	}*/
 
 	void update()
 	{
@@ -137,7 +138,7 @@ public:
 		return result;
 	}
 
-	vx::StackAllocator* lockScratchAllocator(std::unique_lock<std::mutex>* lock)
+	ArrayAllocator* lockScratchAllocator(std::unique_lock<std::mutex>* lock)
 	{
 		std::unique_lock<std::mutex> lck(m_mutexScratchAllocator);
 		lock->swap(lck);
@@ -167,7 +168,8 @@ public:
 		return result;
 	}
 
-	vx::StackAllocator* getScratchAllocator()
+	
+	ArrayAllocator* getScratchAllocator()
 	{
 		return &m_scratchAllocator;
 	}
@@ -176,4 +178,6 @@ public:
 	{
 		return &m_mutexScratchAllocator;
 	}
+
+	const vx::sorted_array<vx::StringID, T*>& getSortedData() const { return m_sortedData; }
 };

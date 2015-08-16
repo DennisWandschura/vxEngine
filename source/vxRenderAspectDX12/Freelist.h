@@ -49,7 +49,9 @@ public:
 			return;
 
 		auto offset = ptr - begin;
-		auto index = offset / stride;
+		VX_ASSERT(static_cast<u32>(offset) == offset);
+
+		auto index = static_cast<u32>(offset) / stride;
 
 		auto freeEntry = (u32*)ptr;
 		*freeEntry = m_firstFreeEntry;

@@ -25,6 +25,7 @@ SOFTWARE.
 #include <vxEngineLib/Graphics/Texture.h>
 #include <vxEngineLib/ArrayAllocator.h>
 #include <vxEngineLib/Graphics/TextureFactory.h>
+#include <vxEngineLib/Graphics/dds.h>
 
 namespace Graphics
 {
@@ -55,49 +56,49 @@ namespace Graphics
 	{
 		switch (format)
 		{
-		case Graphics::RED:
+		case TextureFormat::RED:
 			return detail::getRowPitchNormal(width, 1);
 			break;
-		case Graphics::BG:
+		case TextureFormat::BG:
 			return detail::getRowPitchNormal(width, 2);
 			break;
-		case Graphics::BGR:
+		case TextureFormat::BGR:
 			return detail::getRowPitchNormal(width, 3);
 			break;
-		case Graphics::BGRA:
+		case TextureFormat::BGRA:
 			return detail::getRowPitchNormal(width, 4);
 			break;
-		case Graphics::RG:
+		case TextureFormat::RG:
 			return detail::getRowPitchNormal(width, 2);
 			break;
-		case Graphics::RGB:
+		case TextureFormat::RGB:
 			return detail::getRowPitchNormal(width, 3);
 			break;
-		case Graphics::RGBA:
+		case TextureFormat::RGBA:
 			return detail::getRowPitchNormal(width, 4);
 			break;
-		case Graphics::SRGBA:
+		case TextureFormat::SRGBA:
 			return detail::getRowPitchNormal(width, 4);
 			break;
-		case Graphics::DXT1:
+		case TextureFormat::DXT1:
 			return detail::getRowPitchBlock(width, 8);
 			break;
-		case Graphics::DXT3:
+		case TextureFormat::DXT3:
 			return detail::getRowPitchBlock(width, 16);
 			break;
-		case Graphics::DXT5:
+		case TextureFormat::DXT5:
 			return detail::getRowPitchBlock(width, 16);
 			break;
-		case Graphics::BC7_UNORM_SRGB:
+		case TextureFormat::BC7_UNORM_SRGB:
 			return detail::getRowPitchBlock(width, 16);
 			break;
-		case Graphics::BC7_UNORM:
+		case TextureFormat::BC7_UNORM:
 			return detail::getRowPitchBlock(width, 16);
 			break;
-		case Graphics::BC6H_UF16:
+		case TextureFormat::BC6H_UF16:
 			return detail::getRowPitchBlock(width, 16);
 			break;
-		case Graphics::BC6H_SF16:
+		case TextureFormat::BC6H_SF16:
 			return detail::getRowPitchBlock(width, 16);
 			break;
 		default:
@@ -110,49 +111,49 @@ namespace Graphics
 	{
 		switch (format)
 		{
-		case Graphics::RED:
+		case TextureFormat::RED:
 			return detail::getSizeNormal(dim, 1);
 			break;
-		case Graphics::BG:
+		case TextureFormat::BG:
 			return detail::getSizeNormal(dim, 2);
 			break;
-		case Graphics::BGR:
+		case TextureFormat::BGR:
 			return detail::getSizeNormal(dim, 3);
 			break;
-		case Graphics::BGRA:
+		case TextureFormat::BGRA:
 			return detail::getSizeNormal(dim, 4);
 			break;
-		case Graphics::RG:
+		case TextureFormat::RG:
 			return detail::getSizeNormal(dim, 2);
 			break;
-		case Graphics::RGB:
+		case TextureFormat::RGB:
 			return detail::getSizeNormal(dim, 3);
 			break;
-		case Graphics::RGBA:
+		case TextureFormat::RGBA:
 			return detail::getSizeNormal(dim, 4);
 			break;
-		case Graphics::SRGBA:
+		case TextureFormat::SRGBA:
 			return detail::getSizeNormal(dim, 4);
 			break;
-		case Graphics::DXT1:
+		case TextureFormat::DXT1:
 			return detail::getSizeNormal(dim, 8);
 			break;
-		case Graphics::DXT3:
+		case TextureFormat::DXT3:
 			return detail::getSizeBlock(dim, 16);
 			break;
-		case Graphics::DXT5:
+		case TextureFormat::DXT5:
 			return detail::getSizeBlock(dim, 16);
 			break;
-		case Graphics::BC7_UNORM_SRGB:
+		case TextureFormat::BC7_UNORM_SRGB:
 			return detail::getSizeBlock(dim, 16);
 			break;
-		case Graphics::BC7_UNORM:
+		case TextureFormat::BC7_UNORM:
 			return detail::getSizeBlock(dim, 16);
 			break;
-		case Graphics::BC6H_UF16:
+		case TextureFormat::BC6H_UF16:
 			return detail::getSizeBlock(dim, 16);
 			break;
-		case Graphics::BC6H_SF16:
+		case TextureFormat::BC6H_SF16:
 			return detail::getSizeBlock(dim, 16);
 			break;
 		default:
@@ -160,6 +161,68 @@ namespace Graphics
 		}
 
 		return 0;
+	}
+
+	u32 textureFormatToDxgiFormat(TextureFormat format)
+	{
+		switch (format)
+		{
+		case TextureFormat::RGBA:
+			return DXGI_FORMAT_R8G8B8A8_UNORM;
+			break;
+		case TextureFormat::SRGBA:
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			break;
+
+		case TextureFormat::BC7_UNORM_SRGB:
+			return DXGI_FORMAT_BC7_UNORM_SRGB;
+			break;
+		case TextureFormat::BC7_UNORM:
+			return DXGI_FORMAT_BC7_UNORM;
+			break;
+
+		case TextureFormat::BC6H_UF16:
+			return DXGI_FORMAT_BC6H_UF16;
+			break;
+		case TextureFormat::BC6H_SF16:
+			return DXGI_FORMAT_BC6H_SF16;
+			break;
+		default:
+			break;
+		}
+
+		return 0;
+	}
+
+	TextureFormat dxgiFormatToTextureFormat(u32 dxgiFormat)
+	{
+		auto format = TextureFormat::Unkown;
+
+		switch (dxgiFormat)
+		{
+		case DXGI_FORMAT_R8G8B8A8_UNORM:
+			format = TextureFormat::RGBA;
+			break;
+		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+			format = TextureFormat::SRGBA;
+			break;
+		case DXGI_FORMAT_BC7_UNORM_SRGB:
+			format = TextureFormat::BC7_UNORM_SRGB;
+			break;
+		case DXGI_FORMAT_BC7_UNORM:
+			format = TextureFormat::BC7_UNORM;
+			break;
+		case DXGI_FORMAT_BC6H_UF16:
+			format = TextureFormat::BC6H_UF16;
+			break;
+		case DXGI_FORMAT_BC6H_SF16:
+			format = TextureFormat::BC6H_SF16;
+			break;
+		default:
+			break;
+		}
+
+		return format;
 	}
 
 	Face::Face()
@@ -285,11 +348,17 @@ namespace Graphics
 
 	u32 Texture::getFaceSize(u32 i)
 	{
+		auto &face = getFace(i);
+		auto dim = face.getDimension();
 
+		return getTextureSize(m_format, vx::uint2(dim.x, dim.y)) * dim.z;
 	}
 
 	u32 Texture::getFaceRowPitch(u32 i)
 	{
+		auto &face = getFace(i);
+		auto dim = face.getDimension();
 
+		return getRowPitch(m_format, dim.x);
 	}
 }

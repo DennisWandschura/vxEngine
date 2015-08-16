@@ -42,8 +42,8 @@ SOFTWARE.
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/Material.h>
 #include "Vertex.h"
-#include "Transform.h"
-#include "CameraBufferData.h"
+#include "GpuTransform.h"
+#include "GpuCameraBufferData.h"
 
 struct ResourceView
 {
@@ -155,7 +155,7 @@ bool RenderAspect::createConstantBuffers()
 	if (!m_bufferHeap.createResourceBuffer(drawCmdSize, 64u KBYTE, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, m_indirectCmdBuffer.getAddressOf(), &m_device))
 		return false;
 
-	auto transformBufferSize = d3d::getAlignedSize(sizeof(Transform) * g_maxMeshInstances, 64 KBYTE);
+	auto transformBufferSize = d3d::getAlignedSize(sizeof(GpuTransform) * g_maxMeshInstances, 64 KBYTE);
 	if (!m_bufferHeap.createResourceBuffer(transformBufferSize, 64u KBYTE * 2, D3D12_RESOURCE_STATE_GENERIC_READ, m_transformBuffer.getAddressOf(), &m_device))
 		return false;
 
@@ -249,6 +249,11 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
+	if(!m_gbufferRenderer.initialize(device))
+	{
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
+
 	if (!m_uploadManager.initialize(&m_device))
 	{
 		return RenderAspectInitializeError::ERROR_CONTEXT;
@@ -284,7 +289,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if(!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, &m_device, desc.pAllocator))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
-	if (!m_materialManager.initialize(vx::uint2(1024), 64, &m_device))
+	if (!m_materialManager.initialize(vx::uint2(1024), 32, 64, &m_device))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	createCbvCamera();
@@ -330,13 +335,15 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	vx::mat4 viewMatrix;
 	m_camera.getViewMatrix(&viewMatrix);
 
-	CameraBufferData bufferData;
-	bufferData.cameraPosition = m_camera.getPosition();
-	bufferData.cameraViewMatrix = viewMatrix;
+//	auto normalMatrix = vx::MatrixTranspose(vx::MatrixInverse(viewMatrix));
+
+	GpuCameraBufferData bufferData;
+	bufferData.position = m_camera.getPosition();
+	bufferData.viewMatrix = viewMatrix;
 	bufferData.pvMatrix = m_projectionMatrix * viewMatrix;
 
-	u32 offset = m_currentBuffer * d3d::getAlignedSize(sizeof(CameraBufferData), 256);
-	m_uploadManager.pushUploadBuffer((u8*)&bufferData, m_constantBuffer.get(), 0, sizeof(CameraBufferData), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+	u32 offset = m_currentBuffer * d3d::getAlignedSize(sizeof(GpuCameraBufferData), 256);
+	m_uploadManager.pushUploadBuffer((u8*)&bufferData, m_constantBuffer.get(), 0, sizeof(GpuCameraBufferData), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 }
 
 void RenderAspect::queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize)
@@ -405,7 +412,7 @@ void RenderAspect::createCbvCamera()
 {
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbufferViewDesc{};
 	cbufferViewDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
-	cbufferViewDesc.SizeInBytes = d3d::getAlignedSize(sizeof(CameraBufferData), 256);
+	cbufferViewDesc.SizeInBytes = d3d::getAlignedSize(sizeof(GpuCameraBufferData), 256);
 
 	auto descriptorHeapBufferHandle = m_descriptorHeapBuffer.getHandleCpu();
 	m_device.getDevice()->CreateConstantBufferView(&cbufferViewDesc, descriptorHeapBufferHandle);
@@ -420,7 +427,7 @@ void RenderAspect::updateSrvTransform(u32 instanceCount)
 	srvDesc.Buffer.FirstElement = 0;
 	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 	srvDesc.Buffer.NumElements = instanceCount;
-	srvDesc.Buffer.StructureByteStride = sizeof(Transform);
+	srvDesc.Buffer.StructureByteStride = sizeof(GpuTransform);
 
 	auto descriptorHeapBufferHandle = m_descriptorHeapBuffer.getHandleCpu();
 	descriptorHeapBufferHandle.offset(1);
@@ -442,7 +449,7 @@ void RenderAspect::createSrvTextures(u32 texureCount)
 
 	auto descriptorHeapBufferHandle = m_descriptorHeapBuffer.getHandleCpu();
 	descriptorHeapBufferHandle.offset(2);
-	m_device.getDevice()->CreateShaderResourceView(m_materialManager.getTextureBuffer().get(), &srvDesc, descriptorHeapBufferHandle);
+	m_device.getDevice()->CreateShaderResourceView(m_materialManager.getTextureBufferSrgba().get(), &srvDesc, descriptorHeapBufferHandle);
 }
 
 void RenderAspect::submitCommands()
@@ -680,11 +687,15 @@ void RenderAspect::loadScene(Scene* scene)
 
 		auto meshTransform = meshInstance.getTransform();
 
-		Transform transform;
-		transform.translation = vx::float4(meshTransform.m_translation, 1);
+		auto meshTranslation = vx::loadFloat3(meshTransform.m_translation);
+		auto meshRotation = vx::loadFloat4(meshTransform.m_qRotation);
 
-		auto transformOffset = sizeof(Transform) * cmd.baseInstance;
-		m_uploadManager.pushUploadBuffer((u8*)&transform, m_transformBuffer.get(), transformOffset, sizeof(Transform), D3D12_RESOURCE_STATE_GENERIC_READ);
+		GpuTransform transform;
+		transform.translation = meshTranslation;
+		transform.qRotation = meshRotation;
+
+		auto transformOffset = sizeof(GpuTransform) * cmd.baseInstance;
+		m_uploadManager.pushUploadBuffer((u8*)&transform, m_transformBuffer.get(), transformOffset, sizeof(GpuTransform), D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		auto cmdOffset = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * cmd.baseInstance;
 

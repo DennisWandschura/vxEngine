@@ -436,7 +436,7 @@ bool FileAspect::loadFileFbx(const LoadFileOfTypeDescription &desc)
 
 	std::vector<vx::FileHandle> meshFiles, animFiles;
 	FbxFactory factory;
-	factory.loadFile(desc.fileNameWithPath, std::string(s_meshFolder), std::string(s_animationFolder), physsxMeshType, m_cooking, &meshFiles, &animFiles, &m_allocatorMeshData);
+	//factory.loadFile(desc.fileNameWithPath, std::string(s_meshFolder), std::string(s_animationFolder), physsxMeshType, m_cooking, &meshFiles, &animFiles, &m_allocatorMeshData);
 
 	for (auto &it : meshFiles)
 	{
@@ -513,11 +513,11 @@ void FileAspect::loadFileTexture(const LoadFileOfTypeDescription &desc)
 	Graphics::Texture texture;
 	if (extensionSid == ddsSid)
 	{
-		result = Graphics::TextureFactory::createDDSFromMemory(desc.fileData, true, &texture, &m_allocatorTextureData);
+		result = Graphics::TextureFactory::createDDSFromMemory(desc.fileData, true, false, &texture, &m_allocatorTextureData);
 	}
 	else if (extensionSid == pngSid)
 	{
-		result = Graphics::TextureFactory::createPngFromMemory(desc.fileData, desc.fileSize, true, &texture, &m_allocatorTextureData);
+		result = Graphics::TextureFactory::createPngFromMemory(desc.fileData, desc.fileSize, true, false, &texture, &m_allocatorTextureData);
 	}
 
 	if (result)

@@ -55,26 +55,30 @@ TaskReturnType TaskLoadMaterial::runImpl()
 		return TaskReturnType::Success;
 	}
 
-	std::vector<vx::FileEntry> missingFiles;
+	u32 missingFilesCount = 0;
+	MissingTextureFile missingFiles[3];
 
 	Material material(m_sid);
 
 	MaterialFactoryLoadDescNew loadMaterialDesc;
 	loadMaterialDesc.fileNameWithPath = m_fileNameWithPath.c_str();
 	loadMaterialDesc.material = &material;
-	loadMaterialDesc.missingFiles = &missingFiles;
+	loadMaterialDesc.missingFiles = missingFiles;
+	loadMaterialDesc.missingFilesCount = &missingFilesCount;
 	loadMaterialDesc.m_textureManager = m_textureManager;
 
 	if (!MaterialFactory::load(loadMaterialDesc))
 	{
-		if (missingFiles.size() != 0)
+		if (missingFilesCount != 0)
 		{
 			char fileNameWithPath[64];
 			std::vector<Event> events;
 
-			for(auto &it : missingFiles)
+			for (u32 i = 0; i < missingFilesCount; ++i)
 			{
-				auto fileName = it.getString();
+				auto &it = missingFiles[i];
+
+				auto fileName = it.fileEntry.getString();
 
 				auto returnCode = sprintf_s(fileNameWithPath, "%s%s", m_textureFolder, fileName);
 				if (returnCode == -1)
@@ -87,9 +91,10 @@ TaskReturnType TaskLoadMaterial::runImpl()
 				{
 					std::string(fileNameWithPath),
 					evt,
-					it.getSid(),
+					it.fileEntry.getSid(),
 					m_textureManager,
-					m_flipImage
+					m_flipImage,
+					it.srgb
 				};
 
 				auto task = new TaskLoadTexture(std::move(loadTexDesc));

@@ -45,28 +45,50 @@ namespace d3d
 class MaterialManager
 {
 	struct MaterialEntry;
+	struct AddTextureDesc;
+	struct TryGetTextureDesc;
 
-	vx::sorted_vector<vx::StringID, MaterialEntry> m_entries;
-	std::unique_ptr<u32[]> m_freelistData;
-	Freelist m_freelist;
-	d3d::Object<ID3D12Resource> m_textureBuffer;
+	class TextureArray
+	{
+		vx::sorted_vector<vx::StringID, u32> m_sortedEntries;
+		std::unique_ptr<u32[]> m_freelistData;
+		Freelist m_freelist;
+		u32 m_format;
+		u32 m_capacity;
+
+		void addTexture(const AddTextureDesc &desc);
+
+	public:
+		TextureArray();
+		~TextureArray();
+
+		void initialize(u32 maxTextureCount, u32 format);
+		
+		bool tryGetTexture(const TryGetTextureDesc &desc);
+
+		u32 getCapacity() const { return m_capacity; }
+	};
+
+	vx::sorted_vector<vx::StringID, MaterialEntry> m_materialEntries;
+	TextureArray m_texturesSrgba;
+	TextureArray m_texturesRgba;
+	d3d::Object<ID3D12Resource> m_textureBufferSrgba;
+	d3d::Object<ID3D12Resource> m_textureBufferRgba;
 	d3d::Heap m_textureHeap;
-	u32 m_textureOffset;
 
 	bool createHeap(d3d::Device* device);
-	bool createSrgbTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device);
+	bool createSrgbaTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device, u32* offset);
+	bool createRgbaTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device, u32* offset);
 
-	void addTexture(u32 slice, const vx::StringID &sid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager);
+	bool tryGetTexture(const vx::StringID &sid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* slice);
 
 public:
 	MaterialManager();
 	~MaterialManager();
 
-	bool initialize(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device);
+	bool initialize(const vx::uint2 &textureResolution, u32 srgbaCount, u32 rgbaCount, d3d::Device* device);
 
 	bool addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* slice);
 
-	u32 getTextureCount() const { return m_entries.size(); }
-
-	d3d::Object<ID3D12Resource>& getTextureBuffer() { return m_textureBuffer; }
+	d3d::Object<ID3D12Resource>& getTextureBufferSrgba() { return m_textureBufferSrgba; }
 };

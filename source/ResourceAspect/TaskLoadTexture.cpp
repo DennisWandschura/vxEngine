@@ -5,12 +5,14 @@
 #include <vxEngineLib/Graphics/TextureFactory.h>
 #include <vxResourceAspect/ResourceManager.h>
 #include <vxEngineLib/CpuTimer.h>
+#include <vxLib/ScopeGuard.h>
 
 TaskLoadTexture::TaskLoadTexture(TaskLoadTextureDesc &&desc)
 	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_textureManager->getScratchAllocator(), desc.m_textureManager->getScratchAllocatorMutex(), std::move(desc.evt)),
 	m_textureManager(desc.m_textureManager),
 	m_sid(desc.m_sid),
-	m_flipImage(desc.flipImage)
+	m_flipImage(desc.m_flipImage),
+	m_srgb(desc.m_srgb)
 {
 
 }
@@ -36,12 +38,19 @@ TaskReturnType TaskLoadTexture::runImpl()
 	auto extension = PathFindExtensionA(m_fileNameWithPath.c_str());
 	auto extensionSid = vx::make_sid(extension);
 
-	u8* fileData = nullptr;
+	managed_ptr<u8[]> fileData;
 	u32 fileSize = 0;
 	if (!loadFromFile(&fileData, &fileSize))
 	{
 		return TaskReturnType::Failure;
 	}
+
+	SCOPE_EXIT
+	{
+		std::unique_lock<std::mutex> scratchLock;
+		auto scratchAlloc = m_textureManager->lockScratchAllocator(&scratchLock);
+		fileData.clear();
+	};
 
 	std::unique_lock<std::mutex> lock;
 	bool result = false;
@@ -49,12 +58,12 @@ TaskReturnType TaskLoadTexture::runImpl()
 	if (extensionSid == ddsSid)
 	{
 		auto dataAllocator = m_textureManager->lockDataAllocator(&lock);
-		result = Graphics::TextureFactory::createDDSFromMemory(fileData, true, &texture, dataAllocator);
+		result = Graphics::TextureFactory::createDDSFromMemory(fileData.get(), true, m_srgb, &texture, dataAllocator);
 	}
 	else if (extensionSid == pngSid)
 	{
 		auto dataAllocator = m_textureManager->lockDataAllocator(&lock);
-		result = Graphics::TextureFactory::createPngFromMemory(fileData, fileSize, true, &texture, dataAllocator);
+		result = Graphics::TextureFactory::createPngFromMemory(fileData.get(), fileSize, true, m_srgb, &texture, dataAllocator);
 	}
 
 	if (result)

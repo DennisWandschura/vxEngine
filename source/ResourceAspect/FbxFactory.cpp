@@ -429,7 +429,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 
 		u32 verticesSizeInBytes = sizeof(vx::MeshVertex) * vertexCount;
 		u32 indexSizeInBytes = sizeof(u32) * indexCount;
-		managed_ptr<u8[]> meshDataPtr = meshDataAllocator->allocate(verticesSizeInBytes + indexSizeInBytes, 4);
+		managed_ptr<u8[]> meshDataPtr = meshDataAllocator->allocate<u8[]>(verticesSizeInBytes + indexSizeInBytes, 4);
 
 		memcpy(meshDataPtr.get(), meshVertices.data(), verticesSizeInBytes);
 		memcpy(meshDataPtr.get() + verticesSizeInBytes, meshIndices.data(), indexSizeInBytes);
@@ -444,7 +444,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 		}
 
 		auto physxSize = writeBuffer.getSize();
-		managed_ptr<u8[]> physxData = meshDataAllocator->allocate(physxSize, 4);
+		managed_ptr<u8[]> physxData = meshDataAllocator->allocate<u8[]>(physxSize, 4);
 		memcpy(physxData.get(), writeBuffer.getData(), physxSize);
 
 		vx::MeshFile meshFile(vx::MeshFile::getGlobalVersion(), std::move(mesh), std::move(meshDataPtr), std::move(physxData), physxSize, meshType);

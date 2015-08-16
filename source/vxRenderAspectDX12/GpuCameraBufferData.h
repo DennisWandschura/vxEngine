@@ -1,3 +1,6 @@
+#ifdef _VX_WINDOWS
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,44 +24,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib\types.h>
-#include <thread>
+#include <vxLib/math/matrix.h>
 
-namespace vx
+typedef vx::float4a float4;
+typedef vx::mat4 float4x4;
+
+#else
+#endif
+
+struct GpuCameraBufferData
 {
-	class thread
-	{
-		std::thread m_thread;
-
-	public:
-		thread();
-		
-		template<class _Fn, class... _Args>
-		explicit thread(_Fn&& _Fx, _Args&&... _Ax)
-			:m_thread(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...)
-		{
-
-		}
-
-		thread(std::thread &&t);
-
-		thread(const thread&) = delete;
-		thread(thread &&rhs);
-
-		~thread();
-
-		thread& operator=(std::thread &&rhs);
-		thread& operator=(const thread&) = delete;
-		thread& operator=(thread &&rhs);
-
-		static u32 hardware_concurrency() noexcept;
-
-		bool joinable() const noexcept;
-		void detach() noexcept;
-		void join() noexcept;
-
-		std::thread::id get_id() const noexcept;
-	};
-}
+	float4 position;
+	float4x4 pvMatrix;
+	float4x4 viewMatrix;
+};

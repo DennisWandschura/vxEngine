@@ -328,7 +328,7 @@ bool Engine::initialize()
 	m_bRun = 1;
 	m_shutdown = 0;
 
-	m_taskManagerThread = vx::thread(EngineCpp::schedulerThread, &m_taskManager);
+	m_taskManagerThread = std::thread(EngineCpp::schedulerThread, &m_taskManager);
 
 	return true;
 }

@@ -1,3 +1,6 @@
+#ifdef _VX_WINDOWS
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,77 +24,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "thread.h"
 
-namespace vx
+#include <vxLib/math/vector.h>
+
+typedef vx::float4a float4;
+
+#else
+#endif
+
+struct GpuTransform
 {
-	thread::thread()
-		:m_thread()
-	{
-
-	}
-
-	thread::thread(std::thread &&t)
-		: m_thread(std::move(t))
-	{
-
-	}
-
-	thread::thread(thread &&rhs)
-		: m_thread(std::move(rhs.m_thread))
-	{
-
-	}
-
-	thread::~thread()
-	{
-		join();
-	}
-
-	thread& thread::operator = (std::thread &&rhs)
-	{
-		m_thread = std::move(rhs);
-		return *this;
-	}
-
-	thread& thread::operator = (thread &&rhs)
-	{
-		if (this != &rhs)
-		{
-			std::swap(m_thread, rhs.m_thread);
-		}
-
-		return *this;
-	}
-
-	u32 thread::hardware_concurrency() noexcept
-	{
-		return std::thread::hardware_concurrency();
-	}
-
-	bool thread::joinable() const noexcept
-	{
-		return m_thread.joinable();
-	}
-
-	void thread::detach() noexcept
-	{
-		if (m_thread.joinable())
-		{
-			m_thread.detach();
-		}
-	}
-
-	void thread::join() noexcept
-	{
-		if (m_thread.joinable())
-		{
-			m_thread.join();
-		}
-	}
-
-	std::thread::id thread::get_id() const noexcept
-	{
-		return m_thread.get_id();
-	}
-}
+	float4 translation;
+	float4 qRotation;
+};

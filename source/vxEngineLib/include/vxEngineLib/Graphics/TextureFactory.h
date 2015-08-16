@@ -36,7 +36,6 @@ namespace vx
 namespace Graphics
 {
 	class Texture;
-	enum TextureFormat : u8;
 
 	class TextureFactory
 	{

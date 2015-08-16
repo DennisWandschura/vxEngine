@@ -45,6 +45,7 @@ namespace vx
 	class FileEntry;
 }
 
+#include <vxResourceAspect/FileEntry.h>
 #include <vector>
 
 struct MaterialFactoryLoadDescription
@@ -55,11 +56,18 @@ struct MaterialFactoryLoadDescription
 	Material* material;
 };
 
+struct MissingTextureFile
+{
+	vx::FileEntry fileEntry;
+	bool srgb;
+};
+
 struct MaterialFactoryLoadDescNew
 {
 	const char *fileNameWithPath;
 	const ResourceManager<Graphics::Texture>* m_textureManager;
-	std::vector<vx::FileEntry>* missingFiles;
+	MissingTextureFile* missingFiles;
+	u32* missingFilesCount;
 	Material* material;
 };
 

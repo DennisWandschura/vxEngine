@@ -66,6 +66,7 @@ namespace Graphics
 		auto sid = s_objectManager->createTexture("volumetricTexture", desc);
 		auto tex = s_objectManager->getTexture(sid);
 		tex->setFilter(vx::gl::TextureFilter::LINEAR, vx::gl::TextureFilter::LINEAR);
+		tex->setWrapMode2D(vx::gl::TextureWrapMode::CLAMP_TO_BORDER, vx::gl::TextureWrapMode::CLAMP_TO_BORDER);
 
 		auto handle = tex->getTextureHandle();
 		tex->makeTextureResident();

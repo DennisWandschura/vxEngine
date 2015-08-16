@@ -28,9 +28,10 @@ SOFTWARE.
 #include <vxEngineLib/MeshFile.h>
 #include <vxLib/File/FileHeader.h>
 #include <vxEngineLib/CpuTimer.h>
+#include <fstream>
 
 TaskLoadMesh::TaskLoadMesh(TaskLoadMeshDesc &&desc)
-	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_meshManager->getScratchAllocator(), desc.m_meshManager->getScratchAllocatorMutex(),std::move(desc.evt)),
+	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_meshManager->getScratchAllocator(), desc.m_meshManager->getScratchAllocatorMutex(), std::move(desc.evt)),
 	m_meshManager(desc.m_meshManager),
 	m_sid(desc.m_sid)
 {
@@ -51,7 +52,7 @@ TaskReturnType TaskLoadMesh::runImpl()
 		return TaskReturnType::Success;
 	}
 
-	u8* fileData = nullptr;
+	managed_ptr<u8[]> fileData;
 	u32 fileDataSize = 0;
 
 	if (!loadFromFile(&fileData, &fileDataSize))
@@ -59,9 +60,17 @@ TaskReturnType TaskLoadMesh::runImpl()
 		return TaskReturnType::Failure;
 	}
 
+	SCOPE_EXIT
+	{
+		std::unique_lock<std::mutex> scratchLock;
+		auto scratchAlloc = m_meshManager->lockScratchAllocator(&scratchLock);
+		fileData.clear();
+		//scratchAlloc->deallocate(&fileData);
+	};
+
 	vx::FileHeader header;
-	memcpy(&header, fileData, sizeof(vx::FileHeader));
-	auto meshFileDataBegin = fileData + sizeof(vx::FileHeader);
+	memcpy(&header, fileData.get(), sizeof(vx::FileHeader));
+	auto meshFileDataBegin = fileData.get() + sizeof(vx::FileHeader);
 	fileDataSize -= sizeof(vx::FileHeader);
 
 	if (header.magic != header.s_magic)
@@ -82,6 +91,27 @@ TaskReturnType TaskLoadMesh::runImpl()
 
 	//auto timeMs = timer.getTimeMs();
 	//printf("mesh load time: %f\n", timeMs);
+
+	/*std::ofstream outFile;
+	outFile.open(m_fileNameWithPath);
+
+	auto &mesh = entry->getMesh();
+
+	auto vertexCount = mesh.getVertexCount();
+	auto vertices = mesh.getVertices();
+
+	outFile << "mesh\n";
+
+	for (u32 i = 0; i < vertexCount; ++i)
+	{
+		auto &v = vertices[i];
+
+		outFile << v.normal.x << " " << v.normal.y << " " << v.normal.z << "\n";
+		outFile << v.tangent.x << " " << v.tangent.y << " " << v.tangent.z << "\n";
+		outFile << v.bitangent.x << " " << v.bitangent.y << " " << v.bitangent.z << "\n";
+	}
+
+	outFile << "\n";*/
 
 	return TaskReturnType::Success;
 }

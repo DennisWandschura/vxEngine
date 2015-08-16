@@ -29,8 +29,9 @@ SOFTWARE.
 
 namespace Graphics
 {
-	enum TextureFormat : u8
+	enum class TextureFormat : u8
 	{
+		Unkown,
 		RED,
 		BG,
 		BGR,
@@ -61,6 +62,9 @@ namespace Graphics
 
 	extern u32 getRowPitch(TextureFormat format, u32 width);
 	extern u32 getTextureSize(TextureFormat format, const vx::uint2 &dim);
+
+	extern u32 textureFormatToDxgiFormat(TextureFormat format);
+	extern TextureFormat dxgiFormatToTextureFormat(u32 format);
 
 	class Face : public Surface
 	{

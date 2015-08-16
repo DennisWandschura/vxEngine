@@ -35,11 +35,45 @@ SOFTWARE.
 #include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/MessageManager.h>
 
+#include <fstream>
+
 char ResourceAspect::s_textureFolder[32] = { "data/textures/" };
 char ResourceAspect::s_materialFolder[32] = { "data/materials/" };
 char ResourceAspect::s_sceneFolder[32] = { "data/scenes/" };
 char ResourceAspect::s_meshFolder[32] = { "data/mesh/" };
 char ResourceAspect::s_animationFolder[32] = { "data/animation/" };
+
+namespace ResourceAspectCpp
+{
+	void saveMeshesToTxt(const ResourceManager<vx::MeshFile> &meshes)
+	{
+		auto &sortedData = meshes.getSortedData();
+
+		std::ofstream outFile;
+		outFile.open("meshes.txt");
+
+		for (auto &it : sortedData)
+		{
+			auto &mesh = it->getMesh();
+
+			auto vertexCount = mesh.getVertexCount();
+			auto vertices = mesh.getVertices();
+
+			outFile << "mesh\n";
+
+			for (u32 i = 0; i < vertexCount; ++i)
+			{
+				auto &v = vertices[i];
+
+				outFile << v.normal.x << " " << v.normal.y << " " << v.normal.z << "\n";
+				outFile << v.tangent.x << " " << v.tangent.y << " " << v.tangent.z << "\n";
+				outFile << v.bitangent.x << " " << v.bitangent.y << " " << v.bitangent.z << "\n";
+			}
+
+			outFile << "\n";
+		}
+	}
+}
 
 struct ResourceAspect::FileRequest
 {
@@ -130,6 +164,8 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 		arg2.ptr = userData;
 
 		pushFileMessage(vx::FileMessage::Scene_Loaded, arg1, arg2);
+
+		//ResourceAspectCpp::saveMeshesToTxt(m_meshData);
 	}break;
 	default:
 		break;
@@ -156,10 +192,10 @@ void ResourceAspect::update()
 		case EventStatus::Complete:
 		{
 			sendFileMessage(it);
-			m_meshData.clearScratchAllocator();
-			m_animationData.clearScratchAllocator();
-			m_materialData.clearScratchAllocator();
-			m_textureData.clearScratchAllocator();
+			//m_meshData.clearScratchAllocator();
+			//m_animationData.clearScratchAllocator();
+			//m_materialData.clearScratchAllocator();
+			//m_textureData.clearScratchAllocator();
 		}break;
 		default:
 			requests.push_back(it);

@@ -7,7 +7,7 @@ class Event::Data : public SmallObjectThreaded<Event::Data>
 	std::atomic_int m_refCount;
 
 public:
-	Data() :m_flag(0), m_refCount(0) {}
+	Data() :m_flag(), m_refCount() { m_flag.store(0), m_refCount.store(0); }
 	~Data() {}
 
 	void increment()

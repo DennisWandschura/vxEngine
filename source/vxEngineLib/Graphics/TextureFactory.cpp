@@ -390,6 +390,7 @@ namespace Graphics
 		auto textureType = TextureType::Flat;
 		u8 components = 4;
 		auto textureFormat = TextureFormat::BGRA;
+		u32 blockSize = 4;
 
 		// check if image is a cubemap
 		if (header.dwCaps2 & DDSCAPS2_CUBEMAP)
@@ -407,14 +408,17 @@ namespace Graphics
 			case FOURCC_DXT1:
 				textureFormat = TextureFormat::DXT1;
 				components = 3;
+				blockSize = 8;
 				break;
 			case FOURCC_DXT3:
 				textureFormat = TextureFormat::DXT3;
 				components = 4;
+				blockSize = 16;
 				break;
 			case FOURCC_DXT5:
 				textureFormat = TextureFormat::DXT5;
 				components = 4;
+				blockSize = 16;
 				break;
 			case FOURCC_DX10:
 			{
@@ -426,23 +430,27 @@ namespace Graphics
 				case DXGI_FORMAT_BC7_UNORM_SRGB:
 				{
 					components = 4;
+					blockSize = 16;
 					textureFormat = TextureFormat::BC7_UNORM_SRGB;
 				}break;
 				case DXGI_FORMAT_BC7_UNORM:
 				{
 					components = 4;
+					blockSize = 16;
 					textureFormat = TextureFormat::BC7_UNORM;
 				}break;
 
 				case DXGI_FORMAT_BC6H_UF16:
 				{
 					components = 3;
+					blockSize = 16;
 					textureFormat = TextureFormat::BC6H_UF16;
 				}break;
 
 				case DXGI_FORMAT_BC6H_SF16:
 				{
 					components = 3;
+					blockSize = 16;
 					textureFormat = TextureFormat::BC6H_SF16;
 				}break;
 				default:
@@ -458,21 +466,25 @@ namespace Graphics
 		{
 			textureFormat = TextureFormat::BGRA;
 			components = 4;
+			blockSize = 4;
 		}
 		else if (header.ddspf.dwFlags == DDSF_RGB  && header.ddspf.dwRGBBitCount == 32)
 		{
 			textureFormat = TextureFormat::BGRA;
 			components = 4;
+			blockSize = 4;
 		}
 		else if (header.ddspf.dwFlags == DDSF_RGB  && header.ddspf.dwRGBBitCount == 24)
 		{
 			textureFormat = TextureFormat::BGR;
 			components = 3;
+			blockSize = 3;
 		}
 		else if (header.ddspf.dwRGBBitCount == 8)
 		{
 			textureFormat = TextureFormat::RED;
 			components = 1;
+			blockSize = 1;
 		}
 		else
 		{
@@ -486,18 +498,18 @@ namespace Graphics
 
 													// use correct size calculation function depending on whether image is 
 													// compressed
-		u32(*sizefunc)(u32 width, u32 height, u8 compoments, TextureFormat format);
-		sizefunc = &size_rgb;
+		u32(*sizefunc)(const vx::uint2 &dim, u32 blockSize);
+		sizefunc = &detail::getSizeNormal;
 		if (isCompressed(textureFormat))
 		{
-			if (isDxt(textureFormat))
+			sizefunc = &detail::getSizeBlock;
+			/*if (isDxt(textureFormat))
 			{
-				sizefunc = &size_dxtc;
-			}
+				sizefunc = &detail::getSizeBlock;
 			else
 			{
 				sizefunc = &size_bc;
-			}
+			}*/
 		}
 
 		auto faceCount = (u32)(textureType == TextureType::Cubemap ? 6 : 1);
@@ -510,7 +522,7 @@ namespace Graphics
 			auto &face = faces[n];
 
 			// calculate surface size
-			u32 size = (*sizefunc)(dimension.x, dimension.y, components, textureFormat) * dimension.z;
+			u32 size = (*sizefunc)(vx::uint2(dimension.x, dimension.y), blockSize) * dimension.z;
 
 			// load surface
 			auto pixels = textureAllocator->allocate<u8[]>(size, 4);
@@ -559,12 +571,12 @@ namespace Graphics
 					auto &mipmap = mipmaps[i];
 
 					// calculate mipmap size
-					auto mipmapSize = (*sizefunc)(dim.x, dim.y, components, textureFormat) * dim.z;
+					auto mipmapSize = (*sizefunc)(vx::uint2(dim.x, dim.y), blockSize) * dim.z;
 
 					auto mipampPixels = textureAllocator->allocate<u8[]>(size, 4);
 					ddsData = vx::read(mipampPixels.get(), ddsData, mipmapSize);
 
-					mipmap.create(dimension, mipmapSize, std::move(mipampPixels));
+					mipmap.create(dim, mipmapSize, std::move(mipampPixels));
 
 					if (flipImage)
 					{

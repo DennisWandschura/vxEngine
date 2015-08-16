@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
 #include <vxLib/types.h>
-#include "thread.h"
 #include <atomic>
 #include <vxLib/Allocator/StackAllocator.h>
 #include "SystemAspect.h"
@@ -63,7 +62,7 @@ class Engine
 	vx::StackAllocator m_allocator;
 	u32 m_shutdown;
 	//std::thread m_fileAspectThread;
-	vx::thread m_taskManagerThread;
+	std::thread m_taskManagerThread;
 	//vx::thread m_renderThread;
 #if _VX_AUDIO
 	vx::AudioAspect m_audioAspect;

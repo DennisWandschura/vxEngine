@@ -154,6 +154,11 @@ managed_ptr_base ArrayAllocator::allocate(u32 size, u8 alignment)
 
 void ArrayAllocator::deallocate(managed_ptr_base* p)
 {
+	if (p->m_ptr == nullptr)
+		return;
+
+	VX_ASSERT(p->m_alloc == this);
+
 	auto &entry = m_entries[p->m_entryIndex];
 	auto size = entry.size;
 
@@ -176,6 +181,10 @@ void ArrayAllocator::deallocate(managed_ptr_base* p)
 	m_memoryUsed -= size;
 
 	m_update = 1;
+
+	p->m_alloc = nullptr;
+	p->m_alloc = nullptr;
+	p->m_entryIndex = 0;
 
 #if _VX_MEM_PROFILE
 	if (s_allocationProfiler)

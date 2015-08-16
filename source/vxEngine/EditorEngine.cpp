@@ -150,6 +150,8 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	if (!initializeImpl(dataDir, flipTextures))
 		return false;
 
+	m_taskManager.initialize(2, 10, 30.0f, &m_allocator);
+
 	RenderAspectDescription renderAspectDesc =
 	{
 		dataDir,
@@ -158,7 +160,8 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 		&m_allocator,
 		&g_engineConfig,
 		&m_resourceAspect,
-		&m_msgManager
+		&m_msgManager,
+		&m_taskManager
 	};
 	//renderAspectDesc.hwnd = m_panel;
 
@@ -189,6 +192,8 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 
 void EditorEngine::shutdownEditor()
 {
+	m_taskManager.shutdown();
+
 	m_resourceAspect.shutdown();
 
 	m_physicsAspect.shutdown();
@@ -206,6 +211,7 @@ void EditorEngine::shutdownEditor()
 
 void EditorEngine::stop()
 {
+	m_taskManager.stop();
 }
 
 void EditorEngine::buildNavGraph()
@@ -330,6 +336,10 @@ void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u
 void EditorEngine::editor_render()
 {
 	m_msgManager.update();
+
+	m_taskManager.update();
+
+	m_resourceAspect.update();
 
 	m_renderAspect->update();
 
