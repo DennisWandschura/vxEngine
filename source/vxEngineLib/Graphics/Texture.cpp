@@ -24,9 +24,144 @@ SOFTWARE.
 
 #include <vxEngineLib/Graphics/Texture.h>
 #include <vxEngineLib/ArrayAllocator.h>
+#include <vxEngineLib/Graphics/TextureFactory.h>
 
 namespace Graphics
 {
+	namespace detail
+	{
+		u32 getRowPitchBlock(u32 width, u32 blockSize)
+		{
+			return std::max(1u, ((width + 3) / 4)) * blockSize;
+		}
+
+		u32 getRowPitchNormal(u32 width, u32 components)
+		{
+			return width * components;
+		}
+
+		u32 getSizeNormal(const vx::uint2 &dim, u32 components)
+		{
+			return getRowPitchNormal(dim.x, components) * dim.y;
+		}
+
+		u32 getSizeBlock(const vx::uint2 &dim, u32 blockSize)
+		{
+			return getRowPitchBlock(dim.x, blockSize) * std::max(1u, (dim.y + 3) / 4);
+		}
+	}
+
+	u32 getRowPitch(TextureFormat format, u32 width)
+	{
+		switch (format)
+		{
+		case Graphics::RED:
+			return detail::getRowPitchNormal(width, 1);
+			break;
+		case Graphics::BG:
+			return detail::getRowPitchNormal(width, 2);
+			break;
+		case Graphics::BGR:
+			return detail::getRowPitchNormal(width, 3);
+			break;
+		case Graphics::BGRA:
+			return detail::getRowPitchNormal(width, 4);
+			break;
+		case Graphics::RG:
+			return detail::getRowPitchNormal(width, 2);
+			break;
+		case Graphics::RGB:
+			return detail::getRowPitchNormal(width, 3);
+			break;
+		case Graphics::RGBA:
+			return detail::getRowPitchNormal(width, 4);
+			break;
+		case Graphics::SRGBA:
+			return detail::getRowPitchNormal(width, 4);
+			break;
+		case Graphics::DXT1:
+			return detail::getRowPitchBlock(width, 8);
+			break;
+		case Graphics::DXT3:
+			return detail::getRowPitchBlock(width, 16);
+			break;
+		case Graphics::DXT5:
+			return detail::getRowPitchBlock(width, 16);
+			break;
+		case Graphics::BC7_UNORM_SRGB:
+			return detail::getRowPitchBlock(width, 16);
+			break;
+		case Graphics::BC7_UNORM:
+			return detail::getRowPitchBlock(width, 16);
+			break;
+		case Graphics::BC6H_UF16:
+			return detail::getRowPitchBlock(width, 16);
+			break;
+		case Graphics::BC6H_SF16:
+			return detail::getRowPitchBlock(width, 16);
+			break;
+		default:
+			break;
+		}
+		return 0;
+	}
+
+	u32 getTextureSize(TextureFormat format, const vx::uint2 &dim)
+	{
+		switch (format)
+		{
+		case Graphics::RED:
+			return detail::getSizeNormal(dim, 1);
+			break;
+		case Graphics::BG:
+			return detail::getSizeNormal(dim, 2);
+			break;
+		case Graphics::BGR:
+			return detail::getSizeNormal(dim, 3);
+			break;
+		case Graphics::BGRA:
+			return detail::getSizeNormal(dim, 4);
+			break;
+		case Graphics::RG:
+			return detail::getSizeNormal(dim, 2);
+			break;
+		case Graphics::RGB:
+			return detail::getSizeNormal(dim, 3);
+			break;
+		case Graphics::RGBA:
+			return detail::getSizeNormal(dim, 4);
+			break;
+		case Graphics::SRGBA:
+			return detail::getSizeNormal(dim, 4);
+			break;
+		case Graphics::DXT1:
+			return detail::getSizeNormal(dim, 8);
+			break;
+		case Graphics::DXT3:
+			return detail::getSizeBlock(dim, 16);
+			break;
+		case Graphics::DXT5:
+			return detail::getSizeBlock(dim, 16);
+			break;
+		case Graphics::BC7_UNORM_SRGB:
+			return detail::getSizeBlock(dim, 16);
+			break;
+		case Graphics::BC7_UNORM:
+			return detail::getSizeBlock(dim, 16);
+			break;
+		case Graphics::BC6H_UF16:
+			return detail::getSizeBlock(dim, 16);
+			break;
+		case Graphics::BC6H_SF16:
+			return detail::getSizeBlock(dim, 16);
+			break;
+		default:
+			break;
+		}
+
+		return 0;
+	}
+
 	Face::Face()
 		:Surface(),
 		m_mipmaps(),
@@ -146,5 +281,15 @@ namespace Graphics
 		m_faces.clear();
 		m_faceCount = 0;
 		m_components = 0;
+	}
+
+	u32 Texture::getFaceSize(u32 i)
+	{
+
+	}
+
+	u32 Texture::getFaceRowPitch(u32 i)
+	{
+
 	}
 }

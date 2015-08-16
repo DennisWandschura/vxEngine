@@ -46,8 +46,5 @@ namespace Graphics
 
 		static bool createDDSFromMemory(const u8* ddsData, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator);
 		static bool createPngFromMemory(const u8* pngData, u32 size, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator);
-
-		static u32 getTextureSize(TextureFormat format, const vx::uint2 &dim);
-		static u32 getRowPitch(TextureFormat format, u32 width);
 	};
 }

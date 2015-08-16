@@ -50,6 +50,18 @@ namespace Graphics
 
 	enum class TextureType : u8 { Flat, Cubemap, Volume };
 
+	namespace detail
+	{
+		extern u32 getRowPitchBlock(u32 width, u32 blockSize);
+		extern u32 getRowPitchNormal(u32 width, u32 components);
+
+		extern u32 getSizeNormal(const vx::uint2 &dim, u32 components);
+		extern u32 getSizeBlock(const vx::uint2 &dim, u32 blockSize);
+	}
+
+	extern u32 getRowPitch(TextureFormat format, u32 width);
+	extern u32 getTextureSize(TextureFormat format, const vx::uint2 &dim);
+
 	class Face : public Surface
 	{
 		managed_ptr<Surface[]> m_mipmaps;
@@ -99,7 +111,10 @@ namespace Graphics
 
 		TextureFormat getFormat() const { return m_format; }
 
-		u32 getFaceCount() const;
+		u32 getFaceSize(u32 i);
+		u32 getFaceRowPitch(u32 i);
+
+		u32 getFaceCount() const { return m_faceCount; }
 		u8 getComponents() const { return m_components; }
 	};
 }
