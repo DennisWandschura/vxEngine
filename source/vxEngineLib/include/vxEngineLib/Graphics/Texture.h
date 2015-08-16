@@ -38,6 +38,7 @@ namespace Graphics
 		RG,
 		RGB,
 		RGBA,
+		SRGBA,
 		DXT1,
 		DXT3,
 		DXT5,
