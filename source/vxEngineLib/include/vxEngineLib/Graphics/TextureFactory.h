@@ -31,19 +31,23 @@ namespace vx
 	class StackAllocator;
 }
 
-#include <vxLib/types.h>
+#include <vxLib/math/Vector.h>
 
 namespace Graphics
 {
 	class Texture;
+	enum TextureFormat : u8;
 
 	class TextureFactory
 	{
 	public:
-		static bool createDDSFromFile(const char* ddsFile, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
-		static bool createPngFromFile(const char* pngFile, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
+		static bool createDDSFromFile(const char* ddsFile, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
+		static bool createPngFromFile(const char* pngFile, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
 
-		static bool createDDSFromMemory(const u8* ddsData, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator);
-		static bool createPngFromMemory(const u8* pngData, u32 size, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator);
+		static bool createDDSFromMemory(const u8* ddsData, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator);
+		static bool createPngFromMemory(const u8* pngData, u32 size, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator);
+
+		static u32 getTextureSize(TextureFormat format, const vx::uint2 &dim);
+		static u32 getRowPitch(TextureFormat format, u32 width);
 	};
 }

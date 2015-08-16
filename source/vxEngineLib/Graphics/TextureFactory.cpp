@@ -30,6 +30,7 @@ SOFTWARE.
 #include <vxLib/stb_image.h>
 #include <vxEngineLib/memcpy.h>
 #include <vxEngineLib/ArrayAllocator.h>
+#include <algorithm>
 
 namespace Graphics
 {
@@ -76,7 +77,7 @@ namespace Graphics
 
 	u32 size_dxtc(u32 width, u32 height, u8, TextureFormat format)
 	{
-		return ((width + 3) / 4)*((height + 3) / 4)*
+		return ((width + 3) / 4) * ((height + 3) / 4) *
 			(format == TextureFormat::DXT1 ? 8 : 16);
 	}
 
@@ -89,9 +90,18 @@ namespace Graphics
 
 	u32 size_bc(u32 width, u32 height, u8, TextureFormat)
 	{
-		return ((width + 3) / 4)*((height + 3) / 4) * 16;
+		return ((width + 3) / 4) * ((height + 3) / 4) * 16;
 	}
 
+	u32 rowPitchBlock(u32 width, u32 blockSize)
+	{
+		return std::max(1u, ((width + 3) / 4)) * blockSize;
+	}
+
+	u32 rowPitchNormal(u32 width, u32 components)
+	{
+		return width * components;
+	}
 
 	void swap(void *byte1, void *byte2, u32 size)
 	{
@@ -340,7 +350,7 @@ namespace Graphics
 		}
 	}
 
-	bool TextureFactory::createDDSFromFile(const char* ddsFile, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
+	bool TextureFactory::createDDSFromFile(const char* ddsFile, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
 	{
 		vx::File inFile;
 		if (!inFile.open(ddsFile, vx::FileAccess::Read))
@@ -352,17 +362,17 @@ namespace Graphics
 		auto marker = scratchAllocator->getMarker();
 		auto fileData = scratchAllocator->allocate(fileSize, 4);
 		VX_ASSERT(fileData != nullptr);
+		VX_ASSERT(fileSize == static_cast<u32>(fileSize));
+		inFile.read(fileData, static_cast<u32>(fileSize));
 
-		inFile.read(fileData, fileSize);
-
-		auto result = createDDSFromMemory(fileData, flipImage, texture, textureAllocator);
+		auto result = createDDSFromMemory(fileData, flipImage, srgb, texture, textureAllocator);
 
 		scratchAllocator->clear(marker);
 
 		return result;
 	}
 
-	bool TextureFactory::createDDSFromMemory(const u8* ddsData, bool flipImage, Texture* texture, ArrayAllocator* textureAllocator)
+	bool TextureFactory::createDDSFromMemory(const u8* ddsData, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator)
 	{
 		u32 magic;
 		ddsData = vx::read(magic, ddsData);
@@ -613,7 +623,7 @@ namespace Graphics
 		}
 	}
 
-	bool TextureFactory::createPngFromFile(const char* pngFile, bool flip, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
+	bool TextureFactory::createPngFromFile(const char* pngFile, bool flip, bool srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
 	{
 		vx::File inFile;
 		if (!inFile.open(pngFile, vx::FileAccess::Read))
@@ -626,17 +636,18 @@ namespace Graphics
 		auto marker = scratchAllocator->getMarker();
 		auto fileData = scratchAllocator->allocate(fileSize);
 		VX_ASSERT(fileData != nullptr);
+		VX_ASSERT(fileSize == static_cast<u32>(fileSize));
 
-		inFile.read(fileData, fileSize);
+		inFile.read(fileData, static_cast<u32>(fileSize));
 
-		auto result = createPngFromMemory(fileData, fileSize, flip, texture, textureAllocator);
+		auto result = createPngFromMemory(fileData, static_cast<u32>(fileSize), flip, srgb, texture, textureAllocator);
 
 		scratchAllocator->clear(marker);
 
 		return result;
 	}
 
-	bool TextureFactory::createPngFromMemory(const u8* pngData, u32 size, bool flip, Texture* texture, ArrayAllocator* textureAllocator)
+	bool TextureFactory::createPngFromMemory(const u8* pngData, u32 size, bool flip, bool srgb, Texture* texture, ArrayAllocator* textureAllocator)
 	{
 		s32 x, y, comp;
 		auto data = stbi_load_from_memory(pngData, size, &x, &y, &comp, 0);
@@ -647,6 +658,36 @@ namespace Graphics
 		{
 			flipImage(data, x, y, comp);
 		}
+
+		if (comp == 3)
+		{
+			auto oldDataSize = x * y * comp;
+			auto newDataSize = x * y * 4;
+
+			auto newData = std::make_unique<u8[]>(newDataSize);
+
+			auto newPtr = newData.get();
+			auto oldPtr = data;
+			for (u32 yy = 0; yy < static_cast<u32>(y); ++yy)
+			{
+				for (u32 xx = 0; xx < static_cast<u32>(x); ++xx)
+				{
+					newPtr[0] = oldPtr[0];
+					newPtr[1] = oldPtr[1];
+					newPtr[2] = oldPtr[2];
+					newPtr[3] = 255;
+
+					oldPtr += 3;
+					newPtr += 4;
+				}
+			}
+
+			comp = 4;
+
+			stbi_image_free(data);
+			data = newData.release();
+		}
+
 
 		auto dataSize = x * y * comp;
 
@@ -665,26 +706,153 @@ namespace Graphics
 		textureAllocator->construct<Face>(&face[0]);
 		face[0].create(vx::uint3(x, y, 1), dataSize, std::move(faceData));
 
+
 		TextureFormat format = TextureFormat::RGBA;
-		switch (comp)
+		if (srgb)
 		{
-		case 4:
-			format = TextureFormat::RGBA;
+			switch (comp)
+			{
+			case 4:
+				format = TextureFormat::SRGBA;
+				break;
+			default:
+				VX_ASSERT(false);
+				break;
+			}
+		}
+		else
+		{
+			switch (comp)
+			{
+			case 4:
+				format = TextureFormat::RGBA;
+				break;
+			case 3:
+				format = TextureFormat::RGB;
+				break;
+			case 2:
+				format = TextureFormat::RG;
+				break;
+			case 1:
+				format = TextureFormat::RED;
+				break;
+			default:
+				break;
+			}
+		}
+
+		texture->create(std::move(face), format, TextureType::Flat, comp);
+		return true;
+	}
+
+	u32 TextureFactory::getTextureSize(TextureFormat format, const vx::uint2 &dim)
+	{
+		switch (format)
+		{
+		case Graphics::RED:
+			return size_rgb(dim.x, dim.y, 1, format);
 			break;
-		case 3:
-			format = TextureFormat::RGB;
+		case Graphics::BG:
+			return size_rgb(dim.x, dim.y, 2, format);
 			break;
-		case 2:
-			format = TextureFormat::RG;
+		case Graphics::BGR:
+			return size_rgb(dim.x, dim.y, 3, format);
 			break;
-		case 1:
-			format = TextureFormat::RED;
+		case Graphics::BGRA:
+			return size_rgb(dim.x, dim.y, 4, format);
+			break;
+		case Graphics::RG:
+			return size_rgb(dim.x, dim.y, 2, format);
+			break;
+		case Graphics::RGB:
+			return size_rgb(dim.x, dim.y, 3, format);
+			break;
+		case Graphics::RGBA:
+			return size_rgb(dim.x, dim.y, 4, format);
+			break;
+		case Graphics::SRGBA:
+			return size_rgb(dim.x, dim.y, 4, format);
+			break;
+		case Graphics::DXT1:
+			return size_dxtc(dim.x, dim.y, 0, format);
+			break;
+		case Graphics::DXT3:
+			return size_dxtc(dim.x, dim.y, 0, format);
+			break;
+		case Graphics::DXT5:
+			return size_dxtc(dim.x, dim.y, 0, format);
+			break;
+		case Graphics::BC7_UNORM_SRGB:
+			return size_bc(dim.x, dim.y, 0, format);
+			break;
+		case Graphics::BC7_UNORM:
+			return size_bc(dim.x, dim.y, 0, format);
+			break;
+		case Graphics::BC6H_UF16:
+			return size_bc(dim.x, dim.y, 0, format);
+			break;
+		case Graphics::BC6H_SF16:
+			return size_bc(dim.x, dim.y, 0, format);
 			break;
 		default:
 			break;
 		}
 
-		texture->create(std::move(face), format, TextureType::Flat, comp);
-		return true;
+		return 0;
+	}
+
+	u32 TextureFactory::getRowPitch(TextureFormat format, u32 width)
+	{
+		switch (format)
+		{
+		case Graphics::RED:
+			return rowPitchNormal(width, 1);
+			break;
+		case Graphics::BG:
+			return rowPitchNormal(width, 2);
+			break;
+		case Graphics::BGR:
+			return rowPitchNormal(width, 3);
+			break;
+		case Graphics::BGRA:
+			return rowPitchNormal(width, 4);
+			break;
+		case Graphics::RG:
+			return rowPitchNormal(width, 2);
+			break;
+		case Graphics::RGB:
+			return rowPitchNormal(width, 3);
+			break;
+		case Graphics::RGBA:
+			return rowPitchNormal(width, 4);
+			break;
+		case Graphics::SRGBA:
+			return rowPitchNormal(width, 4);
+			break;
+		case Graphics::DXT1:
+			return rowPitchBlock(width, 8);
+			break;
+		case Graphics::DXT3:
+			return rowPitchBlock(width, 16);
+			break;
+		case Graphics::DXT5:
+			return rowPitchBlock(width, 16);
+			break;
+		case Graphics::BC7_UNORM_SRGB:
+			return rowPitchBlock(width, 16);
+			break;
+		case Graphics::BC7_UNORM:
+			return rowPitchBlock(width, 16);
+			break;
+		case Graphics::BC6H_UF16:
+			return rowPitchBlock(width, 16);
+			break;
+		case Graphics::BC6H_SF16:
+			return rowPitchBlock(width, 16);
+			break;
+		default:
+			break;
+		}
+		return 0;
 	}
 }
