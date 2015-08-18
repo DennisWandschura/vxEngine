@@ -34,6 +34,11 @@ SOFTWARE.
 #include <vxEngineLib/Message.h>
 #include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/MessageManager.h>
+#include "TaskLoadMesh.h"
+#include "TaskLoadTexture.h"
+#include "TaskLoadMaterial.h"
+#include "TaskLoadFbx.h"
+#include "TaskSaveEditorScene.h"
 
 #include <fstream>
 
@@ -42,6 +47,7 @@ char ResourceAspect::s_materialFolder[32] = { "data/materials/" };
 char ResourceAspect::s_sceneFolder[32] = { "data/scenes/" };
 char ResourceAspect::s_meshFolder[32] = { "data/mesh/" };
 char ResourceAspect::s_animationFolder[32] = { "data/animation/" };
+char ResourceAspect::s_assetFolder[32] = { "../../../assets/" };
 
 namespace ResourceAspectCpp
 {
@@ -83,6 +89,18 @@ struct ResourceAspect::FileRequest
 	void* userData;
 };
 
+struct ResourceAspect::TaskLoadFileDesc
+{
+	char(&fileNameWithPath)[64];
+	const char* fileName;
+	vx::StringID sid;
+	void* p;
+	vx::FileType type;
+
+	TaskLoadFileDesc(char(&fileNameWithPath_)[64], const char* filename_, const vx::StringID &sid_, void* ptr, vx::FileType type_)
+		:fileNameWithPath(fileNameWithPath_), fileName(filename_), sid(sid_), p(ptr), type(type_) {}
+};
+
 ResourceAspect::ResourceAspect()
 {
 
@@ -100,11 +118,12 @@ void ResourceAspect::setDirectories(const std::string &dataDir)
 	strcpy_s(s_sceneFolder, (dataDir + "scenes/").c_str());
 	strcpy_s(s_meshFolder, (dataDir + "mesh/").c_str());
 	strcpy_s(s_animationFolder, (dataDir + "animation/").c_str());
+	strcpy_s(s_assetFolder, (dataDir + "../../assets/").c_str());
 
 	//strcpy_s(FileAspectCpp::g_assetFolder, (dataDir + "../../assets/").c_str());
 }
 
-bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures)
+bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, physx::PxCooking* cooking, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures)
 {
 	if (!m_meshData.initialize(255, 10 MBYTE, 5 MBYTE, mainAllocator))
 		return false;
@@ -124,6 +143,7 @@ bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::st
 	setDirectories(dataDir);
 
 	m_flipTextures = flipTextures;
+	m_cooking = cooking;
 
 	return true;
 }
@@ -167,6 +187,36 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 
 		//ResourceAspectCpp::saveMeshesToTxt(m_meshData);
 	}break;
+	case vx::FileType::Mesh:
+	{
+		vx::Variant arg1;
+		arg1.u64 = sid.value;
+
+		vx::Variant arg2;
+		arg2.ptr = userData;
+
+		pushFileMessage(vx::FileMessage::Mesh_Loaded, arg1, arg2);
+	} break;
+	case vx::FileType::Material:
+	{
+		vx::Variant arg1;
+		arg1.u64 = sid.value;
+
+		vx::Variant arg2;
+		arg2.ptr = userData;
+
+		pushFileMessage(vx::FileMessage::Material_Loaded, arg1, arg2);
+	} break;
+	case vx::FileType::Fbx:
+	{
+		vx::Variant arg1;
+		arg1.u64 = sid.value;
+
+		vx::Variant arg2;
+		arg2.ptr = userData;
+
+		pushFileMessage(vx::FileMessage::Fbx_Loaded, arg1, arg2);
+	} break;
 	default:
 		break;
 	}
@@ -178,6 +228,8 @@ void ResourceAspect::update()
 	m_materialData.update();
 	m_animationData.update();
 	m_textureData.update();
+
+	std::lock_guard<std::mutex> lock(m_requestMutex);
 
 	std::vector<FileRequest> requests;
 	requests.reserve(m_requests.size());
@@ -192,10 +244,6 @@ void ResourceAspect::update()
 		case EventStatus::Complete:
 		{
 			sendFileMessage(it);
-			//m_meshData.clearScratchAllocator();
-			//m_animationData.clearScratchAllocator();
-			//m_materialData.clearScratchAllocator();
-			//m_textureData.clearScratchAllocator();
 		}break;
 		default:
 			requests.push_back(it);
@@ -208,6 +256,8 @@ void ResourceAspect::update()
 
 void ResourceAspect::pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, void* userData)
 {
+	std::lock_guard<std::mutex> lock(m_requestMutex);
+
 	FileRequest request;
 	request.m_event = evt;
 	request.m_sid = sid;
@@ -216,7 +266,146 @@ void ResourceAspect::pushFileRequest(vx::FileType fileType, const vx::StringID &
 	m_requests.push_back(request);
 }
 
-void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
+void ResourceAspect::pushTask(Task* task, vx::FileType type, const vx::StringID &sid, const Event &evt, void* p)
+{
+	m_taskManager->pushTask(task);
+
+	pushFileRequest(type, sid, evt, p);
+}
+
+void ResourceAspect::taskGetFileNameWithPath(const TaskLoadFileDesc &desc, const char* folder)
+{
+	auto returnCode = sprintf_s(desc.fileNameWithPath, "%s%s", folder, desc.fileName);
+	if (returnCode == -1)
+	{
+		VX_ASSERT(false);
+	}
+}
+
+void ResourceAspect::taskLoadScene(const TaskLoadFileDesc &desc, const char* folder)
+{
+	taskGetFileNameWithPath(desc, folder);
+
+	TaskLoadSceneDirectories directories;
+	directories.meshDir = s_meshFolder;
+	directories.materialDir = s_materialFolder;
+	directories.textureDir = s_textureFolder;
+	directories.animDir = s_animationFolder;
+
+	auto evt = Event::createEvent();
+	auto scene = (Scene*)desc.p;
+	TaskLoadSceneDesc loadDesc
+	{
+		std::string(desc.fileNameWithPath),
+		&m_meshData,
+		&m_materialData,
+		&m_animationData,
+		&m_textureData,
+		scene,
+		m_taskManager,
+		evt,
+		directories,
+		m_flipTextures
+	};
+
+	auto task = new TaskLoadScene(std::move(loadDesc));
+	pushTask(task, desc.type, desc.sid, evt, desc.p);
+}
+
+void ResourceAspect::taskLoadMesh(const TaskLoadFileDesc &desc, const char* folder)
+{
+	taskGetFileNameWithPath(desc, folder);
+
+	auto evt = Event::createEvent();
+
+	TaskLoadMeshDesc loadDesc;
+	loadDesc.evt = evt;
+	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
+	loadDesc.m_meshManager = &m_meshData;
+	loadDesc.m_sid = desc.sid;
+
+	auto task = new TaskLoadMesh(std::move(loadDesc));
+	pushTask(task, desc.type, desc.sid, evt, desc.p);
+}
+
+void ResourceAspect::taskLoadTexture(const TaskLoadFileDesc &desc, const char* folder)
+{
+	taskGetFileNameWithPath(desc, folder);
+
+	auto evt = Event::createEvent();
+
+	TaskLoadTextureDesc loadDesc;
+	loadDesc.evt = evt;
+	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
+	loadDesc.m_flipImage = true;
+	loadDesc.m_sid = desc.sid;
+	// need srgb flag
+	VX_ASSERT(false);
+	loadDesc.m_srgb = false;
+	loadDesc.m_textureManager = &m_textureData;
+
+	auto task = new TaskLoadTexture(std::move(loadDesc));
+	pushTask(task, desc.type, desc.sid, evt, desc.p);
+}
+
+void ResourceAspect::taskLoadMaterial(const TaskLoadFileDesc &desc, const char* folder)
+{
+	taskGetFileNameWithPath(desc, folder);
+
+	auto evt = Event::createEvent();
+
+	TaskLoadMaterialDesc loadDesc;
+	loadDesc.evt = evt;
+	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
+	loadDesc.m_flipImage = true;
+	loadDesc.m_materialManager = &m_materialData;
+	loadDesc.m_sid = desc.sid;
+	loadDesc.m_taskManager = m_taskManager;
+	loadDesc.m_textureFolder = s_textureFolder;
+	loadDesc.m_textureManager = &m_textureData;
+
+	auto task = new TaskLoadMaterial(std::move(loadDesc));
+	pushTask(task, desc.type, desc.sid, evt, desc.p);
+}
+
+void ResourceAspect::taskLoadFbx(const TaskLoadFileDesc &desc, const char* folder)
+{
+	taskGetFileNameWithPath(desc, folder);
+
+	PhsyxMeshType physxMeshType = (PhsyxMeshType)reinterpret_cast<u32>(desc.p);
+
+	auto evt = Event::createEvent();
+
+	TaskLoadFbxDesc loadDesc;
+	loadDesc.m_animationFolder = s_animationFolder;
+	loadDesc.m_cooking = m_cooking;
+	loadDesc.m_event = evt;
+	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
+	loadDesc.m_meshFolder = s_meshFolder;
+	loadDesc.m_meshManager = &m_meshData;
+	loadDesc.m_physxMeshType = physxMeshType;
+	loadDesc.m_resourceAspect = this;
+	loadDesc.m_userData = desc.p;
+
+	auto task = new TaskLoadFbx(std::move(loadDesc));
+	pushTask(task, desc.type, desc.sid, evt, desc.p);
+}
+
+void ResourceAspect::taskSaveEditorScene(const TaskLoadFileDesc &desc, const char* folder)
+{
+	taskGetFileNameWithPath(desc, folder);
+	auto evt = Event::createEvent();
+
+	TaskSaveEditorSceneDesc loadDesc;
+	loadDesc.m_evt = evt;
+	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
+	loadDesc.m_scene = (Editor::Scene*)desc.p;
+
+	auto task = new TaskSaveEditorScene(std::move(loadDesc));
+	pushTask(task, desc.type, desc.sid, evt, desc.p);
+}
+
+void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg)
 {
 	char fileNameWithPath[64];
 
@@ -224,60 +413,35 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 	auto sid = fileEntry.getSid();
 	auto fileName = fileEntry.getString();
 
+	TaskLoadFileDesc desc
+	{
+		fileNameWithPath,
+		fileName,
+		sid,
+		arg.ptr,
+		type
+	};
+
 	switch (type)
 	{
 	case vx::FileType::Scene:
 	{
-		//*folder = s_sceneFolder;
-
-		const char* folder = s_sceneFolder;
-
-		auto returnCode = sprintf_s(fileNameWithPath, "%s%s", folder, fileName);
-		if (returnCode == -1)
-		{
-			VX_ASSERT(false);
-		}
-
-		TaskLoadSceneDirectories directories;
-		directories.meshDir = s_meshFolder;
-		directories.materialDir = s_materialFolder;
-		directories.textureDir = s_textureFolder;
-		directories.animDir = s_animationFolder;
-
-		auto evt = Event::createEvent();
-		auto scene = (Scene*)p;
-		TaskLoadSceneDesc desc
-		{
-			std::string(fileNameWithPath),
-			&m_meshData,
-			&m_materialData,
-			&m_animationData,
-			&m_textureData,
-			scene,
-			m_taskManager,
-			evt,
-			directories,
-			m_flipTextures
-		};
-
-		auto task = new TaskLoadScene(std::move(desc));
-		m_taskManager->pushTask(task);
-
-		pushFileRequest(type, sid, evt, p);
+		taskLoadScene(desc, s_sceneFolder);
 	}break;
 	case vx::FileType::Invalid:
 		break;
 	case vx::FileType::Mesh:
 	{
-		//*folder = s_meshFolder;
+		taskLoadMesh(desc, s_meshFolder);
 	}break;
 	case vx::FileType::Texture:
 	{
+		VX_ASSERT(false);
 		//*folder = s_textureFolder;
 	}break;
 	case vx::FileType::Material:
 	{
-		//*folder = s_materialFolder;
+		taskLoadMaterial(desc, s_materialFolder);
 	}break;
 	case vx::FileType::EditorScene:
 	{
@@ -285,10 +449,11 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 	}break;
 	case vx::FileType::Fbx:
 	{
-		// *folder = FileAspectCpp::g_assetFolder;
+		taskLoadFbx(desc, s_assetFolder);
 	}break;
 	case vx::FileType::Animation:
 	{
+		//VX_ASSERT(false);
 		//*folder = s_animationFolder;
 	}break;
 	default:
@@ -296,9 +461,116 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
 	}
 }
 
+/*
+LoadFileReturnType FileAspect::saveFile(const FileRequest &request, vx::Variant* p)
+{
+const char* fileName = request.m_fileEntry.getString();
+auto fileType = request.m_fileEntry.getType();
+
+vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Trying to save file %s", fileName);
+
+p->u64 = request.m_fileEntry.getSid().value;
+
+LoadFileReturnType result;
+result.result = 0;
+result.type = fileType;
+
+const char *folder = "";
+getFolderString(fileType, &folder);
+
+char file[64];
+sprintf_s(file, "%s%s", folder, fileName);
+
+vx::File f;
+if (!f.create(file, vx::FileAccess::Write))
+{
+LOG_ERROR_ARGS(m_logfile, "Error opening file '%s'\n", false, file);
+vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error opening file '%s'\n", file);
+return result;
+}
+
+SCOPE_EXIT
+{
+f.close();
+};
+
+u8 saveResult = 0;
+switch (fileType)
+{
+case vx::FileType::EditorScene:
+{
+auto scene = (Editor::Scene*)request.userData;
+VX_ASSERT(scene != nullptr);
+
+SceneFactory::saveToFile(*scene, &f);
+
+saveResult = 1;
+if (saveResult == 0)
+{
+vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Error saving scene !");
+LOG_ERROR_ARGS(m_logfile, "Error saving scene '%s'\n", false, file);
+}
+else
+{
+vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Saved Scene");
+LOG_ARGS(m_logfile, "Saved scene '%s'\n", false, file);
+}
+
+SceneFactory::deleteScene(scene);
+}break;
+case vx::FileType::Mesh:
+{
+auto meshFileRef = (ReferenceCounted<vx::MeshFile>*)request.userData;
+auto &meshFile = meshFileRef->get();
+
+meshFile; meshFile.getGlobalVersion();
+
+vx::FileFactory::saveToFile(&f, &meshFile);
+
+vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Saved Mesh %s", fileName);
+
+saveResult = 1;
+}break;
+default:
+return result;
+break;
+}
+
+result.result = saveResult;
+
+return result;
+}
+*/
+
 void ResourceAspect::requestSaveFile(const vx::FileEntry &fileEntry, void* p)
 {
+	auto fileType = fileEntry.getType();
+	const char* fileName = fileEntry.getString();
+	auto sid = fileEntry.getSid();
 
+	/*const char *folder = "";
+	getFolderString(fileType, &folder);
+
+	char file[64];
+	sprintf_s(file, "%s%s", folder, fileName);*/
+
+	char fileNameWithPath[64];
+	TaskLoadFileDesc desc
+	{
+		fileNameWithPath,
+		fileName,
+		sid,
+		p,
+		fileType
+	};
+
+	switch (fileType)
+	{
+	case vx::FileType::EditorScene:
+	{
+		taskSaveEditorScene(desc, s_sceneFolder);
+	}break;
+	}
 }
 
 const Graphics::Texture* ResourceAspect::getTexture(const vx::StringID &sid) const

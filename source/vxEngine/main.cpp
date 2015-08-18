@@ -80,48 +80,6 @@ namespace
 	}
 }
 
-vx::float2 encodeNormal(const vx::float3 &n)
-{
-	vx::float2 enc;
-	enc.x = atan2(n.y, n.x) / vx::VX_PI;
-	enc.y = n.z;
-
-	return (enc + 1.0) * 0.5;
-}
-
-vx::float3 decodeNormal(const vx::float2 &enc)
-{
-	vx::float3 n;
-
-	vx::float2 ang = enc * 2.0f - 1.0f;
-
-	float tmp = ang.x * vx::VX_PI;
-
-	vx::float2 scth;
-	scth.x = sin(tmp);
-	scth.y = cos(tmp);
-
-	vx::float2 scphi;
-	scphi.x = (1.0f - ang.y*ang.y);
-	scphi.y = ang.y;
-
-	n.x = scth.y * scphi.x;
-	n.y = scth.x * scphi.x;
-	n.z = scphi.y;
-
-	return n;
-}
-
-f32 getLuminance(const vx::float3 &color)
-{
-	return 0.2126f *color.x + 0.7152f * color.y + 0.0722f * color.z;
-}
-
-vx::float3 getAvg(const vx::float3 &color0, const vx::float3 &color1)
-{
-	return (color0 + color1) / 2.0f;
-}
-
 int main()
 {
 	auto previousHandler = std::signal(SIGABRT, signalHandler);
@@ -129,19 +87,6 @@ int main()
 	{
 		return 1;
 	}
-
-	vx::float3 colorSample = {0.7f, 0.7f, 0.7f};
-	vx::float3 color1 = { 0.2f, 0.2f, 0.2f };
-
-	auto l0 = getLuminance(colorSample);
-	auto l1 = getLuminance(color1);
-	auto weight = (l1 - l0);
-
-	auto result0 = getAvg(colorSample, color1);
-	auto result1 = colorSample + color1 * weight;
-
-	vx::uint3 c0 = result0 * 255.0f;
-	vx::uint3 c1 = result1 * 255.0f;
 
 	HANDLE hLogFile = nullptr;
 	hLogFile = CreateFileA("log.txt", GENERIC_WRITE,
@@ -164,13 +109,13 @@ int main()
 
 	Timer mainTimer;
 	Logfile mainLogfile(mainTimer);
-	g_logfile = &mainLogfile;
 
 	if (!mainLogfile.create("logfile.xml"))
 	{
 		g_logfile = nullptr;
 		return 1;
 	}
+	g_logfile = &mainLogfile;
 
 	/*vx::float3 p0 = {-1.3f, 0, 1.9f};
 	vx::float3 p1 = { 1.14f, 0, 1.98 };
@@ -185,7 +130,6 @@ int main()
 	_CrtMemCheckpoint(&state);
 
 	Engine engine;
-	g_engine = &engine;
 
 #ifndef _RELEASE_STATIC_BUILD
 	vx::activateChannel(vx::debugPrint::Channel_FileAspect);
@@ -211,6 +155,7 @@ int main()
 		return 1;
 	}
 
+	g_engine = &engine;
 	LOG(mainLogfile, "Starting", false);
 
 	engine.start();

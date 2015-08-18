@@ -173,7 +173,7 @@ bool Engine::initializeImpl(const std::string &dataDir)
 	Locator::provide(&m_msgManager);
 
 	bool flipTextures = (g_engineConfig.m_rendererSettings.m_renderMode == Graphics::RendererSettings::Mode_GL);
-	if (!m_resourceAspect.initialize(&m_allocator, dataDir, &m_taskManager, &m_msgManager, flipTextures))
+	if (!m_resourceAspect.initialize(&m_allocator, dataDir, nullptr, &m_taskManager, &m_msgManager, flipTextures))
 		return false;
 
 	return true;
@@ -389,7 +389,9 @@ void Engine::start()
 	std::string level;
 	g_engineConfig.m_root.get("level")->as(&level);
 
-	requestLoadFile(vx::FileEntry(level.c_str(), vx::FileType::Scene), &m_scene);
+	vx::Variant arg;
+	arg.ptr = &m_scene;
+	requestLoadFile(vx::FileEntry(level.c_str(), vx::FileType::Scene), arg);
 
 	mainLoop();
 }
@@ -399,9 +401,9 @@ void Engine::stop()
 	m_bRun = 0;
 }
 
-void Engine::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
+void Engine::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg)
 {
-	m_resourceAspect.requestLoadFile(fileEntry, p);
+	m_resourceAspect.requestLoadFile(fileEntry, arg);
 }
 
 void Engine::keyPressed(u16 key)

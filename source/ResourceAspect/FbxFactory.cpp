@@ -17,6 +17,8 @@
 #include <vxEngineLib/debugPrint.h>
 #include <vxEngineLib/ArrayAllocator.h>
 #include <vxEngineLib/managed_ptr.h>
+#include <vxResourceAspect/ResourceManager.h>
+#include <vxLib/ScopeGuard.h>
 
 FbxFactory::FbxFactory()
 	:m_pFbxManager(nullptr),
@@ -258,7 +260,8 @@ bool createPhysXMesh(PhsyxMeshType meshType, const vx::float3* positions, u32 ve
 	}
 }
 
-bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator)
+bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking, 
+	std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ResourceManager<vx::MeshFile>* meshManager)
 {
 	FbxImporter* lImporter = FbxImporter::Create(m_pFbxManager, "");
 
@@ -266,17 +269,37 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 	if (!lImporter->Initialize(fbxFile, -1, m_pFbxManager->GetIOSettings()))
 	{
 		printf("Call to FbxImporter::Initialize() failed.\n");
+		printf("%s\n", fbxFile);
 		printf("Error returned: %s\n\n", lImporter->GetStatus().GetErrorString());
 		return false;
 	}
 
-	FbxScene* lScene = FbxScene::Create(m_pFbxManager, fbxFile);
+	SCOPE_EXIT
+	{
+		lImporter->Destroy();
+		lImporter = nullptr;
+	};
 
+	FbxScene* lScene = FbxScene::Create(m_pFbxManager, fbxFile);
 	// Import the contents of the file into the scene.
 	lImporter->Import(lScene);
 
 	// The file is imported, so get rid of the importer.
-	lImporter->Destroy();
+	//lImporter->Destroy();
+
+	auto &globalSettings = lScene->GetGlobalSettings();
+	//auto unit = globalSettings.GetOriginalSystemUnit();
+	auto systemUnit = globalSettings.GetSystemUnit();
+
+	//auto scale = 1.0 / systemUnit.GetScaleFactor();
+
+	/*if ((systemUnit.GetScaleFactor() - 1.0) > 0.00001)
+	{
+		FBXSDK_NAMESPACE::FbxSystemUnit OurSystemUnit(1.0);
+		OurSystemUnit.ConvertScene(lScene);
+	}*/
+
+	//auto newunit = globalSettings.GetSystemUnit();
 
 	// extract meshes
 	FBXSDK_NAMESPACE::FbxNode *lRootNode = lScene->GetRootNode();
@@ -285,6 +308,8 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 		lScene->Destroy();
 		return false;
 	}
+
+	//auto rootScale = lRootNode->LclScaling.Get();
 
 	int animStackCount = lScene->GetSrcObjectCount<FBXSDK_NAMESPACE::FbxAnimStack>();
 	auto animStack = lScene->GetSrcObject<FBXSDK_NAMESPACE::FbxAnimStack>(0);
@@ -295,7 +320,10 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 		auto pMesh = lScene->GetSrcObject<FBXSDK_NAMESPACE::FbxMesh>(i);
 
 		auto meshNode = pMesh->GetNode();
-		printf("Mesh: %s\n", pMesh->GetNode()->GetName());
+		auto transformMatrix = meshNode->EvaluateGlobalTransform();
+		auto scaleFactor = transformMatrix.GetS();
+		//printf("Mesh: %s\n", pMesh->GetNode()->GetName());
+		//auto transform = meshNode->EvaluateGlobalTransform();
 
 		auto elementTangentCount = pMesh->GetElementTangentCount();
 		auto binormals = pMesh->GetElementBinormal();
@@ -354,7 +382,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 				pMesh->GetPolygonVertexNormal(polygonIndex, i, normal);
 
 				vx::MeshVertex vertex;
-				vertex.position = vx::float3(position[0], position[1], position[2]);
+				vertex.position = vx::float3(position[0] * scaleFactor[0], position[1] * scaleFactor[1], position[2] * scaleFactor[2]);
 				vertex.normal = vx::float3(normal[0], normal[1], normal[2]);
 				vertex.tangent = vx::float3(tangent[0], tangent[1], tangent[2]);
 				vertex.bitangent = vx::float3(bitangent[0], bitangent[1], bitangent[2]);
@@ -429,7 +457,10 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 
 		u32 verticesSizeInBytes = sizeof(vx::MeshVertex) * vertexCount;
 		u32 indexSizeInBytes = sizeof(u32) * indexCount;
-		managed_ptr<u8[]> meshDataPtr = meshDataAllocator->allocate<u8[]>(verticesSizeInBytes + indexSizeInBytes, 4);
+		std::unique_lock<std::mutex> dataLock;
+		auto dataAlloc = meshManager->lockDataAllocator(&dataLock);
+		managed_ptr<u8[]> meshDataPtr = dataAlloc->allocate<u8[]>(verticesSizeInBytes + indexSizeInBytes, 4);
+		dataLock.unlock();
 
 		memcpy(meshDataPtr.get(), meshVertices.data(), verticesSizeInBytes);
 		memcpy(meshDataPtr.get() + verticesSizeInBytes, meshIndices.data(), indexSizeInBytes);
@@ -444,10 +475,14 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 		}
 
 		auto physxSize = writeBuffer.getSize();
-		managed_ptr<u8[]> physxData = meshDataAllocator->allocate<u8[]>(physxSize, 4);
+		dataLock.lock();
+		managed_ptr<u8[]> physxData = dataAlloc->allocate<u8[]>(physxSize, 4);
 		memcpy(physxData.get(), writeBuffer.getData(), physxSize);
+		dataLock.unlock();
 
+		dataLock.lock();
 		vx::MeshFile meshFile(vx::MeshFile::getGlobalVersion(), std::move(mesh), std::move(meshDataPtr), std::move(physxData), physxSize, meshType);
+		dataLock.unlock();
 
 		std::string fileName = pMesh->GetNode()->GetName();
 		std::string meshFileName = fileName + ".mesh";

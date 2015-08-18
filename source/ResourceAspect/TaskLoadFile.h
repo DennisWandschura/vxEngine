@@ -39,7 +39,7 @@ protected:
 	std::string m_fileNameWithPath;
 
 	bool loadFromFile(managed_ptr<u8[]>* ptr, u32* fileSize);
-	bool readAndCheckHeader(const u8* fileData, u32 fileSize, const u8** dataBegin, u32* dataSize, u64* crc);
+	bool readAndCheckHeader(const u8* fileData, u32 fileSize, const u8** dataBegin, u32* dataSize, u64* crc, u32* version);
 
 	TaskLoadFile(std::string &&fileNameWithPath, ArrayAllocator* scratchAllocator, std::mutex* mutex, Event &&evt);
 

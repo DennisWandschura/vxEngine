@@ -72,7 +72,7 @@ bool TaskLoadFile::loadFromFile(managed_ptr<u8[]>* outPtr, u32* outFileSize)
 	return true;
 }
 
-bool TaskLoadFile::readAndCheckHeader(const u8* fileData, u32 fileSize, const u8** outDataBegin, u32* dataSize, u64* crc)
+bool TaskLoadFile::readAndCheckHeader(const u8* fileData, u32 fileSize, const u8** outDataBegin, u32* dataSize, u64* crc, u32* version)
 {
 	vx::FileHeader headerTop;
 	memcpy(&headerTop, fileData, sizeof(vx::FileHeader));
@@ -94,6 +94,7 @@ bool TaskLoadFile::readAndCheckHeader(const u8* fileData, u32 fileSize, const u8
 
 	*outDataBegin = dataBegin;
 	*dataSize = fileSize - sizeof(vx::FileHeader) * 2;
+	*version = headerTop.version;
 	*crc = headerTop.crc;
 
 	return true;

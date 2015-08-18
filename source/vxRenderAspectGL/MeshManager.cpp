@@ -350,10 +350,19 @@ void MeshManager::setMaterial(const vx::StringID &instanceSid, u32 materialIndex
 	}
 }
 
-void MeshManager::setMesh(const vx::StringID &instanceSid, const vx::StringID &meshSid)
+void MeshManager::setMesh(const vx::StringID &instanceSid, const vx::StringID &meshSid, ResourceAspectInterface* resourceAspect)
 {
 	auto itMesh = m_meshEntries.find(meshSid);
 	auto itCmd = m_sortedDrawCommands.find(instanceSid);
+
+	if (itMesh == m_meshEntries.end())
+	{
+		auto meshFile = resourceAspect->getMesh(meshSid);
+		auto &mesh = meshFile->getMesh();
+		auto meshEntry = addMeshToGpu(mesh);
+
+		itMesh = m_meshEntries.insert(meshSid, meshEntry);
+	}
 
 	if (itCmd != m_sortedDrawCommands.end() && itMesh != m_meshEntries.end())
 	{

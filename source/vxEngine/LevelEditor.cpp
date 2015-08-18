@@ -108,7 +108,6 @@ namespace Editor
 	{
 		if (g_pEditor)
 		{
-			puts("Shutting down...");
 			g_pEditor->engine.stop();
 			g_pEditor->engine.shutdownEditor();
 			destroy(g_pEditor);
@@ -117,6 +116,7 @@ namespace Editor
 		if (g_alloc)
 		{
 			delete(g_alloc);
+			g_alloc = nullptr;
 			Task::setAllocator(nullptr);
 			Event::setAllocator(nullptr);
 		}
@@ -142,7 +142,7 @@ namespace Editor
 
 	void loadFile(const char *filename, unsigned int type, LoadFileCallback f)
 	{
-		g_pEditor->engine.editor_loadFile(filename, type, f);
+		g_pEditor->engine.editor_loadFile(filename, type, f, vx::Variant());
 	}
 
 	u64 getSid(const char *str)

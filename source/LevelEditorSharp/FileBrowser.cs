@@ -16,6 +16,16 @@ namespace LevelEditor
         EditorForm m_editorForm;
         DirectoryInfo m_currentDirectoryInfo;
 
+        private void setDataFunctionDefault()
+        {
+
+        }
+
+        private void setDataFbx()
+        {
+            var physxType = comboBoxMeshPhysxType.SelectedIndex;
+        }
+
         public FileBrowser(EditorForm editorForm)
         {
             InitializeComponent();
@@ -28,9 +38,10 @@ namespace LevelEditor
 
             m_currentDirectoryInfo = new DirectoryInfo(currentDirectoryString);
 
-            comboBoxFileTypes.Items.Add(new ItemFileExtension("Animation File", ".animation"));
-            comboBoxFileTypes.Items.Add(new ItemFileExtension("Mesh File", ".mesh"));
-            comboBoxFileTypes.Items.Add(new ItemFileExtension("FBX File", ".fbx"));
+            comboBoxFileTypes.Items.Add(new ItemFileExtension("Animation File", ".animation", setDataFunctionDefault));
+            comboBoxFileTypes.Items.Add(new ItemFileExtension("Mesh File", ".mesh", setDataFunctionDefault));
+            comboBoxFileTypes.Items.Add(new ItemFileExtension("FBX File", ".fbx", setDataFbx));
+            comboBoxFileTypes.Items.Add(new ItemFileExtension("Material File", ".material", setDataFunctionDefault));
             comboBoxFileTypes.SelectedIndex = 0;
 
             comboBoxMeshPhysxType.Items.Add("Triangle Mesh");
@@ -183,7 +194,9 @@ namespace LevelEditor
 
             var selectedType = (ItemFileExtension)comboBoxFileTypes.SelectedItem;
             var selectedExtension = selectedType.getExtension();
+            var setDataFunction = selectedType.getFunction();
 
+            setDataFunction();
             m_editorForm.importFile(fileName, selectedExtension);
 
             this.Close();

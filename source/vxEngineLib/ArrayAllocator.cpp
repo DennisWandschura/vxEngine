@@ -46,7 +46,7 @@ ArrayAllocator::~ArrayAllocator()
 	{
 		if (m_memoryUsed != 0)
 		{
-			printf("ERROR, not all entries freed !\n");
+			printf("~ArrayAllocator() ERROR, not all entries freed !\n");
 		}
 
 		m_memory = nullptr;

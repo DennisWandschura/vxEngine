@@ -4,6 +4,9 @@
 
 class ArrayAllocator;
 
+template<typename T>
+class ResourceManager;
+
 #include <fbxsdk/fbxsdk_nsbegin.h>
 
 class FbxManager;
@@ -14,6 +17,11 @@ class FbxIOSettings;
 namespace physx
 {
 	class PxCooking;
+}
+
+namespace vx
+{
+	class MeshFile;
 }
 
 #include <vxLib/File/FileHandle.h>
@@ -30,7 +38,8 @@ public:
 	FbxFactory();
 	~FbxFactory();
 
-	bool loadFile(const char *fbxFile, const std::string &meshDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking, std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ArrayAllocator* meshDataAllocator);
+	bool loadFile(const char *fbxFile, const std::string &meshDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking, 
+		std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ResourceManager<vx::MeshFile>* meshManager);
 };
 #else
 

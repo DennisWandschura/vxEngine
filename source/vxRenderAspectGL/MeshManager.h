@@ -105,5 +105,5 @@ public:
 	bool getDrawCommand(const vx::StringID &instanceSid, vx::gl::DrawElementsIndirectCommand* cmd);
 
 	void setMaterial(const vx::StringID &instanceSid, u32 materialIndex);
-	void setMesh(const vx::StringID &instanceSid, const vx::StringID &meshSid);
+	void setMesh(const vx::StringID &instanceSid, const vx::StringID &meshSid, ResourceAspectInterface* resourceAspect);
 };

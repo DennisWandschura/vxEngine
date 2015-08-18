@@ -64,7 +64,8 @@ TaskReturnType TaskLoadAnimation::runImpl()
 	const u8* dataBegin = nullptr;
 	u32 dataSize = 0;
 	u64 headerCrc = 0;
-	if (!readAndCheckHeader(fileData.get(), fileSize, &dataBegin, &dataSize, &headerCrc))
+	u32 version = 0;
+	if (!readAndCheckHeader(fileData.get(), fileSize, &dataBegin, &dataSize, &headerCrc, &version))
 	{
 		return TaskReturnType::Failure;
 	}

@@ -90,22 +90,6 @@ public:
 		m_poolData.release();
 	}
 
-	void clearScratchAllocator()
-	{
-		std::unique_lock<std::mutex> lockData(m_mutexScratchAllocator);
-		m_scratchAllocator.clear();
-	}
-
-	/*u32 getMarker()
-	{
-		return m_scratchAllocator.getMarker();
-	}
-
-	void clearScratchAllocator(u32 marker)
-	{
-		m_scratchAllocator.clear(marker);
-	}*/
-
 	void update()
 	{
 		std::unique_lock<std::mutex> lockData(m_mutexDataAllocator);

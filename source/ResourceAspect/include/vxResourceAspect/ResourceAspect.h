@@ -25,6 +25,12 @@ SOFTWARE.
 */
 
 class Event;
+class Task;
+
+namespace physx
+{
+	class PxCooking;
+}
 
 namespace vx
 {
@@ -52,9 +58,12 @@ class ResourceAspect : public ResourceAspectInterface
 	static char s_sceneFolder[32];
 	static char s_meshFolder[32];
 	static char s_animationFolder[32];
+	static char s_assetFolder[32];
 
 	struct FileRequest;
+	struct TaskLoadFileDesc;
 
+	std::mutex m_requestMutex;
 	std::vector<FileRequest> m_requests;
 
 	ResourceManager<vx::MeshFile> m_meshData;
@@ -63,6 +72,7 @@ class ResourceAspect : public ResourceAspectInterface
 	ResourceManager<Graphics::Texture> m_textureData;
 	vx::TaskManager* m_taskManager;
 	vx::MessageManager* m_msgManager;
+	physx::PxCooking* m_cooking;
 	bool m_flipTextures;
 
 	void setDirectories(const std::string &dataDir);
@@ -72,16 +82,25 @@ class ResourceAspect : public ResourceAspectInterface
 
 	void pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, void* userData);
 
+	void taskGetFileNameWithPath(const TaskLoadFileDesc &desc, const char* folder);
+	void taskLoadScene(const TaskLoadFileDesc &desc, const char* folder);
+	void taskLoadMesh(const TaskLoadFileDesc &desc, const char* folder);
+	void taskLoadMaterial(const TaskLoadFileDesc &desc, const char* folder);
+	void taskLoadTexture(const TaskLoadFileDesc &desc, const char* folder);
+	void taskLoadFbx(const TaskLoadFileDesc &desc, const char* folder);
+	void taskSaveEditorScene(const TaskLoadFileDesc &desc, const char* folder);
+	void pushTask(Task* task, vx::FileType type, const vx::StringID &sid, const Event &evt, void* p);
+
 public:
 	ResourceAspect();
 	~ResourceAspect();
 
-	bool initialize(vx::StackAllocator* mainAllocator, const std::string &dataDir, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures);
+	bool initialize(vx::StackAllocator* mainAllocator, const std::string &dataDir, physx::PxCooking* cooking, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures);
 	void shutdown();
 
 	void update();
 
-	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
+	void requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg);
 	void requestSaveFile(const vx::FileEntry &fileEntry, void* p);
 
 	const Graphics::Texture* getTexture(const vx::StringID &sid) const override;

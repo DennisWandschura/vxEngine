@@ -68,17 +68,16 @@ TaskReturnType TaskLoadMesh::runImpl()
 		//scratchAlloc->deallocate(&fileData);
 	};
 
-	vx::FileHeader header;
-	memcpy(&header, fileData.get(), sizeof(vx::FileHeader));
-	auto meshFileDataBegin = fileData.get() + sizeof(vx::FileHeader);
-	fileDataSize -= sizeof(vx::FileHeader);
-
-	if (header.magic != header.s_magic)
+	const u8* dataBegin = nullptr;
+	u32 dataSize = 0;
+	u64 crc = 0;
+	u32 version = 0;
+	if (!readAndCheckHeader(fileData.get(), fileDataSize, &dataBegin, &dataSize, &crc, &version))
 	{
 		return TaskReturnType::Failure;
 	}
 
-	auto entry = m_meshManager->insertEntry(m_sid, header.version);
+	auto entry = m_meshManager->insertEntry(m_sid, version);
 	if (!entry)
 	{
 		VX_ASSERT(false);
@@ -87,7 +86,7 @@ TaskReturnType TaskLoadMesh::runImpl()
 
 	std::unique_lock<std::mutex> dataLock;
 	auto dataAllocator = m_meshManager->lockDataAllocator(&dataLock);
-	entry->loadFromMemory(meshFileDataBegin, fileDataSize, dataAllocator);
+	entry->loadFromMemory(dataBegin, dataSize, dataAllocator);
 
 	//auto timeMs = timer.getTimeMs();
 	//printf("mesh load time: %f\n", timeMs);

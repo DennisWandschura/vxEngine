@@ -84,6 +84,12 @@
     <ClCompile Include="TaskLoadTexture.cpp">
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
+    <ClCompile Include="TaskLoadFbx.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskSaveEditorScene.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h">
@@ -138,6 +144,12 @@
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
     <ClInclude Include="TaskLoadTexture.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadFbx.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskSaveEditorScene.h">
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
   </ItemGroup>

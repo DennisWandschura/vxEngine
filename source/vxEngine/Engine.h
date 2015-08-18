@@ -95,5 +95,5 @@ public:
 	void handleMessage(const vx::Message &evt);
 	void keyPressed(u16 key);
 
-	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
+	void requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg);
 };

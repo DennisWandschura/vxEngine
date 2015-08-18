@@ -536,6 +536,7 @@ void PhysicsAspect::addMeshInstanceImpl(const MeshInstance &meshInstance, void**
 		shape = m_pPhysics->createShape(physx::PxConvexMeshGeometry(convexMesh), *pmat);
 	}break;
 	default:
+		VX_ASSERT(false);
 		break;
 	}
 

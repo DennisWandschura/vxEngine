@@ -579,6 +579,9 @@ namespace Editor
 
 		m_objectManager.createBuffer("editorTextureBuffer", bufferDesc);
 
+		ddsFileLight.clear();
+		ddsFileSpawn.clear();
+
 		return true;
 	}
 
@@ -945,7 +948,7 @@ namespace Editor
 
 	bool RenderAspect::setMeshInstanceMesh(const vx::StringID &sid, const vx::StringID &meshSid)
 	{
-		m_meshManager.setMesh(sid, meshSid);
+		m_meshManager.setMesh(sid, meshSid, m_resourceAspect);
 
 		return true;
 	}

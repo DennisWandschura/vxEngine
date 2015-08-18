@@ -111,7 +111,7 @@ public:
 	void editor_saveScene(const char* name);
 
 	void editor_render();
-	void editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f);
+	void editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f, vx::Variant arg);
 
 	void editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ);
 	void editor_rotateCamera(f32 dirX, f32 dirY, f32 dirZ);
@@ -120,7 +120,7 @@ public:
 
 	void handleMessage(const vx::Message &evt);
 
-	void requestLoadFile(const vx::FileEntry &fileEntry, void* p);
+	void requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg);
 
 	void setSelectedNavMeshVertexPosition(const vx::float3 &position);
 	bool getSelectedNavMeshVertexPosition(vx::float3* p) const;

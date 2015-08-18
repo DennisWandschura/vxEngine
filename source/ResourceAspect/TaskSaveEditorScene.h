@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,29 +24,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
-
-namespace vx
+namespace Editor
 {
-	enum class FileMessage : u16
-	{
-		// arg1 contains sid of filename, arg2 contains ptr to scene
-		Scene_Loaded,
-		EditorScene_Loaded,
-		// arg1 contains sid to file, arg2 contains ptr
-		Texture_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Material_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Mesh_Loaded,
-		Wav_Loaded,
-		Animation_Loaded,
-
-		Fbx_Loaded,
-
-		Scene_Existing,
-		Texture_Existing,
-		Material_Existing,
-		Mesh_Existing
-	};
+	class Scene;
 }
+
+#include <vxEngineLib/Task.h>
+#include <string>
+
+struct TaskSaveEditorSceneDesc
+{
+	Event m_evt;
+	std::string m_fileNameWithPath;
+	Editor::Scene* m_scene;
+};
+
+class TaskSaveEditorScene : public Task
+{
+	std::string m_fileNameWithPath;
+	Editor::Scene* m_scene;
+
+	TaskReturnType runImpl() override;
+
+public:
+	TaskSaveEditorScene(TaskSaveEditorSceneDesc &&desc);
+	~TaskSaveEditorScene();
+
+	f32 getTimeMs() const override;
+};

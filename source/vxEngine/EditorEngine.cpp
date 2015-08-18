@@ -82,7 +82,7 @@ bool EditorEngine::initializeImpl(const std::string &dataDir, bool flipTextures)
 	m_msgManager.initialize(&m_allocator, 256);
 
 	//if (!m_resourceAspect.initialize(&m_allocator, dataDir, &m_msgManager, m_physicsAspect.getCooking()))
-	if (!m_resourceAspect.initialize(&m_allocator, dataDir, nullptr, &m_msgManager, flipTextures))
+	if (!m_resourceAspect.initialize(&m_allocator, dataDir, m_physicsAspect.getCooking(), &m_taskManager, &m_msgManager, flipTextures))
 		return false;
 
 	Locator::provide(&m_resourceAspect);
@@ -125,7 +125,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	m_resolution = resolution;
 	m_panel = panel;
 
-	if (!m_physicsAspect.initialize(nullptr))
+	if (!m_physicsAspect.initialize(&m_taskManager))
 	{
 		return false;
 	}
@@ -312,9 +312,9 @@ void EditorEngine::handleFileEvent(const vx::Message &evt)
 	}
 }
 
-void EditorEngine::requestLoadFile(const vx::FileEntry &fileEntry, void* p)
+void EditorEngine::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg)
 {
-	m_resourceAspect.requestLoadFile(fileEntry, p);
+	m_resourceAspect.requestLoadFile(fileEntry, arg);
 }
 
 void EditorEngine::editor_saveScene(const char* name)
@@ -348,21 +348,22 @@ void EditorEngine::editor_render()
 	m_renderAspect->endFrame();
 }
 
-void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f)
+void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f, vx::Variant userArg)
 {
-	void *p = nullptr;
+	vx::Variant arg;
+	arg.ptr = nullptr;
 	vx::FileEntry fileEntry;
 	if (type == g_editorTypeMesh)
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Mesh);
-		p = new std::string(filename);
+		arg.ptr = new std::string(filename);
 
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Trying to load mesh %llu '%s'", fileEntry.getSid().value, filename);
 	}
 	else if (type == g_editorTypeMaterial)
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Material);
-		p = new std::string(filename);
+		arg.ptr = new std::string(filename);
 
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "Trying to load material %llu '%s'", fileEntry.getSid().value, filename);
 	}
@@ -375,17 +376,18 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 			VX_ASSERT(false);
 		}
 
-		p = m_pEditorScene;
+		arg.ptr = m_pEditorScene;
 	}
 	else if (type == g_editorTypeFbx)
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Fbx);
-		p = new std::string(filename);
+		arg.u32 = 0;
+		//p = new std::string(filename);
 	}
 	else if (type == g_editorTypeAnimation)
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Animation);
-		p = new std::string(filename);
+		arg.ptr = new std::string(filename);
 	}
 	else
 	{
@@ -396,7 +398,7 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	vx::lock_guard<vx::mutex> guard(m_editorMutex);
 	m_requestedFiles.insert(fileEntry.getSid(), std::make_pair(f, type));
 
-	m_resourceAspect.requestLoadFile(fileEntry, p);
+	m_resourceAspect.requestLoadFile(fileEntry, arg);
 }
 
 void EditorEngine::editor_moveCamera(f32 dirX, f32 dirY, f32 dirZ)
@@ -660,9 +662,9 @@ vx::StringID EditorEngine::createMeshInstance()
 {
 	auto instanceSid = m_pEditorScene->createMeshInstance();
 	auto instance = m_pEditorScene->getMeshInstance(instanceSid);
-	m_renderAspect->addMeshInstance(*instance);
-
 	m_physicsAspect.addMeshInstance(instance->getMeshInstance());
+
+	m_renderAspect->addMeshInstance(*instance);
 
 	return instanceSid;
 }

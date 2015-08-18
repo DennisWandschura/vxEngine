@@ -312,11 +312,13 @@
     </ClCompile>
     <ClCompile Include="SceneFactoryNew.cpp" />
     <ClCompile Include="TaskLoadAnimation.cpp" />
+    <ClCompile Include="TaskLoadFbx.cpp" />
     <ClCompile Include="TaskLoadFile.cpp" />
     <ClCompile Include="TaskLoadMaterial.cpp" />
     <ClCompile Include="TaskLoadMesh.cpp" />
     <ClCompile Include="TaskLoadScene.cpp" />
     <ClCompile Include="TaskLoadTexture.cpp" />
+    <ClCompile Include="TaskSaveEditorScene.cpp" />
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Editor|x64'">true</ExcludedFromBuild>
@@ -337,11 +339,13 @@
     <ClInclude Include="include\vxResourceAspect\ResourceManager.h" />
     <ClInclude Include="include\vxResourceAspect\SceneFactory.h" />
     <ClInclude Include="TaskLoadAnimation.h" />
+    <ClInclude Include="TaskLoadFbx.h" />
     <ClInclude Include="TaskLoadFile.h" />
     <ClInclude Include="TaskLoadMaterial.h" />
     <ClInclude Include="TaskLoadMesh.h" />
     <ClInclude Include="TaskLoadScene.h" />
     <ClInclude Include="TaskLoadTexture.h" />
+    <ClInclude Include="TaskSaveEditorScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
