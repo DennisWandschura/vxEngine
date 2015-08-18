@@ -1142,6 +1142,9 @@ namespace Editor
 
 	void RenderAspect::updateLightBuffer(const Light* lights, u32 count)
 	{
+		if (count == 0)
+			return;
+
 		count = std::min(count, g_maxLightCount);
 
 		auto editorLightBuffer = m_objectManager.getBuffer("editorLightBuffer");

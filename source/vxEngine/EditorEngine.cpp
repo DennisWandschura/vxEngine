@@ -282,9 +282,11 @@ void EditorEngine::handleFileEvent(const vx::Message &evt)
 		call_editorCallback(vx::StringID(evt.arg1.u64));
 
 		buildNavGraph();
-		m_renderAspect->updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 		auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
+
+		m_renderAspect->updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 		m_renderAspect->updateJoints(m_pEditorScene->getJoints(), m_pEditorScene->getJointCount(), sortedInstances);
+		m_renderAspect->updateSpawns(m_pEditorScene->getSpawns(), m_pEditorScene->getSpawnCount());
 	}break;
 	case vx::FileMessage::Animation_Loaded:
 	{

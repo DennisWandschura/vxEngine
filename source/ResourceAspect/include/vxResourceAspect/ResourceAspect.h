@@ -80,16 +80,16 @@ class ResourceAspect : public ResourceAspectInterface
 	void sendFileMessage(const FileRequest &request);
 	void pushFileMessage(vx::FileMessage type, vx::Variant arg1, vx::Variant arg2);
 
-	void pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, void* userData);
+	void pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, void* userData, std::string &&filename);
 
 	void taskGetFileNameWithPath(const TaskLoadFileDesc &desc, const char* folder);
-	void taskLoadScene(const TaskLoadFileDesc &desc, const char* folder);
+	void taskLoadScene(const TaskLoadFileDesc &desc, const char* folder, bool editor);
 	void taskLoadMesh(const TaskLoadFileDesc &desc, const char* folder);
 	void taskLoadMaterial(const TaskLoadFileDesc &desc, const char* folder);
 	void taskLoadTexture(const TaskLoadFileDesc &desc, const char* folder);
 	void taskLoadFbx(const TaskLoadFileDesc &desc, const char* folder);
 	void taskSaveEditorScene(const TaskLoadFileDesc &desc, const char* folder);
-	void pushTask(Task* task, vx::FileType type, const vx::StringID &sid, const Event &evt, void* p);
+	void pushTask(Task* task, vx::FileType type, const vx::StringID &sid, const Event &evt, void* p, std::string &&filename);
 
 public:
 	ResourceAspect();
@@ -108,6 +108,4 @@ public:
 	Material* getMaterial(const vx::StringID &sid);
 	const vx::MeshFile* getMesh(const vx::StringID &sid) const override;
 	const vx::Animation* getAnimation(const vx::StringID &sid) const override;
-
-	//const char* getLoadedFileName(const vx::StringID &sid) const;
 };

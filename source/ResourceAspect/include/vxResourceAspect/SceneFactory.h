@@ -50,6 +50,7 @@ class Scene;
 class SceneFile;
 class Material;
 class MeshInstanceFile;
+class ResourceAspect;
 
 template<typename T>
 class ResourceManager;
@@ -92,6 +93,7 @@ public:
 	static bool createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
 
 	static bool createFromMemory(const Factory::CreateSceneDescNew &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene);
+	static bool createFromMemory(const Factory::CreateSceneDescNew &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
 
 	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
 

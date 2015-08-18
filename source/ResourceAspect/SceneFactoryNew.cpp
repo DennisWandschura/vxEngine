@@ -9,6 +9,7 @@
 #include <vxEngineLib/Animation.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/MeshFile.h>
+#include <vxResourceAspect/ConverterSceneFileToEditorScene.h>
 
 namespace SceneFactoryCpp
 {
@@ -141,6 +142,60 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescNew &desc, con
 	if (result)
 	{
 		result = ConverterSceneFileToScene::convert(desc.meshManager, desc.materialManager, sceneFile, pScene);
+	}
+	else
+	{
+		//printf("Scene missing dependencies\n");
+	}
+
+	if (!result)
+	{
+		//printf("Error converting SceneFile to Scene\n");
+	}
+
+	scratchAllocator->clear(marker);
+
+	return result;
+}
+
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDescNew &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene)
+{
+	auto marker = scratchAllocator->getMarker();
+	bool result = false;
+	SceneFile sceneFile = FileFactory::load(ptr, fileSize, &result, scratchAllocator);
+
+	if (result)
+	{
+		//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded Scene File version %u", sceneFile.getVersion());
+
+
+		SceneFactoryCpp::CheckAssetsDesc checkDesc
+		{
+			desc.meshManager,
+			desc.materialManager,
+			desc.animationManager,
+			sceneFile.getMeshInstances(),
+			sceneFile.getNumMeshInstances(),
+			desc.missingFiles,
+			sceneFile.getActors(),
+			sceneFile.getActorCount()
+		};
+
+		result = SceneFactoryCpp::checkIfAssetsAreLoaded(checkDesc);
+	}
+	else
+	{
+		//printf("Failed loading scene file (wrong header/crc)\n");
+	}
+
+	if (result)
+	{
+		CreateEditorSceneDescriptionNew loadDesc;
+		loadDesc.animationData = desc.animationManager;
+		loadDesc.materialData = desc.materialManager;
+		loadDesc.meshData = desc.meshManager;
+		loadDesc.pScene = pScene;
+		result = Converter::SceneFileToEditorScene::convert(&sceneFile, loadDesc);
 	}
 	else
 	{

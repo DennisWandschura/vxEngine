@@ -31,6 +31,7 @@ SOFTWARE.
 #include <vxEngineLib/Reference.h>
 #include <vxLib/Allocator/StackAllocator.h>
 #include <mutex>
+#include <string>
 
 template<typename T>
 class ResourceManager
@@ -45,8 +46,10 @@ class ResourceManager
 	std::mutex m_mutexDataAllocator;
 	ArrayAllocator m_dataAllocator;
 
+	vx::sorted_vector<vx::StringID, std::string> m_loadedFiles;
+
 public:
-	ResourceManager():m_mutexData(), m_poolData(), m_sortedData(), m_mutexScratchAllocator(), m_scratchAllocator(), m_mutexDataAllocator(), m_dataAllocator(){}
+	ResourceManager():m_mutexData(), m_poolData(), m_sortedData(), m_mutexScratchAllocator(), m_scratchAllocator(), m_mutexDataAllocator(), m_dataAllocator(), m_loadedFiles(){}
 	~ResourceManager() {}
 
 	bool initialize(u16 capacity, u32 dataSizeInBytes, u32 scratchSizeInBytes, vx::StackAllocator* allocator)
@@ -86,6 +89,7 @@ public:
 		m_scratchAllocator.release();
 
 		std::lock_guard<std::mutex> guard2(m_mutexData);
+		m_loadedFiles.clear();
 		m_sortedData.cleanup();
 		m_poolData.release();
 	}
@@ -97,7 +101,7 @@ public:
 	}
 
 	template<typename ...Args>
-	T* insertEntry(const vx::StringID &sid, Args&& ...args)
+	T* insertEntry(const vx::StringID &sid, std::string &&filename, Args&& ...args)
 	{
 		std::lock_guard<std::mutex> guard(m_mutexData);
 
@@ -116,6 +120,7 @@ public:
 			{
 				result = ptr;
 				m_sortedData.insert(sid, ptr);
+				m_loadedFiles.insert(sid, std::move(filename));
 			}
 		}
 
@@ -152,6 +157,13 @@ public:
 		return result;
 	}
 
+	const char* getName(const vx::StringID &sid) const
+	{
+		std::lock_guard<std::mutex> guard(m_mutexData);
+		auto it = m_loadedFiles.find(sid);
+
+		return (it != m_loadedFiles.end()) ? it->c_str() : nullptr;
+	}
 	
 	ArrayAllocator* getScratchAllocator()
 	{

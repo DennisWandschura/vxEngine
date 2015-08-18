@@ -32,6 +32,7 @@ SOFTWARE.
 
 TaskLoadMesh::TaskLoadMesh(TaskLoadMeshDesc &&desc)
 	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_meshManager->getScratchAllocator(), desc.m_meshManager->getScratchAllocatorMutex(), std::move(desc.evt)),
+	m_filename(std::move(desc.m_filename)),
 	m_meshManager(desc.m_meshManager),
 	m_sid(desc.m_sid)
 {
@@ -77,7 +78,7 @@ TaskReturnType TaskLoadMesh::runImpl()
 		return TaskReturnType::Failure;
 	}
 
-	auto entry = m_meshManager->insertEntry(m_sid, version);
+	auto entry = m_meshManager->insertEntry(m_sid, std::move(m_filename), version);
 	if (!entry)
 	{
 		VX_ASSERT(false);

@@ -24,7 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class Scene;
 class Material;
 
 namespace vx
@@ -62,11 +61,12 @@ struct TaskLoadSceneDesc
 	ResourceManager<Material>* m_materialManager;
 	ResourceManager<vx::Animation>* m_animationManager;
 	ResourceManager<Graphics::Texture>* m_textureManager;
-	Scene* m_scene;
+	void* m_scene;
 	vx::TaskManager* m_taskManager;
 	Event m_evt;
 	TaskLoadSceneDirectories m_directories;
 	bool m_flipImage;
+	bool m_editor;
 };
 
 class TaskLoadScene : public Task
@@ -76,11 +76,12 @@ class TaskLoadScene : public Task
 	ResourceManager<Material>* m_materialManager;
 	ResourceManager<vx::Animation>* m_animationManager;
 	ResourceManager<Graphics::Texture>* m_textureManager;
-	Scene* m_scene;
+	void* m_scene;
 	vx::StackAllocator m_scratchAllocator;
 	vx::TaskManager* m_taskManager;
 	TaskLoadSceneDirectories m_directories;
 	bool m_flipImage;
+	bool m_editor;
 
 	bool loadFile(u8** data, u32* fileSize);
 

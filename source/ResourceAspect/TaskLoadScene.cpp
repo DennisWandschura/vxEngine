@@ -48,7 +48,8 @@ TaskLoadScene::TaskLoadScene(TaskLoadSceneDesc &&rhs)
 	m_scratchAllocator((u8*)_aligned_malloc(TaskLoadSceneCpp::g_allocSize, 16), TaskLoadSceneCpp::g_allocSize),
 	m_taskManager(rhs.m_taskManager),
 	m_directories(rhs.m_directories),
-	m_flipImage(rhs.m_flipImage)
+	m_flipImage(rhs.m_flipImage),
+	m_editor(rhs.m_editor)
 {
 }
 
@@ -93,6 +94,7 @@ void TaskLoadScene::createTaskLoadMesh(const vx::FileEntry &it, std::vector<Even
 
 	TaskLoadMeshDesc desc;
 	desc.m_fileNameWithPath = std::string(fileNameWithPath);
+	desc.m_filename = fileName;
 	desc.m_meshManager = m_meshManager;
 	desc.m_sid = it.getSid();
 	desc.evt = evt;
@@ -117,6 +119,7 @@ void TaskLoadScene::createTaskLoadMaterial(const vx::FileEntry &it, std::vector<
 
 	TaskLoadMaterialDesc desc;
 	desc.m_fileNameWithPath = std::string(fileNameWithPath);
+	desc.m_filename = fileName;
 	desc.m_materialManager = m_materialManager;
 	desc.m_textureManager = m_textureManager;
 	desc.m_sid = it.getSid();
@@ -145,6 +148,7 @@ void TaskLoadScene::createTaskLoadAnimation(const vx::FileEntry &it, std::vector
 
 	TaskLoadAnimationDesc desc;
 	desc.m_fileNameWithPath = std::string(fileNameWithPath);
+	desc.m_filename = fileName;
 	desc.m_animationManager = m_animationManager;
 	desc.m_sid = it.getSid();
 	desc.evt = evt;
@@ -177,11 +181,42 @@ TaskReturnType TaskLoadScene::runImpl()
 	factoryDesc.animationManager = m_animationManager;
 	factoryDesc.missingFiles = &missingFiles;
 
-	auto created = SceneFactory::createFromMemory(factoryDesc, fileData, fileSize, &m_scratchAllocator, m_scene);
+	bool created = false;
+	if (m_editor)
+	{
+		created = SceneFactory::createFromMemory(factoryDesc, fileData, fileSize, &m_scratchAllocator, (Editor::Scene*)m_scene);
+	}
+	else
+	{
+		created = SceneFactory::createFromMemory(factoryDesc, fileData, fileSize, &m_scratchAllocator, (Scene*)m_scene);
+	}
 
 	auto result = TaskReturnType::Success;
 	if (!created)
 	{
+		std::vector<vx::FileEntry> newMissingFiles;
+		newMissingFiles.reserve(missingFiles.size());
+		for (auto &it : missingFiles)
+		{
+			bool found = false;
+			for (auto iter : newMissingFiles)
+			{
+				if (it.getType() == iter.getType() &&
+					it.getSid() == iter.getSid())
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				newMissingFiles.push_back(it);
+			}
+		}
+
+		missingFiles.swap(newMissingFiles);
+
 		std::vector<Event> fileEvents;
 
 		for (auto &it : missingFiles)
@@ -207,7 +242,7 @@ TaskReturnType TaskLoadScene::runImpl()
 			}
 		}
 
-		setTimeoutTime(1000.0f);
+		//setTimeoutTime(1000.0f);
 		setEventList(&fileEvents);
 
 		result = TaskReturnType::Retry;

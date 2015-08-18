@@ -1347,12 +1347,16 @@ namespace LevelEditor
 
             if (ext == ".scene")
             {
-                m_requestedFiles.Add(sid, filename);
+                string value;
+                if (!m_requestedFiles.TryGetValue(sid, out value))
+                {
+                    m_requestedFiles.Add(sid, filename);
+                }
 
                 NativeMethods.loadFile(filename, s_typeScene, EditorForm.loadFileCallback);
                 m_currentSceneFileName = filename;
 
-                this.Text = "vxEditor: " + filename;
+                this.Text = "vxEditor: " + m_currentSceneFileName;
             }
         }
 
@@ -1363,14 +1367,15 @@ namespace LevelEditor
         private void saveFileDialog_scene_FileOk(object sender, CancelEventArgs e)
         {
 
-            string filename = saveFileDialog_scene.FileName;
-            string filename_with_ext = System.IO.Path.GetFileName(filename);
-            string ext = System.IO.Path.GetExtension(filename);
+            string filenameWithFullPath = saveFileDialog_scene.FileName;
+            string filename_with_ext = System.IO.Path.GetFileName(filenameWithFullPath);
+            string ext = System.IO.Path.GetExtension(filenameWithFullPath);
             if (ext == ".scene")
             {
                 NativeMethods.saveScene(filename_with_ext);
+                m_currentSceneFileName = filename_with_ext;
+                this.Text = "vxEditor: " + m_currentSceneFileName;
             }
-            //  
         }
 
         public EditorState getEditorState()

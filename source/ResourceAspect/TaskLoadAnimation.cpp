@@ -28,6 +28,7 @@ SOFTWARE.
 
 TaskLoadAnimation::TaskLoadAnimation(TaskLoadAnimationDesc &&desc)
 	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_animationManager->getScratchAllocator(), desc.m_animationManager->getScratchAllocatorMutex(), std::move(desc.evt)),
+	m_filename(std::move(desc.m_filename)),
 	m_animationManager(desc.m_animationManager),
 	m_sid(desc.m_sid)
 {
@@ -81,7 +82,7 @@ TaskReturnType TaskLoadAnimation::runImpl()
 		return TaskReturnType::Failure;
 	}
 
-	auto ref = m_animationManager->insertEntry(m_sid, std::move(animFile.getAnimation()));
+	auto ref = m_animationManager->insertEntry(m_sid, std::move(m_filename), std::move(animFile.getAnimation()));
 	if (ref == nullptr)
 	{
 		return TaskReturnType::Failure;

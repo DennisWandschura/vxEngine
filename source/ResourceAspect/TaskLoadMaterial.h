@@ -47,6 +47,7 @@ class ResourceManager;
 struct TaskLoadMaterialDesc
 {
 	std::string m_fileNameWithPath;
+	std::string m_filename;
 	Event evt;
 	ResourceManager<Material>* m_materialManager;
 	ResourceManager<Graphics::Texture>* m_textureManager;
@@ -59,6 +60,7 @@ struct TaskLoadMaterialDesc
 class TaskLoadMaterial : public Task
 {
 	std::string m_fileNameWithPath;
+	std::string m_filename;
 	ResourceManager<Material>* m_materialManager;
 	ResourceManager<Graphics::Texture>* m_textureManager;
 	vx::StringID m_sid;

@@ -41,12 +41,14 @@ struct TaskLoadMeshDesc
 {
 	ResourceManager<vx::MeshFile>* m_meshManager;
 	std::string m_fileNameWithPath;
+	std::string m_filename;
 	vx::StringID m_sid;
 	Event evt;
 };
 
 class TaskLoadMesh : public TaskLoadFile
 {
+	std::string m_filename;
 	ResourceManager<vx::MeshFile>* m_meshManager;
 	vx::StringID m_sid;
 

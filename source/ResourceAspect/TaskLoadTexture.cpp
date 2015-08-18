@@ -9,6 +9,7 @@
 
 TaskLoadTexture::TaskLoadTexture(TaskLoadTextureDesc &&desc)
 	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_textureManager->getScratchAllocator(), desc.m_textureManager->getScratchAllocatorMutex(), std::move(desc.evt)),
+	m_filename(std::move(desc.m_filename)),
 	m_textureManager(desc.m_textureManager),
 	m_sid(desc.m_sid),
 	m_flipImage(desc.m_flipImage),
@@ -68,7 +69,7 @@ TaskReturnType TaskLoadTexture::runImpl()
 
 	if (result)
 	{
-		auto ref = m_textureManager->insertEntry(m_sid, std::move(texture));
+		auto ref = m_textureManager->insertEntry(m_sid, std::move(m_filename), std::move(texture));
 		VX_ASSERT(ref != nullptr);
 	}
 

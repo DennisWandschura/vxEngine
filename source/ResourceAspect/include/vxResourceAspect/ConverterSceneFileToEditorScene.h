@@ -25,7 +25,43 @@ SOFTWARE.
 */
 
 class SceneFile;
-struct CreateEditorSceneDescription;
+class Material;
+
+template<typename T>
+class ResourceManager;
+
+namespace Editor
+{
+	class Scene;
+}
+
+namespace vx
+{
+	struct Animation;
+	class MeshFile;
+}
+
+#include <vxLib/Container/sorted_vector.h>
+#include <vxLib/Container/sorted_array.h>
+#include <string>
+#include <vxLib/StringID.h>
+
+struct CreateEditorSceneDescription
+{
+	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
+	const vx::sorted_array<vx::StringID, Material*, std::less<vx::StringID>> *sortedMaterials;
+	const vx::sorted_array<vx::StringID, vx::Animation*, std::less<vx::StringID>> *sortedAnimations;
+	const vx::sorted_vector<vx::StringID, std::string> *loadedFiles;
+	Editor::Scene *pScene;
+};
+
+struct CreateEditorSceneDescriptionNew
+{
+	const ResourceManager<vx::MeshFile>* meshData;
+	const ResourceManager<Material>* materialData;
+	const ResourceManager<vx::Animation>* animationData;
+	Editor::Scene *pScene;
+};
 
 namespace Editor
 {
@@ -38,5 +74,6 @@ namespace Converter
 	{
 	public:
 		static bool convert(SceneFile *src, const CreateEditorSceneDescription &desc);
+		static bool convert(SceneFile *src, const CreateEditorSceneDescriptionNew &desc);
 	};
 }

@@ -32,6 +32,7 @@ SOFTWARE.
 TaskLoadMaterial::TaskLoadMaterial(TaskLoadMaterialDesc &&desc)
 	:Task(std::move(desc.evt)),
 	m_fileNameWithPath(std::move(desc.m_fileNameWithPath)),
+	m_filename(std::move(desc.m_filename)),
 	m_materialManager(desc.m_materialManager),
 	m_textureManager(desc.m_textureManager),
 	m_sid(desc.m_sid),
@@ -49,9 +50,11 @@ TaskLoadMaterial::~TaskLoadMaterial()
 
 TaskReturnType TaskLoadMaterial::runImpl()
 {
+	printf("TaskLoadMaterial %llu %p Start\n", m_sid.value, this);
 	auto ptr = m_materialManager->find(m_sid);
 	if (ptr != nullptr)
 	{
+		printf("TaskLoadMaterial %llu %p Success Early\n", m_sid.value, this);
 		return TaskReturnType::Success;
 	}
 
@@ -90,6 +93,7 @@ TaskReturnType TaskLoadMaterial::runImpl()
 				TaskLoadTextureDesc loadTexDesc
 				{
 					std::string(fileNameWithPath),
+					std::string(fileName),
 					evt,
 					it.fileEntry.getSid(),
 					m_textureManager,
@@ -105,22 +109,26 @@ TaskReturnType TaskLoadMaterial::runImpl()
 			}
 
 			setEventList(&events);
-			setTimeoutTime(500.0f);
+			//setTimeoutTime(500.0f);
 
+			printf("TaskLoadMaterial %llu %p Retry\n", m_sid.value, this);
 			return TaskReturnType::Retry;
 		}
 		else
 		{
+			printf("TaskLoadMaterial %llu %p Failure\n", m_sid.value, this);
 			VX_ASSERT(false);
 			return TaskReturnType::Failure;
 		}
 	}
 
-	auto ref = m_materialManager->insertEntry(m_sid, std::move(material));
+	auto ref = m_materialManager->insertEntry(m_sid, std::move(m_filename),std::move(material));
 	if (ref == nullptr)
 	{
+		printf("TaskLoadMaterial %llu %p Failure\n", m_sid.value, this);
 		return TaskReturnType::Failure;
 	}
 
+	printf("TaskLoadMaterial %llu %p Success\n", m_sid.value, this);
 	return TaskReturnType::Success;
 }

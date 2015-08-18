@@ -133,10 +133,10 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 	}
 
 	auto spawns = scene.getSpawns();
-	auto spawnCount = scene.getSpawnCount();
-	sceneFile->m_spawnCount = spawnCount;
-	if (spawnCount != 0)
+	u32 spawnCount = 0;
+	if (spawns != nullptr)
 	{
+		spawnCount = scene.getSpawnCount();
 		sceneFile->m_pSpawns = vx::make_unique<SpawnFile[]>(spawnCount);
 		
 		for (u32 i = 0; i < spawnCount; ++i)
@@ -157,6 +157,7 @@ void ConverterEditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneF
 			sceneFile->m_pSpawns[i].type = spawn.type;
 		}
 	}
+	sceneFile->m_spawnCount = spawnCount;
 
 	sceneFile->m_waypointCount = scene.m_waypointCount;
 	if (scene.m_waypointCount != 0)

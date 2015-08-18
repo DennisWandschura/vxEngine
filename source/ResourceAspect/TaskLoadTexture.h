@@ -19,6 +19,7 @@ namespace vx
 struct TaskLoadTextureDesc
 {
 	std::string m_fileNameWithPath;
+	std::string m_filename;
 	Event evt;
 	vx::StringID m_sid;
 	ResourceManager<Graphics::Texture>* m_textureManager;
@@ -29,6 +30,7 @@ struct TaskLoadTextureDesc
 class TaskLoadTexture : public TaskLoadFile
 {
 	ResourceManager<Graphics::Texture>* m_textureManager;
+	std::string m_filename;
 	vx::StringID m_sid;
 	bool m_flipImage;
 	bool m_srgb;
