@@ -23,11 +23,12 @@ SOFTWARE.
 */
 
 #include <vxEngineLib/MeshFile.h>
-#include <vxLib/Allocator/Allocator.h>
 #include <vxLib/util/CityHash.h>
 #include <vxLib/memory.h>
 #include <vxLib/File/File.h>
 #include <vxEngineLib/ArrayAllocator.h>
+#include "ConverterMeshFileV0.h"
+#include "ConverterMeshFileV1.h"
 
 namespace vx
 {
@@ -82,75 +83,6 @@ namespace vx
 		return *this;
 	}
 
-	const u8* MeshFile::loadFromMemoryV0(const u8 *ptr, u32 size, ArrayAllocator* allocator)
-	{
-		//auto p = m_mesh.loadFromMemory(ptr, allocator);
-		//if (p == nullptr)
-		//	return nullptr;
-
-		u32 meshDataSize = 0;
-		auto p = m_mesh.loadFromMemoryDataSize(ptr, &meshDataSize);
-
-		m_meshData = allocator->allocate<u8[]>(meshDataSize, 4);
-		if (m_meshData.get() == nullptr)
-		{
-			return nullptr;
-		}
-
-		p = m_mesh.loadFromMemoryData(p, m_meshData.get(), meshDataSize);
-
-		::memcpy(&m_physxDataSize, p, sizeof(u32));
-		p += sizeof(u32);
-
-		m_physxData = allocator->allocate<u8[]>(m_physxDataSize, 4);
-		if (m_physxData.get() == nullptr)
-		{
-			m_physxDataSize = 0;
-			return nullptr;
-		}
-
-		::memcpy((void*)m_physxData.get(), p, m_physxDataSize);
-		auto end = (p + m_physxDataSize);
-
-		VX_ASSERT((end - ptr) <= size);
-
-		return end;
-	}
-
-	const u8* MeshFile::loadFromMemoryV1(const u8 *ptr, u32 size, ArrayAllocator* allocator)
-	{
-		u32 meshDataSize = 0;
-		auto p = m_mesh.loadFromMemoryDataSize(ptr, &meshDataSize);
-
-		m_meshData = allocator->allocate<u8[]>(meshDataSize, 4);
-		if (m_meshData.get() == nullptr)
-		{
-			return nullptr;
-		}
-
-		p = m_mesh.loadFromMemoryData(p, m_meshData.get(), meshDataSize);
-
-		::memcpy(&m_physxDataSize, p, sizeof(u32));
-		p += sizeof(u32);
-
-		::memcpy(&m_physxMeshType, p, sizeof(PhsyxMeshType));
-		p += sizeof(PhsyxMeshType);
-
-		m_physxData = allocator->allocate<u8[]>(m_physxDataSize, 4);
-		if (m_physxData.get() == nullptr)
-		{
-			m_physxDataSize = 0;
-			return nullptr;
-		}
-
-		::memcpy((void*)m_physxData.get(), p, m_physxDataSize);
-		auto end = (p + m_physxDataSize);
-
-		VX_ASSERT((end - ptr) <= size);
-
-		return end;
-	}
-
 	const u8* MeshFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator)
 	{
 		return loadFromMemory(ptr, size, (ArrayAllocator*)allocator);
@@ -161,11 +93,11 @@ namespace vx
 		auto version = getVersion();
 		if (version == 0)
 		{
-			ptr = loadFromMemoryV0(ptr, size, allocator);
+			ptr = Converter::MeshFileV0::loadFromMemory(ptr, size, allocator, this);
 		}
 		else if (version == 1)
 		{
-			ptr = loadFromMemoryV1(ptr, size, allocator);
+			ptr = Converter::MeshFileV1::loadFromMemory(ptr, size, allocator, this);
 		}
 
 		setVersion(getGlobalVersion());
@@ -183,65 +115,19 @@ namespace vx
 
 	u64 MeshFile::getCrc() const
 	{
-		auto vertexCount = m_mesh.getVertexCount();
-		auto indexCount = m_mesh.getIndexCount();
-		auto vertices = m_mesh.getVertices();
-		auto indices = m_mesh.getIndices();
-
-		if (vertices == nullptr ||
-			indices == nullptr)
-		{
-			printf("Error creating crc !\n");
-			return 0;
-		}
-
 		auto version = getVersion();
-
-		auto meshVertexSize = sizeof(vx::MeshVertex) * vertexCount;
-		auto meshIndexSize = sizeof(u32) * indexCount;
-		auto meshSize = sizeof(u32) * 2 + meshVertexSize + meshIndexSize;
-		auto totalSize = meshSize + sizeof(u32) + m_physxDataSize;
-
-		if (version > 0)
+		
+		u64 result = 0;
+		if (version == 0)
 		{
-			totalSize += sizeof(u32);
+			result = Converter::MeshFileV0::getCrc(*this);
+		}
+		else if (version == 1)
+		{
+			result = Converter::MeshFileV1::getCrc(*this);
 		}
 
-		auto ptr = vx::make_unique<u8[]>(totalSize);
-		auto p = ptr.get();
-
-		::memcpy(p, &vertexCount, sizeof(u32));
-		p += sizeof(u32);
-
-		::memcpy(p, &indexCount, sizeof(u32));
-		p += sizeof(u32);
-
-		::memcpy(p, (u8*)vertices, meshVertexSize);
-		p += meshVertexSize;
-
-		::memcpy(p, (u8*)indices, meshIndexSize);
-		p += meshIndexSize;
-
-		::memcpy(p, &m_physxDataSize, sizeof(u32));
-		p += sizeof(u32);
-
-		if (version > 0)
-		{
-			::memcpy(p, &m_physxMeshType, sizeof(PhsyxMeshType));
-			p += sizeof(PhsyxMeshType);
-		}
-
-		::memcpy(p, m_physxData.get(), m_physxDataSize);
-		p += m_physxDataSize;
-
-		auto writtenSize = p - ptr.get();
-		if (writtenSize != totalSize)
-		{
-			printf("Error creating crc !\n");
-			return 0;
-		}
-
-		return CityHash64((char*)ptr.get(), totalSize);
+		return version;
 	}
 
 	u32 MeshFile::getGlobalVersion()

@@ -27,6 +27,12 @@ SOFTWARE.
 
 class ArrayAllocator;
 
+namespace Converter
+{
+	class MeshFileV0;
+	class MeshFileV1;
+};
+
 #include <vxEngineLib/PhysxEnums.h>
 #include <vxLib/Graphics/Mesh.h>
 #include "Serializable.h"
@@ -36,14 +42,14 @@ namespace vx
 {
 	class MeshFile : public Serializable
 	{
+		friend Converter::MeshFileV0;
+		friend Converter::MeshFileV1;
+
 		vx::Mesh m_mesh;
 		managed_ptr<u8[]> m_meshData;
 		managed_ptr<u8[]> m_physxData;
 		u32 m_physxDataSize;
 		PhsyxMeshType m_physxMeshType;
-
-		const u8* loadFromMemoryV0(const u8 *ptr, u32 size, ArrayAllocator* allocator);
-		const u8* loadFromMemoryV1(const u8 *ptr, u32 size, ArrayAllocator* allocator);
 
 		const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) override;
 
