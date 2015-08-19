@@ -70,7 +70,8 @@ namespace Converter
 			auto materialFile = instance.getMaterialFile();
 
 			auto sidName = vx::make_sid(name);
-			auto sidMesh = vx::make_sid(meshFile);
+			auto fileHandleMesh = vx::FileHandle(meshFile);
+
 			vx::StringID sidAnimation;
 			auto animName = instance.getAnimation();
 			if (animName[0] != '\0')
@@ -78,21 +79,21 @@ namespace Converter
 				auto handle = vx::FileHandle(animName);
 				sidAnimation = handle.m_sid;
 			}
-			auto meshPtr = desc.meshManager->find(sidMesh);
-			auto sidMaterial = vx::make_sid(materialFile);
-			auto materialPtr = desc.materialManager->find(sidMaterial);
+			auto meshPtr = desc.meshManager->find(fileHandleMesh.m_sid);
+			auto fileHandleMaterial = vx::FileHandle(materialFile);
+			auto materialPtr = desc.materialManager->find(fileHandleMaterial.m_sid);
 
 			if (meshPtr == nullptr || materialPtr == nullptr)
 			{
 				return false;
 			}
 
-			desc.sceneMeshes->insert(sidMesh, meshPtr);
-			desc.sceneMaterials->insert(sidMaterial, materialPtr);
+			desc.sceneMeshes->insert(fileHandleMesh.m_sid, meshPtr);
+			desc.sceneMaterials->insert(fileHandleMaterial.m_sid, materialPtr);
 
 			MeshInstanceDesc instanceDesc;
 			instanceDesc.nameSid = sidName;
-			instanceDesc.meshSid = sidMesh;
+			instanceDesc.meshSid = fileHandleMesh.m_sid;
 			instanceDesc.material = materialPtr;
 			instanceDesc.animationSid = sidAnimation;
 			instanceDesc.transform = instance.getTransform();
