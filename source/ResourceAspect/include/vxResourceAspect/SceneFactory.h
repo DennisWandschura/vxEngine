@@ -25,7 +25,6 @@ SOFTWARE.
 
 namespace vx
 {
-	class Mesh;
 	class MeshFile;
 	class StackAllocator;
 	class File;
@@ -33,9 +32,6 @@ namespace vx
 
 	struct Animation;
 	struct StringID;
-
-	template<typename K, typename T, typename Cmp>
-	class sorted_vector;
 }
 
 namespace Editor
@@ -43,39 +39,26 @@ namespace Editor
 	class Scene;
 }
 
-template<typename T>
-class Reference;
-
 class Scene;
 class SceneFile;
 class Material;
 class MeshInstanceFile;
-class ResourceAspect;
 
 template<typename T>
 class ResourceManager;
 
 #include <vxLib/types.h>
 #include <vector>
-#include <vxLib/Container/sorted_array.h>
+#include <vxLib/Container/sorted_vector.h>
 
 namespace Factory
 {
-	struct CreateSceneDesc
-	{
-		const vx::sorted_array<vx::StringID, vx::MeshFile*>* meshes;
-		const vx::sorted_array<vx::StringID, Material*>* materials;
-		const vx::sorted_array<vx::StringID, vx::Animation*>* animations;
-		const vx::sorted_vector<vx::StringID, std::string>* loadedFiles;
-		std::vector<vx::FileEntry>* pMissingFiles;
-	};
-
 	struct CreateSceneDescNew
 	{
 		ResourceManager<vx::MeshFile>* meshManager;
 		ResourceManager<Material>* materialManager;
 		ResourceManager<vx::Animation>* animationManager;
-		std::vector<vx::FileEntry>* missingFiles;
+		vx::sorted_vector<vx::StringID, vx::FileEntry>* missingFiles;
 	};
 }
 
@@ -87,10 +70,6 @@ class SceneFactory
 	static bool checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc);
 
 public:
-	static bool createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene);
-
-	static bool createFromFile(const Factory::CreateSceneDesc &desc, vx::File* file, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
-	static bool createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
 
 	static bool createFromMemory(const Factory::CreateSceneDescNew &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene);
 	static bool createFromMemory(const Factory::CreateSceneDescNew &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
