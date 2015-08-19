@@ -89,9 +89,9 @@ class EditorEngine : public vx::MessageListener
 
 	void handleFileEvent(const vx::Message &evt);
 
-	vx::float4a getRayDir(s32 mouseX, s32 mouseY);
+	vx::float4a getRayDir(s32 mouseX, s32 mouseY) const;
 
-	vx::StringID raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition);
+	vx::StringID raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition) const;
 
 	bool createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc);
 
@@ -130,17 +130,16 @@ public:
 	const char* getMeshInstanceName(u32 i) const;
 	const char* getMeshInstanceName(const vx::StringID &sid) const;
 	u64 getMeshInstanceSid(u32 i) const;
+	u64 getMeshInstanceSid(s32 mouseX, s32 mouseY) const;
 	const char* getSelectedMeshInstanceName() const;
 
+	void setSelectedMeshInstance(u64 sid);
 	u64 getSelectedMeshInstanceSid() const;
 	void setMeshInstanceMeshSid(u64 instanceSid, u64 meshSid);
 
 	u64 getMeshInstanceMeshSid(u64 instanceSid) const;
 	u64 getMeshInstanceMaterialSid(u64 instanceSid) const;
 	void getMeshInstancePosition(u64 sid, vx::float3* position);
-	bool selectMeshInstance(s32 mouseX, s32 mouseY);
-	bool selectMeshInstance(u32 i);
-	bool selectMeshInstance(u64 sid);
 	u64 deselectMeshInstance();
 
 	vx::StringID createMeshInstance();

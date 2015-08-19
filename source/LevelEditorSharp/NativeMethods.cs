@@ -150,6 +150,12 @@ namespace LevelEditor
         public unsafe static extern ulong getMeshInstanceSid(uint i);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getMeshInstanceSidRaytrace(int mouseX, int mouseY);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setSelectedMeshInstance(ulong sid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern ulong getSelectedMeshInstanceSid();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
@@ -163,15 +169,6 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void setMeshInstanceAnimation(ulong instanceSid, ulong animSid);
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern bool selectMeshInstance(int x, int y);
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern bool selectMeshInstanceIndex(uint i);
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern bool selectMeshInstanceSid(ulong sid);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern ulong deselectMeshInstance();

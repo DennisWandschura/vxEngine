@@ -1000,14 +1000,19 @@ namespace LevelEditor
                 {
                     uint index = (uint)entry.Index;
 
-                    NativeMethods.selectMeshInstanceIndex(index);
-                    var newSelectedSid = NativeMethods.getSelectedMeshInstanceSid();
+                    var sid = entry.sid;
+                    //NativeMethods.getMeshInstanceSidRaytrace(index);
+                    NativeMethods.setSelectedMeshInstance(sid);
 
-                    updateGuiSelectedMeshInstance(newSelectedSid);
+                      //var newSelectedSid = NativeMethods.getSelectedMeshInstanceSid();
+                   // if (newSelectedSid != 0)
+                   // {
+                        updateGuiSelectedMeshInstance(sid);
 
-                    m_selectedMeshInstanceSid = newSelectedSid;
+                        m_selectedMeshInstanceSid = sid;
 
-                    m_meshInstanceDataControl.Show();
+                        m_meshInstanceDataControl.Show();
+                    //}
                 }
                 else if (entry.type == s_typeMesh)
                 {
@@ -1051,9 +1056,9 @@ namespace LevelEditor
             panel_render.Focus();
         }
 
-        void setSelectedMeshInstanceNode()
+        void setSelectedMeshInstanceNode(ulong instanceSid)
         {
-            var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
+            //var instanceSid = NativeMethods.getSelectedMeshInstanceSid();
 
             EditorNodeEntry entry;
             if (m_sortedMeshInstanceNodes.TryGetValue(instanceSid, out entry))
@@ -1065,13 +1070,10 @@ namespace LevelEditor
         public bool selectMesh(int mouseX, int mouseY)
         {
             bool result = false;
-            Float3 translation;
-            translation.x = translation.y = translation.z = 0.0f;
-            if (NativeMethods.selectMeshInstance(mouseX, mouseY))
-            {
-                setSelectedMeshInstanceNode();
-                result = true;
-            }
+           // Float3 translation;
+           // translation.x = translation.y = translation.z = 0.0f;
+            var sid = NativeMethods.getMeshInstanceSidRaytrace(mouseX, mouseY);
+            selectMesh(sid);
 
             return result;
         }
@@ -1085,12 +1087,9 @@ namespace LevelEditor
 
         public void selectMesh(ulong sid)
         {
-            Float3 translation;
-            translation.x = translation.y = translation.z = 0.0f;
-
-            if (NativeMethods.selectMeshInstanceSid(sid))
+            if (sid != 0)
             {
-                setSelectedMeshInstanceNode();
+                setSelectedMeshInstanceNode(sid);
             }
         }
 

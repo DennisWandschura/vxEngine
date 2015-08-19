@@ -362,6 +362,9 @@ void EditorEngine::editor_render()
 {
 	m_msgManager.update();
 
+	//m_physicsAspect.update(1.0f/30.f);
+	//m_physicsAspect.fetch();
+
 	m_resourceAspect.update();
 
 	m_renderAspect->update();
@@ -459,7 +462,7 @@ bool EditorEngine::call_editorCallback(const vx::StringID &sid)
 	return result;
 }
 
-vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY)
+vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY) const
 {
 	f32 ndc_x = f32(mouseX) / m_resolution.x;
 	f32 ndc_y = f32(mouseY) / m_resolution.y;
@@ -485,7 +488,7 @@ vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY)
 	return ray_world;
 }
 
-vx::StringID EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition)
+vx::StringID EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, vx::float3* hitPosition) const
 {
 	auto ray_world = getRayDir(mouseX, mouseY);
 
@@ -533,6 +536,19 @@ u64 EditorEngine::getMeshInstanceSid(u32 i) const
 	return sidValue;
 }
 
+u64 EditorEngine::getMeshInstanceSid(s32 mouseX, s32 mouseY) const
+{
+	u64 result = 0;
+	if (m_pEditorScene)
+	{
+		vx::float3 p;
+		auto sid = raytraceAgainstStaticMeshes(mouseX, mouseY, &p);
+		result = sid.value;
+	}
+
+	return result;
+}
+
 const char* EditorEngine::getSelectedMeshInstanceName() const
 {
 	auto meshInstance = (MeshInstance*)m_selected.m_item;
@@ -542,6 +558,20 @@ const char* EditorEngine::getSelectedMeshInstanceName() const
 		name = m_pEditorScene->getMeshInstanceName(meshInstance->getNameSid());
 	}
 	return name;
+}
+
+void EditorEngine::setSelectedMeshInstance(u64 sid)
+{
+	if (sid != 0)
+	{
+		auto instance = m_pEditorScene->getMeshInstance(vx::StringID(sid));
+		if (instance)
+		{
+			m_renderAspect->setSelectedMeshInstance(instance);
+			m_selected.m_type = SelectedType::MeshInstance;
+			m_selected.m_item = (void*)instance;
+		}
+	}
 }
 
 u64 EditorEngine::getSelectedMeshInstanceSid() const
@@ -603,64 +633,6 @@ void EditorEngine::getMeshInstancePosition(u64 sid, vx::float3* position)
 
 	auto &transform = instance->getTransform();
 	*position = transform.m_translation;
-}
-
-bool EditorEngine::selectMeshInstance(s32 x, s32 y)
-{
-	bool result = false;
-	if (m_pEditorScene)
-	{
-		vx::float3 p;
-		auto sid = raytraceAgainstStaticMeshes(x, y, &p);
-		if (sid.value != 0)
-		{
-			auto debugName = getMeshInstanceName(sid);
-			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Editor, "selected instance %s", debugName);
-
-			auto ptr = m_pEditorScene->getMeshInstance(sid);
-			m_renderAspect->setSelectedMeshInstance(ptr);
-			m_selected.m_type = SelectedType::MeshInstance;
-			m_selected.m_item = (void*)ptr;
-
-			result = true;
-		}
-	}
-
-	return result;
-}
-
-bool EditorEngine::selectMeshInstance(u32 i)
-{
-	bool result = false;
-	if (m_pEditorScene)
-	{
-		auto instances = m_pEditorScene->getMeshInstancesEditor();
-
-		m_renderAspect->setSelectedMeshInstance(&instances[i]);
-		m_selected.m_type = SelectedType::MeshInstance;
-		m_selected.m_item = (void*)&instances[i];
-
-		result = true;
-	}
-
-	return result;
-}
-
-bool EditorEngine::selectMeshInstance(u64 sid)
-{
-	bool result = false;
-	if (m_pEditorScene)
-	{
-		auto instance = m_pEditorScene->getMeshInstance(vx::StringID(sid));
-		VX_ASSERT(instance != nullptr);
-
-		m_selected.m_type = SelectedType::MeshInstance;
-		m_selected.m_item = (void*)instance;
-
-		result = true;
-	}
-
-	return result;
 }
 
 u64 EditorEngine::deselectMeshInstance()

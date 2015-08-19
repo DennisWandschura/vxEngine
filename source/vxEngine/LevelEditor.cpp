@@ -281,24 +281,19 @@ namespace Editor
 		}
 	}
 
+	u64 getMeshInstanceSidRaytrace(s32 mouseX, s32 mouseY)
+	{
+		return g_pEditor->engine.getMeshInstanceSid(mouseX, mouseY);
+	}
+
+	void setSelectedMeshInstance(u64 sid)
+	{
+		g_pEditor->engine.setSelectedMeshInstance(sid);
+	}
+
 	u64 getMeshInstanceSid(u32 i)
 	{
 		return g_pEditor->engine.getMeshInstanceSid(i);
-	}
-
-	bool selectMeshInstance(s32 x, s32 y)
-	{
-		return g_pEditor->engine.selectMeshInstance(x, y);
-	}
-
-	bool selectMeshInstanceIndex(u32 i)
-	{
-		return g_pEditor->engine.selectMeshInstance(i);
-	}
-
-	bool selectMeshInstanceSid(u64 sid)
-	{
-		return g_pEditor->engine.selectMeshInstance(sid);
 	}
 
 	u64 deselectMeshInstance()

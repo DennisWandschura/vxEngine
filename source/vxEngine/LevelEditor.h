@@ -65,11 +65,10 @@ namespace Editor
 	extern "C" DLL_EXPORT u32 getMeshInstanceCount();
 	extern "C" DLL_EXPORT BSTR getMeshInstanceNameIndex(u32 i);
 	extern "C" DLL_EXPORT BSTR getMeshInstanceName(u64 sid);
-	extern "C" DLL_EXPORT bool selectMeshInstance(s32 x, s32 y);
-	extern "C" DLL_EXPORT bool selectMeshInstanceIndex(u32 i);
-	extern "C" DLL_EXPORT bool selectMeshInstanceSid(u64 sid);
+	extern "C" DLL_EXPORT u64 getMeshInstanceSidRaytrace(s32 mouseX, s32 mouseY);
 	extern "C" DLL_EXPORT u64 getMeshInstanceSid(u32 i);
 	extern "C" DLL_EXPORT u64 deselectMeshInstance();
+	extern "C" DLL_EXPORT void setSelectedMeshInstance(u64 sid);
 	extern "C" DLL_EXPORT BSTR getSelectedMeshInstanceName();
 	extern "C" DLL_EXPORT u64 getSelectedMeshInstanceSid();
 
