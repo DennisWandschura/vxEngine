@@ -232,14 +232,20 @@ void getAnimationLayers(FBXSDK_NAMESPACE::FbxAnimStack* animStack, FBXSDK_NAMESP
 	}
 }
 
-bool createPhysXMesh(PhsyxMeshType meshType, const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer, physx::PxCooking* cooking)
+bool createPhysXMesh(PhsyxMeshType meshType, const vx::Mesh &mesh, physx::PxDefaultMemoryOutputStream* writeBuffer, physx::PxCooking* cooking)
 {
+	auto vertexCount = mesh.getVertexCount();
+	auto vertices = mesh.getVertices();
+
 	if (meshType == PhsyxMeshType::Triangle)
 	{
+		auto indexCount = mesh.getIndexCount();
+		auto indices = mesh.getIndices();
+
 		physx::PxTriangleMeshDesc meshDesc;
 		meshDesc.points.count = vertexCount;
-		meshDesc.points.stride = sizeof(vx::float3);
-		meshDesc.points.data = positions;
+		meshDesc.points.stride = sizeof(vx::MeshVertex);
+		meshDesc.points.data = vertices;
 
 		meshDesc.triangles.count = indexCount / 3;
 		meshDesc.triangles.stride = 3 * sizeof(u32);
@@ -251,8 +257,8 @@ bool createPhysXMesh(PhsyxMeshType meshType, const vx::float3* positions, u32 ve
 	{
 		physx::PxConvexMeshDesc convexDesc;
 		convexDesc.points.count = vertexCount;
-		convexDesc.points.stride = sizeof(vx::float3);
-		convexDesc.points.data = positions;
+		convexDesc.points.stride = sizeof(vx::MeshVertex);
+		convexDesc.points.data = vertices;
 		convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
 		convexDesc.vertexLimit = 256;
 
@@ -350,12 +356,10 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 		std::vector<u32> meshIndices;
 		meshIndices.reserve(vertexCount);
 
-		std::vector<u32> fbxIndices;
-		fbxIndices.reserve(vertexCount);
+		//std::vector<u32> fbxIndices;
+		//fbxIndices.reserve(vertexCount);
 
 		auto controlPointCount = pMesh->GetControlPointsCount();
-		std::vector<vx::float3> points;
-		points.reserve(controlPointCount);
 
 		auto fbxVertices = pMesh->GetControlPoints();
 
@@ -369,7 +373,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 				auto controlPointIndex = pMesh->GetPolygonVertex(polygonIndex, i);
 				auto position = fbxVertices[controlPointIndex];
 
-				fbxIndices.push_back(controlPointIndex);
+				//fbxIndices.push_back(controlPointIndex);
 
 				auto tangent = tangentsArray.GetAt(vertexIndex);
 				auto bitangent = bitangentArray.GetAt(vertexIndex);
@@ -396,13 +400,13 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 			}
 		}
 
-		for (u32 i = 0; i < controlPointCount; ++i)
+		/*for (u32 i = 0; i < controlPointCount; ++i)
 		{
 			auto &it = fbxVertices[i];
 			points.push_back(vx::float3(it[0], it[1], it[2]));
 		}
 
-		/*std::vector<vx::MeshVertex> newVertices;
+		std::vector<vx::MeshVertex> newVertices;
 		newVertices.reserve(vertexCount);
 
 		std::vector<std::pair<u32, u32>> duplicateIndices;
@@ -468,7 +472,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 		vx::Mesh mesh(meshDataPtr.get(), vertexCount, indexCount);
 
 		physx::PxDefaultMemoryOutputStream writeBuffer;
-		if (!createPhysXMesh(meshType, points.data(), points.size(), fbxIndices.data(), fbxIndices.size(), &writeBuffer, cooking))
+		if (!createPhysXMesh(meshType, mesh, &writeBuffer, cooking))
 		{
 			printf("Error creating physx mesh\n");
 			return false;
