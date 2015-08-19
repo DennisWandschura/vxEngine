@@ -99,6 +99,10 @@ namespace vx
 		{
 			ptr = Converter::MeshFileV1::loadFromMemory(ptr, size, allocator, this);
 		}
+		else
+		{
+			VX_ASSERT(false);
+		}
 
 		setVersion(getGlobalVersion());
 
