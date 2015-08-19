@@ -135,7 +135,7 @@ bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::st
 	if (!m_animationData.initialize(64, 0, 5 MBYTE, mainAllocator))
 		return false;
 
-	if (!m_textureData.initialize(128, 50 MBYTE, 15 MBYTE, mainAllocator))
+	if (!m_textureData.initialize(128, 50 MBYTE, 20 MBYTE, mainAllocator))
 		return false;
 
 	m_taskManager = taskManager;
