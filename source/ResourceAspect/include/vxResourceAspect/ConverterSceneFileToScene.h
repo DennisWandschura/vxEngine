@@ -48,24 +48,17 @@ namespace Editor
 #include <vxLib/Container/sorted_array.h>
 #include <vxLib/StringID.h>
 
-class ConverterSceneFileToScene
+namespace Converter
 {
-	struct CreateSceneMeshInstancesDesc;
-	struct CreateSceneActorsDesc;
+	class SceneFileToScene
+	{
+		struct CreateSceneMeshInstancesDesc;
+		struct CreateSceneActorsDesc;
 
-	struct CreateSceneMeshInstancesNewDesc;
-	struct CreateSceneActorsNewDesc;
+		static bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc);
+		static bool createSceneActors(const CreateSceneActorsDesc &desc);
 
-	static bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc);
-	static bool createSceneActors(const CreateSceneActorsDesc &desc);
-
-	static bool createSceneMeshInstances(const CreateSceneMeshInstancesNewDesc &desc);
-	static bool createSceneActors(const CreateSceneActorsNewDesc &desc);
-
-public:
-	static bool convert(const vx::sorted_array<vx::StringID, vx::MeshFile*> *sortedMeshes, 
-		const vx::sorted_array<vx::StringID, Material*> *sortedMaterials, 
-		const SceneFile &sceneFile, Scene* scene);
-
-	static bool convert(const ResourceManager<vx::MeshFile>* meshManager, const ResourceManager<Material>* materialManager, const SceneFile &sceneFile, Scene* scene);
-};
+	public:
+		static bool convert(const ResourceManager<vx::MeshFile>* meshManager, const ResourceManager<Material>* materialManager, const SceneFile &sceneFile, Scene* scene);
+	};
+}

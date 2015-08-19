@@ -49,6 +49,8 @@ namespace Converter
 	class SceneFileV5;
 	class SceneFileV6;
 	class SceneFileToEditorScene;
+	class EditorSceneToSceneFile;
+	class SceneFileToScene;
 }
 
 namespace vx
@@ -77,8 +79,8 @@ struct CreateSceneDescription
 
 class SceneFile : public vx::Serializable
 {
-	friend class ConverterSceneFileToScene;
-	friend class ConverterEditorSceneToSceneFile;
+	friend Converter::SceneFileToScene;
+	friend Converter::EditorSceneToSceneFile;
 
 	friend Converter::SceneFileV5;
 	friend Converter::SceneFileV6;
