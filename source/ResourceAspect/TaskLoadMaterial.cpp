@@ -50,11 +50,9 @@ TaskLoadMaterial::~TaskLoadMaterial()
 
 TaskReturnType TaskLoadMaterial::runImpl()
 {
-	printf("TaskLoadMaterial %llu %p Start\n", m_sid.value, this);
 	auto ptr = m_materialManager->find(m_sid);
 	if (ptr != nullptr)
 	{
-		printf("TaskLoadMaterial %llu %p Success Early\n", m_sid.value, this);
 		return TaskReturnType::Success;
 	}
 
@@ -111,7 +109,6 @@ TaskReturnType TaskLoadMaterial::runImpl()
 			setEventList(&events);
 			//setTimeoutTime(500.0f);
 
-			printf("TaskLoadMaterial %llu %p Retry\n", m_sid.value, this);
 			return TaskReturnType::Retry;
 		}
 		else
@@ -125,10 +122,8 @@ TaskReturnType TaskLoadMaterial::runImpl()
 	auto ref = m_materialManager->insertEntry(m_sid, std::move(m_filename),std::move(material));
 	if (ref == nullptr)
 	{
-		printf("TaskLoadMaterial %llu %p Failure\n", m_sid.value, this);
 		return TaskReturnType::Failure;
 	}
 
-	printf("TaskLoadMaterial %llu %p Success\n", m_sid.value, this);
 	return TaskReturnType::Success;
 }
