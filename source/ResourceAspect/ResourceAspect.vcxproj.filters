@@ -22,27 +22,21 @@
     <Filter Include="Source Files\Tasks">
       <UniqueIdentifier>{43d9eb4c-20da-4e32-829f-62cc7efe82e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Converter">
+      <UniqueIdentifier>{e1efb51d-d1b4-45f0-bb10-478c5a7a8bf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Converter">
+      <UniqueIdentifier>{675a45ec-405a-4fe2-a823-8a96b81d2b78}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FileAspect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FileEntry.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MaterialFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FileFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ConverterSceneFileToScene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ConverterEditorSceneToSceneFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
@@ -52,9 +46,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ConverterSceneFileToEditorScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ResourceAspect.cpp">
@@ -75,12 +66,6 @@
     <ClCompile Include="TaskLoadMaterial.cpp">
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
-    <ClCompile Include="SceneFactoryNew.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ConverterSceneFileToSceneNew.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TaskLoadTexture.cpp">
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
@@ -90,21 +75,24 @@
     <ClCompile Include="TaskSaveEditorScene.cpp">
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
+    <ClCompile Include="SceneFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterSceneFileToEditorScene.cpp">
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterEditorSceneToSceneFile.cpp">
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterSceneFileToScene.cpp">
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\SceneFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxResourceAspect\ConverterEditorSceneToSceneFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxResourceAspect\FileAspect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\FileEntry.h">
@@ -120,9 +108,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\FbxFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToEditorScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TaskLoadMesh.h">
@@ -151,6 +136,15 @@
     </ClInclude>
     <ClInclude Include="TaskSaveEditorScene.h">
       <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxResourceAspect\ConverterEditorSceneToSceneFile.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToEditorScene.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToScene.h">
+      <Filter>Header Files\Converter</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

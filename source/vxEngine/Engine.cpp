@@ -30,6 +30,7 @@ SOFTWARE.
 #include "CpuProfiler.h"
 #include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/debugPrint.h>
+#include <vxResourceAspect/FileEntry.h>
 
 Engine* g_pEngine{ nullptr };
 

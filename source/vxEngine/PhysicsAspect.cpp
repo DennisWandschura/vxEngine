@@ -502,7 +502,7 @@ void PhysicsAspect::addMeshInstanceImpl(const MeshInstance &meshInstance, void**
 	transform.p.z = instanceTransform.m_translation.z;
 	_mm_storeu_ps(&transform.q.x, qRotation);
 
-	assert(transform.isValid());
+	VX_ASSERT(transform.isValid());
 
 	auto material = meshInstance.getMaterial();
 	auto materialSid = (*material).getSid();
@@ -613,12 +613,6 @@ void PhysicsAspect::processScene(const Scene* pScene)
 		m_physxMaterials.insert(sid, pMaterial);
 	}
 
-	/*for (auto i = 0u; i < numInstances; ++i)
-	{
-		auto &instance = pMeshInstances[i];
-		addMeshInstanceImpl(instance);
-	}*/
-
 	m_pScene->unlockWrite();
 
 	vx::Message e;
@@ -633,7 +627,6 @@ void PhysicsAspect::processScene(const Scene* pScene)
 physx::PxTriangleMesh* PhysicsAspect::processTriangleMesh(const vx::MeshFile &mesh)
 {
 	physx::PxDefaultMemoryInputData readBuffer((physx::PxU8*)mesh.getPhysxData(), mesh.getPhysxDataSize());
-
 	return m_pPhysics->createTriangleMesh(readBuffer);
 }
 

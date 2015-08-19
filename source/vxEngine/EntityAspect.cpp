@@ -39,7 +39,6 @@ SOFTWARE.
 #include "EngineGlobals.h"
 #include <vxEngineLib/FileMessage.h>
 #include <vxEngineLib/MeshInstance.h>
-#include <vxResourceAspect/FileAspect.h>
 #include <vxEngineLib/Material.h>
 #include "ComponentRender.h"
 #include <vxEngineLib/RenderAspectInterface.h>

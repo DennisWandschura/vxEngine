@@ -270,6 +270,12 @@
     <ClInclude Include="include\vxEngineLib\ResourceAspectInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ConverterMeshFileV0.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterMeshFileV1.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">
@@ -394,6 +400,12 @@
     </ClCompile>
     <ClCompile Include="Event.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterMeshFileV0.cpp">
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterMeshFileV1.cpp">
+      <Filter>Source Files\Converter</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

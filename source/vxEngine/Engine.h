@@ -27,7 +27,6 @@ SOFTWARE.*/
 #include "SystemAspect.h"
 #include <vxEngineLib/RenderAspectInterface.h>
 #include "PhysicsAspect.h"
-#include <vxResourceAspect/FileAspect.h>
 #include "memory.h"
 #include "LevelEditor.h"
 #include "EntityAspect.h"

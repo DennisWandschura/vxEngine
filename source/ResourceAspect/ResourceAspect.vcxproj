@@ -282,14 +282,8 @@
     <ClCompile Include="ConverterSceneFileToEditorScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="ConverterSceneFileToScene.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="ConverterSceneFileToSceneNew.cpp" />
+    <ClCompile Include="ConverterSceneFileToScene.cpp" />
     <ClCompile Include="FbxFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="FileAspect.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="FileEntry.cpp">
@@ -307,10 +301,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ResourceAspect.cpp" />
-    <ClCompile Include="SceneFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="SceneFactoryNew.cpp" />
+    <ClCompile Include="SceneFactory.cpp" />
     <ClCompile Include="TaskLoadAnimation.cpp" />
     <ClCompile Include="TaskLoadFbx.cpp" />
     <ClCompile Include="TaskLoadFile.cpp" />
@@ -330,7 +321,6 @@
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToEditorScene.h" />
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToScene.h" />
     <ClInclude Include="include\vxResourceAspect\FbxFactory.h" />
-    <ClInclude Include="include\vxResourceAspect\FileAspect.h" />
     <ClInclude Include="include\vxResourceAspect\FileEntry.h" />
     <ClInclude Include="include\vxResourceAspect\FileFactory.h" />
     <ClInclude Include="include\vxResourceAspect\LoadFileCallback.h" />
