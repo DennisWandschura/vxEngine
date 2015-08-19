@@ -173,7 +173,7 @@ TaskReturnType TaskLoadScene::runImpl()
 		return TaskReturnType::Failure;
 	}
 
-	std::vector<vx::FileEntry> missingFiles;
+	vx::sorted_vector<vx::StringID, vx::FileEntry> missingFiles;
 
 	Factory::CreateSceneDescNew factoryDesc;
 	factoryDesc.meshManager = m_meshManager;
@@ -194,29 +194,6 @@ TaskReturnType TaskLoadScene::runImpl()
 	auto result = TaskReturnType::Success;
 	if (!created)
 	{
-		std::vector<vx::FileEntry> newMissingFiles;
-		newMissingFiles.reserve(missingFiles.size());
-		for (auto &it : missingFiles)
-		{
-			bool found = false;
-			for (auto iter : newMissingFiles)
-			{
-				if (it.getType() == iter.getType() &&
-					it.getSid() == iter.getSid())
-				{
-					found = true;
-					break;
-				}
-			}
-
-			if (!found)
-			{
-				newMissingFiles.push_back(it);
-			}
-		}
-
-		missingFiles.swap(newMissingFiles);
-
 		std::vector<Event> fileEvents;
 
 		for (auto &it : missingFiles)
