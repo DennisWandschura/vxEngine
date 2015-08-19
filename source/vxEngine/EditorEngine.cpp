@@ -53,6 +53,24 @@ u32 g_editorTypeScene{ 0xffffffff };
 u32 g_editorTypeFbx{ 0xffffffff };
 u32 g_editorTypeAnimation{ 0xffffffff };
 
+namespace EditorEngineCpp
+{
+	void schedulerThread(vx::TaskManager* scheduler)
+	{
+		std::atomic_uint running;
+		running.store(1);
+
+		scheduler->initializeThread(&running);
+
+		while (running.load() != 0)
+		{
+			scheduler->swapBuffer();
+
+			scheduler->update();
+		}
+	}
+}
+
 EditorEngine::EditorEngine()
 	:m_msgManager(),
 	m_physicsAspect(),
@@ -152,6 +170,8 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 
 	m_taskManager.initialize(2, 10, 30.0f, &m_allocator);
 
+	m_taskManagerThread = std::thread(EditorEngineCpp::schedulerThread, &m_taskManager);
+
 	RenderAspectDescription renderAspectDesc =
 	{
 		dataDir,
@@ -192,6 +212,9 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 
 void EditorEngine::shutdownEditor()
 {
+	if (m_taskManagerThread.joinable())
+		m_taskManagerThread.join();
+
 	m_taskManager.shutdown();
 
 	m_resourceAspect.shutdown();
@@ -338,8 +361,6 @@ void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u
 void EditorEngine::editor_render()
 {
 	m_msgManager.update();
-
-	m_taskManager.update();
 
 	m_resourceAspect.update();
 

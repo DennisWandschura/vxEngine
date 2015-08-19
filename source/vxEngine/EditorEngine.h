@@ -78,6 +78,7 @@ class EditorEngine : public vx::MessageListener
 	HMODULE m_renderAspectDll;
 	DestroyEditorRenderAspectFunction m_destroyFn;
 	bool m_previousSceneLoaded;
+	std::thread m_taskManagerThread;
 
 	vx::sorted_vector<vx::StringID, std::pair<Editor::LoadFileCallback, u32>> m_requestedFiles;
 
