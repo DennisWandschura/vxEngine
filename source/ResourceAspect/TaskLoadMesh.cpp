@@ -66,7 +66,6 @@ TaskReturnType TaskLoadMesh::runImpl()
 		std::unique_lock<std::mutex> scratchLock;
 		auto scratchAlloc = m_meshManager->lockScratchAllocator(&scratchLock);
 		fileData.clear();
-		//scratchAlloc->deallocate(&fileData);
 	};
 
 	const u8* dataBegin = nullptr;
@@ -88,30 +87,6 @@ TaskReturnType TaskLoadMesh::runImpl()
 	std::unique_lock<std::mutex> dataLock;
 	auto dataAllocator = m_meshManager->lockDataAllocator(&dataLock);
 	entry->loadFromMemory(dataBegin, dataSize, dataAllocator);
-
-	//auto timeMs = timer.getTimeMs();
-	//printf("mesh load time: %f\n", timeMs);
-
-	/*std::ofstream outFile;
-	outFile.open(m_fileNameWithPath);
-
-	auto &mesh = entry->getMesh();
-
-	auto vertexCount = mesh.getVertexCount();
-	auto vertices = mesh.getVertices();
-
-	outFile << "mesh\n";
-
-	for (u32 i = 0; i < vertexCount; ++i)
-	{
-		auto &v = vertices[i];
-
-		outFile << v.normal.x << " " << v.normal.y << " " << v.normal.z << "\n";
-		outFile << v.tangent.x << " " << v.tangent.y << " " << v.tangent.z << "\n";
-		outFile << v.bitangent.x << " " << v.bitangent.y << " " << v.bitangent.z << "\n";
-	}
-
-	outFile << "\n";*/
 
 	return TaskReturnType::Success;
 }
