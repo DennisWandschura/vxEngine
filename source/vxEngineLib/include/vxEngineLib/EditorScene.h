@@ -32,6 +32,11 @@ namespace vx
 	struct Transform;
 }
 
+namespace Converter
+{
+	class EditorSceneToSceneFile;
+}
+
 #include "SceneBase.h"
 #include <vector>
 
@@ -54,7 +59,7 @@ namespace Editor
 
 	class Scene : public SceneBase
 	{
-		friend class ConverterEditorSceneToSceneFile;
+		friend Converter::EditorSceneToSceneFile;
 
 		template<typename T>
 		struct SelectableWrapper
