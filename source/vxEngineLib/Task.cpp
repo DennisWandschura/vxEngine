@@ -3,13 +3,6 @@
 #include <vxEngineLib/SmallObjAllocator.h>
 #include <Windows.h>
 
-bool Task::checkTimeout()
-{
-	auto time = m_timer.getTimeMs();
-
-	return (time >= m_timeoutTime);
-}
-
 void Task::setEventStatus(EventStatus status, bool hasEvent)
 {
 	if (hasEvent)
@@ -18,12 +11,11 @@ void Task::setEventStatus(EventStatus status, bool hasEvent)
 	}
 }
 
-void Task::setEventStatus(EventStatus status)
+bool Task::checkTimeout()
 {
-	if (m_event.isValid())
-	{
-		m_event.setStatus(status);
-	}
+	auto time = m_timer.getTimeMs();
+
+	return (time >= m_timeoutTime);
 }
 
 TaskReturnType Task::run()
@@ -34,7 +26,7 @@ TaskReturnType Task::run()
 	{
 		if (checkTimeout())
 		{
-			m_event.setStatus(EventStatus::Timeout);
+			setEventStatus(EventStatus::Timeout, hasEvent);
 			return TaskReturnType::Timeout;
 		}
 	}

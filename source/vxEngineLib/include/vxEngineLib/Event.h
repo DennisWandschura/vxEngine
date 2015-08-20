@@ -44,7 +44,7 @@ class Event
 {
 	class Data;
 
-	shared_ptr<Data> m_data;
+	vx::shared_ptr<Data> m_data;
 
 public:
 	Event();

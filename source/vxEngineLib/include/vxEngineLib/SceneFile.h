@@ -79,13 +79,10 @@ struct CreateSceneDescription
 
 class SceneFile : public vx::Serializable
 {
-	friend Converter::SceneFileToScene;
-	friend Converter::EditorSceneToSceneFile;
-
 	friend Converter::SceneFileV5;
 	friend Converter::SceneFileV6;
-	friend Converter::SceneFileToEditorScene;
 
+protected:
 	std::unique_ptr<MeshInstanceFile[]> m_pMeshInstances;
 	std::unique_ptr<Light[]> m_pLights;
 	std::unique_ptr<SpawnFile[]> m_pSpawns;
@@ -117,12 +114,6 @@ public:
 	const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) override;
 
 	void saveToFile(vx::File *file) const override;
-
-	const MeshInstanceFile* getMeshInstances() const { return m_pMeshInstances.get(); }
-	u32 getNumMeshInstances() const;
-
-	u32 getActorCount() const;
-	const ActorFile* getActors() const;
 
 	u64 getCrc() const override;
 

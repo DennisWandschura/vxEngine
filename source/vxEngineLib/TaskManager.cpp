@@ -9,7 +9,7 @@ namespace vx
 {
 	struct TaskBuffer
 	{
-		Task** m_tasks;
+		LightTask** m_tasks;
 		u32 m_size;
 		f32 m_time;
 
@@ -27,7 +27,7 @@ namespace vx
 
 		void initialize(u32 capacity, vx::StackAllocator* allocator)
 		{
-			m_tasks = (Task**)allocator->allocate(sizeof(Task*) * capacity, 8);
+			m_tasks = (LightTask**)allocator->allocate(sizeof(LightTask*) * capacity, 8);
 		}
 
 		void swap(TaskBuffer &other)
@@ -36,7 +36,7 @@ namespace vx
 			std::swap(m_size, other.m_size);
 		}
 
-		bool pushTask(Task* task, u32 capacity, f32 maxTime)
+		bool pushTask(LightTask* task, u32 capacity, f32 maxTime)
 		{
 			if (capacity <= m_size)
 				return false;
@@ -49,8 +49,6 @@ namespace vx
 
 			m_time = bufferTime;
 			m_tasks[m_size++] = task;
-
-			task->setEventStatus(EventStatus::Queued);
 
 			return true;
 		}
@@ -70,7 +68,7 @@ namespace vx
 		std::atomic_int m_running;
 		TaskManager* m_scheduler;
 
-		void rescheduleTask(Task* task)
+		void rescheduleTask(LightTask* task)
 		{
 			if (!pushTask(task))
 			{
@@ -106,7 +104,7 @@ namespace vx
 			m_running.store(1);
 		}
 
-		bool pushTask(Task* task)
+		bool pushTask(LightTask* task)
 		{
 			std::unique_lock<std::mutex> lock(m_frontMutex);
 			return m_front.pushTask(task, m_capacity, m_maxTime);
@@ -126,7 +124,7 @@ namespace vx
 			}
 			else
 			{
-				Task* waitingTask = nullptr;
+				LightTask* waitingTask = nullptr;
 
 				for (u32 i = 0; i < m_back.m_size; ++i)
 				{
@@ -239,13 +237,13 @@ namespace vx
 		m_threads.clear();
 	}
 
-	void TaskManager::pushTask(Task* task)
+	void TaskManager::pushTask(LightTask* task)
 	{
 		auto tid = s_tid;
 		pushTask(tid, task);
 	}
 
-	void TaskManager::pushTask(u32 tid, Task* task)
+	void TaskManager::pushTask(u32 tid, LightTask* task)
 	{
 		VX_ASSERT(tid >= 0);
 
@@ -268,7 +266,6 @@ namespace vx
 			if (!inserted)
 			{
 				std::unique_lock<std::mutex> lock(m_mutexFront);
-				task->setEventStatus(EventStatus::Queued);
 				m_tasksFront.push_back(task);
 			}
 		}

@@ -287,11 +287,6 @@ void SceneFile::saveToFile(vx::File *file) const
 	m_navMesh.saveToFile(file);
 }
 
-u32 SceneFile::getNumMeshInstances() const
-{
-	return m_meshInstanceCount;
-}
-
 u64 SceneFile::getCrcVersion4() const
 {
 	auto navMeshVertexSize = sizeof(vx::float3) * m_navMesh.getVertexCount();
@@ -401,16 +396,6 @@ u64 SceneFile::getCrcVersion7() const
 	VX_ASSERT(current == last);
 
 	return CityHash64((char*)ptr.get(), totalSize);
-}
-
-u32 SceneFile::getActorCount() const
-{
-	return m_actorCount;
-}
-
-const ActorFile* SceneFile::getActors() const
-{
-	return m_pActors.get();
 }
 
 u64 SceneFile::getCrc() const

@@ -26,100 +26,103 @@ SOFTWARE.
 
 #include <vxLib/type_traits.h>
 
-template<typename T>
-struct shared_ptr
+namespace vx
 {
-	T* m_ptr;
-
-	void increment()
+	template<typename T>
+	struct shared_ptr
 	{
-		if (m_ptr)
-		{
-			m_ptr->increment();
-		}
-	}
+		T* m_ptr;
 
-	void cleanup()
-	{
-		if (m_ptr)
+		void increment()
 		{
-			auto refCount = m_ptr->decrement() - 1;
-
-			if (refCount == 0)
+			if (m_ptr)
 			{
-				delete(m_ptr);
+				m_ptr->increment();
 			}
 		}
-	}
 
-public:
-	shared_ptr() :m_ptr(nullptr) {}
-	shared_ptr(T* p) :m_ptr(p) { increment(); }
-
-	shared_ptr(const shared_ptr &rhs)
-		:m_ptr(rhs.m_ptr)
-	{
-		increment();
-	}
-
-	shared_ptr(shared_ptr &&rhs)
-		:m_ptr(rhs.m_ptr)
-	{
-		rhs.m_ptr = nullptr;
-	}
-
-	~shared_ptr()
-	{
-		cleanup();
-		m_ptr = nullptr;
-	}
-
-	shared_ptr& operator=(const shared_ptr &rhs)
-	{
-		if (this != &rhs)
+		void cleanup()
 		{
-			cleanup();
+			if (m_ptr)
+			{
+				auto refCount = m_ptr->decrement() - 1;
 
-			m_ptr = rhs.m_ptr;
+				if (refCount == 0)
+				{
+					delete(m_ptr);
+				}
+			}
+		}
+
+	public:
+		shared_ptr() :m_ptr(nullptr) {}
+		shared_ptr(T* p) :m_ptr(p) { increment(); }
+
+		shared_ptr(const shared_ptr &rhs)
+			:m_ptr(rhs.m_ptr)
+		{
 			increment();
 		}
-		return *this;
-	}
 
-	shared_ptr& operator=(shared_ptr &&rhs)
-	{
-		if (this != &rhs)
+		shared_ptr(shared_ptr &&rhs)
+			:m_ptr(rhs.m_ptr)
+		{
+			rhs.m_ptr = nullptr;
+		}
+
+		~shared_ptr()
+		{
+			cleanup();
+			m_ptr = nullptr;
+		}
+
+		shared_ptr& operator=(const shared_ptr &rhs)
+		{
+			if (this != &rhs)
+			{
+				cleanup();
+
+				m_ptr = rhs.m_ptr;
+				increment();
+			}
+			return *this;
+		}
+
+		shared_ptr& operator=(shared_ptr &&rhs)
+		{
+			if (this != &rhs)
+			{
+				auto tmp = m_ptr;
+				m_ptr = rhs.m_ptr;
+				rhs.m_ptr = tmp;
+			}
+			return *this;
+		}
+
+		void swap(shared_ptr &other)
 		{
 			auto tmp = m_ptr;
-			m_ptr = rhs.m_ptr;
-			rhs.m_ptr = tmp;
+			m_ptr = other.m_ptr;
+			other.m_ptr = tmp;
 		}
-		return *this;
-	}
 
-	void swap(shared_ptr &other)
-	{
-		auto tmp = m_ptr;
-		m_ptr = other.m_ptr;
-		other.m_ptr = tmp;
-	}
+		T* operator->()
+		{
+			return m_ptr;
+		}
 
-	T* operator->()
-	{
-		return m_ptr;
-	}
+		const T* operator->() const
+		{
+			return m_ptr;
+		}
 
-	const T* operator->() const
-	{
-		return m_ptr;
-	}
+		T* get() { return m_ptr; }
 
-	T* get() { return m_ptr; }
+		const T* get() const { return m_ptr; }
 
-	const T* get() const { return m_ptr; }
-
-	operator bool()
-	{
-		return (m_ptr != nullptr);
-	}
-};
+		operator bool()
+		{
+			return (m_ptr != nullptr);
+		}
+	};
+}

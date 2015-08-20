@@ -28,6 +28,12 @@
     <Filter Include="Header Files\Converter">
       <UniqueIdentifier>{675a45ec-405a-4fe2-a823-8a96b81d2b78}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\tests">
+      <UniqueIdentifier>{10ab5772-5efa-4493-b6a5-c1c7c06cd763}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\tests">
+      <UniqueIdentifier>{610781cd-c9b9-4d3c-9bce-869b15249725}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileEntry.cpp">
@@ -87,6 +93,9 @@
     <ClCompile Include="ConverterSceneFileToScene.cpp">
       <Filter>Source Files\Converter</Filter>
     </ClCompile>
+    <ClCompile Include="testConvertSceneFileToScene.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h">
@@ -145,6 +154,12 @@
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToScene.h">
       <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterSceneFile.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="testConvertSceneFileToScene.h">
+      <Filter>Header Files\tests</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

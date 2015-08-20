@@ -92,7 +92,8 @@ bool Event::isValid() const
 Event Event::createEvent()
 {
 	Event evt;
-	evt.m_data = shared_ptr<Data>(new Data());
+	evt.m_data = vx::shared_ptr<Data>(new Data());
+	evt.setStatus(EventStatus::Queued);
 
 	return evt;
 }

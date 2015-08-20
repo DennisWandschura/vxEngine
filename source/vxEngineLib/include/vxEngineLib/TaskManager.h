@@ -39,12 +39,12 @@ namespace vx
 	{
 		struct VX_ALIGN(64)
 		{
-			std::vector<Task*> m_tasksFront;
+			std::vector<LightTask*> m_tasksFront;
 			std::mutex m_mutexFront;
 			std::vector<LocalQueue*> m_queues;
 		};
 
-		std::vector<Task*> m_tasksBack;
+		std::vector<LightTask*> m_tasksBack;
 		u32 m_capacity;
 		std::vector<std::thread> m_threads;
 		std::atomic_uint* m_running;
@@ -58,8 +58,8 @@ namespace vx
 		void initializeThread(std::atomic_uint* running);
 		void shutdown();
 
-		void pushTask(Task* task);
-		void pushTask(u32 tid, Task* task);
+		void pushTask(LightTask* task);
+		void pushTask(u32 tid, LightTask* task);
 
 		void swapBuffer();
 
