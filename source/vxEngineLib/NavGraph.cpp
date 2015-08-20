@@ -158,12 +158,7 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 	u32 connectionOffset = 0;
 
 	m_nodeCount = triangleCount;
-#if _VX_EDITOR
-	VX_UNREFERENCED_PARAMETER(pAllocator);
-	m_nodes.reserve(m_nodeCount);
-#else
 	m_nodes = (NavNode*)pAllocator->allocate(sizeof(NavNode) * m_nodeCount, __alignof(NavNode));
-#endif
 
 	for (u32 i = 0; i < triangleCount; ++i)
 	{
@@ -174,11 +169,7 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 		node.m_connectionOffset = connectionOffset;
 		node.m_position = triangle.c;
 
-#if _VX_EDITOR
-		m_nodes.push_back(node);
-#else
 		m_nodes[i] = node;
-#endif
 
 		for (u32 j = 0; j < triangle.sharedEdgesCount; ++j)
 		{
@@ -198,29 +189,16 @@ void NavGraph::initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator
 
 	VX_ASSERT(connectionCount == connectionOffset);
 
-#if _VX_EDITOR
-	m_connections.reserve(connectionCount);
-	for(u32 i = 0;i < connectionCount; ++i)
-	{
-		m_connections.push_back(connections[i]);
-	}
-#else
 	m_connections = (NavConnection*)pAllocator->allocate(sizeof(NavConnection) * connectionCount, __alignof(NavConnection));
 	vx::memcpy(m_connections, connections, connectionCount);
-#endif
+
 	m_connectionCount = connectionCount;
 }
 
 void NavGraph::shutdown(vx::StackAllocator* pAllocator)
 {
-#if _VX_EDITOR
-	VX_UNREFERENCED_PARAMETER(pAllocator);
-	m_nodes.clear();
-	m_connections.clear();
-#else
 	pAllocator->rangeDestroy(m_connections, m_connections + m_connectionCount);
 	pAllocator->rangeDestroy(m_nodes, m_nodes + m_nodeCount);
-#endif
 }
 
 u32 NavGraph::getClosestNode(const vx::float3 &position) const

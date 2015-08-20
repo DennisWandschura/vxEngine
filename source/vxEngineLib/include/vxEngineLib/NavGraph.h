@@ -26,28 +26,20 @@ SOFTWARE.
 struct NavConnection;
 struct NavNode;
 class NavMesh;
+
 namespace vx
 {
 	class StackAllocator;
 }
 
 #include <vxLib/math/Vector.h>
-#include <memory>
-#if _VX_EDITOR
-#include <vector>
-#endif
 
 class NavGraph
 {
 	static const u8 s_cellSize{3};
 
-#if _VX_EDITOR
-	std::vector<NavConnection> m_connections;
-	std::vector<NavNode> m_nodes;
-#else
 	NavConnection* m_connections;
 	NavNode* m_nodes;
-#endif
 	u32 m_connectionCount;
 	u32 m_nodeCount;
 
@@ -58,13 +50,8 @@ public:
 	void initialize(const NavMesh &navMesh, vx::StackAllocator* pAllocator, vx::StackAllocator* pAllocatorScratch);
 	void shutdown(vx::StackAllocator* pAllocator);
 
-#if _VX_EDITOR
-	const NavConnection* getConnections() const { return m_connections.data(); }
-	const NavNode* getNodes() const { return m_nodes.data(); }
-#else
 	const NavConnection* getConnections() const { return m_connections; }
 	const NavNode* getNodes() const { return m_nodes; }
-#endif
 	const NavNode& getNode(u32 i) const;
 
 	u32 getConnectionCount() const { return m_connectionCount; }
