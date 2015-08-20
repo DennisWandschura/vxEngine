@@ -175,7 +175,7 @@ TaskReturnType TaskLoadScene::runImpl()
 
 	vx::sorted_vector<vx::StringID, vx::FileEntry> missingFiles;
 
-	Factory::CreateSceneDescNew factoryDesc;
+	Factory::CreateSceneDesc factoryDesc;
 	factoryDesc.meshManager = m_meshManager;
 	factoryDesc.materialManager = m_materialManager;
 	factoryDesc.animationManager = m_animationManager;

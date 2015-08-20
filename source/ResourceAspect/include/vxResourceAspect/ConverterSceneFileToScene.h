@@ -59,6 +59,6 @@ namespace Converter
 		static bool createSceneActors(const CreateSceneActorsDesc &desc);
 
 	public:
-		static bool convert(const ResourceManager<vx::MeshFile>* meshManager, const ResourceManager<Material>* materialManager, const SceneFile &sceneFile, Scene* scene);
+		static bool convert(const ResourceManager<vx::MeshFile>* meshManager, const ResourceManager<Material>* materialManager, ::SceneFile* sceneFile, Scene* scene);
 	};
 }

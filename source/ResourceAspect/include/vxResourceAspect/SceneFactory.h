@@ -53,7 +53,7 @@ class ResourceManager;
 
 namespace Factory
 {
-	struct CreateSceneDescNew
+	struct CreateSceneDesc
 	{
 		ResourceManager<vx::MeshFile>* meshManager;
 		ResourceManager<Material>* materialManager;
@@ -71,8 +71,8 @@ class SceneFactory
 
 public:
 
-	static bool createFromMemory(const Factory::CreateSceneDescNew &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene);
-	static bool createFromMemory(const Factory::CreateSceneDescNew &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
+	static bool createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene);
+	static bool createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
 
 	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
 

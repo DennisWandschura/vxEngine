@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include "ConverterSceneFile.h"
 #include <vxResourceAspect/ConverterSceneFileToScene.h>
 #include <vxEngineLib/SceneFile.h>
 #include <vxEngineLib/MeshInstance.h>
@@ -62,9 +63,11 @@ namespace Converter
 
 	bool SceneFileToScene::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc)
 	{
-		for (auto i = 0u; i < desc.sceneFile->m_meshInstanceCount; ++i)
+		auto meshInstanceCount = desc.sceneFile->getMeshInstanceCount();
+		auto meshInstances = desc.sceneFile->getMeshInstances();
+		for (auto i = 0u; i < meshInstanceCount; ++i)
 		{
-			auto &instance = desc.sceneFile->m_pMeshInstances[i];
+			auto &instance = meshInstances[i];
 			auto name = instance.getName();
 			auto meshFile = instance.getMeshFile();
 			auto materialFile = instance.getMaterialFile();
@@ -107,13 +110,14 @@ namespace Converter
 
 	bool SceneFileToScene::createSceneActors(const CreateSceneActorsDesc &desc)
 	{
-		auto actorCount = desc.sceneFile->m_actorCount;
+		auto actorCount = desc.sceneFile->getActorCount();
+		auto actors = desc.sceneFile->getActors();
 		if (actorCount != 0)
 		{
 			desc.sceneActors->reserve(actorCount);
 			for (auto i = 0u; i < actorCount; ++i)
 			{
-				auto &actor = desc.sceneFile->m_pActors[i];
+				auto &actor = actors[i];
 
 				auto sidMesh = vx::make_sid(actor.m_mesh);
 				auto meshRef = desc.meshManager->find(sidMesh);
@@ -145,7 +149,7 @@ namespace Converter
 		(
 			const ResourceManager<vx::MeshFile>* meshManager,
 			const ResourceManager<Material>* materialManager,
-			const SceneFile &sceneFile,
+			::SceneFile* sceneFile,
 			Scene* scene
 			)
 	{
@@ -154,11 +158,14 @@ namespace Converter
 
 		vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
 
-		auto pMeshInstances = vx::make_unique<MeshInstance[]>(sceneFile.m_meshInstanceCount);
+		SceneFile converterSceneFile(std::move(*sceneFile));
+
+		auto meshInstanceCount = converterSceneFile.getMeshInstanceCount();
+		auto pMeshInstances = vx::make_unique<MeshInstance[]>(meshInstanceCount);
 
 		CreateSceneMeshInstancesDesc desc;
 		desc.pMeshInstances = pMeshInstances.get();
-		desc.sceneFile = &sceneFile;
+		desc.sceneFile = &converterSceneFile;
 		desc.sceneMaterials = &sceneMaterials;
 		desc.sceneMeshes = &sceneMeshes;
 		desc.meshManager = meshManager;
@@ -171,7 +178,7 @@ namespace Converter
 
 		CreateSceneActorsDesc createSceneActorsDesc;
 		createSceneActorsDesc.sceneActors = &sceneActors;
-		createSceneActorsDesc.sceneFile = &sceneFile;
+		createSceneActorsDesc.sceneFile = &converterSceneFile;
 		createSceneActorsDesc.sceneMaterials = &sceneMaterials;
 		createSceneActorsDesc.sceneMeshes = &sceneMeshes;
 		createSceneActorsDesc.meshManager = meshManager;
@@ -179,16 +186,18 @@ namespace Converter
 		if (!createSceneActors(createSceneActorsDesc))
 			return 0;
 
-		vx::sorted_vector<u32, Spawn> spawns;
-		spawns.reserve(sceneFile.m_spawnCount);
-		for (auto i = 0u; i < sceneFile.m_spawnCount; ++i)
+		auto spawnCount = converterSceneFile.getSpawnCount();
+		auto spawns = converterSceneFile.getSpawns();
+		vx::sorted_vector<u32, Spawn> sceneSpawns;
+		sceneSpawns.reserve(spawnCount);
+		for (auto i = 0u; i < spawnCount; ++i)
 		{
 			Spawn spawn;
-			spawn.type = sceneFile.m_pSpawns[i].type;
-			spawn.position = sceneFile.m_pSpawns[i].position;
-			spawn.sid = vx::make_sid(sceneFile.m_pSpawns[i].actor);
+			spawn.type = spawns[i].type;
+			spawn.position = spawns[i].position;
+			spawn.sid = vx::FileHandle(spawns[i].actor).m_sid;
 
-			spawns.insert(std::move(spawn.id), std::move(spawn));
+			sceneSpawns.insert(std::move(spawn.id), std::move(spawn));
 		}
 
 		u32 vertexCount = 0;
@@ -201,46 +210,51 @@ namespace Converter
 		}
 
 		NavMesh navMesh;
-		sceneFile.m_navMesh.copy(&navMesh);
+		converterSceneFile.getNavMesh().copy(&navMesh);
 
+		auto lightCount = converterSceneFile.getLightCount();
+		auto lights = converterSceneFile.getLights();
 		auto pLights = std::vector<Light>();
-		pLights.reserve(sceneFile.m_lightCount);
-		for (u32 i = 0; i < sceneFile.m_lightCount; ++i)
+		pLights.reserve(lightCount);
+		for (u32 i = 0; i < lightCount; ++i)
 		{
-			pLights.push_back(sceneFile.m_pLights[i]);
+			pLights.push_back(lights[i]);
 		}
 
-
-		auto waypoints = std::vector<Waypoint>();
-		waypoints.reserve(sceneFile.m_waypointCount);
-		for (u32 i = 0; i < sceneFile.m_waypointCount; ++i)
+		auto waypointCount = converterSceneFile.getWaypointCount();
+		auto waypoints = converterSceneFile.getWaypoints();
+		auto sceneWaypoints = std::vector<Waypoint>();
+		sceneWaypoints.reserve(waypointCount);
+		for (u32 i = 0; i < waypointCount; ++i)
 		{
-			waypoints.push_back(sceneFile.m_waypoints[i]);
+			sceneWaypoints.push_back(waypoints[i]);
 		}
 
-		auto joints = std::vector<Joint>();
-		joints.reserve(sceneFile.m_jointCount);
-		for (u32 i = 0; i < sceneFile.m_jointCount; ++i)
+		auto jointCount = converterSceneFile.getJointCount();
+		auto joints = converterSceneFile.getJoints();
+		auto sceneJoints = std::vector<Joint>();
+		sceneJoints.reserve(jointCount);
+		for (u32 i = 0; i < jointCount; ++i)
 		{
-			joints.push_back(sceneFile.m_joints[i]);
+			sceneJoints.push_back(joints[i]);
 		}
 
 		SceneParams sceneParams;
 		sceneParams.m_baseParams.m_actors = std::move(sceneActors);
 		sceneParams.m_baseParams.m_indexCount = indexCount;
-		sceneParams.m_baseParams.m_lightCount = sceneFile.m_lightCount;
+		sceneParams.m_baseParams.m_lightCount = lightCount;
 		sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
 		sceneParams.m_baseParams.m_meshes = std::move(sceneMeshes);
 		sceneParams.m_baseParams.m_navMesh = std::move(navMesh);
 		sceneParams.m_baseParams.m_lights = std::move(pLights);
-		sceneParams.m_baseParams.m_pSpawns = std::move(spawns);
-		sceneParams.m_baseParams.m_spawnCount = sceneFile.m_spawnCount;
+		sceneParams.m_baseParams.m_pSpawns = std::move(sceneSpawns);
+		sceneParams.m_baseParams.m_spawnCount = spawnCount;
 		sceneParams.m_baseParams.m_vertexCount = vertexCount;
-		sceneParams.m_meshInstanceCount = sceneFile.m_meshInstanceCount;
+		sceneParams.m_meshInstanceCount = meshInstanceCount;
 		sceneParams.m_pMeshInstances = std::move(pMeshInstances);
-		sceneParams.m_baseParams.m_waypointCount = sceneFile.m_waypointCount;
-		sceneParams.m_baseParams.m_waypoints = std::move(waypoints);
-		sceneParams.m_baseParams.m_joints = std::move(joints);
+		sceneParams.m_baseParams.m_waypointCount = waypointCount;
+		sceneParams.m_baseParams.m_waypoints = std::move(sceneWaypoints);
+		sceneParams.m_baseParams.m_joints = std::move(sceneJoints);
 
 		*scene = Scene(sceneParams);
 		scene->sortMeshInstances();

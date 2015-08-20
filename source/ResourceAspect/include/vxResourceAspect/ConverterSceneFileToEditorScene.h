@@ -48,15 +48,6 @@ namespace vx
 
 struct CreateEditorSceneDescription
 {
-	const vx::sorted_array<vx::StringID, vx::MeshFile*, std::less<vx::StringID>> *sortedMeshes;
-	const vx::sorted_array<vx::StringID, Material*, std::less<vx::StringID>> *sortedMaterials;
-	const vx::sorted_array<vx::StringID, vx::Animation*, std::less<vx::StringID>> *sortedAnimations;
-	const vx::sorted_vector<vx::StringID, std::string> *loadedFiles;
-	Editor::Scene *pScene;
-};
-
-struct CreateEditorSceneDescriptionNew
-{
 	const ResourceManager<vx::MeshFile>* meshData;
 	const ResourceManager<Material>* materialData;
 	const ResourceManager<vx::Animation>* animationData;
@@ -73,7 +64,6 @@ namespace Converter
 	class SceneFileToEditorScene
 	{
 	public:
-		static bool convert(SceneFile *src, const CreateEditorSceneDescription &desc);
-		static bool convert(SceneFile *src, const CreateEditorSceneDescriptionNew &desc);
+		static bool convert(::SceneFile *src, const CreateEditorSceneDescription &desc);
 	};
 }

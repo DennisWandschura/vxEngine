@@ -17,6 +17,24 @@
 
 namespace SceneFactoryCpp
 {
+	class SceneFileLoad : public SceneFile
+	{
+	public:
+		SceneFileLoad(SceneFile &&rhs) :SceneFile(std::move(rhs)) {}
+		~SceneFileLoad() {}
+
+		const MeshInstanceFile* getMeshInstances() const { return m_pMeshInstances.get(); }
+		u32 getMeshInstanceCount() const { return m_meshInstanceCount; }
+
+		u32 getActorCount() const { return m_actorCount; }
+		const ActorFile* getActors() const { return m_pActors.get(); }
+
+		void swap(SceneFile &rhs)
+		{
+			SceneFile::swap(rhs);
+		}
+	};
+
 	bool checkMeshInstanceMesh(const vx::FileEntry &meshFileEntry, const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes, std::vector<vx::FileEntry>* missingFiles)
 	{
 		bool result = true;
@@ -160,33 +178,41 @@ namespace SceneFactoryCpp
 	bool checkIfAssetsAreLoaded(const CheckAssetsDesc &desc)
 	{
 		//printf("checking mesh instances\n");
-		bool result = checkMeshInstances(desc.meshManager, desc.materialManager, desc.animationManager, desc.meshInstances, desc.instanceCount, desc.missingFiles);
-		if (!result)
+		bool result = true;
+
+		if (!checkMeshInstances(desc.meshManager, desc.materialManager, desc.animationManager, desc.meshInstances, desc.instanceCount, desc.missingFiles))
 		{
+			result = false;
 			//printf("missing instance assets\n");
 		}
 
-		//auto pActors = desc.pSceneFile->getActors();
-		//auto actorCount = desc.pSceneFile->getActorCount();
-
-		//printf("checking actors: %u\n", actorCount);
-		/*for (u32 i = 0; i < desc.actorCount; ++i)
-		{
-			auto &actorFile = desc.actorFiles[i];
-
-			auto entryMesh = vx::FileEntry(actorFile.m_mesh, vx::FileType::Mesh);
-			auto entryMaterial = vx::FileEntry(actorFile.m_material, vx::FileType::Material);
-			//	auto meshSid = vx::make_sid(actorFile.m_mesh);
-				//auto materialSid = vx::make_sid(actorFile.m_material);
-
-			// check for mesh
-			checkResource(desc.meshManager, entryMesh, desc.missingFiles, &result);
-			checkResource(desc.materialManager, entryMaterial, desc.missingFiles, &result);
-		}*/
 		if (!checkActors(desc))
 		{
 			result = false;
 		}
+
+		return result;
+	}
+
+	bool checkIfAssetsAreLoaded(const Factory::CreateSceneDesc &desc, SceneFile &&sceneFile)
+	{
+		SceneFactoryCpp::SceneFileLoad loadedSceneFile(std::move(sceneFile));
+
+		SceneFactoryCpp::CheckAssetsDesc checkDesc
+		{
+			desc.meshManager,
+			desc.materialManager,
+			desc.animationManager,
+			loadedSceneFile.getMeshInstances(),
+			loadedSceneFile.getMeshInstanceCount(),
+			desc.missingFiles,
+			loadedSceneFile.getActors(),
+			loadedSceneFile.getActorCount()
+		};
+
+		auto result = SceneFactoryCpp::checkIfAssetsAreLoaded(checkDesc);
+
+		loadedSceneFile.swap(sceneFile);
 
 		return result;
 	}
@@ -198,7 +224,7 @@ struct SceneFactory::LoadSceneFileDescription
 	const vx::sorted_array<vx::StringID, Material*>* sortedMaterials;
 	const vx::sorted_array<vx::StringID, vx::Animation*>* sortedAnimations;
 	std::vector<vx::FileEntry> *pMissingFiles;
-	SceneFile *pSceneFile;
+	SceneFactoryCpp::SceneFileLoad *pSceneFile;
 };
 
 bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFile* instances, u32 count)
@@ -241,7 +267,7 @@ bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, cons
 bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 {
 	auto pMeshInstances = desc.pSceneFile->getMeshInstances();
-	auto instanceCount = desc.pSceneFile->getNumMeshInstances();
+	auto instanceCount = desc.pSceneFile->getMeshInstanceCount();
 
 	//printf("checking mesh instances\n");
 	bool result = checkMeshInstances(desc, pMeshInstances, instanceCount);
@@ -284,7 +310,7 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescNew &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene)
 {
 	auto marker = scratchAllocator->getMarker();
 	bool result = false;
@@ -292,31 +318,12 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescNew &desc, con
 
 	if (result)
 	{
-		//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded Scene File version %u", sceneFile.getVersion());
-
-		
-		SceneFactoryCpp::CheckAssetsDesc checkDesc
-		{
-			desc.meshManager,
-			desc.materialManager,
-			desc.animationManager,
-			sceneFile.getMeshInstances(),
-			sceneFile.getNumMeshInstances(),
-			desc.missingFiles,
-			sceneFile.getActors(),
-			sceneFile.getActorCount()
-		};
-
-		result = SceneFactoryCpp::checkIfAssetsAreLoaded(checkDesc);
-	}
-	else
-	{
-		//printf("Failed loading scene file (wrong header/crc)\n");
+		result = SceneFactoryCpp::checkIfAssetsAreLoaded(desc, std::move(sceneFile));
 	}
 
 	if (result)
 	{
-		result = Converter::SceneFileToScene::convert(desc.meshManager, desc.materialManager, sceneFile, pScene);
+		result = Converter::SceneFileToScene::convert(desc.meshManager, desc.materialManager, &sceneFile, pScene);
 	}
 	else
 	{
@@ -333,7 +340,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescNew &desc, con
 	return result;
 }
 
-bool SceneFactory::createFromMemory(const Factory::CreateSceneDescNew &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene)
+bool SceneFactory::createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene)
 {
 	auto marker = scratchAllocator->getMarker();
 	bool result = false;
@@ -341,31 +348,12 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDescNew &desc, con
 
 	if (result)
 	{
-		//vx::verboseChannelPrintF(0, vx::debugPrint::Channel_FileAspect, "Loaded Scene File version %u", sceneFile.getVersion());
-
-
-		SceneFactoryCpp::CheckAssetsDesc checkDesc
-		{
-			desc.meshManager,
-			desc.materialManager,
-			desc.animationManager,
-			sceneFile.getMeshInstances(),
-			sceneFile.getNumMeshInstances(),
-			desc.missingFiles,
-			sceneFile.getActors(),
-			sceneFile.getActorCount()
-		};
-
-		result = SceneFactoryCpp::checkIfAssetsAreLoaded(checkDesc);
-	}
-	else
-	{
-		//printf("Failed loading scene file (wrong header/crc)\n");
+		result = SceneFactoryCpp::checkIfAssetsAreLoaded(desc, std::move(sceneFile));
 	}
 
 	if (result)
 	{
-		CreateEditorSceneDescriptionNew loadDesc;
+		CreateEditorSceneDescription loadDesc;
 		loadDesc.animationData = desc.animationManager;
 		loadDesc.materialData = desc.materialManager;
 		loadDesc.meshData = desc.meshManager;
@@ -403,8 +391,10 @@ void SceneFactory::saveToFile(const Editor::Scene &scene, vx::File* f)
 		}
 	}
 
-	auto sceneFileInstanceCount = sceneFile.getNumMeshInstances();
-	auto sceneFileInstances = sceneFile.getMeshInstances();
+	SceneFactoryCpp::SceneFileLoad loadedSceneFile(std::move(sceneFile));
+
+	auto sceneFileInstanceCount = loadedSceneFile.getMeshInstanceCount();
+	auto sceneFileInstances = loadedSceneFile.getMeshInstances();
 	for (u32 i = 0; i < sceneFileInstanceCount; ++i)
 	{
 		auto str = sceneFileInstances[i].getAnimation();
@@ -413,6 +403,8 @@ void SceneFactory::saveToFile(const Editor::Scene &scene, vx::File* f)
 			printf("SceneFile Animation: %s\n", str);
 		}
 	}
+
+	loadedSceneFile.swap(sceneFile);
 
 	vx::FileFactory::saveToFile(f, &sceneFile);
 }

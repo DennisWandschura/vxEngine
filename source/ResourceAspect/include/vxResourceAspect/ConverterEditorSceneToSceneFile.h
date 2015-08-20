@@ -24,6 +24,7 @@ SOFTWARE.
 */
 
 class SceneFile;
+
 namespace Editor
 {
 	class Scene;
@@ -31,12 +32,14 @@ namespace Editor
 
 namespace Converter
 {
+	class SceneFile;
+
 	class EditorSceneToSceneFile
 	{
 		static void convertActors(const Editor::Scene &scene, SceneFile* sceneFile);
 		static void copyLights(const Editor::Scene &scene, SceneFile* sceneFile);
 
 	public:
-		static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
+		static void convert(const Editor::Scene &scene, ::SceneFile* sceneFile);
 	};
 }

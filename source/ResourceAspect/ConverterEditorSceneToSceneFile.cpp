@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 #include <vxResourceAspect/ConverterEditorSceneToSceneFile.h>
+#include "ConverterSceneFile.h"
 #include <vxEngineLib/EditorScene.h>
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/MeshInstanceFile.h>
@@ -46,7 +47,7 @@ namespace Converter
 
 		if (actorCount != 0)
 		{
-			sceneFile->m_pActors = vx::make_unique<ActorFile[]>(actorCount);
+			auto fileActors = vx::make_unique<ActorFile[]>(actorCount);
 			for (u32 i = 0; i < actorCount; ++i)
 			{
 				auto sidActor = keys[i];
@@ -59,41 +60,43 @@ namespace Converter
 				auto meshNameIt = scene.m_meshNames.find(sidMesh);
 				auto materialNameIt = scene.m_materialNames.find(sidMaterial);
 
-				strncpy(sceneFile->m_pActors[i].m_material, materialNameIt->c_str(), 32);
-				strncpy(sceneFile->m_pActors[i].m_mesh, meshNameIt->c_str(), 32);
-				strncpy(sceneFile->m_pActors[i].m_name, actorNameIt->c_str(), 32);
+				strncpy(fileActors[i].m_material, materialNameIt->c_str(), 32);
+				strncpy(fileActors[i].m_mesh, meshNameIt->c_str(), 32);
+				strncpy(fileActors[i].m_name, actorNameIt->c_str(), 32);
 			}
-		}
 
-		sceneFile->m_actorCount = actorCount;
+			sceneFile->setActors(std::move(fileActors), actorCount);
+		}
 	}
 
 	void EditorSceneToSceneFile::copyLights(const Editor::Scene &scene, SceneFile* sceneFile)
 	{
-		sceneFile->m_lightCount = scene.m_lightCount;
-		if (scene.m_lightCount != 0)
+		auto lightCount = scene.m_lightCount;
+		if (lightCount != 0)
 		{
-
-			sceneFile->m_pLights = vx::make_unique<Light[]>(scene.m_lightCount);
+			auto lights = vx::make_unique<Light[]>(scene.m_lightCount);
 			for (u32 i = 0; i < scene.m_lightCount; ++i)
 			{
-				sceneFile->m_pLights[i] = scene.m_lights[i];
+				lights[i] = scene.m_lights[i];
 			}
+
+			sceneFile->setLights(std::move(lights), lightCount);
 		}
 	}
 
-	void EditorSceneToSceneFile::convert(const Editor::Scene &scene, SceneFile* sceneFile)
+	void EditorSceneToSceneFile::convert(const Editor::Scene &scene, ::SceneFile* sceneFile)
 	{
-		convertActors(scene, sceneFile);
-		copyLights(scene, sceneFile);
+		SceneFile converterSceneFile(std::move(*sceneFile));
 
-		scene.m_navMesh.copy(&sceneFile->m_navMesh);
+		convertActors(scene, &converterSceneFile);
+		copyLights(scene, &converterSceneFile);
+
+		converterSceneFile.setNavMesh(scene.m_navMesh);
 
 		auto meshInstanceCount = scene.m_meshInstances.size();
-		sceneFile->m_meshInstanceCount = meshInstanceCount;
 		if (meshInstanceCount != 0)
 		{
-			sceneFile->m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(meshInstanceCount);
+			auto meshInstances = vx::make_unique<MeshInstanceFile[]>(meshInstanceCount);
 			for (u32 i = 0; i < meshInstanceCount; ++i)
 			{
 				auto &it = scene.m_meshInstances[i];
@@ -130,16 +133,17 @@ namespace Converter
 				}
 
 				auto transform = it.getTransform();
-				sceneFile->m_pMeshInstances[i] = MeshInstanceFile(name, meshName, materialName, animation, transform, it.getRigidBodyType());
+				meshInstances[i] = MeshInstanceFile(name, meshName, materialName, animation, transform, it.getRigidBodyType());
 			}
+
+			converterSceneFile.setMeshInstances(std::move(meshInstances), meshInstanceCount);
 		}
 
 		auto spawns = scene.getSpawns();
-		u32 spawnCount = 0;
-		if (spawns != nullptr)
+		u32 spawnCount = scene.getSpawnCount();
+		if (spawnCount != 0)
 		{
-			spawnCount = scene.getSpawnCount();
-			sceneFile->m_pSpawns = vx::make_unique<SpawnFile[]>(spawnCount);
+			auto fileSpawns = vx::make_unique<SpawnFile[]>(spawnCount);
 
 			for (u32 i = 0; i < spawnCount; ++i)
 			{
@@ -148,38 +152,44 @@ namespace Converter
 				if (spawn.type != PlayerType::Human)
 				{
 					auto actorName = scene.getActorName(spawn.sid);
-					strcpy(sceneFile->m_pSpawns[i].actor, actorName);
+					strcpy(fileSpawns[i].actor, actorName);
 				}
 				else
 				{
-					sceneFile->m_pSpawns[i].actor[0] = '\0';
+					fileSpawns[i].actor[0] = '\0';
 				}
 
-				sceneFile->m_pSpawns[i].position = spawn.position;
-				sceneFile->m_pSpawns[i].type = spawn.type;
+				fileSpawns[i].position = spawn.position;
+				fileSpawns[i].type = spawn.type;
 			}
-		}
-		sceneFile->m_spawnCount = spawnCount;
 
-		sceneFile->m_waypointCount = scene.m_waypointCount;
-		if (scene.m_waypointCount != 0)
+			converterSceneFile.setSpawns(std::move(fileSpawns), spawnCount);
+		}
+
+		auto waypointCount = scene.m_waypointCount;
+		if (waypointCount != 0)
 		{
-			sceneFile->m_waypoints = vx::make_unique<Waypoint[]>(scene.m_waypointCount);
+			auto waypoints = vx::make_unique<Waypoint[]>(scene.m_waypointCount);
 			for (u32 i = 0; i < scene.m_waypointCount; ++i)
 			{
-				sceneFile->m_waypoints[i] = scene.m_waypoints[i];
+				waypoints[i] = scene.m_waypoints[i];
 			}
+
+			converterSceneFile.setWaypoints(std::move(waypoints), waypointCount);
 		}
 
 		auto jointCount = scene.m_joints.size();
-		sceneFile->m_jointCount = jointCount;
 		if (jointCount != 0)
 		{
-			sceneFile->m_joints = vx::make_unique<Joint[]>(jointCount);
+			auto joints = vx::make_unique<Joint[]>(jointCount);
 			for (u32 i = 0; i < jointCount; ++i)
 			{
-				sceneFile->m_joints[i] = scene.m_joints[i];
+				joints[i] = scene.m_joints[i];
 			}
+
+			converterSceneFile.setJoints(std::move(joints), jointCount);
 		}
+
+		converterSceneFile.swap(*sceneFile);
 	}
 }
