@@ -100,7 +100,7 @@ bool EditorEngine::initializeImpl(const std::string &dataDir, bool flipTextures)
 	m_msgManager.initialize(&m_allocator, 256);
 
 	//if (!m_resourceAspect.initialize(&m_allocator, dataDir, &m_msgManager, m_physicsAspect.getCooking()))
-	if (!m_resourceAspect.initialize(&m_allocator, dataDir, m_physicsAspect.getCooking(), &m_taskManager, &m_msgManager, flipTextures))
+	if (!m_resourceAspect.initialize(&m_allocator, dataDir, m_physicsAspect.getCooking(), &m_taskManager, &m_msgManager, flipTextures, true))
 		return false;
 
 	Locator::provide(&m_resourceAspect);

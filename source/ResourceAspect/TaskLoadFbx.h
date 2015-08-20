@@ -18,6 +18,7 @@ namespace vx
 #include <vxEngineLib/Task.h>
 #include <vxEngineLib/PhysxEnums.h>
 #include <string>
+#include <FbxFactoryInterface.h>
 
 struct TaskLoadFbxDesc
 {
@@ -30,6 +31,7 @@ struct TaskLoadFbxDesc
 	std::string m_meshFolder;
 	std::string m_animationFolder;
 	PhsyxMeshType m_physxMeshType;
+	FbxFactoryInterface* m_fbxFactory;
 };
 
 class TaskLoadFbx: public Task
@@ -42,6 +44,7 @@ class TaskLoadFbx: public Task
 	std::string m_meshFolder;
 	std::string m_animationFolder;
 	PhsyxMeshType m_physxMeshType;
+	FbxFactoryInterface* m_fbxFactory;
 
 	TaskReturnType runImpl() override;
 

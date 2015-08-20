@@ -48,9 +48,6 @@
     <ClCompile Include="unity\Unity_vxEngine1.cpp">
       <Filter>Source Files\unity</Filter>
     </ClCompile>
-    <ClCompile Include="FbxFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -114,9 +111,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\MaterialFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxResourceAspect\FbxFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TaskLoadMesh.h">

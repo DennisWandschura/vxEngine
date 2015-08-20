@@ -26,6 +26,7 @@ SOFTWARE.
 
 class Event;
 class Task;
+class FbxFactoryInterface;
 
 namespace physx
 {
@@ -73,7 +74,11 @@ class ResourceAspect : public ResourceAspectInterface
 	vx::TaskManager* m_taskManager;
 	vx::MessageManager* m_msgManager;
 	physx::PxCooking* m_cooking;
+	FbxFactoryInterface* m_fbxFactory;
+	void* m_dllHandle;
 	bool m_flipTextures;
+
+	bool loadFbxFactory();
 
 	void setDirectories(const std::string &dataDir);
 
@@ -95,7 +100,7 @@ public:
 	ResourceAspect();
 	~ResourceAspect();
 
-	bool initialize(vx::StackAllocator* mainAllocator, const std::string &dataDir, physx::PxCooking* cooking, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures);
+	bool initialize(vx::StackAllocator* mainAllocator, const std::string &dataDir, physx::PxCooking* cooking, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures, bool editor);
 	void shutdown();
 
 	void update();

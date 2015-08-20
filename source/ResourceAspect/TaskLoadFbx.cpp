@@ -1,5 +1,4 @@
 #include "TaskLoadFbx.h"
-#include <vxResourceAspect/FbxFactory.h>
 #include <vxResourceAspect/FileEntry.h>
 #include <vxResourceAspect/ResourceAspect.h>
 #include <vxResourceAspect/ResourceManager.h>
@@ -12,7 +11,8 @@ TaskLoadFbx::TaskLoadFbx(TaskLoadFbxDesc &&rhs)
 	m_fileNameWithPath(std::move(rhs.m_fileNameWithPath)),
 	m_meshFolder(std::move(rhs.m_meshFolder)),
 	m_animationFolder(std::move(rhs.m_animationFolder)),
-	m_physxMeshType(rhs.m_physxMeshType)
+	m_physxMeshType(rhs.m_physxMeshType),
+	m_fbxFactory(rhs.m_fbxFactory)
 {
 
 }
@@ -24,11 +24,9 @@ TaskLoadFbx::~TaskLoadFbx()
 
 TaskReturnType TaskLoadFbx::runImpl()
 {
-#if _VX_EDITOR
 	std::vector<vx::FileHandle> meshFiles, animFiles;
 
-	FbxFactory factory;
-	if (!factory.loadFile(m_fileNameWithPath.c_str(), m_meshFolder, m_animationFolder, m_physxMeshType, m_cooking, &meshFiles, &animFiles, m_meshManager))
+	if (!m_fbxFactory->loadFile(m_fileNameWithPath.c_str(), m_meshFolder, m_animationFolder, m_physxMeshType, m_cooking, &meshFiles, &animFiles, m_meshManager))
 		return TaskReturnType::Failure;
 
 	for (auto &it : meshFiles)
@@ -50,7 +48,7 @@ TaskReturnType TaskLoadFbx::runImpl()
 		arg.ptr = ptr;
 		m_resourceAspect->requestLoadFile(fileEntry, arg);
 	}
-#endif
+
 	return TaskReturnType::Success;
 }
 

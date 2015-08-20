@@ -35,13 +35,12 @@ SOFTWARE.
 #pragma comment(lib, "vxLib_sd.lib")
 #endif
 
+#pragma comment(lib, "vxEngineLib_d.lib")
+
 #ifdef _VX_EDITOR
 #pragma comment(lib, "vxResourceAspect_editor_d.lib")
-#pragma comment(lib, "vxEngineLib_editor_d.lib")
-#pragma comment(lib, "libfbxsdk-mt.lib")
 #else
 #pragma comment(lib, "vxResourceAspect_d.lib")
-#pragma comment(lib, "vxEngineLib_d.lib")
 #endif
 
 #ifdef _VX_NOAUDIO

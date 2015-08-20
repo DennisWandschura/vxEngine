@@ -39,8 +39,8 @@ SOFTWARE.
 #include "TaskLoadMaterial.h"
 #include "TaskLoadFbx.h"
 #include "TaskSaveEditorScene.h"
-
-#include <fstream>
+#include <Windows.h>
+#include <FbxFactoryInterface.h>
 
 char ResourceAspect::s_textureFolder[32] = { "data/textures/" };
 char ResourceAspect::s_materialFolder[32] = { "data/materials/" };
@@ -48,38 +48,6 @@ char ResourceAspect::s_sceneFolder[32] = { "data/scenes/" };
 char ResourceAspect::s_meshFolder[32] = { "data/mesh/" };
 char ResourceAspect::s_animationFolder[32] = { "data/animation/" };
 char ResourceAspect::s_assetFolder[32] = { "../../../assets/" };
-
-namespace ResourceAspectCpp
-{
-	void saveMeshesToTxt(const ResourceManager<vx::MeshFile> &meshes)
-	{
-		auto &sortedData = meshes.getSortedData();
-
-		std::ofstream outFile;
-		outFile.open("meshes.txt");
-
-		for (auto &it : sortedData)
-		{
-			auto &mesh = it->getMesh();
-
-			auto vertexCount = mesh.getVertexCount();
-			auto vertices = mesh.getVertices();
-
-			outFile << "mesh\n";
-
-			for (u32 i = 0; i < vertexCount; ++i)
-			{
-				auto &v = vertices[i];
-
-				outFile << v.normal.x << " " << v.normal.y << " " << v.normal.z << "\n";
-				outFile << v.tangent.x << " " << v.tangent.y << " " << v.tangent.z << "\n";
-				outFile << v.bitangent.x << " " << v.bitangent.y << " " << v.bitangent.z << "\n";
-			}
-
-			outFile << "\n";
-		}
-	}
-}
 
 struct ResourceAspect::FileRequest
 {
@@ -103,6 +71,8 @@ struct ResourceAspect::TaskLoadFileDesc
 };
 
 ResourceAspect::ResourceAspect()
+	:m_fbxFactory(nullptr),
+	m_dllHandle(nullptr)
 {
 
 }
@@ -120,11 +90,28 @@ void ResourceAspect::setDirectories(const std::string &dataDir)
 	strcpy_s(s_meshFolder, (dataDir + "mesh/").c_str());
 	strcpy_s(s_animationFolder, (dataDir + "animation/").c_str());
 	strcpy_s(s_assetFolder, (dataDir + "../../assets/").c_str());
-
-	//strcpy_s(FileAspectCpp::g_assetFolder, (dataDir + "../../assets/").c_str());
 }
 
-bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, physx::PxCooking* cooking, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures)
+bool ResourceAspect::loadFbxFactory()
+{
+#if _DEBUG
+	auto handle = LoadLibrary(L"../../../lib/vxFbxImporter_d.dll");
+#endif
+
+	if (handle == nullptr)
+		return false;
+
+	CreateFbxFactoryFunctionType proc = (CreateFbxFactoryFunctionType)GetProcAddress(handle, "createFbxFactory");
+	if (proc == nullptr)
+		return false;
+
+	m_fbxFactory = proc();
+	m_dllHandle = handle;
+
+	return true;
+}
+
+bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, physx::PxCooking* cooking, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures, bool editor)
 {
 	if (!m_meshData.initialize(255, 10 MBYTE, 5 MBYTE, mainAllocator))
 		return false;
@@ -137,6 +124,12 @@ bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::st
 
 	if (!m_textureData.initialize(128, 50 MBYTE, 20 MBYTE, mainAllocator))
 		return false;
+
+	if (editor)
+	{
+		if (!loadFbxFactory())
+			return false;
+	}
 
 	m_taskManager = taskManager;
 	m_msgManager = msgManager;
@@ -151,6 +144,16 @@ bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::st
 
 void ResourceAspect::shutdown()
 {
+	if (m_dllHandle)
+	{
+		auto proc = (DestroyFbxFactoryFunctionType)GetProcAddress((HMODULE)m_dllHandle, "destroyFbxFactory");
+		proc(m_fbxFactory);
+		m_fbxFactory = nullptr;
+
+		FreeLibrary((HMODULE)m_dllHandle);
+		m_dllHandle = nullptr;
+	}
+
 	m_textureData.shutdown();
 	m_animationData.shutdown();
 	m_materialData.shutdown();
@@ -408,6 +411,7 @@ void ResourceAspect::taskLoadFbx(const TaskLoadFileDesc &desc, const char* folde
 	loadDesc.m_physxMeshType = physxMeshType;
 	loadDesc.m_resourceAspect = this;
 	loadDesc.m_userData = desc.p;
+	loadDesc.m_fbxFactory = m_fbxFactory;
 
 	auto task = new TaskLoadFbx(std::move(loadDesc));
 	pushTask(task, desc.type, desc.sid, evt, desc.p, std::move(filename));
