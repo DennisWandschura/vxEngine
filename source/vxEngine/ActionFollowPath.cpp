@@ -23,16 +23,12 @@ SOFTWARE.
 */
 #include "ActionFollowPath.h"
 #include "Entity.h"
-#include "ComponentInput.h"
 #include "ComponentActor.h"
-#include "ComponentPhysics.h"
 
-ActionFollowPath::ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actor, Component::Physics* componentPhysics, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius)
-	:m_componentInput(componentInput),
-	m_entity(entity),
-	m_componentPhysics(componentPhysics),
+ActionFollowPath::ActionFollowPath(EntityActor* entity, Component::Actor* actor, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius)
+	:m_entity(entity),
 	m_arrive(),
-	m_lookWhereYoureGoing(componentInput),
+	m_lookWhereYoureGoing(entity),
 	m_actor(actor),
 	m_avoidance(quadTree, actorRadius, queryRadius, 0.1f),
 	m_arrived(false)
@@ -47,7 +43,7 @@ void ActionFollowPath::run()
 		auto currentPosition = m_entity->m_position;
 
 		auto positionFoot = currentPosition;
-		positionFoot.y = m_componentPhysics->footPositionY;
+		positionFoot.y = m_entity->m_footPositionY;
 
 		vx::float4 velocity;
 		if (!m_arrive.getSteering(positionFoot, &steering))
@@ -87,10 +83,10 @@ void ActionFollowPath::run()
 				velocity.z *= 0.5f;
 			}
 
-			m_componentInput->orientation.x = steering.angular;
+			m_entity->m_orientation.x = steering.angular;
 		}
 
-		m_componentInput->velocity = velocity;
+		m_entity->m_velocity = velocity;
 	}
 }
 

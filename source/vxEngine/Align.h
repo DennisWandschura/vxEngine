@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,12 +22,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-namespace Component
-{
-	struct Input;
-}
+struct EntityActor;
 
 #include "Steering.h"
 #include <vxLib/math/Vector.h>
@@ -34,17 +31,17 @@ namespace Component
 class Align : public Steering
 {
 protected:
-	Component::Input* m_pCharacter;
-	Component::Input* m_pTarget;
+	EntityActor* m_pCharacter;
+	EntityActor* m_pTarget;
 	f32 m_maxAngularAcceleration;
 	f32 m_maxRotation;
 	f32 m_targetRadius;
 	f32 m_slowRadius;
 
 public:
-	Align(Component::Input* character, Component::Input* target);
+	Align(EntityActor* character, EntityActor* target);
 
 	virtual bool getSteering(SteeringOutput* output) override;
 
-	void setTarget(Component::Input* target);
+	void setTarget(EntityActor* target);
 };

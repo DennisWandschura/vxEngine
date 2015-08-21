@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Align.h"
-#include "ComponentInput.h"
+#include "Entity.h"
 
-Align::Align(Component::Input* character, Component::Input* target)
+Align::Align(EntityActor* character, EntityActor* target)
 	:m_pCharacter(character),
 	m_pTarget(target),
 	m_maxAngularAcceleration(1.0f),
@@ -39,7 +39,7 @@ bool Align::getSteering(SteeringOutput* output)
 {
 	const f32 timeToTarget = 0.1f;
 
-	auto rotation = m_pTarget->orientation - m_pCharacter->orientation;
+	auto rotation = m_pTarget->m_orientation - m_pCharacter->m_orientation;
 
 	rotation.x = vx::scalarModAngle(rotation.x);
 
@@ -56,7 +56,7 @@ bool Align::getSteering(SteeringOutput* output)
 
 	targetRotation *= rotation.x / rotSz;
 
-	f32 angular = targetRotation - m_pCharacter->orientation.x;
+	f32 angular = targetRotation - m_pCharacter->m_orientation.x;
 	angular /= timeToTarget;
 
 	f32 angularAccel = abs(angular);
@@ -71,7 +71,7 @@ bool Align::getSteering(SteeringOutput* output)
 	return true;
 }
 
-void Align::setTarget(Component::Input* target)
+void Align::setTarget(EntityActor* target)
 {
 	m_pTarget = target;
 }

@@ -59,7 +59,7 @@ void ComponentActorManager::shutdown()
 	m_pool.release();
 }
 
-Component::Actor* ComponentActorManager::createComponent(u16 entityIndex, EntityActor* entity, Component::Input* componentInput, Component::Physics* componentPhysics, const QuadTree* quadTree, u16* index)
+Component::Actor* ComponentActorManager::createComponent(u16 entityIndex, EntityActor* entity, const QuadTree* quadTree, u16* index)
 {
 	auto pActor = m_pool.createEntry(index);
 
@@ -68,7 +68,7 @@ Component::Actor* ComponentActorManager::createComponent(u16 entityIndex, Entity
 	pActor->m_busy = 0;
 	pActor->m_followingPath = 0;
 
-	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, componentInput, pActor, componentPhysics, quadTree, 0.2f, 2.0f);
+	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, pActor, quadTree, 0.2f, 2.0f);
 	ActionSetFollowPath* actionSetFollowPath = new ActionSetFollowPath(actionFollowPath, pActor->m_data.get());
 
 	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(pActor);

@@ -100,7 +100,7 @@ void ActorAspect::handleIngameMessage(const vx::Message &evt)
 	{
 		auto data = static_cast<CreatedActorData*>(evt.arg1.ptr);
 		
-		m_squad.addEntity(data->entity, data->componentActor,data->componentPhysics);
+		m_squad.addEntity(data->entity, data->componentActor);
 
 		delete(data);
 	}

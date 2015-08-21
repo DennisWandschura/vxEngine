@@ -24,41 +24,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace Component
+class ArrayAllocator;
+
+template<typename T>
+class ResourceManager;
+
+namespace physx
 {
-	struct Input;
+	class PxCooking;
 }
 
 namespace vx
 {
-	class StackAllocator;
+	class MeshFile;
 }
 
-struct EntityActor;
-struct QuadTreeData;
-class ComponentPhysicsManager;
-
-#include <vxEngineLib/Pool.h>
+#include <vxLib/File/FileHandle.h>
 #include <vector>
 
-class ComponentInputManager
+enum class PhsyxMeshType : u32;
+
+class FbxFactoryInterface
 {
-	vx::Pool<Component::Input> m_poolInput;
-
 public:
-	ComponentInputManager();
-	~ComponentInputManager();
+	virtual ~FbxFactoryInterface() {}
 
-	void initialize(u32 capacity, vx::StackAllocator* pAllocator);
-	void shutdown();
-
-	void update(f32 dt, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<EntityActor>* entities);
-
-	void getQuadTreeData(std::vector<QuadTreeData>* data, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<EntityActor>* entities);
-
-	Component::Input* createComponent(u16 entityIndex, u16* componentIndex);
-
-	Component::Input& operator[](u32 i);
-
-	u32 getSize() const;
+	virtual bool loadFile(const char *fbxFile, const std::string &meshDir, const std::string &animDir, PhsyxMeshType meshType, physx::PxCooking* cooking,
+		std::vector<vx::FileHandle>* meshFiles, std::vector<vx::FileHandle>* animFiles, ResourceManager<vx::MeshFile>* meshManager) = 0;
 };
+
+typedef FbxFactoryInterface* (*CreateFbxFactoryFunctionType)();
+typedef void(*DestroyFbxFactoryFunctionType)(FbxFactoryInterface*);

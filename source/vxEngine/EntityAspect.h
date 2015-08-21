@@ -48,9 +48,6 @@ class CreateDynamicMeshData;
 #include <vxLib/Allocator/StackAllocator.h>
 #include "QuadTree.h"
 #include "ComponentActionManager.h"
-#include "ComponentRenderManager.h"
-#include "ComponentPhysicsManager.h"
-#include "ComponentInputManager.h"
 #include "ComponentActorManager.h"
 #include "Entity.h"
 
@@ -66,7 +63,8 @@ class EntityAspect : public vx::MessageListener
 	PlayerController m_playerController;
 	//ComponentActionManager m_componentActionManager;
 	ComponentActorManager m_componentActorManager;
-	vx::Pool<EntityActor> m_poolEntity;
+	vx::Pool<EntityActor> m_poolEntityActor;
+	vx::Pool<EntityDynamic> m_poolEntityDynamic;
 	QuadTree m_quadTree;
 	vx::StackAllocator m_allocator;
 	vx::TaskManager* m_taskManager;
@@ -80,6 +78,9 @@ class EntityAspect : public vx::MessageListener
 
 	void handleFileEvent(const vx::Message &evt);
 	void handleIngameMessage(const vx::Message &evt);
+
+	void updateEntityActor(f32 dt);
+	void updateEntityDynamic(f32 dt);
 
 public:
 	EntityAspect();
@@ -103,12 +104,4 @@ public:
 	void handleMessage(const vx::Message &evt);
 
 	void onPressedActionKey();
-
-	//////////////////
-
-	//EntityActor* getPlayer(){ return m_coldData->m_pPlayer; }
-
-	//Component::Input& getComponentInput(u16 i);
-
-	//const vx::Pool<EntityActor>& getEntityPool() const { return m_poolEntity; }
 };

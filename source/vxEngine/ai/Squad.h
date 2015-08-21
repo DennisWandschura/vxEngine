@@ -36,7 +36,6 @@ namespace vx
 namespace Component
 {
 	struct Actor;
-	struct Physics;
 }
 
 #include <vxLib/types.h>
@@ -56,7 +55,6 @@ namespace ai
 		{
 			EntityActor* m_entity;
 			Component::Actor* m_actorComponent;
-			Component::Physics* m_componentPhysics;
 			std::vector<Waypoint> m_waypoints;
 			u16 m_cells[2];
 			u8 m_cellCount;
@@ -75,7 +73,7 @@ namespace ai
 
 		void initialize(vx::StackAllocator* allocator, vx::AllocationProfiler* allocationManager);
 
-		bool addEntity(EntityActor* entity, Component::Actor* actorComponent, Component::Physics* componentPhysics);
+		bool addEntity(EntityActor* entity, Component::Actor* actorComponent);
 
 		void createPath(Component::Actor* componentActor);
 

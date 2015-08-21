@@ -25,9 +25,7 @@ SOFTWARE.
 
 namespace Component
 {
-	struct Input;
 	struct Actor;
-	struct Physics;
 }
 
 struct EntityActor;
@@ -41,9 +39,7 @@ struct EntityActor;
 
 class ActionFollowPath : public Action
 {
-	Component::Input* m_componentInput;
 	EntityActor* m_entity;
-	Component::Physics* m_componentPhysics;
 	Arrive m_arrive;
 	LookWhereYoureGoing m_lookWhereYoureGoing;
 	Component::Actor* m_actor;
@@ -52,7 +48,7 @@ class ActionFollowPath : public Action
 	bool m_arrived;
 
 public:
-	ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actorData, Component::Physics* componentPhysics, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius);
+	ActionFollowPath(EntityActor* entity, Component::Actor* actorData, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius);
 
 	void run() override;
 

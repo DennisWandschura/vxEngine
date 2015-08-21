@@ -35,7 +35,6 @@ SOFTWARE.
 #include <vxLib/Container/sorted_vector.h>
 #include <vxEngineLib/Locator.h>
 #include "../PhysicsAspect.h"
-#include "../ComponentPhysics.h"
 #include <vxLib/Allocator/AllocationProfiler.h>
 
 namespace SquadCpp
@@ -143,7 +142,7 @@ namespace ai
 		m_pseudoRandom.setMaxValue(1024);
 	}
 
-	bool Squad::addEntity(EntityActor* entity, Component::Actor* actorComponent, Component::Physics* componentPhysics)
+	bool Squad::addEntity(EntityActor* entity, Component::Actor* actorComponent)
 	{
 		if (m_availableCells.empty())
 			return false;
@@ -151,7 +150,6 @@ namespace ai
 		Data data;
 		data.m_entity = entity;
 		data.m_actorComponent = actorComponent;
-		data.m_componentPhysics = componentPhysics;
 
 		auto influenceCells = s_influenceMap->getCells();
 
@@ -207,7 +205,7 @@ namespace ai
 			return;
 
 		auto entityPosition = targetData->m_entity->m_position;
-		entityPosition.y = targetData->m_componentPhysics->footPositionY;
+		entityPosition.y = targetData->m_entity->m_footPositionY;
 
 		auto influenceCells = s_influenceMap->getCells();
 		auto influenceCellBounds = s_influenceMap->getBounds();

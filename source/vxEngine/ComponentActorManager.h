@@ -27,8 +27,6 @@ SOFTWARE.
 namespace Component
 {
 	struct Actor;
-	struct Input;
-	struct Physics;
 }
 
 namespace vx
@@ -54,7 +52,7 @@ public:
 	void initialize(u32 capacity, vx::StackAllocator* pAllocator);
 	void shutdown();
 
-	Component::Actor* createComponent(u16 entityIndex, EntityActor* entity, Component::Input* componentInput, Component::Physics* componentPhysics, const QuadTree* quadTree, u16* index);
+	Component::Actor* createComponent(u16 entityIndex, EntityActor* entity, const QuadTree* quadTree, u16* index);
 
 	void update(ActionManager* actionManager, vx::StackAllocator* scratchAllocator);
 

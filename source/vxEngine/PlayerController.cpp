@@ -33,7 +33,6 @@ SOFTWARE.
 #include <vxLib/Graphics/Camera.h>
 #include "input/Keys.h"
 #include "EntityAspect.h"
-#include "ComponentInput.h"
 #include "PhysicsDefines.h"
 
 PlayerController::PlayerController()

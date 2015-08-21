@@ -141,14 +141,8 @@
     <ClInclude Include="RingBuffer.h">
       <Filter>Header Files\Container</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentInput.h">
-      <Filter>Header Files\Entity</Filter>
-    </ClInclude>
     <ClInclude Include="BVH.h">
       <Filter>Header Files\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentRender.h">
-      <Filter>Header Files\Entity</Filter>
     </ClInclude>
     <ClInclude Include="PhysicsDefines.h">
       <Filter>Header Files\Physics</Filter>
@@ -309,23 +303,11 @@
     <ClInclude Include="CollisionAvoidance.h">
       <Filter>Header Files\AI\Steering</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentRenderManager.h">
-      <Filter>Header Files\Entity</Filter>
-    </ClInclude>
     <ClInclude Include="TaskSceneCreateStaticMeshes.h">
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
     <ClInclude Include="TaskSceneCreateActorsGpu.h">
       <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentPhysics.h">
-      <Filter>Header Files\Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentPhysicsManager.h">
-      <Filter>Header Files\Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentInputManager.h">
-      <Filter>Header Files\Entity</Filter>
     </ClInclude>
     <ClInclude Include="ComponentActorManager.h">
       <Filter>Header Files\Entity</Filter>
@@ -467,20 +449,11 @@
     <ClCompile Include="CollisionAvoidance.cpp">
       <Filter>Source Files\AI\Steering</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentRenderManager.cpp">
-      <Filter>Source Files\Entity</Filter>
-    </ClCompile>
     <ClCompile Include="TaskSceneCreateStaticMeshes.cpp">
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
     <ClCompile Include="TaskSceneCreateActorsGpu.cpp">
       <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentPhysicsManager.cpp">
-      <Filter>Source Files\Entity</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentInputManager.cpp">
-      <Filter>Source Files\Entity</Filter>
     </ClCompile>
     <ClCompile Include="ComponentActorManager.cpp">
       <Filter>Source Files\Entity</Filter>

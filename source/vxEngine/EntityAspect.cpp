@@ -25,7 +25,6 @@ SOFTWARE.
 #include "PhysicsAspect.h"
 //#include <vxEngineLib/Entity.h>
 #include "ComponentActor.h"
-#include "ComponentInput.h"
 #include "PhysicsDefines.h"
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/Actor.h>
@@ -40,7 +39,6 @@ SOFTWARE.
 #include <vxEngineLib/FileMessage.h>
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Material.h>
-#include "ComponentRender.h"
 #include <vxEngineLib/RenderAspectInterface.h>
 #include "TaskSceneCreateStaticMeshes.h"
 #include <vxEngineLib/TaskManager.h>
@@ -49,10 +47,10 @@ SOFTWARE.
 #include <vxEngineLib/Spawn.h>
 #include "ComponentAction.h"
 #include <vxLib/Allocator/AllocationProfiler.h>
-#include "ComponentPhysics.h"
 #include "CreatedActorData.h"
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include "TaskPhysxCreateJoints.h"
+#include <vxLib/ScopeGuard.h>
 
 namespace EntityAspectCpp
 {
@@ -90,7 +88,7 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator, vx::TaskManager* t
 	m_componentPhysicsManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);
 	m_componentInputManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);
 	m_componentActorManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);*/
-	EntityAspectCpp::createPool(EntityAspectCpp::g_maxEntities, 16, pAllocator, &m_poolEntity);
+	EntityAspectCpp::createPool(EntityAspectCpp::g_maxEntities, 16, pAllocator, &m_poolEntityActor);
 
 	//const auto pathChunkSize = s_maxNavNodes * sizeof(vx::float3);
 	//const auto pathPoolSize = g_maxEntities * pathChunkSize;
@@ -115,7 +113,7 @@ void EntityAspect::shutdown()
 	{
 		m_coldData.reset();
 	}
-	m_poolEntity.release();
+	m_poolEntityActor.release();
 	m_componentActorManager.shutdown();
 	//m_componentInputManager.shutdown();
 	//m_componentPhysicsManager.shutdown();
@@ -152,54 +150,28 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 		m_entityHuman->m_orientation.y = 0;
 		m_entityHuman->m_footPositionY = 0;
 
-		//u16 inputComponentIndex;
-		//auto componentInput = m_componentInputManager.createComponent(entityIndex, &inputComponentIndex);
-
-		
-		//u16 componentPhysicsIndex;
-		//auto componentPhysics = m_componentPhysicsManager.createComponent(position, controller, nullptr, entityIndex, &componentPhysicsIndex);
-
-		//m_coldData->m_pPlayer->addComponent(*componentPhysics, componentPhysicsIndex);
-		//m_coldData->m_pPlayer->addComponent(*componentInput, inputComponentIndex);
-
 		m_playerController.initializePlayer(g_dt, m_entityHuman, Locator::getRenderAspect());
 	}
 }
 
 void EntityAspect::createActorEntity(const CreateActorData &data)
 {
-	/*auto transform = data.getTransform();
+	auto transform = data.getTransform();
 
 	u16 entityIndex;
-	auto pEntity = m_poolEntity.createEntry(&entityIndex);
-	pEntity->position = transform.m_translation;
-
-	u16 componentPhysicsIndex;
-	auto componentPhysics = m_componentPhysicsManager.createComponent(transform.m_translation, data.getController(), nullptr, entityIndex, &componentPhysicsIndex);
-
-	u16 inputComponentIndex;
-	auto componentInput = m_componentInputManager.createComponent(entityIndex, &inputComponentIndex);
-
-
-	auto gpuIndex = data.getGpuIndex();
-
-	//createComponentPhysics(data, entityIndex);
-
-	u16 componentRenderIndex;
-	auto componentRender = m_componentRenderManager.createComponent(transform, gpuIndex, entityIndex, &componentRenderIndex);
+	auto entity = m_poolEntityActor.createEntry(&entityIndex);
+	entity->m_position = transform.m_translation;
+	entity->m_controller = data.getController();
+	entity->m_orientation.x = 0;
+	entity->m_orientation.y = 0;
+	entity->m_gpuIndex = data.getGpuIndex();
 
 	u16 componentActorIndex;
-	auto componentActor = m_componentActorManager.createComponent(entityIndex, pEntity, componentInput, componentPhysics, &m_quadTree, &componentActorIndex);
-
-	pEntity->addComponent(*componentRender, componentRenderIndex);
-	pEntity->addComponent(*componentPhysics, componentPhysicsIndex);
-	pEntity->addComponent(*componentInput, inputComponentIndex);
-	pEntity->addComponent(*componentActor, componentActorIndex);
+	auto componentActor = m_componentActorManager.createComponent(entityIndex, entity, &m_quadTree, &componentActorIndex);
 
 	auto createdData = new CreatedActorData();
-	createdData->entity = pEntity;
+	createdData->entity = entity;
 	createdData->componentActor = componentActor;
-	createdData->componentPhysics = componentPhysics;
 
 	vx::Message evt;
 	evt.type = vx::MessageType::Ingame_Event;
@@ -207,35 +179,88 @@ void EntityAspect::createActorEntity(const CreateActorData &data)
 	evt.arg1.ptr = createdData;
 
 	auto pEvtManager = Locator::getMessageManager();
-	pEvtManager->addMessage(evt);*/
+	pEvtManager->addMessage(evt);
+}
+
+void EntityAspect::updateEntityActor(f32 dt)
+{
+	auto count = m_poolEntityActor.size();
+	if (count != 0)
+	{
+		auto marker = m_allocator.getMarker();
+		SCOPE_EXIT
+		{
+			m_allocator.clear(marker);
+		};
+
+		auto totalSizeInBytes = sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count + sizeof(u32) * count;
+		auto dataPtr = m_allocator.allocate(totalSizeInBytes, 16);
+
+		vx::TransformGpu* pTransforms = (vx::TransformGpu*)(dataPtr + sizeof(RenderUpdateDataTransforms));
+		u32* indices = (u32*)(dataPtr + sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count);
+		u32 index = 0;
+
+		auto physicsAspect = Locator::getPhysicsAspect();
+		auto ptr = m_poolEntityActor.first();
+		while (ptr != nullptr)
+		{
+			ptr->update(dt, physicsAspect, pTransforms, indices, index);
+
+			++index;
+			ptr = m_poolEntityActor.next_nocheck(ptr);
+		}
+
+		RenderUpdateDataTransforms* renderUpdateData = (RenderUpdateDataTransforms*)dataPtr;
+		renderUpdateData->count = count;
+
+		Locator::getRenderAspect()->queueUpdateTask(RenderUpdateTaskType::UpdateDynamicTransforms, dataPtr, totalSizeInBytes);
+	}
+}
+
+void EntityAspect::updateEntityDynamic(f32 dt)
+{
+	auto count = m_poolEntityDynamic.size();
+	if (count != 0)
+	{
+		auto marker = m_allocator.getMarker();
+		SCOPE_EXIT
+		{
+			m_allocator.clear(marker);
+		};
+
+		auto totalSizeInBytes = sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count + sizeof(u32) * count;
+		auto dataPtr = m_allocator.allocate(totalSizeInBytes, 16);
+
+		vx::TransformGpu* pTransforms = (vx::TransformGpu*)(dataPtr + sizeof(RenderUpdateDataTransforms));
+		u32* indices = (u32*)(dataPtr + sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count);
+		u32 index = 0;
+
+		auto ptr = m_poolEntityDynamic.first();
+		while (ptr != nullptr)
+		{
+			ptr->update(dt, pTransforms, indices, index);
+
+			++index;
+			ptr = m_poolEntityDynamic.next_nocheck(ptr);
+		}
+
+		RenderUpdateDataTransforms* renderUpdateData = (RenderUpdateDataTransforms*)dataPtr;
+		renderUpdateData->count = count;
+
+		Locator::getRenderAspect()->queueUpdateTask(RenderUpdateTaskType::UpdateDynamicTransforms, dataPtr, totalSizeInBytes);
+	}
 }
 
 void EntityAspect::update(f32 dt, ActionManager* actionManager)
 {
-	//m_componentActorManager.update(actionManager, &m_allocator);
-
-	//builEntityQuadTree();
-
-	//m_componentInputManager.update(dt, &m_componentPhysicsManager, &m_poolEntity);
-
-	//m_componentPhysicsManager.update(&m_poolEntity);
-
 	if (m_entityHuman)
 	{
 		m_entityHuman->update(dt);
 	}
 
-	auto ptr = m_poolEntity.first();
-	while (ptr != nullptr)
-	{
-		ptr->update(dt);
-
-		ptr = m_poolEntity.next_nocheck(ptr);
-	}
+	updateEntityActor(dt);
 
 	m_playerController.update();
-
-	//m_componentRenderManager.update(&m_allocator, Locator::getRenderAspect(), m_poolEntity);
 }
 
 void EntityAspect::handleMessage(const vx::Message &evt)
@@ -296,25 +321,14 @@ void EntityAspect::handleFileEvent(const vx::Message &evt)
 
 void EntityAspect::createDynamicMesh(const CreateDynamicMeshData &data)
 {
-	/*u16 entityIndex = 0;
-	auto entity = m_poolEntity.createEntry(&entityIndex);
-
 	auto transform = data.m_meshInstance->getTransform();
 
-	//u16 usableIndex = 0;
-	//auto componentUsable = m_componentUsableManager.createComponent(data.m_meshInstance, entityIndex, &usableIndex);
-
-	u16 renderIndex = 0;
-	auto componentRender = m_componentRenderManager.createComponent(transform, data.m_gpuIndex, entityIndex, &renderIndex);
-
-	u16 physicsIndex = 0;
-	auto componentPhysics = m_componentPhysicsManager.createComponent(transform.m_translation, nullptr, data.m_rigidDynamic, entityIndex, &physicsIndex);
-
+	u16 index;
+	auto entity = m_poolEntityDynamic.createEntry(&index);
 	entity->m_position = transform.m_translation;
 	entity->m_qRotation = transform.m_qRotation;
-	//entity->addComponent(*componentRender, renderIndex);
-	//entity->addComponent(*componentPhysics, physicsIndex);
-	//entity->addComponent(*componentUsable, usableIndex);*/
+	entity->m_rigidDynamic = data.m_rigidDynamic;
+	entity->m_gpuIndex = data.m_gpuIndex;
 }
 
 void EntityAspect::handleIngameMessage(const vx::Message &evt)

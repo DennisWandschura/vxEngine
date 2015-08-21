@@ -187,10 +187,6 @@
     <ClInclude Include="ai\Squad.h" />
     <ClInclude Include="CollisionAvoidance.h" />
     <ClInclude Include="ComponentActorManager.h" />
-    <ClInclude Include="ComponentInputManager.h" />
-    <ClInclude Include="ComponentPhysics.h" />
-    <ClInclude Include="ComponentPhysicsManager.h" />
-    <ClInclude Include="ComponentRenderManager.h" />
     <ClInclude Include="ComponentAction.h" />
     <ClInclude Include="ComponentActionManager.h" />
     <ClInclude Include="ConditionActorFollowingPath.h" />
@@ -222,8 +218,6 @@
     <ClInclude Include="TaskSceneCreateStaticMeshes.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="ComponentActor.h" />
-    <ClInclude Include="ComponentInput.h" />
-    <ClInclude Include="ComponentRender.h" />
     <ClInclude Include="ComponentsForward.h" />
     <ClInclude Include="Condition.h" />
     <ClInclude Include="Decision.h" />
@@ -309,15 +303,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ComponentActorManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="ComponentInputManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="ComponentPhysicsManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="ComponentRenderManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="CpuProfiler.cpp">

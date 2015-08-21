@@ -30,6 +30,14 @@ namespace physx
 	class PxRigidDynamic;
 }
 
+namespace vx
+{
+	struct TransformGpu;
+}
+
+class RenderAspectInterface;
+class PhysicsAspect;
+
 #include <vxLib/math/Vector.h>
 
 struct EntityHuman
@@ -55,14 +63,15 @@ struct EntityActor
 	vx::float2 m_orientation;// { vx::VX_PIDIV2, 0 };
 	vx::float4 m_velocity;
 
-	void update(f32 dt);
+	void update(f32 dt, PhysicsAspect* physicsAspect, vx::TransformGpu* transforms, u32* indices, u32 index);
 };
 
 struct EntityDynamic
 {
-	vx::float4 qRotation;
-	vx::float3 position;
-	u16 gpuIndex;
-	physx::PxRigidDynamic* rigidDynamic;
-	f32 footPositionY;
+	vx::float4 m_qRotation;
+	vx::float3 m_position;
+	u16 m_gpuIndex;
+	physx::PxRigidDynamic* m_rigidDynamic;
+
+	void update(f32 dt, vx::TransformGpu* transforms, u32* indices, u32 index);
 };

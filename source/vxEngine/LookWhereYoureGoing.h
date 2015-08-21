@@ -5,7 +5,7 @@
 class LookWhereYoureGoing : public Align
 {
 public:
-	explicit LookWhereYoureGoing(Component::Input* character);
+	explicit LookWhereYoureGoing(EntityActor* character);
 
 	bool getSteering(SteeringOutput* output) override;
 };

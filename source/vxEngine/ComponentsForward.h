@@ -25,8 +25,6 @@ SOFTWARE.
 
 namespace Component
 {
-	struct Render;
-	struct Input;
 	struct Actor;
-	struct Usable;
+	struct Action;
 }
