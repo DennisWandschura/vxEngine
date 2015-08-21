@@ -22,7 +22,7 @@ SOFTWARE.*/
 
 #include "QuadTree.h"
 #include <vxLib/memory.h>
-#include <vxEngineLib/Entity.h>
+#include "Entity.h"
 
 QuadTree::QuadTree()
 	:m_bounds(),
@@ -208,7 +208,7 @@ void QuadTree::getDataLinear(const vx::float3 &position, f32 radius, u32 maxCoun
 	*count = index;
 }
 
-void QuadTree::getDataLinear(const Entity* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* outData) const
+void QuadTree::getDataLinear(const EntityActor* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* outData) const
 {
 	auto size = m_size;
 	auto data = m_data.data();
@@ -233,7 +233,7 @@ void QuadTree::getDataLinear(const Entity* entity, const vx::float3 &position, f
 	*count = index;
 }
 
-void QuadTree::getData(const Entity* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const
+void QuadTree::getData(const EntityActor* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const
 {
 	getDataLinear(entity, position, radius, maxCount, count, data);
 }

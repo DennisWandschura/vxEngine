@@ -24,32 +24,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class MeshInstance;
+class Action;
+
+namespace physx
+{
+	class PxRigidStatic;
+}
+
+#include <vxEngineLib/Component.h>
 
 namespace Component
 {
-	struct Usable;
+	struct Action : public Type<Action>
+	{
+		::Action* action;
+		physx::PxRigidStatic* rigidStatic;
+	};
 }
-
-namespace vx
-{
-	class StackAllocator;
-}
-
-#include <vxEngineLib/Pool.h>
-
-class ComponentUsableManager
-{
-	vx::Pool<Component::Usable> m_poolUsable;
-
-public:
-	ComponentUsableManager();
-	~ComponentUsableManager();
-
-	void initialize(u32 capacity, vx::StackAllocator* pAllocator);
-	void shutdown();
-
-	Component::Usable* createComponent(const MeshInstance &instance, u16 entityIndex, u16* index);
-
-	void update();
-};

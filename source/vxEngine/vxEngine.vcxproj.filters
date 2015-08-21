@@ -309,12 +309,6 @@
     <ClInclude Include="CollisionAvoidance.h">
       <Filter>Header Files\AI\Steering</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentUsable.h">
-      <Filter>Header Files\Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentUsableManager.h">
-      <Filter>Header Files\Entity</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentRenderManager.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
@@ -347,6 +341,15 @@
     </ClInclude>
     <ClInclude Include="PhysicsCpuDispatcher.h">
       <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentAction.h">
+      <Filter>Header Files\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentActionManager.h">
+      <Filter>Header Files\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Header Files\Entity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -464,9 +467,6 @@
     <ClCompile Include="CollisionAvoidance.cpp">
       <Filter>Source Files\AI\Steering</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentUsableManager.cpp">
-      <Filter>Source Files\Entity</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentRenderManager.cpp">
       <Filter>Source Files\Entity</Filter>
     </ClCompile>
@@ -493,6 +493,12 @@
     </ClCompile>
     <ClCompile Include="PhysicsCpuDispatcher.cpp">
       <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentActionManager.cpp">
+      <Filter>Source Files\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Source Files\Entity</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

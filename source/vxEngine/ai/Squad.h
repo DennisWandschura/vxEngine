@@ -24,7 +24,7 @@ SOFTWARE.
 */
 
 struct Waypoint;
-struct Entity;
+struct EntityActor;
 class InfluenceMap;
 class NavMeshGraph;
 
@@ -54,7 +54,7 @@ namespace ai
 
 		struct Data
 		{
-			Entity* m_entity;
+			EntityActor* m_entity;
 			Component::Actor* m_actorComponent;
 			Component::Physics* m_componentPhysics;
 			std::vector<Waypoint> m_waypoints;
@@ -75,7 +75,7 @@ namespace ai
 
 		void initialize(vx::StackAllocator* allocator, vx::AllocationProfiler* allocationManager);
 
-		bool addEntity(Entity* entity, Component::Actor* actorComponent, Component::Physics* componentPhysics);
+		bool addEntity(EntityActor* entity, Component::Actor* actorComponent, Component::Physics* componentPhysics);
 
 		void createPath(Component::Actor* componentActor);
 

@@ -23,17 +23,10 @@ SOFTWARE.
 */
 
 #include "ActionUpdateGpuTransform.h"
-#include <vxEngineLib/Entity.h>
+#include "Entity.h"
 #include <vxEngineLib/RenderAspectInterface.h>
 
-ActionUpdateGpuTransform::ActionUpdateGpuTransform()
-	:m_playerEntity(nullptr),
-	m_pRenderAspect(nullptr)
-{
-
-}
-
-ActionUpdateGpuTransform::ActionUpdateGpuTransform(Entity* playerEntity, RenderAspectInterface* pRenderAspect)
+ActionUpdateGpuTransform::ActionUpdateGpuTransform(EntityHuman* playerEntity, RenderAspectInterface* pRenderAspect)
 	:m_playerEntity(playerEntity),
 	m_pRenderAspect(pRenderAspect)
 {
@@ -49,10 +42,10 @@ void ActionUpdateGpuTransform::run()
 {
 	//__m128 quaternionRotation = { m_playerEntity->orientation.y, m_playerEntity->orientation.x, 0, 0 };
 	//quaternionRotation = vx::quaternionRotationRollPitchYawFromVector(quaternionRotation);
-	__m128 quaternionRotation = vx::loadFloat4(m_playerEntity->qRotation);
+	__m128 quaternionRotation = vx::loadFloat4(m_playerEntity->m_qRotation);
 
 	RenderUpdateCameraData data;
-	data.position = vx::loadFloat3(m_playerEntity->position);
+	data.position = vx::loadFloat3(m_playerEntity->m_position);
 	data.quaternionRotation = quaternionRotation;
 
 	m_pRenderAspect->queueUpdateCamera(data);

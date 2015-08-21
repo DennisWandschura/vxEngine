@@ -26,18 +26,12 @@ SOFTWARE.
 #include <vxLib/Keyboard.h>
 #include <vxLib/RawInput.h>
 #include "input/Keys.h"
-#include "ComponentInput.h"
+#include "Entity.h"
 
-ActionPlayerMove::ActionPlayerMove()
-	:m_inputComponent(nullptr),
-	m_moveVelocity(0.0f)
-{
-
-}
-
-ActionPlayerMove::ActionPlayerMove(Component::Input* inputComponent, f32 moveVelocity)
-	:m_inputComponent(inputComponent),
-	m_moveVelocity(moveVelocity)
+ActionPlayerMove::ActionPlayerMove(EntityHuman* player, f32 moveVelocity, f32 walkModifier)
+	:m_player(player),
+	m_moveVelocity(moveVelocity),
+	m_walkModifier(walkModifier)
 {
 
 }
@@ -54,7 +48,9 @@ void ActionPlayerMove::run()
 	f32 x_axis = ((s8)(keyboard.m_keys[vx::Input::KEY_D])) - ((s8)(keyboard.m_keys[vx::Input::KEY_A]));
 	f32 z_axis = ((s8)(keyboard.m_keys[vx::Input::KEY_S])) - ((s8)(keyboard.m_keys[vx::Input::KEY_W]));
 
-	__m128 v = { 0, m_inputComponent->orientation.x, 0, 0 };
+	f32 walkModifier = (keyboard.m_keys[vx::Input::KEY_SHIFT] != 0) ? m_walkModifier : 1.0f;
+
+	__m128 v = { 0, m_player->m_orientation.x, 0, 0 };
 	v = vx::quaternionRotationRollPitchYawFromVector(v);
 
 	// first get movement direction
@@ -62,13 +58,14 @@ void ActionPlayerMove::run()
 	// rotate movement direction
 	vVelocity = vx::quaternionRotation(vVelocity, v);
 	// multiply with max velocity
-	__m128 vMoveVelocity = { m_moveVelocity, 0.0f, m_moveVelocity, 0 };
+	auto moveVelocity = m_moveVelocity * walkModifier;
+	__m128 vMoveVelocity = { moveVelocity, 0.0f, moveVelocity, 0 };
 	vVelocity = _mm_mul_ps(vVelocity, vMoveVelocity);
 
 
-	auto vy = m_inputComponent->velocity.y;
-	vx::storeFloat4(&m_inputComponent->velocity, vVelocity);
-	m_inputComponent->velocity.y = vy;
+	auto vy = m_player->m_velocity.y;
+	vx::storeFloat4(&m_player->m_velocity, vVelocity);
+	m_player->m_velocity.y = vy;
 
 	//_mm_store_ss(&m_inputComponent->velocity.x, vVelocity);
 	//m_inputComponent->velocity.z = vVelocity.f[2];

@@ -6,7 +6,7 @@
 #include "QuadTree.h"
 #include "ComponentPhysicsManager.h"
 #include "ComponentPhysics.h"
-#include <vxEngineLib/Entity.h>
+#include "Entity.h"
 #include "PhysicsAspect.h"
 
 ComponentInputManager::ComponentInputManager()
@@ -31,7 +31,7 @@ void ComponentInputManager::shutdown()
 	m_poolInput.release();
 }
 
-void ComponentInputManager::update(f32 dt, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<Entity>* entities)
+void ComponentInputManager::update(f32 dt, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<EntityActor>* entities)
 {
 	const vx::ivec4 velocityMask = { (s32)0xffffffff, 0, (s32)0xffffffff, 0 };
 	auto physicsAspect = Locator::getPhysicsAspect();
@@ -44,7 +44,7 @@ void ComponentInputManager::update(f32 dt, ComponentPhysicsManager* componentPhy
 
 		__m128 qRotation = { p->orientation.y, p->orientation.x, 0, 0 };
 		qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
-		vx::storeFloat4(&entity.qRotation, qRotation);
+		vx::storeFloat4(&entity.m_qRotation, qRotation);
 
 		//__m128 vVelocity = { p->velocity.x, 0, p->velocity.z, 0.0f };
 		__m128 vVelocity = vx::loadFloat4(p->velocity);
@@ -52,32 +52,23 @@ void ComponentInputManager::update(f32 dt, ComponentPhysicsManager* componentPhy
 		vVelocity = _mm_and_ps(vVelocity, velocityMask);
 		vVelocity = _mm_add_ps(vVelocity, vGravity);
 
-		u8 index = 0xff;
-		entity.getComponentIndex<Component::Physics>(&index);
-		auto &physics = (*componentPhysicsManager)[index];
-
-		physicsAspect->move(vVelocity, dt, physics.controller);
+		physicsAspect->move(vVelocity, dt, entity.m_controller);
 
 		p = m_poolInput.next_nocheck(p);
 	}
 }
 
-void ComponentInputManager::getQuadTreeData(std::vector<QuadTreeData>* data, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<Entity>* entities)
+void ComponentInputManager::getQuadTreeData(std::vector<QuadTreeData>* data, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<EntityActor>* entities)
 {
 	auto current = m_poolInput.first();
 	while (current != nullptr)
 	{
 		auto &entity = (*entities)[current->entityIndex];
 
-		u8 physicsIndex;
-		entity.getComponentIndex<Component::Physics>(&physicsIndex);
-
-		auto componentPhysics = (*componentPhysicsManager)[physicsIndex];
-
 		QuadTreeData tmp;
 		tmp.entity = &entity;
-		tmp.position = entity.position;
-		tmp.position.y = componentPhysics.footPositionY;
+		tmp.position = entity.m_position;
+		tmp.position.y = entity.m_footPositionY;
 		tmp.velocity.x = current->velocity.x;
 		tmp.velocity.y = current->velocity.y;
 		tmp.velocity.z = current->velocity.z;

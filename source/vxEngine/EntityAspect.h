@@ -36,7 +36,7 @@ namespace vx
 
 class PhysicsAspect;
 class RenderAspect;
-struct Entity;
+struct EntityHuman;
 class Scene;
 class CreateActorData;
 class MeshInstance;
@@ -47,30 +47,26 @@ class CreateDynamicMeshData;
 #include <vxLib/math/Vector.h>
 #include <vxLib/Allocator/StackAllocator.h>
 #include "QuadTree.h"
-#include "ComponentUsableManager.h"
+#include "ComponentActionManager.h"
 #include "ComponentRenderManager.h"
 #include "ComponentPhysicsManager.h"
 #include "ComponentInputManager.h"
 #include "ComponentActorManager.h"
+#include "Entity.h"
 
 enum class PlayerType : u32;
 enum class FileType : u8;
 
 class EntityAspect : public vx::MessageListener
 {
-	struct ColdData
-	{
-		const Scene* m_pCurrentScene{ nullptr };
-		Entity* m_pPlayer{ nullptr };
-	};
+	struct ColdData;
 
+	EntityHuman* m_entityHuman;
+	EntityHuman m_entityHumanData;
 	PlayerController m_playerController;
-	ComponentInputManager m_componentInputManager;
-	ComponentPhysicsManager m_componentPhysicsManager;
-	ComponentRenderManager m_componentRenderManager;
-	ComponentUsableManager m_componentUsableManager;
+	//ComponentActionManager m_componentActionManager;
 	ComponentActorManager m_componentActorManager;
-	vx::Pool<Entity> m_poolEntity;
+	vx::Pool<EntityActor> m_poolEntity;
 	QuadTree m_quadTree;
 	vx::StackAllocator m_allocator;
 	vx::TaskManager* m_taskManager;
@@ -87,6 +83,7 @@ class EntityAspect : public vx::MessageListener
 
 public:
 	EntityAspect();
+	~EntityAspect();
 
 	//////////////////
 
@@ -109,9 +106,9 @@ public:
 
 	//////////////////
 
-	Entity* getPlayer(){ return m_coldData->m_pPlayer; }
+	//EntityActor* getPlayer(){ return m_coldData->m_pPlayer; }
 
-	Component::Input& getComponentInput(u16 i);
+	//Component::Input& getComponentInput(u16 i);
 
-	const vx::Pool<Entity>& getEntityPool() const { return m_poolEntity; }
+	//const vx::Pool<EntityActor>& getEntityPool() const { return m_poolEntity; }
 };

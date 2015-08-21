@@ -31,7 +31,6 @@ SOFTWARE.
 #include <vxLib/math/Vector.h>
 #include <vxLib/RawInput.h>
 #include <vxLib/Graphics/Camera.h>
-#include <vxEngineLib/Entity.h>
 #include "input/Keys.h"
 #include "EntityAspect.h"
 #include "ComponentInput.h"
@@ -52,11 +51,10 @@ void PlayerController::initialize(vx::StackAllocator* allocator)
 	m_scratchAllocator = vx::StackAllocator(allocator->allocate(allocSize, 8), allocSize);
 }
 
-void PlayerController::initializePlayer(Component::Input* pPlayerInputComponent, f32 dt, Entity* playerEntity, RenderAspectInterface* renderAspect)
+void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect)
 {
-
-	m_actions.push_back(vx::make_unique<ActionPlayerLookAround>(pPlayerInputComponent, dt));
-	m_actions.push_back(vx::make_unique<ActionPlayerMove>(pPlayerInputComponent, 0.1f));
+	m_actions.push_back(vx::make_unique<ActionPlayerLookAround>(playerEntity, dt));
+	m_actions.push_back(vx::make_unique<ActionPlayerMove>(playerEntity, 0.1f, 0.5f));
 	m_actions.push_back(vx::make_unique<ActionUpdateGpuTransform>(playerEntity, renderAspect));
 
 	auto &actionLookAround = m_actions[0];

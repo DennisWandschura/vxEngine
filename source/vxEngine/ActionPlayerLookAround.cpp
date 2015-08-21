@@ -24,16 +24,10 @@ SOFTWARE.
 
 #include "ActionPlayerLookAround.h"
 #include <vxLib/RawInput.h>
-#include "ComponentInput.h"
+#include "Entity.h"
 
-ActionPlayerLookAround::ActionPlayerLookAround()
-	:m_inputComponent(nullptr),
-	m_halfDt(0.0f)
-{
-}
-
-ActionPlayerLookAround::ActionPlayerLookAround(Component::Input* inputComponent, f32 dt)
-	: m_inputComponent(inputComponent),
+ActionPlayerLookAround::ActionPlayerLookAround(EntityHuman* player, f32 dt)
+	: m_player(player),
 	m_halfDt(dt / 2.0f)
 {
 
@@ -52,13 +46,13 @@ void ActionPlayerLookAround::run()
 	auto mouseRelativePos = mouse.m_relative;
 	auto mouseRelativePosFloat = static_cast<vx::float2>(mouseRelativePos);
 
-	auto orientation = m_inputComponent->orientation;
+	auto orientation = m_player->m_orientation;
 
 	//const f32 halfDt = 0.5f * m_dt;
 
 	orientation.x = orientation.x - mouseRelativePosFloat.x * m_halfDt;
 	orientation.y = orientation.y - mouseRelativePosFloat.y * m_halfDt;
 
-	m_inputComponent->orientation.x = vx::scalarModAngle(orientation.x);
-	m_inputComponent->orientation.y = fminf(fmaxf(orientation.y, angleMin), angleMax);
+	m_player->m_orientation.x = vx::scalarModAngle(orientation.x);
+	m_player->m_orientation.y = fminf(fmaxf(orientation.y, angleMin), angleMax);
 }

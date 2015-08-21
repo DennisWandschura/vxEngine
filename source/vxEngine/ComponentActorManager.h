@@ -36,7 +36,7 @@ namespace vx
 	class StackAllocator;
 }
 
-struct Entity;
+struct EntityActor;
 class RenderAspectInterface;
 class QuadTree;
 class ActionManager;
@@ -54,7 +54,7 @@ public:
 	void initialize(u32 capacity, vx::StackAllocator* pAllocator);
 	void shutdown();
 
-	Component::Actor* createComponent(u16 entityIndex, Entity* entity, Component::Input* componentInput, Component::Physics* componentPhysics, const QuadTree* quadTree, u16* index);
+	Component::Actor* createComponent(u16 entityIndex, EntityActor* entity, Component::Input* componentInput, Component::Physics* componentPhysics, const QuadTree* quadTree, u16* index);
 
 	void update(ActionManager* actionManager, vx::StackAllocator* scratchAllocator);
 

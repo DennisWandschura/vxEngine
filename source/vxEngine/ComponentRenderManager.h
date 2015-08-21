@@ -35,7 +35,7 @@ namespace vx
 	struct Transform;
 }
 
-struct Entity;
+struct EntityActor;
 class RenderAspectInterface;
 
 #include <vxEngineLib/Pool.h>
@@ -53,7 +53,7 @@ public:
 
 	Component::Render* createComponent(const vx::Transform &transform, u32 gpuIndex, u16 entityIndex, u16* index);
 
-	void update(vx::StackAllocator* scratchAllocator, RenderAspectInterface* renderAspect, const vx::Pool<Entity> &entities);
+	void update(vx::StackAllocator* scratchAllocator, RenderAspectInterface* renderAspect, const vx::Pool<EntityActor> &entities);
 
 	Component::Render& operator[](u32 i);
 	const Component::Render& operator[](u32 i) const;

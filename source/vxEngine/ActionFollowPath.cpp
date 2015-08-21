@@ -22,12 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "ActionFollowPath.h"
-#include <vxEngineLib/Entity.h>
+#include "Entity.h"
 #include "ComponentInput.h"
 #include "ComponentActor.h"
 #include "ComponentPhysics.h"
 
-ActionFollowPath::ActionFollowPath(Entity* entity, Component::Input* componentInput, Component::Actor* actor, Component::Physics* componentPhysics, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius)
+ActionFollowPath::ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actor, Component::Physics* componentPhysics, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius)
 	:m_componentInput(componentInput),
 	m_entity(entity),
 	m_componentPhysics(componentPhysics),
@@ -44,7 +44,7 @@ void ActionFollowPath::run()
 	if (!m_arrived)
 	{
 		SteeringOutput steering;
-		auto currentPosition = m_entity->position;
+		auto currentPosition = m_entity->m_position;
 
 		auto positionFoot = currentPosition;
 		positionFoot.y = m_componentPhysics->footPositionY;

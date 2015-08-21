@@ -30,7 +30,7 @@ namespace Component
 	struct Physics;
 }
 
-struct Entity;
+struct EntityActor;
 
 #include "Action.h"
 #include <vector>
@@ -42,7 +42,7 @@ struct Entity;
 class ActionFollowPath : public Action
 {
 	Component::Input* m_componentInput;
-	Entity* m_entity;
+	EntityActor* m_entity;
 	Component::Physics* m_componentPhysics;
 	Arrive m_arrive;
 	LookWhereYoureGoing m_lookWhereYoureGoing;
@@ -52,7 +52,7 @@ class ActionFollowPath : public Action
 	bool m_arrived;
 
 public:
-	ActionFollowPath(Entity* entity, Component::Input* componentInput, Component::Actor* actorData, Component::Physics* componentPhysics, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius);
+	ActionFollowPath(EntityActor* entity, Component::Input* componentInput, Component::Actor* actorData, Component::Physics* componentPhysics, const QuadTree* quadTree, f32 actorRadius, f32 queryRadius);
 
 	void run() override;
 

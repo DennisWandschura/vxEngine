@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include "Squad.h"
 #include "../ComponentActor.h"
-#include <vxEngineLib/Entity.h>
+#include "../Entity.h"
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/NavMeshGraph.h>
 #include "../AStar.h"
@@ -143,7 +143,7 @@ namespace ai
 		m_pseudoRandom.setMaxValue(1024);
 	}
 
-	bool Squad::addEntity(Entity* entity, Component::Actor* actorComponent, Component::Physics* componentPhysics)
+	bool Squad::addEntity(EntityActor* entity, Component::Actor* actorComponent, Component::Physics* componentPhysics)
 	{
 		if (m_availableCells.empty())
 			return false;
@@ -206,7 +206,7 @@ namespace ai
 		if (targetData == nullptr)
 			return;
 
-		auto entityPosition = targetData->m_entity->position;
+		auto entityPosition = targetData->m_entity->m_position;
 		entityPosition.y = targetData->m_componentPhysics->footPositionY;
 
 		auto influenceCells = s_influenceMap->getCells();

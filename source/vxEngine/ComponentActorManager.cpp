@@ -59,7 +59,7 @@ void ComponentActorManager::shutdown()
 	m_pool.release();
 }
 
-Component::Actor* ComponentActorManager::createComponent(u16 entityIndex, Entity* entity, Component::Input* componentInput, Component::Physics* componentPhysics, const QuadTree* quadTree, u16* index)
+Component::Actor* ComponentActorManager::createComponent(u16 entityIndex, EntityActor* entity, Component::Input* componentInput, Component::Physics* componentPhysics, const QuadTree* quadTree, u16* index)
 {
 	auto pActor = m_pool.createEntry(index);
 

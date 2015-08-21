@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Seek.h"
-#include <vxEngineLib/Entity.h>
+#include "Entity.h"
 
-Seek::Seek(Entity* entity, const vx::float3 &target, f32 maxAccel)
+Seek::Seek(EntityActor* entity, const vx::float3 &target, f32 maxAccel)
 	:m_entity(entity),
 	m_targetPosition(target),
 	m_maxAcceleration(maxAccel)
@@ -38,7 +38,7 @@ void Seek::setTarget(const vx::float3 &target)
 
 bool Seek::getSteering(SteeringOutput* output)
 {
-	auto dir = m_targetPosition - m_entity->position;
+	auto dir = m_targetPosition - m_entity->m_position;
 	dir = vx::normalize3(dir);
 
 	dir *= m_maxAcceleration;

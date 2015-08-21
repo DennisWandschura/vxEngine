@@ -26,7 +26,7 @@ SOFTWARE.
 #include "ComponentPhysics.h"
 #include <vxLib/Allocator/StackAllocator.h>
 #include <characterkinematic/PxController.h>
-#include <vxEngineLib/Entity.h>
+#include "Entity.h"
 #include <PxRigidDynamic.h>
 
 ComponentPhysicsManager::ComponentPhysicsManager()
@@ -64,7 +64,7 @@ Component::Physics* ComponentPhysicsManager::createComponent(const vx::float3 &p
 	return ptr;
 }
 
-void ComponentPhysicsManager::update(vx::Pool<Entity>* entities)
+void ComponentPhysicsManager::update(vx::Pool<EntityActor>* entities)
 {
 	auto p = m_poolPhysics.first();
 	while (p != nullptr)
@@ -89,13 +89,13 @@ void ComponentPhysicsManager::update(vx::Pool<Entity>* entities)
 			p->position.y = transform.p.y;
 			p->position.z = transform.p.z;
 
-			entity.qRotation.x = transform.q.x;
-			entity.qRotation.y = transform.q.y;
-			entity.qRotation.z = transform.q.z;
-			entity.qRotation.w = transform.q.w;
+			entity.m_qRotation.x = transform.q.x;
+			entity.m_qRotation.y = transform.q.y;
+			entity.m_qRotation.z = transform.q.z;
+			entity.m_qRotation.w = transform.q.w;
 		}
 
-		entity.position = p->position;
+		entity.m_position = p->position;
 
 
 		p = m_poolPhysics.next_nocheck(p);

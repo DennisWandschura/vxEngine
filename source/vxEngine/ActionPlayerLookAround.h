@@ -24,22 +24,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace Component
-{
-	struct Input;
-}
+struct EntityHuman;
 
 #include "Action.h"
 #include <vxLib/types.h>
 
 class ActionPlayerLookAround : public Action
 {
-	Component::Input* m_inputComponent;
+	EntityHuman* m_player;
 	f32 m_halfDt;
 
 public:
-	ActionPlayerLookAround();
-	ActionPlayerLookAround(Component::Input* inputComponent, f32 dt);
+	ActionPlayerLookAround(EntityHuman* player, f32 dt);
 	~ActionPlayerLookAround();
 
 	void run() override;

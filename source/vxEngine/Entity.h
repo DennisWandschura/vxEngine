@@ -1,6 +1,7 @@
 #pragma once
 
-/* The MIT License (MIT)
+/*
+The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
 
@@ -20,49 +21,48 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.*/
+SOFTWARE.
+*/
 
-struct EntityActor;
+namespace physx
+{
+	class PxController;
+	class PxRigidDynamic;
+}
 
 #include <vxLib/math/Vector.h>
-#include <vxEngineLib/AABB.h>
-#include <vector>
 
-struct QuadTreeData
+struct EntityHuman
 {
-	EntityActor* entity;
-	vx::float3 position;
-	vx::float3 velocity;
+	vx::float4 m_qRotation;
+	vx::float3 m_position;
+	f32 m_footPositionY;
+	physx::PxController* m_controller;
+	vx::float2 m_orientation;
+	vx::float4 m_velocity;
+
+	void update(f32 dt);
 };
 
-class QuadTree
+struct EntityActor
 {
-	struct Cell
-	{
-		u32 m_dataOffset;
-		u32 m_count;
-	};
+	vx::float4 m_qRotation;
+	vx::float3 m_position;
+	f32 m_footPositionY;
+	physx::PxController* m_controller;
+	u16 m_gpuIndex;
+	u8 m_actorComponentIndex;
+	vx::float2 m_orientation;// { vx::VX_PIDIV2, 0 };
+	vx::float4 m_velocity;
 
-	AABB m_bounds;
-	std::vector<Cell> m_cells;
-	vx::float2a m_invGridDim;
-	vx::uint2a m_dim;
-	std::vector<QuadTreeData> m_data;
-	u32 m_capacity;
-	u32 m_size;
+	void update(f32 dt);
+};
 
-	void getDataLinear(const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
-	void getDataLinear(const EntityActor* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
-
-public:
-	QuadTree();
-	~QuadTree();
-
-	void initialize(const AABB &bounds, const vx::uint2 &dim, u32 capacity);
-
-	void clear();
-	void insert(const QuadTreeData* data, u32 count);
-
-	void getData(const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
-	void getData(const EntityActor* entity, const vx::float3 &position, f32 radius, u32 maxCount, u32* count, QuadTreeData* data) const;
+struct EntityDynamic
+{
+	vx::float4 qRotation;
+	vx::float3 position;
+	u16 gpuIndex;
+	physx::PxRigidDynamic* rigidDynamic;
+	f32 footPositionY;
 };

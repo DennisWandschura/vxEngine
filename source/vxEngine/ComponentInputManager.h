@@ -34,7 +34,7 @@ namespace vx
 	class StackAllocator;
 }
 
-struct Entity;
+struct EntityActor;
 struct QuadTreeData;
 class ComponentPhysicsManager;
 
@@ -52,9 +52,9 @@ public:
 	void initialize(u32 capacity, vx::StackAllocator* pAllocator);
 	void shutdown();
 
-	void update(f32 dt, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<Entity>* entities);
+	void update(f32 dt, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<EntityActor>* entities);
 
-	void getQuadTreeData(std::vector<QuadTreeData>* data, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<Entity>* entities);
+	void getQuadTreeData(std::vector<QuadTreeData>* data, ComponentPhysicsManager* componentPhysicsManager, vx::Pool<EntityActor>* entities);
 
 	Component::Input* createComponent(u16 entityIndex, u16* componentIndex);
 

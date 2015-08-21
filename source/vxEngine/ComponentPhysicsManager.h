@@ -40,7 +40,7 @@ namespace physx
 	class PxRigidDynamic;
 }
 
-struct Entity;
+struct EntityActor;
 
 #include <vxEngineLib/Pool.h>
 #include <vxLib/math/Vector.h>
@@ -56,7 +56,7 @@ public:
 	void initialize(u32 capacity, vx::StackAllocator* pAllocator);
 	void shutdown();
 
-	void update(vx::Pool<Entity>* entities);
+	void update(vx::Pool<EntityActor>* entities);
 
 	Component::Physics* createComponent(const vx::float3 &position, physx::PxController* controller, physx::PxRigidDynamic* rigidDynamic, u16 entityIndex, u16* componentIndex);
 

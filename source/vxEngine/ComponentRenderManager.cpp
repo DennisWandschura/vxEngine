@@ -5,7 +5,7 @@
 #include <vxEngineLib/Transform.h>
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxEngineLib/RenderAspectInterface.h>
-#include <vxEngineLib/Entity.h>
+#include "Entity.h"
 
 ComponentRenderManager::ComponentRenderManager()
 	:m_poolRender()
@@ -40,7 +40,7 @@ Component::Render* ComponentRenderManager::createComponent(const vx::Transform &
 	return ptr;
 }
 
-void ComponentRenderManager::update(vx::StackAllocator* scratchAllocator, RenderAspectInterface* renderAspect, const vx::Pool<Entity> &entities)
+void ComponentRenderManager::update(vx::StackAllocator* scratchAllocator, RenderAspectInterface* renderAspect, const vx::Pool<EntityActor> &entities)
 {
 	s32 count = m_poolRender.size();
 
@@ -64,10 +64,8 @@ void ComponentRenderManager::update(vx::StackAllocator* scratchAllocator, Render
 
 		auto &entity = entities[data.entityIndex];
 
-		__m128 qRotation = vx::loadFloat4(entity.qRotation);//{ entity.orientation.y, entity.orientation.x, 0, 0 };
-		auto translation = entity.position;
-
-		//qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
+		__m128 qRotation = vx::loadFloat4(entity.m_qRotation);
+		auto translation = entity.m_position;
 
 		auto packedRotation = GpuFunctions::packQRotation(qRotation);
 

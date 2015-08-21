@@ -191,8 +191,8 @@
     <ClInclude Include="ComponentPhysics.h" />
     <ClInclude Include="ComponentPhysicsManager.h" />
     <ClInclude Include="ComponentRenderManager.h" />
-    <ClInclude Include="ComponentUsable.h" />
-    <ClInclude Include="ComponentUsableManager.h" />
+    <ClInclude Include="ComponentAction.h" />
+    <ClInclude Include="ComponentActionManager.h" />
     <ClInclude Include="ConditionActorFollowingPath.h" />
     <ClInclude Include="ConditionActorHasPath.h" />
     <ClInclude Include="CpuProfiler.h" />
@@ -200,6 +200,7 @@
     <ClInclude Include="EditorObjectColors.h" />
     <ClInclude Include="EditorPhysicsAspect.h" />
     <ClInclude Include="EngineGlobals.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="input\Keys.h" />
     <ClInclude Include="LookWhereYoureGoing.h" />
     <ClInclude Include="PhysicsCpuDispatcher.h" />
@@ -325,6 +326,7 @@
     <ClCompile Include="EditorPhysicsAspect.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="LookWhereYoureGoing.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -353,7 +355,7 @@
     <ClCompile Include="QuadTree.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="ComponentUsableManager.cpp">
+    <ClCompile Include="ComponentActionManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="TaskPhysxCreateJoints.cpp">

@@ -35,7 +35,7 @@ namespace Component
 	struct Input;
 }
 
-struct Entity;
+struct EntityHuman;
 class EntityAspect;
 class RenderAspectInterface;
 
@@ -57,8 +57,8 @@ public:
 	PlayerController();
 	~PlayerController();
 
-	void initialize( vx::StackAllocator* allocator);
-	void initializePlayer(Component::Input* pPlayerInputComponent, f32 dt, Entity* playerEntity, RenderAspectInterface* renderAspect);
+	void initialize(vx::StackAllocator* allocator);
+	void initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect);
 
 	void update();
 };

@@ -36,12 +36,7 @@ SOFTWARE.
 #endif
 
 #pragma comment(lib, "vxEngineLib_d.lib")
-
-#ifdef _VX_EDITOR
-#pragma comment(lib, "vxResourceAspect_editor_d.lib")
-#else
 #pragma comment(lib, "vxResourceAspect_d.lib")
-#endif
 
 #ifdef _VX_NOAUDIO
 #else

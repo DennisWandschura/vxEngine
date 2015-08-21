@@ -30,7 +30,7 @@ SOFTWARE.
 #include <vxEngineLib/Pool.h>
 #include "ComponentActor.h"
 #include "EntityAspect.h"
-#include <vxEngineLib/Entity.h>
+#include "Entity.h"
 #include "EventsAI.h"
 #include "AStar.h"
 #include <vxEngineLib/NavNode.h>

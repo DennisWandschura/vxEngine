@@ -23,17 +23,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct Entity;
+struct EntityActor;
 
 #include "Steering.h"
 
 struct Seek : public Steering
 {
-	Entity* m_entity;
+	EntityActor* m_entity;
 	vx::float3 m_targetPosition;
 	f32 m_maxAcceleration;
 
-	Seek(Entity* entity, const vx::float3 &target, f32 maxAccel);
+	Seek(EntityActor* entity, const vx::float3 &target, f32 maxAccel);
 
 	void setTarget(const vx::float3 &target);
 

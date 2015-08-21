@@ -1,6 +1,6 @@
 #pragma once
 
-struct Entity;
+struct EntityActor;
 
 namespace Component
 {
@@ -10,7 +10,7 @@ namespace Component
 
 struct CreatedActorData
 {
-	Entity* entity;
+	EntityActor* entity;
 	Component::Actor* componentActor;
 	Component::Physics* componentPhysics;
 };

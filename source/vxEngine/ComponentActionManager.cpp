@@ -22,37 +22,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "ComponentUsableManager.h"
+#include "ComponentActionManager.h"
 #include <vxLib/Allocator/StackAllocator.h>
-#include "ComponentUsable.h"
+#include "ComponentAction.h"
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Locator.h>
 #include <vxResourceAspect/ResourceAspect.h>
 #include <vxEngineLib/Animation.h>
 
-ComponentUsableManager::ComponentUsableManager()
+ComponentActionManager::ComponentActionManager()
 	:m_poolUsable()
 {
 
 }
 
-ComponentUsableManager::~ComponentUsableManager()
+ComponentActionManager::~ComponentActionManager()
 {
 
 }
 
-void ComponentUsableManager::initialize(u32 capacity, vx::StackAllocator* pAllocator)
+void ComponentActionManager::initialize(u32 capacity, vx::StackAllocator* pAllocator)
 {
-	m_poolUsable.initialize(pAllocator->allocate(sizeof(Component::Usable) * capacity, __alignof(Component::Usable)), capacity);
+	m_poolUsable.initialize(pAllocator->allocate(sizeof(Component::Action) * capacity, __alignof(Component::Action)), capacity);
 }
 
-void ComponentUsableManager::shutdown()
+void ComponentActionManager::shutdown()
 {
 	m_poolUsable.clear();
 	m_poolUsable.release();
 }
 
-Component::Usable* ComponentUsableManager::createComponent(const MeshInstance &instance, u16 entityIndex, u16* index)
+Component::Action* ComponentActionManager::createComponent(const MeshInstance &instance, u16 entityIndex, u16* index)
 {
 	auto componentUsable = m_poolUsable.createEntry(index);
 
@@ -67,7 +67,7 @@ Component::Usable* ComponentUsableManager::createComponent(const MeshInstance &i
 	return componentUsable;
 }
 
-void ComponentUsableManager::update()
+void ComponentActionManager::update()
 {
 	auto physicsAspect = Locator::getPhysicsAspect();
 
