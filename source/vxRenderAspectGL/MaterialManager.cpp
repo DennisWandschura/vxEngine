@@ -31,31 +31,6 @@ SOFTWARE.
 #include <vxEngineLib/Reference.h>
 #include "GpuStructs.h"
 
-namespace MaterialManagerCpp
-{
-	void uploadTextureData(const u8* pixels, u32 w, u32 h, u32 index, u8 isCommitted, vx::gl::Texture* texture)
-	{
-		if (isCommitted == 0)
-		{
-			vx::gl::TextureCommitDescription desc;
-			desc.miplevel = 0;
-			desc.offset = vx::uint3(0, 0, index);
-			desc.size = vx::uint3(w, h, 1);
-			desc.commit = 1;
-			texture->commit(desc);
-		}
-
-		vx::gl::TextureSubImageDescription desc;
-		desc.size = vx::uint3(w, h, 1);
-		desc.miplevel = 0;
-		desc.offset = vx::uint3(0, 0, index);
-		desc.dataType = vx::gl::DataType::Unsigned_Byte;
-		desc.p = pixels;
-
-		texture->subImage(desc);
-	}
-}
-
 MaterialManager::MaterialManager()
 	:m_poolSrgba(),
 	m_poolRgba(),
@@ -94,8 +69,18 @@ void MaterialManager::initialize(const vx::uint3 &textureDim, u32 maxInstances, 
 		m_materialEntries[i] = i + 1;
 	}
 
-	m_poolSrgba.initialize(textureDim, vx::gl::TextureFormat::SRGBA8);
-	m_poolRgba.initialize(textureDim, vx::gl::TextureFormat::RGBA8);
+	m_poolSrgba.initialize(textureDim, vx::gl::TextureFormat::SRGBA_BC7);
+	m_poolRgba.initialize(textureDim, vx::gl::TextureFormat::RGBA_BC7);
+
+	vx::gl::TextureDescription textDesc;
+	textDesc.size = vx::ushort3(1024, 1024, 1);
+	textDesc.format = vx::gl::TextureFormat::RGBA8;
+	textDesc.miplevels = 1;
+	textDesc.sparse = 0;
+	textDesc.type = vx::gl::TextureType::Texture_2D;
+	auto sidTextTexture = m_objectManager->createTexture("textTexture", textDesc);
+	auto textTexture = m_objectManager->getTexture(sidTextTexture);
+	textTexture->makeTextureResident();
 
 	auto handle0 = m_poolSrgba.getTextureHandle();
 	auto handle1 = m_poolRgba.getTextureHandle();
@@ -104,6 +89,7 @@ void MaterialManager::initialize(const vx::uint3 &textureDim, u32 maxInstances, 
 	auto mappedBuffer = uniformTextureBuffer->map<Gpu::UniformTextureBufferBlock>(vx::gl::Map::Write_Only);
 	mappedBuffer->u_srgb = handle0;
 	mappedBuffer->u_rgb = handle1;
+	mappedBuffer->u_textTexture = textTexture->getTextureHandle();
 	mappedBuffer.unmap();
 
 	createBuffer(maxInstances);
@@ -221,15 +207,20 @@ bool MaterialManager::getMaterialIndex(const vx::StringID &materialSid, Resource
 
 bool MaterialManager::getTextureIndex(const vx::StringID &sid, const Graphics::Texture &texture, u32* index)
 {
-	auto comp = texture.getComponents();
 	bool result = false;
-	if (comp == 4)
+
+	auto format = texture.getFormat();
+	if (format == Graphics::TextureFormat::BC7_UNORM_SRGB)
 	{
 		result = m_poolSrgba.getTextureIndex(sid, texture, index);
 	}
-	else if (comp == 3)
+	else if (format == Graphics::TextureFormat::BC7_UNORM)
 	{
 		result = m_poolRgba.getTextureIndex(sid, texture, index);
+	}
+	else
+	{
+		VX_ASSERT(false);
 	}
 
 	return result;
@@ -244,4 +235,22 @@ u32 MaterialManager::getTextureId(const vx::StringID &sid) const
 	}
 
 	return id;
+}
+
+u32 MaterialManager::setTextTexture(const Graphics::Texture &texture)
+{
+	auto sid = vx::make_sid("textTexture");
+	auto textTexture = m_objectManager->getTexture(sid);
+
+	auto &face = texture.getFace(0);
+
+	vx::gl::TextureSubImageDescription desc;
+	desc.miplevel = 0;
+	desc.offset = vx::uint3(0, 0, 0);
+	desc.p = face.getPixels();
+	desc.size = vx::uint3(1024, 1024, 1);
+	desc.dataType = vx::gl::DataType::Unsigned_Byte;
+	textTexture->subImage(desc);
+
+	return textTexture->getId();
 }

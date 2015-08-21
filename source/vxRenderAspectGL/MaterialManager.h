@@ -63,4 +63,6 @@ public:
 	bool getTextureIndex(const vx::StringID &sid, const Graphics::Texture &texture, u32* index);
 
 	u32 getTextureId(const vx::StringID &sid) const;
+
+	u32 setTextTexture(const Graphics::Texture &texture);
 };
