@@ -28,7 +28,7 @@ SOFTWARE.
 
 namespace TexturePoolCpp
 {
-	void uploadTextureData(const u8* pixels, u32 w, u32 h, u32 index, u8 isCommitted, vx::gl::Texture* texture)
+	void uploadTextureData(const u8* pixels, u32 w, u32 h, u32 index, u32 dataSize, u8 isCommitted, vx::gl::Texture* texture)
 	{
 		if (isCommitted == 0)
 		{
@@ -40,14 +40,21 @@ namespace TexturePoolCpp
 			texture->commit(desc);
 		}
 
-		vx::gl::TextureSubImageDescription desc;
+		/*vx::gl::TextureSubImageDescription desc;
 		desc.size = vx::uint3(w, h, 1);
 		desc.miplevel = 0;
 		desc.offset = vx::uint3(0, 0, index);
 		desc.dataType = vx::gl::DataType::Unsigned_Byte;
 		desc.p = pixels;
 
-		texture->subImage(desc);
+		texture->subImage(desc);*/
+		vx::gl::TextureCompressedSubImageDescription desc;
+		desc.size = vx::uint3(w, h, 1);
+		desc.offset = vx::uint3(0, 0, index);
+		desc.miplevel = 0;
+		desc.p = pixels;
+		desc.dataSize = dataSize;
+		texture->subImageCompressed(desc);
 	}
 }
 
@@ -113,12 +120,12 @@ bool TexturePool::addTexture(const vx::StringID &sid, const Graphics::Texture &t
 	auto isCommitted = m_entries[currentIndex].second;
 
 	auto &face = texture.getFace(0);
-	//auto comp = texture.getComponents();
 	auto dim = face.getDimension();
+	auto dataSize = face.getSize();
 
 	m_entries[currentIndex].second = 1;
 
-	TexturePoolCpp::uploadTextureData(face.getPixels(), dim.x, dim.y, currentIndex, isCommitted, &m_texture);
+	TexturePoolCpp::uploadTextureData(face.getPixels(), dim.x, dim.y, currentIndex, dataSize, isCommitted, &m_texture);
 
 	m_indices.insert(sid, currentIndex);
 	*index = currentIndex;
