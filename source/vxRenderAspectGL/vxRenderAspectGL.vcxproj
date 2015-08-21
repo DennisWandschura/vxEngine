@@ -19,10 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DDS_File.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="dllExport.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -234,7 +230,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\game\data\shaders\include\common.h" />
-    <ClInclude Include="DDS_File.h" />
     <ClInclude Include="DebugRenderSettings.h" />
     <ClInclude Include="dllExport.h" />
     <ClInclude Include="EditorRenderAspect.h" />

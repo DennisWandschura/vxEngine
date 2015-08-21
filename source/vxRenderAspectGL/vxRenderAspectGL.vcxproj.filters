@@ -51,9 +51,6 @@
     <ClCompile Include="Vertex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DDS_File.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dllExport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -234,9 +231,6 @@
       <Filter>Shaders\include</Filter>
     </ClInclude>
     <ClInclude Include="Vertex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DDS_File.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DebugRenderSettings.h">
