@@ -568,7 +568,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 
 	bindBuffers();
 
-	printf("Used Memory (Buffers): %.2f MB\n", m_objectManager.getUsedMemoryBuffer() / 1024.f / 1024.f);
+	//printf("Used Memory (Buffers): %.2f MB\n", m_objectManager.getUsedMemoryBuffer() / 1024.f / 1024.f);
 
 	f32 px = desc.settings->m_resolution.x / 2 - 100;
 	f32 py = desc.settings->m_resolution.y * 0.45f;
@@ -579,7 +579,6 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 bool RenderAspect::initializeProfiler()
 {
 	u32 textureIndex = 0;
-	u64 fontHandle = 0;
 	{
 		std::string dataDir = "../data/";
 		auto file = (dataDir + "textures/verdana.png");
@@ -587,10 +586,10 @@ bool RenderAspect::initializeProfiler()
 
 		Graphics::Texture texture;
 		Graphics::TextureFactory::createPngFromFile(file.c_str(), true, true, &texture, &m_textureAllocator, &m_scratchAllocator);
-
-		auto b = m_materialManager.getTextureIndex(sid, texture, &textureIndex);
-		VX_ASSERT(b);
-		auto texId = m_materialManager.getTextureId(sid);
+		auto texId = m_materialManager.setTextTexture(texture);
+		//auto b = m_materialManager.getTextureIndex(sid, texture, &textureIndex);
+		//VX_ASSERT(b);
+		//auto texId = m_materialManager.getTextureId(sid);
 
 		auto dim = texture.getFace(0).getDimension();
 
@@ -599,9 +598,7 @@ bool RenderAspect::initializeProfiler()
 			return false;
 
 		VX_ASSERT(dim.x == dim.y);
-		m_pColdData->m_font = Font(textureIndex, dim.x,std::move(fontAtlas));
-
-		fontHandle = glGetTextureHandleARB(texId);
+		m_pColdData->m_font = Font(textureIndex, dim.x, std::move(fontAtlas));
 	}
 
 	Graphics::TextRendererDesc desc;
