@@ -41,15 +41,26 @@ namespace Graphics
 		bool m_cullface;
 		vx::uchar4 m_colorMask;
 		u8 m_depthMask;
+		u8 m_depthClamp;
 
-		StateDescription() :m_fbo(0), m_vao(0), m_pipeline(0), m_indirectBuffer(0), m_paramBuffer(0), m_depthState(true), m_blendState(false), m_polygonOffsetFillState(false), m_cullface(true), m_colorMask(1, 1, 1, 1), m_depthMask(1){}
+		StateDescription() :m_fbo(0), m_vao(0), m_pipeline(0), m_indirectBuffer(0), m_paramBuffer(0), 
+			m_depthState(true), m_blendState(false), m_polygonOffsetFillState(false), m_cullface(true), m_colorMask(1, 1, 1, 1), m_depthMask(1), m_depthClamp(0){}
+
 		StateDescription(u32 fbo, u32 vao, u32 pipeline, u32 cmd, u32 param, bool depth, bool blend, bool polyOffsetState, bool cullFace, const vx::uchar4 &colorMask, u8 depthMask)
-			:m_fbo(fbo), m_vao(vao), m_pipeline(pipeline), m_indirectBuffer(cmd), m_paramBuffer(param), m_depthState(depth), m_blendState(blend), m_polygonOffsetFillState(polyOffsetState), m_cullface(cullFace), m_colorMask(colorMask), m_depthMask(depthMask) {}
+			:m_fbo(fbo), m_vao(vao), m_pipeline(pipeline), m_indirectBuffer(cmd), m_paramBuffer(param), m_depthState(depth), m_blendState(blend),
+			m_polygonOffsetFillState(polyOffsetState), m_cullface(cullFace), m_colorMask(colorMask), m_depthMask(depthMask), m_depthClamp(0){}
 	};
 
 	class State
 	{
-		enum GlState : u8;
+		enum GlState : u8
+		{
+			Blend,
+			Depth,
+			PolygonOffsetFill,
+			CullFace,
+			DepthClamp
+		};
 
 		u32 m_fbo;
 		u32 m_vao;
@@ -58,11 +69,6 @@ namespace Graphics
 		u32 m_paramBuffer;
 
 		u8 m_state;
-		/*u8 m_blendState;
-		u8 m_depthTestState;
-		u8 m_polygonOffsetFillState;
-		u8 m_cullFace;*/
-
 		u8 m_colorMask;
 
 	public:

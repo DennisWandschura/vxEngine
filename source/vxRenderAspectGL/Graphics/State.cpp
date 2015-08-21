@@ -38,14 +38,6 @@ namespace
 
 namespace Graphics
 {
-	enum State::GlState : u8
-	{
-		Blend,
-		Depth,
-		PolygonOffsetFill,
-		CullFace
-	};
-
 	State::State()
 		:m_fbo(0),
 		m_vao(0),
@@ -78,7 +70,8 @@ namespace Graphics
 		m_blendState = desc.m_blendState;
 		m_polygonOffsetFillState = desc.m_polygonOffsetFillState;
 		m_cullFace = desc.m_cullface;*/
-		m_state = (desc.m_blendState << GlState::Blend) | (desc.m_depthState << GlState::Depth) | (desc.m_polygonOffsetFillState << GlState::PolygonOffsetFill) | (desc.m_cullface << GlState::CullFace);
+		m_state = (desc.m_blendState << GlState::Blend) | (desc.m_depthState << GlState::Depth) | (desc.m_polygonOffsetFillState << GlState::PolygonOffsetFill) 
+			| (desc.m_cullface << GlState::CullFace) | (desc.m_depthClamp << GlState::DepthClamp);
 
 		m_colorMask = (desc.m_colorMask.x << 0) | (desc.m_colorMask.y << 1) | (desc.m_colorMask.z << 2) | (desc.m_colorMask.w << 3) | (desc.m_depthMask << 4);
 	}
@@ -89,11 +82,13 @@ namespace Graphics
 		auto depthState = (m_state >> GlState::Depth) & 0x1;
 		auto polygonOffsetState = (m_state >> GlState::PolygonOffsetFill) & 0x1;
 		auto cullState = (m_state >> GlState::CullFace) & 0x1;
+		auto depthClampState = (m_state >> GlState::DepthClamp) & 0x1;
 
 		g_capabilityFun[blendState](vx::gl::Capabilities::Blend);
 		g_capabilityFun[depthState](vx::gl::Capabilities::Depth_Test);
 		g_capabilityFun[polygonOffsetState](vx::gl::Capabilities::Polygon_Offset_Fill);
 		g_capabilityFun[cullState](vx::gl::Capabilities::Cull_Face);
+		g_capabilityFun[depthClampState](vx::gl::Capabilities::Depth_Clamp);
 
 		const auto mm = 1 << 0 | 1 << 1 | 1 << 2 | 1 << 3;
 		auto colorMask = m_colorMask & 0xf;
