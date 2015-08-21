@@ -59,7 +59,7 @@ namespace Graphics
 		desc.miplevels = 1;
 		desc.sparse = 0;
 
-		desc.format = vx::gl::TextureFormat::RGB8;
+		desc.format = vx::gl::TextureFormat::RGBA8;
 		s_objectManager->createTexture("gbufferAlbedoSlice", desc, true);
 
 		desc.format = vx::gl::TextureFormat::RGBA16F;
