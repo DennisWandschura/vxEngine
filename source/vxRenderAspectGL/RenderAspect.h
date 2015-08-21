@@ -163,7 +163,7 @@ public:
 	RenderAspectInitializeError initialize(const RenderAspectDescription &desc) override;
 	void shutdown(void* hwnd) override;
 
-	bool initializeProfiler() override;
+	bool initializeProfiler(Logfile* errorlog) override;
 
 	void makeCurrent(bool b) override;
 

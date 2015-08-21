@@ -108,9 +108,9 @@ int main()
 	//UnDecorateSymbolName("?pushCommand@Segment@Graphics@@QEAAXAEBUProgramUniformCommand@2@PEBE@Z", buffer, 256, 0);
 
 	Timer mainTimer;
-	Logfile mainLogfile(mainTimer);
+	Logfile mainLogfile;
 
-	if (!mainLogfile.create("logfile.xml"))
+	if (!mainLogfile.create("logfile.txt"))
 	{
 		g_logfile = nullptr;
 		return 1;
@@ -138,7 +138,7 @@ int main()
 	SCOPE_EXIT
 	{
 		engine.shutdown();
-		LOG(mainLogfile, "Shutting down Engine", false);
+		//LOG(mainLogfile, "Shutting down Engine", false);
 		mainLogfile.close();
 
 		_CrtMemDumpAllObjectsSince(&state);
@@ -148,17 +148,16 @@ int main()
 		g_logfile = nullptr;
 	};
 
-	LOG(mainLogfile, "Initializing Engine", false);
-	if (!engine.initialize())
+	//LOG(mainLogfile, "Initializing Engine", false);
+	if (!engine.initialize(&mainLogfile))
 	{
-		LOG_ERROR(mainLogfile, "Error initializing Engine !", false);
+		mainLogfile.append("Error initializing Engine !");
 		return 1;
 	}
 
 	g_engine = &engine;
-	LOG(mainLogfile, "Starting", false);
 
-	engine.start();
+	engine.start(&mainLogfile);
 
 	return 0;
 }

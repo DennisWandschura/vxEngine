@@ -41,6 +41,7 @@ SOFTWARE.
 #include "TaskSaveEditorScene.h"
 #include <Windows.h>
 #include <FbxFactoryInterface.h>
+#include "TaskSaveMeshFile.h"
 
 char ResourceAspect::s_textureFolder[32] = { "data/textures/" };
 char ResourceAspect::s_materialFolder[32] = { "data/materials/" };
@@ -434,6 +435,18 @@ void ResourceAspect::taskSaveEditorScene(const TaskLoadFileDesc &desc, const cha
 	m_taskManager->pushTask(task);
 }
 
+void ResourceAspect::taskSaveMeshFile(const TaskLoadFileDesc &desc, const char* folder)
+{
+	auto filename = std::string(desc.fileName);
+	taskGetFileNameWithPath(desc, folder);
+	auto evt = Event::createEvent();
+
+	auto str = std::string(desc.fileNameWithPath);
+
+	auto task = new TaskSaveMeshFile(std::move(str), (vx::MeshFile*)desc.p);
+	m_taskManager->pushTask(task);
+}
+
 void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg)
 {
 	char fileNameWithPath[64];
@@ -512,6 +525,10 @@ void ResourceAspect::requestSaveFile(const vx::FileEntry &fileEntry, void* p)
 	{
 		taskSaveEditorScene(desc, s_sceneFolder);
 	}break;
+	case vx::FileType::Mesh:
+	{
+		taskSaveMeshFile(desc, s_meshFolder);
+	}break;
 	}
 }
 
@@ -535,7 +552,17 @@ const vx::MeshFile* ResourceAspect::getMesh(const vx::StringID &sid) const
 	return m_meshData.find(sid);
 }
 
+vx::MeshFile* ResourceAspect::getMesh(const vx::StringID &sid)
+{
+	return m_meshData.find(sid);
+}
+
 const vx::Animation* ResourceAspect::getAnimation(const vx::StringID &sid) const
 {
 	return m_animationData.find(sid);
+}
+
+ResourceManager<vx::MeshFile>* ResourceAspect::getMeshManager()
+{
+	return &m_meshData;
 }

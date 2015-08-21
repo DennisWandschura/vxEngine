@@ -78,7 +78,7 @@ namespace Graphics
 		TextRenderer();
 		~TextRenderer();
 
-		bool initialize(vx::StackAllocator* scratchAllocator, const void* p) override;
+		bool initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void* p) override;
 		void shutdown() override;
 
 		void pushEntry(const char(&text)[48], u32 size, const vx::float2 &topLeftPosition, const vx::float3 &color);

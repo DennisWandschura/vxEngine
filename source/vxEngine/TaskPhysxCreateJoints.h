@@ -36,6 +36,7 @@ class TaskPhysxCreateJoints : public Task
 
 	const Scene* m_scene;
 	PhysicsAspect* m_physicsAspect;
+	Event m_blockEvt;
 
 public:
 	TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect, std::vector<Event> events, Event &&blockEvt);

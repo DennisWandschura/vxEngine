@@ -120,7 +120,7 @@ public:
 	RenderAspectInitializeError initialize(const RenderAspectDescription &desc);
 	void shutdown(void* hwnd);
 
-	bool initializeProfiler();
+	bool initializeProfiler(Logfile* errorlog);
 
 	void makeCurrent(bool b);
 

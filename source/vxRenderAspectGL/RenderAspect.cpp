@@ -59,10 +59,7 @@ SOFTWARE.
 #include <vxGL/VertexArray.h>
 #include "Graphics/VolumetricLightRenderer.h"
 #include <vxEngineLib/CreateDynamicMeshData.h>
-
-#include "opencl/device.h"
-#include "opencl/image.h"
-#include <random>
+#include <vxEngineLib/Logfile.h>
 
 struct PlaneSimd
 {
@@ -393,7 +390,7 @@ void RenderAspect::createFrameBuffers()
 
 void RenderAspect::createOpenCL()
 {
-	auto platformCount = cl::Platform::getPlatformCount();
+	/*auto platformCount = cl::Platform::getPlatformCount();
 
 	auto platforms = vx::make_unique<cl::Platform[]>(platformCount);
 	cl::Platform::getPlatforms(platformCount, platforms.get());
@@ -413,11 +410,12 @@ void RenderAspect::createOpenCL()
 		0
 	};
 
-	auto error = m_context.create(properties, 1, &device);
+	auto error = m_context.create(properties, 1, &device);*/
 }
 
 RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &desc)
 {
+	auto errorlog = desc.errorlog;
 	//m_projectionMatrix = MatrixPerspectiveFovRH(params.fovRad, screenAspect, params.nearZ, params.farZ);
 	auto screenAspect = (f32)desc.settings->m_resolution.x / (f32)desc.settings->m_resolution.y;
 	auto fovRad = vx::degToRad(desc.settings->m_fovDeg);
@@ -443,7 +441,12 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	m_pColdData = vx::make_unique<ColdData>();
 
 	if (!m_renderContext.initialize(contextDesc))
+	{
+		const char text[] = "Error initializing OpenGL";
+		errorlog->append(text, 25);
+
 		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
 
 	Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, desc.settings, m_gpuProfiler.get());
 
@@ -474,11 +477,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 
 	m_camera.setPosition(0, 2.5f, 15);
 
-	if (!m_shaderManager.initialize(desc.dataDir, &m_allocator, false))
-	{
-		puts("Error initializing Shadermanager");
-		return RenderAspectInitializeError::ERROR_SHADER;
-	}
+	m_shaderManager.initialize(desc.dataDir);
 
 	m_shaderManager.addParameter("maxActiveLights", desc.settings->m_rendererSettings.m_maxActiveLights);
 	m_shaderManager.setDefine("FULL_SHADING");
@@ -496,16 +495,17 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformCameraBufferStatic.h").c_str(), "UniformCameraBufferStatic.h");
 	m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformVoxelBuffer.h").c_str(), "UniformVoxelBuffer.h");
 
-	m_shaderManager.loadPipeline(vx::FileHandle("draw_final_image.pipe"), "draw_final_image.pipe", &m_allocator);
-	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageAlbedo.pipe"), "drawFinalImageAlbedo.pipe", &m_allocator);
-	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageNormals.pipe"), "drawFinalImageNormals.pipe", &m_allocator);
-	m_shaderManager.loadPipeline(vx::FileHandle("coneTrace.pipe"), "coneTrace.pipe", &m_allocator);
-	m_shaderManager.loadPipeline(vx::FileHandle("blurpass.pipe"), "blurpass.pipe", &m_allocator);
-	m_shaderManager.loadPipeline(vx::FileHandle("blurpassNew.pipe"), "blurpassNew.pipe", &m_allocator);
-	m_shaderManager.loadPipeline(vx::FileHandle("blurpass2.pipe"), "blurpass2.pipe", &m_allocator);
-	m_shaderManager.loadPipeline(vx::FileHandle("voxel_debug.pipe"), "voxel_debug.pipe", &m_allocator);
+	std::string error;
+	m_shaderManager.loadPipeline(vx::FileHandle("draw_final_image.pipe"), "draw_final_image.pipe", &m_allocator, &error);
+	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageAlbedo.pipe"), "drawFinalImageAlbedo.pipe", &m_allocator, &error);
+	m_shaderManager.loadPipeline(vx::FileHandle("drawFinalImageNormals.pipe"), "drawFinalImageNormals.pipe", &m_allocator, &error);
+	m_shaderManager.loadPipeline(vx::FileHandle("coneTrace.pipe"), "coneTrace.pipe", &m_allocator, &error);
+	m_shaderManager.loadPipeline(vx::FileHandle("blurpass.pipe"), "blurpass.pipe", &m_allocator, &error);
+	m_shaderManager.loadPipeline(vx::FileHandle("blurpassNew.pipe"), "blurpassNew.pipe", &m_allocator, &error);
+	m_shaderManager.loadPipeline(vx::FileHandle("blurpass2.pipe"), "blurpass2.pipe", &m_allocator, &error);
+	m_shaderManager.loadPipeline(vx::FileHandle("voxel_debug.pipe"), "voxel_debug.pipe", &m_allocator, &error);
 
-	m_shaderManager.loadPipeline(vx::FileHandle("screenquad.pipe"), "screenquad.pipe", &m_allocator);
+	m_shaderManager.loadPipeline(vx::FileHandle("screenquad.pipe"), "screenquad.pipe", &m_allocator, &error);
 
 	const auto doubleBufferSizeInBytes = 5 KBYTE;
 	m_doubleBuffer = DoubleBufferRaw(&m_allocator, doubleBufferSizeInBytes);
@@ -530,18 +530,18 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	m_pRenderPassFinalImage = &m_renderpassFinalImageFullShading;
 
 	auto lightRenderer = vx::make_unique<Graphics::LightRenderer>();
-	lightRenderer->initialize(&m_allocator, nullptr);
+	lightRenderer->initialize(&m_allocator, errorlog,nullptr);
 	m_lightRenderer = lightRenderer.get();
 	m_renderer.push_back(std::move(lightRenderer));
 
 	auto gbufferRenderer = vx::make_unique<Graphics::GBufferRenderer>();
-	gbufferRenderer->initialize(&m_allocator, nullptr);
+	gbufferRenderer->initialize(&m_allocator, errorlog,nullptr);
 	m_renderer.push_back(std::move(gbufferRenderer));
 
 	if (desc.settings->m_rendererSettings.m_shadowMode != 0)
 	{
 		auto shadowRenderer = vx::make_unique<Graphics::ShadowRenderer>();
-		shadowRenderer->initialize(&m_allocator, nullptr);
+		shadowRenderer->initialize(&m_allocator, errorlog, nullptr);
 
 		m_shadowRenderer = shadowRenderer.get();
 		m_renderer.push_back(std::move(shadowRenderer));
@@ -552,14 +552,14 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if (desc.settings->m_rendererSettings.m_voxelGIMode != 0)
 	{
 		auto voxelRenderer = vx::make_unique<Graphics::VoxelRenderer >();
-		if (!voxelRenderer->initialize(&m_allocator, nullptr))
+		if (!voxelRenderer->initialize(&m_allocator, errorlog, nullptr))
 			return RenderAspectInitializeError::ERROR_SHADER;
 
 		m_renderer.push_back(std::move(voxelRenderer));
 	}
 
 	auto volumetricRenderer = vx::make_unique<Graphics::VolumetricLightRenderer>();
-	volumetricRenderer->initialize(&m_allocator, nullptr);
+	volumetricRenderer->initialize(&m_allocator, errorlog, nullptr);
 	m_renderer.push_back(std::move(volumetricRenderer));
 
 	createOpenCL();
@@ -574,9 +574,10 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	f32 py = desc.settings->m_resolution.y * 0.45f;
 	m_pstateProfiler.initialize(vx::float2(px, py));
 
+
 	return RenderAspectInitializeError::OK;
 }
-bool RenderAspect::initializeProfiler()
+bool RenderAspect::initializeProfiler(Logfile* errorlog)
 {
 	u32 textureIndex = 0;
 	{
@@ -608,7 +609,7 @@ bool RenderAspect::initializeProfiler()
 	desc.allocator = &m_allocator;
 
 	m_textRenderer = vx::make_unique<Graphics::TextRenderer>();
-	m_textRenderer->initialize(&m_allocator, &desc);
+	m_textRenderer->initialize(&m_allocator, errorlog, &desc);
 
 	m_textCmdList.initialize();
 	m_textRenderer->getCommandList(&m_textCmdList);

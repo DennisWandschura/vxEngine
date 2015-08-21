@@ -28,6 +28,7 @@ class FileAspect;
 struct EngineConfig;
 class ResourceAspectInterface;
 class FileAspectInterface;
+class Logfile;
 
 namespace vx
 {
@@ -53,6 +54,7 @@ struct RenderAspectDescription
 	const void* tmpHwnd;
 	vx::StackAllocator* pAllocator;
 	const EngineConfig* settings;
+	Logfile* errorlog;
 	ResourceAspectInterface* resourceAspect;
 	vx::MessageManager* msgManager;
 	vx::TaskManager* taskManager;
@@ -68,7 +70,7 @@ public:
 	virtual RenderAspectInitializeError initialize(const RenderAspectDescription &desc) = 0;
 	virtual void shutdown(void* hwnd) = 0;
 
-	virtual bool initializeProfiler() = 0;
+	virtual bool initializeProfiler(Logfile* errorlog) = 0;
 
 	virtual void makeCurrent(bool b) = 0;
 

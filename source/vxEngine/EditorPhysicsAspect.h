@@ -31,6 +31,11 @@ namespace physx
 	class PxDefaultMemoryOutputStream;
 }
 
+namespace vx
+{
+	class Mesh;
+}
+
 template<typename T>
 class Reference;
 
@@ -46,8 +51,8 @@ namespace Editor
 
 		void processScene(const Scene* pScene);
 
-		bool createTriangleMesh(const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer);
-		bool createConvexMesh(const vx::float3* positions, u32 vertexCount, physx::PxDefaultMemoryOutputStream* writeBuffer);
+		bool createTriangleMesh(const vx::Mesh &mesh, physx::PxDefaultMemoryOutputStream* writeBuffer);
+		bool createConvexMesh(const vx::Mesh &mesh, physx::PxDefaultMemoryOutputStream* writeBuffer);
 
 	public:
 		PhysicsAspect();
@@ -63,7 +68,7 @@ namespace Editor
 
 		physx::PxCooking* getCooking() { return m_pCooking; }
 
-		bool setMeshPhysxType(Reference<vx::MeshFile> &meshFile, PhsyxMeshType type, ArrayAllocator* meshDataAllocator);
+		bool setMeshPhysxType(vx::MeshFile* meshFile, PhsyxMeshType type, ArrayAllocator* meshDataAllocator);
 		bool setMeshInstanceRigidBodyType(const vx::StringID &instanceSid, const ::MeshInstance &meshInstance, PhysxRigidBodyType rigidBodyType);
 
 		void addMeshInstance(const ::MeshInstance &instance);

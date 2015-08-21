@@ -7,10 +7,10 @@ The player needs to reach the goal while evading the AI players.
 The AI should be able to react to its surroundings (previously open doors are closed, sounds, etc...) and communicate with each other.
 
 Level Editor:
-https://www.youtube.com/watch?v=TQe57y9mebk
+http://youtu.be/SDmoqkRqPEs
 
 Engine with GL Renderer: (15.08.2015)
 http://youtu.be/yZ1lYs_7aOE
 
 Build 21082015:
-https://tinyurl.com/oqccatx
+https://tinyurl.com/olgf3bn

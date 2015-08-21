@@ -31,10 +31,10 @@ thread_local f32 TaskPhysxCreateJoints::s_time{ 0.0f };
 thread_local u64 TaskPhysxCreateJoints::s_counter{ 0 };
 
 TaskPhysxCreateJoints::TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect, std::vector<Event> events, Event &&blockEvt)
-	:Task(std::move(blockEvt), std::move(events)),
+	:Task(std::move(events)),
 	m_scene(scene),
-	m_physicsAspect(physicsAspect)
-	//m_blockEvt(std::move(blockEvt))
+	m_physicsAspect(physicsAspect),
+	m_blockEvt(std::move(blockEvt))
 {
 
 }
@@ -46,7 +46,7 @@ TaskPhysxCreateJoints::~TaskPhysxCreateJoints()
 
 TaskReturnType TaskPhysxCreateJoints::runImpl()
 {
-	//m_blockEvt->clear();
+	m_blockEvt.setStatus(EventStatus::Running);
 
 	CpuTimer timer;
 
@@ -70,7 +70,7 @@ TaskReturnType TaskPhysxCreateJoints::runImpl()
 
 	s_time = (s_time * oldCounter + time) / s_counter;
 
-	//m_blockEvt->set();
+	m_blockEvt.setStatus(EventStatus::Complete);
 	return result;
 }
 

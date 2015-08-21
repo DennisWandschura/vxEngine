@@ -93,6 +93,9 @@
     <ClCompile Include="testConvertSceneFileToScene.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="TaskSaveMeshFile.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h">
@@ -154,6 +157,9 @@
     </ClInclude>
     <ClInclude Include="testConvertSceneFileToScene.h">
       <Filter>Header Files\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskSaveMeshFile.h">
+      <Filter>Header Files\Tasks</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

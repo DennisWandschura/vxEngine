@@ -43,6 +43,8 @@ namespace Graphics
 	bool PStateProfiler::initialize(const vx::float2 &position)
 	{
 		auto r = NvAPI_Initialize();
+		if (r != NVAPI_OK)
+			return false;
 
 		NvPhysicalGpuHandle gpuHandles[64];
 		NvU32 gpuCount = 0;
@@ -60,6 +62,9 @@ namespace Graphics
 
 	void PStateProfiler::update(TextRenderer* textRenderer)
 	{
+		if (m_gpuHandle == nullptr)
+			return;
+
 		auto position = m_position;
 
 		NV_GPU_PERF_PSTATE_ID currentPState{};

@@ -28,6 +28,7 @@ SOFTWARE.
 #include <vxEngineLib/EditorScene.h>
 #include <vxLib/File/FileHandle.h>
 #include <vxEngineLib/SmallObject.h>
+#include <vxEngineLib/Logfile.h>
 
 #ifdef _VX_EDITOR
 namespace Editor
@@ -35,7 +36,7 @@ namespace Editor
 	struct Editor
 	{
 		//Timer clock;
-		//Logfile logfile;
+		Logfile logfile;
 		EditorEngine engine;
 		Editor::Scene scene;
 
@@ -89,7 +90,8 @@ namespace Editor
 		Event::setAllocator(g_alloc);
 
 		//pEditor->logfile.create("editor_log.xml");
-		if (!pEditor->engine.initializeEditor((HWND)hwndPanel, (HWND)hwndTmp, vx::uint2(panelSizeX, panelSizeY), &pEditor->scene))
+		pEditor->logfile.create("log.txt");
+		if (!pEditor->engine.initializeEditor((HWND)hwndPanel, (HWND)hwndTmp, vx::uint2(panelSizeX, panelSizeY), &pEditor->scene, &pEditor->logfile))
 			return false;
 
 		g_pEditor = pEditor;
@@ -108,9 +110,12 @@ namespace Editor
 	{
 		if (g_pEditor)
 		{
+
 			g_pEditor->engine.stop();
 			g_pEditor->engine.shutdownEditor();
 			destroy(g_pEditor);
+
+			g_pEditor->logfile.close();
 		}
 
 		if (g_alloc)

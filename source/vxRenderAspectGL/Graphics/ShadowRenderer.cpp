@@ -45,6 +45,7 @@ SOFTWARE.
 #include <vxGL/Framebuffer.h>
 #include <vxGL/VertexArray.h>
 #include "../Frustum.h"
+#include <vxEngineLib/Logfile.h>
 
 namespace ShadowRendererCpp
 {
@@ -302,13 +303,18 @@ namespace Graphics
 		return segment;
 	}
 
-	bool ShadowRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
+	bool ShadowRenderer::initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void*)
 	{
 		auto maxShadowLights = s_settings->m_rendererSettings.m_shadowSettings.m_maxShadowCastingLights;
 		m_maxShadowLights = maxShadowLights;
 
-		if (!s_shaderManager->loadPipeline(vx::FileHandle("shadow.pipe"), "shadow.pipe", scratchAllocator))
+		std::string error;
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("shadow.pipe"), "shadow.pipe", scratchAllocator, &error))
+		{
+			errorlog->append(error.c_str(), error.size());
+			error.clear();
 			return false;
+		}
 		//s_shaderManager->loadPipeline(vx::FileHandle("resetLightCmdBuffer.pipe"), "resetLightCmdBuffer.pipe", scratchAllocator);
 		//s_shaderManager->loadPipeline(vx::FileHandle("createLightCmdBuffer.pipe"), "createLightCmdBuffer.pipe", scratchAllocator);
 
@@ -555,7 +561,8 @@ namespace Graphics
 		auto mappedBuffer = buffer->mapRange<ShadowTransform>(0, dataSize, vx::gl::MapRange::Write);
 		for (u32 i = 0; i < activeLights; ++i)
 		{
-			mappedBuffer[i] = lights[i];
+			auto lightIndex = lightDistances[i].second;
+			mappedBuffer[i] = lights[lightIndex];
 		}
 		mappedBuffer.unmap();
 

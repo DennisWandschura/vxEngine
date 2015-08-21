@@ -240,6 +240,7 @@
     <ClInclude Include="include\vxEngineLib\EditorScene.h" />
     <ClInclude Include="include\vxEngineLib\EngineConfig.h" />
     <ClInclude Include="include\vxEngineLib\Event.h" />
+    <ClInclude Include="include\vxEngineLib\Logfile.h" />
     <ClInclude Include="include\vxEngineLib\Message.h" />
     <ClInclude Include="include\vxEngineLib\MessageListener.h" />
     <ClInclude Include="include\vxEngineLib\MessageManager.h" />
@@ -257,7 +258,6 @@
     <ClInclude Include="include\vxEngineLib\Joint.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Locator.h" />
-    <ClInclude Include="include\vxEngineLib\Logfile.h" />
     <ClInclude Include="include\vxEngineLib\managed_ptr.h" />
     <ClInclude Include="include\vxEngineLib\Material.h" />
     <ClInclude Include="include\vxEngineLib\memcpy.h" />
@@ -351,6 +351,7 @@
     <ClCompile Include="Event.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Logfile.cpp" />
     <ClCompile Include="MessageManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -380,10 +381,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Locator.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Logfile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>

@@ -204,6 +204,7 @@
     <ClCompile Include="TaskSaveEditorScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="TaskSaveMeshFile.cpp" />
     <ClCompile Include="testConvertSceneFileToScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -231,6 +232,7 @@
     <ClInclude Include="TaskLoadScene.h" />
     <ClInclude Include="TaskLoadTexture.h" />
     <ClInclude Include="TaskSaveEditorScene.h" />
+    <ClInclude Include="TaskSaveMeshFile.h" />
     <ClInclude Include="testConvertSceneFileToScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

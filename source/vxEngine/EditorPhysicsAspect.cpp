@@ -237,12 +237,18 @@ namespace Editor
 		pController->setPosition(physx::PxExtendedVec3(position.x, position.y, position.z));
 	}
 
-	bool PhysicsAspect::createTriangleMesh(const vx::float3* positions, u32 vertexCount, const u32* indices, u32 indexCount, physx::PxDefaultMemoryOutputStream* writeBuffer)
+	bool PhysicsAspect::createTriangleMesh(const vx::Mesh &mesh, physx::PxDefaultMemoryOutputStream* writeBuffer)
 	{
+		auto vertices = mesh.getVertices();
+		auto vertexCount = mesh.getVertexCount();
+
+		auto indices = mesh.getIndices();
+		auto indexCount = mesh.getIndexCount();
+
 		physx::PxTriangleMeshDesc meshDesc;
 		meshDesc.points.count = vertexCount;
-		meshDesc.points.stride = sizeof(vx::float3);
-		meshDesc.points.data = positions;
+		meshDesc.points.stride = sizeof(vx::MeshVertex);
+		meshDesc.points.data = vertices;
 
 		meshDesc.triangles.count = indexCount / 3;
 		meshDesc.triangles.stride = 3 * sizeof(u32);
@@ -251,33 +257,24 @@ namespace Editor
 		return m_pCooking->cookTriangleMesh(meshDesc, *writeBuffer);
 	}
 
-	bool PhysicsAspect::createConvexMesh(const vx::float3* positions, u32 vertexCount, physx::PxDefaultMemoryOutputStream* writeBuffer)
+	bool PhysicsAspect::createConvexMesh(const vx::Mesh &mesh, physx::PxDefaultMemoryOutputStream* writeBuffer)
 	{
+		auto vertices = mesh.getVertices();
+		auto vertexCount = mesh.getVertexCount();
+
 		physx::PxConvexMeshDesc convexDesc;
 		convexDesc.points.count = vertexCount;
-		convexDesc.points.stride = sizeof(vx::float3);
-		convexDesc.points.data = positions;
+		convexDesc.points.stride = sizeof(vx::MeshVertex);
+		convexDesc.points.data = vertices;
 		convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
 		convexDesc.vertexLimit = 256;
 
 		return m_pCooking->cookConvexMesh(convexDesc, *writeBuffer);
 	}
 
-	bool PhysicsAspect::setMeshPhysxType(Reference<vx::MeshFile> &meshFile, PhsyxMeshType type, ArrayAllocator* meshDataAllocator)
+	bool PhysicsAspect::setMeshPhysxType(vx::MeshFile* meshFile, PhsyxMeshType type, ArrayAllocator* meshDataAllocator)
 	{
 		auto &mesh = meshFile->getMesh();
-
-		auto vertexCount = mesh.getVertexCount();
-		auto vertices = mesh.getVertices();
-
-		auto positions = vx::make_unique<vx::float3[]>(vertexCount);
-		for (u32 i = 0; i < vertexCount; ++i)
-		{
-			positions[i] = vertices[i].position;
-		}
-
-		auto indexCount = mesh.getIndexCount();
-		auto indices = mesh.getIndices();
 
 		physx::PxDefaultMemoryOutputStream writeBuffer;
 
@@ -286,11 +283,11 @@ namespace Editor
 		{
 		case PhsyxMeshType::Triangle:
 		{
-			result = createTriangleMesh(positions.get(), vertexCount, indices, indexCount, &writeBuffer);
+			result = createTriangleMesh(mesh, &writeBuffer);
 		}break;
 		case PhsyxMeshType::Convex:
 		{
-			result = createConvexMesh(positions.get(), vertexCount, &writeBuffer);
+			result = createConvexMesh(mesh, &writeBuffer);
 		}break;
 		default:
 			break;

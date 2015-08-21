@@ -39,6 +39,7 @@ SOFTWARE.
 #include "CommandList.h"
 #include <vxEngineLib/EngineConfig.h>
 #include "../GpuStructs.h"
+#include <vxEngineLib/Logfile.h>
 
 namespace Graphics
 {
@@ -86,10 +87,15 @@ namespace Graphics
 		fbo->drawBuffer(vx::gl::Attachment::Color0);
 	}
 
-	bool VolumetricLightRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
+	bool VolumetricLightRenderer::initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void* p)
 	{
-		if (!s_shaderManager->loadPipeline(vx::FileHandle("volume.pipe"), "volume.pipe", scratchAllocator))
+		std::string error;
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("volume.pipe"), "volume.pipe", scratchAllocator, &error))
+		{
+			errorlog->append(error.c_str(), error.size());
+			error.clear();
 			return false;
+		}
 
 		UniformVolumetricFogBufferBlock data;
 		data.position = vx::float4a(0, 1.5f, 1.5f, 0);

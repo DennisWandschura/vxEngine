@@ -89,6 +89,7 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator, vx::TaskManager* t
 	m_componentInputManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);
 	m_componentActorManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);*/
 	EntityAspectCpp::createPool(EntityAspectCpp::g_maxEntities, 16, pAllocator, &m_poolEntityActor);
+	EntityAspectCpp::createPool(EntityAspectCpp::g_maxEntities, 16, pAllocator, &m_poolEntityDynamic);
 
 	//const auto pathChunkSize = s_maxNavNodes * sizeof(vx::float3);
 	//const auto pathPoolSize = g_maxEntities * pathChunkSize;
@@ -113,6 +114,7 @@ void EntityAspect::shutdown()
 	{
 		m_coldData.reset();
 	}
+	m_poolEntityDynamic.release();
 	m_poolEntityActor.release();
 	m_componentActorManager.shutdown();
 	//m_componentInputManager.shutdown();
@@ -259,6 +261,7 @@ void EntityAspect::update(f32 dt, ActionManager* actionManager)
 	}
 
 	updateEntityActor(dt);
+	updateEntityDynamic(dt);
 
 	m_playerController.update();
 }

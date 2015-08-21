@@ -40,6 +40,7 @@ namespace vx
 
 struct EngineConfig;
 class GpuProfiler;
+class Logfile;
 
 #include <vxLib/types.h>
 #include <vector>
@@ -59,7 +60,7 @@ namespace Graphics
 	public:
 		virtual ~Renderer(){}
 
-		virtual bool initialize(vx::StackAllocator* scratchAllocator, const void* p) = 0;
+		virtual bool initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void* p) = 0;
 		virtual void shutdown() = 0;
 
 		virtual void getCommandList(CommandList* cmdList) = 0;

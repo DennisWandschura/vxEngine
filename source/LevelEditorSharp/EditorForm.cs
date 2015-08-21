@@ -1216,10 +1216,13 @@ namespace LevelEditor
 
         private void panel_render_MouseDown(object sender, MouseEventArgs e)
         {
-            m_mouseX = e.X;
-            m_mouseY = e.Y;
-            m_lastClickedMouseButton = e.Button;
-            m_isMouseDown = true;
+            if (!m_keyDownAlt)
+            {
+                m_mouseX = e.X;
+                m_mouseY = e.Y;
+                m_lastClickedMouseButton = e.Button;
+                m_isMouseDown = true;
+            }
         }
 
         private void panel_render_MouseUp(object sender, MouseEventArgs e)

@@ -131,7 +131,7 @@ bool EditorEngine::createRenderAspectGL(const std::string &dataDir, const Render
 	return true;
 }
 
-bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene)
+bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene, Logfile* logfile)
 {
 	vx::activateChannel(vx::debugPrint::Channel_Render);
 	vx::activateChannel(vx::debugPrint::Channel_Editor);
@@ -179,6 +179,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 		tmp,
 		&m_allocator,
 		&g_engineConfig,
+		logfile,
 		&m_resourceAspect,
 		&m_msgManager,
 		&m_taskManager
@@ -1420,10 +1421,12 @@ u32 EditorEngine::getMeshPhysxType(u64 sid) const
 
 void EditorEngine::setMeshPhysxType(u64 sid, u32 type)
 {
-	auto meshFile = m_resourceAspect.getMesh(vx::StringID(sid));
+	auto meshSid = vx::StringID(sid);
+	auto meshFile = m_resourceAspect.getMesh(meshSid);
 	if (meshFile == nullptr)
 	{
-		VX_ASSERT(false);
+		return;
+		//VX_ASSERT(false);
 		/*auto &meshDataAllocator = m_resourceAspect.getMeshDataAllocator();
 
 		if (m_physicsAspect.setMeshPhysxType(meshFile, (PhsyxMeshType)type, &meshDataAllocator))
@@ -1432,6 +1435,17 @@ void EditorEngine::setMeshPhysxType(u64 sid, u32 type)
 
 			m_fileAspect.requestSaveFile(vx::FileEntry(fileName, vx::FileType::Mesh), meshFile.get());
 		}*/
+	}
+
+	auto meshManager = m_resourceAspect.getMeshManager();
+	auto physxType = (PhsyxMeshType)type;
+	std::unique_lock<std::mutex> lock;
+	auto dataAllocator = meshManager->lockDataAllocator(&lock);
+	if (m_physicsAspect.setMeshPhysxType(meshFile, physxType, dataAllocator))
+	{
+		auto meshName = meshManager->getName(meshSid);
+		vx::FileEntry fileEntry(meshName, vx::FileType::Mesh);
+		m_resourceAspect.requestSaveFile(fileEntry, meshFile);
 	}
 }
 

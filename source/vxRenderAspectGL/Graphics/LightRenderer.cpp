@@ -49,7 +49,7 @@ namespace Graphics
 
 	}
 
-	bool LightRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
+	bool LightRenderer::initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void* p)
 	{
 		m_maxActiveLights = s_settings->m_rendererSettings.m_maxActiveLights;
 		m_activeLights = vx::make_unique<Gpu::LightData[]>(m_maxActiveLights);
@@ -104,7 +104,7 @@ namespace Graphics
 	void LightRenderer::setLights(const Light* lights, u32 count)
 	{
 		m_lights = vx::make_unique<Gpu::LightData[]>(count);
-		for (u32 i = 0;i < count; ++i)
+		for (u32 i = 0; i < count; ++i)
 		{
 			auto &light = lights[i];
 

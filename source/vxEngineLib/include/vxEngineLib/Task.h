@@ -81,6 +81,7 @@ protected:
 	Task() :m_event(), m_events(), m_timer(), m_timeoutTime(0.0f) {}
 	explicit Task(Event &&evt) :m_event(std::move(evt)), m_events() {}
 	Task(Event &&evt, std::vector<Event> &&events) :m_event(std::move(evt)), m_events(std::move(events)) {}
+	explicit Task(std::vector<Event> &&events) :m_event(), m_events(std::move(events)) {}
 
 	virtual TaskReturnType runImpl() = 0;
 

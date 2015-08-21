@@ -38,6 +38,7 @@ SOFTWARE.
 #include <vxGL/Texture.h>
 #include <vxGL/Framebuffer.h>
 #include <vxGL/VertexArray.h>
+#include <vxEngineLib/Logfile.h>
 
 namespace Graphics
 {
@@ -60,7 +61,7 @@ namespace Graphics
 
 	}
 
-	bool VoxelRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
+	bool VoxelRenderer::initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void*)
 	{
 		if (FLEXT_NV_conservative_raster != 0)
 		{
@@ -72,11 +73,20 @@ namespace Graphics
 
 		}
 
-		if (!s_shaderManager->loadPipeline(vx::FileHandle("voxelize.pipe"), "voxelize.pipe", scratchAllocator))
+		std::string error;
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("voxelize.pipe"), "voxelize.pipe", scratchAllocator, &error))
+		{
+			errorlog->append(error.c_str(), error.size());
+			error.clear();
 			return false;
+		}
 
-		if (!s_shaderManager->loadPipeline(vx::FileHandle("voxelizeLight.pipe"), "voxelizeLight.pipe", scratchAllocator))
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("voxelizeLight.pipe"), "voxelizeLight.pipe", scratchAllocator, &error))
+		{
+			errorlog->append(error.c_str(), error.size());
+			error.clear();
 			return false;
+		}
 
 		m_voxelTextureSize = s_settings->m_rendererSettings.m_voxelSettings.m_voxelTextureSize;
 		m_voxelGridDim = s_settings->m_rendererSettings.m_voxelSettings.m_voxelGridDim;

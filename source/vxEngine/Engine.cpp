@@ -31,6 +31,7 @@ SOFTWARE.
 #include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/debugPrint.h>
 #include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/Logfile.h>
 
 Engine* g_pEngine{ nullptr };
 
@@ -120,7 +121,7 @@ void Engine::update()
 	//CpuProfiler::popMarker();
 }
 
-void Engine::mainLoop()
+void Engine::mainLoop(Logfile* logfile)
 {
 	auto frequency = Timer::getFrequency();
 	const f64 invFrequency = 1.0 / frequency;
@@ -128,7 +129,7 @@ void Engine::mainLoop()
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
 
-	m_renderAspect->initializeProfiler();
+	m_renderAspect->initializeProfiler(logfile);
 
 	f32 accum = 0.0f;
 	while (m_bRun != 0)
@@ -234,7 +235,7 @@ bool Engine::createRenderAspectDX12(const RenderAspectDescription &desc)
 	return true;
 }
 
-bool Engine::initialize()
+bool Engine::initialize(Logfile* logfile)
 {
 	const std::string dataDir("../data/");
 
@@ -244,7 +245,8 @@ bool Engine::initialize()
 
 	if (!g_engineConfig.loadFromFile("settings.txt"))
 	{
-		printf("could not load 'settings.txt'\n");
+		logfile->append("could not load 'settings.txt'\n");
+		//printf("could not load 'settings.txt'\n");
 		return false;
 	}
 
@@ -271,6 +273,7 @@ bool Engine::initialize()
 		nullptr,
 		&m_allocator,
 		&g_engineConfig,
+		logfile,
 		&m_resourceAspect,
 		&m_msgManager,
 		&m_taskManager
@@ -281,6 +284,7 @@ bool Engine::initialize()
 	{
 		if (!createRenderAspectGL(renderAspectDesc))
 		{
+			logfile->append("error opengl renderer\n");
 			return false;
 		}
 	}
@@ -288,6 +292,7 @@ bool Engine::initialize()
 	{
 		if (!createRenderAspectDX12(renderAspectDesc))
 		{
+			logfile->append("error dx12 renderer\n");
 			return false;
 		}
 	}
@@ -382,7 +387,7 @@ void Engine::shutdown()
 	m_memory.clear();
 }
 
-void Engine::start()
+void Engine::start(Logfile* logfile)
 {
 	//RenderAspectThreadDesc desc{ &m_systemAspect.getWindow(), &g_engineConfig};
 	//m_renderThread = vx::thread(&Engine::renderLoop, this, desc);
@@ -394,7 +399,7 @@ void Engine::start()
 	arg.ptr = &m_scene;
 	requestLoadFile(vx::FileEntry(level.c_str(), vx::FileType::Scene), arg);
 
-	mainLoop();
+	mainLoop(logfile);
 }
 
 void Engine::stop()

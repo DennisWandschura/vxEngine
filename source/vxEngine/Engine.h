@@ -77,17 +77,17 @@ class Engine
 	bool initializeImpl(const std::string &dataDir);
 
 	void update();
-	void mainLoop();
+	void mainLoop(Logfile* logfile);
 	//void renderLoop(const RenderAspectThreadDesc &desc);
 
 public:
 	Engine();
 	~Engine();
 
-	bool initialize();
+	bool initialize(Logfile* logfile);
 	void shutdown();
 
-	void start();
+	void start(Logfile* logfile);
 
 	void stop();
 

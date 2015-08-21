@@ -104,7 +104,7 @@ public:
 	EditorEngine();
 	~EditorEngine();
 
-	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene);
+	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene, Logfile* logfile);
 	void shutdownEditor();
 
 	static void editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u32 animation);

@@ -27,4 +27,4 @@ SOFTWARE.
 #include <vxLib/types.h>
 
 enum class PhysxRigidBodyType : u8 { Static, Dynamic };
-enum class PhsyxMeshType : u32 { Triangle, Convex };
+enum class PhsyxMeshType : u32 { Triangle, Convex, Invalid };

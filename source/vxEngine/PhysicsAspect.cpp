@@ -686,7 +686,7 @@ physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f
 	desc.position.x = translation.x;
 	desc.position.y = translation.y;
 	desc.position.z = translation.z;
-	desc.stepOffset = 0.1f;
+	desc.stepOffset = 0.2f;
 	desc.material = m_pActorMaterial;
 	//desc.behaviorCallback = ;
 	desc.reportCallback = m_callback;
@@ -799,7 +799,7 @@ physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 		{
 			//auto angle = ptr->getAngle();
 			//printf("%f\n", angle);
-			auto limitPair = physx::PxJointAngularLimitPair(-3.1f, -vx::VX_PIDIV2);
+			auto limitPair = physx::PxJointAngularLimitPair(-3.1f, 3.0f);
 			
 			ptr->setLimit(limitPair);
 			ptr->setRevoluteJointFlag(physx::PxRevoluteJointFlag::eLIMIT_ENABLED, true);

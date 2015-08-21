@@ -123,9 +123,6 @@
     <ClInclude Include="include\vxEngineLib\Locator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Logfile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\managed_ptr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -273,6 +270,9 @@
     <ClInclude Include="ConverterMeshFileV1.h">
       <Filter>Header Files\Converter</Filter>
     </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Logfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">
@@ -282,9 +282,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Material.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Logfile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
@@ -403,6 +400,9 @@
     </ClCompile>
     <ClCompile Include="ConverterMeshFileV1.cpp">
       <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="Logfile.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

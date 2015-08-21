@@ -36,6 +36,7 @@ SOFTWARE.
 #include <vxGL/Texture.h>
 #include <vxGL/Framebuffer.h>
 #include <vxGL/VertexArray.h>
+#include <vxEngineLib/Logfile.h>
 
 namespace Graphics
 {
@@ -162,17 +163,20 @@ namespace Graphics
 		m_cmdId = cmdBuffer->getId();
 	}
 
-	bool TextRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
+	bool TextRenderer::initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void* p)
 	{
 		auto desc = (TextRendererDesc*)p;
 
 		m_entries = (Entry*)desc->allocator->allocate(sizeof(Entry) * s_maxEntryCount, __alignof(Entry));
 		m_entryCount = 0;
 
-		if (!s_shaderManager->loadPipeline(vx::FileHandle("text.pipe"), "text.pipe", scratchAllocator))
+		std::string error;
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("text.pipe"), "text.pipe", scratchAllocator, &error))
+		{
+			errorlog->append(error.c_str(), error.size());
+			error.clear();
 			return false;
-
-		auto pipe = s_shaderManager->getPipeline("text.pipe");
+		}
 
 		m_font = desc->font;
 		m_capacity = desc->maxCharacters;

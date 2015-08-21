@@ -166,10 +166,7 @@ namespace Editor
 		m_objectManager.initialize(50, 20, 20, 20, &m_allocator);
 		m_camera.setPosition(0, 5, 5);
 
-		if (!m_shaderManager.initialize(renderDesc.dataDir, &m_allocator, false))
-		{
-			return RenderAspectInitializeError::ERROR_SHADER;
-		}
+		m_shaderManager.initialize(renderDesc.dataDir);
 
 		m_objectManager.createVertexArray("emptyVao");
 
@@ -241,17 +238,18 @@ namespace Editor
 		m_shaderManager.addIncludeFile((shaderIncludeDir + "UniformCameraBufferStatic.h").c_str(), "UniformCameraBufferStatic.h");
 		m_shaderManager.addIncludeFile((shaderIncludeDir + "EditorLightBuffer.h").c_str(), "EditorLightBuffer.h");
 
-		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawSpawn.pipe"), "editorDrawSpawn.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawPointColor.pipe"), "editorDrawPointColor.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawPoint.pipe"), "editorDrawPoint.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawInfluenceCell.pipe"), "editorDrawInfluenceCell.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawLights.pipe"), "editorDrawLights.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawMesh.pipe"), "editorDrawMesh.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("navmesh.pipe"), "navmesh.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawNavmeshConnection.pipe"), "editorDrawNavmeshConnection.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("editorSelectedMesh.pipe"), "editorSelectedMesh.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawVoxelGrid.pipe"), "editorDrawVoxelGrid.pipe", &m_allocator);
-		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawJoints.pipe"), "editorDrawJoints.pipe", &m_allocator);
+		std::string error;
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawSpawn.pipe"), "editorDrawSpawn.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawPointColor.pipe"), "editorDrawPointColor.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawPoint.pipe"), "editorDrawPoint.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawInfluenceCell.pipe"), "editorDrawInfluenceCell.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawLights.pipe"), "editorDrawLights.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawMesh.pipe"), "editorDrawMesh.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("navmesh.pipe"), "navmesh.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawNavmeshConnection.pipe"), "editorDrawNavmeshConnection.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorSelectedMesh.pipe"), "editorSelectedMesh.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawVoxelGrid.pipe"), "editorDrawVoxelGrid.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawJoints.pipe"), "editorDrawJoints.pipe", &m_allocator, &error);
 
 		Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, renderDesc.settings, nullptr);
 
@@ -751,7 +749,7 @@ namespace Editor
 		m_renderContext.shutdown((HWND)hwnd);
 	}
 
-	bool RenderAspect::initializeProfiler()
+	bool RenderAspect::initializeProfiler(Logfile* errorlog)
 	{
 		return true;
 	}

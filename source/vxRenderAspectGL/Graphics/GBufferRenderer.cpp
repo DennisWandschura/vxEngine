@@ -37,6 +37,7 @@ SOFTWARE.
 #include <vxGL/Texture.h>
 #include <vxGL/Framebuffer.h>
 #include <vxGL/VertexArray.h>
+#include <vxEngineLib/Logfile.h>
 
 namespace Graphics
 {
@@ -79,7 +80,7 @@ namespace Graphics
 		s_objectManager->createTexture("gbufferDepthSlice", desc, true);
 	}
 
-	bool GBufferRenderer::initialize(vx::StackAllocator* scratchAllocator, const void*)
+	bool GBufferRenderer::initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void*)
 	{
 		createTextures();
 
@@ -119,8 +120,13 @@ namespace Graphics
 
 		s_objectManager->createBuffer("UniformGBufferBuffer", desc);
 
-		if (!s_shaderManager->loadPipeline(vx::FileHandle("drawMeshToGBuffer.pipe"), "drawMeshToGBuffer.pipe", scratchAllocator))
+		std::string error;
+		if (!s_shaderManager->loadPipeline(vx::FileHandle("drawMeshToGBuffer.pipe"), "drawMeshToGBuffer.pipe", scratchAllocator, &error))
+		{
+			errorlog->append(error.c_str(), error.size());
+			error.clear();
 			return false;
+		}
 
 		return true;
 	}

@@ -90,7 +90,7 @@ namespace Editor
 		RenderAspectInitializeError initialize(const RenderAspectDescription &desc) override;
 		void shutdown(void* hwnd);
 
-		bool initializeProfiler();
+		bool initializeProfiler(Logfile* errorlog);
 
 		void makeCurrent(bool b);
 
