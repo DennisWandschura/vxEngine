@@ -105,9 +105,6 @@
     <ClInclude Include="include\vxEngineLib\EngineConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Entity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\FileAspectInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
