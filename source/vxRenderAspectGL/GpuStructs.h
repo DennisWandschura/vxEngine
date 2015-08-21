@@ -74,6 +74,7 @@ namespace Gpu
 		u64 u_srgb;
 		u64 u_rgb;
 		u64 u_volumetricTexture;
+		u64 u_textTexture;
 	};
 
 	struct MaterialGPU
