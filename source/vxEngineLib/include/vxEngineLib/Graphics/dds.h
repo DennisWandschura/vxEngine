@@ -101,7 +101,7 @@ const u32 DDSF_RGBA = 0x00000041;
 const u32 FOURCC_DXT1 = 0x31545844; //(MAKEFOURCC('D','X','T','1'))
 const u32 FOURCC_DXT3 = 0x33545844; //(MAKEFOURCC('D','X','T','3'))
 const u32 FOURCC_DXT5 = 0x35545844; //(MAKEFOURCC('D','X','T','5'))
-const u32 FOURCC_DX10 = 'd' | ('x' << 8) | ('1' << 16) | ('0' << 24); //MAKEFOURCC('D', 'X', '1', '0');
+const u32 FOURCC_DX10 = 'D' | ('X' << 8) | ('1' << 16) | ('0' << 24); //MAKEFOURCC('D', 'X', '1', '0');
 
 #define DDSCAPS2_CUBEMAP 0x200
 #define DDSCAPS2_VOLUME 0x200000
