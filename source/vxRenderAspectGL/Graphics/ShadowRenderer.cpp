@@ -56,55 +56,54 @@ namespace ShadowRendererCpp
 		auto lightPos = light.position;
 		auto projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(90.0f), 1.0f, n, f);
 
-		vx::mat4 viewMatrices[6];
-		// X+
-		vx::float4 up = { 0, -1, 0, 0 };
-		vx::float4 dir = { 1, 0, 0, 0 };
-		viewMatrices[0] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
-		// X-
-		up = { 0, -1, 0, 0 };
-		dir = { -1, 0, 0, 0 };
-		viewMatrices[1] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
-		// Y+
-		up = { 0, 0, 1, 0 };
-		dir = vx::float4(0, 1, 0, 0);
-		viewMatrices[2] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
-		// Y-
-		up = { 0, 0, -1, 0 };
-		dir = vx::float4(0, -1, 0, 0);
-		viewMatrices[3] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
-		// Z+
-		up = { 0, -1, 0, 0 };
-		dir = vx::float4(0, 0, 1, 0);
-		viewMatrices[4] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
-		// Z-
-		up = { 0, -1, 0, 0 };
-		dir = vx::float4(0, 0, -1, 0);
-		viewMatrices[5] = vx::MatrixLookToRH(lightPos, vx::loadFloat4(dir), vx::loadFloat4(up));
+		const __m128 upDirs[6] =
+		{
+			{ 0, -1, 0, 0 },
+			{ 0, -1, 0, 0 },
+			{ 0, 0, 1, 0 },
+			{ 0, 0, -1, 0 },
+			{ 0, -1, 0, 0 },
+			{ 0, -1, 0, 0 }
+		};
 
-		/*f32 xmax = lightPos.f[0] + light.falloff;
-		f32 xmin = lightPos.f[0] - light.falloff;
+		const __m128 dirs[6] =
+		{
+			{ 1, 0, 0, 0 },
+			{ -1, 0, 0, 0 },
+			{ 0, 1, 0, 0 },
+			{ 0, -1, 0, 0 },
+			{ 0, 0, 1, 0 },
+			{ 0, 0, -1, 0 }
+		};
 
-		f32 ymax = lightPos.f[1] + light.falloff;
-		f32 ymin = lightPos.f[1] - light.falloff;
+		__m128 vf = {f, f, f, 0};
+		__m128 pmax = { f, f, f, 1 };
+		__m128 pmin = { -f, -f, -f, 1 };
+		//auto pmax = _mm_add_ps(lightPos, vf);
+		//auto pmin = _mm_sub_ps(lightPos, vf);
 
-		auto sx = 2 / (xmax - xmin);
-		auto sy = 2 / (ymax - ymin);
-		auto ox = -(sx * (xmax + xmin)) / 2.0f;
-		auto oy = -(sy * (ymax + ymin)) / 2.0f;
+		auto p0 = vx::Vector4Transform(projectionMatrix, pmax);
+		auto p1 = vx::Vector4Transform(projectionMatrix, pmin);
 
-		vx::mat4 scaleMatrix;
-		scaleMatrix.c[0] = { sx, 0, 0, 0 };
-		scaleMatrix.c[1] = { 0, sy, 0, 0 };
-		scaleMatrix.c[2] = { 0, 0, 1, 0 };
-		scaleMatrix.c[3] = { ox, oy, 0, 1 };
+		auto dx = p0.m128_f32[0] - p1.m128_f32[0];
+		auto dy = p0.m128_f32[1] - p1.m128_f32[1];
 
-		shadowTransform->scaleMatrix = scaleMatrix;*/
+		auto sx = 2.0f / (dx);
+		auto sy = 2.0f / dy;
+
+		auto ox = -(sx * (p0.m128_f32[0] + p1.m128_f32[0])) / 2.0f;
+		auto oy = -(sy * (p0.m128_f32[1] + p1.m128_f32[1])) / 2.0f;
+
+		shadowTransform->scaleMatrix.c[0] = {sx, 0, 0, 0};
+		shadowTransform->scaleMatrix.c[1] = { 0, sy, 0, 0 };
+		shadowTransform->scaleMatrix.c[2] = { 0, 0, 1, 0 };
+		shadowTransform->scaleMatrix.c[3] = { ox, oy, 0, 1 };
 		shadowTransform->projectionMatrix = projectionMatrix;
 		for (u32 i = 0; i < 6; ++i)
 		{
-			shadowTransform->viewMatrix[i] = viewMatrices[i];
-			shadowTransform->pvMatrix[i] = projectionMatrix * viewMatrices[i];
+			auto viewMatrix = vx::MatrixLookToRH(lightPos, dirs[i], upDirs[i]);
+			shadowTransform->viewMatrix[i] = viewMatrix;
+			shadowTransform->pvMatrix[i] = projectionMatrix * viewMatrix;
 		}
 	}
 }
@@ -404,6 +403,7 @@ namespace Graphics
 			{1, 1, 1, 1},
 			1
 		};
+		stateDesc.m_depthClamp = 1;
 
 		Graphics::State state;
 		state.set(stateDesc);
@@ -491,6 +491,7 @@ namespace Graphics
 	void ShadowRenderer::setLights(const Light* lights, u32 count)
 	{
 		m_lights = vx::make_unique<ShadowTransform[]>(count);
+
 		for (u32 i = 0;i < count; ++i)
 		{
 			auto &light = lights[i];
@@ -545,7 +546,6 @@ namespace Graphics
 			return lhs.first < rhs.first;
 		});
 
-
 		auto activeLights = std::min(lightCount, maxLights);
 
 		auto offset = maxLights * sizeof(ShadowTransform);
@@ -555,7 +555,6 @@ namespace Graphics
 		auto mappedBuffer = buffer->mapRange<ShadowTransform>(0, dataSize, vx::gl::MapRange::Write);
 		for (u32 i = 0; i < activeLights; ++i)
 		{
-
 			mappedBuffer[i] = lights[i];
 		}
 		mappedBuffer.unmap();

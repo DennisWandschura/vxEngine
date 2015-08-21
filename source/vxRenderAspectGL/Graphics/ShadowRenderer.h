@@ -42,6 +42,7 @@ namespace vx
 #include <vxLib/memory.h>
 #include <vxLib/StringID.h>
 #include <vxLib/math/Vector.h>
+#include <vector>
 
 namespace Graphics
 {
