@@ -96,6 +96,8 @@ bool ResourceAspect::loadFbxFactory()
 {
 #if _DEBUG
 	auto handle = LoadLibrary(L"../../../lib/vxFbxImporter_d.dll");
+#else
+	auto handle = LoadLibrary(L"../../../lib/vxFbxImporter.dll");
 #endif
 
 	if (handle == nullptr)
