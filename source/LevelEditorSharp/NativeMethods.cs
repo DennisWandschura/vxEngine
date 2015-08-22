@@ -314,7 +314,7 @@ namespace LevelEditor
         public unsafe static extern uint getJointCount();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void getJointData(uint i, out Float3 p0, out Float3 q0, out Float3 p1, out Float3 q1, out ulong sid0, out ulong sid1);
+        public unsafe static extern void getJointData(uint i, out Float3 p0, out Float3 q0, out Float3 p1, out Float3 q1, out ulong sid0, out ulong sid1, out uint limitEnabled, out float limitMin, out float limitMax);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void addJoint(ulong sid);
@@ -342,5 +342,8 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void setJointRotation1(uint index, ref Float3 q);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setJointLimit(uint index, uint enabled, float limitMin, float limitMax);
     }
 }

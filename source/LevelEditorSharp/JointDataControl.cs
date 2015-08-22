@@ -74,6 +74,17 @@ namespace LevelEditor
             numericUpDownQ1Z.Value = (decimal)q.z;
         }
 
+        void setLimitData(uint enabled, float min, float max)
+        {
+            numericUpDownLimitMin.Value = (decimal)min;
+            numericUpDownLimitMax.Value = (decimal)max;
+
+            if (enabled == 0)
+                checkBoxLimit.Checked = false;
+            else
+                checkBoxLimit.Checked = true;
+        }
+
         public void setSelectedJoint(uint index)
         {
             m_selectedJoint = index;
@@ -83,15 +94,17 @@ namespace LevelEditor
             var q0 = new Float3();
             var q1 = new Float3();
             ulong sid0, sid1;
+            uint limitEnabled = 0;
+            float limitMin, limitMax;
 
-            NativeMethods.getJointData(index, out p0, out q0, out p1, out q1, out sid0, out sid1);
-            // m_jointDataControl.setSelectedInstance0();
-            //m_jointDataControl.setSelectedInstance1();
+            NativeMethods.getJointData(index, out p0, out q0, out p1, out q1, out sid0, out sid1, out limitEnabled, out limitMin, out limitMax);
             setPosition0(p0);
             setPosition1(p1);
 
             setRotation0(q0);
             setRotation1(q1);
+
+            setLimitData(limitEnabled, limitMin, limitMax);
 
             EditorEntry entry;
             if (m_sortedMeshInstances.TryGetValue(sid0, out entry))
@@ -161,6 +174,29 @@ namespace LevelEditor
                 q0.z = (float)numericUpDownQ1Z.Value;
 
                 NativeMethods.setJointRotation1(m_selectedJoint, ref q0);
+            }
+        }
+
+        void setJointLimitData()
+        {
+            if (m_selected)
+            {
+                var checkChecked = checkBoxLimit.Checked;
+                uint limitEnabled = 0;
+                if (checkChecked)
+                {
+                    limitEnabled = 1;
+                }
+
+                float lmin = (float)numericUpDownLimitMin.Value;
+                float lmax = (float)numericUpDownLimitMax.Value;
+
+                if(lmin >= lmax)
+                {
+                    lmin = lmax - 0.1f;
+                }
+
+                NativeMethods.setJointLimit(m_selectedJoint, limitEnabled, lmin, lmax);
             }
         }
 
@@ -249,6 +285,21 @@ namespace LevelEditor
         private void numericUpDownQ1Z_ValueChanged(object sender, EventArgs e)
         {
             setJointRotation1();
+        }
+
+        private void checkBoxLimit_CheckedChanged(object sender, EventArgs e)
+        {
+            setJointLimitData();
+        }
+
+        private void numericUpDownLimitMin_ValueChanged(object sender, EventArgs e)
+        {
+            setJointLimitData();
+        }
+
+        private void numericUpDownLimitMax_ValueChanged(object sender, EventArgs e)
+        {
+            setJointLimitData();
         }
     }
 }

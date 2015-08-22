@@ -42,6 +42,16 @@
             this.numericUpDownQ1Z = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownQ1Y = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownQ1X = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.numericUpDownLimitMin = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownLimitMax = new System.Windows.Forms.NumericUpDown();
+            this.checkBoxLimit = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP0X)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP0Y)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP0Z)).BeginInit();
@@ -54,12 +64,14 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1Z)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1Y)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1X)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLimitMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLimitMax)).BeginInit();
             this.SuspendLayout();
             // 
             // numericUpDownP0X
             // 
             this.numericUpDownP0X.DecimalPlaces = 3;
-            this.numericUpDownP0X.Location = new System.Drawing.Point(27, 65);
+            this.numericUpDownP0X.Location = new System.Drawing.Point(113, 45);
             this.numericUpDownP0X.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -78,7 +90,7 @@
             // numericUpDownP0Y
             // 
             this.numericUpDownP0Y.DecimalPlaces = 3;
-            this.numericUpDownP0Y.Location = new System.Drawing.Point(133, 65);
+            this.numericUpDownP0Y.Location = new System.Drawing.Point(219, 45);
             this.numericUpDownP0Y.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -97,7 +109,7 @@
             // numericUpDownP0Z
             // 
             this.numericUpDownP0Z.DecimalPlaces = 3;
-            this.numericUpDownP0Z.Location = new System.Drawing.Point(239, 65);
+            this.numericUpDownP0Z.Location = new System.Drawing.Point(325, 45);
             this.numericUpDownP0Z.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -116,7 +128,7 @@
             // numericUpDownP1Z
             // 
             this.numericUpDownP1Z.DecimalPlaces = 3;
-            this.numericUpDownP1Z.Location = new System.Drawing.Point(239, 130);
+            this.numericUpDownP1Z.Location = new System.Drawing.Point(325, 141);
             this.numericUpDownP1Z.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -135,7 +147,7 @@
             // numericUpDownP1Y
             // 
             this.numericUpDownP1Y.DecimalPlaces = 3;
-            this.numericUpDownP1Y.Location = new System.Drawing.Point(133, 130);
+            this.numericUpDownP1Y.Location = new System.Drawing.Point(219, 141);
             this.numericUpDownP1Y.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -154,7 +166,7 @@
             // numericUpDownP1X
             // 
             this.numericUpDownP1X.DecimalPlaces = 3;
-            this.numericUpDownP1X.Location = new System.Drawing.Point(27, 130);
+            this.numericUpDownP1X.Location = new System.Drawing.Point(113, 141);
             this.numericUpDownP1X.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -173,7 +185,7 @@
             // comboBoxInstance0
             // 
             this.comboBoxInstance0.FormattingEnabled = true;
-            this.comboBoxInstance0.Location = new System.Drawing.Point(66, 205);
+            this.comboBoxInstance0.Location = new System.Drawing.Point(113, 19);
             this.comboBoxInstance0.Name = "comboBoxInstance0";
             this.comboBoxInstance0.Size = new System.Drawing.Size(121, 21);
             this.comboBoxInstance0.TabIndex = 6;
@@ -182,7 +194,7 @@
             // comboBoxInstance1
             // 
             this.comboBoxInstance1.FormattingEnabled = true;
-            this.comboBoxInstance1.Location = new System.Drawing.Point(66, 232);
+            this.comboBoxInstance1.Location = new System.Drawing.Point(113, 115);
             this.comboBoxInstance1.Name = "comboBoxInstance1";
             this.comboBoxInstance1.Size = new System.Drawing.Size(121, 21);
             this.comboBoxInstance1.TabIndex = 7;
@@ -191,7 +203,7 @@
             // numericUpDownQ0X
             // 
             this.numericUpDownQ0X.DecimalPlaces = 3;
-            this.numericUpDownQ0X.Location = new System.Drawing.Point(27, 91);
+            this.numericUpDownQ0X.Location = new System.Drawing.Point(113, 71);
             this.numericUpDownQ0X.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -210,7 +222,7 @@
             // numericUpDownQ0Y
             // 
             this.numericUpDownQ0Y.DecimalPlaces = 3;
-            this.numericUpDownQ0Y.Location = new System.Drawing.Point(133, 91);
+            this.numericUpDownQ0Y.Location = new System.Drawing.Point(219, 71);
             this.numericUpDownQ0Y.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -229,7 +241,7 @@
             // numericUpDownQ0Z
             // 
             this.numericUpDownQ0Z.DecimalPlaces = 3;
-            this.numericUpDownQ0Z.Location = new System.Drawing.Point(239, 91);
+            this.numericUpDownQ0Z.Location = new System.Drawing.Point(325, 71);
             this.numericUpDownQ0Z.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -248,7 +260,7 @@
             // numericUpDownQ1Z
             // 
             this.numericUpDownQ1Z.DecimalPlaces = 3;
-            this.numericUpDownQ1Z.Location = new System.Drawing.Point(239, 156);
+            this.numericUpDownQ1Z.Location = new System.Drawing.Point(325, 167);
             this.numericUpDownQ1Z.Maximum = new decimal(new int[] {
             360,
             0,
@@ -267,7 +279,7 @@
             // numericUpDownQ1Y
             // 
             this.numericUpDownQ1Y.DecimalPlaces = 3;
-            this.numericUpDownQ1Y.Location = new System.Drawing.Point(133, 156);
+            this.numericUpDownQ1Y.Location = new System.Drawing.Point(219, 167);
             this.numericUpDownQ1Y.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -286,7 +298,7 @@
             // numericUpDownQ1X
             // 
             this.numericUpDownQ1X.DecimalPlaces = 3;
-            this.numericUpDownQ1X.Location = new System.Drawing.Point(27, 156);
+            this.numericUpDownQ1X.Location = new System.Drawing.Point(113, 167);
             this.numericUpDownQ1X.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -302,10 +314,132 @@
             this.numericUpDownQ1X.TabIndex = 11;
             this.numericUpDownQ1X.ValueChanged += new System.EventHandler(this.numericUpDownQ1X_ValueChanged);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(50, 22);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(57, 13);
+            this.label1.TabIndex = 14;
+            this.label1.Text = "Instance 1";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(50, 118);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(57, 13);
+            this.label2.TabIndex = 15;
+            this.label2.Text = "Instance 2";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(26, 47);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(81, 13);
+            this.label3.TabIndex = 16;
+            this.label3.Text = "Local position 1";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(50, 73);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(57, 13);
+            this.label4.TabIndex = 17;
+            this.label4.Text = "Local rot 1";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(26, 141);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(81, 13);
+            this.label5.TabIndex = 18;
+            this.label5.Text = "Local position 2";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(50, 169);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(57, 13);
+            this.label6.TabIndex = 19;
+            this.label6.Text = "Local rot 2";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(53, 231);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(28, 13);
+            this.label7.TabIndex = 20;
+            this.label7.Text = "Limit";
+            // 
+            // numericUpDownLimitMin
+            // 
+            this.numericUpDownLimitMin.DecimalPlaces = 6;
+            this.numericUpDownLimitMin.Location = new System.Drawing.Point(113, 231);
+            this.numericUpDownLimitMin.Maximum = new decimal(new int[] {
+            1351155463,
+            7,
+            0,
+            655360});
+            this.numericUpDownLimitMin.Minimum = new decimal(new int[] {
+            1351155463,
+            7,
+            0,
+            -2146828288});
+            this.numericUpDownLimitMin.Name = "numericUpDownLimitMin";
+            this.numericUpDownLimitMin.Size = new System.Drawing.Size(120, 20);
+            this.numericUpDownLimitMin.TabIndex = 21;
+            this.numericUpDownLimitMin.ValueChanged += new System.EventHandler(this.numericUpDownLimitMin_ValueChanged);
+            // 
+            // numericUpDownLimitMax
+            // 
+            this.numericUpDownLimitMax.DecimalPlaces = 6;
+            this.numericUpDownLimitMax.Location = new System.Drawing.Point(240, 231);
+            this.numericUpDownLimitMax.Maximum = new decimal(new int[] {
+            1351155463,
+            7,
+            0,
+            655360});
+            this.numericUpDownLimitMax.Minimum = new decimal(new int[] {
+            1351155463,
+            7,
+            0,
+            -2146828288});
+            this.numericUpDownLimitMax.Name = "numericUpDownLimitMax";
+            this.numericUpDownLimitMax.Size = new System.Drawing.Size(120, 20);
+            this.numericUpDownLimitMax.TabIndex = 22;
+            this.numericUpDownLimitMax.ValueChanged += new System.EventHandler(this.numericUpDownLimitMax_ValueChanged);
+            // 
+            // checkBoxLimit
+            // 
+            this.checkBoxLimit.AutoSize = true;
+            this.checkBoxLimit.Location = new System.Drawing.Point(113, 208);
+            this.checkBoxLimit.Name = "checkBoxLimit";
+            this.checkBoxLimit.Size = new System.Drawing.Size(95, 17);
+            this.checkBoxLimit.TabIndex = 23;
+            this.checkBoxLimit.Text = "checkBoxLimit";
+            this.checkBoxLimit.UseVisualStyleBackColor = true;
+            this.checkBoxLimit.CheckedChanged += new System.EventHandler(this.checkBoxLimit_CheckedChanged);
+            // 
             // JointDataControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.checkBoxLimit);
+            this.Controls.Add(this.numericUpDownLimitMax);
+            this.Controls.Add(this.numericUpDownLimitMin);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.numericUpDownQ1Z);
             this.Controls.Add(this.numericUpDownQ1Y);
             this.Controls.Add(this.numericUpDownQ1X);
@@ -321,7 +455,7 @@
             this.Controls.Add(this.numericUpDownP0Y);
             this.Controls.Add(this.numericUpDownP0X);
             this.Name = "JointDataControl";
-            this.Size = new System.Drawing.Size(362, 282);
+            this.Size = new System.Drawing.Size(454, 282);
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP0X)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP0Y)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownP0Z)).EndInit();
@@ -334,7 +468,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1Z)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1Y)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownQ1X)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLimitMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLimitMax)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -354,5 +491,15 @@
         private System.Windows.Forms.NumericUpDown numericUpDownQ1Z;
         private System.Windows.Forms.NumericUpDown numericUpDownQ1Y;
         private System.Windows.Forms.NumericUpDown numericUpDownQ1X;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.NumericUpDown numericUpDownLimitMin;
+        private System.Windows.Forms.NumericUpDown numericUpDownLimitMax;
+        private System.Windows.Forms.CheckBox checkBoxLimit;
     }
 }
