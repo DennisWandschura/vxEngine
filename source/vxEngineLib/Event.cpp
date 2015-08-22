@@ -22,7 +22,7 @@ public:
 
 	void setStatus(EventStatus status)
 	{
-		m_flag.store((u32)status);
+		m_flag.store((s32)status);
 	}
 
 	EventStatus getStatus() const
