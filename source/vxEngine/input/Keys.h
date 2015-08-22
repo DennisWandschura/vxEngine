@@ -57,6 +57,7 @@ namespace vx
 			KEY_B = 0x42,
 			KEY_C = 0x43,
 			KEY_D = 0x44,
+			KEY_E = 0x45,
 
 			KEY_S = 0x53,
 
