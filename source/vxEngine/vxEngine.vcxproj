@@ -180,13 +180,16 @@
   <ItemGroup>
     <ClInclude Include="ActionActorCreatePath.h" />
     <ClInclude Include="ActionFollowPath.h" />
+    <ClInclude Include="ActionGrabEntity.h" />
     <ClInclude Include="ActionManager.h" />
     <ClInclude Include="ActionPlayAnimation.h" />
     <ClInclude Include="ActionPlayerLookAround.h" />
     <ClInclude Include="ActionPlayerMove.h" />
+    <ClInclude Include="ActionPlayerUse.h" />
     <ClInclude Include="ActionPrintText.h" />
     <ClInclude Include="ActionSetFollowPath.h" />
     <ClInclude Include="ActionUpdateGpuTransform.h" />
+    <ClInclude Include="ActionUseEntity.h" />
     <ClInclude Include="ActorAspect.h" />
     <ClInclude Include="ai\Squad.h" />
     <ClInclude Include="CollisionAvoidance.h" />
@@ -264,6 +267,7 @@
     <ClCompile Include="ActionFollowPath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ActionGrabEntity.cpp" />
     <ClCompile Include="ActionPlayAnimation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -276,6 +280,7 @@
     <ClCompile Include="ActionPlayerMove.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ActionPlayerUse.cpp" />
     <ClCompile Include="ActionPrintText.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

@@ -61,7 +61,7 @@ class EntityAspect : public vx::MessageListener
 	EntityHuman* m_entityHuman;
 	EntityHuman m_entityHumanData;
 	PlayerController m_playerController;
-	//ComponentActionManager m_componentActionManager;
+	ComponentActionManager m_componentActionManager;
 	ComponentActorManager m_componentActorManager;
 	vx::Pool<EntityActor> m_poolEntityActor;
 	vx::Pool<EntityDynamic> m_poolEntityDynamic;
@@ -104,4 +104,6 @@ public:
 	void handleMessage(const vx::Message &evt);
 
 	void onPressedActionKey();
+
+	void onReleasedActionKey();
 };

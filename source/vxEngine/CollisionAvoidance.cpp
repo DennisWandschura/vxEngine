@@ -106,14 +106,17 @@ bool CollisionAvoidance::getSteering(EntityActor* currentEntity, const vx::float
 		auto otherTangent = vx::negate(tangent);
 
 		auto physicsAspect = Locator::getPhysicsAspect();
-		vx::float3 hitPosition;
-		f32 distance0 = FLT_MAX;
-		f32 distance1 = FLT_MAX;
 
-		physicsAspect->raycast_static(targetPosition, tangent, 2.0f, &hitPosition, &distance0);
-		physicsAspect->raycast_static(targetPosition, otherTangent, 2.0f, &hitPosition, &distance1);
+		PhysicsHitData hitData0;
+		hitData0.distance = FLT_MAX;
 
-		auto finalVelocity = (distance0 >= distance1) ? tangent : otherTangent;
+		PhysicsHitData hitData1;
+		hitData1.distance = FLT_MAX;
+
+		physicsAspect->raycast_staticDynamic(targetPosition, tangent, 2.0f, &hitData0);
+		physicsAspect->raycast_staticDynamic(targetPosition, otherTangent, 2.0f, &hitData1);
+
+		auto finalVelocity = (hitData0.distance >= hitData1.distance) ? tangent : otherTangent;
 
 		/*if (targetDistance <= actorRadius2)
 		{

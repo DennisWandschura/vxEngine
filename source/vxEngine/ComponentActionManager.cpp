@@ -28,7 +28,8 @@ SOFTWARE.
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Locator.h>
 #include <vxResourceAspect/ResourceAspect.h>
-#include <vxEngineLib/Animation.h>
+#include "PhysicsAspect.h"
+#include "ActionUseEntity.h"
 
 ComponentActionManager::ComponentActionManager()
 	:m_poolUsable()
@@ -52,29 +53,53 @@ void ComponentActionManager::shutdown()
 	m_poolUsable.release();
 }
 
-Component::Action* ComponentActionManager::createComponent(const MeshInstance &instance, u16 entityIndex, u16* index)
+Component::Action* ComponentActionManager::createComponent(physx::PxRigidDynamic* rigidBody, ::ActionUseEntity* action, u16 entityIndex, u16* index)
 {
 	auto componentUsable = m_poolUsable.createEntry(index);
 
-	auto animSid = instance.getAnimationSid();
-	
-	auto resourceAspect = Locator::getResourceAspect();
-	auto animation = resourceAspect->getAnimation(animSid);
-
-	componentUsable->action = nullptr;
+	componentUsable->action = action;
 	componentUsable->entityIndex = entityIndex;
+	componentUsable->rigidDynamic = rigidBody;
 
 	return componentUsable;
 }
 
-void ComponentActionManager::update()
+Component::Action* ComponentActionManager::getComponent(const vx::float3 &point, const vx::float3 &dir)
 {
 	auto physicsAspect = Locator::getPhysicsAspect();
+	Component::Action* result = nullptr;
+
+	PhysicsHitData hitData;
+	if (physicsAspect->raycastDynamic(point, dir, 1.5f, &hitData))
+	{
+		auto physxActor = hitData.actor;
+
+		auto p = m_poolUsable.first();
+		while (p != nullptr)
+		{
+			if (physxActor == (physx::PxRigidActor*)p->rigidDynamic)
+			{
+				result = p;
+				break;
+			}
+			p = m_poolUsable.next_nocheck(p);
+		}
+	}
+
+	return result;
+}
+
+void ComponentActionManager::update()
+{
+	//auto physicsAspect = Locator::getPhysicsAspect();
 
 	auto p = m_poolUsable.first();
 	while (p != nullptr)
 	{
-
+		if (p->action)
+		{
+			p->action->run();
+		}
 
 		p = m_poolUsable.next_nocheck(p);
 	}

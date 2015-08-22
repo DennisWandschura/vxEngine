@@ -24,11 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class Action;
+class ActionUseEntity;
 
 namespace physx
 {
-	class PxRigidStatic;
+	class PxRigidDynamic;
 }
 
 #include <vxEngineLib/Component.h>
@@ -37,7 +37,7 @@ namespace Component
 {
 	struct Action : public Type<Action>
 	{
-		::Action* action;
-		physx::PxRigidStatic* rigidStatic;
+		::ActionUseEntity* action;
+		physx::PxRigidDynamic* rigidDynamic;
 	};
 }

@@ -42,7 +42,7 @@ class SystemAspect
 public:
 	SystemAspect();
 
-	bool initialize(const EngineConfig &config, CallbackKeyPressedFp fp, HandleInputFp inputFp);
+	bool initialize(const EngineConfig &config, CallbackKeyPressedFp keydown, CallbackKeyPressedFp keyup, HandleInputFp inputFp);
 	void shutdown();
 
 	void update(const f32 dt);

@@ -27,6 +27,7 @@ SOFTWARE.
 #include "ActionPlayerMove.h"
 #include "ActionUpdateGpuTransform.h"
 #include <vxLib/memory.h>
+#include "ActionPlayerUse.h"
 
 #include <vxLib/math/Vector.h>
 #include <vxLib/RawInput.h>
@@ -36,6 +37,7 @@ SOFTWARE.
 #include "PhysicsDefines.h"
 
 PlayerController::PlayerController()
+	:m_actionUse(nullptr)
 {
 }
 
@@ -50,15 +52,19 @@ void PlayerController::initialize(vx::StackAllocator* allocator)
 	m_scratchAllocator = vx::StackAllocator(allocator->allocate(allocSize, 8), allocSize);
 }
 
-void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect)
+void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect, ComponentActionManager* components)
 {
 	m_actions.push_back(vx::make_unique<ActionPlayerLookAround>(playerEntity, dt));
 	m_actions.push_back(vx::make_unique<ActionPlayerMove>(playerEntity, 0.1f, 0.5f));
 	m_actions.push_back(vx::make_unique<ActionUpdateGpuTransform>(playerEntity, renderAspect));
+	m_actions.push_back(vx::make_unique<ActionPlayerUse>(playerEntity, components));
 
 	auto &actionLookAround = m_actions[0];
 	auto &actionMoveStanding = m_actions[1];
 	auto &actionUpdateGpuTransform = m_actions[2];
+	auto &actionUse = m_actions[3];
+
+	m_actionUse = (ActionPlayerUse*)actionUse.get();
 
 	m_states.push_back(State());
 
@@ -66,6 +72,7 @@ void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, Rende
 	stateStanding->addAction(actionLookAround.get());
 	stateStanding->addAction(actionMoveStanding.get());
 	stateStanding->addAction(actionUpdateGpuTransform.get());
+	stateStanding->addAction(actionUse.get());
 
 	m_stateMachine.setInitialState(stateStanding);
 }
@@ -82,4 +89,14 @@ void PlayerController::update()
 	}
 
 	m_scratchAllocator.clear();
+}
+
+void PlayerController::onPressedActionKey()
+{
+	m_actionUse->setKeyDown();
+}
+
+void PlayerController::onReleasedActionKey()
+{
+	m_actionUse->setKeyUp();
 }

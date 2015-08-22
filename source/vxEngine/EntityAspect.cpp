@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #include "EntityAspect.h"
 #include "PhysicsAspect.h"
-//#include <vxEngineLib/Entity.h>
 #include "ComponentActor.h"
 #include "PhysicsDefines.h"
 #include <vxEngineLib/Scene.h>
@@ -51,6 +50,9 @@ SOFTWARE.
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include "TaskPhysxCreateJoints.h"
 #include <vxLib/ScopeGuard.h>
+#include <characterkinematic/PxController.h>
+
+#include "ActionGrabEntity.h"
 
 namespace EntityAspectCpp
 {
@@ -83,17 +85,10 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator, vx::TaskManager* t
 {
 	m_coldData = vx::make_unique<ColdData>();
 
-	/*m_componentActionManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);
-	m_componentRenderManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);
-	m_componentPhysicsManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);
-	m_componentInputManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);
-	m_componentActorManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);*/
+	m_componentActionManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);
+	m_componentActorManager.initialize(EntityAspectCpp::g_maxEntities, pAllocator);
 	EntityAspectCpp::createPool(EntityAspectCpp::g_maxEntities, 16, pAllocator, &m_poolEntityActor);
 	EntityAspectCpp::createPool(EntityAspectCpp::g_maxEntities, 16, pAllocator, &m_poolEntityDynamic);
-
-	//const auto pathChunkSize = s_maxNavNodes * sizeof(vx::float3);
-	//const auto pathPoolSize = g_maxEntities * pathChunkSize;
-	//m_poolAllocatorPath = vx::PoolAllocator(pAllocator->allocate(pathPoolSize, 8), pathPoolSize, pathChunkSize, __alignof(vx::float3));
 
 	m_allocator = vx::StackAllocator(pAllocator->allocate(5 KBYTE, 16), 5 KBYTE);
 
@@ -117,10 +112,7 @@ void EntityAspect::shutdown()
 	m_poolEntityDynamic.release();
 	m_poolEntityActor.release();
 	m_componentActorManager.shutdown();
-	//m_componentInputManager.shutdown();
-	//m_componentPhysicsManager.shutdown();
-	//m_componentRenderManager.shutdown();
-	//m_componentActionManager.shutdown();
+	m_componentActionManager.shutdown();
 }
 
 void EntityAspect::builEntityQuadTree()
@@ -152,7 +144,9 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 		m_entityHuman->m_orientation.y = 0;
 		m_entityHuman->m_footPositionY = 0;
 
-		m_playerController.initializePlayer(g_dt, m_entityHuman, Locator::getRenderAspect());
+		m_playerController.initializePlayer(g_dt, m_entityHuman, Locator::getRenderAspect(), &m_componentActionManager);
+
+		physicsAspect->setHumanActor(controller->getActor());
 	}
 }
 
@@ -262,6 +256,7 @@ void EntityAspect::update(f32 dt, ActionManager* actionManager)
 
 	updateEntityActor(dt);
 	updateEntityDynamic(dt);
+	m_componentActionManager.update();
 
 	m_playerController.update();
 }
@@ -332,6 +327,11 @@ void EntityAspect::createDynamicMesh(const CreateDynamicMeshData &data)
 	entity->m_qRotation = transform.m_qRotation;
 	entity->m_rigidDynamic = data.m_rigidDynamic;
 	entity->m_gpuIndex = data.m_gpuIndex;
+
+	auto action = new ActionGrabEntity(m_entityHuman, entity);
+
+	auto componentAction = m_componentActionManager.createComponent(data.m_rigidDynamic, action, index, &entity->m_actionComponentIndex);
+	VX_ASSERT(componentAction);
 }
 
 void EntityAspect::handleIngameMessage(const vx::Message &evt)
@@ -405,5 +405,10 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 
 void EntityAspect::onPressedActionKey()
 {
+	m_playerController.onPressedActionKey();
+}
 
+void EntityAspect::onReleasedActionKey()
+{
+	m_playerController.onReleasedActionKey();
 }

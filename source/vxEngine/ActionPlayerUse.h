@@ -24,40 +24,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class ActionUseEntity;
+struct EntityHuman;
+class ComponentActionManager;
 
 namespace Component
 {
 	struct Action;
 }
 
-namespace vx
-{
-	class StackAllocator;
-}
+#include "Action.h"
 
-namespace physx
+class ActionPlayerUse : public Action
 {
-	class PxRigidDynamic;
-}
-
-#include <vxLib/math/Vector.h>
-#include <vxEngineLib/Pool.h>
-
-class ComponentActionManager
-{
-	vx::Pool<Component::Action> m_poolUsable;
+	EntityHuman* m_human;
+	ComponentActionManager* m_components;
+	Component::Action* m_component;
+	bool m_keydown;
+	bool m_keyup;
 
 public:
-	ComponentActionManager();
-	~ComponentActionManager();
+	ActionPlayerUse(EntityHuman* human, ComponentActionManager* components);
+	~ActionPlayerUse();
 
-	void initialize(u32 capacity, vx::StackAllocator* pAllocator);
-	void shutdown();
+	void run() override;
+	bool isComplete() const override;
 
-	Component::Action* createComponent(physx::PxRigidDynamic* rigidBody, ::ActionUseEntity* action, u16 entityIndex, u16* index);
-
-	Component::Action* getComponent(const vx::float3 &p, const vx::float3 &dir);
-
-	void update();
+	void setKeyDown();
+	void setKeyUp();
 };

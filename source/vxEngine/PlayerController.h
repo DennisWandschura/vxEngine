@@ -38,6 +38,8 @@ namespace Component
 struct EntityHuman;
 class EntityAspect;
 class RenderAspectInterface;
+class ComponentActionManager;
+class ActionPlayerUse;
 
 #include <vxLib/types.h>
 #include "StateMachine.h"
@@ -48,6 +50,7 @@ class RenderAspectInterface;
 class PlayerController
 {
 	StateMachine m_stateMachine;
+	ActionPlayerUse* m_actionUse;
 	vx::StackAllocator m_scratchAllocator;
 
 	std::vector<std::unique_ptr<Action>> m_actions;
@@ -58,7 +61,10 @@ public:
 	~PlayerController();
 
 	void initialize(vx::StackAllocator* allocator);
-	void initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect);
+	void initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect, ComponentActionManager* components);
 
 	void update();
+
+	void onPressedActionKey();
+	void onReleasedActionKey();
 };

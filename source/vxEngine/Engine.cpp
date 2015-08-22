@@ -42,6 +42,11 @@ namespace EngineCpp
 		g_pEngine->keyPressed(key);
 	}
 
+	void callbackKeyReleased(u16 key)
+	{
+		g_pEngine->keyReleased(key);
+	}
+
 	void schedulerThread(vx::TaskManager* scheduler)
 	{
 		std::atomic_uint running;
@@ -263,7 +268,7 @@ bool Engine::initialize(Logfile* logfile)
 	//m_taskManager.initialize(1, &m_allocator, 1024, nullptr);
 #endif
 
-	if (!m_systemAspect.initialize(g_engineConfig, EngineCpp::callbackKeyPressed, nullptr))
+	if (!m_systemAspect.initialize(g_engineConfig, EngineCpp::callbackKeyPressed, EngineCpp::callbackKeyReleased, nullptr))
 		return false;
 
 	RenderAspectDescription renderAspectDesc =
@@ -421,5 +426,13 @@ void Engine::keyPressed(u16 key)
 	else if (key == vx::Keyboard::Key_Escape)
 	{
 		stop();
+	}
+}
+
+void Engine::keyReleased(u16 key)
+{
+	if (key == vx::Keyboard::Key_E)
+	{
+		m_entityAspect.onReleasedActionKey();
 	}
 }

@@ -31,12 +31,21 @@ SystemAspect::SystemAspect()
 {
 }
 
-bool SystemAspect::initialize(const EngineConfig &config, CallbackKeyPressedFp fp, HandleInputFp inputFp)
+bool SystemAspect::initialize(const EngineConfig &config, CallbackKeyPressedFp keydown, CallbackKeyPressedFp keyup, HandleInputFp inputFp)
 {
 	if (!m_window.initialize(L"vxEngine", config.m_resolution, false))
 		return false;
 
-	vx::RawInput::setCallbackKeyPressed(fp);
+	if (keydown)
+	{
+		vx::RawInput::setCallbackKeyPressed(keydown);
+	}
+
+	if (keyup)
+	{
+		vx::RawInput::setCallbackKeyReleased(keyup);
+	}
+
 	m_handleInput = inputFp;
 
 	return true;

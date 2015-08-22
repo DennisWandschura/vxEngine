@@ -41,7 +41,7 @@ namespace SquadCpp
 {
 	void smoothPath(f32 collisionRadius, const vx::array<vx::float3> &oldPath, std::vector<vx::float3>* path)
 	{
-		auto physicsAspect = Locator::getPhysicsAspect();
+		/*auto physicsAspect = Locator::getPhysicsAspect();
 
 		auto size = oldPath.size();
 		if (size <= 2)
@@ -86,7 +86,7 @@ namespace SquadCpp
 			auto pos0 = srcPos + tangent * collisionRadius;
 			auto pos1 = srcPos - tangent * collisionRadius;*/
 
-			auto sid0 = physicsAspect->raycast_static(pos0, direction, distance, &hitPosition, &hitDistance);
+			/*auto sid0 = physicsAspect->raycast_static(pos0, direction, distance, &hitPosition, &hitDistance);
 			auto sid1 = physicsAspect->raycast_static(pos1, direction, distance, &hitPosition, &hitDistance);
 
 			if (sid0.value != 0 ||
@@ -101,7 +101,7 @@ namespace SquadCpp
 		}
 
 		//newPath.push_back((*path)[src]);
-		path->push_back(oldPath.back());
+		path->push_back(oldPath.back());*/
 	}
 }
 
