@@ -89,6 +89,37 @@ public:
 	}
 };
 
+class FilterHumanCallback : public physx::PxQueryFilterCallback
+{
+	physx::PxRigidDynamic* m_humanActor;
+
+public:
+	explicit FilterHumanCallback(physx::PxRigidDynamic* human) :m_humanActor(human) {}
+
+	~FilterHumanCallback()
+	{
+
+	}
+
+	physx::PxQueryHitType::Enum preFilter(
+		const physx::PxFilterData& filterData, const physx::PxShape* shape, const physx::PxRigidActor* actor, physx::PxHitFlags& queryFlags) override
+	{
+		if (m_humanActor == actor)
+		{
+			return physx::PxQueryHitType::eNONE;
+		}
+		else
+		{
+			return physx::PxQueryHitType::eBLOCK;
+		}
+	}
+
+	physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit)
+	{
+		return physx::PxQueryHitType::eBLOCK;
+	}
+};
+
 namespace PhysicsAspectCpp
 {
 	void copy(const vx::Transform &transform, physx::PxTransform* physxTransform)
@@ -149,7 +180,7 @@ PhysicsAspect::PhysicsAspect()
 	m_pControllerManager(nullptr),
 	m_pActorMaterial(nullptr),
 	m_pPhysics(nullptr),
-	//m_evtFetch(),
+	m_humanActor(nullptr),
 	m_physxMeshes(),
 	m_physxMaterials(),
 	m_staticMeshInstances(),
@@ -395,55 +426,100 @@ void PhysicsAspect::handleIngameMessage(const vx::Message &evt)
 	}
 }
 
-vx::StringID PhysicsAspect::raycast_static(const vx::float3 &origin, const vx::float3 &dir, f32 maxDistance, vx::float3* hitPosition, f32* distance) const
+bool PhysicsAspect::raycast_staticDynamic(const vx::float3 &origin, const vx::float3 &dir, f32 maxDistance, PhysicsHitData* hitData) const
 {
 	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
 	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
+	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
 
-	return raycast_static(rayOrigin, unitDir, maxDistance, hitPosition, distance);
+	return raycast(rayOrigin, unitDir, filterData, maxDistance, hitData);
 }
 
-vx::StringID PhysicsAspect::raycast_static(const vx::float3 &origin, const vx::float4a &dir, f32 maxDistance, vx::float3* hitPosition, f32* distance) const
+bool PhysicsAspect::raycast_staticDynamic(const vx::float3 &origin, const vx::float4a &dir, f32 maxDistance, PhysicsHitData* hitData) const
 {
 	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
 	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
+	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
 
-	return raycast_static(rayOrigin, unitDir, maxDistance, hitPosition, distance);
+	return raycast(rayOrigin, unitDir, filterData, maxDistance, hitData);
 }
 
-vx::StringID PhysicsAspect::raycast_static(const vx::float4a &origin, const vx::float4a &dir, f32 maxDistance, vx::float3* hitPosition, f32* distance) const
+bool PhysicsAspect::raycast_staticDynamic(const vx::float4a &origin, const vx::float4a &dir, f32 maxDistance, PhysicsHitData* hitData) const
 {
 	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
 	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
+	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
 	
-	return raycast_static(rayOrigin, unitDir, maxDistance, hitPosition, distance);
+	return raycast(rayOrigin, unitDir, filterData, maxDistance, hitData);
 }
 
-vx::StringID PhysicsAspect::raycast_static(const physx::PxVec3 &origin, const physx::PxVec3 &dir, f32 maxDistance, vx::float3* hitPosition, f32* distance) const
+bool PhysicsAspect::raycastDynamic(const vx::float3 &origin, const vx::float3 &dir, f32 maxDistance, PhysicsHitData* hitData) const
+{
+	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
+	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
+	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::ePREFILTER);
+
+	return raycastNoPlayer(rayOrigin, unitDir, filterData, maxDistance, hitData);
+}
+
+bool PhysicsAspect::raycast(const physx::PxVec3 &origin, const physx::PxVec3 &dir, const physx::PxQueryFilterData &filterData, f32 maxDistance, PhysicsHitData* hitData) const
 {
 	physx::PxRaycastBuffer hit;
-	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
 
 	auto unitDir = dir;
 	unitDir.normalize();
 
-	m_pScene->raycast(origin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData);
-
-	u8 result = hit.hasBlock;
-	vx::StringID sid;
-	if (result != 0)
+	bool result = false;
+	if (m_pScene->raycast(origin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData))
 	{
-		hitPosition->x = hit.block.position.x;
-		hitPosition->y = hit.block.position.y;
-		hitPosition->z = hit.block.position.z;
-		*distance = hit.block.distance;
+		result = true;
 
-		auto pActor = hit.block.actor;
-		auto sidptr = (vx::StringID*)&pActor->userData;
-		sid.value = sidptr->value;
+		if (hit.hasBlock != 0)
+		{
+			auto pActor = hit.block.actor;
+			auto sidptr = (vx::StringID*)&pActor->userData;
+
+			hitData->hitPosition.x = hit.block.position.x;
+			hitData->hitPosition.y = hit.block.position.y;
+			hitData->hitPosition.z = hit.block.position.z;
+			hitData->distance = hit.block.distance;
+			hitData->actor = hit.block.actor;
+			hitData->sid = sidptr->value;
+		}
 	}
 
-	return sid;
+	return result;
+}
+
+bool PhysicsAspect::raycastNoPlayer(const physx::PxVec3 &origin, const physx::PxVec3 &dir, const physx::PxQueryFilterData &filterData, f32 maxDistance, PhysicsHitData* hitData) const
+{
+	physx::PxRaycastBuffer hit;
+
+	auto unitDir = dir;
+	unitDir.normalize();
+
+	FilterHumanCallback callback(m_humanActor);
+
+	bool result = false;
+	if (m_pScene->raycast(origin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData, &callback))
+	{
+		result = true;
+
+		if (hit.hasBlock != 0)
+		{
+			auto pActor = hit.block.actor;
+			auto sidptr = (vx::StringID*)&pActor->userData;
+
+			hitData->hitPosition.x = hit.block.position.x;
+			hitData->hitPosition.y = hit.block.position.y;
+			hitData->hitPosition.z = hit.block.position.z;
+			hitData->distance = hit.block.distance;
+			hitData->actor = hit.block.actor;
+			hitData->sid = sidptr->value;
+		}
+	}
+
+	return result;
 }
 
 physx::PxConvexMesh* PhysicsAspect::getConvexMesh(const vx::StringID &sid, const vx::MeshFile &meshFile)
@@ -775,7 +851,7 @@ physx::PxRigidActor* PhysicsAspect::getRigidActor(const vx::StringID &sid, Physx
 
 physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 {
-	physx::PxJoint* result = nullptr;
+	physx::PxRevoluteJoint* result = nullptr;
 
 	PhysxRigidBodyType type0, type1;
 
@@ -789,20 +865,17 @@ physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 		PhysicsAspectCpp::copy(joint.p1, &localFrame1.p);
 		PhysicsAspectCpp::copy(joint.q1, &localFrame1.q);
 
-		//result = physx::PxFixedJointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
-
-		//auto ptr = physx::PxD6JointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
-
 		auto ptr = physx::PxRevoluteJointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
 
 		if (ptr != nullptr)
 		{
-			//auto angle = ptr->getAngle();
-			//printf("%f\n", angle);
-			auto limitPair = physx::PxJointAngularLimitPair(-3.1f, 3.0f);
-			
-			ptr->setLimit(limitPair);
-			ptr->setRevoluteJointFlag(physx::PxRevoluteJointFlag::eLIMIT_ENABLED, true);
+			if (joint.limitEnabled != 0)
+			{
+				auto limitPair = physx::PxJointAngularLimitPair(joint.limit.x, joint.limit.y);
+
+				ptr->setLimit(limitPair);
+				ptr->setRevoluteJointFlag(physx::PxRevoluteJointFlag::eLIMIT_ENABLED, true);
+			}
 
 			m_joints.push_back(result);
 		}
@@ -811,4 +884,80 @@ physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 	}
 
 	return result;
+}
+
+physx::PxJoint* PhysicsAspect::createSphericalJoint(physx::PxRigidActor* actor)
+{
+	physx::PxTransform localFrame0;
+	localFrame0.p = {0, 0, 0};
+	localFrame0.q =  { 0.000000000f, 0.f, 0.f, 1.f };
+
+	auto transform = actor->getGlobalPose();
+
+	physx::PxTransform localFrame1;
+	localFrame1.p = transform.p;
+	localFrame1.q = { 0.000000000f, 0.f, 0.f, 1.f };
+
+	physx::PxSphericalJoint* result = physx::PxSphericalJointCreate(*m_pPhysics, actor, localFrame0, nullptr, localFrame1);
+
+	//physx::PxJointLimitCone limit(1.5f, 2.4f);
+	//result->setLimitCone(limit);
+	//result->setSphericalJointFlags(physx::PxSphericalJointFlag::eLIMIT_ENABLED);
+
+	return result;
+}
+
+physx::PxJoint* PhysicsAspect::createFixedJoint(physx::PxRigidActor* actor)
+{
+	physx::PxJoint* result = nullptr;
+
+	physx::PxTransform localFrame0;
+	localFrame0.p = { 0.0f, 0.0f, 0 };
+	localFrame0.q = { 0.000000000f, 0.f, 0.f, 1.f };
+
+	auto transform = actor->getGlobalPose();
+	//physx::PxRigidDynamic* rigid = (physx::PxRigidDynamic*)actor;
+	//rigid->
+
+	physx::PxTransform localFrame1;
+	localFrame1.p = transform.p;
+	localFrame1.q = { 0.000000000f, 0.f, 0.f, 1.f };
+
+	//printf("%f %f\n", localFrame1.p.x, localFrame1.p.z);
+
+	//PhysicsAspectCpp::copy(joint.p1, &localFrame1.p);
+	//PhysicsAspectCpp::copy(joint.q1, &localFrame1.q);
+
+	//result = physx::PxFixedJointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
+
+	//auto ptr = physx::PxD6JointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
+
+	result = physx::PxFixedJointCreate(*m_pPhysics, actor, localFrame0, nullptr, localFrame1);
+
+	return result;
+}
+
+physx::PxJoint* PhysicsAspect::createD6Joint(physx::PxRigidActor* actor)
+{
+	physx::PxTransform localFrame0;
+	localFrame0.p = { 0, 0, 0 };
+	localFrame0.q = { 0.000000000f, 0.f, 0.f, 1.f };
+
+	auto transform = actor->getGlobalPose();
+
+	physx::PxTransform localFrame1;
+	localFrame1.p = transform.p;
+	localFrame1.q = { 0.000000000f, 0.f, 0.f, 1.f };
+
+	physx::PxD6Joint* result = physx::PxD6JointCreate(*m_pPhysics, actor, localFrame0, nullptr, localFrame1);
+
+
+	//result->setMotion(physx::PxD6Axis::eX, physx::PxD6Motion::eFREE);
+
+	return result;
+}
+
+void PhysicsAspect::setHumanActor(physx::PxRigidDynamic* actor)
+{
+	m_humanActor = actor;
 }

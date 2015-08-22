@@ -40,6 +40,7 @@ namespace physx
 	class PxRigidDynamic;
 	class PxJoint;
 	class PxRigidActor;
+	struct PxQueryFilterData;
 
 	namespace debugger
 	{
@@ -90,17 +91,25 @@ public:
 	void reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line) override;
 };
 
+struct PhysicsHitData
+{
+	vx::StringID sid;
+	vx::float3 hitPosition;
+	f32 distance;
+	physx::PxRigidActor* actor;
+};
+
 class PhysicsAspect : public vx::MessageListener
 {
 	static UserErrorCallback s_defaultErrorCallback;
 	static physx::PxDefaultAllocator s_defaultAllocatorCallback;
 
 protected:
-
 	physx::PxScene* m_pScene;
 	physx::PxControllerManager* m_pControllerManager;
 	physx::PxMaterial* m_pActorMaterial{ nullptr };
 	physx::PxPhysics *m_pPhysics;
+	physx::PxRigidDynamic* m_humanActor;
 	Event m_evtFetch;
 	Event m_evtBlock;
 	vx::sorted_vector<vx::StringID, PhsyxMeshType> m_physxMeshTypes;
@@ -135,7 +144,8 @@ protected:
 	void addStaticMeshInstance(const physx::PxTransform &transform, physx::PxShape &shape, const vx::StringID &instanceSid);
 	void addMeshInstanceImpl(const MeshInstance &instance, void** outData);
 
-	vx::StringID raycast_static(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
+	bool raycast(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, const physx::PxQueryFilterData &filterData, f32 maxDistance, PhysicsHitData* hitData) const;
+	bool raycastNoPlayer(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, const physx::PxQueryFilterData &filterData, f32 maxDistance, PhysicsHitData* hitData) const;
 
 	physx::PxRigidActor* PhysicsAspect::getRigidActor(const vx::StringID &sid, PhysxRigidBodyType* outType);
 
@@ -157,13 +167,20 @@ public:
 	physx::PxController* createActor(const vx::StringID &mesh, const vx::float3 &translation);
 	physx::PxController* createActor(const vx::float3 &translation, f32 height);
 	physx::PxJoint* createJoint(const Joint &joint);
+	physx::PxJoint* createSphericalJoint(physx::PxRigidActor* actor);
+	physx::PxJoint* createFixedJoint(physx::PxRigidActor* actor);
+	physx::PxJoint* createD6Joint(physx::PxRigidActor* actor);
 
 	void move(const vx::float4a &velocity, f32 dt, physx::PxController* pController);
 	
-	vx::StringID raycast_static(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
-	vx::StringID raycast_static(const vx::float3 &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
-	vx::StringID raycast_static(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, vx::float3* hitPosition, f32* distance) const;
+	bool raycast_staticDynamic(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
+	bool raycast_staticDynamic(const vx::float3 &origin, const vx::float4a &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
+	bool raycast_staticDynamic(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
+
+	bool raycastDynamic(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
 
 	physx::PxRigidStatic* getStaticMesh(const vx::StringID &sid);
 	physx::PxRigidDynamic* getDynamicMesh(const vx::StringID &sid);
+
+	void setHumanActor(physx::PxRigidDynamic* actor);
 };
