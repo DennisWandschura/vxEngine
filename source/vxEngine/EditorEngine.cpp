@@ -1489,6 +1489,20 @@ void EditorEngine::addJoint(const vx::StringID &sid0, const vx::StringID &sid1, 
 	joint.q1 = { 0, 0, 0, 1 };
 	joint.type = JointType::Revolute;
 
+	if (sid0.value != 0)
+	{
+		joint.p0.x = 0;
+		joint.p0.y = 0;
+		joint.p0.z = 0;
+	}
+
+	if (sid1.value != 0)
+	{
+		joint.p1.x = 0;
+		joint.p1.y = 0;
+		joint.p1.z = 0;
+	}
+
 	if (m_physicsAspect.createJoint(joint))
 	{
 		puts("created joint");
