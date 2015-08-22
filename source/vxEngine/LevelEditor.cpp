@@ -582,9 +582,9 @@ namespace Editor
 		return g_pEditor->engine.getJointCount();
 	}
 
-	void getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float3* p1, vx::float3* q1, u64* sid0, u64* sid1)
+	void getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float3* p1, vx::float3* q1, u64* sid0, u64* sid1, u32* limitEnabled, f32* limitMin, f32* limitMax)
 	{
-		g_pEditor->engine.getJointData(i, p0, q0, p1, q1, sid0, sid1);
+		g_pEditor->engine.getJointData(i, p0, q0, p1, q1, sid0, sid1, limitEnabled, limitMin, limitMax);
 	}
 
 	void addJoint(u64 sid)
@@ -630,6 +630,11 @@ namespace Editor
 	void setJointRotation1(u32 index, const vx::float3 &p)
 	{
 		g_pEditor->engine.setJointRotation1(index, p);
+	}
+
+	void setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax)
+	{
+		g_pEditor->engine.setJointLimit(index, enabled, limitMin, limitMax);
 	}
 }
 #endif

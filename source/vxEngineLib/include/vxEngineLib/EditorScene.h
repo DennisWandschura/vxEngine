@@ -166,5 +166,6 @@ namespace Editor
 		void setJointBody1(u32 index, u64 sid);
 		void setJointRotation0(u32 index, const vx::float4 &q);
 		void setJointRotation1(u32 index, const vx::float4 &q);
+		void setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax);
 	};
 }

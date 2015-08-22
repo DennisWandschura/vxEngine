@@ -215,7 +215,7 @@ public:
 	void setMeshInstanceRigidBodyType(u64 sid, u32 type);
 
 	u32 getJointCount() const;
-	void getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float3* p1, vx::float3* q1, u64* sid0, u64* sid1) const;
+	void getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float3* p1, vx::float3* q1, u64* sid0, u64* sid1, u32* limitEnabled, f32* limitMin, f32* limitMax) const;
 	void addJoint(const vx::StringID &sid0, const vx::StringID &sid1, const vx::float3 &p0, const vx::float3 &p1);
 	void addJoint(const vx::StringID &sid0);
 	void removeJoint(u32 index);
@@ -226,4 +226,5 @@ public:
 	void setJointBody1(u32 index, u64 sid);
 	void setJointRotation0(u32 index, const vx::float3 &q);
 	void setJointRotation1(u32 index, const vx::float3 &q);
+	void setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax);
 };

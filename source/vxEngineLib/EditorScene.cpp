@@ -700,4 +700,21 @@ namespace Editor
 		joint.q1 = q;
 		buildSelectableJoints();
 	}
+
+	void Scene::setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax)
+	{
+		auto &joint = m_joints[index];
+		joint.limitEnabled = enabled;
+
+		if (enabled != 0)
+		{
+			if (limitMin >= limitMax)
+			{
+				limitMin = limitMax - 0.1f;
+			}
+
+			joint.limit.x = limitMin;
+			joint.limit.y = limitMax;
+		}
+	}
 }

@@ -496,8 +496,16 @@ vx::StringID EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, v
 	auto cameraPosition = m_renderAspect->getCamera().getPosition();
 
 	vx::float4a tmp = cameraPosition;
-	f32 distance;
-	return m_physicsAspect.raycast_static(tmp, ray_world, 50.0f, hitPosition, &distance);
+	PhysicsHitData hitData;
+
+	vx::StringID sid;
+	if (m_physicsAspect.raycast_staticDynamic(tmp, ray_world, 50.0f, &hitData))
+	{
+		*hitPosition = hitData.hitPosition;
+		sid = hitData.sid;
+	}
+
+	return sid;
 }
 
 u32 EditorEngine::getMeshInstanceCount() const
@@ -1544,7 +1552,7 @@ u32 EditorEngine::getJointCount() const
 
 #include <DirectXMath.h>
 
-void EditorEngine::getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float3* p1, vx::float3* q1, u64* sid0, u64* sid1) const
+void EditorEngine::getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float3* p1, vx::float3* q1, u64* sid0, u64* sid1, u32* limitEnabled, f32* limitMin, f32* limitMax) const
 {
 	auto quaternionToAngles = [](const vx::float4 &q, vx::float3* rotationDeg)
 	{
@@ -1578,6 +1586,9 @@ void EditorEngine::getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float
 	*p1 = joint.p1;
 	*sid0 = joint.sid0.value;
 	*sid1 = joint.sid1.value;
+	*limitEnabled = joint.limitEnabled;
+	*limitMin = joint.limit.x;
+	*limitMax = joint.limit.y;
 }
 
 bool EditorEngine::selectJoint(s32 mouseX, s32 mouseY, u32* index)
@@ -1636,4 +1647,9 @@ void EditorEngine::setJointRotation1(u32 index, const vx::float3 &q)
 	m_pEditorScene->setJointRotation1(index, tmp);
 	auto &sortedInstances = m_pEditorScene->getSortedMeshInstances();
 	m_renderAspect->updateJoints(m_pEditorScene->getJoints(), m_pEditorScene->getJointCount(), sortedInstances);
+}
+
+void EditorEngine::setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax)
+{
+	m_pEditorScene->setJointLimit(index, enabled, limitMin, limitMax);
 }
