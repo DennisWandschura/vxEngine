@@ -530,7 +530,9 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	m_pRenderPassFinalImage = &m_renderpassFinalImageFullShading;
 
 	auto lightRenderer = vx::make_unique<Graphics::LightRenderer>();
-	lightRenderer->initialize(&m_allocator, errorlog,nullptr);
+	if (!lightRenderer->initialize(&m_allocator, errorlog, nullptr))
+		return RenderAspectInitializeError::ERROR_SHADER;
+
 	m_lightRenderer = lightRenderer.get();
 	m_renderer.push_back(std::move(lightRenderer));
 
@@ -704,6 +706,31 @@ void RenderAspect::update()
 		auto pvMatrix = m_projectionMatrix * viewMatrix;
 		Frustum frustum;
 		frustum.update(pvMatrix);
+
+		/*auto invProjMatrix = vx::MatrixInverse(pvMatrix);
+
+		const __m128 forward = {0, 0, -1, 0};
+		auto rot = m_camera.getRotation();
+		auto viewDir = vx::quaternionRotation(forward, rot);
+
+		const auto screenW = 1920.f;
+		const auto screenH = 1080.f;
+		f32 hb = screenW / screenH;
+		auto pos = m_camera.getPosition();
+		auto zfar = 250.0f;
+		//auto farCenter = ;
+
+		__m128 p0 = {-1, -1, 0, 1};
+		p0 = vx::Vector3TransformCoord(invProjMatrix, p0);
+
+		__m128 p1 = { 1, -1, 0, 1 };
+		p1 = vx::Vector3TransformCoord(invProjMatrix, p1);
+
+		__m128 p2 = { 1, -1, 1, 1 };
+		p2 = vx::Vector3TransformCoord(invProjMatrix, p2);
+
+		auto n = vx::normalize3(vx::cross3(_mm_sub_ps(p1, p0), _mm_sub_ps(p2, p0)));
+		auto d = vx::dot3(n, p0);*/
 
 		m_shadowRenderer->cullLights(frustum, m_camera);
 	}

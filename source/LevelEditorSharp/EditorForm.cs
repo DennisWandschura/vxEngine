@@ -52,6 +52,7 @@ namespace LevelEditor
         const uint s_typeScene = 3;
         const uint s_typeFbx = 4;
         const uint s_typeAnimation = 5;
+        const uint s_typeJoint = 6;
 
         static EditorForm s_form;
 
@@ -752,7 +753,10 @@ namespace LevelEditor
 
         public void insertJoint(uint index)
         {
-            m_jointsNode.Nodes.Add("Joint" + index);
+            var name = "Joint" + index;
+           // var sid = NativeMethods.getSid(name);
+            var nodeEntry = new EditorNodeEntry(index, s_typeJoint, name);
+            m_jointsNode.Nodes.Add(nodeEntry);
         }
 
         void loadedFile(UInt64 sid, UInt32 type)
@@ -1017,6 +1021,12 @@ namespace LevelEditor
                 else if (entry.type == s_typeMesh)
                 {
                     onGetMeshPhysxType(entry.sid, entry.Text);
+                }
+                else if(entry.type == s_typeJoint)
+                {
+                    var index = entry.sid;
+                    setSelectedJoint((uint)index);
+                    //m_jointDataControl.Show();
                 }
             }
             catch

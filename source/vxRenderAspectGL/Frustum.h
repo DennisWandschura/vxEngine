@@ -34,32 +34,7 @@ struct Frustum
 
 	Frustum() :planes(){}
 
-	void update(const vx::mat4 &pvMatrix)
-	{
-		auto matrix = vx::MatrixTranspose(pvMatrix);
+	void update(const vx::mat4 &pvMatrix);
 
-		auto tmpPlane = _mm_add_ps(matrix.c[0], matrix.c[3]);
-		auto tmp = vx::length3(tmpPlane);
-		planes[FrustumPlanes::Left] = _mm_div_ps(tmpPlane, tmp);
-
-		tmpPlane = _mm_sub_ps(matrix.c[3], matrix.c[0]);
-		tmp = vx::length3(tmpPlane);
-		planes[FrustumPlanes::Right] = _mm_div_ps(tmpPlane, tmp);
-
-		tmpPlane = _mm_add_ps(matrix.c[1], matrix.c[3]);
-		tmp = vx::length3(tmpPlane);
-		planes[FrustumPlanes::Bottom] = _mm_div_ps(tmpPlane, tmp);
-
-		tmpPlane = _mm_sub_ps(matrix.c[3], matrix.c[1]);
-		tmp = vx::length3(tmpPlane);
-		planes[FrustumPlanes::Top] = _mm_div_ps(tmpPlane, tmp);
-
-		tmpPlane = _mm_add_ps(matrix.c[2], matrix.c[3]);
-		tmp = vx::length3(tmpPlane);
-		planes[FrustumPlanes::Near] = _mm_div_ps(tmpPlane, tmp);
-
-		tmpPlane = _mm_sub_ps(matrix.c[3], matrix.c[2]);
-		tmp = vx::length3(tmpPlane);
-		planes[FrustumPlanes::Far] = _mm_div_ps(tmpPlane, tmp);
-	}
+	bool __fastcall intersects(__m128 p, __m128 r) const;
 };

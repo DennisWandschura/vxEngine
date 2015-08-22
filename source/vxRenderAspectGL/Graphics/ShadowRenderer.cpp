@@ -533,26 +533,54 @@ namespace Graphics
 
 		auto lightDistances = m_distances.get();
 
+		auto cameraRotation = camera.getRotation();
 		auto cameraPosition = camera.getPosition();
 
+		mat4 viewMatrix;
+		camera.getViewMatrix(&viewMatrix);
+
+		__m128 viewDir = {0, 0, -1, 0};
+		viewDir = vx::quaternionRotation(viewDir, cameraRotation);
+
+		u32 countInFrustum = 0;
 		for (u32 i = 0; i < lightCount; ++i)
 		{
 			auto lightPosition = lights[i].position;
+			auto falloff = _mm_load_ss(&lights[i].falloff_lumen.x);
+		
+			auto dir = _mm_sub_ps(lightPosition, cameraPosition);
+			auto distance = vx::length3(dir);
 
-			auto distance = _mm_sub_ps(cameraPosition, lightPosition);
-			distance = vx::dot3(distance, distance);
-			distance = _mm_sqrt_ps(distance);
+			lightPosition = vx::Vector3TransformCoord(viewMatrix, lightPosition);
 
-			_mm_store_ss(&lightDistances[i].first, distance);
-			lightDistances[i].second = i;
+			//if(frustum.intersects(lightPosition, falloff))
+			{
+				//dir = _mm_div_ps(dir, distance);
+
+				distance = _mm_div_ss(distance, falloff);
+				auto dt = vx::dot3(dir, viewDir);
+
+				if (dt.m128_f32[0] < 0)
+				{
+					distance.m128_f32[0] += 0.1f;
+				}
+
+				_mm_store_ss(&lightDistances[countInFrustum].first, distance);
+				lightDistances[countInFrustum].second = i;
+
+				++countInFrustum;
+			}
 		}
 
-		std::sort(lightDistances, lightDistances + lightCount, [](const std::pair<f32, u32> &lhs, const std::pair<f32, u32> &rhs)
+		if (countInFrustum == 0)
+			return;
+
+		std::sort(lightDistances, lightDistances + countInFrustum, [](const std::pair<f32, u32> &lhs, const std::pair<f32, u32> &rhs)
 		{
 			return lhs.first < rhs.first;
 		});
 
-		auto activeLights = std::min(lightCount, maxLights);
+		auto activeLights = std::min(countInFrustum, maxLights);
 
 		auto offset = maxLights * sizeof(ShadowTransform);
 		auto dataSize = activeLights * sizeof(ShadowTransform);
