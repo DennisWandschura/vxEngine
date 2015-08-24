@@ -30,11 +30,10 @@ SOFTWARE.
 thread_local f32 TaskPhysxCreateJoints::s_time{ 0.0f };
 thread_local u64 TaskPhysxCreateJoints::s_counter{ 0 };
 
-TaskPhysxCreateJoints::TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect, std::vector<Event> events, Event &&blockEvt)
-	:Task(std::move(events)),
+TaskPhysxCreateJoints::TaskPhysxCreateJoints(const Scene* scene, PhysicsAspect* physicsAspect, std::vector<Event> &&events, const Event &blockEvt)
+	:Task(blockEvt, std::move(events)),
 	m_scene(scene),
-	m_physicsAspect(physicsAspect),
-	m_blockEvt(std::move(blockEvt))
+	m_physicsAspect(physicsAspect)
 {
 
 }
@@ -46,7 +45,11 @@ TaskPhysxCreateJoints::~TaskPhysxCreateJoints()
 
 TaskReturnType TaskPhysxCreateJoints::runImpl()
 {
-	m_blockEvt.setStatus(EventStatus::Running);
+	auto status = m_events[0].getStatus();
+	while (status != EventStatus::Complete)
+	{
+		status = m_events[0].getStatus();
+	}
 
 	CpuTimer timer;
 
@@ -70,7 +73,6 @@ TaskReturnType TaskPhysxCreateJoints::runImpl()
 
 	s_time = (s_time * oldCounter + time) / s_counter;
 
-	m_blockEvt.setStatus(EventStatus::Complete);
 	return result;
 }
 

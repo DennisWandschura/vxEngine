@@ -306,9 +306,6 @@
     <ClInclude Include="TaskSceneCreateStaticMeshes.h">
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
-    <ClInclude Include="TaskSceneCreateActorsGpu.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentActorManager.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
@@ -341,6 +338,9 @@
     </ClInclude>
     <ClInclude Include="ActionGrabEntity.h">
       <Filter>Header Files\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskSceneCreateActors.h">
+      <Filter>Header Files\Tasks</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -461,9 +461,6 @@
     <ClCompile Include="TaskSceneCreateStaticMeshes.cpp">
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
-    <ClCompile Include="TaskSceneCreateActorsGpu.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentActorManager.cpp">
       <Filter>Source Files\Entity</Filter>
     </ClCompile>
@@ -487,6 +484,9 @@
     </ClCompile>
     <ClCompile Include="ActionGrabEntity.cpp">
       <Filter>Source Files\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskSceneCreateActors.cpp">
+      <Filter>Source Files\Tasks</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

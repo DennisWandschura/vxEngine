@@ -39,6 +39,7 @@ namespace d3d
 #include <vector>
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/math/Vector.h>
+#include <mutex>
 
 struct UploadTaskTexture
 {
@@ -81,7 +82,10 @@ class UploadManager
 
 	struct UploadDesc;
 
+	std::mutex m_taskMutex;
 	std::vector<UploadTask> m_tasks;
+	std::vector<UploadTask> m_tasksBack;
+	std::mutex m_queueMutex;
 	std::vector<QueuedUploadTask> m_queue;
 	u32 m_capacity;
 	u32 m_size;
@@ -94,6 +98,7 @@ class UploadManager
 
 	void uploadData(const UploadDesc &desc);
 
+	void pushQueueTask(QueuedUploadTask &&task);
 	bool tryUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state);
 	void pushTaskBuffer(ID3D12Resource* dstBuffer, u32 offset, u32 dstOffset, u32 size, u32 state);
 

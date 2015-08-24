@@ -24,27 +24,41 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct ID3D12RootSignature;
-struct ID3D12PipelineState;
-struct ID3D10Blob;
+class ShaderManager;
 struct ID3D12Device;
-typedef ID3D10Blob ID3DBlob;
+struct ID3D12GraphicsCommandList;
+struct ID3D12Resource;
 
-#include "d3d.h"
+#include "RenderPass.h"
+#include "Heap.h"
+#include <vxLib/math/Vector.h>
+#include "DescriptorHeap.h"
 
-class GBufferRenderer
+class GBufferRenderer : public RenderPass
 {
-	d3d::Object<ID3D12RootSignature> m_rootSignature;
-	d3d::Object<ID3D12PipelineState> m_pipelineState;
-	d3d::Object<ID3DBlob> m_shaders[2];
+	d3d::DescriptorHeap m_descriptorHeapRt;
+	d3d::DescriptorHeap m_descriptorHeapDs;
+	d3d::DescriptorHeap m_descriptorHeapSrv;
+	d3d::Object<ID3D12Resource> m_diffuseSlice;
+	d3d::Object<ID3D12Resource> m_normalSlice;
+	d3d::Object<ID3D12Resource> m_velocitySlice;
+	d3d::Object<ID3D12Resource> m_depthSlice;
+	d3d::Heap m_gbufferHeap;
 
-	bool loadShaders();
+	bool loadShaders(ShaderManager* shaderManager);
 	bool createRootSignature(ID3D12Device* device);
-	bool createPipelineState(ID3D12Device* device);
+	bool createPipelineState(ID3D12Device* device, ShaderManager* shaderManager);
+	bool createTextures(const vx::uint2 &resolution, d3d::Device* device);
+	bool createDescriptorHeap(d3d::Device* device);
 
 public:
 	GBufferRenderer();
 	~GBufferRenderer();
 
-	bool initialize(ID3D12Device* device);
+	bool initialize(const vx::uint2 &resolution, d3d::Device* device, ShaderManager* shaderManager);
+
+	void submitCommands(ID3D12GraphicsCommandList* cmdList) override;
+
+	void bindSrvBegin(ID3D12GraphicsCommandList* cmdList);
+	void bindSrvEnd(ID3D12GraphicsCommandList* cmdList);
 };

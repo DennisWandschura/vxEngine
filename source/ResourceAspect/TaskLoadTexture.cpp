@@ -49,7 +49,7 @@ TaskReturnType TaskLoadTexture::runImpl()
 	SCOPE_EXIT
 	{
 		std::unique_lock<std::mutex> scratchLock;
-		auto scratchAlloc = m_textureManager->lockScratchAllocator(&scratchLock);
+		m_textureManager->lockScratchAllocator(&scratchLock);
 		fileData.clear();
 	};
 

@@ -80,10 +80,9 @@ namespace d3d
 		m_heap.destroy();
 	}
 
-	bool Heap::createBufferHeap(u64 size, D3D12_HEAP_TYPE type, Device* device)
+	bool Heap::createHeap(u32 flags, u64 size, D3D12_HEAP_TYPE type, Device* device)
 	{
 		auto d3dDevice = device->getDevice();
-		size = (size + 0xffff) & ~0xffff;
 
 		D3D12_HEAP_PROPERTIES props
 		{
@@ -98,9 +97,33 @@ namespace d3d
 		desc.Alignment = 64 KBYTE;
 		desc.Properties = props;
 		desc.SizeInBytes = size;
-		desc.Flags = D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
+		desc.Flags = (D3D12_HEAP_FLAGS)flags;
 
 		return create(desc, device);
+	}
+
+	bool Heap::createBufferHeap(u64 size, D3D12_HEAP_TYPE type, Device* device)
+	{
+		auto d3dDevice = device->getDevice();
+		size = (size + 0xffff) & ~0xffff;
+
+		return createHeap(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS, size, type, device);
+	}
+
+	bool Heap::createTextureHeap(u64 size, D3D12_HEAP_TYPE type, Device* device)
+	{
+		auto d3dDevice = device->getDevice();
+		size = (size + 0xffff) & ~0xffff;
+
+		return createHeap(D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES, size, type, device);
+	}
+
+	bool Heap::createRtHeap(u64 size, D3D12_HEAP_TYPE type, Device* device)
+	{
+		auto d3dDevice = device->getDevice();
+		size = (size + 0xffff) & ~0xffff;
+
+		return createHeap(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES, size, type, device);
 	}
 
 	bool Heap::createResource(const D3D12_RESOURCE_DESC &desc, u64 offset, D3D12_RESOURCE_STATES state, const D3D12_CLEAR_VALUE* clearValue, ID3D12Resource** resource, Device* device)

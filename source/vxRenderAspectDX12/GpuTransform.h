@@ -1,39 +1,40 @@
-#ifdef _VX_WINDOWS
-#pragma once
+#ifndef _GPU_TRANSFORM_HH
+#define _GPU_TRANSFORM_HH
+#include "Gpu.h"
 
-/*
-The MIT License (MIT)
-
-Copyright (c) 2015 Dennis Wandschura
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-
-#include <vxLib/math/vector.h>
-
-typedef vx::float4a float4;
-
-#else
-#endif
-
-struct GpuTransform
+struct TransformGpu
 {
-	float4 translation;
-	float4 qRotation;
+	float3 translation;
+	float scaling;
+	uint2 packedQRotation;
+	float padding[2];
 };
+
+#if _VX_WINDOWS
+#include <vxEngineLib/Transform.h>
+static_assert(sizeof(vx::TransformGpu) == sizeof(TransformGpu), "wrong size");
+#else
+float4 unpackQRotation(in uint2 rotation)
+{
+	uint4 tmp;
+	tmp.x = rotation.x & 0xffff;
+	tmp.y = (rotation.x >> 16) & 0xffff;
+	tmp.z = rotation.y & 0xffff;
+	tmp.w = (rotation.y >> 16) & 0xffff;
+
+	const float4 vmax = { 0xffff, 0xffff, 0xffff, 0xffff };
+
+	float4 qRotation;
+	qRotation.x = (float)tmp.x;
+	qRotation.y = (float)tmp.y;
+	qRotation.z = (float)tmp.z;
+	qRotation.w = (float)tmp.w;
+
+	qRotation = qRotation / vmax;
+	qRotation = qRotation * float4(2, 2, 2, 2);
+	qRotation = qRotation - float4(1, 1, 1, 1);
+
+	return qRotation;
+}
+#endif
+#endif

@@ -71,6 +71,7 @@ class MeshManager
 	u32 m_instanceCount;
 	vx::StackAllocator m_scratchAllocator;
 	d3d::Heap m_geometryHeap;
+	vx::sorted_vector<vx::StringID, DrawIndexedCommand> m_sortedDrawCommands;
 
 	bool createHeap(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device);
 	bool createBuffers(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device);
@@ -89,6 +90,7 @@ public:
 	void shutdown();
 
 	void addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* cmd);
+	void addMeshInstance(const vx::StringID &instanceSid, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect, DrawIndexedCommand* outCmd);
 
 	d3d::Object<ID3D12Resource>& getVertexBuffer() { return m_vertexBuffer;}
 	d3d::Object<ID3D12Resource>& getIndexBuffer() { return m_indexBuffer; }

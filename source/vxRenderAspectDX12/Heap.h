@@ -51,6 +51,8 @@ namespace d3d
 
 		void init(u64 size, u64 alignment);
 
+		bool createHeap(u32 flags, u64 size, D3D12_HEAP_TYPE type, Device* device);
+
 	public:
 		Heap(); 
 		~Heap();
@@ -59,6 +61,8 @@ namespace d3d
 		void destroy();
 
 		bool createBufferHeap(u64 size, D3D12_HEAP_TYPE type, Device* device);
+		bool createTextureHeap(u64 size, D3D12_HEAP_TYPE type, Device* device);
+		bool createRtHeap(u64 size, D3D12_HEAP_TYPE type, Device* device);
 
 		bool createResource(const D3D12_RESOURCE_DESC &desc, u64 offset, D3D12_RESOURCE_STATES state, const D3D12_CLEAR_VALUE* clearValue, ID3D12Resource** resource, Device* device);
 		bool createResourceBuffer(u64 size, u64 offset, D3D12_RESOURCE_STATES state, ID3D12Resource** resource, Device* device);

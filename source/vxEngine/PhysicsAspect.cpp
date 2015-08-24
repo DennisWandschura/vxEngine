@@ -189,7 +189,8 @@ PhysicsAspect::PhysicsAspect()
 	m_pCpuDispatcher(nullptr),
 	m_pCooking(nullptr),
 	m_callback(nullptr),
-	m_connection(nullptr)
+	m_connection(nullptr),
+	m_mySimCallback(nullptr)
 {
 }
 
@@ -199,6 +200,12 @@ PhysicsAspect::~PhysicsAspect()
 	{
 		delete(m_callback);
 		m_callback = nullptr;
+	}
+
+	if (m_mySimCallback)
+	{
+		delete(m_mySimCallback);
+		m_mySimCallback = nullptr;
 	}
 }
 
@@ -210,34 +217,24 @@ bool PhysicsAspect::initialize(vx::TaskManager* taskManager)
 	if (!m_pFoundation)
 	{
 		return false;
-		//	fatalError("PxCreateFoundation failed!");
 	}
 
 	bool recordMemoryAllocations = true;
-	/*	m_pProfileZoneManager = &physx::PxProfileZoneManager::createProfileZoneManager(m_pFoundation);
-		if (!m_pProfileZoneManager)
-		{
-		//fatalError("PxProfileZoneManager::createProfileZoneManager failed!");
-		return false;
-		}*/
 
 	physx::PxTolerancesScale toleranceScale;
 	m_pPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *m_pFoundation,
 		toleranceScale, recordMemoryAllocations);
 	if (!m_pPhysics)
 	{
-		//VX_ASSERT(false, "PxCreatePhysics failed!");
 		return false;
 	}
 
 	m_pCooking = PxCreateCooking(PX_PHYSICS_VERSION, *m_pFoundation, physx::PxCookingParams(toleranceScale));
 	if (!m_pCooking)
 	{
-		//fatalError("PxCreateCooking failed!");
 		return false;
 	}
 
-	//m_pCpuDispatcher = physx::PxDefaultCpuDispatcherCreate(0);
 	m_cpuDispatcher.initialize(taskManager);
 
 	m_callback = new MyHitReportCallback();
@@ -245,7 +242,7 @@ bool PhysicsAspect::initialize(vx::TaskManager* taskManager)
 	physx::PxSceneDesc sceneDesc(toleranceScale);
 	sceneDesc.cpuDispatcher = &m_cpuDispatcher;
 	sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
-//	sceneDesc.simulationEventCallback = m_callback;
+	sceneDesc.simulationEventCallback = m_mySimCallback;
 	//sceneDesc.flags |= physx::PxSceneFlag::eENABLE_KINEMATIC_PAIRS;
 
 	if (!sceneDesc.filterShader)
@@ -278,9 +275,7 @@ bool PhysicsAspect::initialize(vx::TaskManager* taskManager)
 	}
 
 	m_evtFetch = Event::createEvent();
-	m_evtBlock = Event::createEvent();
 
-	m_evtBlock.setStatus(EventStatus::Complete);
 	m_evtFetch.setStatus(EventStatus::Queued);
 
 	return true;
@@ -344,11 +339,27 @@ void PhysicsAspect::fetch()
 
 void PhysicsAspect::update(const f32 dt)
 {
-	while (m_evtBlock.getStatus() != EventStatus::Complete)
-		;
+	if (!m_blockEvents.empty())
+	{
+		for (auto &it : m_blockEvents)
+		{
+			auto status = it.getStatus();
+			if (status == EventStatus::Running)
+			{
+				while (it.getStatus() != EventStatus::Complete)
+					;
+			}
+		}
+		m_blockEvents.clear();
+	}
 
 	m_evtFetch.setStatus(EventStatus::Queued);
 	m_pScene->simulate(dt);
+}
+
+void PhysicsAspect::addBlockEvent(const Event &evt)
+{
+	m_blockEvents.push_back(evt);
 }
 
 void PhysicsAspect::handleMessage(const vx::Message &evt)
@@ -389,17 +400,7 @@ void PhysicsAspect::handleIngameMessage(const vx::Message &evt)
 	{
 		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
 
-		auto transform = data->getTransform();
-		auto controller = createActor(transform.m_translation, data->getHeight());
-		data->setPhysx(controller);
-
-		vx::Message evt;
-		evt.type = vx::MessageType::Ingame_Event;
-		evt.code = (u32)IngameMessage::Physx_AddedActor;
-		evt.arg1.ptr = data;
-
-		auto evtManager = Locator::getMessageManager();
-		evtManager->addMessage(evt);
+		
 	}break;
 	case IngameMessage::Physx_AddDynamicMesh:
 	{

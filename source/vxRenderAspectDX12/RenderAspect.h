@@ -24,22 +24,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct ID3D12CommandQueue;
-struct ID3D12Device;
-struct IDXGISwapChain;
-struct IDXGIFactory;
-struct ID3D12Fence;
-struct ID3D12DescriptorHeap;
 struct ID3D12Resource;
 struct ID3D12CommandAllocator;
-struct ID3D12RootSignature;
-struct ID3D12PipelineState;
 struct ID3D12CommandSignature;
-struct D3D12_SHADER_RESOURCE_VIEW_DESC;
+struct ID3D12InfoQueue;
+struct ID3D12Debug;
 
 class Scene;
 class ResourceAspect;
 struct ResourceView;
+struct Light;
+
+namespace vx
+{
+	class MessageManager;
+}
 
 #include <vxEngineLib/RenderAspectInterface.h>
 #include <d3d12.h>
@@ -53,11 +52,13 @@ struct ResourceView;
 #include "Heap.h"
 #include "DescriptorHeap.h"
 #include <mutex>
-#include "DefaultRenderer.h"
 #include "UploadManager.h"
 #include "MeshManager.h"
 #include "MaterialManager.h"
 #include "GBufferRenderer.h"
+#include <vxLib/Allocator/StackAllocator.h>
+#include "ShaderManager.h"
+#include "DrawQuadRenderer.h"
 
 class RenderAspect : public RenderAspectInterface
 {
@@ -66,6 +67,7 @@ class RenderAspect : public RenderAspectInterface
 	std::vector<DrawIndexedCommand> m_drawCommands;
 	std::vector<ID3D12CommandList*> m_cmdLists;
 	ID3D12GraphicsCommandList* m_commandList;
+	ID3D12GraphicsCommandList* m_commandListDrawMesh;
 	d3d::Object<ID3D12Resource> m_renderTarget[2];
 	d3d::Object<ID3D12Resource> m_indirectCmdBuffer;
 	d3d::Object<ID3D12Resource> m_depthTexture;
@@ -74,12 +76,14 @@ class RenderAspect : public RenderAspectInterface
 	u32 m_lastBuffer;
 	d3d::Object<ID3D12CommandSignature> m_commandSignature;
 	vx::Camera m_camera;
-	DefaultRenderer m_defaultRenderer;
 	GBufferRenderer m_gbufferRenderer;
+	DrawQuadRenderer m_drawQuadRenderer;
 	vx::mat4 m_projectionMatrix;
 	UploadManager m_uploadManager;
 	d3d::Object<ID3D12Resource> m_constantBuffer;
 	d3d::Object<ID3D12Resource> m_transformBuffer;
+	d3d::Object<ID3D12Resource> m_materialBuffer;
+	d3d::Object<ID3D12Resource> m_lightBuffer;
 	d3d::DescriptorHeap m_descriptorHeapDsv;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::DescriptorHeap m_descriptorHeapBuffer;
@@ -91,6 +95,11 @@ class RenderAspect : public RenderAspectInterface
 	MaterialManager m_materialManager;
 	vx::TaskManager* m_taskManager;
 	ResourceAspectInterface* m_resourceAspect;
+	d3d::Object<ID3D12Debug> m_debug;
+	d3d::Object<ID3D12InfoQueue> m_infoQueue;
+	vx::StackAllocator m_scratchAllocator;
+	vx::MessageManager* m_msgManager;
+	ShaderManager m_shaderManager;
 
 	bool createHeaps();
 	bool createCommandList();
@@ -101,17 +110,31 @@ class RenderAspect : public RenderAspectInterface
 
 	void processTasks();
 	void taskTakeScreenshot();
-	void taskUpdateText(u8* p, u32* offset);
+	void taskUpdateText(const u8* p, u32* offset);
 	void loadScene(Scene* scene);
 	void taskToggleRenderMode();
-	void taskCreateActorGpuIndex(u8* p, u32* offset);
-	void taskUpdateDynamicTransforms(u8* p, u32* offset);
+	void taskCreateActorGpuIndex(const u8* p, u32* offset);
+	void taskUpdateDynamicTransforms(const u8* p, u32* offset);
+	void taskAddStaticMeshInstance(const u8* p, u32* offset);
+	void taskAddDynamicMeshInstance(const u8* p, u32* offset);
 
 	void updateCamera(const RenderUpdateCameraData &data);
 
 	void createCbvCamera();
 	void updateSrvTransform(u32 instanceCount);
-	void createSrvTextures(u32 texureCount);
+	void updateSrvMaterial(u32 instanceCount);
+	void createSrvTextures(u32 srgbCount, u32 rgbCount);
+
+	void addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex);
+
+	void printDebugMessages();
+
+	void drawScreenQuadGBuffer(ID3D12GraphicsCommandList* cmdList);
+
+	void updateTransform(const vx::Transform &transform, u32 index);
+	void updateTransform(const vx::TransformGpu &transform, u32 index);
+
+	void updateLights(const Light* lights, u32 count);
 
 public:
 	RenderAspect();

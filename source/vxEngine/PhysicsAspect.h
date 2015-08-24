@@ -111,7 +111,7 @@ protected:
 	physx::PxPhysics *m_pPhysics;
 	physx::PxRigidDynamic* m_humanActor;
 	Event m_evtFetch;
-	Event m_evtBlock;
+	std::vector<Event> m_blockEvents;
 	vx::sorted_vector<vx::StringID, PhsyxMeshType> m_physxMeshTypes;
 	vx::sorted_vector<vx::StringID, physx::PxConvexMesh*> m_physxConvexMeshes;
 	vx::sorted_vector<vx::StringID, physx::PxTriangleMesh*> m_physxMeshes;
@@ -126,6 +126,7 @@ protected:
 	physx::PxCooking* m_pCooking;
 	MyHitReportCallback* m_callback;
 	physx::PxVisualDebuggerConnection* m_connection;
+	MySimulationCallback* m_mySimCallback;
 
 	physx::PxTriangleMesh* processTriangleMesh(const vx::MeshFile &mesh);
 	physx::PxConvexMesh* processMeshConvex(const vx::MeshFile &mesh);
@@ -160,7 +161,7 @@ public:
 	void update(const f32 dt);
 
 	const Event& getEventPhysicsFetch() const {return m_evtFetch;}
-	const Event& getEventBlockSimulate() const { return m_evtBlock; }
+	void addBlockEvent(const Event &evt);
 
 	virtual void handleMessage(const vx::Message &evt) override;
 

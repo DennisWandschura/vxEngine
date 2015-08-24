@@ -62,6 +62,12 @@ namespace d3d
 		const T** getAddressOf() const { return &m_object; }
 	};
 
+	inline s32 getAlignedSize(s32 size, s32 alignment)
+	{
+		alignment = alignment - 1;
+		return (size + alignment) & ~alignment;
+	}
+
 	inline u32 getAlignedSize(u32 size, u32 alignment)
 	{
 		alignment = alignment - 1;
@@ -74,10 +80,16 @@ namespace d3d
 		return (size + alignment) & ~alignment;
 	}
 
-	template<u32 SZ, u32 ALIGNMENT>
+	template<size_t SZ, size_t ALIGNMENT>
 	struct AlignedSize
 	{
-		enum : u32 { size = SZ + (ALIGNMENT - 1) & ~(ALIGNMENT - 1) };
+		enum : size_t { size = SZ + (ALIGNMENT - 1) & ~(ALIGNMENT - 1) };
+	};
+
+	template<typename T, size_t COUNT, size_t ALIGNMENT>
+	struct AlignedSizeType
+	{
+		enum : size_t { size = (sizeof(T) * COUNT) + (ALIGNMENT - 1) & ~(ALIGNMENT - 1) };
 	};
 
 	typedef Object<ID3D12Resource> Resource;

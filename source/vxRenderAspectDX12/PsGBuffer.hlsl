@@ -1,19 +1,23 @@
+#include "GpuMath.h"
+
 struct Output
 {
 	float4 diffuseSlice : SV_TARGET0;
-	float4 normalSlice : SV_TARGET1;
-	float4 tangentSlice : SV_TARGET2;
-	float4 surfaceSlice : SV_TARGET3;
+	half2 normalSlice : SV_TARGET1;
+	half2 velocitySlice : SV_TARGET2;
 };
 
 struct PSInput
 {
 	float4 position : SV_POSITION;
-	float3 vsPosition : POSITION1;
-	float3 normal : NORMAL0;
-	float3 tangent : TANGENT0;
-	float2 uv : TEXCOORD0;
-	uint materialId : BLENDINDICES0;
+	//float4 positionPrev : POSITION1;
+	//float3 vsPosition : POSITION2;
+	float3 vsNormal : NORMAL0;
+	//float3 vsTangent : TANGENT0;
+	//float3 vsBitangent : BITANGENT0;
+	float2 texCoords : TEXCOORD0;
+	uint material : BLENDINDICES0;
+	uint slice : SV_RenderTargetArrayIndex;
 };
 
 struct Material
@@ -21,15 +25,12 @@ struct Material
 	uint textureSlices;
 };
 
-StructuredBuffer<Material> s_materials : register(t1);
 Texture2DArray g_textureSrgba : register(t2);
 Texture2DArray g_textureRgba : register(t3);
 SamplerState g_sampler : register(s0);
 
-uint3 getTextureSlices(uint materialId)
+uint3 getTextureSlices(uint packedSlices)
 {
-	uint packedSlices = s_materials[materialId].textureSlices;
-
 	uint3 result;
 	// diffuse
 	result.x = packedSlices & 0xff;
@@ -41,40 +42,25 @@ uint3 getTextureSlices(uint materialId)
 	return result;
 }
 
-float2 encodeNormal(float3 n)
-{
-	float f = sqrt(8 * n.z + 8);
-	return n.xy / f + 0.5;
-}
-
-float3 decodeNormal(float2 enc)
-{
-	float2 fenc = enc * 4 - 2;
-	float f = dot(fenc, fenc);
-	float g = sqrt(1 - f / 4);
-	float3 n;
-	n.xy = fenc*g;
-	n.z = 1 - f / 2;
-	return n;
-}
-
 Output main(PSInput input)
 {
-	uint3 textureSlices = getTextureSlices(input.materialId);
+	uint3 textureSlices = getTextureSlices(input.material);
 
-	float4 diffuseColor = g_textureSrgba.Sample(g_sampler, float3(input.uv, float(textureSlices.x)));
-	float3 normalMap = g_textureRgba.Sample(g_sampler, float3(input.uv, float(textureSlices.y))).xyz;
+	float4 diffuseColor = g_textureSrgba.Sample(g_sampler, float3(input.texCoords, float(textureSlices.x)));
+	float3 normalMap = g_textureRgba.Sample(g_sampler, float3(input.texCoords, float(textureSlices.y))).xyz;
 
-	float linearViewZ = length(input.vsPosition);
-	float2 compressedNormal = float2(normalMap.xy);
-	float2 compressedTangent = float2(0, 0);
-	float2 compressedBitangent = float2(0, 0);
+	float3x3 tbnMatrix;
+
+	//float linearViewZ = length(input.vsPosition);
+	float2 compressedNormal = encodeNormal(input.vsNormal);
+
+	//float2 a = (input.position.xy / input.position.w) * 0.5 + 0.5;
+	//float2 b = (input.positionPrev.xy / input.positionPrev.w) * 0.5 + 0.5;
 
 	Output output;
 	output.diffuseSlice = diffuseColor;
-	output.normalSlice = float4(compressedNormal, linearViewZ, 0);
-	output.tangentSlice = float4(compressedTangent, compressedBitangent);
-	output.surfaceSlice = float4(0, 0, 0, 0);
+	output.normalSlice = compressedNormal;
+	output.velocitySlice = float2(0, 0);//pow((a - b) * 0.5 + 0.5, 3.0);
 
 	return output;
 }

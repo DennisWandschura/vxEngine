@@ -41,7 +41,7 @@ SOFTWARE.
 #include <vxEngineLib/RenderAspectInterface.h>
 #include "TaskSceneCreateStaticMeshes.h"
 #include <vxEngineLib/TaskManager.h>
-#include "TaskSceneCreateActorsGpu.h"
+#include "TaskSceneCreateActors.h"
 #include <vxEngineLib/CreateActorData.h>
 #include <vxEngineLib/Spawn.h>
 #include "ComponentAction.h"
@@ -291,8 +291,16 @@ void EntityAspect::handleFileEvent(const vx::Message &evt)
 		auto scene = (const Scene*)evt.arg2.ptr;
 
 		auto renderAspect = Locator::getRenderAspect();
+		auto physicsAspect = Locator::getPhysicsAspect();
 
-		m_taskManager->pushTask(new TaskSceneCreateActorsGpu(scene, renderAspect));
+		auto fetchEvt = physicsAspect->getEventPhysicsFetch();
+		auto evtBlock = Event::createEvent();
+		physicsAspect->addBlockEvent(evtBlock);
+
+		std::vector<Event> events;
+		events.push_back(fetchEvt);
+
+		m_taskManager->pushTask(new TaskSceneCreateActors(evtBlock, std::move(events),scene, renderAspect, physicsAspect));
 		m_taskManager->pushTask(new TaskSceneCreateStaticMeshes(scene, renderAspect));
 
 		auto spawns = scene->getSpawns();
@@ -387,11 +395,12 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 		auto physicsAspect = Locator::getPhysicsAspect();
 		auto scene = (Scene*)evt.arg1.ptr;
 		auto fetchEvt = physicsAspect->getEventPhysicsFetch();
-		auto evtBlock = physicsAspect->getEventBlockSimulate();
+		auto evtBlock = Event::createEvent();
+		physicsAspect->addBlockEvent(evtBlock);
 
 		std::vector<Event> events;
 		events.push_back(fetchEvt);
-		auto task = new TaskPhysxCreateJoints(scene, physicsAspect, std::move(events), std::move(evtBlock));
+		auto task = new TaskPhysxCreateJoints(scene, physicsAspect, std::move(events), evtBlock);
 
 		m_taskManager->pushTask(task);
 	}break;

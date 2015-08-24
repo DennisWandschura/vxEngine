@@ -346,7 +346,7 @@ namespace Graphics
 		m_components = 0;
 	}
 
-	u32 Texture::getFaceSize(u32 i)
+	u32 Texture::getFaceSize(u32 i) const
 	{
 		auto &face = getFace(i);
 		auto dim = face.getDimension();
@@ -354,7 +354,7 @@ namespace Graphics
 		return getTextureSize(m_format, vx::uint2(dim.x, dim.y)) * dim.z;
 	}
 
-	u32 Texture::getFaceRowPitch(u32 i)
+	u32 Texture::getFaceRowPitch(u32 i) const
 	{
 		auto &face = getFace(i);
 		auto dim = face.getDimension();

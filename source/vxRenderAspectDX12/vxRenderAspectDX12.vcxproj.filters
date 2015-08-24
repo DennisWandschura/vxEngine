@@ -25,6 +25,15 @@
     <Filter Include="Header Files\Gpu">
       <UniqueIdentifier>{9f126c40-d39a-43b0-9715-9bc48e3332c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\gbuffer">
+      <UniqueIdentifier>{c0397c63-136b-4df8-84e8-19a52375ddf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\draw quad">
+      <UniqueIdentifier>{e3ee47c7-3d3c-4c01-af6b-410060a4c8f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\RenderPass">
+      <UniqueIdentifier>{3f0a05dc-d901-4d8b-a5b4-e682219cd32a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -63,9 +72,6 @@
     <ClInclude Include="Heap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DefaultRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UploadManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -87,13 +93,7 @@
     <ClInclude Include="TextureManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GpuTransform.h">
-      <Filter>Header Files\Gpu</Filter>
-    </ClInclude>
     <ClInclude Include="GpuCameraBufferData.h">
-      <Filter>Header Files\Gpu</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuQuaternion.h">
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
     <ClInclude Include="Quaternion.h">
@@ -107,6 +107,27 @@
     </ClInclude>
     <ClInclude Include="AdjacencyTreeBuilder.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuTransform.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawQuadRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuLight.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="Gpu.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuMath.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPass.h">
+      <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -134,9 +155,6 @@
     <ClCompile Include="Heap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DefaultRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="UploadManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -155,19 +173,37 @@
     <ClCompile Include="ConverterMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DrawQuadRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="VertexShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="PixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="MeshVertex.hlsl">
+    <FxCompile Include="PsGBuffer.hlsl">
+      <Filter>Shaders\gbuffer</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PsGBuffer.hlsl">
-      <Filter>Shaders</Filter>
+    <FxCompile Include="MeshVertex.hlsl">
+      <Filter>Shaders\gbuffer</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawQuadVs.hlsl">
+      <Filter>Shaders\draw quad</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawQuadGs.hlsl">
+      <Filter>Shaders\draw quad</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawQuadPs.hlsl">
+      <Filter>Shaders\draw quad</Filter>
+    </FxCompile>
+    <FxCompile Include="DeepGBufferGs.hlsl">
+      <Filter>Shaders\gbuffer</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

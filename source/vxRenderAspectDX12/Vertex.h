@@ -28,7 +28,8 @@ SOFTWARE.
 
 struct Vertex
 {
-	vx::float3 position;
+	vx::float4 position;
 	vx::float3 normal;
+	vx::float3 tangent;
 	vx::float2 texCoords;
 };

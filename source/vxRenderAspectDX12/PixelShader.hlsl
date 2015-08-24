@@ -4,10 +4,11 @@ struct PSIN
 	float3 wsPosition : POSITION1;
 	float3 vsNormal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
-	uint materialId : BLENDINDICES0;
+	uint material : BLENDINDICES0;
 };
 
-Texture2DArray g_texture : register(t1);
+Texture2DArray g_textureSrgb : register(t2);
+Texture2DArray g_textureRgb : register(t3);
 SamplerState g_sampler : register(s0);
 
 static const float g_PI = 3.141592654;
@@ -36,7 +37,12 @@ float lightning(float3 wsPosition)
 
 float4 main(PSIN input) : SV_TARGET
 {
-	float4 diffuseColor = g_texture.Sample(g_sampler, float3(input.texCoords, float(input.materialId)));
+	uint diffuseSlice = input.material & 0xff;
+	uint normalSlice = (input.material >> 8) & 0xff;
+	uint surfaceSlice = (input.material >> 16) & 0xff;
+
+	float4 diffuseColor = g_textureSrgb.Sample(g_sampler, float3(input.texCoords, float(diffuseSlice)));
+	float4 normals = g_textureRgb.Sample(g_sampler, float3(input.texCoords, float(normalSlice)));
 
 	const float invGamma = 1.0 / 2.2;
 	diffuseColor = pow(diffuseColor, float4(invGamma, invGamma, invGamma, invGamma));
@@ -45,5 +51,5 @@ float4 main(PSIN input) : SV_TARGET
 	float lightIntensity = 1.0;
 
 	//return float4(diffuseColor.xyz, 1.0f);
-	return float4(input.vsNormal, 1.0f);
+	return float4(diffuseColor.rgb, 1.0f);
 }

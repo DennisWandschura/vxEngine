@@ -74,7 +74,7 @@ bool TextureManager::createTextureBuffer(const vx::uint3 &textureDim, u32 dxgiFo
 	auto textureFormat = Graphics::dxgiFormatToTextureFormat(dxgiFormat);
 	auto textureSize = Graphics::getTextureSize(textureFormat, vx::uint2(textureDim.x, textureDim.y)) * textureDim.z;
 	VX_ASSERT(textureSize != 0);
-	auto alignedTextureSize = d3d::getAlignedSize(textureSize, 64 KBYTE);
+	auto alignedTextureSize = d3d::getAlignedSize(textureSize, 64u KBYTE);
 
 	*heapOffset += alignedTextureSize;
 	return true;

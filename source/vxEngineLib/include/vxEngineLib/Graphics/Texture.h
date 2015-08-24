@@ -115,8 +115,8 @@ namespace Graphics
 
 		TextureFormat getFormat() const { return m_format; }
 
-		u32 getFaceSize(u32 i);
-		u32 getFaceRowPitch(u32 i);
+		u32 getFaceSize(u32 i) const;
+		u32 getFaceRowPitch(u32 i) const;
 
 		u32 getFaceCount() const { return m_faceCount; }
 		u8 getComponents() const { return m_components; }

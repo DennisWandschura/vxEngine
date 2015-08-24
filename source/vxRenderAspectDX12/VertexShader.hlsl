@@ -1,6 +1,6 @@
 #include "GpuCameraBufferData.h"
 #include "GpuTransform.h"
-#include "GpuQuaternion.h"
+#include "GpuMath.h"
 
 struct Vertex
 {
@@ -16,7 +16,7 @@ struct PSIN
 	float3 wsPosition : POSITION1;
 	float3 vsNormal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
-	uint materialId : BLENDINDICES0;
+	uint material : BLENDINDICES0;
 };
 
 cbuffer CameraBuffer : register(b0)
@@ -24,15 +24,16 @@ cbuffer CameraBuffer : register(b0)
 	GpuCameraBufferData cameraBuffer;
 };
 
-StructuredBuffer<GpuTransform> s_transforms : register(t0);
+StructuredBuffer<TransformGpu> s_transforms : register(t0);
+StructuredBuffer<uint> s_materials : register(t1);
 
 PSIN main(Vertex input)
 {
 	uint elementId = input.drawId & 0xffff;
-	uint materialId = input.drawId >> 16;
+	uint materialIndex = input.drawId >> 16;
 
 	float3 translation = s_transforms[elementId].translation.xyz;
-	float4 qRotation = s_transforms[elementId].qRotation;
+	float4 qRotation = unpackQRotation(s_transforms[elementId].packedQRotation);
 
 	float3 wsPosition = quaternionRotation(input.position, qRotation) + translation;
 
@@ -44,7 +45,7 @@ PSIN main(Vertex input)
 	vsout.wsPosition = wsPosition;
 	vsout.vsNormal = mul(normalMatrix, wsNormal);
 	vsout.texCoords = input.texCoords;
-	vsout.materialId = materialId;
+	vsout.material = s_materials[materialIndex];
 
 	return vsout;
 }

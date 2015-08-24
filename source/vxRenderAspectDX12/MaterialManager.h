@@ -77,8 +77,7 @@ class MaterialManager
 	d3d::Heap m_textureHeap;
 
 	bool createHeap(d3d::Device* device);
-	bool createSrgbaTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device, u32* offset);
-	bool createRgbaTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device, u32* offset);
+	bool createTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, u32 format, d3d::Object<ID3D12Resource>* res, d3d::Device* device, u32* offset);
 
 	bool tryGetTexture(const vx::StringID &sid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* slice);
 
@@ -88,7 +87,9 @@ public:
 
 	bool initialize(const vx::uint2 &textureResolution, u32 srgbaCount, u32 rgbaCount, d3d::Device* device);
 
-	bool addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* slice);
+	bool addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* index, u32* slices);
+	bool addMaterial(const vx::StringID &materialSid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* index, u32* slices);
 
 	d3d::Object<ID3D12Resource>& getTextureBufferSrgba() { return m_textureBufferSrgba; }
+	d3d::Object<ID3D12Resource>& getTextureBufferRgba() { return m_textureBufferRgba; }
 };

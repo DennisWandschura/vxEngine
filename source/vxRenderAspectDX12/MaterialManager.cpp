@@ -79,6 +79,7 @@ void MaterialManager::TextureArray::initialize(u32 maxTextureCount, u32 format)
 void MaterialManager::TextureArray::addTexture(const AddTextureDesc &desc)
 {
 	auto &face = desc.texture->getFace(0);
+	auto rowPitch = desc.texture->getFaceRowPitch(0);
 
 	auto dim = face.getDimension();
 	auto dataSize = face.getSize();
@@ -91,7 +92,7 @@ void MaterialManager::TextureArray::addTexture(const AddTextureDesc &desc)
 	uploadDesc.dim.x = dim.x;
 	uploadDesc.dim.y = dim.y;
 	uploadDesc.format = m_format;
-	uploadDesc.rowPitch = dim.x * 4;
+	uploadDesc.rowPitch = rowPitch;
 	uploadDesc.slice = desc.slice;
 	uploadDesc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 	desc.uploadManager->pushUploadTexture(uploadDesc);
@@ -160,9 +161,9 @@ bool MaterialManager::createHeap(d3d::Device* device)
 	return true;
 }
 
-bool MaterialManager::createSrgbaTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device, u32* offset)
+bool MaterialManager::createTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, u32 format, d3d::Object<ID3D12Resource>* res, d3d::Device* device, u32* offset)
 {
-	auto thisOffset = d3d::getAlignedSize(4 * textureResolution.x * textureResolution.y, 64 KBYTE);
+	auto thisOffset = d3d::getAlignedSize(4 * textureResolution.x * textureResolution.y, 64u KBYTE);
 
 	D3D12_RESOURCE_DESC resDesc;
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -171,36 +172,12 @@ bool MaterialManager::createSrgbaTextureArray(const vx::uint2 &textureResolution
 	resDesc.Height = textureResolution.y;
 	resDesc.DepthOrArraySize = maxTextureCount;
 	resDesc.MipLevels = 1;
-	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	resDesc.Format = (DXGI_FORMAT)format;
 	resDesc.SampleDesc.Count = 1;
 	resDesc.SampleDesc.Quality = 0;
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-	if (!m_textureHeap.createResource(resDesc, *offset, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, m_textureBufferSrgba.getAddressOf(), device))
-		return false;
-
-	*offset += thisOffset;
-
-	return true;
-}
-
-bool MaterialManager::createRgbaTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, d3d::Device* device, u32* offset)
-{
-	auto thisOffset = d3d::getAlignedSize(4 * textureResolution.x * textureResolution.y, 64 KBYTE);
-
-	D3D12_RESOURCE_DESC resDesc;
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resDesc.Alignment = 64 KBYTE;
-	resDesc.Width = textureResolution.x;
-	resDesc.Height = textureResolution.y;
-	resDesc.DepthOrArraySize = maxTextureCount;
-	resDesc.MipLevels = 1;
-	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	resDesc.SampleDesc.Count = 1;
-	resDesc.SampleDesc.Quality = 0;
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-	if (!m_textureHeap.createResource(resDesc, *offset, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, m_textureBufferRgba.getAddressOf(), device))
+	if (!m_textureHeap.createResource(resDesc, *offset, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, res->getAddressOf(), device))
 		return false;
 
 	*offset += thisOffset;
@@ -214,14 +191,14 @@ bool MaterialManager::initialize(const vx::uint2 &textureResolution, u32 srbgaCo
 		return false;
 
 	u32 offset = 0;
-	if (!createSrgbaTextureArray(textureResolution, srbgaCount, device, &offset))
+	if (!createTextureArray(textureResolution, srbgaCount, DXGI_FORMAT_BC7_UNORM_SRGB, &m_textureBufferSrgba, device, &offset))
 		return false;
 
-	if (!createRgbaTextureArray(textureResolution, rgbaCount, device, &offset))
+	if (!createTextureArray(textureResolution, rgbaCount, DXGI_FORMAT_BC7_UNORM, &m_textureBufferRgba, device, &offset))
 		return false;
 
-	m_texturesSrgba.initialize(srbgaCount, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB);
-	m_texturesRgba.initialize(rgbaCount, DXGI_FORMAT_R8G8B8A8_UNORM);
+	m_texturesSrgba.initialize(srbgaCount, DXGI_FORMAT_BC7_UNORM_SRGB);
+	m_texturesRgba.initialize(rgbaCount, DXGI_FORMAT_BC7_UNORM);
 
 	return true;
 }
@@ -231,7 +208,7 @@ bool MaterialManager::tryGetTexture(const vx::StringID &sid, const ResourceAspec
 	auto texture = resourceAspect->getTexture(sid);
 	auto format = texture->getFormat();
 
-	if (format == Graphics::TextureFormat::SRGBA)
+	if (format == Graphics::TextureFormat::BC7_UNORM_SRGB)
 	{
 		TryGetTextureDesc tryDesc;
 		tryDesc.sid = sid;
@@ -244,7 +221,7 @@ bool MaterialManager::tryGetTexture(const vx::StringID &sid, const ResourceAspec
 		if (!m_texturesSrgba.tryGetTexture(tryDesc))
 			return false;
 	}
-	else if (format == Graphics::TextureFormat::RGBA)
+	else if (format == Graphics::TextureFormat::BC7_UNORM)
 	{
 		TryGetTextureDesc tryDesc;
 		tryDesc.sid = sid;
@@ -265,7 +242,7 @@ bool MaterialManager::tryGetTexture(const vx::StringID &sid, const ResourceAspec
 	return true;
 }
 
-bool MaterialManager::addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* outSlice)
+bool MaterialManager::addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* index, u32* slices)
 {
 	auto materialSid = material->getSid();
 	auto iterMaterial = m_materialEntries.find(materialSid);
@@ -294,7 +271,44 @@ bool MaterialManager::addMaterial(const Material* material, const ResourceAspect
 		iterMaterial = m_materialEntries.insert(materialSid, entry);
 	}
 
-	*outSlice = iterMaterial->diffuseSlice;
+	*index = iterMaterial->diffuseSlice;
+	*slices = iterMaterial->diffuseSlice | (iterMaterial->normalSlice << 8) | (iterMaterial->surfaceSlice << 16);
+
+	return true;
+}
+
+bool MaterialManager::addMaterial(const vx::StringID &materialSid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* index, u32* slices)
+{
+	auto iterMaterial = m_materialEntries.find(materialSid);
+	if (iterMaterial == m_materialEntries.end())
+	{
+		auto material = resourceAspect->getMaterial(materialSid);
+
+		auto diffuseTextureSid = material->m_textureSid[0];
+		auto normalTextureSid = material->m_textureSid[1];
+		auto surfaceTextureSid = material->m_textureSid[2];
+
+		u32 diffuseSlice = 0;
+		if (!tryGetTexture(diffuseTextureSid, resourceAspect, uploadManager, &diffuseSlice))
+			return false;
+
+		u32 normalSlice = 0;
+		if (!tryGetTexture(normalTextureSid, resourceAspect, uploadManager, &normalSlice))
+			return false;
+
+		u32 surfaceSlice = 0;
+		if (!tryGetTexture(surfaceTextureSid, resourceAspect, uploadManager, &surfaceSlice))
+			return false;
+
+		MaterialEntry entry;
+		entry.diffuseSlice = diffuseSlice;
+		entry.normalSlice = normalSlice;
+		entry.surfaceSlice = surfaceSlice;
+		iterMaterial = m_materialEntries.insert(materialSid, entry);
+	}
+
+	*index = iterMaterial->diffuseSlice;
+	*slices = iterMaterial->diffuseSlice | (iterMaterial->normalSlice << 8) | (iterMaterial->surfaceSlice << 16);
 
 	return true;
 }
