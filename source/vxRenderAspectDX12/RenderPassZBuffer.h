@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,50 +23,31 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "dllExport.h"
-#include "RenderAspect.h"
 
-RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
+struct ID3D12Device;
+
+#include "RenderPass.h"
+#include "DescriptorHeap.h"
+#include "Heap.h"
+
+class RenderPassZBuffer : public RenderPass
 {
-	const auto sz = sizeof(RenderAspect);
+	d3d::ResourceManager* m_resourceManager;
+	d3d::DescriptorHeap m_descriptorHeapRtv;
+	d3d::DescriptorHeap m_descriptorHeap;
+	d3d::Heap m_heap;
 
-	auto result = (RenderAspect*)_aligned_malloc(sizeof(RenderAspect), __alignof(RenderAspect));
-	new (result) RenderAspect{};
+	bool loadShaders(d3d::ShaderManager* shaderManager);
+	bool createRootSignature(ID3D12Device* device);
+	bool createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager);
+	bool createDescriptor(ID3D12Device* device, d3d::ResourceManager* resourceManager);
 
-	auto initError = result->initialize(desc);
-	if (initError != RenderAspectInitializeError::OK)
-	{
-		result->~RenderAspect();
-		_aligned_free(result);
-		result = nullptr;
-	}
+public:
+	RenderPassZBuffer();
+	~RenderPassZBuffer();
 
-	if (error)
-	{
-		*error = initError;
-	}
+	bool initialize(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, ID3D12Device* device, void* p) override;
+	void shutdown() override;
 
-	return result;
-}
-
-void destroyRenderAspect(RenderAspectInterface *p)
-{
-	if (p != nullptr)
-	{
-		auto ptr = (RenderAspect*)p;
-		ptr->~RenderAspect();
-		_aligned_free(ptr);
-	}
-}
-
-Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
-{
-	return nullptr;
-}
-
-void destroyEditorRenderAspect(Editor::RenderAspectInterface *p)
-{
-	if (p != nullptr)
-	{
-	}
-}
+	void submitCommands(ID3D12GraphicsCommandList* cmdList) override;
+};

@@ -59,34 +59,34 @@ namespace vx
 #include <vxLib/Allocator/StackAllocator.h>
 #include "ShaderManager.h"
 #include "DrawQuadRenderer.h"
+#include "ResourceManager.h"
+#include "RenderPassZBuffer.h"
 
-class RenderAspect : public RenderAspectInterface
+class VX_ALIGN(16) RenderAspect : public RenderAspectInterface
 {
 	d3d::Device m_device;
 	std::mutex m_mutexCmdList;
 	std::vector<DrawIndexedCommand> m_drawCommands;
-	std::vector<ID3D12CommandList*> m_cmdLists;
 	ID3D12GraphicsCommandList* m_commandList;
 	ID3D12GraphicsCommandList* m_commandListDrawMesh;
+	ID3D12GraphicsCommandList* m_commandCopyBuffers;
 	d3d::Object<ID3D12Resource> m_renderTarget[2];
 	d3d::Object<ID3D12Resource> m_indirectCmdBuffer;
-	d3d::Object<ID3D12Resource> m_depthTexture;
-	vx::sorted_vector<vx::StringID, ResourceView> m_resourceViews;
+	d3d::ResourceManager m_resourceManager;
 	u32 m_currentBuffer;
 	u32 m_lastBuffer;
 	d3d::Object<ID3D12CommandSignature> m_commandSignature;
 	vx::Camera m_camera;
 	GBufferRenderer m_gbufferRenderer;
 	DrawQuadRenderer m_drawQuadRenderer;
+	RenderPassZBuffer m_renderPassZBuffer;
 	vx::mat4 m_projectionMatrix;
+	vx::mat4 m_viewMatrixPrev;
+	f32 m_zFar;
+	f32 m_zNear;
 	UploadManager m_uploadManager;
-	d3d::Object<ID3D12Resource> m_constantBuffer;
-	d3d::Object<ID3D12Resource> m_transformBuffer;
-	d3d::Object<ID3D12Resource> m_materialBuffer;
 	d3d::Object<ID3D12Resource> m_lightBuffer;
-	d3d::DescriptorHeap m_descriptorHeapDsv;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
-	d3d::DescriptorHeap m_descriptorHeapBuffer;
 	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_rectScissor;
@@ -98,10 +98,13 @@ class RenderAspect : public RenderAspectInterface
 	d3d::Object<ID3D12Debug> m_debug;
 	d3d::Object<ID3D12InfoQueue> m_infoQueue;
 	vx::StackAllocator m_scratchAllocator;
+	vx::StackAllocator m_allocator;
 	vx::MessageManager* m_msgManager;
-	ShaderManager m_shaderManager;
+	d3d::ShaderManager m_shaderManager;
+	std::vector<u32> m_copyTransforms;
 
-	bool createHeaps();
+	bool createHeaps(const vx::uint2 &resolution);
+	bool createTextures(const vx::uint2 &resolution);
 	bool createCommandList();
 	bool createMeshBuffers();
 	bool createConstantBuffers();
@@ -121,8 +124,9 @@ class RenderAspect : public RenderAspectInterface
 	void updateCamera(const RenderUpdateCameraData &data);
 
 	void createCbvCamera();
-	void updateSrvTransform(u32 instanceCount);
-	void updateSrvMaterial(u32 instanceCount);
+	void createSrvTransformPrev(u32 instanceCount);
+	void createSrvTransform(u32 instanceCount);
+	void createSrvMaterial(u32 instanceCount);
 	void createSrvTextures(u32 srgbCount, u32 rgbCount);
 
 	void addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex);
@@ -132,8 +136,13 @@ class RenderAspect : public RenderAspectInterface
 	void drawScreenQuadGBuffer(ID3D12GraphicsCommandList* cmdList);
 
 	void updateTransform(const vx::Transform &transform, u32 index);
-	void updateTransform(const vx::TransformGpu &transform, u32 index);
+	void updateTransformStatic(const vx::TransformGpu &transform, u32 index);
+	void updateTransformDynamic(const vx::TransformGpu &transform, u32 index);
 
+	void copyTransform(u32 index);
+
+	void renderGBuffer();
+	void copyTransforms(ID3D12GraphicsCommandList* cmdList);
 	void updateLights(const Light* lights, u32 count);
 
 public:

@@ -130,15 +130,15 @@ void EntityAspect::builEntityQuadTree()
 	m_quadTree.insert(data.data(), data.size());*/
 }
 
-void EntityAspect::createPlayerEntity(const vx::float3 &position)
+void EntityAspect::createPlayerEntity(const CreateActorData &data)
 {
 	if (m_entityHuman == nullptr)
 	{
-		auto physicsAspect = Locator::getPhysicsAspect();
-		auto controller = physicsAspect->createActor(position, g_heightStanding);
+		auto transform = data.getTransform();
+		auto controller = data.getController();
 
 		m_entityHuman = &m_entityHumanData;
-		m_entityHuman->m_position = position;
+		m_entityHuman->m_position = transform.m_translation;
 		m_entityHuman->m_controller = controller;
 		m_entityHuman->m_orientation.x = 0;
 		m_entityHuman->m_orientation.y = 0;
@@ -146,7 +146,7 @@ void EntityAspect::createPlayerEntity(const vx::float3 &position)
 
 		m_playerController.initializePlayer(g_dt, m_entityHuman, Locator::getRenderAspect(), &m_componentActionManager);
 
-		physicsAspect->setHumanActor(controller->getActor());
+		Locator::getPhysicsAspect()->setHumanActor(controller->getActor());
 	}
 }
 
@@ -303,19 +303,6 @@ void EntityAspect::handleFileEvent(const vx::Message &evt)
 		m_taskManager->pushTask(new TaskSceneCreateActors(evtBlock, std::move(events),scene, renderAspect, physicsAspect));
 		m_taskManager->pushTask(new TaskSceneCreateStaticMeshes(scene, renderAspect));
 
-		auto spawns = scene->getSpawns();
-		auto spawnCount = scene->getSpawnCount();
-		auto evtManager = Locator::getMessageManager();
-
-		for (u32 i = 0; i < spawnCount; ++i)
-		{
-			auto &it = spawns[i];
-
-			if (it.type == PlayerType::Human)
-			{
-				createPlayerEntity(it.position);
-			}
-		}
 
 		auto bounds = scene->getNavMesh().getBounds();
 		bounds.min.y -= 0.1f;
@@ -365,7 +352,15 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 
 		if (data->isValid())
 		{
-			createActorEntity(*data);
+			auto type = data->getPlayerType();
+			if (type == PlayerType::Human)
+			{
+				createPlayerEntity(*data);
+			}
+			else
+			{
+				createActorEntity(*data);
+			}
 			delete(data);
 		}
 	}break;
@@ -374,7 +369,15 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
 		if (data->isValid())
 		{
-			createActorEntity(*data);
+			auto type = data->getPlayerType();
+			if (type == PlayerType::Human)
+			{
+				createPlayerEntity(*data);
+			}
+			else
+			{
+				createActorEntity(*data);
+			}
 			delete(data);
 		}
 

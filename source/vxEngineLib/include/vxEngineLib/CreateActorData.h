@@ -24,6 +24,7 @@ SOFTWARE.
 */
 
 class Scene;
+enum class PlayerType : u32;
 
 namespace physx
 {
@@ -32,6 +33,7 @@ namespace physx
 
 #include <vxLib/StringID.h>
 #include <vxEngineLib/Transform.h>
+#include <vxEngineLib/Actor.h>
 
 class CreateActorData
 {
@@ -44,9 +46,10 @@ class CreateActorData
 	u16 m_spawnIndex;
 	u16 m_gpuIndex;
 	u8 m_flags;
+	PlayerType m_type;
 
 public:
-	CreateActorData(const vx::Transform &transform, const vx::StringID &actorSid, const vx::StringID &meshSid, const vx::StringID &materialSid, f32 height, u16 spawnIndex)
+	CreateActorData(const vx::Transform &transform, const vx::StringID &actorSid, const vx::StringID &meshSid, const vx::StringID &materialSid, f32 height, u16 spawnIndex, PlayerType type)
 		:m_controller(nullptr),
 		m_transform(transform),
 		m_actorSid(actorSid),
@@ -55,7 +58,8 @@ public:
 		m_height(height),
 		m_spawnIndex(spawnIndex),
 		m_gpuIndex(0),
-		m_flags(0)
+		m_flags(0),
+		m_type(type)
 	{
 	}
 
@@ -82,9 +86,16 @@ public:
 
 	bool isValid() const
 	{
-		const auto flag = 1 << 0 | 1 << 1;
-
-		return ((m_flags & flag) == flag);
+		if (m_type == PlayerType::AI)
+		{
+			const auto flag = 1 << 0 | 1 << 1;
+			return ((m_flags & flag) == flag);
+		}
+		else
+		{
+			const auto flag = 1 << 0;
+			return ((m_flags & flag) == flag);
+		}
 	}
 
 	const vx::Transform& getTransform() const
@@ -115,5 +126,10 @@ public:
 	u16 getGpuIndex() const
 	{
 		return m_gpuIndex;
+	}
+
+	PlayerType getPlayerType() const
+	{
+		return m_type;
 	}
 };

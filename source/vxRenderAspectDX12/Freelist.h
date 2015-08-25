@@ -26,6 +26,12 @@ public:
 		m_freeEntries = capacity;
 	}
 
+	void destroy()
+	{
+		m_freeEntries = 0;
+		m_firstFreeEntry = 0;
+	}
+
 	u8* insertEntry(u8* begin, u32 stride)
 	{
 		if (m_freeEntries == 0)

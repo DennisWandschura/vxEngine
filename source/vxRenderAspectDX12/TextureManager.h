@@ -24,7 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct ID3D12Resource;
+class UploadManager;
+struct ID3D12Device;
 
 namespace vx
 {
@@ -34,7 +35,7 @@ namespace vx
 namespace d3d
 {
 	class Heap;
-	class Device;
+	class ResourceManager;
 }
 
 namespace Graphics
@@ -46,25 +47,35 @@ namespace Graphics
 #include "Freelist.h"
 #include "d3d.h"
 #include <vxLib/StringID.h>
+#include <vxLib/Container/sorted_array.h>
 
 class TextureManager
 {
 	struct Entry;
+	struct AddTextureDesc;
 
+	vx::sorted_array<vx::StringID, u32> m_sortedEntries;
 	Freelist m_freelist;
 	Entry* m_entries;
 	u32 m_capacity;
 	u32 m_format;
-	d3d::Resource m_textureBuffer;
+	ID3D12Resource* m_textureBuffer;
 
-	bool createTextureBuffer(const vx::uint3 &textureDim, u32 dxgiFormat, u32* heapOffset, d3d::Heap* heap, d3d::Device* device);
+	bool createTextureBuffer(const char* id, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::Heap* heap, d3d::ResourceManager* resourceManager, ID3D12Device* device);
+
+	void addTexture(const AddTextureDesc &desc);
+
+	Entry* findEntry(const vx::StringID &sid) const;
 
 public:
 	TextureManager();
 	~TextureManager();
 
-	bool initialize(vx::StackAllocator* allocator, const vx::uint3 &textureDim, u32 dxgiFormat, u32* heapOffset, d3d::Heap* heap, d3d::Device* device);
+	bool initialize(vx::StackAllocator* allocator, const char* textureId, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::Heap* heap, d3d::ResourceManager* resourceManager, ID3D12Device* device);
+	void shutdown();
 
-	bool addTexture(const vx::StringID &sid, const Graphics::Texture &texture, u32* slice);
+	bool addTexture(const vx::StringID &sid, const Graphics::Texture &texture, UploadManager* uploadManager, u32* slice);
 	bool removeTexture(const vx::StringID &sid);
+
+	ID3D12Resource* getTexture() { return m_textureBuffer; }
 };

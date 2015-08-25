@@ -27,10 +27,10 @@ SOFTWARE.
 #include "d3dx12.h"
 #include "ShaderManager.h"
 #include "Device.h"
-
-#include "d3dx12.h"
+#include "ResourceManager.h"
 
 GBufferRenderer::GBufferRenderer()
+	:m_depthSlice(nullptr)
 {
 
 }
@@ -40,15 +40,15 @@ GBufferRenderer::~GBufferRenderer()
 
 }
 
-bool GBufferRenderer::loadShaders(ShaderManager* shaderManager)
+bool GBufferRenderer::loadShaders(d3d::ShaderManager* shaderManager)
 {
-	if (!shaderManager->loadShader("MeshVertex.cso", L"../../lib/MeshVertex.cso", ShaderType::Vertex))
+	if (!shaderManager->loadShader("MeshVertex.cso", L"../../lib/MeshVertex.cso", d3d::ShaderType::Vertex))
 		return false;
 
-	if (!shaderManager->loadShader("DeepGBufferGs.cso", L"../../lib/DeepGBufferGs.cso", ShaderType::Geometry))
+	if (!shaderManager->loadShader("DeepGBufferGs.cso", L"../../lib/DeepGBufferGs.cso", d3d::ShaderType::Geometry))
 		return false;
 
-	if (!shaderManager->loadShader("PsGBuffer.cso", L"../../lib/PsGBuffer.cso", ShaderType::Pixel))
+	if (!shaderManager->loadShader("PsGBuffer.cso", L"../../lib/PsGBuffer.cso", d3d::ShaderType::Pixel))
 		return false;
 
 	return true;
@@ -56,27 +56,17 @@ bool GBufferRenderer::loadShaders(ShaderManager* shaderManager)
 
 bool GBufferRenderer::createRootSignature(ID3D12Device* device)
 {
-	CD3DX12_DESCRIPTOR_RANGE rangesVS[3];
+	CD3DX12_DESCRIPTOR_RANGE rangesVS[2];
 	rangesVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
-	rangesVS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, 1);
+	rangesVS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0, 1);
 
-	CD3DX12_DESCRIPTOR_RANGE rangesGS[1];
-	rangesGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
+	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 3, 0, 4);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
 
-	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 2, 0, 3);
-
-	CD3DX12_ROOT_PARAMETER rootParameters[3];
+	CD3DX12_ROOT_PARAMETER rootParameters[2];
 	rootParameters[0].InitAsDescriptorTable(2, rangesVS, D3D12_SHADER_VISIBILITY_VERTEX);
-	rootParameters[1].InitAsDescriptorTable(1, rangesGS, D3D12_SHADER_VISIBILITY_GEOMETRY);
-	rootParameters[2].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
-
-	D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+	rootParameters[1].InitAsDescriptorTable(2, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
 	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -94,7 +84,7 @@ bool GBufferRenderer::createRootSignature(ID3D12Device* device)
 	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.Init(3, rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	rootSignatureDesc.Init(2, rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	ID3DBlob* blob = nullptr;
 	ID3DBlob* errorBlob = nullptr;
@@ -109,7 +99,7 @@ bool GBufferRenderer::createRootSignature(ID3D12Device* device)
 	return true;
 }
 
-bool GBufferRenderer::createPipelineState(ID3D12Device* device, ShaderManager* shaderManager)
+bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
 	/*
 	float3 position : POSITION0;
@@ -143,10 +133,9 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, ShaderManager* s
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	psoDesc.NumRenderTargets = 3;
+	psoDesc.NumRenderTargets = 2;
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	psoDesc.RTVFormats[1] = DXGI_FORMAT_R16G16_FLOAT;
-	psoDesc.RTVFormats[2] = DXGI_FORMAT_R16G16_FLOAT;
+	psoDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	psoDesc.SampleDesc.Count = 1;
 
@@ -157,7 +146,7 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, ShaderManager* s
 	return true;
 }
 
-bool GBufferRenderer::createTextures(const vx::uint2 &resolution, d3d::Device* device)
+bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, const vx::uint2 &resolution, ID3D12Device* device)
 {
 	D3D12_HEAP_PROPERTIES props
 	{
@@ -174,7 +163,7 @@ bool GBufferRenderer::createTextures(const vx::uint2 &resolution, d3d::Device* d
 	descs[0].Width = resolution.x;
 	descs[0].Height = resolution.y;
 	descs[0].DepthOrArraySize = 2;
-	descs[0].MipLevels = 0;
+	descs[0].MipLevels = 1;
 	descs[0].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	descs[0].SampleDesc.Count = 1;
 	descs[0].SampleDesc.Quality = 0;
@@ -182,20 +171,22 @@ bool GBufferRenderer::createTextures(const vx::uint2 &resolution, d3d::Device* d
 	descs[0].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	descs[1] = descs[0];
-	descs[1].Format = DXGI_FORMAT_R16G16_FLOAT;
+	descs[1].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-	descs[2] = descs[1];
+	descs[2] = descs[0];
+	descs[2].Format = DXGI_FORMAT_R32_TYPELESS;
+	descs[2].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 	descs[3] = descs[0];
-	descs[3].Format = DXGI_FORMAT_D32_FLOAT;
-	descs[3].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	descs[3].Format = DXGI_FORMAT_R32_FLOAT;
+	descs[3].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-	auto szDiffuse = device->getDevice()->GetResourceAllocationInfo(1, 1, &descs[0]);
-	auto szNormal = device->getDevice()->GetResourceAllocationInfo(1, 1, &descs[1]);
-	auto szVelocity = device->getDevice()->GetResourceAllocationInfo(1, 1, &descs[2]);
-	auto szDepth = device->getDevice()->GetResourceAllocationInfo(1, 1, &descs[3]);
+	auto szDiffuse = device->GetResourceAllocationInfo(1, 1, &descs[0]);
+	auto szNormalVelocity = device->GetResourceAllocationInfo(1, 1, &descs[1]);
+	auto szDepth = device->GetResourceAllocationInfo(1, 1, &descs[2]);
+	auto szZBuffer = device->GetResourceAllocationInfo(1, 1, &descs[3]);
 
-	auto heapSize = szDiffuse.SizeInBytes + szNormal.SizeInBytes + szVelocity.SizeInBytes + szDepth.SizeInBytes;
+	auto heapSize = szDiffuse.SizeInBytes + szNormalVelocity.SizeInBytes + szDepth.SizeInBytes + szZBuffer.SizeInBytes;
 	if (!m_gbufferHeap.createRtHeap(heapSize, D3D12_HEAP_TYPE_DEFAULT, device))
 		return false;
 
@@ -206,34 +197,38 @@ bool GBufferRenderer::createTextures(const vx::uint2 &resolution, d3d::Device* d
 	diffuseOptimizedClearValue.Color[3] = 1.0f;
 	diffuseOptimizedClearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	if (!m_gbufferHeap.createResource(descs[0], 0, D3D12_RESOURCE_STATE_RENDER_TARGET, &diffuseOptimizedClearValue, m_diffuseSlice.getAddressOf(), device))
-		return false;
-
-	D3D12_CLEAR_VALUE normalOptimizedClearValue = {};
-	normalOptimizedClearValue.Color[0] = 1.0f;
-	normalOptimizedClearValue.Color[1] = 0.0f;
-	normalOptimizedClearValue.Color[2] = 0.0f;
-	normalOptimizedClearValue.Color[3] = 1.0f;
-	normalOptimizedClearValue.Format = DXGI_FORMAT_R16G16_FLOAT;
-
-	if (!m_gbufferHeap.createResource(descs[1], szDiffuse.SizeInBytes, D3D12_RESOURCE_STATE_RENDER_TARGET, &normalOptimizedClearValue, m_normalSlice.getAddressOf(), device))
-		return false;
-
-	if (!m_gbufferHeap.createResource(descs[2], szDiffuse.SizeInBytes + szNormal.SizeInBytes, D3D12_RESOURCE_STATE_RENDER_TARGET, &normalOptimizedClearValue, m_velocitySlice.getAddressOf(), device))
-		return false;
+	D3D12_CLEAR_VALUE normalVelocityOptimizedClearValue = {};
+	normalVelocityOptimizedClearValue.Color[0] = 1.0f;
+	normalVelocityOptimizedClearValue.Color[1] = 0.0f;
+	normalVelocityOptimizedClearValue.Color[2] = 0.0f;
+	normalVelocityOptimizedClearValue.Color[3] = 1.0f;
+	normalVelocityOptimizedClearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
 	D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
 	depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
 	depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
 	depthOptimizedClearValue.DepthStencil.Stencil = 0;
 
-	if (!m_gbufferHeap.createResource(descs[3], szDiffuse.SizeInBytes + szNormal.SizeInBytes + szVelocity.SizeInBytes, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthOptimizedClearValue, m_depthSlice.getAddressOf(), device))
+	d3d::Texture depthTexture;
+	d3d::Texture zBufferTexture;
+	d3d::HeapCreateResourceDesc resDesc[]=
+	{
+		{ szDiffuse.SizeInBytes, &descs[0], D3D12_RESOURCE_STATE_RENDER_TARGET, &diffuseOptimizedClearValue,  m_diffuseSlice.getAddressOf() },
+		{ szNormalVelocity.SizeInBytes, &descs[1], D3D12_RESOURCE_STATE_RENDER_TARGET, &normalVelocityOptimizedClearValue,  m_normalVelocitySlice.getAddressOf() },
+		{ szDepth.SizeInBytes, &descs[2], D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthOptimizedClearValue,  depthTexture.getAddressOf() },
+		{ szZBuffer.SizeInBytes, &descs[3], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, zBufferTexture.getAddressOf() }
+	};
+
+	if (!m_gbufferHeap.createResources(resDesc, _countof(resDesc)))
 		return false;
+
+	resourceManager->insertTexture("zBuffer", std::move(zBufferTexture));
+	resourceManager->insertTexture("gbufferDepth", std::move(depthTexture));
 
 	return true;
 }
 
-bool GBufferRenderer::createDescriptorHeap(d3d::Device* device)
+bool GBufferRenderer::createDescriptorHeap(ID3D12Device* device)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};
 	desc.NodeMask = 1;
@@ -244,7 +239,7 @@ bool GBufferRenderer::createDescriptorHeap(d3d::Device* device)
 	if (!m_descriptorHeapRt.create(desc, device))
 		return false;
 
-	desc.NumDescriptors = 1;
+	desc.NumDescriptors = 2;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	if (!m_descriptorHeapDs.create(desc, device))
 		return false;
@@ -252,25 +247,86 @@ bool GBufferRenderer::createDescriptorHeap(d3d::Device* device)
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NumDescriptors = 4;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	return m_descriptorHeapSrv.create(desc, device);
+	if (!m_descriptorHeapSrv.create(desc, device))
+		return false;
+
+	desc.NumDescriptors = 6;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	if (!m_descriptorHeapBuffers.create(desc, device))
+		return false;
+
+	return true;
 }
 
-bool GBufferRenderer::initialize(const vx::uint2 &resolution, d3d::Device* device, ShaderManager* shaderManager)
+void GBufferRenderer::createBufferViews(d3d::ResourceManager* resourceManager, ID3D12Device* device)
 {
+	auto cameraBufferViewDesc = resourceManager->getConstantBufferView("cameraBufferView");
+	auto transformBufferViewDesc = resourceManager->getShaderResourceView("transformBufferView");
+	auto transformBufferPrevViewDesc = resourceManager->getShaderResourceView("transformBufferPrevView");
+	auto materialBufferViewDesc = resourceManager->getShaderResourceView("materialBufferView");
+
+	auto srgbTextureViewDesc = resourceManager->getShaderResourceView("srgbTextureView");
+	auto rgbTextureViewDesc = resourceManager->getShaderResourceView("rgbTextureView");
+
+	auto transformBuffer = resourceManager->getBuffer("transformBuffer");
+	auto transformBufferPrev = resourceManager->getBuffer("transformBufferPrev");
+	auto materialBuffer = resourceManager->getBuffer("materialBuffer");
+	auto srgbTexture = resourceManager->getTexture("srgbTexture");
+	auto rgbTexture = resourceManager->getTexture("rgbTexture");
+
+	/*
+	VS
+	cbuffer CameraBuffer : register(b0)
+	StructuredBuffer<TransformGpu> s_transforms : register(t0);
+	StructuredBuffer<uint> s_materials : register(t1);
+	StructuredBuffer<TransformGpu> s_transformsPrev : register(t2);
+
+	PS
+	cbuffer CameraBuffer : register(b0)
+	Texture2DArray g_textureSrgba : register(t3);
+	Texture2DArray g_textureRgba : register(t4);
+	*/
+
+	auto handle = m_descriptorHeapBuffers.getHandleCpu();
+	device->CreateConstantBufferView(cameraBufferViewDesc, handle);
+
+	handle.offset(1);
+	device->CreateShaderResourceView(transformBuffer, transformBufferViewDesc, handle);
+
+	handle.offset(1);
+	device->CreateShaderResourceView(materialBuffer, materialBufferViewDesc, handle);
+
+	handle.offset(1);
+	device->CreateShaderResourceView(transformBufferPrev, transformBufferPrevViewDesc, handle);
+
+	handle.offset(1);
+	device->CreateShaderResourceView(srgbTexture, srgbTextureViewDesc, handle);
+
+	handle.offset(1);
+	device->CreateShaderResourceView(rgbTexture, rgbTextureViewDesc, handle);
+}
+
+bool GBufferRenderer::initialize(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, ID3D12Device* device, void* p)
+{
+	GBufferRendererInitDesc* desc = (GBufferRendererInitDesc*)p;
+	auto resolution = desc->resolution;
+
 	if (!loadShaders(shaderManager))
 		return false;
 
-	if (!createRootSignature(device->getDevice()))
+	if (!createRootSignature(device))
 		return false;
 
-	if (!createPipelineState(device->getDevice(), shaderManager))
+	if (!createPipelineState(device, shaderManager))
 		return false;
 
-	if (!createTextures(resolution, device))
+	if (!createTextures(resourceManager, resolution, device))
 		return false;
 
 	if (!createDescriptorHeap(device))
 		return false;
+
+	m_depthSlice = resourceManager->getTexture("gbufferDepth");
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc;
 	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -279,7 +335,12 @@ bool GBufferRenderer::initialize(const vx::uint2 &resolution, d3d::Device* devic
 	depthViewDesc.Texture2DArray.ArraySize = 2;
 	depthViewDesc.Texture2DArray.FirstArraySlice = 0;
 	depthViewDesc.Texture2DArray.MipSlice = 0;
-	device->getDevice()->CreateDepthStencilView(m_depthSlice.get(), &depthViewDesc, m_descriptorHeapDs.getHandleCpu());
+	auto dsHandle = m_descriptorHeapDs.getHandleCpu();
+	device->CreateDepthStencilView(m_depthSlice, &depthViewDesc, dsHandle);
+
+	dsHandle.offset(1);
+	depthViewDesc.Texture2DArray.ArraySize = 1;
+	device->CreateDepthStencilView(m_depthSlice, &depthViewDesc, dsHandle);
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -290,15 +351,11 @@ bool GBufferRenderer::initialize(const vx::uint2 &resolution, d3d::Device* devic
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
 	auto handle = m_descriptorHeapRt.getHandleCpu();
-	device->getDevice()->CreateRenderTargetView(m_diffuseSlice.get(), &rtvDesc, handle);
+	device->CreateRenderTargetView(m_diffuseSlice.get(), &rtvDesc, handle);
 
 	handle.offset(1);
-	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-	device->getDevice()->CreateRenderTargetView(m_normalSlice.get(), &rtvDesc, handle);
-
-	handle.offset(1);
-	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-	device->getDevice()->CreateRenderTargetView(m_velocitySlice.get(), &rtvDesc, handle);
+	rtvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	device->CreateRenderTargetView(m_normalVelocitySlice.get(), &rtvDesc, handle);
 
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -313,43 +370,78 @@ bool GBufferRenderer::initialize(const vx::uint2 &resolution, d3d::Device* devic
 		srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
 
 		auto handle = m_descriptorHeapSrv.getHandleCpu();
-		device->getDevice()->CreateShaderResourceView(m_diffuseSlice.get(), &srvDesc, handle);
+		device->CreateShaderResourceView(m_diffuseSlice.get(), &srvDesc, handle);
 
 		handle.offset(1);
-		srvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-		device->getDevice()->CreateShaderResourceView(m_normalSlice.get(), &srvDesc, handle);
-
-		handle.offset(1);
-		srvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-		device->getDevice()->CreateShaderResourceView(m_velocitySlice.get(), &srvDesc, handle);
+		srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		device->CreateShaderResourceView(m_normalVelocitySlice.get(), &srvDesc, handle);
 	}
+
+	createBufferViews(resourceManager, device);
 
 	return true;
 }
 
+void GBufferRenderer::shutdown()
+{
+	m_normalVelocitySlice.destroy();
+	m_diffuseSlice.destroy();
+	m_descriptorHeapRt.destroy();
+	m_descriptorHeapDs.destroy();
+	m_descriptorHeapSrv.destroy();
+	m_descriptorHeapBuffers.destroy();
+	m_gbufferHeap.destroy();
+}
+
 void GBufferRenderer::submitCommands(ID3D12GraphicsCommandList* cmdList)
 {
+	// copy layer 0 depth buffer to layer 1
+	CD3DX12_RESOURCE_BARRIER barriers[2];
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE, 0);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_DEST, 1);
+	cmdList->ResourceBarrier(2, barriers);
+
+	CD3DX12_TEXTURE_COPY_LOCATION src(m_depthSlice, 0);
+	CD3DX12_TEXTURE_COPY_LOCATION dst(m_depthSlice, 1);
+	cmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+
+	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE, 0);
+	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_DEPTH_WRITE, 1);
+	cmdList->ResourceBarrier(2, barriers);
+
 	const f32 clearColor[] = { 1.0f, 0.0f, 0.0f, 1 };
 
 	auto handleCpu = m_descriptorHeapRt.getHandleCpu();
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[3];
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];
 	rtvHandles[0] = handleCpu;
 	handleCpu.offset(1);
 	rtvHandles[1] = handleCpu;
-	handleCpu.offset(1);
-	rtvHandles[2] = handleCpu;
 
+	auto dsvHandle = m_descriptorHeapDs.getHandleCpu();;
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandles[1];
-	dsvHandles[0] = m_descriptorHeapDs.getHandleCpu();
+	dsvHandles[0] = dsvHandle;
 
-	cmdList->OMSetRenderTargets(3, rtvHandles, FALSE, dsvHandles);
+	dsvHandle.offset(1);
+	auto dsvHandleClear = dsvHandle;
+
+	ID3D12DescriptorHeap* heaps[]
+	{
+		m_descriptorHeapBuffers.get()
+	};
+
+	cmdList->SetDescriptorHeaps(1, heaps);
+
+	cmdList->OMSetRenderTargets(2, rtvHandles, FALSE, dsvHandles);
 	cmdList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
 	cmdList->ClearRenderTargetView(rtvHandles[1], clearColor, 0, nullptr);
-	cmdList->ClearRenderTargetView(rtvHandles[2], clearColor, 0, nullptr);
-	cmdList->ClearDepthStencilView(dsvHandles[0], D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+	cmdList->ClearDepthStencilView(dsvHandleClear, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	cmdList->SetGraphicsRootSignature(m_rootSignature.get());
 	cmdList->SetPipelineState(m_pipelineState.get());
+
+	cmdList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
+	cmdList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
 }
 
 void GBufferRenderer::bindSrvBegin(ID3D12GraphicsCommandList* cmdList)
@@ -360,8 +452,7 @@ void GBufferRenderer::bindSrvBegin(ID3D12GraphicsCommandList* cmdList)
 	};
 
 	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_diffuseSlice.get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_normalSlice.get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_velocitySlice.get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_normalVelocitySlice.get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	cmdList->SetDescriptorHeaps(1, heaps);
 
@@ -370,7 +461,6 @@ void GBufferRenderer::bindSrvBegin(ID3D12GraphicsCommandList* cmdList)
 
 void GBufferRenderer::bindSrvEnd(ID3D12GraphicsCommandList* cmdList)
 {
+	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_normalVelocitySlice.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_diffuseSlice.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_normalSlice.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_velocitySlice.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 }

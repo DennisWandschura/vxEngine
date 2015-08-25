@@ -6,25 +6,30 @@ struct ID3D10Blob;
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
 
-enum ShaderType : u32
+namespace d3d
 {
-	Vertex,
-	Geometry,
-	Pixel
-};
+	enum class ShaderType : u32
+	{
+		Vertex,
+		Geometry,
+		Pixel
+	};
 
-class ShaderManager
-{
-	struct Entry;
+	class ShaderManager
+	{
+		struct Entry;
 
-	vx::sorted_vector<vx::StringID, Entry> m_shaders;
+		vx::sorted_vector<vx::StringID, Entry> m_shaders;
 
-public:
-	ShaderManager();
-	~ShaderManager();
+	public:
+		ShaderManager();
+		~ShaderManager();
 
-	bool loadShader(const char* id, const wchar_t* name, ShaderType type);
+		void shutdown();
 
-	const ID3D10Blob* getShader(const char* name) const;
-	ID3D10Blob* getShader(const char* name);
-};
+		bool loadShader(const char* id, const wchar_t* name, ShaderType type);
+
+		const ID3D10Blob* getShader(const char* name) const;
+		ID3D10Blob* getShader(const char* name);
+	};
+}

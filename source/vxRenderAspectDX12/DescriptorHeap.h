@@ -27,6 +27,7 @@ SOFTWARE.
 struct ID3D12DescriptorHeap;
 struct D3D12_DESCRIPTOR_HEAP_DESC;
 struct D3D12_CPU_DESCRIPTOR_HANDLE;
+struct ID3D12Device;
 
 enum D3D12_DESCRIPTOR_HEAP_TYPE;
 
@@ -35,7 +36,6 @@ enum D3D12_DESCRIPTOR_HEAP_TYPE;
 namespace d3d
 {
 	class DescriptorHeap;
-	class Device;
 
 	struct DescriptorHandleCpu
 	{
@@ -63,7 +63,7 @@ namespace d3d
 		DescriptorHeap();
 		~DescriptorHeap();
 
-		bool create(const D3D12_DESCRIPTOR_HEAP_DESC &desc, Device* device);
+		bool create(const D3D12_DESCRIPTOR_HEAP_DESC &desc, ID3D12Device* device);
 		void destroy();
 
 		ID3D12DescriptorHeap* operator->() { return m_heap.get(); }

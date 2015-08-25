@@ -38,9 +38,30 @@ namespace d3d
 
 	public:
 		Object() :m_object(nullptr) {}
+
+		Object(const Object&) = delete;
+
+		Object(Object &&rhs)
+			:m_object(rhs.m_object)
+		{
+			rhs.m_object = nullptr;
+		}
+
 		~Object()
 		{
 			destroy();
+		}
+
+		Object& operator=(const Object&) = delete;
+
+		Object& operator=(Object &&rhs)
+		{
+			if (this != &rhs)
+			{
+				std::swap(m_object, rhs.m_object);
+			}
+
+			return *this;
 		}
 
 		void destroy()
@@ -92,5 +113,6 @@ namespace d3d
 		enum : size_t { size = (sizeof(T) * COUNT) + (ALIGNMENT - 1) & ~(ALIGNMENT - 1) };
 	};
 
-	typedef Object<ID3D12Resource> Resource;
+	typedef Object<ID3D12Resource> Buffer;
+	typedef Object<ID3D12Resource> Texture;
 }

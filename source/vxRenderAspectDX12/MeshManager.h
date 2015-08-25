@@ -31,16 +31,12 @@ struct D3D12_INDEX_BUFFER_VIEW;
 class MeshInstance;
 struct Vertex;
 class ResourceAspectInterface;
+class UploadManager;
 
 namespace vx
 {
 	class MeshFile;
 	class Mesh;
-}
-
-namespace d3d
-{
-	class Device;
 }
 
 #include <vxLib/Container/sorted_vector.h>
@@ -73,24 +69,26 @@ class MeshManager
 	d3d::Heap m_geometryHeap;
 	vx::sorted_vector<vx::StringID, DrawIndexedCommand> m_sortedDrawCommands;
 
-	bool createHeap(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device);
-	bool createBuffers(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device);
+	bool createHeap(u32 vertexCount, u32 indexCount, u32 instanceCount, ID3D12Device* device);
+	bool createBuffers(u32 vertexCount, u32 indexCount, u32 instanceCount, ID3D12Device* device);
 
-	void uploadVertices(const Vertex* vertices, u32 count, u32 offset);
-	void uploadIndices(const u32* indices, u32 count, u32 offset);
+	void uploadVertices(const Vertex* vertices, u32 count, u32 offset, UploadManager* uploadMgr);
+	void uploadIndices(const u32* indices, u32 count, u32 offset, UploadManager* uploadMgr);
 
-	const MeshEntry* addMeshEntry(const vx::StringID &sid, const vx::Mesh &mesh);
+	const MeshEntry* addMeshEntry(const vx::StringID &sid, const vx::Mesh &mesh, UploadManager* uploadMgr);
 	const MeshEntry* getMeshEntry(const vx::StringID &sid) const;
+
+	void addMeshInstanceImpl(const vx::StringID &instanceSid, const MeshEntry &meshEntry, u16 materialIndex, UploadManager* uploadMgr, DrawIndexedCommand* outCmd);
 
 public:
 	MeshManager();
 	~MeshManager();
 
-	bool initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device, vx::StackAllocator* allocator);
+	bool initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, ID3D12Device* device, vx::StackAllocator* allocator);
 	void shutdown();
 
-	void addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* cmd);
-	void addMeshInstance(const vx::StringID &instanceSid, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect, DrawIndexedCommand* outCmd);
+	void addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, UploadManager* uploadMgr, DrawIndexedCommand* cmd);
+	void addMeshInstance(const vx::StringID &instanceSid, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect, UploadManager* uploadMgr, DrawIndexedCommand* outCmd);
 
 	d3d::Object<ID3D12Resource>& getVertexBuffer() { return m_vertexBuffer;}
 	d3d::Object<ID3D12Resource>& getIndexBuffer() { return m_indexBuffer; }

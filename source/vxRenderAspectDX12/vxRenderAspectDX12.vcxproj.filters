@@ -25,14 +25,23 @@
     <Filter Include="Header Files\Gpu">
       <UniqueIdentifier>{9f126c40-d39a-43b0-9715-9bc48e3332c4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\gbuffer">
-      <UniqueIdentifier>{c0397c63-136b-4df8-84e8-19a52375ddf1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\draw quad">
       <UniqueIdentifier>{e3ee47c7-3d3c-4c01-af6b-410060a4c8f2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\RenderPass">
       <UniqueIdentifier>{3f0a05dc-d901-4d8b-a5b4-e682219cd32a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\ao">
+      <UniqueIdentifier>{e3325321-421f-4f8c-acad-49568a03a04b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\create gbuffer">
+      <UniqueIdentifier>{c0397c63-136b-4df8-84e8-19a52375ddf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\create radiosity buffer">
+      <UniqueIdentifier>{d621decb-3d3f-40a4-b1fa-07ee204a4f2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\math">
+      <UniqueIdentifier>{d1518f71-b303-466f-a769-211daa75df82}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -129,6 +138,21 @@
     <ClInclude Include="RenderPass.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="reconstructFromDepth.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassZBuffer.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mat4d.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -179,19 +203,25 @@
     <ClCompile Include="ShaderManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RenderPassZBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="PsGBuffer.hlsl">
-      <Filter>Shaders\gbuffer</Filter>
+      <Filter>Shaders\create gbuffer</Filter>
     </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="MeshVertex.hlsl">
-      <Filter>Shaders\gbuffer</Filter>
+      <Filter>Shaders\create gbuffer</Filter>
     </FxCompile>
     <FxCompile Include="DrawQuadVs.hlsl">
       <Filter>Shaders\draw quad</Filter>
@@ -203,7 +233,16 @@
       <Filter>Shaders\draw quad</Filter>
     </FxCompile>
     <FxCompile Include="DeepGBufferGs.hlsl">
-      <Filter>Shaders\gbuffer</Filter>
+      <Filter>Shaders\create gbuffer</Filter>
+    </FxCompile>
+    <FxCompile Include="AoPS.hlsl">
+      <Filter>Shaders\ao</Filter>
+    </FxCompile>
+    <FxCompile Include="CreateRadiosityPS.hlsl">
+      <Filter>Shaders\create radiosity buffer</Filter>
+    </FxCompile>
+    <FxCompile Include="CreateZBufferPS.hlsl">
+      <Filter>Shaders\ao</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

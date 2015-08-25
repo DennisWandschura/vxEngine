@@ -65,16 +65,16 @@ namespace d3d
 
 	}
 
-	bool DescriptorHeap::create(const D3D12_DESCRIPTOR_HEAP_DESC &desc, Device* device)
+	bool DescriptorHeap::create(const D3D12_DESCRIPTOR_HEAP_DESC &desc, ID3D12Device* device)
 	{
 		bool result = true;
 
 		if (m_heap.get() == nullptr)
 		{
-			result = (device->getDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(m_heap.getAddressOf())) == 0);
+			result = (device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(m_heap.getAddressOf())) == 0);
 			if (result)
 			{
-				m_incrementSize = device->getDevice()->GetDescriptorHandleIncrementSize(desc.Type);
+				m_incrementSize = device->GetDescriptorHandleIncrementSize(desc.Type);
 				m_type = desc.Type;
 			}
 		}

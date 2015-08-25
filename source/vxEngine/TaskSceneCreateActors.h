@@ -39,11 +39,11 @@ class TaskSceneCreateActors : public Task
 	RenderAspectInterface* m_renderAspect;
 	PhysicsAspect* m_physicsAspect;
 
+	TaskReturnType runImpl() override;
+
 public:
 	TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene, RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect);
 	~TaskSceneCreateActors();
-
-	TaskReturnType runImpl() override;
 
 	f32 getTimeMs() const override;
 };

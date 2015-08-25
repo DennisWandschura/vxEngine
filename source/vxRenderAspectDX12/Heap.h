@@ -28,6 +28,7 @@ struct ID3D12Heap;
 struct ID3D12Resource;
 struct D3D12_HEAP_DESC;
 struct D3D12_RESOURCE_DESC;
+struct ID3D12Device;
 
 enum D3D12_HEAP_TYPE;
 enum D3D12_RESOURCE_STATES;
@@ -38,34 +39,49 @@ struct D3D12_CLEAR_VALUE;
 
 namespace d3d
 {
-	class Device;
+	struct BufferResourceDesc
+	{
+		u64 size;
+		D3D12_RESOURCE_STATES state; 
+		ID3D12Resource** resource;
+	};
+
+	struct HeapCreateResourceDesc
+	{
+		u64 size;
+		const D3D12_RESOURCE_DESC* desc;
+		D3D12_RESOURCE_STATES state;
+		const D3D12_CLEAR_VALUE* clearValue; 
+		ID3D12Resource** resource;
+	};
 
 	class Heap
 	{
 		struct Page;
 
 		Object<ID3D12Heap> m_heap;
-		std::unique_ptr<Page[]> m_pages;
-		u32 m_pageCount;
-		u32 m_pageSize;
+		ID3D12Device* m_device;
+		u64 m_offset;
+		u64 m_capacity;
 
-		void init(u64 size, u64 alignment);
-
-		bool createHeap(u32 flags, u64 size, D3D12_HEAP_TYPE type, Device* device);
+		bool createHeap(u32 flags, u64 size, D3D12_HEAP_TYPE type, ID3D12Device* device);
+		bool createBuffer(const BufferResourceDesc &desc);
 
 	public:
 		Heap(); 
 		~Heap();
 
-		bool create(const D3D12_HEAP_DESC &desc, Device* device);
+		bool create(const D3D12_HEAP_DESC &desc, ID3D12Device* device);
 		void destroy();
 
-		bool createBufferHeap(u64 size, D3D12_HEAP_TYPE type, Device* device);
-		bool createTextureHeap(u64 size, D3D12_HEAP_TYPE type, Device* device);
-		bool createRtHeap(u64 size, D3D12_HEAP_TYPE type, Device* device);
+		bool createBufferHeap(u64 size, D3D12_HEAP_TYPE type, ID3D12Device* device);
+		bool createTextureHeap(u64 size, D3D12_HEAP_TYPE type, ID3D12Device* device);
+		bool createRtHeap(u64 size, D3D12_HEAP_TYPE type, ID3D12Device* device);
 
-		bool createResource(const D3D12_RESOURCE_DESC &desc, u64 offset, D3D12_RESOURCE_STATES state, const D3D12_CLEAR_VALUE* clearValue, ID3D12Resource** resource, Device* device);
-		bool createResourceBuffer(u64 size, u64 offset, D3D12_RESOURCE_STATES state, ID3D12Resource** resource, Device* device);
+		bool createResource(const HeapCreateResourceDesc &desc);
+		bool createResources(const HeapCreateResourceDesc* desc, u32 count);
+		bool createResourceBuffer(const BufferResourceDesc &desc);
+		bool createResourceBuffer(const BufferResourceDesc* desc, u32 count);
 
 		ID3D12Heap* get() { return m_heap.get(); }
 	};

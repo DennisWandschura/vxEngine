@@ -13,15 +13,15 @@ DrawQuadRenderer::~DrawQuadRenderer()
 
 }
 
-bool DrawQuadRenderer::loadShaders(ShaderManager* shaderManager)
+bool DrawQuadRenderer::loadShaders(d3d::ShaderManager* shaderManager)
 {
-	if (!shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", ShaderType::Vertex))
+	if (!shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", d3d::ShaderType::Vertex))
 		return false;
 
-	if (!shaderManager->loadShader("DrawQuadGs.cso", L"../../lib/DrawQuadGs.cso", ShaderType::Geometry))
+	if (!shaderManager->loadShader("DrawQuadGs.cso", L"../../lib/DrawQuadGs.cso", d3d::ShaderType::Geometry))
 		return false;
 
-	if (!shaderManager->loadShader("DrawQuadPs.cso", L"../../lib/DrawQuadPs.cso", ShaderType::Pixel))
+	if (!shaderManager->loadShader("DrawQuadPs.cso", L"../../lib/DrawQuadPs.cso", d3d::ShaderType::Pixel))
 		return false;
 
 	return true;
@@ -30,7 +30,7 @@ bool DrawQuadRenderer::loadShaders(ShaderManager* shaderManager)
 bool DrawQuadRenderer::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -44,9 +44,9 @@ bool DrawQuadRenderer::createRootSignature(ID3D12Device* device)
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
 	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-	sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-	sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-	sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	sampler.MipLODBias = 0;
 	sampler.MaxAnisotropy = 0;
 	sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
@@ -73,7 +73,7 @@ bool DrawQuadRenderer::createRootSignature(ID3D12Device* device)
 	return true;
 }
 
-bool DrawQuadRenderer::createPipelineState(ID3D12Device* device, ShaderManager* shaderManager)
+bool DrawQuadRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
 	auto vsShader = shaderManager->getShader("DrawQuadVs.cso");
 	auto gsShader = shaderManager->getShader("DrawQuadGs.cso");
@@ -103,7 +103,7 @@ bool DrawQuadRenderer::createPipelineState(ID3D12Device* device, ShaderManager* 
 	return true;
 }
 
-bool DrawQuadRenderer::initialize(ID3D12Device* device, ShaderManager* shaderManager)
+bool DrawQuadRenderer::initialize(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
 	if (!loadShaders(shaderManager))
 		return false;

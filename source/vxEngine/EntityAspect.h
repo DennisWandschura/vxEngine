@@ -82,6 +82,8 @@ class EntityAspect : public vx::MessageListener
 	void updateEntityActor(f32 dt);
 	void updateEntityDynamic(f32 dt);
 
+	void createPlayerEntity(const CreateActorData &data);
+
 public:
 	EntityAspect();
 	~EntityAspect();
@@ -98,8 +100,6 @@ public:
 	void update(f32 dt, ActionManager* actionManager);
 
 	//////////////////
-
-	void createPlayerEntity(const vx::float3 &position);
 
 	void handleMessage(const vx::Message &evt);
 

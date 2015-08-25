@@ -13,6 +13,8 @@
 *.exe
 *.fdb
 
+*.diagsession
+
 game/
 
 # Build results

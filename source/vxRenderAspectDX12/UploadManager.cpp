@@ -27,6 +27,11 @@ SOFTWARE.
 #include "Device.h"
 #include <atomic>
 
+namespace UploadManagerCpp
+{
+	const u64 g_bufferSize = d3d::AlignedSize<20u MBYTE, 64u KBYTE>::size;;
+}
+
 struct UploadManager::UploadTask
 {
 	UploadTaskType type;
@@ -87,55 +92,48 @@ UploadManager::~UploadManager()
 
 }
 
-bool UploadManager::createHeap(d3d::Device* device)
+bool UploadManager::createHeap(ID3D12Device* device)
 {
-	auto bufferSize = d3d::getAlignedSize(10u MBYTE, 64u KBYTE);
-	if (!m_heap.createBufferHeap(bufferSize, D3D12_HEAP_TYPE_UPLOAD, device))
+	if (!m_heap.createBufferHeap(UploadManagerCpp::g_bufferSize, D3D12_HEAP_TYPE_UPLOAD, device))
 		return false;
 
 	return true;
 }
-bool UploadManager::initialize(d3d::Device* device)
+bool UploadManager::initialize(ID3D12Device* device)
 {
 	if (!createHeap(device))
 		return false;
 
-	auto bufferSize = d3d::getAlignedSize(10u MBYTE, 64u KBYTE);
-	if (!m_heap.createResourceBuffer(bufferSize, 0, D3D12_RESOURCE_STATE_GENERIC_READ, m_uploadBuffer.getAddressOf(), device))
+	d3d::BufferResourceDesc desc;
+	desc.size = UploadManagerCpp::g_bufferSize;
+	desc.state = D3D12_RESOURCE_STATE_GENERIC_READ;
+	desc.resource = m_uploadBuffer.getAddressOf();
+	if (!m_heap.createResourceBuffer(desc))
 		return false;
 
-	auto hresult = device->getDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_commandAllocator.getAddressOf()));
+	auto hresult = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_commandAllocator.getAddressOf()));
 	if (hresult != 0)
 		return false;
 
-	hresult = device->getDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr, IID_PPV_ARGS(m_commandList.getAddressOf()));
+	hresult = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr, IID_PPV_ARGS(m_commandList.getAddressOf()));
 	if (hresult != 0)
 		return false;
 
 	m_commandList->Close();
 
-	/*D3D12_RESOURCE_DESC resDesc;
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resDesc.Alignment = 64 KBYTE;
-	resDesc.Width = 1024;
-	resDesc.Height = 1024;
-	resDesc.DepthOrArraySize = 1;
-	resDesc.MipLevels = 1;
-	resDesc.Format = DXGI_FORMAT_BC7_UNORM_SRGB;
-	resDesc.SampleDesc.Count = 1;
-	resDesc.SampleDesc.Quality = 0;
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprints;
-	u32 rowCount = 0;
-	u64 rowSizeBytes = 0;
-	u64 totalBytes = 0;
-	device->getDevice()->GetCopyableFootprints(&resDesc, 0, 1, 250, &footprints, &rowCount,&rowSizeBytes,&totalBytes);*/
-
-	m_capacity = bufferSize;
+	m_capacity = UploadManagerCpp::g_bufferSize;
 
 	return true;
+}
+
+void UploadManager::shutdown()
+{
+	m_capacity = 0;
+
+	m_commandList.destroy();
+	m_commandAllocator.destroy();
+	m_uploadBuffer.destroy();
+	m_heap.destroy();
 }
 
 void UploadManager::uploadData(const UploadDesc &desc)

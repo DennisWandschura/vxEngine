@@ -32,7 +32,7 @@ class UploadManager;
 
 namespace d3d
 {
-	class Device;
+	class ResourceManager;
 }
 
 #include "d3d.h"
@@ -40,44 +40,19 @@ namespace d3d
 #include <vxLib/math/Vector.h>
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
-#include "Freelist.h"
+#include "TextureManager.h"
 
 class MaterialManager
 {
 	struct MaterialEntry;
-	struct AddTextureDesc;
-	struct TryGetTextureDesc;
-
-	class TextureArray
-	{
-		vx::sorted_vector<vx::StringID, u32> m_sortedEntries;
-		std::unique_ptr<u32[]> m_freelistData;
-		Freelist m_freelist;
-		u32 m_format;
-		u32 m_capacity;
-
-		void addTexture(const AddTextureDesc &desc);
-
-	public:
-		TextureArray();
-		~TextureArray();
-
-		void initialize(u32 maxTextureCount, u32 format);
-		
-		bool tryGetTexture(const TryGetTextureDesc &desc);
-
-		u32 getCapacity() const { return m_capacity; }
-	};
 
 	vx::sorted_vector<vx::StringID, MaterialEntry> m_materialEntries;
-	TextureArray m_texturesSrgba;
-	TextureArray m_texturesRgba;
-	d3d::Object<ID3D12Resource> m_textureBufferSrgba;
-	d3d::Object<ID3D12Resource> m_textureBufferRgba;
+	TextureManager m_texturesSrgba;
+	TextureManager m_texturesRgba;
 	d3d::Heap m_textureHeap;
 
-	bool createHeap(d3d::Device* device);
-	bool createTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, u32 format, d3d::Object<ID3D12Resource>* res, d3d::Device* device, u32* offset);
+	bool createHeap(ID3D12Device* device);
+	bool createTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, u32 format, d3d::Object<ID3D12Resource>* res, ID3D12Device* device, u32* offset);
 
 	bool tryGetTexture(const vx::StringID &sid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* slice);
 
@@ -85,11 +60,9 @@ public:
 	MaterialManager();
 	~MaterialManager();
 
-	bool initialize(const vx::uint2 &textureResolution, u32 srgbaCount, u32 rgbaCount, d3d::Device* device);
+	bool initialize(const vx::uint2 &textureResolution, u32 srgbaCount, u32 rgbaCount, vx::StackAllocator* allocator, d3d::ResourceManager* resourceManager, ID3D12Device* device);
+	void shutdown();
 
 	bool addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* index, u32* slices);
 	bool addMaterial(const vx::StringID &materialSid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* index, u32* slices);
-
-	d3d::Object<ID3D12Resource>& getTextureBufferSrgba() { return m_textureBufferSrgba; }
-	d3d::Object<ID3D12Resource>& getTextureBufferRgba() { return m_textureBufferRgba; }
 };

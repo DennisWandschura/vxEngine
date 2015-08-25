@@ -34,6 +34,7 @@ SOFTWARE.
 #include <vxEngineLib/MessageTypes.h>
 #include "PhysicsAspect.h"
 #include <vxEngineLib/Locator.h>
+#include "PhysicsDefines.h"
 
 thread_local f32 TaskSceneCreateActors::s_time{0.0f};
 thread_local u64 TaskSceneCreateActors::s_counter{0};
@@ -64,35 +65,41 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 	for (u32 i = 0; i < spawnCount; ++i)
 	{
 		auto &it = spawns[i];
+		auto &actors = m_scene->getActors();
+		auto itActor = actors.find(it.sid);
+
+		vx::Transform transform;
+		transform.m_qRotation = vx::float4(0, 0, 0, 1);
+		transform.m_scaling = 1.0f;
+		transform.m_translation = it.position;
+
+		vx::StringID sidMesh, sidMaterial;
+		f32 height = g_heightStanding;
+		if (it.type != PlayerType::Human)
+		{
+			sidMesh = itActor->m_mesh;
+			sidMaterial = itActor->m_material;
+			height = 2.0f;
+		}
+
+		CreateActorData* data = new CreateActorData(transform, it.sid, sidMesh, sidMaterial, height, i, it.type);
 
 		if (it.type != PlayerType::Human)
 		{
-			auto &actors = m_scene->getActors();
-			auto itActor = actors.find(it.sid);
-
-			vx::Transform transform;
-			transform.m_qRotation = vx::float4(0, 0, 0, 1);
-			transform.m_scaling = 1.0f;
-			transform.m_translation = it.position;
-
-			CreateActorData* data = new CreateActorData(transform, it.sid, itActor->m_mesh, itActor->m_material, 2.0f, i);
-
-			RenderUpdateTaskType type = RenderUpdateTaskType::CreateActorGpuIndex;
-
 			std::size_t address = (std::size_t)data;
 
-			m_renderAspect->queueUpdateTask(type, (u8*)&address, sizeof(std::size_t));
-
-			auto controller = m_physicsAspect->createActor(transform.m_translation, data->getHeight());
-			data->setPhysx(controller);
-
-			vx::Message msg;
-			msg.type = vx::MessageType::Ingame_Event;
-			msg.code = (u32)IngameMessage::Physx_AddActor;
-			msg.arg1.ptr = data;
-
-			msgManager->addMessage(msg);
+			m_renderAspect->queueUpdateTask(RenderUpdateTaskType::CreateActorGpuIndex, (u8*)&address, sizeof(std::size_t));
 		}
+		
+		auto controller = m_physicsAspect->createActor(transform.m_translation, height);
+		data->setPhysx(controller);
+
+		vx::Message msg;
+		msg.type = vx::MessageType::Ingame_Event;
+		msg.code = (u32)IngameMessage::Physx_AddedActor;
+		msg.arg1.ptr = data;
+
+		msgManager->addMessage(msg);
 	}
 
 	auto time = timer.getTimeMs();

@@ -27,6 +27,8 @@ SOFTWARE.
 #include <d3d12.h>
 #include "Heap.h"
 #include <vxEngineLib/Graphics/Texture.h>
+#include "UploadManager.h"
+#include "ResourceManager.h"
 
 struct TextureManager::Entry
 {
@@ -34,6 +36,14 @@ struct TextureManager::Entry
 	u16 slice;
 	u16 refCount;
 	u32 flag;
+};
+
+struct TextureManager::AddTextureDesc
+{
+	const Graphics::Texture* texture;
+	UploadManager* uploadManager;
+	ID3D12Resource* textureBuffer;
+	u32 slice;
 };
 
 TextureManager::TextureManager()
@@ -51,7 +61,7 @@ TextureManager::~TextureManager()
 	m_entries = nullptr;
 }
 
-bool TextureManager::createTextureBuffer(const vx::uint3 &textureDim, u32 dxgiFormat, u32* heapOffset, d3d::Heap* heap, d3d::Device* device)
+bool TextureManager::createTextureBuffer(const char* id, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::Heap* heap, d3d::ResourceManager* resourceManager, ID3D12Device* device)
 {
 	D3D12_RESOURCE_DESC resDesc;
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -66,23 +76,33 @@ bool TextureManager::createTextureBuffer(const vx::uint3 &textureDim, u32 dxgiFo
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	auto offset = *heapOffset;
+	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
-	if (!heap->createResource(resDesc, offset, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, m_textureBuffer.getAddressOf(), device))
+	d3d::Texture textureResource;
+
+	d3d::HeapCreateResourceDesc desc;
+	desc.size = allocInfo.SizeInBytes;
+	desc.desc = &resDesc;
+	desc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.clearValue = nullptr;
+	desc.resource = textureResource.getAddressOf();
+	if (!heap->createResource(desc))
 		return false;
+
+	m_textureBuffer = textureResource.get();
+	resourceManager->insertTexture(id, std::move(textureResource));
 
 	auto textureFormat = Graphics::dxgiFormatToTextureFormat(dxgiFormat);
 	auto textureSize = Graphics::getTextureSize(textureFormat, vx::uint2(textureDim.x, textureDim.y)) * textureDim.z;
 	VX_ASSERT(textureSize != 0);
 	auto alignedTextureSize = d3d::getAlignedSize(textureSize, 64u KBYTE);
 
-	*heapOffset += alignedTextureSize;
 	return true;
 }
 
-bool TextureManager::initialize(vx::StackAllocator* allocator, const vx::uint3 &textureDim, u32 dxgiFormat, u32* heapOffset, d3d::Heap* heap, d3d::Device* device)
+bool TextureManager::initialize(vx::StackAllocator* allocator, const char* textureId, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::Heap* heap, d3d::ResourceManager* resourceManager, ID3D12Device* device)
 {
-	if (!createTextureBuffer(textureDim, dxgiFormat, heapOffset, heap, device))
+	if (!createTextureBuffer(textureId, textureDim, dxgiFormat, heap, resourceManager, device))
 		return false;
 
 	auto capacity = textureDim.z;
@@ -103,9 +123,38 @@ bool TextureManager::initialize(vx::StackAllocator* allocator, const vx::uint3 &
 	return true;
 }
 
-bool TextureManager::addTexture(const vx::StringID &sid, const Graphics::Texture &texture, u32* slice)
+void TextureManager::shutdown()
 {
-	bool found = false;
+	m_entries = nullptr;
+	m_capacity = 0;
+	m_freelist.destroy();
+	m_textureBuffer = nullptr;
+}
+
+void TextureManager::addTexture(const AddTextureDesc &desc)
+{
+	auto &face = desc.texture->getFace(0);
+	auto rowPitch = desc.texture->getFaceRowPitch(0);
+
+	auto dim = face.getDimension();
+	auto dataSize = face.getSize();
+	auto data = face.getPixels();
+
+	UploadTaskTextureDesc uploadDesc;
+	uploadDesc.dst = desc.textureBuffer;
+	uploadDesc.dataSize = dataSize;
+	uploadDesc.data = data;
+	uploadDesc.dim.x = dim.x;
+	uploadDesc.dim.y = dim.y;
+	uploadDesc.format = m_format;
+	uploadDesc.rowPitch = rowPitch;
+	uploadDesc.slice = desc.slice;
+	uploadDesc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	desc.uploadManager->pushUploadTexture(uploadDesc);
+}
+
+TextureManager::Entry* TextureManager::findEntry(const vx::StringID &sid) const
+{
 	auto cap = m_capacity;
 	Entry* entry = nullptr;
 
@@ -115,12 +164,18 @@ bool TextureManager::addTexture(const vx::StringID &sid, const Graphics::Texture
 		if (cmp)
 		{
 			entry = &m_entries[i];
-			found = true;
 			break;
 		}
 	}
 
-	if (found)
+	return entry;
+}
+
+bool TextureManager::addTexture(const vx::StringID &sid, const Graphics::Texture &texture, UploadManager* uploadManager, u32* slice)
+{
+	Entry* entry = findEntry(sid);
+
+	if (entry)
 	{
 		++entry->refCount;
 		*slice = entry->slice;
@@ -141,28 +196,29 @@ bool TextureManager::addTexture(const vx::StringID &sid, const Graphics::Texture
 	m_entries[index].refCount = 1;
 	m_entries[index].flag = 1;
 
+	auto &face = texture.getFace(0);
+	auto dim = face.getDimension();
+	
+	UploadTaskTextureDesc desc;
+	desc.data = face.getPixels();
+	desc.dataSize = face.getSize();
+	desc.dim.x = dim.x;
+	desc.dim.y = dim.y;
+	desc.dst = m_textureBuffer;
+	desc.format = m_format;
+	desc.rowPitch = texture.getFaceRowPitch(0);
+	desc.slice = index;
+	desc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	uploadManager->pushUploadTexture(desc);
+
 	*slice = index;
 	return true;
 }
 
 bool TextureManager::removeTexture(const vx::StringID &sid)
 {
-	bool found = false;
-	auto cap = m_capacity;
-	Entry* entry = nullptr;
-
-	for (u32 i = 0; i < cap; ++i)
-	{
-		auto cmp = (m_entries[i].flag != 0) && (m_entries[i].sid == sid);
-		if (cmp)
-		{
-			entry = &m_entries[i];
-			found = true;
-			break;
-		}
-	}
-
-	if (found)
+	Entry* entry = findEntry(sid);
+	if (entry)
 	{
 		--entry->refCount;
 
@@ -171,11 +227,9 @@ bool TextureManager::removeTexture(const vx::StringID &sid)
 			entry->sid = 0;
 			entry->flag = 0;
 			
-			m_freelist.eraseEntry((u8*)entry, (u8*)m_entries, sizeof(Entry), cap);
+			m_freelist.eraseEntry((u8*)entry, (u8*)m_entries, sizeof(Entry), m_capacity);
 		}
-
-		return true;
 	}
 
-	return found;
+	return (entry != nullptr);
 }

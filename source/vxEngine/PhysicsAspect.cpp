@@ -192,6 +192,7 @@ PhysicsAspect::PhysicsAspect()
 	m_connection(nullptr),
 	m_mySimCallback(nullptr)
 {
+	m_flag.store(0);
 }
 
 PhysicsAspect::~PhysicsAspect()
@@ -335,6 +336,7 @@ void PhysicsAspect::fetch()
 		printf("error: %u\n", errorCode);
 	}
 	m_evtFetch.setStatus(EventStatus::Complete);
+	m_flag.store(0);
 }
 
 void PhysicsAspect::update(const f32 dt)
@@ -353,6 +355,7 @@ void PhysicsAspect::update(const f32 dt)
 		m_blockEvents.clear();
 	}
 
+	m_flag.store(1);
 	m_evtFetch.setStatus(EventStatus::Queued);
 	m_pScene->simulate(dt);
 }
@@ -396,12 +399,6 @@ void PhysicsAspect::handleIngameMessage(const vx::Message &evt)
 
 	switch (ingameMessage)
 	{
-	case IngameMessage::Physx_AddActor:
-	{
-		CreateActorData* data = (CreateActorData*)evt.arg1.ptr;
-
-		
-	}break;
 	case IngameMessage::Physx_AddDynamicMesh:
 	{
 		auto data = (CreateDynamicMeshData*)evt.arg1.ptr;
@@ -747,6 +744,12 @@ bool PhysicsAspect::addMesh(const vx::StringID &sid, const vx::MeshFile &meshFil
 
 physx::PxController* PhysicsAspect::createActor(const vx::StringID &mesh, const vx::float3 &translation)
 {
+	if (m_flag.load() != 0)
+	{
+		puts("PhysicsAspect::createActor");
+		VX_ASSERT(false);
+	}
+
 	auto it = m_physxMeshes.find(mesh);
 
 	auto bounds = (*it)->getLocalBounds();
@@ -757,6 +760,12 @@ physx::PxController* PhysicsAspect::createActor(const vx::StringID &mesh, const 
 
 physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f32 height)
 {
+	if (m_flag.load() != 0)
+	{
+		puts("PhysicsAspect::createActor");
+		VX_ASSERT(false);
+	}
+
 	physx::PxCapsuleControllerDesc desc;
 	desc.height = height;
 	desc.radius = 0.2f;
@@ -768,7 +777,7 @@ physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f
 	//desc.behaviorCallback = ;
 	desc.reportCallback = m_callback;
 
-	assert(desc.isValid());
+	VX_ASSERT(desc.isValid());
 
 	m_pScene->lockWrite();
 
@@ -776,13 +785,19 @@ physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f
 
 	m_pScene->unlockWrite();
 
-	assert(p);
+	VX_ASSERT(p);
 
 	return p;
 }
 
 void PhysicsAspect::move(const vx::float4a &velocity, f32 dt, physx::PxController* pController)
 {
+	if (m_flag.load() != 0)
+	{
+		puts("PhysicsAspect::move");
+		VX_ASSERT(false);
+	}
+
 	physx::PxControllerFilters filters;
 	//filters.
 
@@ -852,6 +867,12 @@ physx::PxRigidActor* PhysicsAspect::getRigidActor(const vx::StringID &sid, Physx
 
 physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 {
+	if (m_flag.load() != 0)
+	{
+		puts("PhysicsAspect::createJoint");
+		VX_ASSERT(false);
+	}
+
 	physx::PxRevoluteJoint* result = nullptr;
 
 	PhysxRigidBodyType type0, type1;
@@ -889,6 +910,12 @@ physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 
 physx::PxJoint* PhysicsAspect::createSphericalJoint(physx::PxRigidActor* actor)
 {
+	if (m_flag.load() != 0)
+	{
+		puts("PhysicsAspect::createSphericalJoint");
+		VX_ASSERT(false);
+	}
+
 	physx::PxTransform localFrame0;
 	localFrame0.p = {0, 0, 0};
 	localFrame0.q =  { 0.000000000f, 0.f, 0.f, 1.f };
@@ -910,6 +937,12 @@ physx::PxJoint* PhysicsAspect::createSphericalJoint(physx::PxRigidActor* actor)
 
 physx::PxJoint* PhysicsAspect::createFixedJoint(physx::PxRigidActor* actor)
 {
+	if (m_flag.load() != 0)
+	{
+		puts("PhysicsAspect::createFixedJoint");
+		VX_ASSERT(false);
+	}
+
 	physx::PxJoint* result = nullptr;
 
 	physx::PxTransform localFrame0;
@@ -940,6 +973,12 @@ physx::PxJoint* PhysicsAspect::createFixedJoint(physx::PxRigidActor* actor)
 
 physx::PxJoint* PhysicsAspect::createD6Joint(physx::PxRigidActor* actor)
 {
+	if (m_flag.load() != 0)
+	{
+		puts("PhysicsAspect::createD6Joint");
+		VX_ASSERT(false);
+	}
+
 	physx::PxTransform localFrame0;
 	localFrame0.p = { 0, 0, 0 };
 	localFrame0.q = { 0.000000000f, 0.f, 0.f, 1.f };

@@ -111,6 +111,7 @@ protected:
 	physx::PxPhysics *m_pPhysics;
 	physx::PxRigidDynamic* m_humanActor;
 	Event m_evtFetch;
+	std::atomic_int m_flag;
 	std::vector<Event> m_blockEvents;
 	vx::sorted_vector<vx::StringID, PhsyxMeshType> m_physxMeshTypes;
 	vx::sorted_vector<vx::StringID, physx::PxConvexMesh*> m_physxConvexMeshes;

@@ -94,7 +94,7 @@ class UploadManager
 	d3d::Object<ID3D12Resource> m_uploadBuffer;
 	d3d::Heap m_heap;
 
-	bool createHeap(d3d::Device* device);
+	bool createHeap(ID3D12Device* device);
 
 	void uploadData(const UploadDesc &desc);
 
@@ -112,7 +112,8 @@ public:
 	UploadManager();
 	~UploadManager();
 
-	bool initialize(d3d::Device* device);
+	bool initialize(ID3D12Device* device);
+	void shutdown();
 
 	void pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state);
 	void pushUploadTexture(const UploadTaskTextureDesc &desc);

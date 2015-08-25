@@ -30,8 +30,9 @@ SOFTWARE.
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/ResourceAspectInterface.h>
 #include "Vertex.h"
+#include "UploadManager.h"
 
-#include "ConverterMesh.h"
+//#include "ConverterMesh.h"
 
 struct MeshManager::MeshEntry
 {
@@ -55,34 +56,35 @@ MeshManager::~MeshManager()
 {
 }
 
-bool MeshManager::createHeap(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device)
+bool MeshManager::createHeap(u32 vertexCount, u32 indexCount, u32 instanceCount, ID3D12Device* device)
 {
 	auto vertexBufferSize = d3d::getAlignedSize(sizeof(Vertex) * vertexCount, 64llu KBYTE);
 	auto indexBufferSize = d3d::getAlignedSize(sizeof(u32) * vertexCount, 64llu KBYTE);
 	auto instanceBufferSize = d3d::getAlignedSize(sizeof(u32) * vertexCount, 64llu KBYTE);
 
-	return m_geometryHeap.createBufferHeap(vertexBufferSize + indexBufferSize + instanceBufferSize, D3D12_HEAP_TYPE_UPLOAD, device);
+	return m_geometryHeap.createBufferHeap(vertexBufferSize + indexBufferSize + instanceBufferSize, D3D12_HEAP_TYPE_DEFAULT, device);
 }
 
-bool MeshManager::createBuffers(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device)
+bool MeshManager::createBuffers(u32 vertexCount, u32 indexCount, u32 instanceCount, ID3D12Device* device)
 {
 	auto vertexBufferSize = d3d::getAlignedSize(sizeof(Vertex) * vertexCount, 64llu KBYTE);
 	auto indexBufferSize = d3d::getAlignedSize(sizeof(u32) * vertexCount, 64llu KBYTE);
 	auto instanceBufferSize = d3d::getAlignedSize(sizeof(u32) * vertexCount, 64llu KBYTE);
 
-	if (!m_geometryHeap.createResourceBuffer(vertexBufferSize, 0, D3D12_RESOURCE_STATE_GENERIC_READ, m_vertexBuffer.getAddressOf(), device))
-		return false;
+	d3d::BufferResourceDesc desc[3]=
+	{
+		{ vertexBufferSize, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, m_vertexBuffer.getAddressOf() },
+		{ indexBufferSize, D3D12_RESOURCE_STATE_INDEX_BUFFER, m_indexBuffer.getAddressOf() },
+		{ instanceBufferSize, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, m_drawIdBuffer.getAddressOf() }
+	};
 
-	if (!m_geometryHeap.createResourceBuffer(indexBufferSize, vertexBufferSize, D3D12_RESOURCE_STATE_GENERIC_READ, m_indexBuffer.getAddressOf(), device))
-		return false;
-
-	if (!m_geometryHeap.createResourceBuffer(instanceBufferSize, vertexBufferSize + indexBufferSize, D3D12_RESOURCE_STATE_GENERIC_READ, m_drawIdBuffer.getAddressOf(), device))
+	if (!m_geometryHeap.createResourceBuffer(desc, 3))
 		return false;
 
 	return true;
 }
 
-bool MeshManager::initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::Device* device, vx::StackAllocator* allocator)
+bool MeshManager::initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, ID3D12Device* device, vx::StackAllocator* allocator)
 {
 	auto scratchAllocSize = 64 KBYTE;
 	auto scratchPtr = allocator->allocate(scratchAllocSize);
@@ -115,12 +117,14 @@ void MeshManager::shutdown()
 	m_instanceCount = 0;
 }
 
-void MeshManager::uploadVertices(const Vertex* vertices, u32 count, u32 offset)
+void MeshManager::uploadVertices(const Vertex* vertices, u32 count, u32 offset, UploadManager* uploadMgr)
 {
 	auto offsetInBytes = sizeof(Vertex) * offset;
 	auto sizeInBytes = sizeof(Vertex) * count;
 
-	D3D12_RANGE range;
+	uploadMgr->pushUploadBuffer((u8*)vertices, m_vertexBuffer.get(), offsetInBytes, sizeInBytes, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+
+	/*D3D12_RANGE range;
 	range.Begin = offsetInBytes;
 	range.End = offsetInBytes + sizeInBytes;
 
@@ -132,15 +136,17 @@ void MeshManager::uploadVertices(const Vertex* vertices, u32 count, u32 offset)
 	}
 	//vertexPtr = vertexPtr + offset;
 	//memcpy(vertexPtr, vertices, sizeInBytes);
-	m_vertexBuffer->Unmap(0, &range);
+	m_vertexBuffer->Unmap(0, &range);*/
 }
 
-void MeshManager::uploadIndices(const u32* indices, u32 count, u32 offset)
+void MeshManager::uploadIndices(const u32* indices, u32 count, u32 offset, UploadManager* uploadMgr)
 {
 	auto offsetInBytes = sizeof(u32) * offset;
 	auto sizeInBytes = sizeof(u32) * count;
 
-	D3D12_RANGE range;
+	uploadMgr->pushUploadBuffer((u8*)indices, m_indexBuffer.get(), offsetInBytes, sizeInBytes, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+
+	/*D3D12_RANGE range;
 	range.Begin = offsetInBytes;
 	range.End = offsetInBytes + sizeInBytes;
 
@@ -148,10 +154,10 @@ void MeshManager::uploadIndices(const u32* indices, u32 count, u32 offset)
 	m_indexBuffer->Map(0, &range, (void**)&indexPtr);
 	indexPtr = indexPtr + offset;
 	memcpy(indexPtr, indices, sizeInBytes);
-	m_indexBuffer->Unmap(0, &range);
+	m_indexBuffer->Unmap(0, &range);*/
 }
 
-const MeshManager::MeshEntry* MeshManager::addMeshEntry(const vx::StringID &sid, const vx::Mesh &mesh)
+const MeshManager::MeshEntry* MeshManager::addMeshEntry(const vx::StringID &sid, const vx::Mesh &mesh, UploadManager* uploadMgr)
 {
 	auto meshVertices = mesh.getVertices();
 	auto meshVertexCount = mesh.getVertexCount();
@@ -161,8 +167,8 @@ const MeshManager::MeshEntry* MeshManager::addMeshEntry(const vx::StringID &sid,
 	auto vertexOffset = m_vertexCount;
 	auto indexOffset = m_indexCount;
 
-	MeshQ meshQ;
-	ConverterMesh::convertMesh(mesh, &meshQ);
+	//MeshQ meshQ;
+	//ConverterMesh::convertMesh(mesh, &meshQ);
 
 	auto marker = m_scratchAllocator.getMarker();
 	auto vertices = (Vertex*)m_scratchAllocator.allocate(sizeof(Vertex) * meshVertexCount);
@@ -180,14 +186,14 @@ const MeshManager::MeshEntry* MeshManager::addMeshEntry(const vx::StringID &sid,
 
 		vertices[j].texCoords = meshVertices[j].texCoords;
 	}
-	uploadVertices(vertices, meshVertexCount, vertexOffset);
+	uploadVertices(vertices, meshVertexCount, vertexOffset, uploadMgr);
 
 	auto indices = (u32*)m_scratchAllocator.allocate(sizeof(u32) * meshIndexCount);
 	for (u32 j = 0; j < meshIndexCount; ++j)
 	{
 		indices[j] = meshIndices[j] + vertexOffset;
 	}
-	uploadIndices(indices, meshIndexCount, indexOffset);
+	uploadIndices(indices, meshIndexCount, indexOffset, uploadMgr);
 
 	m_scratchAllocator.clear(marker);
 
@@ -213,7 +219,34 @@ const MeshManager::MeshEntry* MeshManager::getMeshEntry(const vx::StringID &sid)
 	return result;
 }
 
-void MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, DrawIndexedCommand* outCmd)
+void MeshManager::addMeshInstanceImpl(const vx::StringID &instanceSid, const MeshEntry &meshEntry, u16 materialIndex, UploadManager* uploadMgr, DrawIndexedCommand* outCmd)
+{
+	auto baseInstance = m_instanceCount++;
+
+	DrawIndexedCommand cmd;
+	cmd.baseInstance = baseInstance;
+	cmd.baseVertex = 0;
+	cmd.firstIndex = meshEntry.indexStart;
+	cmd.indexCount = meshEntry.indexCount;
+	cmd.instanceCount = 1;
+
+	VX_ASSERT((u16)baseInstance == baseInstance);
+	u32 drawId = baseInstance | (materialIndex << 16);
+
+	/*u32* drawIdPtr = nullptr;
+	m_drawIdBuffer->Map(0, nullptr, (void**)&drawIdPtr);
+	drawIdPtr[baseInstance] = drawId;
+	m_drawIdBuffer->Unmap(0, nullptr);*/
+
+	auto offset = sizeof(u32)*baseInstance;
+	uploadMgr->pushUploadBuffer((u8*)&drawId, m_drawIdBuffer.get(), offset, sizeof(u32), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+
+	m_sortedDrawCommands.insert(instanceSid, cmd);
+
+	*outCmd = cmd;
+}
+
+void MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, UploadManager* uploadMgr, DrawIndexedCommand* outCmd)
 {
 	auto instanceSid = meshInstance.getNameSid();
 	auto it = m_sortedDrawCommands.find(instanceSid);
@@ -225,41 +258,18 @@ void MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 material
 		if (meshEntry == nullptr)
 		{
 			auto meshFile = resourceAspect->getMesh(meshSid);
-			meshEntry = addMeshEntry(meshSid, meshFile->getMesh());
+			meshEntry = addMeshEntry(meshSid, meshFile->getMesh(), uploadMgr);
 		}
 
-		auto baseInstance = m_instanceCount++;
-
-		DrawIndexedCommand cmd;
-		cmd.baseInstance = baseInstance;
-		cmd.baseVertex = 0;
-		cmd.firstIndex = meshEntry->indexStart;
-		cmd.indexCount = meshEntry->indexCount;
-		cmd.instanceCount = 1;
-
-		u16 elementId = baseInstance;
-		VX_ASSERT(elementId == baseInstance);
-		u32 drawId = baseInstance | (materialIndex << 16);
-
-		u32* drawIdPtr = nullptr;
-		m_drawIdBuffer->Map(0, nullptr, (void**)&drawIdPtr);
-		drawIdPtr[baseInstance] = drawId;
-		m_drawIdBuffer->Unmap(0, nullptr);
-
-		it = m_sortedDrawCommands.insert(instanceSid, cmd);
+		addMeshInstanceImpl(instanceSid, *meshEntry, materialIndex, uploadMgr, outCmd);
 	}
-
-	*outCmd = *it;
-
-	//auto meshTransform = meshInstance.getTransform();
-
-	//Transform transform;
-	//transform.translation = vx::float4(meshTransform.m_translation, 1);
-
-	//auto transformOffsetInBytes = sizeof(Transform) * baseInstance;
+	else
+	{
+		*outCmd = *it;
+	}
 }
 
-void MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect, DrawIndexedCommand* outCmd)
+void MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect, UploadManager* uploadMgr, DrawIndexedCommand* outCmd)
 {
 	auto it = m_sortedDrawCommands.find(instanceSid);
 	if (it == m_sortedDrawCommands.end())
@@ -268,10 +278,11 @@ void MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::Str
 		if (meshEntry == nullptr)
 		{
 			auto meshFile = resourceAspect->getMesh(meshSid);
-			meshEntry = addMeshEntry(meshSid, meshFile->getMesh());
+			meshEntry = addMeshEntry(meshSid, meshFile->getMesh(), uploadMgr);
 		}
 
-		auto baseInstance = m_instanceCount++;
+		addMeshInstanceImpl(instanceSid, *meshEntry, materialIndex, uploadMgr, outCmd);
+		/*auto baseInstance = m_instanceCount++;
 
 		DrawIndexedCommand cmd;
 		cmd.baseInstance = baseInstance;
@@ -281,7 +292,7 @@ void MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::Str
 		cmd.instanceCount = 1;
 
 		u16 elementId = baseInstance;
-		VX_ASSERT(elementId == baseInstance);
+	
 		u32 drawId = baseInstance | (materialIndex << 16);
 
 		u32* drawIdPtr = nullptr;
@@ -289,10 +300,12 @@ void MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::Str
 		drawIdPtr[baseInstance] = drawId;
 		m_drawIdBuffer->Unmap(0, nullptr);
 
-		it = m_sortedDrawCommands.insert(instanceSid, cmd);
+		it = m_sortedDrawCommands.insert(instanceSid, cmd);*/
 	}
-
-	*outCmd = *it;
+	else
+	{
+		*outCmd = *it;
+	}
 }
 
 D3D12_VERTEX_BUFFER_VIEW MeshManager::getVertexBufferView()

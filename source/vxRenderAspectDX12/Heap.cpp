@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #include "Heap.h"
 #include <d3d12.h>
-#include "Device.h"
 
 namespace d3d
 {
@@ -35,9 +34,9 @@ namespace d3d
 
 	Heap::Heap()
 		:m_heap(),
-		m_pages(),
-		m_pageCount(0),
-		m_pageSize(0)
+		m_device(nullptr),
+		m_offset(0),
+		m_capacity(0)
 	{
 
 	}
@@ -46,30 +45,14 @@ namespace d3d
 	{
 	}
 
-	void Heap::init(u64 size, u64 alignment)
+	bool Heap::create(const D3D12_HEAP_DESC &desc, ID3D12Device* device)
 	{
-		m_pageSize = alignment;
-		m_pageCount = size / m_pageSize;
-		m_pages = std::make_unique<Page[]>(m_pageCount);
-
-		u32 offset = 0;
-		for (u32 i = 0; i < m_pageCount; ++i)
-		{
-			m_pages[i].offset = offset;
-			m_pages[i].size = m_pageSize;
-
-			offset += m_pageSize;
-		}
-	}
-
-	bool Heap::create(const D3D12_HEAP_DESC &desc, Device* device)
-	{
-		auto d3dDevice = device->getDevice();
-
-		auto result = (d3dDevice->CreateHeap(&desc, IID_PPV_ARGS(m_heap.getAddressOf())) == 0);
+		auto result = (device->CreateHeap(&desc, IID_PPV_ARGS(m_heap.getAddressOf())) == 0);
 		if (result)
 		{
-			init(desc.SizeInBytes, desc.Alignment);
+			m_device = device;
+			m_offset = 0;
+			m_capacity = desc.SizeInBytes;
 		}
 
 		return result;
@@ -78,12 +61,11 @@ namespace d3d
 	void Heap::destroy()
 	{
 		m_heap.destroy();
+		m_device = nullptr;
 	}
 
-	bool Heap::createHeap(u32 flags, u64 size, D3D12_HEAP_TYPE type, Device* device)
+	bool Heap::createHeap(u32 flags, u64 size, D3D12_HEAP_TYPE type, ID3D12Device* device)
 	{
-		auto d3dDevice = device->getDevice();
-
 		D3D12_HEAP_PROPERTIES props
 		{
 			type,
@@ -102,42 +84,62 @@ namespace d3d
 		return create(desc, device);
 	}
 
-	bool Heap::createBufferHeap(u64 size, D3D12_HEAP_TYPE type, Device* device)
+	bool Heap::createBufferHeap(u64 size, D3D12_HEAP_TYPE type, ID3D12Device* device)
 	{
-		auto d3dDevice = device->getDevice();
 		size = (size + 0xffff) & ~0xffff;
 
 		return createHeap(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS, size, type, device);
 	}
 
-	bool Heap::createTextureHeap(u64 size, D3D12_HEAP_TYPE type, Device* device)
+	bool Heap::createTextureHeap(u64 size, D3D12_HEAP_TYPE type, ID3D12Device* device)
 	{
-		auto d3dDevice = device->getDevice();
 		size = (size + 0xffff) & ~0xffff;
 
 		return createHeap(D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES, size, type, device);
 	}
 
-	bool Heap::createRtHeap(u64 size, D3D12_HEAP_TYPE type, Device* device)
+	bool Heap::createRtHeap(u64 size, D3D12_HEAP_TYPE type, ID3D12Device* device)
 	{
-		auto d3dDevice = device->getDevice();
 		size = (size + 0xffff) & ~0xffff;
 
 		return createHeap(D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES, size, type, device);
 	}
 
-	bool Heap::createResource(const D3D12_RESOURCE_DESC &desc, u64 offset, D3D12_RESOURCE_STATES state, const D3D12_CLEAR_VALUE* clearValue, ID3D12Resource** resource, Device* device)
+	bool Heap::createResource(const HeapCreateResourceDesc &desc)
 	{
-		auto d3dDevice = device->getDevice();
+		auto d3dDevice = m_device;
+		auto alignment = desc.desc->Alignment;
+		auto offset = d3d::getAlignedSize(m_offset, alignment);
 
-		auto hresult = d3dDevice->CreatePlacedResource(m_heap.get(), offset, &desc, state, clearValue, IID_PPV_ARGS(resource));
-		return (hresult == 0);
+		auto hresult = d3dDevice->CreatePlacedResource(m_heap.get(), offset, desc.desc, desc.state, desc.clearValue, IID_PPV_ARGS(desc.resource));
+		auto result = (hresult == 0);
+		if (result)
+		{
+			m_offset = offset + desc.size;
+		}
+		else
+		{
+			puts("");
+		}
+
+		return result;
 	}
 
-	bool Heap::createResourceBuffer(u64 size, u64 offset, D3D12_RESOURCE_STATES state, ID3D12Resource** resource, Device* device)
+	bool Heap::createResources(const HeapCreateResourceDesc* desc, u32 count)
 	{
-		size = (size + 0xffff) & ~0xffff;
-		offset = (offset + 0xffff) & ~0xffff;
+		for (u32 i = 0; i < count; ++i)
+		{
+			if (!createResource(desc[i]))
+				return false;
+		}
+
+		return true;
+	}
+
+	bool Heap::createBuffer(const BufferResourceDesc &desc)
+	{
+		auto size = (desc.size + 0xffff) & ~0xffff;
+		auto offset = m_offset;
 
 		D3D12_RESOURCE_DESC rdesc = {};
 		rdesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -152,7 +154,29 @@ namespace d3d
 		rdesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 		rdesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-		auto d3dDevice = device->getDevice();
-		return (d3dDevice->CreatePlacedResource(m_heap.get(), offset, &rdesc, state, nullptr, IID_PPV_ARGS(resource)) == 0);
+		HeapCreateResourceDesc heapResDesc;
+		heapResDesc.clearValue = nullptr;
+		heapResDesc.desc = &rdesc;
+		heapResDesc.resource = desc.resource;
+		heapResDesc.size = size;
+		heapResDesc.state = desc.state;
+
+		return createResource(heapResDesc);
+	}
+
+	bool Heap::createResourceBuffer(const BufferResourceDesc &desc)
+	{
+		return createBuffer(desc);
+	}
+
+	bool Heap::createResourceBuffer(const BufferResourceDesc* desc, u32 count)
+	{
+		for (u32 i = 0; i < count; ++i)
+		{
+			if (!createBuffer(desc[i]))
+				return false;
+		}
+
+		return true;
 	}
 }
