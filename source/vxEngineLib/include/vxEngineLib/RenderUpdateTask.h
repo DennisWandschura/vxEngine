@@ -32,8 +32,8 @@ enum class RenderUpdateTaskType { UpdateCamera, UpdateDynamicTransforms, UpdateT
 
 struct RenderUpdateCameraData
 {
-	__m128 position;
-	__m128 quaternionRotation;
+	__m256d position;
+	__m256d quaternionRotation;
 };
 
 struct VX_ALIGN(16) RenderUpdateDataTransforms
