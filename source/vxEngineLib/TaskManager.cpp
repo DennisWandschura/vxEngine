@@ -196,9 +196,9 @@ namespace vx
 		m_tasksBack(),
 		m_capacity(0),
 		m_threads(),
-		m_running(nullptr)
+		m_running(nullptr),
+		m_allocator()
 	{
-
 	}
 
 	TaskManager::~TaskManager()
@@ -206,25 +206,39 @@ namespace vx
 		shutdown();
 	}
 
-	void TaskManager::initialize(u32 count, u32 capacity, f32 maxTime, vx::StackAllocator* allocator)
+	void TaskManager::initialize(u32 count, u32 localQueueCapacity, f32 maxTimeMs, vx::StackAllocator* allocator)
 	{
+		count = std::max(1u, count);
 		for (u32 i = 0; i < count; ++i)
 		{
 			auto ptr = (LocalQueue*)allocator->allocate(sizeof(LocalQueue), __alignof(LocalQueue));
 			new (ptr) LocalQueue{};
 
-			ptr->initialize(capacity, maxTime, this, allocator);
+		//	ptr->initialize(localQueueCapacity, maxTimeMs, this, allocator);
 			m_queues.push_back(ptr);
+		}
+
+		m_queue = m_queues[0];
+		m_queue->initialize(localQueueCapacity, maxTimeMs - 5.0f, this, allocator);
+		for (u32 i = 1; i < count; ++i)
+		{
+			auto ptr = m_queues[i];
+			ptr->initialize(localQueueCapacity, maxTimeMs, this, allocator);
 
 			m_threads.push_back(std::thread(localThread, ptr, i));
 		}
 
-		m_capacity = capacity;
+		m_capacity = localQueueCapacity;
 	}
 
 	void TaskManager::initializeThread(std::atomic_uint* running)
 	{
 		m_running = running;
+
+		m_allocator = std::make_unique<SmallObjAllocator>(1024);
+		s_tid = 0;
+		Task::setAllocator(m_allocator.get());
+		Event::setAllocator(m_allocator.get());
 	}
 
 	void TaskManager::shutdown()
@@ -277,13 +291,18 @@ namespace vx
 		m_tasksFront.swap(m_tasksBack);
 	}
 
+	void TaskManager::doWork()
+	{
+		if (m_queue->isRunning())
+		{
+			m_queue->swapBuffer();
+			m_queue->processBack();
+		}
+	}
+
 	void TaskManager::update()
 	{
-		if (m_tasksBack.empty())
-		{
-			std::this_thread::yield();
-		}
-		else
+		if (!m_tasksBack.empty())
 		{
 			u32 distributedTasks = 0;
 
@@ -317,6 +336,8 @@ namespace vx
 				}
 			}
 		}
+
+		doWork();
 	}
 
 	void TaskManager::stop()
