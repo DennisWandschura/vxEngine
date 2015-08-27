@@ -111,6 +111,8 @@ protected:
 	physx::PxPhysics *m_pPhysics;
 	physx::PxRigidDynamic* m_humanActor;
 	Event m_evtFetch;
+	std::atomic_uint m_currentWriterTid;
+	std::atomic_int m_writerCount;
 	std::atomic_int m_flag;
 	std::vector<Event> m_blockEvents;
 	vx::sorted_vector<vx::StringID, PhsyxMeshType> m_physxMeshTypes;
@@ -150,6 +152,9 @@ protected:
 	bool raycastNoPlayer(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, const physx::PxQueryFilterData &filterData, f32 maxDistance, PhysicsHitData* hitData) const;
 
 	physx::PxRigidActor* PhysicsAspect::getRigidActor(const vx::StringID &sid, PhysxRigidBodyType* outType);
+
+	void lockSceneWrite();
+	void unlockSceneWrite();
 
 public:
 	PhysicsAspect();

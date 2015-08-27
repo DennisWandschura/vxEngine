@@ -38,6 +38,7 @@ SOFTWARE.
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include <vxEngineLib/Joint.h>
 #include <vxEngineLib/Event.h>
+#include <Windows.h>
 
 UserErrorCallback PhysicsAspect::s_defaultErrorCallback{};
 physx::PxDefaultAllocator PhysicsAspect::s_defaultAllocatorCallback{};
@@ -193,6 +194,8 @@ PhysicsAspect::PhysicsAspect()
 	m_mySimCallback(nullptr)
 {
 	m_flag.store(0);
+	m_currentWriterTid.store(0);
+	m_writerCount.store(0);
 }
 
 PhysicsAspect::~PhysicsAspect()
@@ -657,7 +660,7 @@ void PhysicsAspect::addDynamicMeshInstance(const physx::PxTransform &transform, 
 
 void PhysicsAspect::processScene(const Scene* pScene)
 {
-	m_pScene->lockWrite();
+	lockSceneWrite();
 
 	auto &meshes = pScene->getMeshes();
 	auto keys = meshes.keys();
@@ -687,7 +690,7 @@ void PhysicsAspect::processScene(const Scene* pScene)
 		m_physxMaterials.insert(sid, pMaterial);
 	}
 
-	m_pScene->unlockWrite();
+	unlockSceneWrite();
 
 	vx::Message e;
 	e.arg1.ptr = (void*)pScene;
@@ -779,11 +782,11 @@ physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f
 
 	VX_ASSERT(desc.isValid());
 
-	m_pScene->lockWrite();
+	lockSceneWrite();
 
 	auto p = m_pControllerManager->createController(desc);
 
-	m_pScene->unlockWrite();
+	unlockSceneWrite();
 
 	VX_ASSERT(p);
 
@@ -806,7 +809,11 @@ void PhysicsAspect::move(const vx::float4a &velocity, f32 dt, physx::PxControlle
 	v.y = velocity.y;
 	v.z = velocity.z;
 
+	lockSceneWrite();
+
 	pController->move(v, 0.0001f, dt, filters);
+
+	unlockSceneWrite();
 }
 
 physx::PxRigidStatic* PhysicsAspect::getStaticMesh(const vx::StringID &sid)
@@ -865,6 +872,38 @@ physx::PxRigidActor* PhysicsAspect::getRigidActor(const vx::StringID &sid, Physx
 	return actor;
 }
 
+void PhysicsAspect::lockSceneWrite()
+{
+	u32 tid = GetCurrentThreadId();
+
+	auto current = m_currentWriterTid.load();
+//	printf("%u\n", current);
+	u32 expected = 0;
+
+	while (!m_currentWriterTid.compare_exchange_strong(expected, tid))
+	{
+		expected = 0;
+	}
+
+	m_writerCount.fetch_add(1);
+	m_pScene->lockWrite();
+}
+
+void PhysicsAspect::unlockSceneWrite()
+{
+	m_pScene->unlockWrite();
+	auto oldSize = m_writerCount.fetch_sub(1);
+	if (oldSize != 1)
+	{
+		puts("ERROR PhysicsAspect::unlockSceneWrite");
+	}
+
+	if (oldSize == 1)
+	{
+		m_currentWriterTid.store(0);
+	}
+}
+
 physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 {
 	if (m_flag.load() != 0)
@@ -887,6 +926,8 @@ physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 		PhysicsAspectCpp::copy(joint.p1, &localFrame1.p);
 		PhysicsAspectCpp::copy(joint.q1, &localFrame1.q);
 
+		lockSceneWrite();
+
 		auto ptr = physx::PxRevoluteJointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
 
 		if (ptr != nullptr)
@@ -901,6 +942,8 @@ physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 
 			m_joints.push_back(result);
 		}
+
+		unlockSceneWrite();
 
 		result = ptr;
 	}
@@ -926,7 +969,11 @@ physx::PxJoint* PhysicsAspect::createSphericalJoint(physx::PxRigidActor* actor)
 	localFrame1.p = transform.p;
 	localFrame1.q = { 0.000000000f, 0.f, 0.f, 1.f };
 
+	lockSceneWrite();
+
 	physx::PxSphericalJoint* result = physx::PxSphericalJointCreate(*m_pPhysics, actor, localFrame0, nullptr, localFrame1);
+
+	m_pScene->unlockWrite();
 
 	//physx::PxJointLimitCone limit(1.5f, 2.4f);
 	//result->setLimitCone(limit);
@@ -966,7 +1013,11 @@ physx::PxJoint* PhysicsAspect::createFixedJoint(physx::PxRigidActor* actor)
 
 	//auto ptr = physx::PxD6JointCreate(*m_pPhysics, actor0, localFrame0, nullptr, localFrame1);
 
+	lockSceneWrite();
+
 	result = physx::PxFixedJointCreate(*m_pPhysics, actor, localFrame0, nullptr, localFrame1);
+
+	unlockSceneWrite();
 
 	return result;
 }
@@ -989,9 +1040,11 @@ physx::PxJoint* PhysicsAspect::createD6Joint(physx::PxRigidActor* actor)
 	localFrame1.p = transform.p;
 	localFrame1.q = { 0.000000000f, 0.f, 0.f, 1.f };
 
+	lockSceneWrite();
+
 	physx::PxD6Joint* result = physx::PxD6JointCreate(*m_pPhysics, actor, localFrame0, nullptr, localFrame1);
 
-
+	unlockSceneWrite();
 	//result->setMotion(physx::PxD6Axis::eX, physx::PxD6Motion::eFREE);
 
 	return result;
