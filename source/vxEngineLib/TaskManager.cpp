@@ -37,15 +37,14 @@ namespace vx
 
 			auto oldTime = m_time.load();
 
-			while (true)
+			f32 newTime;
+			do
 			{
-				auto newTime = oldTime + taskTime;
+				newTime = oldTime + taskTime;
 				if (newTime >= maxTime)
 					return false;
 
-				if (m_time.compare_exchange_strong(&oldTime, newTime))
-					break;
-			}
+			} while (!m_time.compare_exchange_weak(&oldTime, newTime));
 
 			bool result = true;
 			if (!m_tasks.pushTS(task))
