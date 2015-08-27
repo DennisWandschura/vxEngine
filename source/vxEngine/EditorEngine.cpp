@@ -480,9 +480,13 @@ vx::float4a EditorEngine::getRayDir(s32 mouseX, s32 mouseY) const
 	ray_eye.z = -1.0f;
 	ray_eye.w = 0.0f;
 
+	vx::mat4d viewMatrixTmp;
+	m_renderAspect->getCamera().getViewMatrix(&viewMatrixTmp);
+
 	vx::mat4 viewMatrix;
-	m_renderAspect->getCamera().getViewMatrix(&viewMatrix);
+	viewMatrixTmp.asFloat(&viewMatrix);
 	auto inverseViewMatrix = vx::MatrixInverse(viewMatrix);
+
 	vx::float4a ray_world = vx::Vector4Transform(inverseViewMatrix, ray_eye);
 	ray_world = vx::normalize3(ray_world);
 
@@ -495,11 +499,11 @@ vx::StringID EditorEngine::raytraceAgainstStaticMeshes(s32 mouseX, s32 mouseY, v
 
 	auto cameraPosition = m_renderAspect->getCamera().getPosition();
 
-	vx::float4a tmp = cameraPosition;
+	vx::float4a tmpPos = _mm256_cvtpd_ps(cameraPosition);
 	PhysicsHitData hitData;
 
 	vx::StringID sid;
-	if (m_physicsAspect.raycast_staticDynamic(tmp, ray_world, 50.0f, &hitData))
+	if (m_physicsAspect.raycast_staticDynamic(tmpPos, ray_world, 50.0f, &hitData))
 	{
 		*hitPosition = hitData.hitPosition;
 		sid = hitData.sid;
@@ -817,7 +821,10 @@ Ray EditorEngine::getRay(s32 mouseX, s32 mouseY)
 	auto cameraPosition = m_renderAspect->getCamera().getPosition();
 
 	Ray ray;
-	vx::storeFloat3(&ray.o, cameraPosition);
+	ray.o.x = static_cast<f32>(cameraPosition.m256d_f64[0]);
+	ray.o.y = static_cast<f32>(cameraPosition.m256d_f64[1]);
+	ray.o.z = static_cast<f32>(cameraPosition.m256d_f64[2]);
+	//vx::storeFloat3(&ray.o, cameraPosition);
 	vx::storeFloat3(&ray.d, rayDir);
 	ray.maxt = 50.0f;
 
