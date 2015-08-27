@@ -43,6 +43,9 @@
     <Filter Include="Header Files\math">
       <UniqueIdentifier>{d1518f71-b303-466f-a769-211daa75df82}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\RenderPass">
+      <UniqueIdentifier>{8c6d3612-fef3-49b9-887d-08478163003f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -56,9 +59,6 @@
     </ClInclude>
     <ClInclude Include="RenderAspect.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskUpdateCamera.h">
-      <Filter>Header Files\Tasks</Filter>
     </ClInclude>
     <ClInclude Include="TaskUploadGeometry.h">
       <Filter>Header Files\Tasks</Filter>
@@ -96,9 +96,6 @@
     <ClInclude Include="Freelist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GBufferRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TextureManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -106,9 +103,6 @@
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
     <ClInclude Include="Quaternion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mat3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConverterMesh.h">
@@ -119,9 +113,6 @@
     </ClInclude>
     <ClInclude Include="GpuTransform.h">
       <Filter>Header Files\Gpu</Filter>
-    </ClInclude>
-    <ClInclude Include="DrawQuadRenderer.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ShaderManager.h">
       <Filter>Header Files</Filter>
@@ -138,9 +129,6 @@
     <ClInclude Include="RenderPass.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="reconstructFromDepth.h">
-      <Filter>Header Files\Gpu</Filter>
-    </ClInclude>
     <ClInclude Include="RenderPassZBuffer.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
@@ -150,8 +138,29 @@
     <ClInclude Include="ResourceView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mat4d.h">
+    <ClInclude Include="mat3.h">
       <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassZBufferCreateMipmaps.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSaoBuffer.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassAo.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateResourceDesc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GBufferRenderer.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassDrawGBuffer.h">
+      <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -160,9 +169,6 @@
     </ClCompile>
     <ClCompile Include="RenderAspect.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskUpdateCamera.cpp">
-      <Filter>Source Files\Tasks</Filter>
     </ClCompile>
     <ClCompile Include="TaskUploadGeometry.cpp">
       <Filter>Source Files\Tasks</Filter>
@@ -188,26 +194,35 @@
     <ClCompile Include="MaterialManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GBufferRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TextureManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConverterMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DrawQuadRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderPassZBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ResourceManager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassZBufferCreateMipmaps.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassZBuffer.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="GBufferRenderer.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPass.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassDrawGBuffer.cpp">
+      <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -242,6 +257,12 @@
       <Filter>Shaders\create radiosity buffer</Filter>
     </FxCompile>
     <FxCompile Include="CreateZBufferPS.hlsl">
+      <Filter>Shaders\ao</Filter>
+    </FxCompile>
+    <FxCompile Include="SAO_minify.hlsl">
+      <Filter>Shaders\ao</Filter>
+    </FxCompile>
+    <FxCompile Include="SAO_aoPS.hlsl">
       <Filter>Shaders\ao</Filter>
     </FxCompile>
   </ItemGroup>

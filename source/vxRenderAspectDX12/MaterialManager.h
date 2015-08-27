@@ -49,10 +49,6 @@ class MaterialManager
 	vx::sorted_vector<vx::StringID, MaterialEntry> m_materialEntries;
 	TextureManager m_texturesSrgba;
 	TextureManager m_texturesRgba;
-	d3d::Heap m_textureHeap;
-
-	bool createHeap(ID3D12Device* device);
-	bool createTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, u32 format, d3d::Object<ID3D12Resource>* res, ID3D12Device* device, u32* offset);
 
 	bool tryGetTexture(const vx::StringID &sid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* slice);
 
@@ -60,7 +56,9 @@ public:
 	MaterialManager();
 	~MaterialManager();
 
-	bool initialize(const vx::uint2 &textureResolution, u32 srgbaCount, u32 rgbaCount, vx::StackAllocator* allocator, d3d::ResourceManager* resourceManager, ID3D12Device* device);
+	void getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device);
+
+	bool initialize(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, vx::StackAllocator* allocator, d3d::ResourceManager* resourceManager, ID3D12Device* device);
 	void shutdown();
 
 	bool addMaterial(const Material* material, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* index, u32* slices);

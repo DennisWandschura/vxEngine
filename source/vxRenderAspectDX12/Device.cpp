@@ -59,6 +59,8 @@ namespace d3d
 		if (hresult != 0)
 			return false;
 
+		m_fence->SetName(L"DeviceFence");
+
 		m_event = CreateEventEx(nullptr, FALSE, FALSE, EVENT_ALL_ACCESS);
 
 		return true;
@@ -75,6 +77,8 @@ namespace d3d
 		auto hresult = m_device->CreateCommandQueue(&desc, IID_PPV_ARGS(m_commandQueue.getAddressOf()));
 		if (hresult != 0)
 			return false;
+
+		m_commandQueue->SetName(L"DeviceCommandQueue");
 
 		return true;
 	}
@@ -101,6 +105,8 @@ namespace d3d
 		if (hresult != 0)
 			return false;
 
+		swapChain->Release();
+
 		return true;
 	}
 
@@ -122,6 +128,8 @@ namespace d3d
 	{
 		m_swapChain.destroy();
 		m_commandQueue.destroy();
+
+		m_fence.destroy();
 		m_factory.destroy();
 		m_device.destroy();
 	}

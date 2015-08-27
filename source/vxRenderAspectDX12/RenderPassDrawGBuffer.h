@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,42 +23,28 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "TaskUpdateCamera.h"
-#include <vxLib/Allocator/Allocator.h>
-#include <vxLib/Graphics/Camera.h>
 
-TaskUpdateCamera::TaskUpdateCamera(const __m128 &position, const __m128 &quaternionRotation, vx::Camera* camera)
-	:m_position(position),
-	m_quaternionRotation(quaternionRotation),
-	m_camera(camera)
+#include "RenderPass.h"
+#include "DescriptorHeap.h"
+
+class RenderPassDrawGBuffer : public RenderPass
 {
-}
+	d3d::Object<ID3D12GraphicsCommandList> m_commandList;
+	ID3D12CommandAllocator* m_cmdAlloc;
+	d3d::DescriptorHeap m_descriptorHeap;
 
-TaskUpdateCamera::~TaskUpdateCamera()
-{
+	bool loadShaders(d3d::ShaderManager* shaderManager);
+	bool createRootSignature(ID3D12Device* device);
+	bool createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager);
 
-}
+public:
+	explicit RenderPassDrawGBuffer(ID3D12CommandAllocator* cmdAlloc);
+	~RenderPassDrawGBuffer();
 
-TaskReturnType TaskUpdateCamera::runImpl()
-{
-	m_camera->setPosition(m_position);
-	m_camera->setRotation(m_quaternionRotation);
+	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
 
-	/*auto projectionMatrix = m_renderContext.getProjectionMatrix();
+	bool initialize(ID3D12Device* device, void* p) override;
+	void shutdown() override;
 
-	UniformCameraBufferBlock block;
-	m_camera.getViewMatrix(&block.viewMatrix);
-	block.pvMatrix = projectionMatrix * block.viewMatrix;
-	block.inversePVMatrix = vx::MatrixInverse(block.pvMatrix);
-	block.position = m_camera.getPosition();
-	block.qrotation = m_camera.getRotation();
-
-	m_cameraBuffer.subData(0, sizeof(UniformCameraBufferBlock), &block);*/
-
-	return TaskReturnType::Success;
-}
-
-f32 TaskUpdateCamera::getTimeMs() const
-{
-	return 0.0f;
-}
+	ID3D12CommandList* submitCommands() override;
+};

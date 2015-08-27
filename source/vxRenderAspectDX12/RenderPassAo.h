@@ -24,25 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace vx
+/*radius(1.0f * units::meters()),
+bias(0.012f),
+intensity(1.0f) {}*/
+
+class RenderPassAo
 {
-	class Camera;
-}
 
-#include <vxEngineLib/Task.h>
-#include <vxLib/math/Vector.h>
-
-class TaskUpdateCamera : public Task
-{
-	__m128 m_position;
-	__m128 m_quaternionRotation;
-	vx::Camera* m_camera;
-
-	TaskReturnType runImpl() override;
-
-public:
-	TaskUpdateCamera(const __m128 &position, const __m128 &quaternionRotation, vx::Camera* camera);
-	~TaskUpdateCamera();
-
-	f32 getTimeMs() const override;
 };

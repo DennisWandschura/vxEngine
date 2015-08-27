@@ -28,6 +28,8 @@ struct ID3D12GraphicsCommandList;
 struct ID3D12RootSignature;
 struct ID3D12PipelineState;
 struct ID3D12Device;
+struct ID3D12CommandList;
+struct ID3D12CommandAllocator;
 
 #include "d3d.h"
 
@@ -40,6 +42,9 @@ namespace d3d
 class RenderPass
 {
 protected:
+	static d3d::ShaderManager* s_shaderManager; 
+	static d3d::ResourceManager* s_resourceManager;
+
 	d3d::Object<ID3D12RootSignature> m_rootSignature;
 	d3d::Object<ID3D12PipelineState> m_pipelineState;
 
@@ -48,8 +53,16 @@ protected:
 public:
 	virtual ~RenderPass() {}
 
-	virtual bool initialize(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, ID3D12Device* device, void* p) = 0;
+	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager)
+	{
+		s_shaderManager = shaderManager;
+		s_resourceManager = resourceManager;
+	}
+
+	virtual void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) = 0;
+
+	virtual bool initialize(ID3D12Device* device, void* p) = 0;
 	virtual void shutdown() = 0;
 
-	virtual void submitCommands(ID3D12GraphicsCommandList* cmdList) = 0;
+	virtual ID3D12CommandList* submitCommands() = 0;
 };

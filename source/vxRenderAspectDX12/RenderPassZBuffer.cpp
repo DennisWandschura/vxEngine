@@ -28,6 +28,8 @@ SOFTWARE.
 #include "ResourceManager.h"
 #include "GpuCameraBufferData.h"
 
+const u32 g_zBufferMaxMipLevel = 5u;
+
 RenderPassZBuffer::RenderPassZBuffer()
 {
 
@@ -41,6 +43,9 @@ RenderPassZBuffer::~RenderPassZBuffer()
 bool RenderPassZBuffer::loadShaders(d3d::ShaderManager* shaderManager)
 {
 	if (!shaderManager->loadShader("CreateZBufferPS.cso", L"../../lib/CreateZBufferPS.cso", d3d::ShaderType::Pixel))
+		return false;
+
+	if (!shaderManager->loadShader("SAO_minify.cso", L"../../lib/SAO_minify.cso", d3d::ShaderType::Pixel))
 		return false;
 
 	return true;
@@ -120,8 +125,8 @@ bool RenderPassZBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderMan
 bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceManager* resourceManager)
 {
 	auto cbufferDesc = resourceManager->getConstantBufferView("cameraBufferView");
-	auto gbufferDepthTexture = resourceManager->getTexture("gbufferDepth");
-	auto zBufferTexture = resourceManager->getTexture("zBuffer");
+	auto gbufferDepthTexture = resourceManager->getTexture(L"gbufferDepth");
+	auto zBufferTexture = resourceManager->getTexture(L"zBuffer");
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -155,33 +160,31 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 	handle.offset(1);
 	device->CreateShaderResourceView(gbufferDepthTexture, &depthDesc, handle);
 
+	auto handleRtv = m_descriptorHeapRtv.getHandleCpu();
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 	rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-	rtvDesc.Texture2DArray.ArraySize = 2;
-	rtvDesc.Texture2DArray.FirstArraySlice = 0;
-	rtvDesc.Texture2DArray.MipSlice = 0;
-	rtvDesc.Texture2DArray.PlaneSlice = 0;
-	device->CreateRenderTargetView(zBufferTexture, &rtvDesc, m_descriptorHeapRtv.getHandleCpu());
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2D.MipSlice = 0;
+	rtvDesc.Texture2D.PlaneSlice = 0;
+	device->CreateRenderTargetView(zBufferTexture, &rtvDesc, handleRtv);
 
 	return true;
 }
 
-bool RenderPassZBuffer::initialize(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, ID3D12Device* device, void* p)
+bool RenderPassZBuffer::initialize(ID3D12Device* device, void* p)
 {
-	if (!loadShaders(shaderManager))
+	if (!loadShaders(s_shaderManager))
 		return false;
 
 	if (!createRootSignature(device))
 		return false;
 
-	if (!createPipelineState(device, shaderManager))
+	if (!createPipelineState(device, s_shaderManager))
 		return false;
 
-	if (!createDescriptor(device, resourceManager))
+	if (!createDescriptor(device, s_resourceManager))
 		return false;
 
-	m_resourceManager = resourceManager;
 
 	return true;
 }
@@ -191,9 +194,12 @@ void RenderPassZBuffer::shutdown()
 	m_descriptorHeap.destroy();
 }
 
-void RenderPassZBuffer::submitCommands(ID3D12GraphicsCommandList* cmdList)
+ID3D12CommandList* RenderPassZBuffer::submitCommands()
 {
-	auto gbufferDepthTexture = m_resourceManager->getTexture("gbufferDepth");
+	/*auto gbufferDepthTexture = m_resourceManager->getTexture(L"gbufferDepth");
+	auto zBufferTexture = m_resourceManager->getTexture(L"zBuffer");
+
+	const f32 clearColor[4] = {0, 0, 0, 0};
 
 	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
@@ -201,6 +207,7 @@ void RenderPassZBuffer::submitCommands(ID3D12GraphicsCommandList* cmdList)
 	rtvHandle[0] = m_descriptorHeapRtv.getHandleCpu();
 
 	cmdList->OMSetRenderTargets(1, rtvHandle, FALSE, nullptr);
+	cmdList->ClearRenderTargetView(rtvHandle[0], clearColor, 0, nullptr);
 
 	cmdList->SetPipelineState(m_pipelineState.get());
 	cmdList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -213,5 +220,6 @@ void RenderPassZBuffer::submitCommands(ID3D12GraphicsCommandList* cmdList)
 
 	cmdList->DrawInstanced(1, 1, 0, 0);
 
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));*/
+	return nullptr;
 }

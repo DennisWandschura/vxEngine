@@ -61,7 +61,7 @@ TextureManager::~TextureManager()
 	m_entries = nullptr;
 }
 
-bool TextureManager::createTextureBuffer(const char* id, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::Heap* heap, d3d::ResourceManager* resourceManager, ID3D12Device* device)
+void TextureManager::getRequiredMemory(const vx::uint3 &textureDim, u32 dxgiFormat, u64* heapSizeTexture, ID3D12Device* device)
 {
 	D3D12_RESOURCE_DESC resDesc;
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -78,19 +78,35 @@ bool TextureManager::createTextureBuffer(const char* id, const vx::uint3 &textur
 
 	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
-	d3d::Texture textureResource;
+	*heapSizeTexture += allocInfo.SizeInBytes;
+}
 
-	d3d::HeapCreateResourceDesc desc;
-	desc.size = allocInfo.SizeInBytes;
-	desc.desc = &resDesc;
-	desc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+bool TextureManager::createTextureBuffer(const wchar_t* id, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::ResourceManager* resourceManager, ID3D12Device* device)
+{
+	D3D12_RESOURCE_DESC resDesc;
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resDesc.Alignment = 64 KBYTE;
+	resDesc.Width = textureDim.x;
+	resDesc.Height = textureDim.y;
+	resDesc.DepthOrArraySize = textureDim.z;
+	resDesc.MipLevels = 1;
+	resDesc.Format = (DXGI_FORMAT)dxgiFormat;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
+
+	CreateResourceDesc desc;
 	desc.clearValue = nullptr;
-	desc.resource = textureResource.getAddressOf();
-	if (!heap->createResource(desc))
-		return false;
+	desc.resDesc = &resDesc;
+	desc.size = allocInfo.SizeInBytes;
+	desc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-	m_textureBuffer = textureResource.get();
-	resourceManager->insertTexture(id, std::move(textureResource));
+	m_textureBuffer = resourceManager->createTexture(id, desc);
+	if (m_textureBuffer == nullptr)
+		return false;
 
 	auto textureFormat = Graphics::dxgiFormatToTextureFormat(dxgiFormat);
 	auto textureSize = Graphics::getTextureSize(textureFormat, vx::uint2(textureDim.x, textureDim.y)) * textureDim.z;
@@ -100,9 +116,9 @@ bool TextureManager::createTextureBuffer(const char* id, const vx::uint3 &textur
 	return true;
 }
 
-bool TextureManager::initialize(vx::StackAllocator* allocator, const char* textureId, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::Heap* heap, d3d::ResourceManager* resourceManager, ID3D12Device* device)
+bool TextureManager::initialize(vx::StackAllocator* allocator, const wchar_t* textureId, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::ResourceManager* resourceManager, ID3D12Device* device)
 {
-	if (!createTextureBuffer(textureId, textureDim, dxgiFormat, heap, resourceManager, device))
+	if (!createTextureBuffer(textureId, textureDim, dxgiFormat, resourceManager, device))
 		return false;
 
 	auto capacity = textureDim.z;

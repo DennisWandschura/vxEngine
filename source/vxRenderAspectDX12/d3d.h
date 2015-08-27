@@ -27,6 +27,7 @@ SOFTWARE.
 #include <vxLib/types.h>
 
 struct ID3D12Resource;
+struct ID3D12Device;
 
 namespace d3d
 {
@@ -58,7 +59,7 @@ namespace d3d
 		{
 			if (this != &rhs)
 			{
-				std::swap(m_object, rhs.m_object);
+				swap(rhs);
 			}
 
 			return *this;
@@ -71,6 +72,11 @@ namespace d3d
 				m_object->Release();
 				m_object = nullptr;
 			}
+		}
+
+		void swap(Object &other)
+		{
+			std::swap(m_object, other.m_object);
 		}
 
 		T* operator->() { return m_object; }
@@ -112,7 +118,4 @@ namespace d3d
 	{
 		enum : size_t { size = (sizeof(T) * COUNT) + (ALIGNMENT - 1) & ~(ALIGNMENT - 1) };
 	};
-
-	typedef Object<ID3D12Resource> Buffer;
-	typedef Object<ID3D12Resource> Texture;
 }

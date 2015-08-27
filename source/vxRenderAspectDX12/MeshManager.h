@@ -39,6 +39,11 @@ namespace vx
 	class Mesh;
 }
 
+namespace d3d
+{
+	class ResourceManager;
+}
+
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
 #include "d3d.h"
@@ -65,6 +70,7 @@ class MeshManager
 	u32 m_vertexCount;
 	u32 m_indexCount;
 	u32 m_instanceCount;
+	u32 m_instanceCapacity;
 	vx::StackAllocator m_scratchAllocator;
 	d3d::Heap m_geometryHeap;
 	vx::sorted_vector<vx::StringID, DrawIndexedCommand> m_sortedDrawCommands;
@@ -80,15 +86,24 @@ class MeshManager
 
 	void addMeshInstanceImpl(const vx::StringID &instanceSid, const MeshEntry &meshEntry, u16 materialIndex, UploadManager* uploadMgr, DrawIndexedCommand* outCmd);
 
+	void uploadCmd(const DrawIndexedCommand &cmd, d3d::ResourceManager* resourceManager, UploadManager* uploadMgr);
+
+	const MeshEntry* tryAddMesh(const vx::StringID &meshSid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadMgr);
+
+	D3D12_VERTEX_BUFFER_VIEW getVertexBufferView();
+	D3D12_VERTEX_BUFFER_VIEW getDrawIdBufferView();
+
+	D3D12_INDEX_BUFFER_VIEW getIndexBufferView();
+
 public:
 	MeshManager();
 	~MeshManager();
 
-	bool initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, ID3D12Device* device, vx::StackAllocator* allocator);
+	bool initialize(u32 vertexCount, u32 indexCount, u32 instanceCount, d3d::ResourceManager* resourceManager, ID3D12Device* device, vx::StackAllocator* allocator);
 	void shutdown();
 
-	void addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, UploadManager* uploadMgr, DrawIndexedCommand* cmd);
-	void addMeshInstance(const vx::StringID &instanceSid, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect, UploadManager* uploadMgr, DrawIndexedCommand* outCmd);
+	bool addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, d3d::ResourceManager* resourceManager, UploadManager* uploadMgr, DrawIndexedCommand* cmd);
+	bool addMeshInstance(const vx::StringID &instanceSid, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect, d3d::ResourceManager* resourceManager, UploadManager* uploadMgr, DrawIndexedCommand* outCmd);
 
 	d3d::Object<ID3D12Resource>& getVertexBuffer() { return m_vertexBuffer;}
 	d3d::Object<ID3D12Resource>& getIndexBuffer() { return m_indexBuffer; }
@@ -96,8 +111,5 @@ public:
 
 	u32 getInstanceCount() const { return m_instanceCount; }
 
-	D3D12_VERTEX_BUFFER_VIEW getVertexBufferView();
-	D3D12_VERTEX_BUFFER_VIEW getDrawIdBufferView();
-
-	D3D12_INDEX_BUFFER_VIEW getIndexBufferView();
+	void updateResourceViews(d3d::ResourceManager* resourceManager);
 };

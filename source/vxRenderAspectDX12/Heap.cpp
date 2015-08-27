@@ -64,6 +64,11 @@ namespace d3d
 		m_device = nullptr;
 	}
 
+	void Heap::setName(const wchar_t* name)
+	{
+		m_heap->SetName(name);
+	}
+
 	bool Heap::createHeap(u32 flags, u64 size, D3D12_HEAP_TYPE type, ID3D12Device* device)
 	{
 		D3D12_HEAP_PROPERTIES props
@@ -108,14 +113,14 @@ namespace d3d
 	bool Heap::createResource(const HeapCreateResourceDesc &desc)
 	{
 		auto d3dDevice = m_device;
-		auto alignment = desc.desc->Alignment;
+		auto alignment = desc.desc.resDesc->Alignment;
 		auto offset = d3d::getAlignedSize(m_offset, alignment);
 
-		auto hresult = d3dDevice->CreatePlacedResource(m_heap.get(), offset, desc.desc, desc.state, desc.clearValue, IID_PPV_ARGS(desc.resource));
+		auto hresult = d3dDevice->CreatePlacedResource(m_heap.get(), offset, desc.desc.resDesc, desc.desc.state, desc.desc.clearValue, IID_PPV_ARGS(desc.resource));
 		auto result = (hresult == 0);
 		if (result)
 		{
-			m_offset = offset + desc.size;
+			m_offset = offset + desc.desc.size;
 		}
 		else
 		{
@@ -136,7 +141,7 @@ namespace d3d
 		return true;
 	}
 
-	bool Heap::createBuffer(const BufferResourceDesc &desc)
+	bool Heap::createBuffer(const HeapCreateBufferResourceDesc &desc)
 	{
 		auto size = (desc.size + 0xffff) & ~0xffff;
 		auto offset = m_offset;
@@ -155,21 +160,21 @@ namespace d3d
 		rdesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
 		HeapCreateResourceDesc heapResDesc;
-		heapResDesc.clearValue = nullptr;
-		heapResDesc.desc = &rdesc;
+		heapResDesc.desc.clearValue = nullptr;
+		heapResDesc.desc.resDesc = &rdesc;
 		heapResDesc.resource = desc.resource;
-		heapResDesc.size = size;
-		heapResDesc.state = desc.state;
+		heapResDesc.desc.size = size;
+		heapResDesc.desc.state = desc.state;
 
 		return createResource(heapResDesc);
 	}
 
-	bool Heap::createResourceBuffer(const BufferResourceDesc &desc)
+	bool Heap::createResourceBuffer(const HeapCreateBufferResourceDesc &desc)
 	{
 		return createBuffer(desc);
 	}
 
-	bool Heap::createResourceBuffer(const BufferResourceDesc* desc, u32 count)
+	bool Heap::createResourceBuffer(const HeapCreateBufferResourceDesc* desc, u32 count)
 	{
 		for (u32 i = 0; i < count; ++i)
 		{

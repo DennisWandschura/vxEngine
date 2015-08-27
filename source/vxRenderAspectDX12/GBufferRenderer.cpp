@@ -29,15 +29,84 @@ SOFTWARE.
 #include "Device.h"
 #include "ResourceManager.h"
 
-GBufferRenderer::GBufferRenderer()
-	:m_depthSlice(nullptr)
+struct GBufferRenderer::ColdData
 {
+	enum TextureIndex {Diffuse, NormalVelocity, Depth, ZBuffer};
 
+	D3D12_RESOURCE_DESC resDescs[4];
+};
+
+GBufferRenderer::GBufferRenderer(vx::uint2 resolution, ID3D12CommandAllocator* cmdAlloc)
+	:m_commandList(),
+	m_cmdAlloc(cmdAlloc),
+	m_resolution(resolution),
+	m_depthSlice(nullptr),
+	m_coldData(new ColdData())
+{
+	createTextureDescriptions();
 }
 
 GBufferRenderer::~GBufferRenderer()
 {
 
+}
+
+void GBufferRenderer::createTextureDescriptions()
+{
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Alignment = 64 KBYTE;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Width = m_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Height = m_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].DepthOrArraySize = 2;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].MipLevels = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].SampleDesc.Count = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].SampleDesc.Quality = 0;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Alignment = 64 KBYTE;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Width = m_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Height = m_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].DepthOrArraySize = 2;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].MipLevels = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].SampleDesc.Count = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].SampleDesc.Quality = 0;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Alignment = 64 KBYTE;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Width = m_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Height = m_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].DepthOrArraySize = 2;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].MipLevels = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Format = DXGI_FORMAT_R32_TYPELESS;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].SampleDesc.Count = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].SampleDesc.Quality = 0;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Alignment = 64 KBYTE;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Width = m_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Height = m_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].DepthOrArraySize = 2;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].MipLevels = 6;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Format = DXGI_FORMAT_R32_FLOAT;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].SampleDesc.Count = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].SampleDesc.Quality = 0;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+}
+
+void GBufferRenderer::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+{
+	auto allocInfo = device->GetResourceAllocationInfo(1, 4, m_coldData->resDescs);
+
+	*heapSizeRtDs += allocInfo.SizeInBytes;
 }
 
 bool GBufferRenderer::loadShaders(d3d::ShaderManager* shaderManager)
@@ -148,82 +217,62 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 
 bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, const vx::uint2 &resolution, ID3D12Device* device)
 {
-	D3D12_HEAP_PROPERTIES props
+	D3D12_CLEAR_VALUE clearValues[4];
+	// diffuse
+	clearValues[0].Color[0] = 1.0f;
+	clearValues[0].Color[1] = 0.0f;
+	clearValues[0].Color[2] = 0.0f;
+	clearValues[0].Color[3] = 1.0f;
+	clearValues[0].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	// normal
+	clearValues[1].Color[0] = 1.0f;
+	clearValues[1].Color[1] = 0.0f;
+	clearValues[1].Color[2] = 0.0f;
+	clearValues[1].Color[3] = 1.0f;
+	clearValues[1].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+	// detph
+	clearValues[2].Format = DXGI_FORMAT_D32_FLOAT;
+	clearValues[2].DepthStencil.Depth = 1.0f;
+	clearValues[2].DepthStencil.Stencil = 0;
+
+	// zbuffer
+	clearValues[3].Color[0] = 0.0f;
+	clearValues[3].Color[1] = 0.0f;
+	clearValues[3].Color[2] = 0.0f;
+	clearValues[3].Color[3] = 0.0f;
+	clearValues[3].Format = DXGI_FORMAT_R32_FLOAT;
+
+	const wchar_t* names[4];
+	names[ColdData::Diffuse] = L"gbufferDiffuse";
+	names[ColdData::NormalVelocity] = L"gbufferNormalVelocity";
+	names[ColdData::Depth] = L"gbufferDepth";
+	names[ColdData::ZBuffer] = L"zBuffer";
+
+	D3D12_RESOURCE_STATES states[4];
+	states[ColdData::Diffuse] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	states[ColdData::NormalVelocity] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	states[ColdData::Depth] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	states[ColdData::ZBuffer] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+	CreateResourceDesc desc;
+	for (u32 i = 0;i < 4; ++i)
 	{
-		D3D12_HEAP_TYPE_DEFAULT,
-		D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-		D3D12_MEMORY_POOL_UNKNOWN,
-		0,
-		0
-	};
+		auto allocInfo = device->GetResourceAllocationInfo(1, 1, &m_coldData->resDescs[i]);
 
-	D3D12_RESOURCE_DESC descs[4];
-	descs[0].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	descs[0].Alignment = 64 KBYTE;
-	descs[0].Width = resolution.x;
-	descs[0].Height = resolution.y;
-	descs[0].DepthOrArraySize = 2;
-	descs[0].MipLevels = 1;
-	descs[0].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	descs[0].SampleDesc.Count = 1;
-	descs[0].SampleDesc.Quality = 0;
-	descs[0].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	descs[0].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		desc.state = states[i];
+		desc.clearValue = &clearValues[i];
+		desc.size = allocInfo.SizeInBytes;
+		desc.resDesc = &m_coldData->resDescs[i];
 
-	descs[1] = descs[0];
-	descs[1].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		if (!resourceManager->createTextureRtDs(names[i], desc))
+			return false;
+	}
 
-	descs[2] = descs[0];
-	descs[2].Format = DXGI_FORMAT_R32_TYPELESS;
-	descs[2].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-	descs[3] = descs[0];
-	descs[3].Format = DXGI_FORMAT_R32_FLOAT;
-	descs[3].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-
-	auto szDiffuse = device->GetResourceAllocationInfo(1, 1, &descs[0]);
-	auto szNormalVelocity = device->GetResourceAllocationInfo(1, 1, &descs[1]);
-	auto szDepth = device->GetResourceAllocationInfo(1, 1, &descs[2]);
-	auto szZBuffer = device->GetResourceAllocationInfo(1, 1, &descs[3]);
-
-	auto heapSize = szDiffuse.SizeInBytes + szNormalVelocity.SizeInBytes + szDepth.SizeInBytes + szZBuffer.SizeInBytes;
-	if (!m_gbufferHeap.createRtHeap(heapSize, D3D12_HEAP_TYPE_DEFAULT, device))
-		return false;
-
-	D3D12_CLEAR_VALUE diffuseOptimizedClearValue = {};
-	diffuseOptimizedClearValue.Color[0] = 1.0f;
-	diffuseOptimizedClearValue.Color[1] = 0.0f;
-	diffuseOptimizedClearValue.Color[2] = 0.0f;
-	diffuseOptimizedClearValue.Color[3] = 1.0f;
-	diffuseOptimizedClearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-	D3D12_CLEAR_VALUE normalVelocityOptimizedClearValue = {};
-	normalVelocityOptimizedClearValue.Color[0] = 1.0f;
-	normalVelocityOptimizedClearValue.Color[1] = 0.0f;
-	normalVelocityOptimizedClearValue.Color[2] = 0.0f;
-	normalVelocityOptimizedClearValue.Color[3] = 1.0f;
-	normalVelocityOptimizedClearValue.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-	D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
-	depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT;
-	depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
-	depthOptimizedClearValue.DepthStencil.Stencil = 0;
-
-	d3d::Texture depthTexture;
-	d3d::Texture zBufferTexture;
-	d3d::HeapCreateResourceDesc resDesc[]=
-	{
-		{ szDiffuse.SizeInBytes, &descs[0], D3D12_RESOURCE_STATE_RENDER_TARGET, &diffuseOptimizedClearValue,  m_diffuseSlice.getAddressOf() },
-		{ szNormalVelocity.SizeInBytes, &descs[1], D3D12_RESOURCE_STATE_RENDER_TARGET, &normalVelocityOptimizedClearValue,  m_normalVelocitySlice.getAddressOf() },
-		{ szDepth.SizeInBytes, &descs[2], D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthOptimizedClearValue,  depthTexture.getAddressOf() },
-		{ szZBuffer.SizeInBytes, &descs[3], D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, zBufferTexture.getAddressOf() }
-	};
-
-	if (!m_gbufferHeap.createResources(resDesc, _countof(resDesc)))
-		return false;
-
-	resourceManager->insertTexture("zBuffer", std::move(zBufferTexture));
-	resourceManager->insertTexture("gbufferDepth", std::move(depthTexture));
+	m_depthSlice = resourceManager->getTextureRtDs(names[ColdData::Depth]);
+	m_diffuseSlice = resourceManager->getTextureRtDs(names[ColdData::Diffuse]);
+	m_normalVelocitySlice = resourceManager->getTextureRtDs(names[ColdData::NormalVelocity]);
 
 	return true;
 }
@@ -268,11 +317,11 @@ void GBufferRenderer::createBufferViews(d3d::ResourceManager* resourceManager, I
 	auto srgbTextureViewDesc = resourceManager->getShaderResourceView("srgbTextureView");
 	auto rgbTextureViewDesc = resourceManager->getShaderResourceView("rgbTextureView");
 
-	auto transformBuffer = resourceManager->getBuffer("transformBuffer");
-	auto transformBufferPrev = resourceManager->getBuffer("transformBufferPrev");
-	auto materialBuffer = resourceManager->getBuffer("materialBuffer");
-	auto srgbTexture = resourceManager->getTexture("srgbTexture");
-	auto rgbTexture = resourceManager->getTexture("rgbTexture");
+	auto transformBuffer = resourceManager->getBuffer(L"transformBuffer");
+	auto transformBufferPrev = resourceManager->getBuffer(L"transformBufferPrev");
+	auto materialBuffer = resourceManager->getBuffer(L"materialBuffer");
+	auto srgbTexture = resourceManager->getTexture(L"srgbTexture");
+	auto rgbTexture = resourceManager->getTexture(L"rgbTexture");
 
 	/*
 	VS
@@ -306,27 +355,27 @@ void GBufferRenderer::createBufferViews(d3d::ResourceManager* resourceManager, I
 	device->CreateShaderResourceView(rgbTexture, rgbTextureViewDesc, handle);
 }
 
-bool GBufferRenderer::initialize(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, ID3D12Device* device, void* p)
+bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 {
-	GBufferRendererInitDesc* desc = (GBufferRendererInitDesc*)p;
-	auto resolution = desc->resolution;
 
-	if (!loadShaders(shaderManager))
+	if (!loadShaders(s_shaderManager))
 		return false;
 
 	if (!createRootSignature(device))
 		return false;
 
-	if (!createPipelineState(device, shaderManager))
+	if (!createPipelineState(device, s_shaderManager))
 		return false;
 
-	if (!createTextures(resourceManager, resolution, device))
+	if (!createTextures(s_resourceManager, m_resolution, device))
 		return false;
 
 	if (!createDescriptorHeap(device))
 		return false;
 
-	m_depthSlice = resourceManager->getTexture("gbufferDepth");
+	if (device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, nullptr, IID_PPV_ARGS(m_commandList.getAddressOf())) != 0)
+		return false;
+	m_commandList->Close();
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc;
 	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -351,11 +400,11 @@ bool GBufferRenderer::initialize(d3d::ShaderManager* shaderManager, d3d::Resourc
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
 	auto handle = m_descriptorHeapRt.getHandleCpu();
-	device->CreateRenderTargetView(m_diffuseSlice.get(), &rtvDesc, handle);
+	device->CreateRenderTargetView(m_diffuseSlice, &rtvDesc, handle);
 
 	handle.offset(1);
 	rtvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	device->CreateRenderTargetView(m_normalVelocitySlice.get(), &rtvDesc, handle);
+	device->CreateRenderTargetView(m_normalVelocitySlice, &rtvDesc, handle);
 
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -370,44 +419,50 @@ bool GBufferRenderer::initialize(d3d::ShaderManager* shaderManager, d3d::Resourc
 		srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
 
 		auto handle = m_descriptorHeapSrv.getHandleCpu();
-		device->CreateShaderResourceView(m_diffuseSlice.get(), &srvDesc, handle);
+		device->CreateShaderResourceView(m_diffuseSlice, &srvDesc, handle);
 
 		handle.offset(1);
 		srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		device->CreateShaderResourceView(m_normalVelocitySlice.get(), &srvDesc, handle);
+		device->CreateShaderResourceView(m_normalVelocitySlice, &srvDesc, handle);
 	}
 
-	createBufferViews(resourceManager, device);
+	createBufferViews(s_resourceManager, device);
 
 	return true;
 }
 
 void GBufferRenderer::shutdown()
 {
-	m_normalVelocitySlice.destroy();
-	m_diffuseSlice.destroy();
+	m_cmdAlloc = nullptr;
+	m_commandList.destroy();
+
+	m_diffuseSlice = nullptr;
 	m_descriptorHeapRt.destroy();
 	m_descriptorHeapDs.destroy();
 	m_descriptorHeapSrv.destroy();
 	m_descriptorHeapBuffers.destroy();
-	m_gbufferHeap.destroy();
+
+	m_pipelineState.destroy();
+	m_rootSignature.destroy();
 }
 
-void GBufferRenderer::submitCommands(ID3D12GraphicsCommandList* cmdList)
+ID3D12CommandList* GBufferRenderer::submitCommands()
 {
-	// copy layer 0 depth buffer to layer 1
+	auto hresult = m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+	VX_ASSERT(hresult == 0);
+	// copylayer 0 depth buffer to layer 1
 	CD3DX12_RESOURCE_BARRIER barriers[2];
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE, 0);
 	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_DEST, 1);
-	cmdList->ResourceBarrier(2, barriers);
+	m_commandList->ResourceBarrier(2, barriers);
 
 	CD3DX12_TEXTURE_COPY_LOCATION src(m_depthSlice, 0);
 	CD3DX12_TEXTURE_COPY_LOCATION dst(m_depthSlice, 1);
-	cmdList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+	m_commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 
 	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE, 0);
 	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_DEPTH_WRITE, 1);
-	cmdList->ResourceBarrier(2, barriers);
+	m_commandList->ResourceBarrier(2, barriers);
 
 	const f32 clearColor[] = { 1.0f, 0.0f, 0.0f, 1 };
 
@@ -429,38 +484,61 @@ void GBufferRenderer::submitCommands(ID3D12GraphicsCommandList* cmdList)
 		m_descriptorHeapBuffers.get()
 	};
 
-	cmdList->SetDescriptorHeaps(1, heaps);
+	D3D12_VIEWPORT viewPort;
+	viewPort.Height = (f32)m_resolution.y;
+	viewPort.Width = (f32)m_resolution.x;
+	viewPort.MaxDepth = 1.0f;
+	viewPort.MinDepth = 0.0f;
+	viewPort.TopLeftX = 0;
+	viewPort.TopLeftY = 0;
 
-	cmdList->OMSetRenderTargets(2, rtvHandles, FALSE, dsvHandles);
-	cmdList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
-	cmdList->ClearRenderTargetView(rtvHandles[1], clearColor, 0, nullptr);
+	D3D12_RECT rectScissor;
+	rectScissor.left = 0;
+	rectScissor.top = 0;
+	rectScissor.right = m_resolution.x;
+	rectScissor.bottom = m_resolution.y;
 
-	cmdList->ClearDepthStencilView(dsvHandleClear, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	m_commandList->RSSetViewports(1, &viewPort);
+	m_commandList->RSSetScissorRects(1, &rectScissor);
 
-	cmdList->SetGraphicsRootSignature(m_rootSignature.get());
-	cmdList->SetPipelineState(m_pipelineState.get());
+	m_commandList->SetDescriptorHeaps(1, heaps);
 
-	cmdList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
-	cmdList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
-}
+	m_commandList->OMSetRenderTargets(2, rtvHandles, FALSE, dsvHandles);
+	m_commandList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
+	m_commandList->ClearRenderTargetView(rtvHandles[1], clearColor, 0, nullptr);
 
-void GBufferRenderer::bindSrvBegin(ID3D12GraphicsCommandList* cmdList)
-{
-	ID3D12DescriptorHeap* heaps[] =
+	m_commandList->ClearDepthStencilView(dsvHandleClear, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+
+	m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
+	m_commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
+
+
+	//auto drawCmdBuffer = s_resourceManager->getBuffer(L"drawCmdBuffer");
+	// draw meshes
+	/*
+	if (!m_drawCommands.empty())
 	{
-		m_descriptorHeapSrv.get()
-	};
+	auto drawCmdBuffer = m_resourceManager.getBuffer("LdrawCmdBuffer");
 
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_diffuseSlice.get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_normalVelocitySlice.get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
+	vertexBufferViews[0] = m_resourceManager.getResourceView("meshVertexBufferView")->vbv;
+	vertexBufferViews[1] = m_resourceManager.getResourceView("meshDrawIdBufferView")->vbv;
+	auto indexBufferView = m_resourceManager.getResourceView("meshIndexBufferView")->ibv;
 
-	cmdList->SetDescriptorHeaps(1, heaps);
+	m_commandListDrawMesh->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_commandListDrawMesh->IASetVertexBuffers(0, 2, vertexBufferViews);
+	m_commandListDrawMesh->IASetIndexBuffer(&indexBufferView);
 
-	cmdList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapSrv->GetGPUDescriptorHandleForHeapStart());
-}
+	auto cmdCount = m_drawCommands.size();
+	const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size;
+	m_commandListDrawMesh->ExecuteIndirect(m_commandSignature.get(), cmdCount, drawCmdBuffer, 0, drawCmdBuffer, countOffset);
+	}
+	*/
 
-void GBufferRenderer::bindSrvEnd(ID3D12GraphicsCommandList* cmdList)
-{
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_normalVelocitySlice.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_diffuseSlice.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	hresult = m_commandList->Close();
+	VX_ASSERT(hresult == 0);
+
+	return m_commandList.get();
 }

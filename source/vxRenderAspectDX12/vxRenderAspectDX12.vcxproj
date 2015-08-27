@@ -135,7 +135,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;_VX_ASSERT;_VX_WINDOWS;_VX_NO_EXCEPTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <CallingConvention>FastCall</CallingConvention>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -202,8 +202,11 @@
     <ClInclude Include="AdjacencyTreeBuilder.h" />
     <ClInclude Include="BufferView.h" />
     <ClInclude Include="ConverterMesh.h" />
-    <ClInclude Include="DrawQuadRenderer.h" />
+    <ClInclude Include="CreateResourceDesc.h" />
+    <ClInclude Include="Debug.h" />
+    <ClInclude Include="RenderPassDrawGBuffer.h" />
     <ClInclude Include="Gpu.h" />
+    <ClInclude Include="GpuSaoBuffer.h" />
     <ClInclude Include="GpuCameraBufferData.h" />
     <ClInclude Include="d3d.h" />
     <ClInclude Include="d3dHelper.h" />
@@ -218,19 +221,18 @@
     <ClInclude Include="GpuTransform.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="mat3.h" />
-    <ClInclude Include="mat4d.h" />
     <ClInclude Include="MaterialManager.h" />
     <ClInclude Include="MeshManager.h" />
+    <ClInclude Include="RenderPassAo.h" />
+    <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Quaternion.h" />
-    <ClInclude Include="reconstructFromDepth.h" />
     <ClInclude Include="RenderAspect.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="RenderPassZBuffer.h" />
     <ClInclude Include="ResourceBarrier.h" />
     <ClInclude Include="ResourceView.h" />
     <ClInclude Include="ShaderManager.h" />
-    <ClInclude Include="TaskUpdateCamera.h" />
     <ClInclude Include="TaskUploadGeometry.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="UploadManager.h" />
@@ -239,19 +241,21 @@
   <ItemGroup>
     <ClCompile Include="BufferView.cpp" />
     <ClCompile Include="ConverterMesh.cpp" />
+    <ClCompile Include="Debug.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="dllExport.cpp" />
-    <ClCompile Include="DrawQuadRenderer.cpp" />
+    <ClCompile Include="RenderPassDrawGBuffer.cpp" />
     <ClCompile Include="GBufferRenderer.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="MeshManager.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="RenderPassZBufferCreateMipmaps.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="RenderPassZBuffer.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
-    <ClCompile Include="TaskUpdateCamera.cpp" />
     <ClCompile Include="TaskUploadGeometry.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="UploadManager.cpp" />
@@ -327,6 +331,22 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="SAO_aoPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="SAO_minify.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="PixelShader.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

@@ -39,8 +39,7 @@ struct MaterialManager::MaterialEntry
 MaterialManager::MaterialManager()
 	:m_materialEntries(),
 	m_texturesSrgba(),
-	m_texturesRgba(),
-	m_textureHeap()
+	m_texturesRgba()
 {
 
 }
@@ -50,67 +49,19 @@ MaterialManager::~MaterialManager()
 
 }
 
-bool MaterialManager::createHeap(ID3D12Device* device)
+void MaterialManager::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
-	D3D12_HEAP_PROPERTIES props
-	{
-		D3D12_HEAP_TYPE_DEFAULT,
-		D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-		D3D12_MEMORY_POOL_UNKNOWN,
-		0,
-		0
-	};
+	m_texturesSrgba.getRequiredMemory(dimSrgb, DXGI_FORMAT_BC7_UNORM_SRGB, heapSizeTexture, device);
 
-	D3D12_HEAP_DESC textureHeapDesc;
-	textureHeapDesc.Alignment = 64u KBYTE;
-	textureHeapDesc.Flags = D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
-	textureHeapDesc.Properties = props;
-	textureHeapDesc.SizeInBytes = d3d::getAlignedSize(512u MBYTE, 64u KBYTE);
-	if (!m_textureHeap.create(textureHeapDesc, device))
-		return false;
-
-	return true;
+	m_texturesRgba.getRequiredMemory(dimRgb, DXGI_FORMAT_BC7_UNORM, heapSizeTexture, device);
 }
 
-bool MaterialManager::createTextureArray(const vx::uint2 &textureResolution, u32 maxTextureCount, u32 format, d3d::Object<ID3D12Resource>* res, ID3D12Device* device, u32* offset)
+bool MaterialManager::initialize(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, vx::StackAllocator* allocator, d3d::ResourceManager* resourceManager, ID3D12Device* device)
 {
-	auto thisOffset = d3d::getAlignedSize(4 * textureResolution.x * textureResolution.y, 64u KBYTE);
-
-	D3D12_RESOURCE_DESC resDesc;
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resDesc.Alignment = 64 KBYTE;
-	resDesc.Width = textureResolution.x;
-	resDesc.Height = textureResolution.y;
-	resDesc.DepthOrArraySize = maxTextureCount;
-	resDesc.MipLevels = 1;
-	resDesc.Format = (DXGI_FORMAT)format;
-	resDesc.SampleDesc.Count = 1;
-	resDesc.SampleDesc.Quality = 0;
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	d3d::HeapCreateResourceDesc desc;
-	desc.clearValue = nullptr;
-	desc.desc = &resDesc;
-	desc.resource = res->getAddressOf();
-	desc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	if (!m_textureHeap.createResource(desc))
+	if (!m_texturesSrgba.initialize(allocator, L"srgbTexture", dimSrgb, DXGI_FORMAT_BC7_UNORM_SRGB, resourceManager, device))
 		return false;
 
-	*offset += thisOffset;
-
-	return true;
-}
-
-bool MaterialManager::initialize(const vx::uint2 &textureResolution, u32 srgbaCount, u32 rgbaCount, vx::StackAllocator* allocator, d3d::ResourceManager* resourceManager, ID3D12Device* device)
-{
-	if (!createHeap(device))
-		return false;
-
-	if (!m_texturesSrgba.initialize(allocator, "srgbTexture", vx::uint3(textureResolution, srgbaCount), DXGI_FORMAT_BC7_UNORM_SRGB, &m_textureHeap, resourceManager, device))
-		return false;
-
-	if (!m_texturesRgba.initialize(allocator, "rgbTexture", vx::uint3(textureResolution, rgbaCount), DXGI_FORMAT_BC7_UNORM, &m_textureHeap, resourceManager, device))
+	if (!m_texturesRgba.initialize(allocator, L"rgbTexture", dimRgb, DXGI_FORMAT_BC7_UNORM, resourceManager, device))
 		return false;
 
 	return true;
@@ -121,8 +72,6 @@ void MaterialManager::shutdown()
 	m_materialEntries.clear();
 	m_texturesRgba.shutdown();
 	m_texturesSrgba.shutdown();
-
-	m_textureHeap.destroy();
 }
 
 bool MaterialManager::tryGetTexture(const vx::StringID &sid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* slice)

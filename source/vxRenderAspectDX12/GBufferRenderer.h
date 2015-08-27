@@ -34,25 +34,27 @@ struct ID3D12GraphicsCommandList;
 struct ID3D12Resource;
 
 #include "RenderPass.h"
-#include "Heap.h"
 #include <vxLib/math/Vector.h>
 #include "DescriptorHeap.h"
-
-struct GBufferRendererInitDesc
-{
-	vx::uint2 resolution;
-};
+#include <memory>
 
 class GBufferRenderer : public RenderPass
 {
+	struct ColdData;
+
+	d3d::Object<ID3D12GraphicsCommandList> m_commandList;
+	ID3D12CommandAllocator* m_cmdAlloc;
+	vx::uint2 m_resolution;
 	d3d::DescriptorHeap m_descriptorHeapBuffers;
 	d3d::DescriptorHeap m_descriptorHeapRt;
 	d3d::DescriptorHeap m_descriptorHeapDs;
 	d3d::DescriptorHeap m_descriptorHeapSrv;
-	d3d::Object<ID3D12Resource> m_diffuseSlice;
-	d3d::Object<ID3D12Resource> m_normalVelocitySlice;
+	ID3D12Resource* m_diffuseSlice;
+	ID3D12Resource* m_normalVelocitySlice;
 	ID3D12Resource* m_depthSlice;
-	d3d::Heap m_gbufferHeap;
+	std::unique_ptr<ColdData> m_coldData;
+
+	void createTextureDescriptions();
 
 	bool loadShaders(d3d::ShaderManager* shaderManager);
 	bool createRootSignature(ID3D12Device* device);
@@ -63,14 +65,13 @@ class GBufferRenderer : public RenderPass
 	void createBufferViews(d3d::ResourceManager* resourceManager, ID3D12Device* device);
 
 public:
-	GBufferRenderer();
+	explicit GBufferRenderer(vx::uint2 resolution, ID3D12CommandAllocator* cmdAlloc);
 	~GBufferRenderer();
 
-	bool initialize(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, ID3D12Device* device, void* p) override;
+	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+
+	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
-	void submitCommands(ID3D12GraphicsCommandList* cmdList) override;
-
-	void bindSrvBegin(ID3D12GraphicsCommandList* cmdList);
-	void bindSrvEnd(ID3D12GraphicsCommandList* cmdList);
+	ID3D12CommandList* submitCommands() override;
 };

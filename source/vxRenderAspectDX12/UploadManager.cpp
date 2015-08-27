@@ -97,6 +97,8 @@ bool UploadManager::createHeap(ID3D12Device* device)
 	if (!m_heap.createBufferHeap(UploadManagerCpp::g_bufferSize, D3D12_HEAP_TYPE_UPLOAD, device))
 		return false;
 
+	m_heap.setName(L"UploadManagerHeap");
+
 	return true;
 }
 bool UploadManager::initialize(ID3D12Device* device)
@@ -104,7 +106,7 @@ bool UploadManager::initialize(ID3D12Device* device)
 	if (!createHeap(device))
 		return false;
 
-	d3d::BufferResourceDesc desc;
+	d3d::HeapCreateBufferResourceDesc desc;
 	desc.size = UploadManagerCpp::g_bufferSize;
 	desc.state = D3D12_RESOURCE_STATE_GENERIC_READ;
 	desc.resource = m_uploadBuffer.getAddressOf();
@@ -115,11 +117,14 @@ bool UploadManager::initialize(ID3D12Device* device)
 	if (hresult != 0)
 		return false;
 
+	m_commandAllocator->SetName(L"UploadManagerCommandAllocator");
+
 	hresult = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr, IID_PPV_ARGS(m_commandList.getAddressOf()));
 	if (hresult != 0)
 		return false;
 
 	m_commandList->Close();
+	m_commandList->SetName(L"UploadManagerCommandList");
 
 	m_capacity = UploadManagerCpp::g_bufferSize;
 

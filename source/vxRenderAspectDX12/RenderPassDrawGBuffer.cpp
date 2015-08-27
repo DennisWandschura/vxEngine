@@ -1,19 +1,29 @@
-#include "DrawQuadRenderer.h"
+#include "RenderPassDrawGBuffer.h"
 #include <d3d12.h>
 #include "ShaderManager.h"
 #include "d3dx12.h"
+#include "ResourceManager.h"
 
-DrawQuadRenderer::DrawQuadRenderer()
+RenderPassDrawGBuffer::RenderPassDrawGBuffer(ID3D12CommandAllocator* cmdAlloc)
+	:RenderPass(),
+	m_commandList(),
+	m_cmdAlloc(cmdAlloc),
+	m_descriptorHeap()
 {
 
 }
 
-DrawQuadRenderer::~DrawQuadRenderer()
+RenderPassDrawGBuffer::~RenderPassDrawGBuffer()
 {
 
 }
 
-bool DrawQuadRenderer::loadShaders(d3d::ShaderManager* shaderManager)
+void RenderPassDrawGBuffer::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+{
+
+}
+
+bool RenderPassDrawGBuffer::loadShaders(d3d::ShaderManager* shaderManager)
 {
 	if (!shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", d3d::ShaderType::Vertex))
 		return false;
@@ -27,20 +37,13 @@ bool DrawQuadRenderer::loadShaders(d3d::ShaderManager* shaderManager)
 	return true;
 }
 
-bool DrawQuadRenderer::createRootSignature(ID3D12Device* device)
+bool RenderPassDrawGBuffer::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
-
-	D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
 	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -73,7 +76,7 @@ bool DrawQuadRenderer::createRootSignature(ID3D12Device* device)
 	return true;
 }
 
-bool DrawQuadRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
+bool RenderPassDrawGBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
 	auto vsShader = shaderManager->getShader("DrawQuadVs.cso");
 	auto gsShader = shaderManager->getShader("DrawQuadGs.cso");
@@ -103,29 +106,78 @@ bool DrawQuadRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderMana
 	return true;
 }
 
-bool DrawQuadRenderer::initialize(ID3D12Device* device, d3d::ShaderManager* shaderManager)
+bool RenderPassDrawGBuffer::initialize(ID3D12Device* device, void* p)
 {
-	if (!loadShaders(shaderManager))
+	auto gbufferDiffuse = s_resourceManager->getTexture(L"gbufferDiffuse");
+
+	if (!loadShaders(s_shaderManager))
 		return false;
 
 	if (!createRootSignature(device))
 		return false;
 
-	if (!createPipelineState(device, shaderManager))
+	if (!createPipelineState(device, s_shaderManager))
 		return false;
+
+	D3D12_DESCRIPTOR_HEAP_DESC desc;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	desc.NodeMask = 1;
+	desc.NumDescriptors = 1;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	if (!m_descriptorHeap.create(desc, device))
+		return false;
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC zbufferDesc;
+	zbufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	zbufferDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	zbufferDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	zbufferDesc.Texture2DArray.ArraySize = 2;
+	zbufferDesc.Texture2DArray.FirstArraySlice = 0;
+	zbufferDesc.Texture2DArray.MipLevels = 1;
+	zbufferDesc.Texture2DArray.MostDetailedMip = 0;
+	zbufferDesc.Texture2DArray.PlaneSlice = 0;
+	zbufferDesc.Texture2DArray.ResourceMinLODClamp = 0;
+
+	device->CreateShaderResourceView(gbufferDiffuse, &zbufferDesc, m_descriptorHeap.getHandleCpu());
 
 	return true;
 }
 
-void DrawQuadRenderer::setPipelineState(ID3D12GraphicsCommandList* cmdList)
+void RenderPassDrawGBuffer::shutdown()
 {
-	cmdList->SetGraphicsRootSignature(m_rootSignature.get());
-	cmdList->SetPipelineState(m_pipelineState.get());
+	m_commandList.destroy();
+	m_cmdAlloc = nullptr;
+	m_descriptorHeap.destroy();
 }
 
-void DrawQuadRenderer::submitCommands(ID3D12GraphicsCommandList* cmdList)
+ID3D12CommandList* RenderPassDrawGBuffer::submitCommands()
 {
-	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	auto gbufferDiffuse = s_resourceManager->getTexture(L"gbufferDiffuse");
 
-	cmdList->DrawInstanced(1, 1, 0, 0);
+	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+
+	//m_commandList->RSSetViewports(1, &m_viewport);
+	//m_commandList->RSSetScissorRects(1, &m_rectScissor);
+
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDiffuse, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+
+	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+
+	ID3D12DescriptorHeap* heaps[]=
+	{
+		m_descriptorHeap.get()
+	};
+
+	m_commandList->SetDescriptorHeaps(1, heaps);
+	m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+	m_commandList->DrawInstanced(1, 1, 0, 0);
+
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDiffuse, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+	m_commandList->Close();
+
+	return m_commandList.get();
 }

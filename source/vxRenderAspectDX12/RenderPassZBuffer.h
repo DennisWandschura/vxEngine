@@ -24,18 +24,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct ID3D12Device;
-
 #include "RenderPass.h"
 #include "DescriptorHeap.h"
-#include "Heap.h"
 
 class RenderPassZBuffer : public RenderPass
 {
-	d3d::ResourceManager* m_resourceManager;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::DescriptorHeap m_descriptorHeap;
-	d3d::Heap m_heap;
 
 	bool loadShaders(d3d::ShaderManager* shaderManager);
 	bool createRootSignature(ID3D12Device* device);
@@ -46,8 +41,8 @@ public:
 	RenderPassZBuffer();
 	~RenderPassZBuffer();
 
-	bool initialize(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, ID3D12Device* device, void* p) override;
+	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
-	void submitCommands(ID3D12GraphicsCommandList* cmdList) override;
+	ID3D12CommandList* submitCommands() override;
 };
