@@ -52,4 +52,9 @@ public:
 	{
 		return m_data.compare_exchange_strong(*((s32*)expected), *((s32*)&value));
 	}
+
+	bool compare_exchange_weak(f32* expected, f32 value)
+	{
+		return m_data.compare_exchange_weak(*((s32*)expected), *((s32*)&value));
+	}
 };

@@ -880,7 +880,7 @@ void PhysicsAspect::lockSceneWrite()
 //	printf("%u\n", current);
 	u32 expected = 0;
 
-	while (!m_currentWriterTid.compare_exchange_strong(expected, tid))
+	while (!m_currentWriterTid.compare_exchange_weak(expected, tid))
 	{
 		expected = 0;
 	}

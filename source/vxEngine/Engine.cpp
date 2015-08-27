@@ -341,7 +341,7 @@ bool Engine::initialize(Logfile* logfile)
 
 	m_taskManagerThread = std::thread(EngineCpp::schedulerThread, &m_taskManager);
 
-	printf("Main Thread tid: %u\n", std::this_thread::get_id());
+	//printf("Main Thread tid: %u\n", std::this_thread::get_id());
 
 	return true;
 }
