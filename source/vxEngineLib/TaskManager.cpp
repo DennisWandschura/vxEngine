@@ -4,21 +4,21 @@
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxEngineLib/Event.h>
 #include <vxEngineLib/SmallObjAllocator.h>
+#include <vxEngineLib/ThreadSafeStack.h>
+#include <vxEngineLib/atomic_float.h>
 
 namespace vx
 {
 	struct TaskBuffer
 	{
-		LightTask** m_tasks;
-		u32 m_size;
-		f32 m_time;
+		ThreadSafeStack<LightTask*> m_tasks;
+		atomic_float m_time;
 
 		TaskBuffer()
-			:m_tasks(nullptr),
-			m_size(0),
-			m_time(0.0f)
+			:m_tasks(),
+			m_time()
 		{
-
+			m_time.store(0.0f);
 		}
 
 		~TaskBuffer()
@@ -27,44 +27,57 @@ namespace vx
 
 		void initialize(u32 capacity, vx::StackAllocator* allocator)
 		{
-			m_tasks = (LightTask**)allocator->allocate(sizeof(LightTask*) * capacity, 8);
+			auto ptr = allocator->allocate(sizeof(LightTask*) * capacity, 8);
+			m_tasks.initialize(ptr, capacity);
 		}
 
-		void swap(TaskBuffer &other)
+		bool pushTaskTS(LightTask* task, u32 capacity, f32 maxTime)
 		{
-			std::swap(m_tasks, other.m_tasks);
-			std::swap(m_size, other.m_size);
-		}
-
-		bool pushTask(LightTask* task, u32 capacity, f32 maxTime)
-		{
-			if (capacity <= m_size)
-				return false;
-
 			auto taskTime = task->getTimeMs();
-			auto bufferTime = m_time + taskTime;
 
-			if (bufferTime >= maxTime)
-				return false;
+			auto oldTime = m_time.load();
 
-			m_time = bufferTime;
-			m_tasks[m_size++] = task;
+			while (true)
+			{
+				auto newTime = oldTime + taskTime;
+				if (newTime >= maxTime)
+					return false;
 
-			return true;
+				if (m_time.compare_exchange_strong(&oldTime, newTime))
+					break;
+			}
+
+			bool result = true;
+			if (!m_tasks.pushTS(task))
+			{
+				auto oldTime = m_time.fetch_sub(taskTime);
+				result = false;
+			}
+
+			return result;
+		}
+
+		u32 sizeTS() const
+		{
+			return m_tasks.sizeTS();
+		}
+
+		void clear()
+		{
+			m_tasks.clear();
+			m_time.store(0.0f);
 		}
 	};
 
-	class LocalQueue
+	class VX_ALIGN(64) LocalQueue
 	{
-		struct VX_ALIGN(64)
-		{
-			TaskBuffer m_front;
-			std::mutex m_frontMutex;
-			f32 m_maxTime;
-			u32 m_capacity;
-		};
+		std::atomic<TaskBuffer*> m_front;
+		TaskBuffer* m_back;
+		f32 m_maxTime;
+		u32 m_capacity;
+		std::atomic_int m_counter;
+		TaskBuffer m_buffers[2];
 
-		TaskBuffer m_back;
 		std::atomic_int m_running;
 		TaskManager* m_scheduler;
 
@@ -79,13 +92,16 @@ namespace vx
 	public:
 		LocalQueue()
 			:m_front(),
-			m_frontMutex(),
-			m_back(),
+			m_back(nullptr),
 			m_capacity(0),
+			m_buffers(),
+			m_counter(),
 			m_running({ 0 }),
 			m_scheduler(nullptr)
 		{
-
+			m_counter.store(0);
+			m_front.store(&m_buffers[0]);
+			m_back = &m_buffers[1];
 		}
 
 		~LocalQueue()
@@ -95,8 +111,8 @@ namespace vx
 
 		void initialize(u32 capacity, f32 maxTime, TaskManager* scheduler, vx::StackAllocator* allocator)
 		{
-			m_front.initialize(capacity, allocator);
-			m_back.initialize(capacity, allocator);
+			m_buffers[0].initialize(capacity, allocator);
+			m_buffers[1].initialize(capacity, allocator);
 
 			m_maxTime = maxTime;
 			m_capacity = capacity;
@@ -106,19 +122,29 @@ namespace vx
 
 		bool pushTask(LightTask* task)
 		{
-			std::unique_lock<std::mutex> lock(m_frontMutex);
-			return m_front.pushTask(task, m_capacity, m_maxTime);
+			m_counter.fetch_add(1);
+
+			auto queue = m_front.load();
+
+			bool result = queue->pushTaskTS(task, m_capacity, m_maxTime);
+
+			m_counter.fetch_sub(1);
+
+			return result;
 		}
 
 		void swapBuffer()
 		{
-			std::unique_lock<std::mutex> lock(m_frontMutex);
-			m_front.swap(m_back);
+			while (m_counter.load() != 0)
+				;
+
+			m_back = m_front.exchange(m_back);
 		}
 
 		void processBack()
 		{
-			if (m_back.m_size == 0)
+			auto backSize = m_back->sizeTS();
+			if (backSize == 0)
 			{
 				std::this_thread::yield();
 			}
@@ -126,9 +152,10 @@ namespace vx
 			{
 				LightTask* waitingTask = nullptr;
 
-				for (u32 i = 0; i < m_back.m_size; ++i)
+				auto &backTasks = m_back->m_tasks;
+				for (u32 i = 0; i < backSize; ++i)
 				{
-					auto task = m_back.m_tasks[i];
+					auto task = backTasks[i];
 					auto result = task->run();
 					if (result == TaskReturnType::Retry)
 					{
@@ -156,8 +183,7 @@ namespace vx
 					}
 				}
 
-				m_back.m_size = 0;
-				m_back.m_time = 0.0f;
+				m_back->clear();
 			}
 		}
 
@@ -177,6 +203,9 @@ namespace vx
 	void localThread(LocalQueue* queue, u32 tid)
 	{
 		s_tid = tid;
+
+		auto t_id = std::this_thread::get_id();
+		//printf("Worker Thread tid: %u\n", t_id);
 
 		SmallObjAllocator allocator(1024);
 		Task::setAllocator(&allocator);
@@ -239,6 +268,8 @@ namespace vx
 		s_tid = 0;
 		Task::setAllocator(m_allocator.get());
 		Event::setAllocator(m_allocator.get());
+
+		//printf("Worker Thread tid: %u\n", std::this_thread::get_id());
 	}
 
 	void TaskManager::shutdown()
