@@ -187,7 +187,7 @@ namespace Converter
 				joints[i] = scene.m_joints[i];
 			}
 
-			converterSceneFile.setJoints(std::move(joints), jointCount);
+			converterSceneFile.setJoints(std::move(joints), static_cast<u32>(jointCount));
 		}
 
 		converterSceneFile.swap(*sceneFile);

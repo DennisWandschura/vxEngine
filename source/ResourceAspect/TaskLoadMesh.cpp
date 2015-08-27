@@ -64,8 +64,9 @@ TaskReturnType TaskLoadMesh::runImpl()
 	SCOPE_EXIT
 	{
 		std::unique_lock<std::mutex> scratchLock;
-		auto scratchAlloc = m_meshManager->lockScratchAllocator(&scratchLock);
+		m_meshManager->lockScratchAllocator(&scratchLock);
 		fileData.clear();
+		scratchLock.unlock();
 	};
 
 	const u8* dataBegin = nullptr;
