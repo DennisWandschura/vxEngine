@@ -43,10 +43,11 @@ void ActionUpdateGpuTransform::run()
 	//__m128 quaternionRotation = { m_playerEntity->orientation.y, m_playerEntity->orientation.x, 0, 0 };
 	//quaternionRotation = vx::quaternionRotationRollPitchYawFromVector(quaternionRotation);
 	__m128 quaternionRotation = vx::loadFloat4(m_playerEntity->m_qRotation);
+	auto position = vx::loadFloat3(m_playerEntity->m_position);
 
 	RenderUpdateCameraData data;
-	data.position = vx::loadFloat3(m_playerEntity->m_position);
-	data.quaternionRotation = quaternionRotation;
+	data.position = { position.m128_f32[0], position.m128_f32[1], position.m128_f32[2], position.m128_f32[3] };
+	data.quaternionRotation = { quaternionRotation.m128_f32[0], quaternionRotation.m128_f32[1], quaternionRotation.m128_f32[2], quaternionRotation.m128_f32[3] };;
 
 	m_pRenderAspect->queueUpdateCamera(data);
 }
