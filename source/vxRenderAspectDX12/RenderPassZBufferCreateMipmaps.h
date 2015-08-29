@@ -24,21 +24,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxEngineLib/EventListener.h>
-#include "AudioManager.h"
+#include "RenderPass.h"
+#include "DescriptorHeap.h"
+#include <vxLib/math/Vector.h>
+#include "CommandList.h"
 
-namespace vx
+class RenderPassZBufferCreateMipmaps : public RenderPass
 {
-	class AudioAspect : public vx::EventListener
-	{
-		Audio::AudioManager m_audioManager;
+	d3d::GraphicsCommandList m_commandList;
+	ID3D12CommandAllocator* m_cmdAlloc;
+	d3d::DescriptorHeap m_descriptorHeapRtv;
+	d3d::DescriptorHeap m_descriptorHeapSrv;
+	vx::uint2 m_textureResolution;
+	ID3D12Resource* m_zbuffer;
 
-	public:
-		bool initialize();
-		void shutdown();
+	bool loadShaders(d3d::ShaderManager* shaderManager);
+	bool createRootSignature(ID3D12Device* device);
+	bool createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager);
 
-		void handleEvent(const vx::Event &evt) override;
+public:
+	explicit RenderPassZBufferCreateMipmaps(ID3D12CommandAllocator* cmdAlloc);
+	~RenderPassZBufferCreateMipmaps();
 
-		void update();
-	};
-}
+	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+
+	bool initialize(ID3D12Device* device, void* p) override;
+	void shutdown() override;
+
+	ID3D12CommandList* submitCommands() override;
+};

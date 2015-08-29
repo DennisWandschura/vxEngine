@@ -18,23 +18,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\vxAudio\Sound.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxAudio\WavFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxAudio\AudioAspect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxAudio\AudioManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxAudio\ogg_stream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="AudioAspect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -50,8 +33,31 @@
     <ClCompile Include="unity\Unity_vxAudioAspect1.cpp">
       <Filter>unity</Filter>
     </ClCompile>
+    <ClCompile Include="dllExport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="generate_unity.bff" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ogg_stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sound.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WavFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioAspect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dllExport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

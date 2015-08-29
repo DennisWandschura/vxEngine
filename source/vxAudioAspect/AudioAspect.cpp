@@ -1,4 +1,4 @@
-#include <vxAudio/AudioAspect.h>
+#include "AudioAspect.h"
 
 /*
 The MIT License (MIT)
@@ -26,9 +26,19 @@ SOFTWARE.
 
 namespace vx
 {
+	AudioAspect::AudioAspect()
+	{
+
+	}
+
+	AudioAspect::~AudioAspect()
+	{
+
+	}
+
 	bool AudioAspect::initialize()
 	{
-		return m_audioManager.init();
+		return m_audioManager.initialize();
 	}
 
 	void AudioAspect::shutdown()
@@ -41,7 +51,7 @@ namespace vx
 
 	}
 
-	void AudioAspect::handleEvent(const vx::Event &evt)
+	void AudioAspect::handleMessage(const Message &evt)
 	{
 
 	}

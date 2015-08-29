@@ -47,7 +47,7 @@ void ActionUpdateGpuTransform::run()
 
 	RenderUpdateCameraData data;
 	data.position = { position.m128_f32[0], position.m128_f32[1], position.m128_f32[2], position.m128_f32[3] };
-	data.quaternionRotation = { quaternionRotation.m128_f32[0], quaternionRotation.m128_f32[1], quaternionRotation.m128_f32[2], quaternionRotation.m128_f32[3] };;
+	data.quaternionRotation = { quaternionRotation.m128_f32[0], quaternionRotation.m128_f32[1], quaternionRotation.m128_f32[2], quaternionRotation.m128_f32[3] };
 
 	m_pRenderAspect->queueUpdateCamera(data);
 }

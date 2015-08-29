@@ -30,8 +30,10 @@ struct ID3D12PipelineState;
 struct ID3D12Device;
 struct ID3D12CommandList;
 struct ID3D12CommandAllocator;
+class UploadManager;
 
 #include "d3d.h"
+#include <vxLib/math/Vector.h>
 
 namespace d3d
 {
@@ -44,6 +46,7 @@ class RenderPass
 protected:
 	static d3d::ShaderManager* s_shaderManager; 
 	static d3d::ResourceManager* s_resourceManager;
+	static UploadManager* s_uploadManager;
 
 	d3d::Object<ID3D12RootSignature> m_rootSignature;
 	d3d::Object<ID3D12PipelineState> m_pipelineState;
@@ -53,10 +56,11 @@ protected:
 public:
 	virtual ~RenderPass() {}
 
-	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager)
+	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
 	{
 		s_shaderManager = shaderManager;
 		s_resourceManager = resourceManager;
+		s_uploadManager = uploadManager;
 	}
 
 	virtual void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) = 0;

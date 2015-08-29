@@ -4,13 +4,20 @@
 #include "ShaderManager.h"
 #include "d3dx12.h"
 
-RenderPassZBufferCreateMipmaps::RenderPassZBufferCreateMipmaps()
+RenderPassZBufferCreateMipmaps::RenderPassZBufferCreateMipmaps(ID3D12CommandAllocator* cmdAlloc)
+	:m_commandList(),
+	m_cmdAlloc(cmdAlloc)
 {
 
 }
 
 RenderPassZBufferCreateMipmaps::~RenderPassZBufferCreateMipmaps()
 {
+}
+
+void RenderPassZBufferCreateMipmaps::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+{
+
 }
 
 bool RenderPassZBufferCreateMipmaps::loadShaders(d3d::ShaderManager* shaderManager)
@@ -86,7 +93,7 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device, s_shaderManager))
 		return false;
 
-	auto zBuffer = s_resourceManager->getTexture(L"zBuffer");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
@@ -151,6 +158,9 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 		srvHandle.offset(1);
 	}
 
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get()))
+		return false;
+
 	return true;
 }
 
@@ -161,7 +171,9 @@ void RenderPassZBufferCreateMipmaps::shutdown()
 
 ID3D12CommandList* RenderPassZBufferCreateMipmaps::submitCommands()
 {
-	/*D3D12_VIEWPORT viewport;
+	const f32 clearColor[4] = { 1.0f, 0.0f, 0, 0 };
+
+	D3D12_VIEWPORT viewport;
 	viewport.MaxDepth = 1.0f;
 	viewport.MinDepth = 0.0f;
 	viewport.TopLeftX = 0;
@@ -171,10 +183,12 @@ ID3D12CommandList* RenderPassZBufferCreateMipmaps::submitCommands()
 	rectScissor.left = 0;
 	rectScissor.top = 0;
 
-	cmdList->SetPipelineState(m_pipelineState.get());
-	cmdList->SetGraphicsRootSignature(m_rootSignature.get());
+	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
 
-	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	m_commandList->SetPipelineState(m_pipelineState.get());
+	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+
+	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	//
 
@@ -186,26 +200,28 @@ ID3D12CommandList* RenderPassZBufferCreateMipmaps::submitCommands()
 	u32 srcMip = 0;
 	for (u32 i = 1; i <= 5; ++i)
 	{
-		cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_zbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, srcMip));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_zbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, srcMip));
 
 		viewport.Height = (f32)y;
 		viewport.Width = (f32)x;
 		rectScissor.right = x;
 		rectScissor.bottom = y;
 
-		cmdList->RSSetViewports(1, &viewport);
-		cmdList->RSSetScissorRects(1, &rectScissor);
+		m_commandList->RSSetViewports(1, &viewport);
+		m_commandList->RSSetScissorRects(1, &rectScissor);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE descHandle = rtvHandle;
-		cmdList->OMSetRenderTargets(1, &descHandle, 0, nullptr);
+		m_commandList->OMSetRenderTargets(1, &descHandle, 0, nullptr);
+
+		m_commandList->ClearRenderTargetView(descHandle, clearColor, 0, nullptr);
 
 		auto heap = m_descriptorHeapSrv.get();
-		cmdList->SetDescriptorHeaps(1, &heap);
-		cmdList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapSrv->GetGPUDescriptorHandleForHeapStart());
+		m_commandList->SetDescriptorHeaps(1, &heap);
+		m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapSrv->GetGPUDescriptorHandleForHeapStart());
 
-		cmdList->DrawInstanced(1, 1, 0, 0);
+		m_commandList->DrawInstanced(1, 1, 0, 0);
 
-		cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_zbuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, srcMip));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_zbuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, srcMip));
 
 		x = x >> 1;
 		y = y >> 1;
@@ -213,6 +229,9 @@ ID3D12CommandList* RenderPassZBufferCreateMipmaps::submitCommands()
 
 		rtvHandle.offset(1);
 		srvHandle.offset(1);
-	}*/
-	return nullptr;
+	}
+
+	m_commandList->Close();
+	
+	return m_commandList.get();;
 }

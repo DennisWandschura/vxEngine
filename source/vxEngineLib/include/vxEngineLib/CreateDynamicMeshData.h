@@ -32,21 +32,39 @@ namespace physx
 
 class CreateDynamicMeshData
 {
-public:
 	const MeshInstance* m_meshInstance;
 	physx::PxRigidDynamic* m_rigidDynamic;
 	vx::StringID m_materialSid;
 	u32 m_gpuIndex;
-	u32 m_flags;
+	u32 m_count;
 
+	void increment()
+	{
+		++m_count;
+	}
+
+public:
 	CreateDynamicMeshData()
 		:m_meshInstance(nullptr),
 		m_rigidDynamic(nullptr),
 		m_materialSid(),
 		m_gpuIndex(0xffffffff),
-		m_flags(0)
+		m_count(0)
 	{
 
+	}
+
+	void initialize(const MeshInstance* meshInstance, const vx::StringID &materialSid)
+	{
+		m_meshInstance = meshInstance;
+		m_materialSid = materialSid;
+	}
+
+	u32 decrement()
+	{
+		--m_count;
+
+		return m_count;
 	}
 
 	bool isValid() const
@@ -55,13 +73,33 @@ public:
 			(m_rigidDynamic != nullptr);
 	}
 
-	void increment()
+	void setGpuIndex(u32 gpuIndex)
 	{
-		++m_flags;
+		m_gpuIndex = gpuIndex;
+		increment();
 	}
 
-	void decrement()
+	void setRigidDynamic(physx::PxRigidDynamic* rigidDynamic)
 	{
-		--m_flags;
+		if (m_rigidDynamic == nullptr)
+		{
+			m_rigidDynamic = rigidDynamic;
+			increment();
+		}
+	}
+
+	const MeshInstance* getMeshInstance() const
+	{
+		return m_meshInstance;
+	}
+
+	physx::PxRigidDynamic* getRigidDynamic() const
+	{
+		return m_rigidDynamic;
+	}
+
+	u32 getGpuIndex() const
+	{
+		return m_gpuIndex;
 	}
 };

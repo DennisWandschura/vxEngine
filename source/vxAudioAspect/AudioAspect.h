@@ -24,27 +24,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "RenderPass.h"
-#include "DescriptorHeap.h"
+#include <vxEngineLib/AudioAspectInterface.h>
+#include "AudioManager.h"
 
-class RenderPassDrawGBuffer : public RenderPass
+namespace vx
 {
-	d3d::Object<ID3D12GraphicsCommandList> m_commandList;
-	ID3D12CommandAllocator* m_cmdAlloc;
-	d3d::DescriptorHeap m_descriptorHeap;
+	class AudioAspect : public ::AudioAspectInterface
+	{
+		Audio::AudioManager m_audioManager;
 
-	bool loadShaders(d3d::ShaderManager* shaderManager);
-	bool createRootSignature(ID3D12Device* device);
-	bool createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager);
+	public:
+		AudioAspect();
+		~AudioAspect();
 
-public:
-	explicit RenderPassDrawGBuffer(ID3D12CommandAllocator* cmdAlloc);
-	~RenderPassDrawGBuffer();
+		bool initialize() override;
+		void shutdown() override;
 
-	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+		void handleMessage(const Message &evt) override;
 
-	bool initialize(ID3D12Device* device, void* p) override;
-	void shutdown() override;
-
-	ID3D12CommandList* submitCommands() override;
-};
+		void update();
+	};
+}

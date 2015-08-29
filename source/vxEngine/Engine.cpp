@@ -81,6 +81,7 @@ Engine::Engine()
 	m_shutdown(0),
 	m_scene(),
 	m_renderAspectDll(nullptr),
+	m_audioAspectDll(nullptr),
 	m_destroyFn(nullptr)
 {
 	g_pEngine = this;
@@ -240,6 +241,33 @@ bool Engine::createRenderAspectDX12(const RenderAspectDescription &desc)
 	return true;
 }
 
+bool Engine::createAudioAspect()
+{
+#if _DEBUG
+	auto handle = LoadLibrary(L"../../lib/vxAudioAspect_d.dll");
+#else
+	auto handle = LoadLibrary(L"../../lib/vxAudioAspect.dll");
+#endif
+	if (handle == nullptr)
+		return false;
+
+	auto proc = (CreateAudioAspectFunctionType)GetProcAddress(handle, "createAudioAspect");
+	if (proc == nullptr)
+		return false;
+
+	auto audioAspect = proc();
+	if (audioAspect == nullptr)
+		return false;
+
+	m_audioAspect = audioAspect;
+	m_audioAspectDll = handle;
+
+	if (!m_audioAspect->initialize())
+		return false;
+
+	return true;
+}
+
 bool Engine::initialize(Logfile* logfile)
 {
 	const std::string dataDir("../data/");
@@ -315,10 +343,8 @@ bool Engine::initialize(Logfile* logfile)
 		return false;
 #endif
 
-#if _VX_AUDIO
-	if (!m_audioAspect.initialize())
+	if (!createAudioAspect())
 		return false;
-#endif
 
 #if _VX_MEM_PROFILE
 	m_actorAspect.initialize(&m_allocator, &m_allocManager);
@@ -350,9 +376,11 @@ void Engine::shutdown()
 {
 	m_scene.reset();
 
-#if _VX_AUDIO
-	m_audioAspect.shutdown();
-#endif
+	if (m_audioAspect)
+	{
+		m_audioAspect->shutdown();
+		delete m_audioAspect;
+	}
 	m_entityAspect.shutdown();
 	m_physicsAspect.shutdown();
 
@@ -384,6 +412,12 @@ void Engine::shutdown()
 #if _VX_MEM_PROFILE
 	m_allocManager.print();
 #endif
+
+	if (m_audioAspectDll != nullptr)
+	{
+		FreeLibrary(m_audioAspectDll);
+		m_audioAspectDll = nullptr;
+	}
 
 	if (m_renderAspectDll != nullptr)
 	{

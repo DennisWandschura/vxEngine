@@ -239,18 +239,6 @@ const MeshManager::MeshEntry* MeshManager::getMeshEntry(const vx::StringID &sid)
 	return result;
 }
 
-void MeshManager::uploadCmd(const DrawIndexedCommand &cmd, d3d::ResourceManager* resourceManager, UploadManager* uploadMgr)
-{
-	auto drawCmdBuffer = resourceManager->getBuffer(L"drawCmdBuffer");
-	D3D12_DRAW_INDEXED_ARGUMENTS cmdArgs;
-	cmdArgs.BaseVertexLocation = cmd.baseVertex;
-	cmdArgs.IndexCountPerInstance = cmd.indexCount;
-	cmdArgs.InstanceCount = cmd.instanceCount;
-	cmdArgs.StartIndexLocation = cmd.firstIndex;
-	cmdArgs.StartInstanceLocation = cmd.baseInstance;
-	uploadMgr->pushUploadBuffer((u8*)&cmdArgs, drawCmdBuffer, cmd.baseInstance, sizeof(D3D12_DRAW_INDEXED_ARGUMENTS), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-}
-
 void MeshManager::addMeshInstanceImpl(const vx::StringID &instanceSid, const MeshEntry &meshEntry, u16 materialIndex, UploadManager* uploadMgr, DrawIndexedCommand* outCmd)
 {
 	auto baseInstance = m_instanceCount++;
@@ -264,11 +252,6 @@ void MeshManager::addMeshInstanceImpl(const vx::StringID &instanceSid, const Mes
 
 	VX_ASSERT((u16)baseInstance == baseInstance);
 	u32 drawId = baseInstance | (materialIndex << 16);
-
-	/*u32* drawIdPtr = nullptr;
-	m_drawIdBuffer->Map(0, nullptr, (void**)&drawIdPtr);
-	drawIdPtr[baseInstance] = drawId;
-	m_drawIdBuffer->Unmap(0, nullptr);*/
 
 	auto offset = sizeof(u32)*baseInstance;
 	uploadMgr->pushUploadBuffer((u8*)&drawId, m_drawIdBuffer.get(), offset, sizeof(u32), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
@@ -308,7 +291,6 @@ bool MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 material
 		}
 
 		addMeshInstanceImpl(instanceSid, *meshEntry, materialIndex, uploadMgr, outCmd);
-		uploadCmd(*outCmd, resourceManager, uploadMgr);
 	}
 	else
 	{
@@ -334,7 +316,6 @@ bool MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::Str
 		}
 
 		addMeshInstanceImpl(instanceSid, *meshEntry, materialIndex, uploadMgr, outCmd);
-		uploadCmd(*outCmd, resourceManager, uploadMgr);
 	}
 	else
 	{

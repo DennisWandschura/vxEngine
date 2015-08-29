@@ -36,11 +36,9 @@ SOFTWARE.*/
 #include "ActionManager.h"
 #include <vxEngineLib/TaskManager.h>
 #include <vxResourceAspect/ResourceAspect.h>
+#include <vxEngineLib/AudioAspectInterface.h>
 #if _VX_MEM_PROFILE
 #include <vxLib/Allocator/AllocationProfiler.h>
-#endif
-#if _VX_AUDIO
-#include <vxAudio/AudioAspect.h>
 #endif
 
 class Engine
@@ -60,19 +58,18 @@ class Engine
 #endif
 	vx::StackAllocator m_allocator;
 	u32 m_shutdown;
-	//std::thread m_fileAspectThread;
 	std::thread m_taskManagerThread;
-	//vx::thread m_renderThread;
-#if _VX_AUDIO
-	vx::AudioAspect m_audioAspect;
-#endif
+	AudioAspectInterface* m_audioAspect;
 	Scene m_scene;
 	HMODULE m_renderAspectDll;
+	HMODULE m_audioAspectDll;
 	DestroyRenderAspectFunction m_destroyFn;
 	Memory m_memory;
 
 	bool createRenderAspectGL(const RenderAspectDescription &desc);
 	bool createRenderAspectDX12(const RenderAspectDescription &desc);
+
+	bool createAudioAspect();
 
 	bool initializeImpl(const std::string &dataDir);
 

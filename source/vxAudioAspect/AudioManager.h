@@ -1,5 +1,4 @@
 #pragma once
-
 /*
 The MIT License (MIT)
 
@@ -24,19 +23,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <memory>
+struct IMMDevice;
+struct IAudioClient;
 
-class WavFile
+#include <vxLib/types.h>
+
+namespace Audio
 {
-	std::unique_ptr<unsigned char[]> m_data;
-	unsigned int m_size;
+	class AudioManager
+	{
+		IAudioClient* m_client;
+		IMMDevice* m_device;
 
-public:
-	WavFile();
-	~WavFile();
+	public:
+		AudioManager();
+		~AudioManager();
 
-	bool loadFromFile(const char* file);
-
-	const unsigned char* getData() const { return m_data.get(); }
-	unsigned int getSize() const { return m_size; }
-};
+		bool initialize();
+		void shutdown();
+	};
+}

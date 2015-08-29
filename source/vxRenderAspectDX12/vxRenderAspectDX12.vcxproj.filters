@@ -46,6 +46,12 @@
     <Filter Include="Source Files\RenderPass">
       <UniqueIdentifier>{8c6d3612-fef3-49b9-887d-08478163003f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\final">
+      <UniqueIdentifier>{8ac29fe5-861d-410d-81d6-20b50bb3295a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\shadng">
+      <UniqueIdentifier>{4485ffa2-6b42-4005-a754-ea11f94d8c76}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -159,7 +165,13 @@
     <ClInclude Include="Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPassDrawGBuffer.h">
+    <ClInclude Include="CommandList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassShading.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassFinal.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
   </ItemGroup>
@@ -221,7 +233,16 @@
     <ClCompile Include="RenderPass.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPassDrawGBuffer.cpp">
+    <ClCompile Include="CommandList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassAo.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassShading.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassFinal.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
@@ -244,14 +265,8 @@
     <FxCompile Include="DrawQuadGs.hlsl">
       <Filter>Shaders\draw quad</Filter>
     </FxCompile>
-    <FxCompile Include="DrawQuadPs.hlsl">
-      <Filter>Shaders\draw quad</Filter>
-    </FxCompile>
     <FxCompile Include="DeepGBufferGs.hlsl">
       <Filter>Shaders\create gbuffer</Filter>
-    </FxCompile>
-    <FxCompile Include="AoPS.hlsl">
-      <Filter>Shaders\ao</Filter>
     </FxCompile>
     <FxCompile Include="CreateRadiosityPS.hlsl">
       <Filter>Shaders\create radiosity buffer</Filter>
@@ -264,6 +279,18 @@
     </FxCompile>
     <FxCompile Include="SAO_aoPS.hlsl">
       <Filter>Shaders\ao</Filter>
+    </FxCompile>
+    <FxCompile Include="SAO_blurX.hlsl">
+      <Filter>Shaders\ao</Filter>
+    </FxCompile>
+    <FxCompile Include="SAO_blurY.hlsl">
+      <Filter>Shaders\ao</Filter>
+    </FxCompile>
+    <FxCompile Include="FinalPS.hlsl">
+      <Filter>Shaders\final</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadePS.hlsl">
+      <Filter>Shaders\shadng</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

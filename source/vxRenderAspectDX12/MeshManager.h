@@ -86,8 +86,6 @@ class MeshManager
 
 	void addMeshInstanceImpl(const vx::StringID &instanceSid, const MeshEntry &meshEntry, u16 materialIndex, UploadManager* uploadMgr, DrawIndexedCommand* outCmd);
 
-	void uploadCmd(const DrawIndexedCommand &cmd, d3d::ResourceManager* resourceManager, UploadManager* uploadMgr);
-
 	const MeshEntry* tryAddMesh(const vx::StringID &meshSid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadMgr);
 
 	D3D12_VERTEX_BUFFER_VIEW getVertexBufferView();

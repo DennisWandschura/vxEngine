@@ -49,7 +49,11 @@ SOFTWARE.
 #include "GBufferRenderer.h"
 #include <Initguid.h>
 #include <dxgidebug.h>
-#include "RenderPassDrawGBuffer.h"
+#include "RenderPassFinal.h"
+#include "RenderPassZBuffer.h"
+#include "RenderPassZBufferCreateMipmaps.h"
+#include "RenderPassAo.h"
+#include "RenderPassShading.h"
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/GpuFunctions.h>
@@ -86,8 +90,6 @@ RenderAspect::RenderAspect()
 	:m_device(),
 	m_commandList(nullptr),
 	m_resourceManager(),
-	m_renderTarget(),
-	m_descriptorHeapRtv(),
 	m_commandAllocator(),
 	m_taskManager(nullptr),
 	m_resourceAspect(nullptr),
@@ -124,10 +126,17 @@ bool RenderAspect::createCommandList()
 	return true;
 }
 
-void RenderAspect::createRenderPasses(const vx::uint2 &resolution)
+void RenderAspect::createRenderPasses(const vx::uint2 &resolution, f32 fov)
 {
-	m_renderPasses.push_back(new GBufferRenderer(resolution, m_commandAllocator.get()));
-	m_renderPasses.push_back(new RenderPassDrawGBuffer(m_commandAllocator.get()));
+	const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size;
+
+	m_gbufferRenderer = new GBufferRenderer(resolution, m_commandAllocator.get(), countOffset);
+	m_renderPasses.push_back(m_gbufferRenderer);
+	m_renderPasses.push_back(new RenderPassZBuffer(m_commandAllocator.get()));
+	m_renderPasses.push_back(new RenderPassZBufferCreateMipmaps(m_commandAllocator.get()));
+	m_renderPasses.push_back(new RenderPassAO(resolution, m_commandAllocator.get(), fov));
+	m_renderPasses.push_back(new RenderPassShading(resolution, m_commandAllocator.get()));
+	m_renderPasses.push_back(new RenderPassFinal(m_commandAllocator.get(), &m_device));
 }
 
 void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u64* textureHeapSize, u64* rtDsHeapSize)
@@ -151,7 +160,7 @@ void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &
 
 bool RenderAspect::initializeRenderPasses()
 {
-	RenderPass::provideData(&m_shaderManager, &m_resourceManager);
+	RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager);
 	auto device = m_device.getDevice();
 
 	for (auto &it : m_renderPasses)
@@ -168,7 +177,7 @@ bool RenderAspect::createConstantBuffers()
 	const auto drawCmdSize = d3d::AlignedSize<d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size + 256, 64 KBYTE>::size;
 	const auto transformBufferSize = d3d::AlignedSizeType<vx::TransformGpu, g_maxMeshInstances, 64 KBYTE>::size;
 	const auto materialBufferSize = d3d::AlignedSizeType<u32, g_maxMeshInstances, 64 KBYTE>::size;
-	const auto lightBufferSize = d3d::AlignedSizeType<GpuLight, g_maxLightCount, 64 KBYTE>::size;
+	const auto lightBufferSize = d3d::AlignedSize<sizeof(GpuLight) * g_maxLightCount + 16, 64 KBYTE>::size;
 
 
 	const wchar_t* names[] =
@@ -187,7 +196,7 @@ bool RenderAspect::createConstantBuffers()
 		D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, 
 		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
-		D3D12_RESOURCE_STATE_COMMON,
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
 	};
 
@@ -268,29 +277,8 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 
 	m_resolution = resolution;
 
-	D3D12_DESCRIPTOR_HEAP_DESC descHeap = {};
-	descHeap.NumDescriptors = 2;
-	descHeap.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	descHeap.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	if (!m_descriptorHeapRtv.create(descHeap, device))
-	{
-		errorlog->append("Error CreateDescriptorHeap");
-		return RenderAspectInitializeError::ERROR_CONTEXT;
-	}
-
-	auto rtvHandleCpu = m_descriptorHeapRtv.getHandleCpu();
-	auto swapChain = m_device.getSwapChain();
 	m_currentBuffer = 0;
 	m_lastBuffer = 1;
-	for (u32 i = 0; i < 2; ++i)
-	{
-		swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTarget[i]));
-
-		m_renderTarget[i]->SetName(L"DeviceRenderTarget");
-
-		device->CreateRenderTargetView(m_renderTarget[i], nullptr, rtvHandleCpu);
-		rtvHandleCpu.offset(1);
-	}
 
 	if (!createCommandList())
 		return RenderAspectInitializeError::ERROR_CONTEXT;
@@ -300,18 +288,6 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[1] = {};
-	argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
-
-	D3D12_COMMAND_SIGNATURE_DESC cmdSigDesc;
-	cmdSigDesc.ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
-	cmdSigDesc.NodeMask = 0;
-	cmdSigDesc.NumArgumentDescs = 1;
-	cmdSigDesc.pArgumentDescs = argumentDescs;
-	hresult = device->CreateCommandSignature(&cmdSigDesc, nullptr, IID_PPV_ARGS(m_commandSignature.getAddressOf()));
-	if (hresult != 0)
-		return RenderAspectInitializeError::ERROR_CONTEXT;
-
 	if(!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, &m_resourceManager, device, desc.pAllocator))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
@@ -320,7 +296,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	u64 rtDsHeapSize = 0;
 	vx::uint3 textureDimSrgb = { 1024, 1024, 32 };
 	vx::uint3 textureDimRgb = { 1024, 1024, 64 };
-	createRenderPasses(resolution);
+	createRenderPasses(resolution, fovRad);
 	getRequiredMemory(textureDimSrgb, textureDimRgb, &bufferHeapSize, &textureHeapSize, &rtDsHeapSize);
 
 	if(!m_resourceManager.initializeHeaps(bufferHeapSize, textureHeapSize, rtDsHeapSize, device))
@@ -385,13 +361,6 @@ void RenderAspect::shutdown(void* hwnd)
 
 	m_uploadManager.shutdown();
 
-	m_commandSignature.destroy();
-
-	m_renderTarget[0]->Release();
-	m_renderTarget[0] = nullptr;
-	m_renderTarget[1]->Release();
-	m_renderTarget[1] = nullptr;
-
 	if (m_commandList)
 	{
 		m_commandList->Release();
@@ -412,8 +381,6 @@ void RenderAspect::shutdown(void* hwnd)
 		ptr->shutdown();
 		delete(ptr);
 	}
-
-	m_descriptorHeapRtv.destroy();
 
 	m_resourceManager.shutdown();
 
@@ -449,10 +416,10 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	m_projectionMatrix.asFloat(&projMatrix);
 
 	vx::float4 projInfo;
-	projInfo.x = -2.0f / (m_resolution.x * projMatrix[0].m128_f32[0]);
-	projInfo.y = -2.0f / (m_resolution.y * projMatrix[1].m128_f32[1]);
-	projInfo.z = (1.0f - projMatrix[0].m128_f32[2]) / projMatrix[0].m128_f32[0];
-	projInfo.w = (1.0f + projMatrix[1].m128_f32[2]) / projMatrix[1].m128_f32[1];
+	projInfo.x = -2.0 / (m_resolution.x * m_projectionMatrix.c[0].m256d_f64[0]);
+	projInfo.y = -2.0 / (m_resolution.y * m_projectionMatrix.c[1].m256d_f64[1]);
+	projInfo.z = (1.0 - m_projectionMatrix.c[0].m256d_f64[2]) / m_projectionMatrix.c[0].m256d_f64[0];
+	projInfo.w = (1.0 + m_projectionMatrix.c[1].m256d_f64[2]) / m_projectionMatrix.c[1].m256d_f64[1];
 
 	m_camera.setPosition(data.position);
 	m_camera.setRotation(data.quaternionRotation);
@@ -464,14 +431,48 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	auto pvMatrix = m_projectionMatrix * viewMatrix;
 
 	GpuCameraBufferData bufferData;
-	bufferData.position = _mm256_cvtpd_ps(m_camera.getPosition());
+	bufferData.position = _mm256_cvtpd_ps(data.position);
 	viewMatrix.asFloat(&bufferData.viewMatrix);
 	pvMatrix.asFloat(&bufferData.pvMatrix);
 	pvMatrixPrev.asFloat(&bufferData.pvMatrixPrev);
 	bufferData.projMatrix = projMatrix;
+	bufferData.invProjMatrix = vx::MatrixInverse(projMatrix);
 	bufferData.projInfo = projInfo;
 	bufferData.zFar = m_zFar;
 	bufferData.zNear = m_zNear;
+
+	{
+		float zNear = 0.1;
+		float zFar = 100.0;
+		float c0 = zNear * zFar;
+		float c1 = zNear - zFar;
+		float c2 = zFar;
+
+		f32 depth = 0.2f;
+		f32 zDepth = -c0 / (depth * c1 + c2);
+
+		vx::float2 vTexCoord = {0.55, 0.1};
+		vx::float2 ssc = vTexCoord * vx::float2(1920, 1080);
+
+		float x = vTexCoord.x * 2 - 1;
+		float y = (1 - vTexCoord.y) * 2 - 1;
+
+		float4 vProjectedPos = float4(x, y, depth, 1.0f);
+		// Transform by the inverse projection matrix
+		auto vPositionVS = vx::Vector3TransformCoord(bufferData.invProjMatrix, vProjectedPos);
+
+		float sx = 0.5f + ssc.x;
+		sx = (sx * projInfo.x + projInfo.z) * zDepth;
+
+		float sy = 0.5f + ssc.y;
+		sy = -(sy * projInfo.y + projInfo.w) * zDepth;
+		//(S.xy * projInfo.xy + cameraBuffer.projInfo.zw) * z, z
+
+		//puts("");
+		// Divide by w to get the view-space position
+		//return vPositionVS.xyz / vPositionVS.w;
+	}
+	//printf("%f %f \n", projInfo.x, projInfo.y);
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
 
@@ -558,12 +559,20 @@ void RenderAspect::updateProfiler(f32 dt)
 void RenderAspect::createCbvCamera()
 {
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
+	auto lightBuffer = m_resourceManager.getBuffer(L"lightBuffer");
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbufferViewDesc{};
 	cbufferViewDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress();
 	cbufferViewDesc.SizeInBytes = d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
 
 	m_resourceManager.insertConstantBufferView("cameraBufferView", cbufferViewDesc);
+
+	const auto lightBufferSize = d3d::AlignedSize<sizeof(GpuLight) * g_maxLightCount + 16, 64 KBYTE>::size;
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDescLight;
+	cbvDescLight.BufferLocation = lightBuffer->GetGPUVirtualAddress();
+	cbvDescLight.SizeInBytes = lightBufferSize;
+
+	m_resourceManager.insertConstantBufferView("lightBufferView", cbvDescLight);
 }
 
 void RenderAspect::createSrvTransformPrev(u32 instanceCount)
@@ -630,28 +639,6 @@ void RenderAspect::createSrvTextures(u32 srgbCount, u32 rgbCount)
 	m_resourceManager.insertShaderResourceView("rgbTextureView", srvDesc);
 }
 
-void RenderAspect::drawScreenQuadGBuffer(ID3D12GraphicsCommandList* cmdList)
-{
-	const f32 clearColor[] = { 0.10f, 0.22f, 0.5f, 1 };
-	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
-	rtvHandle.offset(m_currentBuffer);
-
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[1];
-	rtvHandles[0] = rtvHandle;
-
-	m_commandList->RSSetViewports(1, &m_viewport);
-	m_commandList->RSSetScissorRects(1, &m_rectScissor);
-
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[m_currentBuffer], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
-
-	m_commandList->OMSetRenderTargets(1, rtvHandles, FALSE, nullptr);
-	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
-	//m_drawQuadRenderer.submitCommands(m_commandList);
-
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[m_currentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-}
-
 void RenderAspect::copyTransforms(ID3D12GraphicsCommandList* cmdList)
 {
 	auto transformBuffer = m_resourceManager.getBuffer(L"transformBuffer");
@@ -702,21 +689,24 @@ void RenderAspect::renderGBuffer()
 
 void RenderAspect::submitCommands()
 {
-	m_commandAllocator->Reset();
-	auto cmdListGBuffer = m_renderPasses[0]->submitCommands();
-
-	m_commandList->Reset(m_commandAllocator.get(), nullptr);
-
-	
-//	m_renderPassZBuffer.submitCommands(m_commandList);
-
-	//m_renderPassZBufferCreateMipmaps.submitCommands(m_commandList);
-
-	drawScreenQuadGBuffer(m_commandList);
-	auto hresult = m_commandList->Close();
-	if (hresult != 0)
+	auto allocMarker = m_allocator.getMarker();
+	SCOPE_EXIT
 	{
-		printf("error closing command list\n");
+		m_allocator.clear(allocMarker);
+	};
+
+	auto renderPassCount = m_renderPasses.size();
+	auto commandListCount = renderPassCount + 2;
+	auto cmdLists = (ID3D12CommandList**)m_allocator.allocate(sizeof(ID3D12CommandList*) * commandListCount, 8);
+
+	auto hr = m_commandAllocator->Reset();
+	if (hr != 0)
+	{
+		puts("error");
+	}
+	for (u32 i = 0; i < renderPassCount; ++i)
+	{
+		cmdLists[i + 2] = m_renderPasses[i]->submitCommands();
 	}
 
 	auto uploadCmdList = m_uploadManager.update();
@@ -725,15 +715,10 @@ void RenderAspect::submitCommands()
 	copyTransforms(m_commandCopyBuffers);
 	m_commandCopyBuffers->Close();
 
-	ID3D12CommandList* lists[]
-	{
-		m_commandCopyBuffers,
-		uploadCmdList,
-		cmdListGBuffer,
-		m_commandList
-	};
+	cmdLists[0] = m_commandCopyBuffers;
+	cmdLists[1] = uploadCmdList;
 
-	m_device.executeCommandLists(lists);
+	m_device.executeCommandLists(commandListCount, cmdLists);
 }
 
 void RenderAspect::endFrame()
@@ -902,6 +887,8 @@ void RenderAspect::addMeshInstance(const MeshInstance &meshInstance, u32* gpuInd
 	m_uploadManager.pushUploadBuffer((u8*)&count, drawCmdBuffer, countOffset, sizeof(u32), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
 	m_meshManager.updateResourceViews(&m_resourceManager);
+
+	m_gbufferRenderer->setDrawCount(instanceCount);
 }
 
 void RenderAspect::updateLights(const Light* lights, u32 count)
@@ -914,11 +901,11 @@ void RenderAspect::updateLights(const Light* lights, u32 count)
 		gpuLights[i].lumen = lights[i].m_lumen;
 	} 
 
-	/*auto lightBuffer = m_resourceManager.getBuffer("lightBuffer");
-	m_uploadManager.pushUploadBuffer((u8*)&count, lightBuffer, 0, sizeof(GpuLight) * count, D3D12_RESOURCE_STATE_COMMON);
+	auto lightBuffer = m_resourceManager.getBuffer(L"lightBuffer");
 
-	auto constantBuffer = m_resourceManager.getBuffer("constantBuffer");
-	m_uploadManager.pushUploadBuffer((u8*)&count, constantBuffer, g_cbufferOffsetLightCount, sizeof(u32), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);*/
+	m_uploadManager.pushUploadBuffer((u8*)&count, lightBuffer, 0, sizeof(u32), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	m_uploadManager.pushUploadBuffer((u8*)gpuLights.get(), lightBuffer, 16, sizeof(GpuLight) * count, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
 }
 
 void RenderAspect::loadScene(Scene* scene)
@@ -1003,13 +990,12 @@ void RenderAspect::taskAddDynamicMeshInstance(const u8* p, u32* offset)
 	std::size_t* address = (std::size_t*)p;
 
 	CreateDynamicMeshData* data = (CreateDynamicMeshData*)(*address);
-	auto &instance = *data->m_meshInstance;
+	auto &instance = *(data->getMeshInstance());
 
 	u32 gpuIndex = 0;
 	addMeshInstance(instance, &gpuIndex);
 
-	data->m_gpuIndex = gpuIndex;
-	data->increment();
+	data->setGpuIndex(gpuIndex);
 
 	vx::Message e;
 	e.code = (u32)IngameMessage::Gpu_AddedDynamicMesh;

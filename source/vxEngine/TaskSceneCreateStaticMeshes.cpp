@@ -86,8 +86,7 @@ TaskReturnType TaskSceneCreateStaticMeshes::runImpl()
 		case PhysxRigidBodyType::Dynamic:
 		{
 			auto data = new CreateDynamicMeshData();
-			data->m_meshInstance = &instance;
-			data->m_materialSid = instance.getMaterial()->getSid();
+			data->initialize(&instance, instance.getMaterial()->getSid());
 
 			std::size_t address = (std::size_t)data;
 

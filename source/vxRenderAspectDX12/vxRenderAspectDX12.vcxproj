@@ -201,10 +201,11 @@
   <ItemGroup>
     <ClInclude Include="AdjacencyTreeBuilder.h" />
     <ClInclude Include="BufferView.h" />
+    <ClInclude Include="CommandList.h" />
     <ClInclude Include="ConverterMesh.h" />
     <ClInclude Include="CreateResourceDesc.h" />
     <ClInclude Include="Debug.h" />
-    <ClInclude Include="RenderPassDrawGBuffer.h" />
+    <ClInclude Include="RenderPassFinal.h" />
     <ClInclude Include="Gpu.h" />
     <ClInclude Include="GpuSaoBuffer.h" />
     <ClInclude Include="GpuCameraBufferData.h" />
@@ -224,6 +225,7 @@
     <ClInclude Include="MaterialManager.h" />
     <ClInclude Include="MeshManager.h" />
     <ClInclude Include="RenderPassAo.h" />
+    <ClInclude Include="RenderPassShading.h" />
     <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Quaternion.h" />
@@ -240,17 +242,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferView.cpp" />
+    <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="ConverterMesh.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="dllExport.cpp" />
-    <ClCompile Include="RenderPassDrawGBuffer.cpp" />
+    <ClCompile Include="RenderPassAo.cpp" />
+    <ClCompile Include="RenderPassFinal.cpp" />
     <ClCompile Include="GBufferRenderer.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="MeshManager.cpp" />
     <ClCompile Include="RenderPass.cpp" />
+    <ClCompile Include="RenderPassShading.cpp" />
     <ClCompile Include="RenderPassZBufferCreateMipmaps.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="RenderAspect.cpp" />
@@ -261,14 +266,6 @@
     <ClCompile Include="UploadManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="AoPS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
     <FxCompile Include="CreateRadiosityPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -313,15 +310,13 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="DrawQuadPs.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+    <FxCompile Include="FinalPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">5.1</ShaderModel>
     </FxCompile>
     <FxCompile Include="MeshVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -333,6 +328,22 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
     </FxCompile>
     <FxCompile Include="SAO_aoPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="SAO_blurX.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="SAO_blurY.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
@@ -362,6 +373,14 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="ShadePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

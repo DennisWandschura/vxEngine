@@ -145,6 +145,7 @@ void UploadManager::uploadData(const UploadDesc &desc)
 {
 	u8* ptr = nullptr;
 	auto hresult = m_uploadBuffer->Map(0, &desc.range, (void**)&ptr);
+
 	ptr = ptr + desc.range.Begin;
 	memcpy(ptr, desc.data, desc.size);
 	m_uploadBuffer->Unmap(0, &desc.range);

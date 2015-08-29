@@ -32,6 +32,7 @@ namespace d3d
 struct ID3D12Device;
 struct ID3D12GraphicsCommandList;
 struct ID3D12Resource;
+struct ID3D12CommandSignature;
 
 #include "RenderPass.h"
 #include <vxLib/math/Vector.h>
@@ -52,6 +53,9 @@ class GBufferRenderer : public RenderPass
 	ID3D12Resource* m_diffuseSlice;
 	ID3D12Resource* m_normalVelocitySlice;
 	ID3D12Resource* m_depthSlice;
+	d3d::Object<ID3D12CommandSignature> m_commandSignature;
+	u32 m_countOffset;
+	u32 m_drawCount;
 	std::unique_ptr<ColdData> m_coldData;
 
 	void createTextureDescriptions();
@@ -65,13 +69,15 @@ class GBufferRenderer : public RenderPass
 	void createBufferViews(d3d::ResourceManager* resourceManager, ID3D12Device* device);
 
 public:
-	explicit GBufferRenderer(vx::uint2 resolution, ID3D12CommandAllocator* cmdAlloc);
+	explicit GBufferRenderer(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc, u32 countOffset);
 	~GBufferRenderer();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
 
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
+
+	void setDrawCount(u32 count) { m_drawCount = count; }
 
 	ID3D12CommandList* submitCommands() override;
 };

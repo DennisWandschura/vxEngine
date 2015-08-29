@@ -406,8 +406,10 @@ void PhysicsAspect::handleIngameMessage(const vx::Message &evt)
 	{
 		auto data = (CreateDynamicMeshData*)evt.arg1.ptr;
 
-		addMeshInstanceImpl(*data->m_meshInstance, (void**)&data->m_rigidDynamic);
-		data->increment();
+		auto &meshInstance = *(data->getMeshInstance());
+		physx::PxRigidDynamic* rigidDynamic = nullptr;
+		addMeshInstanceImpl(meshInstance, (void**)&rigidDynamic);
+		data->setRigidDynamic(rigidDynamic);
 
 		vx::Message evt;
 		evt.type = vx::MessageType::Ingame_Event;
@@ -909,7 +911,7 @@ physx::PxJoint* PhysicsAspect::createJoint(const Joint &joint)
 	if (m_flag.load() != 0)
 	{
 		puts("PhysicsAspect::createJoint");
-		VX_ASSERT(false);
+		//VX_ASSERT(false);
 	}
 
 	physx::PxRevoluteJoint* result = nullptr;

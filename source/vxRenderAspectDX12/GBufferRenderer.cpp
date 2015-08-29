@@ -28,6 +28,7 @@ SOFTWARE.
 #include "ShaderManager.h"
 #include "Device.h"
 #include "ResourceManager.h"
+#include "ResourceView.h"
 
 struct GBufferRenderer::ColdData
 {
@@ -36,11 +37,13 @@ struct GBufferRenderer::ColdData
 	D3D12_RESOURCE_DESC resDescs[4];
 };
 
-GBufferRenderer::GBufferRenderer(vx::uint2 resolution, ID3D12CommandAllocator* cmdAlloc)
+GBufferRenderer::GBufferRenderer(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc, u32 countOffset)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc),
 	m_resolution(resolution),
 	m_depthSlice(nullptr),
+	m_countOffset(countOffset),
+	m_drawCount(0),
 	m_coldData(new ColdData())
 {
 	createTextureDescriptions();
@@ -238,14 +241,14 @@ bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, cons
 	clearValues[2].DepthStencil.Stencil = 0;
 
 	// zbuffer
-	clearValues[3].Color[0] = 0.0f;
+	clearValues[3].Color[0] = 1.0f;
 	clearValues[3].Color[1] = 0.0f;
 	clearValues[3].Color[2] = 0.0f;
 	clearValues[3].Color[3] = 0.0f;
 	clearValues[3].Format = DXGI_FORMAT_R32_FLOAT;
 
 	const wchar_t* names[4];
-	names[ColdData::Diffuse] = L"gbufferDiffuse";
+	names[ColdData::Diffuse] = L"gbufferAlbedo";
 	names[ColdData::NormalVelocity] = L"gbufferNormalVelocity";
 	names[ColdData::Depth] = L"gbufferDepth";
 	names[ColdData::ZBuffer] = L"zBuffer";
@@ -373,8 +376,9 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	if (!createDescriptorHeap(device))
 		return false;
 
-	if (device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, nullptr, IID_PPV_ARGS(m_commandList.getAddressOf())) != 0)
+	if (device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get(), IID_PPV_ARGS(m_commandList.getAddressOf())) != 0)
 		return false;
+
 	m_commandList->Close();
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc;
@@ -428,6 +432,18 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 
 	createBufferViews(s_resourceManager, device);
 
+	D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[1] = {};
+	argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
+
+	D3D12_COMMAND_SIGNATURE_DESC cmdSigDesc;
+	cmdSigDesc.ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
+	cmdSigDesc.NodeMask = 0;
+	cmdSigDesc.NumArgumentDescs = 1;
+	cmdSigDesc.pArgumentDescs = argumentDescs;
+	auto hresult = device->CreateCommandSignature(&cmdSigDesc, nullptr, IID_PPV_ARGS(m_commandSignature.getAddressOf()));
+	if (hresult != 0)
+		return false;
+
 	return true;
 }
 
@@ -444,6 +460,7 @@ void GBufferRenderer::shutdown()
 
 	m_pipelineState.destroy();
 	m_rootSignature.destroy();
+	m_commandSignature.destroy();
 }
 
 ID3D12CommandList* GBufferRenderer::submitCommands()
@@ -501,6 +518,8 @@ ID3D12CommandList* GBufferRenderer::submitCommands()
 	m_commandList->RSSetViewports(1, &viewPort);
 	m_commandList->RSSetScissorRects(1, &rectScissor);
 
+	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+
 	m_commandList->SetDescriptorHeaps(1, heaps);
 
 	m_commandList->OMSetRenderTargets(2, rtvHandles, FALSE, dsvHandles);
@@ -509,18 +528,30 @@ ID3D12CommandList* GBufferRenderer::submitCommands()
 
 	m_commandList->ClearDepthStencilView(dsvHandleClear, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-
 	m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
 	m_commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
 
+	if (m_drawCount != 0)
+	{
+		auto drawCmdBuffer = s_resourceManager->getBuffer(L"drawCmdBuffer");
+		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
+		vertexBufferViews[0] = s_resourceManager->getResourceView("meshVertexBufferView")->vbv;
+		vertexBufferViews[1] = s_resourceManager->getResourceView("meshDrawIdBufferView")->vbv;
+		auto indexBufferView = s_resourceManager->getResourceView("meshIndexBufferView")->ibv;
 
-	//auto drawCmdBuffer = s_resourceManager->getBuffer(L"drawCmdBuffer");
+		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
+		m_commandList->IASetIndexBuffer(&indexBufferView);
+
+		//const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size;
+		m_commandList->ExecuteIndirect(m_commandSignature.get(), m_drawCount, drawCmdBuffer, 0, drawCmdBuffer, m_countOffset);
+	}
+
 	// draw meshes
 	/*
 	if (!m_drawCommands.empty())
 	{
-	auto drawCmdBuffer = m_resourceManager.getBuffer("LdrawCmdBuffer");
+	
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
 	vertexBufferViews[0] = m_resourceManager.getResourceView("meshVertexBufferView")->vbv;

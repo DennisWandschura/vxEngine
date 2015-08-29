@@ -3,3 +3,4 @@
 
 d3d::ShaderManager* RenderPass::s_shaderManager{nullptr};
 d3d::ResourceManager* RenderPass::s_resourceManager{nullptr};
+UploadManager* RenderPass::s_uploadManager{ nullptr };

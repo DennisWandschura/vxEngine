@@ -29,43 +29,44 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3E3E438B-3C29-4AA6-8C0A-865EE4CEB744}</ProjectGuid>
     <RootNamespace>vxAudioAspect</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler XE 15.0</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -92,7 +93,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;$(IncludePath)</IncludePath>
+    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
     <OutDir>..\..\lib\</OutDir>
@@ -134,7 +135,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PreprocessorDefinitions>_VX_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_ASSERT;_VX_NO_EXCEPTIONS;_VX_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
@@ -173,7 +174,6 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>MaxSpeedHighLevel</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -196,19 +196,13 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\vxAudio\AudioAspect.h" />
-    <ClInclude Include="include\vxAudio\AudioManager.h" />
-    <ClInclude Include="include\vxAudio\ogg_stream.h" />
-    <ClInclude Include="include\vxAudio\Sound.h" />
-    <ClInclude Include="include\vxAudio\WavFile.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="AudioAspect.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="AudioManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="dllExport.cpp" />
     <ClCompile Include="ogg_stream.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -222,6 +216,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="generate_unity.bff" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AudioAspect.h" />
+    <ClInclude Include="AudioManager.h" />
+    <ClInclude Include="dllExport.h" />
+    <ClInclude Include="ogg_stream.h" />
+    <ClInclude Include="Sound.h" />
+    <ClInclude Include="WavFile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

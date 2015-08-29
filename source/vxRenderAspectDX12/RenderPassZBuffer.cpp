@@ -30,7 +30,12 @@ SOFTWARE.
 
 const u32 g_zBufferMaxMipLevel = 5u;
 
-RenderPassZBuffer::RenderPassZBuffer()
+RenderPassZBuffer::RenderPassZBuffer(ID3D12CommandAllocator* cmdAlloc)
+	:m_commandList(),
+	m_cmdAlloc(cmdAlloc),
+	m_resolution(),
+	m_descriptorHeapRtv(),
+	m_descriptorHeap()
 {
 
 }
@@ -40,13 +45,24 @@ RenderPassZBuffer::~RenderPassZBuffer()
 
 }
 
+void RenderPassZBuffer::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+{
+
+}
+
 bool RenderPassZBuffer::loadShaders(d3d::ShaderManager* shaderManager)
 {
+	if (!shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", d3d::ShaderType::Vertex))
+		return false;
+
+	if (!shaderManager->loadShader("DrawQuadGs.cso", L"../../lib/DrawQuadGs.cso", d3d::ShaderType::Geometry))
+		return false;
+
 	if (!shaderManager->loadShader("CreateZBufferPS.cso", L"../../lib/CreateZBufferPS.cso", d3d::ShaderType::Pixel))
 		return false;
 
-	if (!shaderManager->loadShader("SAO_minify.cso", L"../../lib/SAO_minify.cso", d3d::ShaderType::Pixel))
-		return false;
+	//if (!shaderManager->loadShader("SAO_minify.cso", L"../../lib/SAO_minify.cso", d3d::ShaderType::Pixel))
+	//	return false;
 
 	return true;
 }
@@ -125,8 +141,9 @@ bool RenderPassZBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderMan
 bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceManager* resourceManager)
 {
 	auto cbufferDesc = resourceManager->getConstantBufferView("cameraBufferView");
-	auto gbufferDepthTexture = resourceManager->getTexture(L"gbufferDepth");
-	auto zBufferTexture = resourceManager->getTexture(L"zBuffer");
+	auto gbufferDepthTexture = resourceManager->getTextureRtDs(L"gbufferDepth");
+	auto zBufferTexture = resourceManager->getTextureRtDs(L"zBuffer");
+	auto zBufferDesc = zBufferTexture->GetDesc();
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -162,11 +179,19 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 
 	auto handleRtv = m_descriptorHeapRtv.getHandleCpu();
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-	rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	rtvDesc.Format = zBufferDesc.Format;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	rtvDesc.Texture2D.MipSlice = 0;
 	rtvDesc.Texture2D.PlaneSlice = 0;
 	device->CreateRenderTargetView(zBufferTexture, &rtvDesc, handleRtv);
+
+	auto hresult = device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get(), IID_PPV_ARGS(m_commandList.getAddressOf()));
+	if (hresult != 0)
+		return false;
+	m_commandList->Close();
+
+	m_resolution.x = zBufferDesc.Width;
+	m_resolution.y = zBufferDesc.Height;
 
 	return true;
 }
@@ -196,30 +221,50 @@ void RenderPassZBuffer::shutdown()
 
 ID3D12CommandList* RenderPassZBuffer::submitCommands()
 {
-	/*auto gbufferDepthTexture = m_resourceManager->getTexture(L"gbufferDepth");
-	auto zBufferTexture = m_resourceManager->getTexture(L"zBuffer");
+	auto gbufferDepthTexture = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
-	const f32 clearColor[4] = {0, 0, 0, 0};
+	const f32 clearColor[4] = {1.0f, 0.0f, 0, 0};
 
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+
+	D3D12_VIEWPORT viewport;
+	viewport.Height = (f32)m_resolution.y;
+	viewport.Width = (f32)m_resolution.x;
+	viewport.MaxDepth = 1.0f;
+	viewport.MinDepth = 0.0f;
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+
+	D3D12_RECT rectScissor;
+	rectScissor.left = 0;
+	rectScissor.top = 0;
+	rectScissor.right = m_resolution.x;
+	rectScissor.bottom = m_resolution.y;
+
+	m_commandList->RSSetViewports(1, &viewport);
+	m_commandList->RSSetScissorRects(1, &rectScissor);
+
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle[1];
 	rtvHandle[0] = m_descriptorHeapRtv.getHandleCpu();
 
-	cmdList->OMSetRenderTargets(1, rtvHandle, FALSE, nullptr);
-	cmdList->ClearRenderTargetView(rtvHandle[0], clearColor, 0, nullptr);
+	m_commandList->OMSetRenderTargets(1, rtvHandle, FALSE, nullptr);
+	m_commandList->ClearRenderTargetView(rtvHandle[0], clearColor, 0, nullptr);
 
-	cmdList->SetPipelineState(m_pipelineState.get());
-	cmdList->SetGraphicsRootSignature(m_rootSignature.get());
+	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
 	auto descriptor = m_descriptorHeap.get();
-	cmdList->SetDescriptorHeaps(1, &descriptor);
-	cmdList->SetGraphicsRootDescriptorTable(0, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	m_commandList->SetDescriptorHeaps(1, &descriptor);
+	m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
-	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-	cmdList->DrawInstanced(1, 1, 0, 0);
+	m_commandList->DrawInstanced(1, 1, 0, 0);
 
-	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));*/
-	return nullptr;
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+
+	m_commandList->Close();
+
+	return m_commandList.get();
 }

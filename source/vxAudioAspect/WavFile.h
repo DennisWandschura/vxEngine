@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,21 +24,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-typedef struct ALCdevice_struct ALCdevice;
-typedef struct ALCcontext_struct ALCcontext;
+/*#include <memory>
 
-namespace Audio
+class WavFile
 {
-	class AudioManager
-	{
-		ALCdevice* m_pDevice;
-		ALCcontext* m_pContext;
+	std::unique_ptr<unsigned char[]> m_data;
+	unsigned int m_size;
 
-	public:
-		AudioManager();
-		~AudioManager();
+public:
+	WavFile();
+	~WavFile();
 
-		bool init();
-		void shutdown();
-	};
-}
+	bool loadFromFile(const char* file);
+
+	const unsigned char* getData() const { return m_data.get(); }
+	unsigned int getSize() const { return m_size; }
+};*/

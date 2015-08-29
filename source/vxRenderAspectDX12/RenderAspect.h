@@ -33,6 +33,7 @@ class ResourceAspect;
 struct ResourceView;
 struct Light;
 class RenderPass;
+class GBufferRenderer;
 
 namespace vx
 {
@@ -66,11 +67,9 @@ class VX_ALIGN(32) RenderAspect : public RenderAspectInterface
 	std::vector<DrawIndexedCommand> m_drawCommands;
 	ID3D12GraphicsCommandList* m_commandList;
 	ID3D12GraphicsCommandList* m_commandCopyBuffers;
-	ID3D12Resource* m_renderTarget[2];
 	d3d::ResourceManager m_resourceManager;
 	u32 m_currentBuffer;
 	u32 m_lastBuffer;
-	d3d::Object<ID3D12CommandSignature> m_commandSignature;
 	vx::Camera m_camera;
 	std::vector<RenderPass*> m_renderPasses;
 	d3d::Debug m_debug;
@@ -80,8 +79,8 @@ class VX_ALIGN(32) RenderAspect : public RenderAspectInterface
 	f32 m_zNear;
 	vx::uint2 m_resolution;
 	UploadManager m_uploadManager;
-	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
+	GBufferRenderer* m_gbufferRenderer;
 	D3D12_VIEWPORT m_viewport;
 	D3D12_RECT m_rectScissor;
 	MeshManager m_meshManager;
@@ -93,7 +92,7 @@ class VX_ALIGN(32) RenderAspect : public RenderAspectInterface
 	d3d::ShaderManager m_shaderManager;
 	std::vector<u32> m_copyTransforms;
 
-	void createRenderPasses(const vx::uint2 &resolution);
+	void createRenderPasses(const vx::uint2 &resolution, f32 fov);
 	void getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u64* textureHeapSize, u64* rtDsHeapSize);
 	bool initializeRenderPasses();
 
@@ -121,8 +120,6 @@ class VX_ALIGN(32) RenderAspect : public RenderAspectInterface
 	void createSrvTextures(u32 srgbCount, u32 rgbCount);
 
 	void addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex);
-
-	void drawScreenQuadGBuffer(ID3D12GraphicsCommandList* cmdList);
 
 	void updateTransform(const vx::Transform &transform, u32 index);
 	void updateTransformStatic(const vx::TransformGpu &transform, u32 index);

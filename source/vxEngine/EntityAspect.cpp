@@ -314,18 +314,19 @@ void EntityAspect::handleFileEvent(const vx::Message &evt)
 
 void EntityAspect::createDynamicMesh(const CreateDynamicMeshData &data)
 {
-	auto transform = data.m_meshInstance->getTransform();
+	auto transform = data.getMeshInstance()->getTransform();
+	auto rigidDynamic = data.getRigidDynamic();
 
 	u16 index;
 	auto entity = m_poolEntityDynamic.createEntry(&index);
 	entity->m_position = transform.m_translation;
 	entity->m_qRotation = transform.m_qRotation;
-	entity->m_rigidDynamic = data.m_rigidDynamic;
-	entity->m_gpuIndex = data.m_gpuIndex;
+	entity->m_rigidDynamic = rigidDynamic;
+	entity->m_gpuIndex = data.getGpuIndex();
 
 	auto action = new ActionGrabEntity(m_entityHuman, entity);
 
-	auto componentAction = m_componentActionManager.createComponent(data.m_rigidDynamic, action, index, &entity->m_actionComponentIndex);
+	auto componentAction = m_componentActionManager.createComponent(rigidDynamic, action, index, &entity->m_actionComponentIndex);
 	VX_ASSERT(componentAction);
 }
 
@@ -337,9 +338,9 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 	case IngameMessage::Physx_AddedDynamicMesh:
 	{
 		CreateDynamicMeshData* data = (CreateDynamicMeshData*)evt.arg1.ptr;
-		data->decrement();
+		auto count = data->decrement();
 
-		if (data->m_flags == 0 && data->isValid())
+		if (count == 0 && data->isValid())
 		{
 			createDynamicMesh(*data);
 			delete(data);
@@ -385,9 +386,9 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 	case IngameMessage::Gpu_AddedDynamicMesh:
 	{
 		CreateDynamicMeshData* data = (CreateDynamicMeshData*)evt.arg1.ptr;
-		data->decrement();
+		auto count = data->decrement();
 
-		if (data->m_flags == 0 && data->isValid())
+		if (count == 0 && data->isValid())
 		{
 			createDynamicMesh(*data);
 			delete(data);

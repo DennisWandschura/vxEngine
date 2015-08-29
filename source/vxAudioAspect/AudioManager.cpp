@@ -21,45 +21,46 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include <vxAudio/AudioManager.h>
-#include <AL/alc.h>
+#include "AudioManager.h"
 #include <cstdio>
-#include <AL/al.h>
 #include <math.h>
+#include <mmdeviceapi.h>
+#include <vxLib/ScopeGuard.h>
+#include <Audioclient.h>
+
+const IID IID_IAudioClient = __uuidof(IAudioClient);
 
 namespace Audio
 {
 	AudioManager::AudioManager()
-		:m_pDevice(nullptr),
-		m_pContext(nullptr)
+		:m_client(nullptr), m_device(nullptr)
 	{
 	}
 
-	bool AudioManager::init()
+	bool AudioManager::initialize()
 	{
-		m_pDevice = alcOpenDevice(nullptr);
-		if (m_pDevice == nullptr)
-			return false;
+		IMMDeviceEnumerator* pEnumerator = nullptr;
+		const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
+		const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
+		auto hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pEnumerator);
 
-		m_pContext = alcCreateContext(m_pDevice, nullptr);
-		if (!alcMakeContextCurrent(m_pContext))
+		SCOPE_EXIT
 		{
-			//puts(" failed to make context current");
+			pEnumerator->Release();
+		};
+
+		hr = pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &m_device);
+		if (hr != 0)
+		{
 			return false;
 		}
 
-		alListener3f(AL_POSITION, 0, 0, 0);
+		hr = m_device->Activate(IID_IAudioClient, CLSCTX_ALL, nullptr, (void**)&m_client);
+		if (hr != 0)
+		{
+			return false;
+		}
 
-		float directionvect[6];
-		directionvect[0] = (float)sin(0.0f);
-		directionvect[1] = 0;
-		directionvect[2] = (float)cos(0.0f);
-		directionvect[3] = 0;
-		directionvect[4] = 1;
-		directionvect[5] = 0;
-		alListenerfv(AL_ORIENTATION, directionvect);
-
-		//puts("Created audio device and context");
 		return true;
 	}
 
@@ -70,17 +71,15 @@ namespace Audio
 
 	void AudioManager::shutdown()
 	{
-		if (m_pContext)
+		if (m_client)
 		{
-			alcMakeContextCurrent(nullptr);
-			alcDestroyContext(m_pContext);
-			m_pContext = nullptr;
+			m_client->Release();
+			m_client = nullptr;
 		}
-
-		if (m_pDevice)
+		if (m_device)
 		{
-			alcCloseDevice(m_pDevice);
-			m_pDevice = nullptr;
+			m_device->Release();
+			m_device = nullptr;
 		}
 	}
 }

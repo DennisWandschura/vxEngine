@@ -24,30 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "RenderPass.h"
-#include "DescriptorHeap.h"
+#include <vxEngineLib/AudioAspectInterface.h>
 
-class RenderPassZBuffer : public RenderPass
-{
-	d3d::Object<ID3D12GraphicsCommandList> m_commandList;
-	ID3D12CommandAllocator* m_cmdAlloc;
-	vx::uint2 m_resolution;
-	d3d::DescriptorHeap m_descriptorHeapRtv;
-	d3d::DescriptorHeap m_descriptorHeap;
-
-	bool loadShaders(d3d::ShaderManager* shaderManager);
-	bool createRootSignature(ID3D12Device* device);
-	bool createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager);
-	bool createDescriptor(ID3D12Device* device, d3d::ResourceManager* resourceManager);
-
-public:
-	explicit RenderPassZBuffer(ID3D12CommandAllocator* cmdAlloc);
-	~RenderPassZBuffer();
-
-	bool initialize(ID3D12Device* device, void* p) override;
-	void shutdown() override;
-
-	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
-
-	ID3D12CommandList* submitCommands() override;
-};
+extern "C" __declspec(dllexport) AudioAspectInterface* createAudioAspect();
