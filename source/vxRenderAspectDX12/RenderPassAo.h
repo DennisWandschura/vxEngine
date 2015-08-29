@@ -27,6 +27,7 @@ SOFTWARE.
 #include "RenderPass.h"
 #include "CommandList.h"
 #include "DescriptorHeap.h"
+#include <vxLib/math/matrix.h>
 
 class RenderPassAO : public RenderPass
 {
@@ -37,6 +38,7 @@ class RenderPassAO : public RenderPass
 	d3d::Object<ID3D12PipelineState> m_blurState[2];
 	d3d::Object<ID3D12RootSignature> m_blurRootSignature[2];
 	vx::uint2 m_resolution;
+	vx::mat4d* m_projectionMatrix;
 	f32 m_fov;
 
 	bool loadShaders(d3d::ShaderManager* shaderManager);
@@ -49,7 +51,7 @@ class RenderPassAO : public RenderPass
 	bool createSrv(ID3D12Device* device);
 
 public:
-	explicit RenderPassAO(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc, f32 fov);
+	explicit RenderPassAO(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc, f32 fov, vx::mat4d* projectionMatrix);
 	~RenderPassAO();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;

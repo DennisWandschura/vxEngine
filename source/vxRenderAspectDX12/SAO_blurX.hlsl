@@ -93,7 +93,6 @@ PixelOutput main(const GSOutput pixel)
 
 	float2 axis = float2(1, 0);
 
-	//float2(renderTargetSize[SIZECONST_WIDTH], renderTargetSize[SIZECONST_HEIGHT]);
 	int2 ssC = int2(pixel.position.xy);
 
 	float4 temp = source.Load(int3(ssC, 0));

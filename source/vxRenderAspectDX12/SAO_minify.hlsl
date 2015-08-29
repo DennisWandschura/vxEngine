@@ -26,7 +26,6 @@ Texture2D<float> g_source : register(t0);
 
 float main(GSOutput input) : SV_TARGET
 {
-	//int2 ssP = input.texCoords * float2(renderTargetSize[SIZECONST_WIDTH], renderTargetSize[SIZECONST_HEIGHT]);
 	int2 ssP = int2(input.pos.xy);
 
 	// Rotated grid subsampling to avoid XY directional bias or Z precision bias while downsampling

@@ -34,10 +34,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /** Used for preventing AO computation on the sky (at infinite depth) and defining the CS Z to bilateral depth key scaling.
 This need not match the real far plane*/
-#define FAR_PLANE_Z (300.0)
+#define FAR_PLANE_Z (200.0)
 
 // Total number of direct samples to take at each pixel
-#define NUM_SAMPLES (11)
+#define NUM_SAMPLES (9)
 
 // This is the number of turns around the circle that the spiral pattern makes.  This should be prime to prevent
 // taps from lining up.  This particular choice was tuned for NUM_SAMPLES == 9
@@ -168,9 +168,23 @@ float sampleAO(in int2 ssC, in float3 C, in float3 n_C, in float ssDiskRadius, i
 	float vn = dot(v, n_C);
 
 	const float epsilon = 0.01;
-	float f = max(radius2 - vv, 0.0); 
 
+	// A: From the HPG12 paper
+	// Note large epsilon to avoid overdarkening within cracks
+	// return float(vv < radius2) * max((vn - bias) / (epsilon + vv), 0.0) * radius2 * 0.6;
+
+	// B: Smoother transition to zero (lowers contrast, smoothing out corners). [Recommended]
+	float f = max(radius2 - vv, 0.0); 
 	return f * f * f * max((vn - saoBuffer.bias) / (epsilon + vv), 0.0);
+
+	// C: Medium contrast (which looks better at high radii), no division.  Note that the 
+	// contribution still falls off with radius^2, but we've adjusted the rate in a way that is
+	// more computationally efficient and happens to be aesthetically pleasing.
+	//float invRadius2 = 1.0 / radius2;
+	//return 4.0 * max(1.0 - vv * invRadius2, 0.0) * max(vn - saoBuffer.bias, 0.0);
+
+	// D: Low contrast, no division operation
+	// return 2.0 * float(vv < radius * radius) * max(vn - bias, 0.0);
 }
 
 PixelOutput main(GSOutput input)
@@ -179,7 +193,6 @@ PixelOutput main(GSOutput input)
 	fragment.color = 1;
 
 	// Pixel being shaded 
-	//int2 ssC = pixel.texCoords * float2(renderTargetSize[SIZECONST_WIDTH], renderTargetSize[SIZECONST_HEIGHT]);
 	int2 ssC = int2(input.pos.xy);
 
 	// World space point being shaded
@@ -206,9 +219,10 @@ PixelOutput main(GSOutput input)
 		sum += sampleAO(ssC, C, n_C, ssDiskRadius, i, randomPatternRotationAngle, radius2);
 	}
 
-	float temp = radius2 * saoBuffer.radius;
-	sum /= temp * temp;
-	float A = max(0.0, 1.0 - sum * saoBuffer.intensity * (5.0 / NUM_SAMPLES));
+	float intensityDivR6 = saoBuffer.intensity / pow(saoBuffer.radius, 6.0f);
+
+	float A = max(0.0, 1.0 - sum * intensityDivR6 * (5.0 / NUM_SAMPLES));
+	A= lerp(A, 1.0f, 1.0f - saturate(0.5f * C.z));
 
 	// Bilateral box-filter over a quad for free, respecting depth edges
 	// (the difference that this makes is subtle)

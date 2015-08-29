@@ -134,7 +134,7 @@ void RenderAspect::createRenderPasses(const vx::uint2 &resolution, f32 fov)
 	m_renderPasses.push_back(m_gbufferRenderer);
 	m_renderPasses.push_back(new RenderPassZBuffer(m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassZBufferCreateMipmaps(m_commandAllocator.get()));
-	m_renderPasses.push_back(new RenderPassAO(resolution, m_commandAllocator.get(), fov));
+	m_renderPasses.push_back(new RenderPassAO(resolution, m_commandAllocator.get(), fov, &m_projectionMatrix));
 	m_renderPasses.push_back(new RenderPassShading(resolution, m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassFinal(m_commandAllocator.get(), &m_device));
 }
@@ -220,9 +220,10 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 
 	f64 screenAspect = (f64)desc.settings->m_resolution.x / (f64)desc.settings->m_resolution.y;
 	f64 fovRad = vx::degToRad(desc.settings->m_fovDeg);
-	m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(fovRad, screenAspect, (f64)desc.settings->m_zNear, (f64)desc.settings->m_zFar);
 	m_zFar = desc.settings->m_zFar;
 	m_zNear = desc.settings->m_zNear;
+
+	m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(fovRad, screenAspect, (f64)m_zNear, (f64)m_zFar);
 
 	const u32 allocSize = 1 MBYTE;
 	auto allocPtr = desc.pAllocator->allocate(allocSize);
@@ -404,14 +405,6 @@ void RenderAspect::makeCurrent(bool b)
 
 void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 {
-	/**  vec4(-2.0f / (width*P[0][0]),
-	-2.0f / (height*P[1][1]),
-	( 1.0f - P[0][2]) / P[0][0],
-	( 1.0f + P[1][2]) / P[1][1])
-
-	where P is the projection matrix that maps camera space points
-	to [-1, 1] x [-1, 1].  That is, GCamera::getProjectUnit(). */
-
 	vx::mat4 projMatrix;
 	m_projectionMatrix.asFloat(&projMatrix);
 
@@ -440,39 +433,6 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	bufferData.projInfo = projInfo;
 	bufferData.zFar = m_zFar;
 	bufferData.zNear = m_zNear;
-
-	{
-		float zNear = 0.1;
-		float zFar = 100.0;
-		float c0 = zNear * zFar;
-		float c1 = zNear - zFar;
-		float c2 = zFar;
-
-		f32 depth = 0.2f;
-		f32 zDepth = -c0 / (depth * c1 + c2);
-
-		vx::float2 vTexCoord = {0.55, 0.1};
-		vx::float2 ssc = vTexCoord * vx::float2(1920, 1080);
-
-		float x = vTexCoord.x * 2 - 1;
-		float y = (1 - vTexCoord.y) * 2 - 1;
-
-		float4 vProjectedPos = float4(x, y, depth, 1.0f);
-		// Transform by the inverse projection matrix
-		auto vPositionVS = vx::Vector3TransformCoord(bufferData.invProjMatrix, vProjectedPos);
-
-		float sx = 0.5f + ssc.x;
-		sx = (sx * projInfo.x + projInfo.z) * zDepth;
-
-		float sy = 0.5f + ssc.y;
-		sy = -(sy * projInfo.y + projInfo.w) * zDepth;
-		//(S.xy * projInfo.xy + cameraBuffer.projInfo.zw) * z, z
-
-		//puts("");
-		// Divide by w to get the view-space position
-		//return vPositionVS.xyz / vPositionVS.w;
-	}
-	//printf("%f %f \n", projInfo.x, projInfo.y);
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
 
