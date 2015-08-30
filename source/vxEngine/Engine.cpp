@@ -312,7 +312,12 @@ bool Engine::initialize(Logfile* logfile)
 		&m_taskManager
 	};
 
-	auto renderMode = g_engineConfig.m_rendererSettings.m_renderMode;
+	if (!createRenderAspectDX12(renderAspectDesc))
+	{
+		logfile->append("error dx12 renderer\n");
+		return false;
+	}
+	/*auto renderMode = g_engineConfig.m_rendererSettings.m_renderMode;
 	if (renderMode == Graphics::RendererSettings::Mode_GL)
 	{
 		if (!createRenderAspectGL(renderAspectDesc))
@@ -328,9 +333,7 @@ bool Engine::initialize(Logfile* logfile)
 			logfile->append("error dx12 renderer\n");
 			return false;
 		}
-	}
-
-	//m_renderAspect->makeCurrent(false);
+	}*/
 
 	if (!m_physicsAspect.initialize(&m_taskManager))
 		return false;
