@@ -30,3 +30,21 @@ struct Plane
 	vx::float3 n;
 	f32 d;
 };
+
+struct PlaneSIMD
+{
+	__m128 n;
+	__m128 d;
+
+	static PlaneSIMD __vectorcall create(__m128 a, __m128 b, __m128 c)
+	{
+		auto tmp0 = _mm_sub_ps(b, a);
+		auto tmp1 = _mm_sub_ps(c, a);
+
+		PlaneSIMD result;
+		result.n = vx::normalize3(vx::cross3(tmp0, tmp1));
+		result.d = vx::dot3(result.n, a);
+
+		return result;
+	}
+};
