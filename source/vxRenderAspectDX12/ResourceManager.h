@@ -39,7 +39,7 @@ namespace d3d
 		bool initializeHeaps(u64 heapSizeBuffer, u64 heapSizeTexture, u64 heapSizeRtvDsv, ID3D12Device* device);
 		void shutdown();
 
-		ID3D12Resource* createBuffer(const wchar_t* id, u64 size, u32 state);
+		ID3D12Resource* createBuffer(const wchar_t* id, u64 size, u32 state, u32 flags = 0);
 		ID3D12Resource* createTexture(const wchar_t* id, const CreateResourceDesc &desc);
 		ID3D12Resource* createTextureRtDs(const wchar_t* id, const CreateResourceDesc &desc);
 

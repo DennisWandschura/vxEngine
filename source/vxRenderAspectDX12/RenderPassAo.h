@@ -37,7 +37,6 @@ class RenderPassAO : public RenderPass
 	d3d::DescriptorHeap m_srvHeap;
 	d3d::Object<ID3D12PipelineState> m_blurState[2];
 	d3d::Object<ID3D12RootSignature> m_blurRootSignature[2];
-	vx::uint2 m_resolution;
 	vx::mat4d* m_projectionMatrix;
 	f32 m_fov;
 
@@ -51,7 +50,7 @@ class RenderPassAO : public RenderPass
 	bool createSrv(ID3D12Device* device);
 
 public:
-	explicit RenderPassAO(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc, f32 fov, vx::mat4d* projectionMatrix);
+	RenderPassAO( ID3D12CommandAllocator* cmdAlloc, f32 fov, vx::mat4d* projectionMatrix);
 	~RenderPassAO();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -59,5 +58,5 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
-	ID3D12CommandList* submitCommands() override;
+	void submitCommands(ID3D12CommandList** list, u32* index) override;
 };

@@ -36,7 +36,7 @@ class RenderPassZBufferCreateMipmaps : public RenderPass
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::DescriptorHeap m_descriptorHeapSrv;
 	vx::uint2 m_textureResolution;
-	ID3D12Resource* m_zbuffer;
+	ID3D12Resource* m_zbuffer0;
 
 	bool loadShaders(d3d::ShaderManager* shaderManager);
 	bool createRootSignature(ID3D12Device* device);
@@ -51,5 +51,5 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
-	ID3D12CommandList* submitCommands() override;
+	void submitCommands(ID3D12CommandList** list, u32* index) override;
 };

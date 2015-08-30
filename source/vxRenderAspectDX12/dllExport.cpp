@@ -27,8 +27,9 @@ SOFTWARE.
 RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
 {
 	const auto sz = sizeof(RenderAspect);
+	const auto align = __alignof(RenderAspect);
 
-	auto result = (RenderAspect*)_aligned_malloc(sizeof(RenderAspect), __alignof(RenderAspect));
+	auto result = (RenderAspect*)_aligned_malloc(sz, align);
 	new (result) RenderAspect{};
 
 	auto initError = result->initialize(desc);

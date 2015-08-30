@@ -10,7 +10,6 @@ class RenderPassShading : public RenderPass
 	ID3D12CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_heapSrv;
 	d3d::DescriptorHeap m_heapRtv;
-	vx::uint2 m_resolution;
 
 	bool createTexture(ID3D12Device* device);
 	bool loadShaders();
@@ -20,7 +19,7 @@ class RenderPassShading : public RenderPass
 	bool createRtv(ID3D12Device* device);
 
 public:
-	RenderPassShading(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc);
+	explicit RenderPassShading(ID3D12CommandAllocator* cmdAlloc);
 	~RenderPassShading();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -28,5 +27,5 @@ public:
 	bool initialize(ID3D12Device* device, void* p)override;
 	void shutdown() override;
 
-	ID3D12CommandList* submitCommands() override;
+	void submitCommands(ID3D12CommandList** list, u32* index) override;
 };

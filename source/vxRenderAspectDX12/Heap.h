@@ -30,6 +30,7 @@ struct D3D12_HEAP_DESC;
 struct ID3D12Device;
 
 enum D3D12_HEAP_TYPE;
+enum D3D12_RESOURCE_FLAGS;
 
 #include "d3d.h"
 #include <memory>
@@ -42,6 +43,7 @@ namespace d3d
 		u64 size;
 		ID3D12Resource** resource;
 		D3D12_RESOURCE_STATES state;
+		D3D12_RESOURCE_FLAGS flags;
 	};
 
 	struct HeapCreateResourceDesc

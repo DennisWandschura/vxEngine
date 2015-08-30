@@ -110,6 +110,7 @@ bool UploadManager::initialize(ID3D12Device* device)
 	desc.size = UploadManagerCpp::g_bufferSize;
 	desc.state = D3D12_RESOURCE_STATE_GENERIC_READ;
 	desc.resource = m_uploadBuffer.getAddressOf();
+	desc.flags = D3D12_RESOURCE_FLAG_NONE;
 	if (!m_heap.createResourceBuffer(desc))
 		return false;
 

@@ -49,5 +49,5 @@ public:
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
 
-	ID3D12CommandList* submitCommands() override;
+	void submitCommands(ID3D12CommandList** list, u32* index) override;
 };

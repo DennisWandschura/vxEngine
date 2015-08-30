@@ -3,10 +3,9 @@
 #include "ShaderManager.h"
 #include "ResourceManager.h"
 
-RenderPassShading::RenderPassShading(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc)
+RenderPassShading::RenderPassShading(ID3D12CommandAllocator* cmdAlloc)
 	:m_commandList(),
-	m_cmdAlloc(cmdAlloc),
-	m_resolution(resolution)
+	m_cmdAlloc(cmdAlloc)
 {
 
 }
@@ -25,12 +24,12 @@ void RenderPassShading::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeText
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 	resDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	resDesc.Height = m_resolution.y;
+	resDesc.Height = s_resolution.y;
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resDesc.MipLevels = 1;
 	resDesc.SampleDesc.Count = 1;
 	resDesc.SampleDesc.Quality = 0;
-	resDesc.Width = m_resolution.x;
+	resDesc.Width = s_resolution.x;
 
 	auto alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
@@ -45,12 +44,12 @@ bool RenderPassShading::createTexture(ID3D12Device* device)
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 	resDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	resDesc.Height = m_resolution.y;
+	resDesc.Height = s_resolution.y;
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resDesc.MipLevels = 1;
 	resDesc.SampleDesc.Count = 1;
 	resDesc.SampleDesc.Quality = 0;
-	resDesc.Width = m_resolution.x;
+	resDesc.Width = s_resolution.x;
 
 	auto alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
@@ -89,8 +88,8 @@ bool RenderPassShading::loadShaders()
 bool RenderPassShading::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0, 0, 0);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0, 0, 2);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0, 1);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(2, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -170,10 +169,6 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	auto cameraBufferView = s_resourceManager->getConstantBufferView("cameraBufferView");
 	device->CreateConstantBufferView(cameraBufferView, handle);
 
-	auto lightBufferView = s_resourceManager->getConstantBufferView("lightBufferView");
-	handle.offset(1);
-	device->CreateConstantBufferView(lightBufferView, handle);
-
 	handle.offset(1);
 	auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 
@@ -203,7 +198,7 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 
 	handle.offset(1);
-	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
 	device->CreateShaderResourceView(zBuffer, &srvDesc, handle);
 
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
@@ -217,6 +212,11 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	handle.offset(1);
 	auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 	device->CreateShaderResourceView(gbufferDepth, &srvDesc, handle);
+
+	auto lightBuffer = s_resourceManager->getBuffer(L"lightBuffer");
+	auto lightBufferView = s_resourceManager->getShaderResourceView("lightBufferView");
+	handle.offset(1);
+	device->CreateShaderResourceView(lightBuffer, lightBufferView, handle);
 
 	return true;
 }
@@ -274,18 +274,20 @@ void RenderPassShading::shutdown()
 
 }
 
-ID3D12CommandList* RenderPassShading::submitCommands()
+void RenderPassShading::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
-	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
 	auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
 	const f32 clearColor[4] = {0, 0, 0, 0};
 	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
 
+	auto resolution = s_resolution;
+
 	D3D12_VIEWPORT viewport;
-	viewport.Height = (f32)m_resolution.y;
-	viewport.Width = (f32)m_resolution.x;
+	viewport.Height = (f32)resolution.y;
+	viewport.Width = (f32)resolution.x;
 	viewport.MaxDepth = 1.0f;
 	viewport.MinDepth = 0.0f;
 	viewport.TopLeftX = 0;
@@ -294,8 +296,8 @@ ID3D12CommandList* RenderPassShading::submitCommands()
 	D3D12_RECT rectScissor;
 	rectScissor.left = 0;
 	rectScissor.top = 0;
-	rectScissor.right = m_resolution.x;
-	rectScissor.bottom = m_resolution.y;
+	rectScissor.right = resolution.x;
+	rectScissor.bottom = resolution.y;
 
 	m_commandList->RSSetViewports(1, &viewport);
 	m_commandList->RSSetScissorRects(1, &rectScissor);
@@ -324,5 +326,6 @@ ID3D12CommandList* RenderPassShading::submitCommands()
 
 	m_commandList->Close();
 
-	return m_commandList.get();
+	list[*index] =m_commandList.get();
+	++(*index);
 }

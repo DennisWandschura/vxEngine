@@ -93,7 +93,7 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device, s_shaderManager))
 		return false;
 
-	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
+	auto zBuffer0 = s_resourceManager->getTextureRtDs(L"zBuffer0");
 
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
@@ -111,16 +111,6 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 	if (!m_descriptorHeapSrv.create(srvHeapDesc, device))
 		return false;
 
-	/*D3D12_SHADER_RESOURCE_VIEW_DESC zbufferDesc;
-	zbufferDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	zbufferDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	zbufferDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	zbufferDesc.Texture2DArray.ArraySize = 2;
-	zbufferDesc.Texture2DArray.FirstArraySlice = 0;
-	zbufferDesc.Texture2DArray.MipLevels = 1;
-	zbufferDesc.Texture2DArray.MostDetailedMip = 0;
-	zbufferDesc.Texture2DArray.PlaneSlice = 0;
-	zbufferDesc.Texture2DArray.ResourceMinLODClamp = 0;*/
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 	rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
@@ -131,14 +121,14 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 	{
 		rtvDesc.Texture2D.MipSlice = i;
 
-		device->CreateRenderTargetView(zBuffer, &rtvDesc, rtvHandle);
+		device->CreateRenderTargetView(zBuffer0, &rtvDesc, rtvHandle);
 
 		rtvHandle.offset(1);
 	}
 
-	m_zbuffer = zBuffer;
+	m_zbuffer0 = zBuffer0;
 
-	auto texDesc = m_zbuffer->GetDesc();
+	auto texDesc = m_zbuffer0->GetDesc();
 	m_textureResolution.x = texDesc.Width;
 	m_textureResolution.y = texDesc.Height;
 
@@ -153,7 +143,7 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 		srvDesc.Texture2D.MostDetailedMip = i;
 		srvDesc.Texture2D.PlaneSlice = 0;
 		srvDesc.Texture2D.ResourceMinLODClamp = 0;
-		device->CreateShaderResourceView(zBuffer, &srvDesc, srvHandle);
+		device->CreateShaderResourceView(m_zbuffer0, &srvDesc, srvHandle);
 
 		srvHandle.offset(1);
 	}
@@ -169,7 +159,7 @@ void RenderPassZBufferCreateMipmaps::shutdown()
 
 }
 
-ID3D12CommandList* RenderPassZBufferCreateMipmaps::submitCommands()
+void RenderPassZBufferCreateMipmaps::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	const f32 clearColor[4] = { 1.0f, 0.0f, 0, 0 };
 
@@ -200,7 +190,7 @@ ID3D12CommandList* RenderPassZBufferCreateMipmaps::submitCommands()
 	u32 srcMip = 0;
 	for (u32 i = 1; i <= 5; ++i)
 	{
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_zbuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, srcMip));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_zbuffer0, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, srcMip));
 
 		viewport.Height = (f32)y;
 		viewport.Width = (f32)x;
@@ -221,7 +211,7 @@ ID3D12CommandList* RenderPassZBufferCreateMipmaps::submitCommands()
 
 		m_commandList->DrawInstanced(1, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_zbuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, srcMip));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_zbuffer0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, srcMip));
 
 		x = x >> 1;
 		y = y >> 1;
@@ -233,5 +223,6 @@ ID3D12CommandList* RenderPassZBufferCreateMipmaps::submitCommands()
 
 	m_commandList->Close();
 	
-	return m_commandList.get();;
+	list[*index] = m_commandList.get();
+	++(*index);
 }

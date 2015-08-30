@@ -76,9 +76,9 @@ bool MeshManager::createBuffers(u32 vertexCount, u32 indexCount, u32 instanceCou
 
 	d3d::HeapCreateBufferResourceDesc desc[3]=
 	{
-		{ vertexBufferSize, m_vertexBuffer.getAddressOf(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER },
-		{ indexBufferSize, m_indexBuffer.getAddressOf(),D3D12_RESOURCE_STATE_INDEX_BUFFER },
-		{ instanceBufferSize, m_drawIdBuffer.getAddressOf(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER }
+		{ vertexBufferSize, m_vertexBuffer.getAddressOf(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_FLAG_NONE },
+		{ indexBufferSize, m_indexBuffer.getAddressOf(),D3D12_RESOURCE_STATE_INDEX_BUFFER, D3D12_RESOURCE_FLAG_NONE },
+		{ instanceBufferSize, m_drawIdBuffer.getAddressOf(), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, D3D12_RESOURCE_FLAG_NONE }
 	};
 
 	if (!m_geometryHeap.createResourceBuffer(desc, 3))

@@ -45,7 +45,6 @@ class GBufferRenderer : public RenderPass
 
 	d3d::Object<ID3D12GraphicsCommandList> m_commandList;
 	ID3D12CommandAllocator* m_cmdAlloc;
-	vx::uint2 m_resolution;
 	d3d::DescriptorHeap m_descriptorHeapBuffers;
 	d3d::DescriptorHeap m_descriptorHeapRt;
 	d3d::DescriptorHeap m_descriptorHeapDs;
@@ -69,7 +68,7 @@ class GBufferRenderer : public RenderPass
 	void createBufferViews(d3d::ResourceManager* resourceManager, ID3D12Device* device);
 
 public:
-	explicit GBufferRenderer(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc, u32 countOffset);
+	GBufferRenderer(ID3D12CommandAllocator* cmdAlloc, u32 countOffset);
 	~GBufferRenderer();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -79,5 +78,5 @@ public:
 
 	void setDrawCount(u32 count) { m_drawCount = count; }
 
-	ID3D12CommandList* submitCommands() override;
+	void submitCommands(ID3D12CommandList** list, u32* index) override;
 };

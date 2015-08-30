@@ -6,11 +6,10 @@
 #include <vxLib/math/matrix.h>
 #include "UploadManager.h"
 
-RenderPassAO::RenderPassAO(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc, f32 fov, vx::mat4d* projectionMatrix)
+RenderPassAO::RenderPassAO( ID3D12CommandAllocator* cmdAlloc, f32 fov, vx::mat4d* projectionMatrix)
 	:RenderPass(),
 	m_commandList(),
 	m_cmdAlloc(cmdAlloc),
-	m_resolution(resolution),
 	m_projectionMatrix(projectionMatrix),
 	m_fov(fov)
 {
@@ -29,12 +28,12 @@ void RenderPassAO::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, 
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	resDesc.Height = m_resolution.y;
+	resDesc.Height = s_resolution.y;
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resDesc.MipLevels = 1;
 	resDesc.SampleDesc.Count = 1;
 	resDesc.SampleDesc.Quality = 0;
-	resDesc.Width = m_resolution.x;
+	resDesc.Width = s_resolution.x;
 
 	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
@@ -214,8 +213,8 @@ bool RenderPassAO::createBuffer()
 	auto P = *m_projectionMatrix;
 
 	vx::float4a projInfo;
-	projInfo.x = float(-2.0 / (m_resolution.x * P.c[0].m256d_f64[0]));
-	projInfo.y = float(-2.0 / (m_resolution.y * P.c[1].m256d_f64[1]));
+	projInfo.x = float(-2.0 / (s_resolution.x * P.c[0].m256d_f64[0]));
+	projInfo.y = float(-2.0 / (s_resolution.y * P.c[1].m256d_f64[1]));
 	projInfo.z = float((1.0 - (double)P.c[0].m256d_f64[2]) / P.c[0].m256d_f64[0]);
 	projInfo.w = float((1.0 + (double)P.c[1].m256d_f64[2]) / P.c[1].m256d_f64[1]);
 
@@ -225,7 +224,7 @@ bool RenderPassAO::createBuffer()
 	bufferData.projInfo = projInfo;
 	bufferData.bias = 0.012f;
 	bufferData.intensity = 1.0f;
-	bufferData.projScale = std::abs((f32)m_resolution.x / scale);
+	bufferData.projScale = std::abs((f32)s_resolution.x / scale);
 	bufferData.radius = 1.0f;
 
 	s_uploadManager->pushUploadBuffer((u8*)&bufferData, saoBuffer, 0, sizeof(GpuSaoBuffer), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -262,7 +261,7 @@ bool RenderPassAO::createRtv(ID3D12Device* device, ID3D12Resource* texture)
 
 bool RenderPassAO::createSrv(ID3D12Device* device)
 {
-	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
 	auto saoBuffer = s_resourceManager->getBuffer(L"saoBuffer");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
@@ -345,12 +344,12 @@ bool RenderPassAO::initialize(ID3D12Device* device, void* p)
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	resDesc.Height = m_resolution.y;
+	resDesc.Height = s_resolution.y;
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	resDesc.MipLevels = 1;
 	resDesc.SampleDesc.Count = 1;
 	resDesc.SampleDesc.Quality = 0;
-	resDesc.Width = m_resolution.x;
+	resDesc.Width = s_resolution.x;
 
 	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
@@ -389,7 +388,7 @@ void RenderPassAO::shutdown()
 
 }
 
-ID3D12CommandList* RenderPassAO::submitCommands()
+void RenderPassAO::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
@@ -402,9 +401,11 @@ ID3D12CommandList* RenderPassAO::submitCommands()
 
 	// rd->setClip2D(Rect2D::xyxy(guardBandSize, guardBandSize, rd->viewport().width() - guardBandSize, rd->viewport().height() - guardBandSize));
 
+	auto resolution = s_resolution;
+
 	D3D12_VIEWPORT viewPort;
-	viewPort.Width = (f32)m_resolution.x;
-	viewPort.Height = (f32)m_resolution.y;
+	viewPort.Width = (f32)resolution.x;
+	viewPort.Height = (f32)resolution.y;
 	viewPort.MaxDepth = 1.0f;
 	viewPort.MinDepth = 0.0f;
 	viewPort.TopLeftX = (f32)0;
@@ -412,9 +413,9 @@ ID3D12CommandList* RenderPassAO::submitCommands()
 
 	D3D12_RECT rectScissor;
 	rectScissor.left = 0;
-	rectScissor.right = m_resolution.x;
+	rectScissor.right = resolution.x;
 	rectScissor.top = 0;
-	rectScissor.bottom = m_resolution.y;
+	rectScissor.bottom = resolution.y;
 
 	auto hr = m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
 
@@ -469,5 +470,6 @@ ID3D12CommandList* RenderPassAO::submitCommands()
 
 	m_commandList->Close();
 
-	return m_commandList.get();
+	list[*index] = m_commandList.get();
+	++(*index);
 }

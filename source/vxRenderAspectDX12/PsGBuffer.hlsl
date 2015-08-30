@@ -11,7 +11,7 @@ struct PSInput
 {
 	float4 position : SV_POSITION;
 	float4 positionPrev : POSITION1;
-	float3 vsPosition : POSITION2;
+	//float3 vsPosition : POSITION2;
 	float3 vsNormal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
 	uint material : BLENDINDICES0;
@@ -46,7 +46,7 @@ Output main(PSInput input)
 	//float3x3 tbnMatrix;
 
 	// rhs coord system
-	float view_z = -input.vsPosition.z / cameraBuffer.zFar;
+	//float view_z = -input.vsPosition.z / cameraBuffer.zFar;
 
 	float2 compressedNormal = encodeNormal(input.vsNormal);
 

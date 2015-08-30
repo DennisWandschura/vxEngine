@@ -25,16 +25,15 @@ SOFTWARE.
 #include <vxLib/Window.h>
 #include <d3d12.h>
 #include <dxgi1_4.h>
+#include "CommandQueue.h"
 
 namespace d3d
 {
+	typedef HRESULT(WINAPI *DXGIGetDebugInterfaceProc)(REFIID riid, void **ppDebug);
+
 	Device::Device()
-		:m_commandQueue(),
+		:m_device(), 
 		m_swapChain(),
-		m_fence(),
-		m_currentFence(0),
-		m_event(nullptr),
-		m_device(),
 		m_factory()
 	{
 
@@ -51,53 +50,34 @@ namespace d3d
 		if (hresult != 0)
 			return false;
 
-		hresult = CreateDXGIFactory1(IID_PPV_ARGS(m_factory.getAddressOf()));
+		hresult = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(m_factory.getAddressOf()));
 		if (hresult != 0)
 			return false;
-
-		hresult = m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.getAddressOf()));
-		if (hresult != 0)
-			return false;
-
-		m_fence->SetName(L"DeviceFence");
-
-		m_event = CreateEventEx(nullptr, FALSE, FALSE, EVENT_ALL_ACCESS);
 
 		return true;
 	}
 
-	bool Device::createCommandQueue()
+	bool Device::createSwapChain(const vx::Window &window, CommandQueue* defaultQueue)
 	{
-		D3D12_COMMAND_QUEUE_DESC desc;
-		desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		desc.Priority = 0;
-		desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		desc.NodeMask = 0;
+		auto hwnd = window.getHwnd();
+		auto resolution = window.getSize();
 
-		auto hresult = m_device->CreateCommandQueue(&desc, IID_PPV_ARGS(m_commandQueue.getAddressOf()));
-		if (hresult != 0)
-			return false;
+		DXGI_SWAP_CHAIN_DESC1 desc;
+		desc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+		desc.BufferCount = 2;
+		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		desc.Height = 0;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Scaling = DXGI_SCALING_ASPECT_RATIO_STRETCH;
+		desc.Stereo = 0;
+		desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		desc.Width = 0;
 
-		m_commandQueue->SetName(L"DeviceCommandQueue");
-
-		return true;
-	}
-
-	bool Device::createSwapChain(const vx::Window &window)
-	{
-		DXGI_SWAP_CHAIN_DESC descSwapChain;
-		ZeroMemory(&descSwapChain, sizeof(descSwapChain));
-		descSwapChain.BufferCount = 2;
-		descSwapChain.BufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		descSwapChain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		descSwapChain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-		descSwapChain.OutputWindow = window.getHwnd();
-		descSwapChain.SampleDesc.Count = 1;
-		descSwapChain.Windowed = 1;
-
-		IDXGISwapChain* swapChain;
-		auto hresult = m_factory->CreateSwapChain(m_commandQueue.get(), &descSwapChain, &swapChain);
-
+		IDXGISwapChain1* swapChain = nullptr;
+		auto hresult = m_factory->CreateSwapChainForHwnd(defaultQueue->get(), hwnd, &desc, nullptr, nullptr, &swapChain);
 		if (hresult != 0)
 			return false;
 
@@ -110,15 +90,15 @@ namespace d3d
 		return true;
 	}
 
-	bool Device::initialize(const vx::Window &window)
+	bool Device::initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, CommandQueue* defaultQueue)
 	{
 		if (!createDevice())
 			return false;
 
-		if (!createCommandQueue())
+		if (!defaultQueue->create(queueDesc, m_device.get()))
 			return false;
 
-		if (!createSwapChain(window))
+		if (!createSwapChain(window, defaultQueue))
 			return false;
 
 		return true;
@@ -127,38 +107,14 @@ namespace d3d
 	void Device::shutdown()
 	{
 		m_swapChain.destroy();
-		m_commandQueue.destroy();
 
-		m_fence.destroy();
 		m_factory.destroy();
 		m_device.destroy();
-	}
-
-	void Device::executeCommandLists(u32 count, ID3D12CommandList** lists)
-	{
-		m_commandQueue->ExecuteCommandLists(count, lists);
 	}
 
 	void Device::swapBuffer()
 	{
 		m_swapChain->Present(1, 0);
-		//m_swapChain->Present1();
-	}
-
-	void Device::waitForGpu()
-	{
-		const u64 fence = m_currentFence++;
-		m_commandQueue->Signal(m_fence.get(), fence);
-
-		//
-		// Let the previous frame finish before continuing
-		//
-
-		if (m_fence->GetCompletedValue() < fence)
-		{
-			m_fence->SetEventOnCompletion(fence, m_event);
-			WaitForSingleObject(m_event, INFINITE);
-		}
 	}
 
 	u32 Device::getCurrentBackBufferIndex()

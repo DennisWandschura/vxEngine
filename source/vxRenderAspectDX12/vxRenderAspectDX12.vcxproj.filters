@@ -52,6 +52,9 @@
     <Filter Include="Shaders\shadng">
       <UniqueIdentifier>{4485ffa2-6b42-4005-a754-ea11f94d8c76}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\cull lights">
+      <UniqueIdentifier>{8ba0b537-e930-4fa5-a75d-d2121d3c70f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -174,6 +177,18 @@
     <ClInclude Include="RenderPassFinal.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="LightManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Frustum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassCullLights.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -245,16 +260,22 @@
     <ClCompile Include="RenderPassFinal.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
+    <ClCompile Include="LightManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Frustum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassCullLights.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="PsGBuffer.hlsl">
       <Filter>Shaders\create gbuffer</Filter>
-    </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
-      <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="MeshVertex.hlsl">
       <Filter>Shaders\create gbuffer</Filter>
@@ -291,6 +312,18 @@
     </FxCompile>
     <FxCompile Include="ShadePS.hlsl">
       <Filter>Shaders\shadng</Filter>
+    </FxCompile>
+    <FxCompile Include="CullLightsCS.hlsl">
+      <Filter>Shaders\cull lights</Filter>
+    </FxCompile>
+    <FxCompile Include="CullLightsGS.hlsl">
+      <Filter>Shaders\cull lights</Filter>
+    </FxCompile>
+    <FxCompile Include="CullLightsPS.hlsl">
+      <Filter>Shaders\cull lights</Filter>
+    </FxCompile>
+    <FxCompile Include="CullLightsVS.hlsl">
+      <Filter>Shaders\cull lights</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -29,54 +29,43 @@ namespace vx
 	class Window;
 }
 
-struct ID3D12CommandQueue;
 struct IDXGISwapChain3;
 struct ID3D12Device;
 struct IDXGIFactory4;
-struct ID3D12CommandList;
-struct _GUID;
-struct ID3D12Fence;
+struct D3D12_COMMAND_QUEUE_DESC;
 
 #include <vxLib/types.h>
 #include "d3d.h"
 
 namespace d3d
 {
+	class CommandQueue;
+
 	class Device
 	{
-		Object<ID3D12CommandQueue> m_commandQueue;
-		Object<IDXGISwapChain3> m_swapChain;
-		Object<ID3D12Fence> m_fence;
-		u64 m_currentFence;
-		void* m_event;
 		Object<ID3D12Device> m_device;
+		Object<IDXGISwapChain3> m_swapChain;
 		Object<IDXGIFactory4> m_factory;
 
 		bool createDevice();
-		bool createCommandQueue();
-		bool createSwapChain(const vx::Window &window);
+		bool createSwapChain(const vx::Window &window, CommandQueue* defaultQueue);
 
 	public:
 		Device();
 		~Device();
 
-		bool initialize(const vx::Window &window);
+		bool initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, CommandQueue* defaultQueue);
 		void shutdown();
 
-		void executeCommandLists(u32 count, ID3D12CommandList** lists);
-
-		template<u32 SIZE>
-		void executeCommandLists(ID3D12CommandList*(&lists)[SIZE])
-		{
-			executeCommandLists(SIZE, lists);
-		}
-
 		void swapBuffer();
-		void waitForGpu();
+
+		ID3D12Device* operator->()
+		{
+			return m_device.get();
+		}
 
 		IDXGISwapChain3* getSwapChain() { return m_swapChain.get(); }
 		ID3D12Device* getDevice() { return m_device.get(); }
-		ID3D12CommandQueue* getCommandQueue() { return m_commandQueue.get(); }
 
 		u32 getCurrentBackBufferIndex();
 		bool getBuffer(u32 index, const _GUID &riid, void **ppSurface);

@@ -157,7 +157,7 @@ namespace d3d
 		rdesc.SampleDesc.Count = 1;
 		rdesc.SampleDesc.Quality = 0;
 		rdesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-		rdesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+		rdesc.Flags = desc.flags;
 
 		HeapCreateResourceDesc heapResDesc;
 		heapResDesc.desc.clearValue = nullptr;

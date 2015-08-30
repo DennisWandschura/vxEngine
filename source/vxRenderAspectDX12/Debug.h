@@ -24,26 +24,36 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+struct IDXGIDebug;
+struct IDXGIInfoQueue;
+struct ID3D12InfoQueue;
+struct ID3D12Debug;
 
-namespace Audio
+#include "d3d.h"
+#include <vxLib/Allocator/StackAllocator.h>
+
+namespace d3d
 {
-	class Sound
+	class Debug
 	{
-		u32 m_source;
+		d3d::Object<ID3D12InfoQueue> m_infoQueue;
+		d3d::Object<IDXGIInfoQueue> m_dxgiInfoQueue;
+		vx::StackAllocator m_scratchAllocator;
+		d3d::Object<ID3D12Debug> m_debug;
+		d3d::Object<IDXGIDebug> m_dxgiDebug;
+		void* m_dxgidebugDllHandle;
 
 	public:
-		Sound() :m_source(0){}
+		Debug();
+		~Debug();
 
-		virtual ~Sound() {}
+		bool initializeDebugMode();
+		bool initialize(vx::StackAllocator* allocator, ID3D12Device* device);
+		void shutdownDevice();
+		void shutdown();
 
-		virtual bool start() = 0;
-		virtual void stop() = 0;
+		void printDebugMessages();
 
-		virtual void reset() = 0;
-
-		virtual void setVolume(f32 volume) = 0;
-
-		virtual bool isFinished() = 0;
+		void reportLiveObjects();
 	};
 }

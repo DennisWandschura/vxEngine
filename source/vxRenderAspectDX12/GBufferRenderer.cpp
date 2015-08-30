@@ -32,15 +32,14 @@ SOFTWARE.
 
 struct GBufferRenderer::ColdData
 {
-	enum TextureIndex {Diffuse, NormalVelocity, Depth, ZBuffer};
+	enum TextureIndex {Diffuse, NormalVelocity, Depth, ZBuffer0, ZBuffer1, TextureCount};
 
-	D3D12_RESOURCE_DESC resDescs[4];
+	D3D12_RESOURCE_DESC resDescs[TextureCount];
 };
 
-GBufferRenderer::GBufferRenderer(const vx::uint2 &resolution, ID3D12CommandAllocator* cmdAlloc, u32 countOffset)
+GBufferRenderer::GBufferRenderer(ID3D12CommandAllocator* cmdAlloc, u32 countOffset)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc),
-	m_resolution(resolution),
 	m_depthSlice(nullptr),
 	m_countOffset(countOffset),
 	m_drawCount(0),
@@ -58,8 +57,8 @@ void GBufferRenderer::createTextureDescriptions()
 {
 	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Alignment = 64 KBYTE;
-	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Width = m_resolution.x;
-	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Height = m_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Width = s_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Height = s_resolution.y;
 	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].DepthOrArraySize = 2;
 	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].MipLevels = 1;
 	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -70,8 +69,8 @@ void GBufferRenderer::createTextureDescriptions()
 
 	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Alignment = 64 KBYTE;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Width = m_resolution.x;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Height = m_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Width = s_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Height = s_resolution.y;
 	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].DepthOrArraySize = 2;
 	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].MipLevels = 1;
 	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -82,8 +81,8 @@ void GBufferRenderer::createTextureDescriptions()
 
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Alignment = 64 KBYTE;
-	m_coldData->resDescs[ColdData::TextureIndex::Depth].Width = m_resolution.x;
-	m_coldData->resDescs[ColdData::TextureIndex::Depth].Height = m_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Width = s_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Height = s_resolution.y;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].DepthOrArraySize = 2;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].MipLevels = 1;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Format = DXGI_FORMAT_R32_TYPELESS;
@@ -92,22 +91,24 @@ void GBufferRenderer::createTextureDescriptions()
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Alignment = 64 KBYTE;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Width = m_resolution.x;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Height = m_resolution.y;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].DepthOrArraySize = 2;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].MipLevels = 6;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Format = DXGI_FORMAT_R32_FLOAT;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].SampleDesc.Count = 1;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].SampleDesc.Quality = 0;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Alignment = 64 KBYTE;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Width = s_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Height = s_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].DepthOrArraySize = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].MipLevels = 6;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Format = DXGI_FORMAT_R32_FLOAT;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].SampleDesc.Count = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].SampleDesc.Quality = 0;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer1] = m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0];
 }
 
 void GBufferRenderer::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
-	auto allocInfo = device->GetResourceAllocationInfo(1, 4, m_coldData->resDescs);
+	auto allocInfo = device->GetResourceAllocationInfo(1, 5, m_coldData->resDescs);
 
 	*heapSizeRtDs += allocInfo.SizeInBytes;
 }
@@ -220,7 +221,7 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 
 bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, const vx::uint2 &resolution, ID3D12Device* device)
 {
-	D3D12_CLEAR_VALUE clearValues[4];
+	D3D12_CLEAR_VALUE clearValues[ColdData::TextureCount];
 	// diffuse
 	clearValues[0].Color[0] = 1.0f;
 	clearValues[0].Color[1] = 0.0f;
@@ -247,20 +248,24 @@ bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, cons
 	clearValues[3].Color[3] = 0.0f;
 	clearValues[3].Format = DXGI_FORMAT_R32_FLOAT;
 
-	const wchar_t* names[4];
+	clearValues[4] = clearValues[3];
+
+	const wchar_t* names[ColdData::TextureCount];
 	names[ColdData::Diffuse] = L"gbufferAlbedo";
 	names[ColdData::NormalVelocity] = L"gbufferNormalVelocity";
 	names[ColdData::Depth] = L"gbufferDepth";
-	names[ColdData::ZBuffer] = L"zBuffer";
+	names[ColdData::ZBuffer0] = L"zBuffer0";
+	names[ColdData::ZBuffer1] = L"zBuffer1";
 
-	D3D12_RESOURCE_STATES states[4];
+	D3D12_RESOURCE_STATES states[ColdData::TextureCount];
 	states[ColdData::Diffuse] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::NormalVelocity] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::Depth] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-	states[ColdData::ZBuffer] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	states[ColdData::ZBuffer0] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	states[ColdData::ZBuffer1] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 	CreateResourceDesc desc;
-	for (u32 i = 0;i < 4; ++i)
+	for (u32 i = 0; i < 5; ++i)
 	{
 		auto allocInfo = device->GetResourceAllocationInfo(1, 1, &m_coldData->resDescs[i]);
 
@@ -370,7 +375,7 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device, s_shaderManager))
 		return false;
 
-	if (!createTextures(s_resourceManager, m_resolution, device))
+	if (!createTextures(s_resourceManager, s_resolution, device))
 		return false;
 
 	if (!createDescriptorHeap(device))
@@ -463,7 +468,7 @@ void GBufferRenderer::shutdown()
 	m_commandSignature.destroy();
 }
 
-ID3D12CommandList* GBufferRenderer::submitCommands()
+void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	auto hresult = m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
 	VX_ASSERT(hresult == 0);
@@ -502,8 +507,8 @@ ID3D12CommandList* GBufferRenderer::submitCommands()
 	};
 
 	D3D12_VIEWPORT viewPort;
-	viewPort.Height = (f32)m_resolution.y;
-	viewPort.Width = (f32)m_resolution.x;
+	viewPort.Height = (f32)s_resolution.y;
+	viewPort.Width = (f32)s_resolution.x;
 	viewPort.MaxDepth = 1.0f;
 	viewPort.MinDepth = 0.0f;
 	viewPort.TopLeftX = 0;
@@ -512,8 +517,8 @@ ID3D12CommandList* GBufferRenderer::submitCommands()
 	D3D12_RECT rectScissor;
 	rectScissor.left = 0;
 	rectScissor.top = 0;
-	rectScissor.right = m_resolution.x;
-	rectScissor.bottom = m_resolution.y;
+	rectScissor.right = s_resolution.x;
+	rectScissor.bottom = s_resolution.y;
 
 	m_commandList->RSSetViewports(1, &viewPort);
 	m_commandList->RSSetScissorRects(1, &rectScissor);
@@ -571,5 +576,6 @@ ID3D12CommandList* GBufferRenderer::submitCommands()
 	hresult = m_commandList->Close();
 	VX_ASSERT(hresult == 0);
 
-	return m_commandList.get();
+	list[*index] = m_commandList.get();
+	++(*index);
 }

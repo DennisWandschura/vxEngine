@@ -186,7 +186,7 @@ void RenderPassFinal::shutdown()
 	m_descriptorHeapSrv.destroy();
 }
 
-ID3D12CommandList* RenderPassFinal::submitCommands()
+void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto diffuseTexture = s_resourceManager->getTextureRtDs(L"diffuseTexture");
@@ -247,5 +247,6 @@ ID3D12CommandList* RenderPassFinal::submitCommands()
 	hresult = m_commandList->Close();
 	VX_ASSERT(hresult == 0);
 
-	return m_commandList.get();
+	list[*index] = m_commandList.get();
+	++(*index);
 }

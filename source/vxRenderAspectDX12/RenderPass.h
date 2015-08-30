@@ -47,20 +47,22 @@ protected:
 	static d3d::ShaderManager* s_shaderManager; 
 	static d3d::ResourceManager* s_resourceManager;
 	static UploadManager* s_uploadManager;
+	static vx::uint2 s_resolution;
 
 	d3d::Object<ID3D12RootSignature> m_rootSignature;
 	d3d::Object<ID3D12PipelineState> m_pipelineState;
 
-	RenderPass() :m_rootSignature(), m_pipelineState() {}
+	RenderPass();
 
 public:
-	virtual ~RenderPass() {}
+	virtual ~RenderPass();
 
-	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
+	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, const vx::uint2 &resolution)
 	{
 		s_shaderManager = shaderManager;
 		s_resourceManager = resourceManager;
 		s_uploadManager = uploadManager;
+		s_resolution = resolution;
 	}
 
 	virtual void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) = 0;
@@ -68,5 +70,5 @@ public:
 	virtual bool initialize(ID3D12Device* device, void* p) = 0;
 	virtual void shutdown() = 0;
 
-	virtual ID3D12CommandList* submitCommands() = 0;
+	virtual void submitCommands(ID3D12CommandList** list, u32* index) = 0;
 };

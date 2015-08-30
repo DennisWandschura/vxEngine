@@ -59,9 +59,13 @@ namespace vx
 #include "ShaderManager.h"
 #include "ResourceManager.h"
 #include "Debug.h"
+#include "LightManager.h"
+#include "CommandQueue.h"
+#include "Frustum.h"
 
-class VX_ALIGN(32) RenderAspect : public RenderAspectInterface
+class RenderAspect : public RenderAspectInterface
 {
+	d3d::CommandQueue m_graphicsCommandQueue;
 	d3d::Device m_device;
 	std::mutex m_mutexCmdList;
 	std::vector<DrawIndexedCommand> m_drawCommands;
@@ -75,14 +79,14 @@ class VX_ALIGN(32) RenderAspect : public RenderAspectInterface
 	d3d::Debug m_debug;
 	vx::mat4d m_projectionMatrix;
 	vx::mat4d m_viewMatrixPrev;
+	Frustum m_frustum;
 	f32 m_zFar;
 	f32 m_zNear;
 	vx::uint2 m_resolution;
 	UploadManager m_uploadManager;
 	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
 	GBufferRenderer* m_gbufferRenderer;
-	D3D12_VIEWPORT m_viewport;
-	D3D12_RECT m_rectScissor;
+	LightManager m_lightManager;
 	MeshManager m_meshManager;
 	MaterialManager m_materialManager;
 	vx::TaskManager* m_taskManager;
@@ -118,6 +122,7 @@ class VX_ALIGN(32) RenderAspect : public RenderAspectInterface
 	void createSrvTransform(u32 instanceCount);
 	void createSrvMaterial(u32 instanceCount);
 	void createSrvTextures(u32 srgbCount, u32 rgbCount);
+	void createSrvLights(u32 maxCount);
 
 	void addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex);
 

@@ -1,5 +1,11 @@
 #include "GpuCameraBufferData.h"
 
+struct PSOutput
+{
+	float zBuffer0 : SV_TARGET0;
+	float zBuffer1 : SV_TARGET1;
+};
+
 struct GSOutput
 {
 	float4 pos : SV_POSITION;
@@ -14,9 +20,10 @@ cbuffer CameraBuffer : register(b0)
 Texture2DArray g_depthSlice : register(t0);
 SamplerState g_sampler : register(s0);
 
-float main(GSOutput input) : SV_TARGET
+PSOutput main(GSOutput input)
 {
-	float depth = g_depthSlice.Sample(g_sampler, float3(input.texCoords, 0.0)).r;
+	float depth0 = g_depthSlice.Sample(g_sampler, float3(input.texCoords, 0.0)).r;
+	float depth1 = g_depthSlice.Sample(g_sampler, float3(input.texCoords, 1.0)).r;
 	float zNear = cameraBuffer.zNear;
 	float zFar = cameraBuffer.zFar;
 
@@ -24,7 +31,12 @@ float main(GSOutput input) : SV_TARGET
 	float c1 = zNear - zFar;
 	float c2 = zFar;
 
-	float z = c0 / (depth * c1 + c2);
+	float z0 = c0 / (depth0 * c1 + c2);
+	float z1 = c0 / (depth1 * c1 + c2);
 
-	return z;
+	PSOutput output;
+	output.zBuffer0 = z0;
+	output.zBuffer1 = z1;
+
+	return output;
 }

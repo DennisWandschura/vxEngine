@@ -82,7 +82,7 @@ namespace d3d
 		m_rtDsHeap.destroy();
 	}
 
-	ID3D12Resource* ResourceManager::createBuffer(const wchar_t* id, u64 size, u32 state)
+	ID3D12Resource* ResourceManager::createBuffer(const wchar_t* id, u64 size, u32 state, u32 flags)
 	{
 		auto ptr = getBuffer(id);
 		if (ptr == nullptr)
@@ -92,6 +92,7 @@ namespace d3d
 			resDesc.size = size;
 			resDesc.resource = buffer.getAddressOf();
 			resDesc.state = (D3D12_RESOURCE_STATES)state;
+			resDesc.flags = (D3D12_RESOURCE_FLAGS)flags;
 
 			if (m_bufferHeap.createResourceBuffer(resDesc))
 			{
