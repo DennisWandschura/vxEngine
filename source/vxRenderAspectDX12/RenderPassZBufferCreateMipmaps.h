@@ -35,7 +35,6 @@ class RenderPassZBufferCreateMipmaps : public RenderPass
 	ID3D12CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::DescriptorHeap m_descriptorHeapSrv;
-	vx::uint2 m_textureResolution;
 	ID3D12Resource* m_zbuffer0;
 
 	bool loadShaders(d3d::ShaderManager* shaderManager);

@@ -1,3 +1,26 @@
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015 Dennis Wandschura
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 #include "RenderPassFinal.h"
 #include <d3d12.h>
 #include "ShaderManager.h"
@@ -12,8 +35,7 @@ RenderPassFinal::RenderPassFinal(ID3D12CommandAllocator* cmdAlloc, d3d::Device* 
 	m_descriptorHeapSrv(),
 	m_descriptorHeapRtv(),
 	m_device(device),
-	m_renderTarget(),
-	m_resolution(0, 0)
+	m_renderTarget()
 {
 
 }
@@ -168,8 +190,6 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 	}
 
 	auto rtDesc = m_renderTarget[0]->GetDesc();
-	m_resolution.x = rtDesc.Width;
-	m_resolution.y = rtDesc.Height;
 
 	if (device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get(), IID_PPV_ARGS(m_commandList.getAddressOf())) != 0)
 		return false;
@@ -193,8 +213,8 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 	auto currentBuffer = m_device->getCurrentBackBufferIndex();
 
 	D3D12_VIEWPORT viewport;
-	viewport.Height = (f32)m_resolution.y;
-	viewport.Width = (f32)m_resolution.x;
+	viewport.Height = (f32)s_resolution.y;
+	viewport.Width = (f32)s_resolution.x;
 	viewport.MaxDepth = 1.0f;
 	viewport.MinDepth = 0.0f;
 	viewport.TopLeftX = 0;
@@ -203,8 +223,8 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 	D3D12_RECT rectScissor;
 	rectScissor.left = 0;
 	rectScissor.top = 0;
-	rectScissor.right = m_resolution.x;
-	rectScissor.bottom = m_resolution.y;
+	rectScissor.right = s_resolution.x;
+	rectScissor.bottom = s_resolution.y;
 
 	const f32 clearColor[] = { 0.10f, 0.22f, 0.5f, 1 };
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();

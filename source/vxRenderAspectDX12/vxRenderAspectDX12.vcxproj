@@ -230,7 +230,9 @@
     <ClInclude Include="MeshManager.h" />
     <ClInclude Include="RenderPassAo.h" />
     <ClInclude Include="RenderPassShading.h" />
+    <ClInclude Include="RenderPassVisibleLights.h" />
     <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
+    <ClInclude Include="RenderSettings.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RenderAspect.h" />
@@ -264,6 +266,7 @@
     <ClCompile Include="MeshManager.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="RenderPassShading.cpp" />
+    <ClCompile Include="RenderPassVisibleLights.cpp" />
     <ClCompile Include="RenderPassZBufferCreateMipmaps.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="RenderAspect.cpp" />
@@ -274,6 +277,14 @@
     <ClCompile Include="UploadManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="CopyLightsVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="CreateRadiosityPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -437,6 +448,14 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">5.1</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="ZeroLightsVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

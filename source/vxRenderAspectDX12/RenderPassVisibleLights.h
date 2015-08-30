@@ -28,30 +28,20 @@ SOFTWARE.
 #include "CommandList.h"
 #include "DescriptorHeap.h"
 
-class RenderPassCullLights : public RenderPass
+class RenderPassVisibleLights : public RenderPass
 {
-	d3d::GraphicsCommandList m_commandList;
 	ID3D12CommandAllocator* m_allocator;
-	d3d::DescriptorHeap m_rvHeap;
-	d3d::Object<ID3D12DescriptorHeap> m_rtvHeap;
-	d3d::Object<ID3D12DescriptorHeap> m_dsvHeap;
-	d3d::Object<ID3D12PipelineState> m_pipelineStateZeroLights;
-	d3d::Object<ID3D12RootSignature> m_rootSignatureZeroLights;
+	d3d::GraphicsCommandList m_commandList;
+	d3d::DescriptorHeap m_descriptorHeap;
 	u32 m_lightCount;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
-	bool createRootSignatureZero(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device);
-	bool createPipelineStateZero(ID3D12Device* device);
-	bool createTexture(ID3D12Device* device);
-	bool createBuffer();
-	bool createViews(ID3D12Device* device);
-	bool createRtvDsv(ID3D12Device* device);
 
 public:
-	explicit RenderPassCullLights(ID3D12CommandAllocator* allocator);
-	~RenderPassCullLights();
+	explicit RenderPassVisibleLights(ID3D12CommandAllocator* allocator);
+	~RenderPassVisibleLights();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
 

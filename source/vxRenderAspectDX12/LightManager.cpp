@@ -3,6 +3,7 @@
 #include <vxEngineLib/Light.h>
 #include "Frustum.h"
 #include "RenderPassCullLights.h"
+#include "RenderPassVisibleLights.h"
 
 enum FrustumPlane { FrustumPlaneNear, FrustumPlaneLeft, FrustumPlaneRight };
 
@@ -62,9 +63,8 @@ LightManager::~LightManager()
 	m_gpuLights = nullptr;
 }
 
-bool LightManager::initialize(vx::StackAllocator* allocator, u32 gpuLightCount, RenderPassCullLights* renderPass)
+bool LightManager::initialize(vx::StackAllocator* allocator, u32 gpuLightCount)
 {
-	m_renderPass = renderPass;
 	//m_gpuLights = (GpuLight*)allocator->allocate(sizeof(GpuLight) * gpuLightCount, 16);
 	//m_gpuLightCount = 0;
 
@@ -97,6 +97,7 @@ void LightManager::loadSceneLights(const Light* lights, u32 count)
 
 	m_sceneLightCount = count;*/
 	m_renderPass->setLightCount(count);
+	m_renderPassCopy->setLightCount(count);
 }
 
 void LightManager::update(const Frustum &frustum)
@@ -119,4 +120,10 @@ void LightManager::update(const Frustum &frustum)
 
 		m_scratchAllocator.clear(marker);
 	}*/
+}
+
+void LightManager::setRenderPasses(RenderPassCullLights* renderPass, RenderPassVisibleLights* renderPassCopy)
+{
+	m_renderPass = renderPass;
+	m_renderPassCopy = renderPassCopy;
 }

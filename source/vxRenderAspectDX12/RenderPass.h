@@ -34,6 +34,7 @@ class UploadManager;
 
 #include "d3d.h"
 #include <vxLib/math/Vector.h>
+#include "RenderSettings.h"
 
 namespace d3d
 {
@@ -48,6 +49,7 @@ protected:
 	static d3d::ResourceManager* s_resourceManager;
 	static UploadManager* s_uploadManager;
 	static vx::uint2 s_resolution;
+	static const RenderSettings* s_settings;
 
 	d3d::Object<ID3D12RootSignature> m_rootSignature;
 	d3d::Object<ID3D12PipelineState> m_pipelineState;
@@ -57,12 +59,13 @@ protected:
 public:
 	virtual ~RenderPass();
 
-	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, const vx::uint2 &resolution)
+	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, const RenderSettings* settings)
 	{
 		s_shaderManager = shaderManager;
 		s_resourceManager = resourceManager;
 		s_uploadManager = uploadManager;
-		s_resolution = resolution;
+		s_resolution = settings->m_resolution;
+		s_settings = settings;
 	}
 
 	virtual void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) = 0;

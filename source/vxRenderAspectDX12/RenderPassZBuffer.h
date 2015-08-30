@@ -31,7 +31,6 @@ class RenderPassZBuffer : public RenderPass
 {
 	d3d::Object<ID3D12GraphicsCommandList> m_commandList;
 	ID3D12CommandAllocator* m_cmdAlloc;
-	vx::uint2 m_resolution;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::DescriptorHeap m_descriptorHeap;
 

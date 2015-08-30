@@ -62,9 +62,12 @@ namespace vx
 #include "LightManager.h"
 #include "CommandQueue.h"
 #include "Frustum.h"
+#include "RenderSettings.h"
 
 class RenderAspect : public RenderAspectInterface
 {
+	static RenderSettings s_settings;
+
 	d3d::CommandQueue m_graphicsCommandQueue;
 	d3d::Device m_device;
 	std::mutex m_mutexCmdList;
@@ -77,12 +80,7 @@ class RenderAspect : public RenderAspectInterface
 	vx::Camera m_camera;
 	std::vector<RenderPass*> m_renderPasses;
 	d3d::Debug m_debug;
-	vx::mat4d m_projectionMatrix;
-	vx::mat4d m_viewMatrixPrev;
 	Frustum m_frustum;
-	f32 m_zFar;
-	f32 m_zNear;
-	vx::uint2 m_resolution;
 	UploadManager m_uploadManager;
 	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
 	GBufferRenderer* m_gbufferRenderer;
@@ -96,7 +94,7 @@ class RenderAspect : public RenderAspectInterface
 	d3d::ShaderManager m_shaderManager;
 	std::vector<u32> m_copyTransforms;
 
-	void createRenderPasses(const vx::uint2 &resolution, f32 fov);
+	void createRenderPasses();
 	void getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u64* textureHeapSize, u64* rtDsHeapSize);
 	bool initializeRenderPasses();
 

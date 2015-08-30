@@ -33,7 +33,6 @@ const u32 g_zBufferMaxMipLevel = 5u;
 RenderPassZBuffer::RenderPassZBuffer(ID3D12CommandAllocator* cmdAlloc)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc),
-	m_resolution(),
 	m_descriptorHeapRtv(),
 	m_descriptorHeap()
 {
@@ -192,9 +191,6 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 		return false;
 	m_commandList->Close();
 
-	m_resolution.x = zBufferDesc.Width;
-	m_resolution.y = zBufferDesc.Height;
-
 	return true;
 }
 
@@ -230,8 +226,8 @@ void RenderPassZBuffer::submitCommands(ID3D12CommandList** list, u32* index)
 	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
 
 	D3D12_VIEWPORT viewport;
-	viewport.Height = (f32)m_resolution.y;
-	viewport.Width = (f32)m_resolution.x;
+	viewport.Height = (f32)s_resolution.y;
+	viewport.Width = (f32)s_resolution.x;
 	viewport.MaxDepth = 1.0f;
 	viewport.MinDepth = 0.0f;
 	viewport.TopLeftX = 0;
@@ -240,8 +236,8 @@ void RenderPassZBuffer::submitCommands(ID3D12CommandList** list, u32* index)
 	D3D12_RECT rectScissor;
 	rectScissor.left = 0;
 	rectScissor.top = 0;
-	rectScissor.right = m_resolution.x;
-	rectScissor.bottom = m_resolution.y;
+	rectScissor.right = s_resolution.x;
+	rectScissor.bottom = s_resolution.y;
 
 	m_commandList->RSSetViewports(1, &viewport);
 	m_commandList->RSSetScissorRects(1, &rectScissor);

@@ -2,6 +2,7 @@
 #include "d3dx12.h"
 #include "ShaderManager.h"
 #include "ResourceManager.h"
+#include "GpuLight.h"
 
 RenderPassShading::RenderPassShading(ID3D12CommandAllocator* cmdAlloc)
 	:m_commandList(),
@@ -213,10 +214,19 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 	device->CreateShaderResourceView(gbufferDepth, &srvDesc, handle);
 
-	auto lightBuffer = s_resourceManager->getBuffer(L"lightBuffer");
-	auto lightBufferView = s_resourceManager->getShaderResourceView("lightBufferView");
+	auto lightBufferDst = s_resourceManager->getBuffer(L"lightBufferDst");
+	auto lightCount = s_settings->m_gpuLightCount + 1;
+
+	//D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	srvDesc.Buffer.NumElements = lightCount;
+	srvDesc.Buffer.StructureByteStride = sizeof(GpuLight);
 	handle.offset(1);
-	device->CreateShaderResourceView(lightBuffer, lightBufferView, handle);
+	device->CreateShaderResourceView(lightBufferDst, &srvDesc, handle);
 
 	return true;
 }
@@ -278,6 +288,7 @@ void RenderPassShading::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto lightBufferDst = s_resourceManager->getBuffer(L"lightBufferDst");
 	auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
 	const f32 clearColor[4] = {0, 0, 0, 0};
@@ -305,6 +316,7 @@ void RenderPassShading::submitCommands(ID3D12CommandList** list, u32* index)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(albedoSlice, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBufferDst, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	auto srvHeap = m_heapSrv.get();
 	m_commandList->SetDescriptorHeaps(1, &srvHeap);
@@ -320,6 +332,7 @@ void RenderPassShading::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBufferDst, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(albedoSlice, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));

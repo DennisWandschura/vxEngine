@@ -49,6 +49,7 @@ SOFTWARE.
 #include "RenderPassAo.h"
 #include "RenderPassShading.h"
 #include "RenderPassCullLights.h"
+#include "RenderPassVisibleLights.h"
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/GpuFunctions.h>
@@ -80,6 +81,8 @@ const u32 g_maxVertexCount{ 20000 };
 const u32 g_maxIndexCount{ 40000 };
 const u32 g_maxMeshInstances{ 128 };
 const u32 g_maxLightCount{64};
+
+RenderSettings RenderAspect::s_settings{};
 
 RenderAspect::RenderAspect()
 	:m_device(),
@@ -121,9 +124,26 @@ bool RenderAspect::createCommandList()
 	return true;
 }
 
-void RenderAspect::createRenderPasses(const vx::uint2 &resolution, f32 fov)
+void RenderAspect::createRenderPasses()
 {
+	RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager, &s_settings);
 
+	const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size;
+
+	m_gbufferRenderer = new GBufferRenderer(m_commandAllocator.get(), countOffset);
+	auto renderPassCullLights = new RenderPassCullLights(m_commandAllocator.get());
+	auto renderPassVisibleLights = new RenderPassVisibleLights(m_commandAllocator.get());
+
+	m_renderPasses.push_back(m_gbufferRenderer);
+	m_renderPasses.push_back(renderPassCullLights);
+	m_renderPasses.push_back(renderPassVisibleLights);
+	m_renderPasses.push_back(new RenderPassZBuffer(m_commandAllocator.get()));
+	m_renderPasses.push_back(new RenderPassZBufferCreateMipmaps(m_commandAllocator.get()));
+	m_renderPasses.push_back(new RenderPassAO(m_commandAllocator.get()));
+	m_renderPasses.push_back(new RenderPassShading(m_commandAllocator.get()));
+	m_renderPasses.push_back(new RenderPassFinal(m_commandAllocator.get(), &m_device));
+
+	m_lightManager.setRenderPasses(renderPassCullLights, renderPassVisibleLights);
 }
 
 void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u64* textureHeapSize, u64* rtDsHeapSize)
@@ -206,10 +226,14 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 
 	f64 screenAspect = (f64)desc.settings->m_resolution.x / (f64)desc.settings->m_resolution.y;
 	f64 fovRad = vx::degToRad(desc.settings->m_fovDeg);
-	m_zFar = desc.settings->m_zFar;
-	m_zNear = desc.settings->m_zNear;
 
-	m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(fovRad, screenAspect, (f64)m_zNear, (f64)m_zFar);
+	s_settings.m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(fovRad, screenAspect, (f64)desc.settings->m_zNear, (f64)desc.settings->m_zFar);
+	s_settings.m_farZ = desc.settings->m_zFar;
+	s_settings.m_nearZ = desc.settings->m_zNear;
+	s_settings.m_fovRad = fovRad;
+	s_settings.m_resolution = desc.settings->m_resolution;
+	s_settings.m_gpuLightCount = 64;
+	s_settings.m_textureDim = 1024;
 
 	const u32 allocSize = 1 MBYTE;
 	auto allocPtr = desc.pAllocator->allocate(allocSize);
@@ -254,9 +278,6 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	}
 	m_commandAllocator->SetName(L"CommandAllocatorDefault");
 
-	auto resolution = desc.settings->m_resolution;
-	m_resolution = resolution;
-
 	m_currentBuffer = 0;
 	m_lastBuffer = 1;
 
@@ -271,8 +292,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if(!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, &m_resourceManager, device, desc.pAllocator))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
-	auto renderPassCullLights = new RenderPassCullLights(m_commandAllocator.get());
-	if(!m_lightManager.initialize(desc.pAllocator, g_maxLightCount, renderPassCullLights))
+	if (!m_lightManager.initialize(desc.pAllocator, g_maxLightCount))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	u64 bufferHeapSize = 0; 
@@ -280,20 +300,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	u64 rtDsHeapSize = 0;
 	vx::uint3 textureDimSrgb = { 1024, 1024, 32 };
 	vx::uint3 textureDimRgb = { 1024, 1024, 64 };
-	{
-		RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager, resolution);
-
-		const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size;
-
-		m_gbufferRenderer = new GBufferRenderer(m_commandAllocator.get(), countOffset);
-		m_renderPasses.push_back(m_gbufferRenderer);
-		m_renderPasses.push_back(renderPassCullLights);
-		m_renderPasses.push_back(new RenderPassZBuffer(m_commandAllocator.get()));
-		m_renderPasses.push_back(new RenderPassZBufferCreateMipmaps(m_commandAllocator.get()));
-		m_renderPasses.push_back(new RenderPassAO(m_commandAllocator.get(), fovRad, &m_projectionMatrix));
-		m_renderPasses.push_back(new RenderPassShading(m_commandAllocator.get()));
-		m_renderPasses.push_back(new RenderPassFinal(m_commandAllocator.get(), &m_device));
-	}
+	createRenderPasses();
 	getRequiredMemory(textureDimSrgb, textureDimRgb, &bufferHeapSize, &textureHeapSize, &rtDsHeapSize);
 
 	if(!m_resourceManager.initializeHeaps(bufferHeapSize, textureHeapSize, rtDsHeapSize, device))
@@ -379,14 +386,14 @@ void RenderAspect::makeCurrent(bool b)
 
 void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 {
-	vx::mat4 projMatrix;
-	m_projectionMatrix.asFloat(&projMatrix);
+	auto projectionMatrixDouble = s_settings.m_projectionMatrix;
+	auto resolution = s_settings.m_resolution;
 
 	vx::float4 projInfo;
-	projInfo.x = -2.0 / (m_resolution.x * m_projectionMatrix.c[0].m256d_f64[0]);
-	projInfo.y = -2.0 / (m_resolution.y * m_projectionMatrix.c[1].m256d_f64[1]);
-	projInfo.z = (1.0 - m_projectionMatrix.c[0].m256d_f64[2]) / m_projectionMatrix.c[0].m256d_f64[0];
-	projInfo.w = (1.0 + m_projectionMatrix.c[1].m256d_f64[2]) / m_projectionMatrix.c[1].m256d_f64[1];
+	projInfo.x = -2.0 / (resolution.x * projectionMatrixDouble.c[0].m256d_f64[0]);
+	projInfo.y = -2.0 / (resolution.y * projectionMatrixDouble.c[1].m256d_f64[1]);
+	projInfo.z = (1.0 - projectionMatrixDouble.c[0].m256d_f64[2]) / projectionMatrixDouble.c[0].m256d_f64[0];
+	projInfo.w = (1.0 + projectionMatrixDouble.c[1].m256d_f64[2]) / projectionMatrixDouble.c[1].m256d_f64[1];
 
 	m_camera.setPosition(data.position);
 	m_camera.setRotation(data.quaternionRotation);
@@ -394,8 +401,12 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	vx::mat4d viewMatrix;
 	m_camera.getViewMatrix(&viewMatrix);
 
-	auto pvMatrixPrev = m_projectionMatrix * m_viewMatrixPrev;
-	auto pvMatrix = m_projectionMatrix * viewMatrix;
+	auto viewMatrixPrev = s_settings.m_viewMatrixPrev;
+	auto pvMatrixPrev = projectionMatrixDouble * viewMatrixPrev;
+	auto pvMatrix = projectionMatrixDouble * viewMatrix;
+
+	vx::mat4 projMatrix;
+	projectionMatrixDouble.asFloat(&projMatrix);
 
 	GpuCameraBufferData bufferData;
 	bufferData.position = _mm256_cvtpd_ps(data.position);
@@ -405,15 +416,15 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	bufferData.projMatrix = projMatrix;
 	bufferData.invProjMatrix = vx::MatrixInverse(projMatrix);
 	bufferData.projInfo = projInfo;
-	bufferData.zFar = m_zFar;
-	bufferData.zNear = m_zNear;
+	bufferData.zFar = s_settings.m_farZ;
+	bufferData.zNear = s_settings.m_nearZ;
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
 
 	u32 offset = m_currentBuffer * d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
 	m_uploadManager.pushUploadBuffer((u8*)&bufferData, constantBuffer, 0, sizeof(GpuCameraBufferData), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
-	m_viewMatrixPrev = viewMatrix;
+	s_settings.m_viewMatrixPrev = viewMatrix;
 
 	auto invPvMatrix = vx::MatrixInverse(bufferData.pvMatrix);
 
@@ -962,5 +973,5 @@ void RenderAspect::taskAddDynamicMeshInstance(const u8* p, u32* offset)
 
 void RenderAspect::getProjectionMatrix(vx::mat4* m)
 {
-	m_projectionMatrix.asFloat(m);
+	s_settings.m_projectionMatrix.asFloat(m);
 }

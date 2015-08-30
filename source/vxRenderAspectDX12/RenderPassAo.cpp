@@ -6,12 +6,10 @@
 #include <vxLib/math/matrix.h>
 #include "UploadManager.h"
 
-RenderPassAO::RenderPassAO( ID3D12CommandAllocator* cmdAlloc, f32 fov, vx::mat4d* projectionMatrix)
+RenderPassAO::RenderPassAO( ID3D12CommandAllocator* cmdAlloc)
 	:RenderPass(),
 	m_commandList(),
-	m_cmdAlloc(cmdAlloc),
-	m_projectionMatrix(projectionMatrix),
-	m_fov(fov)
+	m_cmdAlloc(cmdAlloc)
 {
 }
 
@@ -210,7 +208,7 @@ bool RenderPassAO::createBuffer()
 	//getProjectUnitMatrix(viewport, m_fov, 0.1, 100.0, P);
 
 	//f64 aspectRatio = (f64)m_resolution.x / m_resolution.y;
-	auto P = *m_projectionMatrix;
+	vx::mat4d P = s_settings->m_projectionMatrix;
 
 	vx::float4a projInfo;
 	projInfo.x = float(-2.0 / (s_resolution.x * P.c[0].m256d_f64[0]));
@@ -218,7 +216,7 @@ bool RenderPassAO::createBuffer()
 	projInfo.z = float((1.0 - (double)P.c[0].m256d_f64[2]) / P.c[0].m256d_f64[0]);
 	projInfo.w = float((1.0 + (double)P.c[1].m256d_f64[2]) / P.c[1].m256d_f64[1]);
 
-	const f32 scale = -2.0f * tan(m_fov * 0.5f);
+	const f32 scale = -2.0f * tan(s_settings->m_fovRad * 0.5f);
 
 	GpuSaoBuffer bufferData;
 	bufferData.projInfo = projInfo;

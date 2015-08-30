@@ -128,10 +128,6 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 
 	m_zbuffer0 = zBuffer0;
 
-	auto texDesc = m_zbuffer0->GetDesc();
-	m_textureResolution.x = texDesc.Width;
-	m_textureResolution.y = texDesc.Height;
-
 	auto srvHandle = m_descriptorHeapSrv.getHandleCpu();
 	for (u32 i = 0; i < 5; ++i)
 	{
@@ -182,8 +178,8 @@ void RenderPassZBufferCreateMipmaps::submitCommands(ID3D12CommandList** list, u3
 
 	//
 
-	auto x = m_textureResolution.x >> 1;
-	auto y = m_textureResolution.y >> 1;
+	auto x = s_resolution.x >> 1;
+	auto y = s_resolution.y >> 1;
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	auto srvHandle = m_descriptorHeapSrv.getHandleCpu();
 

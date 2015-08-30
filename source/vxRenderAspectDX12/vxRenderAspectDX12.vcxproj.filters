@@ -189,6 +189,12 @@
     <ClInclude Include="RenderPassCullLights.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="RenderPassVisibleLights.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -272,6 +278,9 @@
     <ClCompile Include="RenderPassCullLights.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
+    <ClCompile Include="RenderPassVisibleLights.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -323,6 +332,12 @@
       <Filter>Shaders\cull lights</Filter>
     </FxCompile>
     <FxCompile Include="CullLightsVS.hlsl">
+      <Filter>Shaders\cull lights</Filter>
+    </FxCompile>
+    <FxCompile Include="CopyLightsVS.hlsl">
+      <Filter>Shaders\cull lights</Filter>
+    </FxCompile>
+    <FxCompile Include="ZeroLightsVS.hlsl">
       <Filter>Shaders\cull lights</Filter>
     </FxCompile>
   </ItemGroup>
