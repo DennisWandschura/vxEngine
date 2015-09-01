@@ -25,31 +25,12 @@ SOFTWARE.
 */
 
 #include "RenderPass.h"
-#include "CommandList.h"
-#include "DescriptorHeap.h"
-#include <vxLib/math/matrix.h>
 
-class RenderPassAO : public RenderPass
+class RenderPassShadow : public RenderPass
 {
-	d3d::GraphicsCommandList m_commandList;
-	ID3D12CommandAllocator* m_cmdAlloc;
-	d3d::DescriptorHeap m_rtvHeap;
-	d3d::DescriptorHeap m_srvHeap;
-	d3d::Object<ID3D12PipelineState> m_blurState[2];
-	d3d::Object<ID3D12RootSignature> m_blurRootSignature[2];
-
-	bool loadShaders(d3d::ShaderManager* shaderManager);
-	bool createRootSignature(ID3D12Device* device);
-	bool createRootSignatureBlurX(ID3D12Device* device);
-	bool createRootSignatureBlurY(ID3D12Device* device);
-	bool createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager);
-	bool createBuffer();
-	bool createRtv(ID3D12Device* device);
-	bool createSrv(ID3D12Device* device);
-
 public:
-	explicit RenderPassAO( ID3D12CommandAllocator* cmdAlloc);
-	~RenderPassAO();
+	RenderPassShadow();
+	~RenderPassShadow();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
 

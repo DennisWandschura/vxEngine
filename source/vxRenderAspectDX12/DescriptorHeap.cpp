@@ -37,8 +37,8 @@ namespace d3d
 		m_size = heap->getIncrementSize();
 	}
 
-	DescriptorHandleCpu::DescriptorHandleCpu(u64 ptr, u32 size)
-		:m_ptr(ptr),
+	DescriptorHandleCpu::DescriptorHandleCpu(const D3D12_CPU_DESCRIPTOR_HANDLE &handle, u32 size)
+		:m_ptr(handle.ptr),
 		m_size(size)
 	{
 
@@ -47,6 +47,31 @@ namespace d3d
 	DescriptorHandleCpu::operator D3D12_CPU_DESCRIPTOR_HANDLE()
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE handle;
+		handle.ptr = m_ptr;
+
+		return handle;
+	}
+
+	DescriptorHandleGpu::DescriptorHandleGpu(DescriptorHeap* heap)
+		:m_ptr(0),
+		m_size(0)
+	{
+		auto handle = (*heap)->GetGPUDescriptorHandleForHeapStart();
+
+		m_ptr = handle.ptr;
+		m_size = heap->getIncrementSize();
+	}
+
+	DescriptorHandleGpu::DescriptorHandleGpu(const D3D12_GPU_DESCRIPTOR_HANDLE &handle, u32 size)
+		:m_ptr(handle.ptr),
+		m_size(size)
+	{
+
+	}
+
+	DescriptorHandleGpu::operator D3D12_GPU_DESCRIPTOR_HANDLE()
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE handle;
 		handle.ptr = m_ptr;
 
 		return handle;
@@ -89,6 +114,11 @@ namespace d3d
 
 	DescriptorHandleCpu DescriptorHeap::getHandleCpu()
 	{
-		return DescriptorHandleCpu(m_heap->GetCPUDescriptorHandleForHeapStart().ptr, m_incrementSize);
+		return DescriptorHandleCpu(m_heap->GetCPUDescriptorHandleForHeapStart(), m_incrementSize);
+	}
+
+	DescriptorHandleGpu DescriptorHeap::getHandleGpu()
+	{
+		return DescriptorHandleGpu(m_heap->GetGPUDescriptorHandleForHeapStart(), m_incrementSize);
 	}
 }

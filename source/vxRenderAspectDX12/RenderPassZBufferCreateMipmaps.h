@@ -35,17 +35,21 @@ class RenderPassZBufferCreateMipmaps : public RenderPass
 	ID3D12CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::DescriptorHeap m_descriptorHeapSrv;
-	ID3D12Resource* m_zbuffer0;
 
 	bool loadShaders(d3d::ShaderManager* shaderManager);
 	bool createRootSignature(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager);
+	bool createViews(ID3D12Device* device, d3d::DescriptorHandleCpu* rtvHandle, d3d::DescriptorHandleCpu* srvHandle, ID3D12Resource* texture);
+
+	void createMipMaps(ID3D12Resource* texture, d3d::DescriptorHandleCpu* rtvHandleCpu, d3d::DescriptorHandleGpu* srvHandleGpu);
 
 public:
 	explicit RenderPassZBufferCreateMipmaps(ID3D12CommandAllocator* cmdAlloc);
 	~RenderPassZBufferCreateMipmaps();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+
+	bool createData(ID3D12Device* device) override;
 
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;

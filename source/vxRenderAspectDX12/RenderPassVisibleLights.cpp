@@ -21,6 +21,11 @@ void RenderPassVisibleLights::getRequiredMemory(u64* heapSizeBuffer, u64* heapSi
 {
 }
 
+bool RenderPassVisibleLights::createData(ID3D12Device* device)
+{
+	return true;
+}
+
 bool RenderPassVisibleLights::loadShaders()
 {
 	if (!s_shaderManager->loadShader("CopyLightsVS.cso", L"../../lib/CopyLightsVS.cso", d3d::ShaderType::Vertex))
@@ -56,7 +61,7 @@ bool RenderPassVisibleLights::createRootSignature(ID3D12Device* device)
 
 bool RenderPassVisibleLights::createPipelineState(ID3D12Device* device)
 {
-	auto vsShader = s_shaderManager->getShader("CopyLightsVS.cso");
+	/*auto vsShader = s_shaderManager->getShader("CopyLightsVS.cso");
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.InputLayout = { nullptr, 0 };
@@ -74,9 +79,16 @@ bool RenderPassVisibleLights::createPipelineState(ID3D12Device* device)
 
 	auto hresult = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_pipelineState.getAddressOf()));
 	if (hresult != 0)
-		return false;
+		return false;*/
 
-	return true;
+	d3d::PipelineStateDescInput inputDesc;
+	inputDesc.rootSignature = m_rootSignature.get();
+	inputDesc.depthEnabled = 0;
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader("CopyLightsVS.cso");
+	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
+
+	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
 
 bool RenderPassVisibleLights::initialize(ID3D12Device* device, void* p)

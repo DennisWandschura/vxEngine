@@ -24,71 +24,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+#include "d3dObject.h"
 
 struct ID3D12Resource;
 struct ID3D12Device;
 
 namespace d3d
 {
-	template<typename T>
-	class Object
-	{
-	protected:
-		T* m_object;
-
-	public:
-		Object() :m_object(nullptr) {}
-
-		Object(const Object&) = delete;
-
-		Object(Object &&rhs)
-			:m_object(rhs.m_object)
-		{
-			rhs.m_object = nullptr;
-		}
-
-		~Object()
-		{
-			destroy();
-		}
-
-		Object& operator=(const Object&) = delete;
-
-		Object& operator=(Object &&rhs)
-		{
-			if (this != &rhs)
-			{
-				swap(rhs);
-			}
-
-			return *this;
-		}
-
-		void destroy()
-		{
-			if (m_object)
-			{
-				m_object->Release();
-				m_object = nullptr;
-			}
-		}
-
-		void swap(Object &other)
-		{
-			std::swap(m_object, other.m_object);
-		}
-
-		T* operator->() { return m_object; }
-		const T* operator->() const { return m_object; }
-
-		T* get() { return m_object; }
-		const T* get() const { return m_object; }
-
-		T** getAddressOf() { return &m_object; }
-		const T** getAddressOf() const { return &m_object; }
-	};
-
 	inline s32 getAlignedSize(s32 size, s32 alignment)
 	{
 		alignment = alignment - 1;
@@ -118,4 +60,6 @@ namespace d3d
 	{
 		enum : size_t { size = (sizeof(T) * COUNT) + (ALIGNMENT - 1) & ~(ALIGNMENT - 1) };
 	};
+
+	typedef Object<ID3D12Resource> Resource;
 }

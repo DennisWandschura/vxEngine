@@ -19,5 +19,5 @@ public:
 
 	void update(const vx::mat4 &invPvMatrix);
 
-	void __vectorcall testSpheres(__m128* cr, u32 count, u8* results) const;
+	u32 __vectorcall testSpheres(__m128* cr, u32 count, u32* indices) const;
 };

@@ -39,6 +39,53 @@ void RenderPassAO::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, 
 	*heapSizeRtDs += allocInfo.SizeInBytes * 2;
 }
 
+bool RenderPassAO::createData(ID3D12Device* device)
+{
+	if (!createBuffer())
+		return false;
+
+	D3D12_CLEAR_VALUE clearValues[1];
+	clearValues[0].Color[0] = 1.0f;
+	clearValues[0].Color[1] = 1.0f;
+	clearValues[0].Color[2] = 1.0f;
+	clearValues[0].Color[3] = 1.0f;
+	clearValues[0].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	D3D12_RESOURCE_DESC resDesc;
+	resDesc.Alignment = 64 KBYTE;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	resDesc.Height = s_resolution.y;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc.MipLevels = 1;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.Width = s_resolution.x;
+
+	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
+
+	CreateResourceDesc desc;
+	desc.clearValue = clearValues;
+	desc.resDesc = &resDesc;
+	desc.size = allocInfo.SizeInBytes;
+	desc.state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	auto aoTexture = s_resourceManager->createTextureRtDs(L"aoTexture", desc);
+	if (aoTexture == nullptr)
+	{
+		return false;
+	}
+
+	auto aoBlurXTexture = s_resourceManager->createTextureRtDs(L"aoBlurXTexture", desc);
+	if (aoBlurXTexture == nullptr)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 bool RenderPassAO::loadShaders(d3d::ShaderManager* shaderManager)
 {
 	if (!shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", d3d::ShaderType::Vertex))
@@ -134,11 +181,20 @@ bool RenderPassAO::createRootSignatureBlurY(ID3D12Device* device)
 
 bool RenderPassAO::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
-	auto vsShader = shaderManager->getShader("DrawQuadVs.cso");
-	auto gsShader = shaderManager->getShader("DrawQuadGs.cso");
-	auto psShader = shaderManager->getShader("SAO_aoPS.cso");
+	auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	d3d::PipelineStateDescInput inputDesc;
+	inputDesc.rootSignature = m_rootSignature.get();
+	inputDesc.depthEnabled = 0;
+	inputDesc.shaderDesc.vs = shaderManager->getShader("DrawQuadVs.cso");
+	inputDesc.shaderDesc.gs = shaderManager->getShader("DrawQuadGs.cso");
+	inputDesc.shaderDesc.ps = shaderManager->getShader("SAO_aoPS.cso");
+	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	inputDesc.rtvFormats = &rtvFormat;
+	inputDesc.rtvCount = 1;
+	auto psoDesc = d3d::PipelineState::getDefaultDescription(inputDesc);
+
+	/*D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.InputLayout = { nullptr, 0 };
 	psoDesc.pRootSignature = m_rootSignature.get();
 	psoDesc.VS = { reinterpret_cast<UINT8*>(vsShader->GetBufferPointer()), vsShader->GetBufferSize() };
@@ -157,13 +213,16 @@ bool RenderPassAO::createPipelineState(ID3D12Device* device, d3d::ShaderManager*
 
 	auto hresult = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_pipelineState.getAddressOf()));
 	if (hresult != 0)
+		return false;*/
+
+	if (!d3d::PipelineState::create(psoDesc, &m_pipelineState, device))
 		return false;
 
-	psShader = shaderManager->getShader("SAO_blurX.cso");
+	auto psShader = shaderManager->getShader("SAO_blurX.cso");
 	psoDesc.PS = { reinterpret_cast<UINT8*>(psShader->GetBufferPointer()), psShader->GetBufferSize() };
 	psoDesc.pRootSignature = m_blurRootSignature[0].get();
 
-	hresult = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_blurState[0].getAddressOf()));
+	auto hresult = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_blurState[0].getAddressOf()));
 	if (hresult != 0)
 		return false;
 
@@ -216,7 +275,7 @@ bool RenderPassAO::createBuffer()
 	projInfo.z = float((1.0 - (double)P.c[0].m256d_f64[2]) / P.c[0].m256d_f64[0]);
 	projInfo.w = float((1.0 + (double)P.c[1].m256d_f64[2]) / P.c[1].m256d_f64[1]);
 
-	const f32 scale = -2.0f * tan(s_settings->m_fovRad * 0.5f);
+	const f32 scale = static_cast<f32>(-2.0 * tan(s_settings->m_fovRad * 0.5));
 
 	GpuSaoBuffer bufferData;
 	bufferData.projInfo = projInfo;
@@ -230,8 +289,9 @@ bool RenderPassAO::createBuffer()
 	return true;
 }
 
-bool RenderPassAO::createRtv(ID3D12Device* device, ID3D12Resource* texture)
+bool RenderPassAO::createRtv(ID3D12Device* device)
 {
+	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
@@ -249,7 +309,7 @@ bool RenderPassAO::createRtv(ID3D12Device* device, ID3D12Resource* texture)
 	desc.Texture2D.PlaneSlice = 0;
 
 	auto handle = m_rtvHeap.getHandleCpu();
-	device->CreateRenderTargetView(texture, &desc, handle);
+	device->CreateRenderTargetView(aoTexture, &desc, handle);
 
 	handle.offset(1);
 	device->CreateRenderTargetView(aoBlurXTexture, &desc, handle);
@@ -326,54 +386,11 @@ bool RenderPassAO::initialize(ID3D12Device* device, void* p)
 		return false;
 	}
 
-	if (!createBuffer())
-		return false;
-
-	D3D12_CLEAR_VALUE clearValues[1];
-	clearValues[0].Color[0] = 1.0f;
-	clearValues[0].Color[1] = 1.0f;
-	clearValues[0].Color[2] = 1.0f;
-	clearValues[0].Color[3] = 1.0f;
-	clearValues[0].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-	D3D12_RESOURCE_DESC resDesc;
-	resDesc.Alignment = 64 KBYTE;
-	resDesc.DepthOrArraySize = 1;
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	resDesc.Height = s_resolution.y;
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc.MipLevels = 1;
-	resDesc.SampleDesc.Count = 1;
-	resDesc.SampleDesc.Quality = 0;
-	resDesc.Width = s_resolution.x;
-
-	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
-
-	CreateResourceDesc desc;
-	desc.clearValue = clearValues;
-	desc.resDesc = &resDesc;
-	desc.size = allocInfo.SizeInBytes;
-	desc.state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	auto aoTexture = s_resourceManager->createTextureRtDs(L"aoTexture", desc);
-	if (aoTexture == nullptr)
-	{
-		return false;
-	}
-
-	auto aoBlurXTexture = s_resourceManager->createTextureRtDs(L"aoBlurXTexture", desc);
-	if (aoBlurXTexture == nullptr)
-	{
-		return false;
-	}
-
 	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get()))
 		return false;
 
-	if (!createRtv(device, aoTexture))
+	if (!createRtv(device))
 		return false;
-
 
 	if (!createSrv(device))
 		return false;

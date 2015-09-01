@@ -195,6 +195,15 @@
     <ClInclude Include="RenderSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RenderPassShadow.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -280,6 +289,12 @@
     </ClCompile>
     <ClCompile Include="RenderPassVisibleLights.cpp">
       <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassShadow.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineState.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

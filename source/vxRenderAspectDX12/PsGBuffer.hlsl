@@ -5,6 +5,7 @@ struct Output
 {
 	float4 diffuseSlice : SV_TARGET0;
 	half4 normalVelocitySlice : SV_TARGET1;
+	float2 surfaceSlice : SV_TARGET2;
 };
 
 struct PSInput
@@ -43,10 +44,9 @@ Output main(PSInput input)
 
 	float4 diffuseColor = g_textureSrgba.Sample(g_sampler, float3(input.texCoords, float(textureSlices.x)));
 	//float3 normalMap = g_textureRgba.Sample(g_sampler, float3(input.texCoords, float(textureSlices.y))).rgb;
-	//float3x3 tbnMatrix;
+	float2 surfaceValues = g_textureRgba.Sample(g_sampler, float3(input.texCoords, float(textureSlices.z))).rg;
 
-	// rhs coord system
-	//float view_z = -input.vsPosition.z / cameraBuffer.zFar;
+	//float3x3 tbnMatrix;
 
 	float2 compressedNormal = encodeNormal(input.vsNormal);
 
@@ -55,6 +55,7 @@ Output main(PSInput input)
 	Output output;
 	output.diffuseSlice = diffuseColor;
 	output.normalVelocitySlice = float4(compressedNormal, velocity);
+	output.surfaceSlice = surfaceValues;
 
 	return output;
 }

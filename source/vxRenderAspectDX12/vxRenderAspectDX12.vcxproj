@@ -205,9 +205,11 @@
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="ConverterMesh.h" />
     <ClInclude Include="CreateResourceDesc.h" />
+    <ClInclude Include="d3dObject.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="LightManager.h" />
+    <ClInclude Include="PipelineState.h" />
     <ClInclude Include="RenderPassCullLights.h" />
     <ClInclude Include="RenderPassFinal.h" />
     <ClInclude Include="Gpu.h" />
@@ -230,6 +232,7 @@
     <ClInclude Include="MeshManager.h" />
     <ClInclude Include="RenderPassAo.h" />
     <ClInclude Include="RenderPassShading.h" />
+    <ClInclude Include="RenderPassShadow.h" />
     <ClInclude Include="RenderPassVisibleLights.h" />
     <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
     <ClInclude Include="RenderSettings.h" />
@@ -257,6 +260,7 @@
     <ClCompile Include="dllExport.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="LightManager.cpp" />
+    <ClCompile Include="PipelineState.cpp" />
     <ClCompile Include="RenderPassAo.cpp" />
     <ClCompile Include="RenderPassCullLights.cpp" />
     <ClCompile Include="RenderPassFinal.cpp" />
@@ -266,6 +270,7 @@
     <ClCompile Include="MeshManager.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="RenderPassShading.cpp" />
+    <ClCompile Include="RenderPassShadow.cpp" />
     <ClCompile Include="RenderPassVisibleLights.cpp" />
     <ClCompile Include="RenderPassZBufferCreateMipmaps.cpp" />
     <ClCompile Include="ResourceManager.cpp" />

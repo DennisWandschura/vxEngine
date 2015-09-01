@@ -32,7 +32,7 @@ SOFTWARE.
 
 struct GBufferRenderer::ColdData
 {
-	enum TextureIndex {Diffuse, NormalVelocity, Depth, ZBuffer0, ZBuffer1, TextureCount};
+	enum TextureIndex {Diffuse, NormalVelocity, Depth, ZBuffer0, ZBuffer1, Surface, TextureCount};
 
 	D3D12_RESOURCE_DESC resDescs[TextureCount];
 };
@@ -104,11 +104,23 @@ void GBufferRenderer::createTextureDescriptions()
 	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer1] = m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0];
+
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].Alignment = 64 KBYTE;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].Width = s_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].Height = s_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].DepthOrArraySize = 2;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].MipLevels = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].Format = DXGI_FORMAT_R16G16_FLOAT;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].SampleDesc.Count = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].SampleDesc.Quality = 0;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	m_coldData->resDescs[ColdData::TextureIndex::Surface].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 }
 
 void GBufferRenderer::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
-	auto allocInfo = device->GetResourceAllocationInfo(1, 5, m_coldData->resDescs);
+	auto allocInfo = device->GetResourceAllocationInfo(1, ColdData::TextureCount, m_coldData->resDescs);
 
 	*heapSizeRtDs += allocInfo.SizeInBytes;
 }
@@ -125,6 +137,11 @@ bool GBufferRenderer::loadShaders(d3d::ShaderManager* shaderManager)
 		return false;
 
 	return true;
+}
+
+bool GBufferRenderer::createData(ID3D12Device* device)
+{
+	return createTextures(s_resourceManager, s_resolution, device);
 }
 
 bool GBufferRenderer::createRootSignature(ID3D12Device* device)
@@ -190,7 +207,7 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
 	};
 
-	auto vsShader = shaderManager->getShader("MeshVertex.cso");
+	/*auto vsShader = shaderManager->getShader("MeshVertex.cso");
 	auto gsShader = shaderManager->getShader("DeepGBufferGs.cso");
 	auto psShader = shaderManager->getShader("PsGBuffer.cso");
 
@@ -206,9 +223,10 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	psoDesc.SampleMask = UINT_MAX;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	psoDesc.NumRenderTargets = 2;
+	psoDesc.NumRenderTargets = 3;
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	psoDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	psoDesc.RTVFormats[2] = DXGI_FORMAT_R8G8_UNORM;
 	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	psoDesc.SampleDesc.Count = 1;
 
@@ -216,7 +234,28 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 	if (hresult != 0)
 		return false;
 
-	return true;
+	return true;*/
+
+	DXGI_FORMAT rtvFormats[] =
+	{
+		DXGI_FORMAT_R8G8B8A8_UNORM, 
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		DXGI_FORMAT_R16G16_FLOAT,
+	};
+
+	d3d::PipelineStateDescInput inputDesc;
+	inputDesc.rootSignature = m_rootSignature.get();
+	inputDesc.inputLayout = { inputLayout, _countof(inputLayout) };
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader("MeshVertex.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader("DeepGBufferGs.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader("PsGBuffer.cso");
+	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	inputDesc.rtvFormats = rtvFormats;
+	inputDesc.rtvCount = 3;
+	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
+
+	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
 
 bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, const vx::uint2 &resolution, ID3D12Device* device)
@@ -250,12 +289,20 @@ bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, cons
 
 	clearValues[4] = clearValues[3];
 
+	// surface
+	clearValues[5].Color[0] = 0.0f;
+	clearValues[5].Color[1] = 0.0f;
+	clearValues[5].Color[2] = 0.0f;
+	clearValues[5].Color[3] = 0.0f;
+	clearValues[5].Format = DXGI_FORMAT_R16G16_FLOAT;
+
 	const wchar_t* names[ColdData::TextureCount];
 	names[ColdData::Diffuse] = L"gbufferAlbedo";
 	names[ColdData::NormalVelocity] = L"gbufferNormalVelocity";
 	names[ColdData::Depth] = L"gbufferDepth";
 	names[ColdData::ZBuffer0] = L"zBuffer0";
 	names[ColdData::ZBuffer1] = L"zBuffer1";
+	names[ColdData::Surface] = L"gbufferSurface";
 
 	D3D12_RESOURCE_STATES states[ColdData::TextureCount];
 	states[ColdData::Diffuse] = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -263,9 +310,10 @@ bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, cons
 	states[ColdData::Depth] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	states[ColdData::ZBuffer0] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::ZBuffer1] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	states[ColdData::Surface] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 	CreateResourceDesc desc;
-	for (u32 i = 0; i < 5; ++i)
+	for (u32 i = 0; i < ColdData::TextureCount; ++i)
 	{
 		auto allocInfo = device->GetResourceAllocationInfo(1, 1, &m_coldData->resDescs[i]);
 
@@ -375,9 +423,6 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device, s_shaderManager))
 		return false;
 
-	if (!createTextures(s_resourceManager, s_resolution, device))
-		return false;
-
 	if (!createDescriptorHeap(device))
 		return false;
 
@@ -408,12 +453,17 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	rtvDesc.Texture2DArray.MipSlice = 0;
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-	auto handle = m_descriptorHeapRt.getHandleCpu();
-	device->CreateRenderTargetView(m_diffuseSlice, &rtvDesc, handle);
+	auto rtvHandle = m_descriptorHeapRt.getHandleCpu();
+	device->CreateRenderTargetView(m_diffuseSlice, &rtvDesc, rtvHandle);
 
-	handle.offset(1);
+	rtvHandle.offset(1);
 	rtvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	device->CreateRenderTargetView(m_normalVelocitySlice, &rtvDesc, handle);
+	device->CreateRenderTargetView(m_normalVelocitySlice, &rtvDesc, rtvHandle);
+
+	auto gbufferSurface = s_resourceManager->getTextureRtDs(L"gbufferSurface");
+	rtvHandle.offset(1);
+	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	device->CreateRenderTargetView(gbufferSurface, &rtvDesc, rtvHandle);
 
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -487,12 +537,15 @@ void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
 	m_commandList->ResourceBarrier(2, barriers);
 
 	const f32 clearColor[] = { 1.0f, 0.0f, 0.0f, 1 };
+	const f32 clearColor0[] = { 0.0f, 0.0f, 0.0f, 0 };
 
 	auto handleCpu = m_descriptorHeapRt.getHandleCpu();
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[3];
 	rtvHandles[0] = handleCpu;
 	handleCpu.offset(1);
 	rtvHandles[1] = handleCpu;
+	handleCpu.offset(1);
+	rtvHandles[2] = handleCpu;
 
 	auto dsvHandle = m_descriptorHeapDs.getHandleCpu();;
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandles[1];
@@ -527,9 +580,10 @@ void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->SetDescriptorHeaps(1, heaps);
 
-	m_commandList->OMSetRenderTargets(2, rtvHandles, FALSE, dsvHandles);
+	m_commandList->OMSetRenderTargets(3, rtvHandles, FALSE, dsvHandles);
 	m_commandList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
 	m_commandList->ClearRenderTargetView(rtvHandles[1], clearColor, 0, nullptr);
+	m_commandList->ClearRenderTargetView(rtvHandles[2], clearColor0, 0, nullptr);
 
 	m_commandList->ClearDepthStencilView(dsvHandleClear, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 

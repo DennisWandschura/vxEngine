@@ -50,6 +50,11 @@ void RenderPassFinal::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTextur
 
 }
 
+bool RenderPassFinal::createData(ID3D12Device* device)
+{
+	return true;
+}
+
 bool RenderPassFinal::loadShaders(d3d::ShaderManager* shaderManager)
 {
 	if (!shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", d3d::ShaderType::Vertex))
@@ -105,7 +110,7 @@ bool RenderPassFinal::createRootSignature(ID3D12Device* device)
 
 bool RenderPassFinal::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
-	auto vsShader = shaderManager->getShader("DrawQuadVs.cso");
+	/*auto vsShader = shaderManager->getShader("DrawQuadVs.cso");
 	auto gsShader = shaderManager->getShader("DrawQuadGs.cso");
 	auto psShader = shaderManager->getShader("FinalPS.cso");
 
@@ -130,7 +135,22 @@ bool RenderPassFinal::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 	if (hresult != 0)
 		return false;
 
-	return true;
+	return true;*/
+
+	auto rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+	d3d::PipelineStateDescInput inputDesc;
+	inputDesc.rootSignature = m_rootSignature.get();
+	inputDesc.depthEnabled = 0;
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader("DrawQuadVs.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader("DrawQuadGs.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader("FinalPS.cso");
+	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	inputDesc.rtvFormats = &rtvFormat;
+	inputDesc.rtvCount = 1;
+	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
+
+	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
 
 bool RenderPassFinal::initialize(ID3D12Device* device, void* p)

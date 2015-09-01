@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 The MIT License (MIT)
 
@@ -24,17 +22,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/math/matrix.h>
+#include "RenderPassShadow.h"
 
-struct RenderSettings
+RenderPassShadow::RenderPassShadow()
 {
-	vx::uint2 m_resolution;
-	vx::mat4d m_projectionMatrix;
-	vx::mat4d m_viewMatrixPrev;
-	f64 m_nearZ;
-	f64 m_farZ;
-	f64 m_fovRad;
-	u32 m_gpuLightCount;
-	u32 m_textureDim;
-	u32 m_shadowDim;
-};
+
+}
+
+RenderPassShadow::~RenderPassShadow()
+{
+
+}
+
+void RenderPassShadow::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+{
+
+}
+
+bool RenderPassShadow::createData(ID3D12Device* device)
+{
+	return true;
+}
+
+bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
+{
+	return true;
+}
+
+void RenderPassShadow::shutdown()
+{
+
+}
+
+void RenderPassShadow::submitCommands(ID3D12CommandList** list, u32* index)
+{
+
+}

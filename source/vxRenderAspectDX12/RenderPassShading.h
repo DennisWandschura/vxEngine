@@ -24,6 +24,8 @@ public:
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
 
+	bool createData(ID3D12Device* device) override;
+
 	bool initialize(ID3D12Device* device, void* p)override;
 	void shutdown() override;
 

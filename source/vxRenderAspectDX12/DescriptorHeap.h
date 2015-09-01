@@ -27,6 +27,7 @@ SOFTWARE.
 struct ID3D12DescriptorHeap;
 struct D3D12_DESCRIPTOR_HEAP_DESC;
 struct D3D12_CPU_DESCRIPTOR_HANDLE;
+struct D3D12_GPU_DESCRIPTOR_HANDLE;
 struct ID3D12Device;
 
 enum D3D12_DESCRIPTOR_HEAP_TYPE;
@@ -43,7 +44,7 @@ namespace d3d
 		u32 m_size;
 
 		explicit DescriptorHandleCpu(DescriptorHeap* heap);
-		DescriptorHandleCpu(u64 ptr, u32 size);
+		DescriptorHandleCpu(const D3D12_CPU_DESCRIPTOR_HANDLE &handle, u32 size);
 
 		void offset(u32 count)
 		{
@@ -51,6 +52,22 @@ namespace d3d
 		}
 
 		operator D3D12_CPU_DESCRIPTOR_HANDLE();
+	};
+
+	struct DescriptorHandleGpu
+	{
+		u64 m_ptr;
+		u32 m_size;
+
+		explicit DescriptorHandleGpu(DescriptorHeap* heap);
+		DescriptorHandleGpu(const D3D12_GPU_DESCRIPTOR_HANDLE &handle, u32 size);
+
+		void offset(u32 count)
+		{
+			m_ptr += count * m_size;
+		}
+
+		operator D3D12_GPU_DESCRIPTOR_HANDLE();
 	};
 
 	class DescriptorHeap
@@ -72,5 +89,6 @@ namespace d3d
 		u32 getIncrementSize() const { return m_incrementSize; }
 
 		DescriptorHandleCpu getHandleCpu();
+		DescriptorHandleGpu getHandleGpu();
 	};
 }

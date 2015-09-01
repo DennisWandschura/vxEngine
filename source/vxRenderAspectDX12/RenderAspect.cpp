@@ -234,6 +234,7 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	s_settings.m_resolution = desc.settings->m_resolution;
 	s_settings.m_gpuLightCount = 64;
 	s_settings.m_textureDim = 1024;
+	s_settings.m_shadowDim = 2048;
 
 	const u32 allocSize = 1 MBYTE;
 	auto allocPtr = desc.pAllocator->allocate(allocSize);
@@ -318,6 +319,12 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	createSrvTransform(g_maxMeshInstances);
 	createSrvMaterial(g_maxMeshInstances);
 	createSrvLights(g_maxLightCount);
+
+	for (auto &it : m_renderPasses)
+	{
+		if (!it->createData(device))
+			return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
 
 	if (!initializeRenderPasses())
 	{

@@ -43,10 +43,12 @@ public:
 	explicit RenderPassZBuffer(ID3D12CommandAllocator* cmdAlloc);
 	~RenderPassZBuffer();
 
-	bool initialize(ID3D12Device* device, void* p) override;
-	void shutdown() override;
+	bool createData(ID3D12Device* device) override;
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+
+	bool initialize(ID3D12Device* device, void* p) override;
+	void shutdown() override;
 
 	void submitCommands(ID3D12CommandList** list, u32* index) override;
 };

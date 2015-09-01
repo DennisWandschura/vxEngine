@@ -35,6 +35,7 @@ class UploadManager;
 #include "d3d.h"
 #include <vxLib/math/Vector.h>
 #include "RenderSettings.h"
+#include "PipelineState.h"
 
 namespace d3d
 {
@@ -52,7 +53,7 @@ protected:
 	static const RenderSettings* s_settings;
 
 	d3d::Object<ID3D12RootSignature> m_rootSignature;
-	d3d::Object<ID3D12PipelineState> m_pipelineState;
+	d3d::PipelineState m_pipelineState;
 
 	RenderPass();
 
@@ -69,6 +70,8 @@ public:
 	}
 
 	virtual void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) = 0;
+
+	virtual bool createData(ID3D12Device* device) = 0;
 
 	virtual bool initialize(ID3D12Device* device, void* p) = 0;
 	virtual void shutdown() = 0;

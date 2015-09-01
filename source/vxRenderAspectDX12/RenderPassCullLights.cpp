@@ -64,6 +64,17 @@ void RenderPassCullLights::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeT
 	*heapSizeBuffer += lightBufferDstSize + lightIndexBufferSize;
 }
 
+bool RenderPassCullLights::createData(ID3D12Device* device)
+{
+	if (!createTexture(device))
+		return false;
+
+	if (!createBuffer())
+		return false;
+
+	return true;
+}
+
 bool RenderPassCullLights::loadShaders()
 {
 	if (!s_shaderManager->loadShader("CullLightsVS.cso", L"../../lib/CullLightsVS.cso", d3d::ShaderType::Vertex))
@@ -139,7 +150,7 @@ bool RenderPassCullLights::createRootSignatureZero(ID3D12Device* device)
 
 bool RenderPassCullLights::createPipelineState(ID3D12Device* device)
 {
-	auto vsShader = s_shaderManager->getShader("CullLightsVS.cso");
+	/*auto vsShader = s_shaderManager->getShader("CullLightsVS.cso");
 	auto gsShader = s_shaderManager->getShader("CullLightsGS.cso");
 	auto psShader = s_shaderManager->getShader("CullLightsPS.cso");
 
@@ -166,7 +177,25 @@ bool RenderPassCullLights::createPipelineState(ID3D12Device* device)
 	if (hresult != 0)
 		return false;
 
-	return true;
+	return true;*/
+
+	auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	d3d::PipelineStateDescInput inputDesc;
+	inputDesc.rootSignature = m_rootSignature.get();
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader("CullLightsVS.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader("CullLightsGS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader("CullLightsPS.cso");
+	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	inputDesc.rtvFormats = &rtvFormat;
+	inputDesc.rtvCount = 1;
+	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
+
+	desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+	desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+
+	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
 
 bool RenderPassCullLights::createPipelineStateZero(ID3D12Device* device)
@@ -336,12 +365,6 @@ bool RenderPassCullLights::initialize(ID3D12Device* device, void* p)
 		return false;
 
 	if (!createPipelineStateZero(device))
-		return false;
-
-	if (!createTexture(device))
-		return false;
-
-	if (!createBuffer())
 		return false;
 
 	if (!createViews(device))

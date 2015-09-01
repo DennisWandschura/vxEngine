@@ -60,7 +60,7 @@ void Frustum::update(const vx::mat4 &invPvMatrix)
 	m_planes[FrustumPlaneRight].nd.m128_f32[3] = plane.d.m128_f32[0];
 }
 
-void __vectorcall Frustum::testSpheres(__m128* cr, u32 count, u8* results) const
+u32 __vectorcall Frustum::testSpheres(__m128* cr, u32 count, u32* indices) const
 {
 	PlaneSIMD planes[3];
 	planes[0].d = VX_PERMUTE_PS(m_planes[0].nd, _MM_SHUFFLE(3, 3, 3, 3));
@@ -72,6 +72,7 @@ void __vectorcall Frustum::testSpheres(__m128* cr, u32 count, u8* results) const
 	planes[2].d = VX_PERMUTE_PS(m_planes[2].nd, _MM_SHUFFLE(3, 3, 3, 3));
 	planes[2].n = _mm_and_ps(m_planes[2].nd, vx::g_VXMask3);
 
+	u32 visibileCount = 0;
 	for (u32 i = 0; i < count; ++i)
 	{
 		auto bounds = cr[i];
@@ -88,6 +89,11 @@ void __vectorcall Frustum::testSpheres(__m128* cr, u32 count, u8* results) const
 			}
 		}
 
-		results[i] = inside;
+		if (inside != 0)
+		{
+			indices[visibileCount++] = i;
+		}
 	}
+
+	return visibileCount;
 }

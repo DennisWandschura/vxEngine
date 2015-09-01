@@ -24,17 +24,65 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/math/matrix.h>
+#include <vxLib/types.h>
 
-struct RenderSettings
+namespace d3d
 {
-	vx::uint2 m_resolution;
-	vx::mat4d m_projectionMatrix;
-	vx::mat4d m_viewMatrixPrev;
-	f64 m_nearZ;
-	f64 m_farZ;
-	f64 m_fovRad;
-	u32 m_gpuLightCount;
-	u32 m_textureDim;
-	u32 m_shadowDim;
-};
+	template<typename T>
+	class Object
+	{
+	protected:
+		T* m_object;
+
+	public:
+		Object() :m_object(nullptr) {}
+
+		Object(const Object&) = delete;
+
+		Object(Object &&rhs)
+			:m_object(rhs.m_object)
+		{
+			rhs.m_object = nullptr;
+		}
+
+		~Object()
+		{
+			destroy();
+		}
+
+		Object& operator=(const Object&) = delete;
+
+		Object& operator=(Object &&rhs)
+		{
+			if (this != &rhs)
+			{
+				swap(rhs);
+			}
+
+			return *this;
+		}
+
+		void destroy()
+		{
+			if (m_object)
+			{
+				m_object->Release();
+				m_object = nullptr;
+			}
+		}
+
+		void swap(Object &other)
+		{
+			std::swap(m_object, other.m_object);
+		}
+
+		T* operator->() { return m_object; }
+		const T* operator->() const { return m_object; }
+
+		T* get() { return m_object; }
+		const T* get() const { return m_object; }
+
+		T** getAddressOf() { return &m_object; }
+		const T** getAddressOf() const { return &m_object; }
+	};
+}
