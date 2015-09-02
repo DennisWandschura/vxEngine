@@ -122,6 +122,12 @@ namespace d3d
 				D3D12_MESSAGE* msg = (D3D12_MESSAGE*)m_scratchAllocator.allocate(msgSize, 8);
 
 				hresult = m_infoQueue->GetMessage(i, msg, &msgSize);
+
+				if (msg->Severity == D3D12_MESSAGE_SEVERITY_ERROR)
+				{
+				//	VX_ASSERT(false);
+				}
+
 				printf("%s\n", msg->pDescription);
 
 				m_scratchAllocator.clear(marker);

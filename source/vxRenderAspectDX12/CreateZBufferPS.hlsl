@@ -31,8 +31,8 @@ PSOutput main(GSOutput input)
 	float c1 = zNear - zFar;
 	float c2 = zFar;
 
-	float z0 = c0 / (depth0 * c1 + c2);
-	float z1 = c0 / (depth1 * c1 + c2);
+	float z0 = c0 / (depth0 * c1 + c2) / zFar;
+	float z1 = c0 / (depth1 * c1 + c2) / zFar;
 
 	PSOutput output;
 	output.zBuffer0 = z0;

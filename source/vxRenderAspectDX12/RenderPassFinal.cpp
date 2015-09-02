@@ -157,6 +157,7 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 {
 	auto diffuseTexture = s_resourceManager->getTextureRtDs(L"diffuseTexture");
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
+	//auto voxelDebug = s_resourceManager->getTextureRtDs(L"voxelDebug");
 
 	if (!loadShaders(s_shaderManager))
 		return false;
@@ -170,7 +171,7 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 2;
+	desc.NumDescriptors = 3;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_descriptorHeapSrv.create(desc, device))
 		return false;
@@ -197,6 +198,10 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	handle.offset(1);
 	device->CreateShaderResourceView(diffuseTexture, &srvDesc, handle);
+
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	handle.offset(1);
+	//device->CreateShaderResourceView(voxelDebug, &srvDesc, handle);
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	for (u32 i = 0; i < 2; ++i)
@@ -230,6 +235,7 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto diffuseTexture = s_resourceManager->getTextureRtDs(L"diffuseTexture");
+	//auto voxelDebug = s_resourceManager->getTextureRtDs(L"voxelDebug");
 	auto currentBuffer = m_device->getCurrentBackBufferIndex();
 
 	D3D12_VIEWPORT viewport;
@@ -261,6 +267,7 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(diffuseTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelDebug, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -281,6 +288,7 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+	//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelDebug, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(diffuseTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 

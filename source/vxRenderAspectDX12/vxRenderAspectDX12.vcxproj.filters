@@ -55,6 +55,15 @@
     <Filter Include="Shaders\cull lights">
       <UniqueIdentifier>{8ba0b537-e930-4fa5-a75d-d2121d3c70f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\voxelize">
+      <UniqueIdentifier>{ac07f20e-0604-4fc0-b8f3-f7eb1eb450ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\draw voxel">
+      <UniqueIdentifier>{5acf76d7-2750-4b90-ba9a-bad01ab71542}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\shadowmap">
+      <UniqueIdentifier>{ee91f01d-b48d-4d43-8852-eb83b4bc1ca7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -204,6 +213,15 @@
     <ClInclude Include="d3dObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RenderPassVoxelize.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuVoxel.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassDrawVoxel.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -296,6 +314,12 @@
     <ClCompile Include="PipelineState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RenderPassVoxelize.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassDrawVoxel.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -354,6 +378,30 @@
     </FxCompile>
     <FxCompile Include="ZeroLightsVS.hlsl">
       <Filter>Shaders\cull lights</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelizeVS.hlsl">
+      <Filter>Shaders\voxelize</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelizeGS.hlsl">
+      <Filter>Shaders\voxelize</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelizePS.hlsl">
+      <Filter>Shaders\voxelize</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawVoxelVS.hlsl">
+      <Filter>Shaders\draw voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawVoxelGS.hlsl">
+      <Filter>Shaders\draw voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="DrawVoxelPS.hlsl">
+      <Filter>Shaders\draw voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowMapVS.hlsl">
+      <Filter>Shaders\shadowmap</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowMapGS.hlsl">
+      <Filter>Shaders\shadowmap</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

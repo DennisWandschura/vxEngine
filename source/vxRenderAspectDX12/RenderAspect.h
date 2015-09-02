@@ -34,6 +34,7 @@ struct ResourceView;
 struct Light;
 class RenderPass;
 class GBufferRenderer;
+class RenderPassVoxelize;
 
 namespace vx
 {
@@ -92,6 +93,7 @@ class RenderAspect : public RenderAspectInterface
 	vx::StackAllocator m_allocator;
 	vx::MessageManager* m_msgManager;
 	d3d::ShaderManager m_shaderManager;
+	//RenderPassVoxelize* m_renderPassVoxelize;
 	std::vector<u32> m_copyTransforms;
 
 	void createRenderPasses();
@@ -130,7 +132,6 @@ class RenderAspect : public RenderAspectInterface
 
 	void copyTransform(u32 index);
 
-	void renderGBuffer();
 	void copyTransforms(ID3D12GraphicsCommandList* cmdList);
 	void updateLights(const Light* lights, u32 count);
 

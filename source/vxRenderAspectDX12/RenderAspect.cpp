@@ -50,6 +50,8 @@ SOFTWARE.
 #include "RenderPassShading.h"
 #include "RenderPassCullLights.h"
 #include "RenderPassVisibleLights.h"
+#include "RenderPassVoxelize.h"
+#include "RenderPassDrawVoxel.h"
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/GpuFunctions.h>
@@ -139,8 +141,13 @@ void RenderAspect::createRenderPasses()
 	m_renderPasses.push_back(renderPassVisibleLights);
 	m_renderPasses.push_back(new RenderPassZBuffer(m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassZBufferCreateMipmaps(m_commandAllocator.get()));
+
+	//m_renderPassVoxelize = new RenderPassVoxelize(m_commandAllocator.get(), countOffset);
+	//m_renderPasses.push_back(m_renderPassVoxelize);
+
 	m_renderPasses.push_back(new RenderPassAO(m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassShading(m_commandAllocator.get()));
+	//m_renderPasses.push_back(new RenderPassDrawVoxel(m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassFinal(m_commandAllocator.get(), &m_device));
 
 	m_lightManager.setRenderPasses(renderPassCullLights, renderPassVisibleLights);
@@ -397,10 +404,10 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	auto resolution = s_settings.m_resolution;
 
 	vx::float4 projInfo;
-	projInfo.x = -2.0 / (resolution.x * projectionMatrixDouble.c[0].m256d_f64[0]);
-	projInfo.y = -2.0 / (resolution.y * projectionMatrixDouble.c[1].m256d_f64[1]);
-	projInfo.z = (1.0 - projectionMatrixDouble.c[0].m256d_f64[2]) / projectionMatrixDouble.c[0].m256d_f64[0];
-	projInfo.w = (1.0 + projectionMatrixDouble.c[1].m256d_f64[2]) / projectionMatrixDouble.c[1].m256d_f64[1];
+	projInfo.x = 2.0 / (static_cast<f64>(resolution.x) * projectionMatrixDouble.c[0].m256d_f64[0]);
+	projInfo.y = -2.0 / (static_cast<f64>(resolution.y) * projectionMatrixDouble.c[1].m256d_f64[1]);//-2.0 / (resolution.y * projectionMatrixDouble.c[1].m256d_f64[1]);
+	projInfo.z = -1.0 / projectionMatrixDouble.c[0].m256d_f64[0];
+	projInfo.w = 1.0f / projectionMatrixDouble.c[1].m256d_f64[1];//(1.0 + projectionMatrixDouble.c[1].m256d_f64[2]) / projectionMatrixDouble.c[1].m256d_f64[1];
 
 	m_camera.setPosition(data.position);
 	m_camera.setRotation(data.quaternionRotation);
@@ -415,6 +422,9 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	vx::mat4 projMatrix;
 	projectionMatrixDouble.asFloat(&projMatrix);
 
+	vx::mat4 vMatrix;
+	viewMatrix.asFloat(&vMatrix);
+
 	GpuCameraBufferData bufferData;
 	bufferData.position = _mm256_cvtpd_ps(data.position);
 	viewMatrix.asFloat(&bufferData.viewMatrix);
@@ -425,6 +435,63 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	bufferData.projInfo = projInfo;
 	bufferData.zFar = s_settings.m_farZ;
 	bufferData.zNear = s_settings.m_nearZ;
+
+	f32 zNear = 0.1;
+	f32 zFar = 100.0;
+
+	__m128 p = {-5.4f, 1, -10, 1};
+	auto pv = vx::Vector4Transform(vMatrix, p);
+	auto pp = vx::Vector3TransformCoord(projMatrix, pv);
+	float vs_z = -pv.m128_f32[2] / zFar;
+
+	f32 depth = pp.m128_f32[2];//((zFar + zNear) / (zFar - zNear)) + 1.0f / pp.m128_f32[2] * ((-2.0f  * zFar* zNear) / (zFar - zNear));
+
+	float c0 = zNear * zFar;
+	float c1 = zNear - zFar;
+	float c2 = zFar;
+
+	float zz = c0 / (depth * c1 + c2);
+
+	float sx = (pp.m128_f32[0] * 0.5f + 0.5f) * 1920.0f;
+	float sy = (pp.m128_f32[1] * 0.5f + 0.5f) * 1080.f;
+
+	auto ppp = vx::Vector3TransformCoord(bufferData.invProjMatrix, pp);
+
+	//f32 w = pp.m128_f32[2] * bufferData.invProjMatrix.c[2].m128_f32[3] + bufferData.invProjMatrix.c[3].m128_f32[3];
+	//f32 invW = 1.0f / w;
+	f32 invWW = vs_z * zFar;
+
+	f32 ppx = (sx / 1920) * 2.0f - 1.0f;
+	f32 ppy = 1.0f - (sy / 1080) * 2.0f;
+	//1.0 - cc.y * 2.0;
+	f32 pvx = ppx * bufferData.invProjMatrix.c[0].m128_f32[0] * invWW;
+
+	f32 projx = (2.0f / 1920.0f) * bufferData.invProjMatrix.c[0].m128_f32[0];
+	f32 projz = -1.0f * bufferData.invProjMatrix.c[0].m128_f32[0];
+	f32 pvv = (sx * projInfo.x + projz) * invWW;
+
+	f32 pvy = ppy * bufferData.invProjMatrix.c[1].m128_f32[1] * invWW;
+
+	f32 projw = 1.0f * bufferData.invProjMatrix.c[1].m128_f32[1];
+	f32 projy = -2.0f / 1080.f * bufferData.invProjMatrix.c[1].m128_f32[1];
+	f32 pvvy = (sy * projy + projw) * invWW;
+
+
+	//f32 px = (sx * projInfo.x + projInfo.z) * zz;
+	//f32 py = (sy * projInfo.y + projInfo.w) * zz;
+	//return float3((S.xy * cameraBuffer.projInfo.xy + cameraBuffer.projInfo.zw) * zz, zz);
+
+	//__m128 lp = { 0, 2.8f, -2, 1 };
+	//auto llp = _mm_sub_ps(bufferData.position, lp);
+	//auto lpv = vx::Vector4Transform(vMatrix, lp);
+
+	/*auto Lw = _mm_sub_ps(lp, p);
+	auto Lv = _mm_sub_ps(lpv, pv);
+	auto Lvv = _mm_sub_ps(llp, pv);
+
+	auto lw = vx::length3(Lw);
+	auto lv = vx::length3(Lv);
+	auto lvv = vx::length3(Lvv);*/
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
 
@@ -621,35 +688,6 @@ void RenderAspect::copyTransforms(ID3D12GraphicsCommandList* cmdList)
 		m_commandCopyBuffers->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(transformBuffer, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 	}
 	m_copyTransforms.clear();
-}
-
-void RenderAspect::renderGBuffer()
-{
-	//m_commandListDrawMesh->Reset(m_commandAllocator.get(), nullptr);
-
-	//m_renderPasses[0]->submitCommands(m_commandListDrawMesh);
-
-	/*
-
-	if (!m_drawCommands.empty())
-	{
-		auto drawCmdBuffer = m_resourceManager.getBuffer("LdrawCmdBuffer");
-
-		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
-		vertexBufferViews[0] = m_resourceManager.getResourceView("meshVertexBufferView")->vbv;
-		vertexBufferViews[1] = m_resourceManager.getResourceView("meshDrawIdBufferView")->vbv;
-		auto indexBufferView = m_resourceManager.getResourceView("meshIndexBufferView")->ibv;
-
-		m_commandListDrawMesh->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_commandListDrawMesh->IASetVertexBuffers(0, 2, vertexBufferViews);
-		m_commandListDrawMesh->IASetIndexBuffer(&indexBufferView);
-
-		auto cmdCount = m_drawCommands.size();
-		const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size;
-		m_commandListDrawMesh->ExecuteIndirect(m_commandSignature.get(), cmdCount, drawCmdBuffer, 0, drawCmdBuffer, countOffset);
-	}*/
-
-	//m_commandListDrawMesh->Close();
 }
 
 void RenderAspect::submitCommands()
@@ -856,6 +894,7 @@ void RenderAspect::addMeshInstance(const MeshInstance &meshInstance, u32* gpuInd
 	m_meshManager.updateResourceViews(&m_resourceManager);
 
 	m_gbufferRenderer->setDrawCount(instanceCount);
+	//m_renderPassVoxelize->setDrawCount(instanceCount);
 }
 
 void RenderAspect::updateLights(const Light* lights, u32 count)

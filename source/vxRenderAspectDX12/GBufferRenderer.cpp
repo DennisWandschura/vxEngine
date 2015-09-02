@@ -32,7 +32,7 @@ SOFTWARE.
 
 struct GBufferRenderer::ColdData
 {
-	enum TextureIndex {Diffuse, NormalVelocity, Depth, ZBuffer0, ZBuffer1, Surface, TextureCount};
+	enum TextureIndex { Diffuse, Normal, Velocity, Depth, ZBuffer0, ZBuffer1, Surface, TextureCount };
 
 	D3D12_RESOURCE_DESC resDescs[TextureCount];
 };
@@ -40,7 +40,6 @@ struct GBufferRenderer::ColdData
 GBufferRenderer::GBufferRenderer(ID3D12CommandAllocator* cmdAlloc, u32 countOffset)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc),
-	m_depthSlice(nullptr),
 	m_countOffset(countOffset),
 	m_drawCount(0),
 	m_coldData(new ColdData())
@@ -67,17 +66,29 @@ void GBufferRenderer::createTextureDescriptions()
 	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Alignment = 64 KBYTE;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Width = s_resolution.x;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Height = s_resolution.y;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].DepthOrArraySize = 2;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].MipLevels = 1;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].SampleDesc.Count = 1;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].SampleDesc.Quality = 0;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	m_coldData->resDescs[ColdData::TextureIndex::NormalVelocity].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].Alignment = 64 KBYTE;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].Width = s_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].Height = s_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].DepthOrArraySize = 2;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].MipLevels = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].Format = DXGI_FORMAT_R16G16_FLOAT;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].SampleDesc.Count = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].SampleDesc.Quality = 0;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	m_coldData->resDescs[ColdData::TextureIndex::Normal].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].Alignment = 64 KBYTE;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].Width = s_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].Height = s_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].DepthOrArraySize = 2;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].MipLevels = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].Format = DXGI_FORMAT_R16G16_FLOAT;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].SampleDesc.Count = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].SampleDesc.Quality = 0;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	m_coldData->resDescs[ColdData::TextureIndex::Velocity].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Alignment = 64 KBYTE;
@@ -238,8 +249,9 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 
 	DXGI_FORMAT rtvFormats[] =
 	{
-		DXGI_FORMAT_R8G8B8A8_UNORM, 
-		DXGI_FORMAT_R16G16B16A16_FLOAT,
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		DXGI_FORMAT_R16G16_FLOAT,
+		DXGI_FORMAT_R16G16_FLOAT,
 		DXGI_FORMAT_R16G16_FLOAT,
 	};
 
@@ -251,7 +263,7 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 	inputDesc.shaderDesc.ps = s_shaderManager->getShader("PsGBuffer.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	inputDesc.rtvFormats = rtvFormats;
-	inputDesc.rtvCount = 3;
+	inputDesc.rtvCount = 4;
 	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
 
@@ -262,43 +274,50 @@ bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, cons
 {
 	D3D12_CLEAR_VALUE clearValues[ColdData::TextureCount];
 	// diffuse
-	clearValues[0].Color[0] = 1.0f;
-	clearValues[0].Color[1] = 0.0f;
-	clearValues[0].Color[2] = 0.0f;
-	clearValues[0].Color[3] = 1.0f;
-	clearValues[0].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	clearValues[ColdData::Diffuse].Color[0] = 0.0f;
+	clearValues[ColdData::Diffuse].Color[1] = 0.0f;
+	clearValues[ColdData::Diffuse].Color[2] = 0.0f;
+	clearValues[ColdData::Diffuse].Color[3] = 0.0f;
+	clearValues[ColdData::Diffuse].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	// normal
-	clearValues[1].Color[0] = 1.0f;
-	clearValues[1].Color[1] = 0.0f;
-	clearValues[1].Color[2] = 0.0f;
-	clearValues[1].Color[3] = 1.0f;
-	clearValues[1].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	clearValues[ColdData::Normal].Color[0] = 0.0f;
+	clearValues[ColdData::Normal].Color[1] = 0.0f;
+	clearValues[ColdData::Normal].Color[2] = 0.0f;
+	clearValues[ColdData::Normal].Color[3] = 0.0f;
+	clearValues[ColdData::Normal].Format = DXGI_FORMAT_R16G16_FLOAT;
+
+	clearValues[ColdData::Velocity].Color[0] = 0.0f;
+	clearValues[ColdData::Velocity].Color[1] = 0.0f;
+	clearValues[ColdData::Velocity].Color[2] = 0.0f;
+	clearValues[ColdData::Velocity].Color[3] = 0.0f;
+	clearValues[ColdData::Velocity].Format = DXGI_FORMAT_R16G16_FLOAT;
 
 	// detph
-	clearValues[2].Format = DXGI_FORMAT_D32_FLOAT;
-	clearValues[2].DepthStencil.Depth = 1.0f;
-	clearValues[2].DepthStencil.Stencil = 0;
+	clearValues[ColdData::Depth].Format = DXGI_FORMAT_D32_FLOAT;
+	clearValues[ColdData::Depth].DepthStencil.Depth = 1.0f;
+	clearValues[ColdData::Depth].DepthStencil.Stencil = 0;
 
 	// zbuffer
-	clearValues[3].Color[0] = 1.0f;
-	clearValues[3].Color[1] = 0.0f;
-	clearValues[3].Color[2] = 0.0f;
-	clearValues[3].Color[3] = 0.0f;
-	clearValues[3].Format = DXGI_FORMAT_R32_FLOAT;
+	clearValues[ColdData::ZBuffer0].Color[0] = 1.0f;
+	clearValues[ColdData::ZBuffer0].Color[1] = 0.0f;
+	clearValues[ColdData::ZBuffer0].Color[2] = 0.0f;
+	clearValues[ColdData::ZBuffer0].Color[3] = 0.0f;
+	clearValues[ColdData::ZBuffer0].Format = DXGI_FORMAT_R32_FLOAT;
 
-	clearValues[4] = clearValues[3];
+	clearValues[ColdData::ZBuffer1] = clearValues[ColdData::ZBuffer0];
 
 	// surface
-	clearValues[5].Color[0] = 0.0f;
-	clearValues[5].Color[1] = 0.0f;
-	clearValues[5].Color[2] = 0.0f;
-	clearValues[5].Color[3] = 0.0f;
-	clearValues[5].Format = DXGI_FORMAT_R16G16_FLOAT;
+	clearValues[ColdData::Surface].Color[0] = 0.0f;
+	clearValues[ColdData::Surface].Color[1] = 0.0f;
+	clearValues[ColdData::Surface].Color[2] = 0.0f;
+	clearValues[ColdData::Surface].Color[3] = 0.0f;
+	clearValues[ColdData::Surface].Format = DXGI_FORMAT_R16G16_FLOAT;
 
 	const wchar_t* names[ColdData::TextureCount];
 	names[ColdData::Diffuse] = L"gbufferAlbedo";
-	names[ColdData::NormalVelocity] = L"gbufferNormalVelocity";
+	names[ColdData::Normal] = L"gbufferNormal";
+	names[ColdData::Velocity] = L"gbufferVelocity";
 	names[ColdData::Depth] = L"gbufferDepth";
 	names[ColdData::ZBuffer0] = L"zBuffer0";
 	names[ColdData::ZBuffer1] = L"zBuffer1";
@@ -306,7 +325,8 @@ bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, cons
 
 	D3D12_RESOURCE_STATES states[ColdData::TextureCount];
 	states[ColdData::Diffuse] = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	states[ColdData::NormalVelocity] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	states[ColdData::Normal] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	states[ColdData::Velocity] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::Depth] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	states[ColdData::ZBuffer0] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::ZBuffer1] = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -326,10 +346,6 @@ bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, cons
 			return false;
 	}
 
-	m_depthSlice = resourceManager->getTextureRtDs(names[ColdData::Depth]);
-	m_diffuseSlice = resourceManager->getTextureRtDs(names[ColdData::Diffuse]);
-	m_normalVelocitySlice = resourceManager->getTextureRtDs(names[ColdData::NormalVelocity]);
-
 	return true;
 }
 
@@ -338,7 +354,7 @@ bool GBufferRenderer::createDescriptorHeap(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};
 	desc.NodeMask = 1;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	desc.NumDescriptors = 3;
+	desc.NumDescriptors = 4;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 
 	if (!m_descriptorHeapRt.create(desc, device))
@@ -350,11 +366,6 @@ bool GBufferRenderer::createDescriptorHeap(ID3D12Device* device)
 		return false;
 
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	desc.NumDescriptors = 4;
-	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	if (!m_descriptorHeapSrv.create(desc, device))
-		return false;
-
 	desc.NumDescriptors = 6;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_descriptorHeapBuffers.create(desc, device))
@@ -431,6 +442,12 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 
 	m_commandList->Close();
 
+	auto gbufferAlbedo = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
+	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
+	auto gbufferVelocity = s_resourceManager->getTextureRtDs(L"gbufferVelocity");
+	auto gbufferSurface = s_resourceManager->getTextureRtDs(L"gbufferSurface");
+	auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
+
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc;
 	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	depthViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
@@ -439,11 +456,11 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	depthViewDesc.Texture2DArray.FirstArraySlice = 0;
 	depthViewDesc.Texture2DArray.MipSlice = 0;
 	auto dsHandle = m_descriptorHeapDs.getHandleCpu();
-	device->CreateDepthStencilView(m_depthSlice, &depthViewDesc, dsHandle);
+	device->CreateDepthStencilView(gbufferDepth, &depthViewDesc, dsHandle);
 
 	dsHandle.offset(1);
 	depthViewDesc.Texture2DArray.ArraySize = 1;
-	device->CreateDepthStencilView(m_depthSlice, &depthViewDesc, dsHandle);
+	device->CreateDepthStencilView(gbufferDepth, &depthViewDesc, dsHandle);
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -454,36 +471,19 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
 	auto rtvHandle = m_descriptorHeapRt.getHandleCpu();
-	device->CreateRenderTargetView(m_diffuseSlice, &rtvDesc, rtvHandle);
+	device->CreateRenderTargetView(gbufferAlbedo, &rtvDesc, rtvHandle);
 
 	rtvHandle.offset(1);
-	rtvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	device->CreateRenderTargetView(m_normalVelocitySlice, &rtvDesc, rtvHandle);
+	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	device->CreateRenderTargetView(gbufferNormal, &rtvDesc, rtvHandle);
 
-	auto gbufferSurface = s_resourceManager->getTextureRtDs(L"gbufferSurface");
+	rtvHandle.offset(1);
+	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	device->CreateRenderTargetView(gbufferVelocity, &rtvDesc, rtvHandle);
+
 	rtvHandle.offset(1);
 	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
 	device->CreateRenderTargetView(gbufferSurface, &rtvDesc, rtvHandle);
-
-	{
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Texture2DArray.ArraySize = 2;
-		srvDesc.Texture2DArray.FirstArraySlice = 0;
-		srvDesc.Texture2DArray.MipLevels = 1;
-		srvDesc.Texture2DArray.MostDetailedMip = 0 ;
-		srvDesc.Texture2DArray.PlaneSlice = 0;
-		srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
-
-		auto handle = m_descriptorHeapSrv.getHandleCpu();
-		device->CreateShaderResourceView(m_diffuseSlice, &srvDesc, handle);
-
-		handle.offset(1);
-		srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		device->CreateShaderResourceView(m_normalVelocitySlice, &srvDesc, handle);
-	}
 
 	createBufferViews(s_resourceManager, device);
 
@@ -507,10 +507,8 @@ void GBufferRenderer::shutdown()
 	m_cmdAlloc = nullptr;
 	m_commandList.destroy();
 
-	m_diffuseSlice = nullptr;
 	m_descriptorHeapRt.destroy();
 	m_descriptorHeapDs.destroy();
-	m_descriptorHeapSrv.destroy();
 	m_descriptorHeapBuffers.destroy();
 
 	m_pipelineState.destroy();
@@ -520,78 +518,81 @@ void GBufferRenderer::shutdown()
 
 void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
 {
-	auto hresult = m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
-	VX_ASSERT(hresult == 0);
-	// copylayer 0 depth buffer to layer 1
-	CD3DX12_RESOURCE_BARRIER barriers[2];
-	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE, 0);
-	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_DEST, 1);
-	m_commandList->ResourceBarrier(2, barriers);
-
-	CD3DX12_TEXTURE_COPY_LOCATION src(m_depthSlice, 0);
-	CD3DX12_TEXTURE_COPY_LOCATION dst(m_depthSlice, 1);
-	m_commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
-
-	barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE, 0);
-	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_depthSlice, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_DEPTH_WRITE, 1);
-	m_commandList->ResourceBarrier(2, barriers);
-
-	const f32 clearColor[] = { 1.0f, 0.0f, 0.0f, 1 };
-	const f32 clearColor0[] = { 0.0f, 0.0f, 0.0f, 0 };
-
-	auto handleCpu = m_descriptorHeapRt.getHandleCpu();
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[3];
-	rtvHandles[0] = handleCpu;
-	handleCpu.offset(1);
-	rtvHandles[1] = handleCpu;
-	handleCpu.offset(1);
-	rtvHandles[2] = handleCpu;
-
-	auto dsvHandle = m_descriptorHeapDs.getHandleCpu();;
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandles[1];
-	dsvHandles[0] = dsvHandle;
-
-	dsvHandle.offset(1);
-	auto dsvHandleClear = dsvHandle;
-
-	ID3D12DescriptorHeap* heaps[]
-	{
-		m_descriptorHeapBuffers.get()
-	};
-
-	D3D12_VIEWPORT viewPort;
-	viewPort.Height = (f32)s_resolution.y;
-	viewPort.Width = (f32)s_resolution.x;
-	viewPort.MaxDepth = 1.0f;
-	viewPort.MinDepth = 0.0f;
-	viewPort.TopLeftX = 0;
-	viewPort.TopLeftY = 0;
-
-	D3D12_RECT rectScissor;
-	rectScissor.left = 0;
-	rectScissor.top = 0;
-	rectScissor.right = s_resolution.x;
-	rectScissor.bottom = s_resolution.y;
-
-	m_commandList->RSSetViewports(1, &viewPort);
-	m_commandList->RSSetScissorRects(1, &rectScissor);
-
-	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-
-	m_commandList->SetDescriptorHeaps(1, heaps);
-
-	m_commandList->OMSetRenderTargets(3, rtvHandles, FALSE, dsvHandles);
-	m_commandList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
-	m_commandList->ClearRenderTargetView(rtvHandles[1], clearColor, 0, nullptr);
-	m_commandList->ClearRenderTargetView(rtvHandles[2], clearColor0, 0, nullptr);
-
-	m_commandList->ClearDepthStencilView(dsvHandleClear, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-	m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
-	m_commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
-
 	if (m_drawCount != 0)
 	{
+		auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
+
+		auto hresult = m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+		VX_ASSERT(hresult == 0);
+		// copylayer 0 depth buffer to layer 1
+		CD3DX12_RESOURCE_BARRIER barriers[2];
+		barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE, 0);
+		barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_DEST, 1);
+		m_commandList->ResourceBarrier(2, barriers);
+
+		CD3DX12_TEXTURE_COPY_LOCATION src(gbufferDepth, 0);
+		CD3DX12_TEXTURE_COPY_LOCATION dst(gbufferDepth, 1);
+		m_commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+
+		barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE, 0);
+		barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_DEPTH_WRITE, 1);
+		m_commandList->ResourceBarrier(2, barriers);
+
+	//	const f32 clearColor[] = { 1.0f, 0.0f, 0.0f, 1 };
+		const f32 clearColor0[] = { 0.0f, 0.0f, 0.0f, 0 };
+
+		auto handleCpu = m_descriptorHeapRt.getHandleCpu();
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[4];
+		rtvHandles[0] = handleCpu;
+		handleCpu.offset(1);
+		rtvHandles[1] = handleCpu;
+		handleCpu.offset(1);
+		rtvHandles[2] = handleCpu;
+		handleCpu.offset(1);
+		rtvHandles[3] = handleCpu;
+
+		auto dsvHandle = m_descriptorHeapDs.getHandleCpu();;
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandles[1];
+		dsvHandles[0] = dsvHandle;
+
+		dsvHandle.offset(1);
+		auto dsvHandleClear = dsvHandle;
+
+		ID3D12DescriptorHeap* heaps[]
+		{
+			m_descriptorHeapBuffers.get()
+		};
+
+		D3D12_VIEWPORT viewPort;
+		viewPort.Height = (f32)s_resolution.y;
+		viewPort.Width = (f32)s_resolution.x;
+		viewPort.MaxDepth = 1.0f;
+		viewPort.MinDepth = 0.0f;
+		viewPort.TopLeftX = 0;
+		viewPort.TopLeftY = 0;
+
+		D3D12_RECT rectScissor;
+		rectScissor.left = 0;
+		rectScissor.top = 0;
+		rectScissor.right = s_resolution.x;
+		rectScissor.bottom = s_resolution.y;
+
+		m_commandList->RSSetViewports(1, &viewPort);
+		m_commandList->RSSetScissorRects(1, &rectScissor);
+
+		m_commandList->OMSetRenderTargets(4, rtvHandles, FALSE, dsvHandles);
+		m_commandList->ClearRenderTargetView(rtvHandles[0], clearColor0, 0, nullptr);
+		m_commandList->ClearRenderTargetView(rtvHandles[1], clearColor0, 0, nullptr);
+		m_commandList->ClearRenderTargetView(rtvHandles[2], clearColor0, 0, nullptr);
+		m_commandList->ClearRenderTargetView(rtvHandles[3], clearColor0, 0, nullptr);
+
+		m_commandList->ClearDepthStencilView(dsvHandleClear, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+		m_commandList->SetDescriptorHeaps(1, heaps);
+		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+		m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
+		m_commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
+		
 		auto drawCmdBuffer = s_resourceManager->getBuffer(L"drawCmdBuffer");
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
 		vertexBufferViews[0] = s_resourceManager->getResourceView("meshVertexBufferView")->vbv;
@@ -602,34 +603,12 @@ void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
 		m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
 		m_commandList->IASetIndexBuffer(&indexBufferView);
 
-		//const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size;
 		m_commandList->ExecuteIndirect(m_commandSignature.get(), m_drawCount, drawCmdBuffer, 0, drawCmdBuffer, m_countOffset);
+
+		hresult = m_commandList->Close();
+		VX_ASSERT(hresult == 0);
+
+		list[*index] = m_commandList.get();
+		++(*index);
 	}
-
-	// draw meshes
-	/*
-	if (!m_drawCommands.empty())
-	{
-	
-
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
-	vertexBufferViews[0] = m_resourceManager.getResourceView("meshVertexBufferView")->vbv;
-	vertexBufferViews[1] = m_resourceManager.getResourceView("meshDrawIdBufferView")->vbv;
-	auto indexBufferView = m_resourceManager.getResourceView("meshIndexBufferView")->ibv;
-
-	m_commandListDrawMesh->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_commandListDrawMesh->IASetVertexBuffers(0, 2, vertexBufferViews);
-	m_commandListDrawMesh->IASetIndexBuffer(&indexBufferView);
-
-	auto cmdCount = m_drawCommands.size();
-	const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size;
-	m_commandListDrawMesh->ExecuteIndirect(m_commandSignature.get(), cmdCount, drawCmdBuffer, 0, drawCmdBuffer, countOffset);
-	}
-	*/
-
-	hresult = m_commandList->Close();
-	VX_ASSERT(hresult == 0);
-
-	list[*index] = m_commandList.get();
-	++(*index);
 }

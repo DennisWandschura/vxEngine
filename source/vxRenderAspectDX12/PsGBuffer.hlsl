@@ -4,8 +4,9 @@
 struct Output
 {
 	float4 diffuseSlice : SV_TARGET0;
-	half4 normalVelocitySlice : SV_TARGET1;
-	float2 surfaceSlice : SV_TARGET2;
+	half2 normalSlice : SV_TARGET1;
+	half2 velocitySlice : SV_TARGET2;
+	float2 surfaceSlice : SV_TARGET3;
 };
 
 struct PSInput
@@ -54,7 +55,8 @@ Output main(PSInput input)
 
 	Output output;
 	output.diffuseSlice = diffuseColor;
-	output.normalVelocitySlice = float4(compressedNormal, velocity);
+	output.normalSlice = compressedNormal;//float4(compressedNormal, velocity);
+	output.velocitySlice = velocity;
 	output.surfaceSlice = surfaceValues;
 
 	return output;

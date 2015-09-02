@@ -48,10 +48,6 @@ class GBufferRenderer : public RenderPass
 	d3d::DescriptorHeap m_descriptorHeapBuffers;
 	d3d::DescriptorHeap m_descriptorHeapRt;
 	d3d::DescriptorHeap m_descriptorHeapDs;
-	d3d::DescriptorHeap m_descriptorHeapSrv;
-	ID3D12Resource* m_diffuseSlice;
-	ID3D12Resource* m_normalVelocitySlice;
-	ID3D12Resource* m_depthSlice;
 	d3d::Object<ID3D12CommandSignature> m_commandSignature;
 	u32 m_countOffset;
 	u32 m_drawCount;

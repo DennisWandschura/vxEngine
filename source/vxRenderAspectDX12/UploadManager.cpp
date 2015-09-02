@@ -355,8 +355,17 @@ ID3D12GraphicsCommandList* UploadManager::update()
 {
 	processQueue();
 
-	m_commandAllocator->Reset();
-	m_commandList->Reset(m_commandAllocator.get(), nullptr);
+	auto hr = m_commandAllocator->Reset();
+	if (hr != 0)
+	{
+		puts("errror");
+	}
+
+	hr = m_commandList->Reset(m_commandAllocator.get(), nullptr);
+	if (hr != 0)
+	{
+		puts("errror");
+	}
 
 	processTasks();
 

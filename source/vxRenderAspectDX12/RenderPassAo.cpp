@@ -109,8 +109,8 @@ bool RenderPassAO::loadShaders(d3d::ShaderManager* shaderManager)
 bool RenderPassAO::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 0);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 1);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, 0);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 2);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(2, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -134,7 +134,7 @@ bool RenderPassAO::createRootSignature(ID3D12Device* device)
 bool RenderPassAO::createRootSignatureBlurX(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 2);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 3);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -158,7 +158,7 @@ bool RenderPassAO::createRootSignatureBlurX(ID3D12Device* device)
 bool RenderPassAO::createRootSignatureBlurY(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 3);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 4);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -193,27 +193,6 @@ bool RenderPassAO::createPipelineState(ID3D12Device* device, d3d::ShaderManager*
 	inputDesc.rtvFormats = &rtvFormat;
 	inputDesc.rtvCount = 1;
 	auto psoDesc = d3d::PipelineState::getDefaultDescription(inputDesc);
-
-	/*D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	psoDesc.InputLayout = { nullptr, 0 };
-	psoDesc.pRootSignature = m_rootSignature.get();
-	psoDesc.VS = { reinterpret_cast<UINT8*>(vsShader->GetBufferPointer()), vsShader->GetBufferSize() };
-	psoDesc.GS = { reinterpret_cast<UINT8*>(gsShader->GetBufferPointer()), gsShader->GetBufferSize() };
-	psoDesc.PS = { reinterpret_cast<UINT8*>(psShader->GetBufferPointer()), psShader->GetBufferSize() };
-	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.FrontCounterClockwise = 1;
-	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState.DepthEnable = 0;
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	psoDesc.SampleDesc.Count = 1;
-
-	auto hresult = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_pipelineState.getAddressOf()));
-	if (hresult != 0)
-		return false;*/
 
 	if (!d3d::PipelineState::create(psoDesc, &m_pipelineState, device))
 		return false;
@@ -263,9 +242,6 @@ bool RenderPassAO::createBuffer()
 	}
 	*/
 
-	//vx::mat4d P;
-	//getProjectUnitMatrix(viewport, m_fov, 0.1, 100.0, P);
-
 	//f64 aspectRatio = (f64)m_resolution.x / m_resolution.y;
 	vx::mat4d P = s_settings->m_projectionMatrix;
 
@@ -274,6 +250,11 @@ bool RenderPassAO::createBuffer()
 	projInfo.y = float(-2.0 / (s_resolution.y * P.c[1].m256d_f64[1]));
 	projInfo.z = float((1.0 - (double)P.c[0].m256d_f64[2]) / P.c[0].m256d_f64[0]);
 	projInfo.w = float((1.0 + (double)P.c[1].m256d_f64[2]) / P.c[1].m256d_f64[1]);
+
+	/*projInfo.x = 2.0 / (static_cast<f64>(s_resolution.x) * P.c[0].m256d_f64[0]);
+	projInfo.y = -2.0 / (static_cast<f64>(s_resolution.y) * P.c[1].m256d_f64[1]);
+	projInfo.z = -1.0 / P.c[0].m256d_f64[0];
+	projInfo.w = 1.0f / P.c[1].m256d_f64[1];*/
 
 	const f32 scale = static_cast<f32>(-2.0 * tan(s_settings->m_fovRad * 0.5));
 
@@ -319,13 +300,14 @@ bool RenderPassAO::createRtv(ID3D12Device* device)
 
 bool RenderPassAO::createSrv(ID3D12Device* device)
 {
-	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto zBuffer0 = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto zBuffer1 = s_resourceManager->getTextureRtDs(L"zBuffer1");
 	auto saoBuffer = s_resourceManager->getBuffer(L"saoBuffer");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
-	heapDesc.NumDescriptors = 4;
+	heapDesc.NumDescriptors = 5;
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	heapDesc.NodeMask = 1;
@@ -342,10 +324,12 @@ bool RenderPassAO::createSrv(ID3D12Device* device)
 	srvDesc.Texture2D.PlaneSlice = 0;
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	device->CreateShaderResourceView(zBuffer, &srvDesc, handle);
+	device->CreateShaderResourceView(zBuffer0, &srvDesc, handle);
 
 	handle.offset(1);
+	device->CreateShaderResourceView(zBuffer1, &srvDesc, handle);
 
+	handle.offset(1);
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
 	cbvDesc.BufferLocation = saoBuffer->GetGPUVirtualAddress();
 	cbvDesc.SizeInBytes = d3d::AlignedSizeType<GpuSaoBuffer, 1, 256>::size;

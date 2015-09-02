@@ -47,7 +47,6 @@ namespace d3d
 		D3D12_INPUT_LAYOUT_DESC inputLayout;
 		const DXGI_FORMAT* rtvFormats; 
 		u32 rtvCount;
-		u32 inputLayoutCount;
 		DXGI_FORMAT dsvFormat;
 
 		PipelineStateDescInput()
@@ -58,7 +57,6 @@ namespace d3d
 			inputLayout(),
 			rtvFormats(nullptr),
 			rtvCount(0),
-			inputLayoutCount(),
 			dsvFormat(DXGI_FORMAT_UNKNOWN)
 		{
 			inputLayout.pInputElementDescs = nullptr;

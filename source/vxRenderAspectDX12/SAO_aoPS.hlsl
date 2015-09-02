@@ -64,6 +64,7 @@ struct PixelOutput
 };
 
 Texture2D<float> CS_Z_buffer : register(t0);
+Texture2D<float> CS_Z_buffer1 : register(t1);
 
 cbuffer SaoBufferBlock : register(b0)
 {
@@ -101,22 +102,32 @@ float3 reconstructCSPosition(float2 S, float z)
 	return float3((S.xy * saoBuffer.projInfo.xy + saoBuffer.projInfo.zw) * z, z);
 }
 
+float sampleZBuffer(int3 ssP)
+{
+	return CS_Z_buffer.Load(ssP).r * 100.0f;
+}
+
 /** Read the camera-space position of the point at screen-space pixel ssP */
 float3 getPosition(int2 ssP)
 {
 	float3 P;
 
-	P.z = CS_Z_buffer.Load(int3(ssP, 0)).r;
+	P.z = sampleZBuffer(int3(ssP, 0));
 
 	// Offset to pixel center
 	P = reconstructCSPosition(float2(ssP) + float2(0.5, 0.5), P.z);
 	return P;
 }
 
+float3 reconstructNonUnitCSFaceNormal(float3 C)
+{
+	return cross(ddy(C), ddx(C));
+}
+
 /** Reconstructs screen-space unit normal from screen-space position */
 float3 reconstructCSFaceNormal(float3 C) 
 {
-	return normalize(cross(ddy(C), ddx(C)));
+	return normalize(reconstructNonUnitCSFaceNormal(C));
 }
 
 /** Returns a unit vector and a screen-space radius for the tap on a unit disk (the caller should scale by the actual disk radius) */
@@ -131,6 +142,23 @@ float2 tapLocation(int sampleNumber, float spinAngle, out float ssR)
 }
 
 /** Read the camera-space position of the point at screen-space pixel ssP + unitOffset * ssR.  Assumes length(unitOffset) == 1 */
+void getOffsetPositions(int2 ssC, float2 unitOffset, float ssR, float radius2, out float3 P0, out float3 P1)
+{
+	// Derivation:
+	//  mipLevel = floor(log(ssR / MAX_OFFSET));
+	int mipLevel = clamp((int)floor(log2(ssR)) - LOG_MAX_OFFSET, 0, MAX_MIP_LEVEL);
+
+	int2 ssP = int2(ssR*unitOffset) + ssC;
+
+	// Divide coordinate by 2^mipLevel
+	P0.z = CS_Z_buffer.Load(int3(ssP >> mipLevel, mipLevel)).r;
+	P1.z = CS_Z_buffer1.Load(int3(ssP >> mipLevel, mipLevel)).r;
+
+	// Offset to pixel center
+	P0 = reconstructCSPosition(float2(ssP) + float2(0.5, 0.5), P0.z);
+	P1 = reconstructCSPosition(float2(ssP)+float2(0.5, 0.5), P1.z);
+}
+
 float3 getOffsetPosition(int2 ssC, float2 unitOffset, float ssR, float radius2)
 {
 	// Derivation:
@@ -142,7 +170,8 @@ float3 getOffsetPosition(int2 ssC, float2 unitOffset, float ssR, float radius2)
 	float3 P;
 
 	// Divide coordinate by 2^mipLevel
-	P.z = CS_Z_buffer.Load(int3(ssP >> mipLevel, mipLevel)).r;
+	//P.z = CS_Z_buffer.Load(int3(ssP >> mipLevel, mipLevel)).r * 100.0;
+	P.z = sampleZBuffer(int3(ssP >> mipLevel, mipLevel));
 
 	// Offset to pixel center
 	P = reconstructCSPosition(float2(ssP)+float2(0.5, 0.5), P.z);
@@ -150,32 +179,18 @@ float3 getOffsetPosition(int2 ssC, float2 unitOffset, float ssR, float radius2)
 	return P;
 }
 
-/** Compute the occlusion due to sample with index \a i about the pixel at \a ssC that corresponds
-to camera-space point \a C with unit normal \a n_C, using maximum screen-space sampling radius \a ssDiskRadius */
-float sampleAO(in int2 ssC, in float3 C, in float3 n_C, in float ssDiskRadius, in int tapIndex, in float randomPatternRotationAngle, float radius2) 
+float fallOffFunction(float vv, float vn, float epsilon, float invRadius2)
 {
-	// Offset on the unit disk, spun for this pixel
-	float ssR;
-	float2 unitOffset = tapLocation(tapIndex, randomPatternRotationAngle, ssR);
-	ssR *= ssDiskRadius;
-
-	// The occluding point in camera space
-	float3 Q = getOffsetPosition(ssC, unitOffset, ssR, radius2);
-
-	float3 v = Q - C;
-
-	float vv = dot(v, v);
-	float vn = dot(v, n_C);
-
-	const float epsilon = 0.01;
-
 	// A: From the HPG12 paper
 	// Note large epsilon to avoid overdarkening within cracks
 	// return float(vv < radius2) * max((vn - bias) / (epsilon + vv), 0.0) * radius2 * 0.6;
 
 	// B: Smoother transition to zero (lowers contrast, smoothing out corners). [Recommended]
-	float f = max(radius2 - vv, 0.0); 
-	return f * f * f * max((vn - saoBuffer.bias) / (epsilon + vv), 0.0);
+	//float f = max(radius2 - vv, 0.0);
+	//return f * f * f * max((vn - saoBuffer.bias) / (epsilon + vv), 0.0);
+
+	float f = max(1.0 - vv * invRadius2, 0.0); 
+	return f * max((vn - saoBuffer.bias) * rsqrt(epsilon + vv), 0.0);
 
 	// C: Medium contrast (which looks better at high radii), no division.  Note that the 
 	// contribution still falls off with radius^2, but we've adjusted the rate in a way that is
@@ -187,8 +202,48 @@ float sampleAO(in int2 ssC, in float3 C, in float3 n_C, in float ssDiskRadius, i
 	// return 2.0 * float(vv < radius * radius) * max(vn - bias, 0.0);
 }
 
+/** Compute the occlusion due to sample point \a Q about camera-space point \a C with unit normal \a n_C */
+float aoValueFromPositionsAndNormal(float3 C, float3 n_C, float3 Q, float invRadius2)
+{
+	float3 v = Q - C;
+	float vv = dot(v, v);
+	float vn = dot(v, n_C);
+	const float epsilon = 0.001;
+
+	// Without the angular adjustment term, surfaces seen head on have less AO
+	return fallOffFunction(vv, vn, epsilon, invRadius2) * lerp(1.0, max(0.0, 1.5 * n_C.z), 0.35);
+}
+
+/** Compute the occlusion due to sample with index \a i about the pixel at \a ssC that corresponds
+to camera-space point \a C with unit normal \a n_C, using maximum screen-space sampling radius \a ssDiskRadius */
+float sampleAO(in int2 ssC, in float3 C, in float3 n_C, in float ssDiskRadius, in int tapIndex, in float randomPatternRotationAngle, float radius2, float invRadius2)
+{
+	// Offset on the unit disk, spun for this pixel
+	float ssR;
+	float2 unitOffset = tapLocation(tapIndex, randomPatternRotationAngle, ssR);
+	// Ensure that the taps are at least 1 pixel away
+	//ssR = max(0.75, ssR * ssDiskRadius);
+	ssR *= ssDiskRadius;
+
+	// The occluding point in camera space
+	float3 Q = getOffsetPosition(ssC, unitOffset, ssR, radius2);
+	return aoValueFromPositionsAndNormal(C, n_C, Q, invRadius2);
+	/*float3 Q0;
+	float3 Q1;
+	getOffsetPositions(ssC, unitOffset, ssR, radius2, Q0, Q1);
+
+	return max(aoValueFromPositionsAndNormal(C,  n_C, Q0, invRadius2), aoValueFromPositionsAndNormal(C, n_C, Q1, invRadius2));*/
+}
+
+float square(float x)
+{
+	return x * x;
+}
+
 PixelOutput main(GSOutput input)
 {
+	const float MIN_RADIUS = 3.0; // pixels
+
 	PixelOutput fragment;
 	fragment.color = 1;
 
@@ -206,34 +261,58 @@ PixelOutput main(GSOutput input)
 	// Reconstruct normals from positions. These will lead to 1-pixel black lines
 	// at depth discontinuities, however the blur will wipe those out so they are not visible
 	// in the final image.
-	float3 n_C = reconstructCSFaceNormal(C);
+	//float3 n_C = reconstructCSFaceNormal(C);
+	float3 n_C = reconstructNonUnitCSFaceNormal(C);
+	if (dot(n_C, n_C) > (square(C.z * C.z * 0.00006))) 
+	{ 
+		// if the threshold # is too big you will see black dots where we used a bad normal at edges, too small -> white
+		// The normals from depth should be very small values before normalization,
+		// except at depth discontinuities, where they will be large and lead
+		// to 1-pixel false occlusions because they are not reliable
+		visibility = 1.0;
+		return fragment;
+	}
+	else 
+	{
+		n_C = normalize(n_C);
+	}
 
 	// Choose the screen-space sample radius
 	// proportional to the projected area of the sphere
 	float ssDiskRadius = -saoBuffer.projScale * saoBuffer.radius / C.z;
+	/*if (ssDiskRadius <= MIN_RADIUS) 
+	{
+		// There is no way to compute AO at this radius
+		visibility = 1.0;
+		return fragment;
+	}*/
+
 	float radius2 = saoBuffer.radius * saoBuffer.radius;
+	float invRadius2 = 1.0 / radius2;
 
 	float sum = 0.0;
 	for (int i = 0; i < NUM_SAMPLES; ++i) 
 	{
-		sum += sampleAO(ssC, C, n_C, ssDiskRadius, i, randomPatternRotationAngle, radius2);
+		sum += sampleAO(ssC, C, n_C, ssDiskRadius, i, randomPatternRotationAngle, radius2, invRadius2);
 	}
 
 	float intensityDivR6 = saoBuffer.intensity / pow(saoBuffer.radius, 6.0f);
 
-	float A = max(0.0, 1.0 - sum * intensityDivR6 * (5.0 / NUM_SAMPLES));
-	A= lerp(A, 1.0f, 1.0f - saturate(0.5f * C.z));
+	//float A = max(0.0, 1.0 - sum * intensityDivR6 * (5.0 / NUM_SAMPLES));
+	float A = pow(max(0.0, 1.0 - sqrt(sum * (3.0 / NUM_SAMPLES))), saoBuffer.intensity);
+	A = lerp(A, 1.0f, 1.0f - saturate(0.5f * C.z));
 
 	// Bilateral box-filter over a quad for free, respecting depth edges
 	// (the difference that this makes is subtle)
-	if (abs(ddx(C.z)) < 0.02) {
+	/*if (abs(ddx(C.z)) < 0.02) {
 		A -= ddx(A) * ((ssC.x & 1) - 0.5);
 	}
 	if (abs(ddy(C.z)) < 0.02) {
 		A -= ddy(A) * ((ssC.y & 1) - 0.5);
-	}
+	}*/
 
 	visibility = A;
+	//visibility = lerp(1.0, A, saturate(ssDiskRadius - MIN_RADIUS));
 
 	return fragment;
 }
