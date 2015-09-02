@@ -108,6 +108,8 @@ void Engine::update()
 
 	m_resourceAspect.update();
 
+	m_audioAspect->update();
+
 	//printf("task manager begin\n");
 	//m_taskManager.update();
 	//m_taskManager.wait();
