@@ -83,6 +83,8 @@ namespace Editor
 
 		void bindBuffers();
 
+		void reportLiveObjects();
+
 	public:
 		RenderAspect();
 		~RenderAspect();
@@ -106,8 +108,6 @@ namespace Editor
 		void handleMessage(const vx::Message &evt) override;
 
 		void keyPressed(u16 key);
-
-		void getProjectionMatrix(vx::mat4* m);
 
 		void getTotalVRam(u32* totalVram) const;
 		void getTotalAvailableVRam(u32* totalAvailableVram) const;
@@ -134,5 +134,7 @@ namespace Editor
 		void updateJoints(const Joint* joints, u32 count, const vx::sorted_vector<vx::StringID, MeshInstance> &meshinstances);
 
 		const vx::Camera& getCamera() const;
+
+		void getProjectionMatrix(vx::mat4* m) const override;
 	};
 }
