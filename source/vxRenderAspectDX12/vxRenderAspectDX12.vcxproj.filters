@@ -222,6 +222,12 @@
     <ClInclude Include="RenderPassDrawVoxel.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="GpuShadowTransform.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawIndexedIndirectCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -308,9 +314,6 @@
     <ClCompile Include="RenderPassVisibleLights.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPassShadow.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="PipelineState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -318,6 +321,12 @@
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassDrawVoxel.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawIndexedIndirectCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassShadow.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
@@ -357,9 +366,6 @@
     </FxCompile>
     <FxCompile Include="FinalPS.hlsl">
       <Filter>Shaders\final</Filter>
-    </FxCompile>
-    <FxCompile Include="ShadePS.hlsl">
-      <Filter>Shaders\shadng</Filter>
     </FxCompile>
     <FxCompile Include="CullLightsCS.hlsl">
       <Filter>Shaders\cull lights</Filter>
@@ -402,6 +408,12 @@
     </FxCompile>
     <FxCompile Include="ShadowMapGS.hlsl">
       <Filter>Shaders\shadowmap</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowMapPS.hlsl">
+      <Filter>Shaders\shadowmap</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadePS.hlsl">
+      <Filter>Shaders\shadng</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

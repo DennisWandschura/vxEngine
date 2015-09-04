@@ -2,6 +2,9 @@
 #include "ResourceManager.h"
 #include "ShaderManager.h"
 #include "d3dx12.h"
+
+#include <vxLib/math/matrix.h>
+typedef vx::mat4 float4x4;
 #include "GpuVoxel.h"
 
 RenderPassDrawVoxel::RenderPassDrawVoxel(ID3D12CommandAllocator* cmdAlloc)

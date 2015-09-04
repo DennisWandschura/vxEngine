@@ -1,6 +1,10 @@
 #include "RenderPassVoxelize.h"
 #include "ResourceManager.h"
 #include "ShaderManager.h"
+
+#include <vxLib/math/matrix.h>
+typedef vx::mat4 float4x4;
+
 #include "GpuVoxel.h"
 #include "UploadManager.h"
 #include "d3dx12.h"

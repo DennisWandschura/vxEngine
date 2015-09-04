@@ -24,12 +24,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class DrawIndexedIndirectCommand;
+
 #include "RenderPass.h"
+#include "CommandList.h"
+#include "DescriptorHeap.h"
 
 class RenderPassShadow : public RenderPass
 {
+	d3d::GraphicsCommandList m_commandList;
+	ID3D12CommandAllocator* m_cmdAlloc;
+	DrawIndexedIndirectCommand* m_drawCmd;
+	d3d::DescriptorHeap m_heapDsv;
+	d3d::DescriptorHeap m_heapRtv;
+	d3d::DescriptorHeap m_heapSrv;
+
+	bool loadShaders();
+	bool createRootSignature(ID3D12Device* device);
+	bool createPipelineState(ID3D12Device* device);
+	bool createCommandList(ID3D12Device* device);
+
+	void uploadData();
+
 public:
-	RenderPassShadow();
+	RenderPassShadow(ID3D12CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd);
 	~RenderPassShadow();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;

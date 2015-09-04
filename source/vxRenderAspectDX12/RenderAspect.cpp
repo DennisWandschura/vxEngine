@@ -22,6 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <vxLib/math/matrix.h>
+typedef vx::mat4 float4x4;
+
 #include "RenderAspect.h"
 #include "d3dHelper.h"
 #include <vxLib/Window.h>
@@ -52,6 +55,9 @@ SOFTWARE.
 #include "RenderPassVisibleLights.h"
 #include "RenderPassVoxelize.h"
 #include "RenderPassDrawVoxel.h"
+#include "RenderPassShadow.h"
+#include <vxEngineLib/ResourceAspectInterface.h>
+#include <vxEngineLib/MeshFile.h>
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/GpuFunctions.h>
@@ -130,15 +136,16 @@ void RenderAspect::createRenderPasses()
 {
 	RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager, &s_settings);
 
-	const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size;
-
-	m_gbufferRenderer = new GBufferRenderer(m_commandAllocator.get(), countOffset);
+	m_gbufferRenderer = new GBufferRenderer(m_commandAllocator.get(), &m_drawCommandMesh);
 	auto renderPassCullLights = new RenderPassCullLights(m_commandAllocator.get());
 	auto renderPassVisibleLights = new RenderPassVisibleLights(m_commandAllocator.get());
 
 	m_renderPasses.push_back(m_gbufferRenderer);
 	m_renderPasses.push_back(renderPassCullLights);
 	m_renderPasses.push_back(renderPassVisibleLights);
+	//m_lightManager.getDrawCommand(0))
+	m_renderPasses.push_back(new RenderPassShadow(m_commandAllocator.get(), &m_drawCommandMesh));
+
 	m_renderPasses.push_back(new RenderPassZBuffer(m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassZBufferCreateMipmaps(m_commandAllocator.get()));
 
@@ -162,14 +169,17 @@ void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &
 	}
 
 	const u32 cbufferSize = 64u KBYTE;
-	const auto drawCmdSize = d3d::AlignedSize<d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size + 256, 64 KBYTE>::size;
+
 	const auto transformBufferSize = d3d::AlignedSizeType<vx::TransformGpu, g_maxMeshInstances, 64 KBYTE>::size;
 	const auto materialBufferSize = d3d::AlignedSizeType<u32, g_maxMeshInstances, 64 KBYTE>::size;
 	const auto lightBufferSize = d3d::AlignedSizeType<GpuLight, g_maxLightCount, 64 KBYTE>::size;
 
 	m_materialManager.getRequiredMemory(dimSrgb, dimRgb, bufferHeapSize, textureHeapSize, rtDsHeapSize, device);
 
-	*bufferHeapSize += cbufferSize + drawCmdSize + transformBufferSize + materialBufferSize + lightBufferSize + transformBufferSize;
+	m_drawCommandMesh.getRequiredMemory(g_maxMeshInstances, bufferHeapSize);
+	m_lightManager.getRequiredMemory(bufferHeapSize);
+
+	*bufferHeapSize += cbufferSize + transformBufferSize + materialBufferSize + lightBufferSize + transformBufferSize;
 }
 
 bool RenderAspect::initializeRenderPasses()
@@ -187,7 +197,6 @@ bool RenderAspect::initializeRenderPasses()
 bool RenderAspect::createConstantBuffers()
 {
 	const u32 cbufferSize = 64u KBYTE;
-	const auto drawCmdSize = d3d::AlignedSize<d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256>::size + 256, 64 KBYTE>::size;
 	const auto transformBufferSize = d3d::AlignedSizeType<vx::TransformGpu, g_maxMeshInstances, 64 KBYTE>::size;
 	const auto materialBufferSize = d3d::AlignedSizeType<u32, g_maxMeshInstances, 64 KBYTE>::size;
 	const auto lightBufferSize = d3d::AlignedSize<sizeof(GpuLight) * g_maxLightCount + 16, 64 KBYTE>::size;
@@ -196,17 +205,15 @@ bool RenderAspect::createConstantBuffers()
 	const wchar_t* names[] =
 	{
 		L"constantBuffer",
-		L"drawCmdBuffer",
 		L"transformBuffer",
 		L"materialBuffer",
 		L"lightBuffer",
 		L"transformBufferPrev"
 	};
-	u64 sizes[6] = { cbufferSize, drawCmdSize, transformBufferSize, materialBufferSize, lightBufferSize, transformBufferSize };
-	u32 states[6] = 
+	u64 sizes[] = { cbufferSize, transformBufferSize, materialBufferSize, lightBufferSize, transformBufferSize };
+	u32 states[] = 
 	{
 		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
-		D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, 
 		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
@@ -219,6 +226,9 @@ bool RenderAspect::createConstantBuffers()
 		if (ptr == nullptr)
 			return false;
 	}
+
+	if (!m_drawCommandMesh.create(L"drawCmdBuffer", g_maxMeshInstances, &m_resourceManager, m_device.getDevice()))
+		return false;
 
 	return true;
 }
@@ -300,9 +310,6 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	if(!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, &m_resourceManager, device, desc.pAllocator))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
-	if (!m_lightManager.initialize(desc.pAllocator, g_maxLightCount))
-		return RenderAspectInitializeError::ERROR_CONTEXT;
-
 	u64 bufferHeapSize = 0; 
 	u64 textureHeapSize = 0;
 	u64 rtDsHeapSize = 0;
@@ -312,6 +319,9 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	getRequiredMemory(textureDimSrgb, textureDimRgb, &bufferHeapSize, &textureHeapSize, &rtDsHeapSize);
 
 	if(!m_resourceManager.initializeHeaps(bufferHeapSize, textureHeapSize, rtDsHeapSize, device))
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+
+	if (!m_lightManager.initialize(desc.pAllocator, g_maxLightCount, &m_resourceManager))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	if (!m_materialManager.initialize(textureDimSrgb, textureDimRgb, &m_allocator, &m_resourceManager, device))
@@ -346,6 +356,7 @@ void RenderAspect::shutdown(void* hwnd)
 	m_graphicsCommandQueue.wait();
 
 	m_drawCommands.clear();
+	m_drawCommandMesh.destroy();
 
 	m_shaderManager.shutdown();
 	m_msgManager = nullptr;
@@ -430,13 +441,14 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	viewMatrix.asFloat(&bufferData.viewMatrix);
 	pvMatrix.asFloat(&bufferData.pvMatrix);
 	pvMatrixPrev.asFloat(&bufferData.pvMatrixPrev);
+	bufferData.invViewMatrix = vx::MatrixInverse(bufferData.viewMatrix);
 	bufferData.projMatrix = projMatrix;
 	bufferData.invProjMatrix = vx::MatrixInverse(projMatrix);
 	bufferData.projInfo = projInfo;
 	bufferData.zFar = s_settings.m_farZ;
 	bufferData.zNear = s_settings.m_nearZ;
 
-	f32 zNear = 0.1;
+	/*f32 zNear = 0.1;
 	f32 zFar = 100.0;
 
 	__m128 p = {-5.4f, 1, -10, 1};
@@ -474,24 +486,7 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 
 	f32 projw = 1.0f * bufferData.invProjMatrix.c[1].m128_f32[1];
 	f32 projy = -2.0f / 1080.f * bufferData.invProjMatrix.c[1].m128_f32[1];
-	f32 pvvy = (sy * projy + projw) * invWW;
-
-
-	//f32 px = (sx * projInfo.x + projInfo.z) * zz;
-	//f32 py = (sy * projInfo.y + projInfo.w) * zz;
-	//return float3((S.xy * cameraBuffer.projInfo.xy + cameraBuffer.projInfo.zw) * zz, zz);
-
-	//__m128 lp = { 0, 2.8f, -2, 1 };
-	//auto llp = _mm_sub_ps(bufferData.position, lp);
-	//auto lpv = vx::Vector4Transform(vMatrix, lp);
-
-	/*auto Lw = _mm_sub_ps(lp, p);
-	auto Lv = _mm_sub_ps(lpv, pv);
-	auto Lvv = _mm_sub_ps(llp, pv);
-
-	auto lw = vx::length3(Lw);
-	auto lv = vx::length3(Lv);
-	auto lvv = vx::length3(Lvv);*/
+	f32 pvvy = (sy * projy + projw) * invWW;*/
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
 
@@ -574,8 +569,15 @@ void RenderAspect::update()
 {
 	m_debug.printDebugMessages();
 
+	auto camPos = m_camera.getPosition();
+	auto camRot = m_camera.getRotation();
+	__m128 cameraPosition = _mm256_cvtpd_ps(camPos);
+	__m128 cameraRotation = _mm256_cvtpd_ps(camRot);
 
-	m_lightManager.update(m_frustum);
+	__m128 cameraDirection = {0, 0, -1, 0};
+	cameraDirection = vx::quaternionRotation(cameraDirection, cameraRotation);
+
+	m_lightManager.update(cameraPosition, cameraDirection, m_frustum);
 }
 
 void RenderAspect::updateProfiler(f32 dt)
@@ -854,7 +856,7 @@ void RenderAspect::copyTransform(u32 index)
 	m_copyTransforms.push_back(index);
 }
 
-void RenderAspect::addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex)
+D3D12_DRAW_INDEXED_ARGUMENTS RenderAspect::addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex)
 {
 	auto material = meshInstance.getMaterial();
 	u32 materialIndex = 0;
@@ -872,29 +874,21 @@ void RenderAspect::addMeshInstance(const MeshInstance &meshInstance, u32* gpuInd
 	auto materialOffset = sizeof(u32) * materialIndex;
 	m_uploadManager.pushUploadBuffer((u8*)&materialSlices, materialBuffer, materialOffset, sizeof(u32), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-	auto cmdOffset = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * cmd.baseInstance;
-
-	auto drawCmdBuffer = m_resourceManager.getBuffer(L"drawCmdBuffer");
 	D3D12_DRAW_INDEXED_ARGUMENTS cmdArgs;
 	cmdArgs.BaseVertexLocation = cmd.baseVertex;
 	cmdArgs.IndexCountPerInstance = cmd.indexCount;
 	cmdArgs.InstanceCount = cmd.instanceCount;
 	cmdArgs.StartIndexLocation = cmd.firstIndex;
 	cmdArgs.StartInstanceLocation = cmd.baseInstance;
-	m_uploadManager.pushUploadBuffer((u8*)&cmdArgs, drawCmdBuffer, cmdOffset, sizeof(D3D12_DRAW_INDEXED_ARGUMENTS), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-
-	*gpuIndex = cmd.baseInstance;
+	m_drawCommandMesh.uploadDrawCommand(cmd.baseInstance, cmdArgs, &m_uploadManager);
 
 	auto instanceCount = m_meshManager.getInstanceCount();
+	m_drawCommandMesh.setCount(instanceCount, &m_uploadManager);
 
-	const auto countOffset = d3d::AlignedSizeType<D3D12_DRAW_INDEXED_ARGUMENTS, g_maxMeshInstances, 256llu>::size;
-	u32 count = instanceCount;
-	m_uploadManager.pushUploadBuffer((u8*)&count, drawCmdBuffer, countOffset, sizeof(u32), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-
+	*gpuIndex = cmd.baseInstance;
 	m_meshManager.updateResourceViews(&m_resourceManager);
 
-	m_gbufferRenderer->setDrawCount(instanceCount);
-	//m_renderPassVoxelize->setDrawCount(instanceCount);
+	return cmdArgs;
 }
 
 void RenderAspect::updateLights(const Light* lights, u32 count)
@@ -907,7 +901,7 @@ void RenderAspect::updateLights(const Light* lights, u32 count)
 		gpuLights[i + 1].lumen = lights[i].m_lumen;
 	} 
 
-	m_lightManager.loadSceneLights(lights, count);
+	m_lightManager.loadSceneLights(lights, count, m_device.getDevice(), &m_resourceManager, &m_uploadManager);
 
 	auto ptr = (u32*)&gpuLights[0].position.x;
 	*ptr= count;
@@ -990,7 +984,27 @@ void RenderAspect::taskAddStaticMeshInstance(const u8* p, u32* offset)
 	auto &instance = *data->instance;
 
 	u32 gpuIndex = 0;
-	addMeshInstance(instance, &gpuIndex);
+	auto cmd = addMeshInstance(instance, &gpuIndex);
+
+	auto meshSid = instance.getMeshSid();
+	auto transform = instance.getTransform();
+	auto bounds = instance.getBounds();
+
+	if (bounds.min.x == FLT_MAX)
+	{
+		auto mesh = m_resourceAspect->getMesh(meshSid);
+
+		auto vertexCount = mesh->getMesh().getVertexCount();
+		auto vertices = mesh->getMesh().getVertices();
+
+		for (u32 i = 0; i < vertexCount; ++i)
+		{
+			bounds.min = vx::min(bounds.min, vertices[i].position);
+			bounds.max = vx::max(bounds.max, vertices[i].position);
+		}
+	}
+
+	m_lightManager.addStaticMeshInstance(cmd, bounds, &m_uploadManager);
 
 	*offset += sizeof(RenderUpdateTaskAddStaticMeshData);
 }
@@ -1017,7 +1031,7 @@ void RenderAspect::taskAddDynamicMeshInstance(const u8* p, u32* offset)
 	*offset += sizeof(std::size_t);
 }
 
-void RenderAspect::getProjectionMatrix(vx::mat4* m)
+void RenderAspect::getProjectionMatrix(vx::mat4* m) const
 {
 	s_settings.m_projectionMatrix.asFloat(m);
 }

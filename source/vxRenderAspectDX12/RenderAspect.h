@@ -64,6 +64,7 @@ namespace vx
 #include "CommandQueue.h"
 #include "Frustum.h"
 #include "RenderSettings.h"
+#include "DrawIndexedIndirectCommand.h"
 
 class RenderAspect : public RenderAspectInterface
 {
@@ -72,6 +73,7 @@ class RenderAspect : public RenderAspectInterface
 	d3d::CommandQueue m_graphicsCommandQueue;
 	d3d::Device m_device;
 	std::mutex m_mutexCmdList;
+	DrawIndexedIndirectCommand m_drawCommandMesh;
 	std::vector<DrawIndexedCommand> m_drawCommands;
 	ID3D12GraphicsCommandList* m_commandList;
 	ID3D12GraphicsCommandList* m_commandCopyBuffers;
@@ -124,7 +126,7 @@ class RenderAspect : public RenderAspectInterface
 	void createSrvTextures(u32 srgbCount, u32 rgbCount);
 	void createSrvLights(u32 maxCount);
 
-	void addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex);
+	D3D12_DRAW_INDEXED_ARGUMENTS addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex);
 
 	void updateTransform(const vx::Transform &transform, u32 index);
 	void updateTransformStatic(const vx::TransformGpu &transform, u32 index);
@@ -159,7 +161,7 @@ public:
 
 	void keyPressed(u16 key);
 
-	void getProjectionMatrix(vx::mat4* m) override;
+	void getProjectionMatrix(vx::mat4* m) const override;
 
 	void getTotalVRam(u32* totalVram) const;
 	void getTotalAvailableVRam(u32* totalAvailableVram) const;

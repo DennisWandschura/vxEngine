@@ -1,21 +1,20 @@
+#include "GpuShadowTransform.h"
+
 struct VSOutput
 {
 	float3 wsPosition : POSITION0;
 	uint lightIndex : BLENDINDICES0;
+	float distanceToLight : BLENDINDICES1;
 };
 
 struct GSOutput
 {
 	float4 pos : SV_POSITION;
 	uint slice : SV_RenderTargetArrayIndex;
+	float distanceToLight : BLENDINDICES1;
 };
 
-struct ShadowTransform
-{
-	float4x4 pvMatrix[6];
-};
-
-StructuredBuffer<ShadowTransform> shadowTransforms;
+StructuredBuffer<ShadowTransform> shadowTransforms : register(t1);
 
 [maxvertexcount(3 * 6)]
 void main(
@@ -33,8 +32,11 @@ void main(
 		{
 			GSOutput element;
 			element.pos = mul(pvMatrix, float4(input[i].wsPosition, 1));
+
 			element.slice = slice;
+			element.distanceToLight = input[i].distanceToLight;
 			output.Append(element);
 		}
+		output.RestartStrip();
 	}
 }

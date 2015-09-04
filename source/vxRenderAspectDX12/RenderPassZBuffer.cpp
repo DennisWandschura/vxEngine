@@ -21,11 +21,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
 #include "RenderPassZBuffer.h"
 #include <d3d12.h>
 #include "ShaderManager.h"
 #include "d3dx12.h"
 #include "ResourceManager.h"
+
+typedef vx::mat4 float4x4;
+
 #include "GpuCameraBufferData.h"
 
 const u32 g_zBufferMaxMipLevel = 5u;

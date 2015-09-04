@@ -207,7 +207,9 @@
     <ClInclude Include="CreateResourceDesc.h" />
     <ClInclude Include="d3dObject.h" />
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="DrawIndexedIndirectCommand.h" />
     <ClInclude Include="Frustum.h" />
+    <ClInclude Include="GpuShadowTransform.h" />
     <ClInclude Include="GpuVoxel.h" />
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="PipelineState.h" />
@@ -261,6 +263,7 @@
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="dllExport.cpp" />
+    <ClCompile Include="DrawIndexedIndirectCommand.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="PipelineState.cpp" />
@@ -502,6 +505,14 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="ShadowMapPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="ShadowMapVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Vertex</ShaderType>

@@ -45,8 +45,9 @@ GSInput main(Vertex input)
 	float3 wsTangent = quaternionRotation(input.tangent, qRotation);
 	//float3 wsBitangent = quaternionRotation(bitangent, qRotation);
 
-	float3x3 normalMatrix = (float3x3)cameraBuffer.viewMatrix;
-	float3 vsNormal = mul(normalMatrix, wsNormal);
+	//float3x3 normalMatrix = (float3x3)cameraBuffer.viewMatrix;
+	float3 vsNormal = mul(cameraBuffer.viewMatrix, float4(wsNormal, 0)).xyz;
+	vsNormal = normalize(vsNormal);
 
 	float3 translationPrev = s_transformsPrev[elementId].translation.xyz;
 	float4 qRotationPrev = unpackQRotation(s_transformsPrev[elementId].packedQRotation);

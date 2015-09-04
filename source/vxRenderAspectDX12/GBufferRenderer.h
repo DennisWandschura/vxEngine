@@ -33,6 +33,7 @@ struct ID3D12Device;
 struct ID3D12GraphicsCommandList;
 struct ID3D12Resource;
 struct ID3D12CommandSignature;
+class DrawIndexedIndirectCommand;
 
 #include "RenderPass.h"
 #include <vxLib/math/Vector.h>
@@ -45,12 +46,10 @@ class GBufferRenderer : public RenderPass
 
 	d3d::Object<ID3D12GraphicsCommandList> m_commandList;
 	ID3D12CommandAllocator* m_cmdAlloc;
+	DrawIndexedIndirectCommand* m_drawCmd;
 	d3d::DescriptorHeap m_descriptorHeapBuffers;
 	d3d::DescriptorHeap m_descriptorHeapRt;
 	d3d::DescriptorHeap m_descriptorHeapDs;
-	d3d::Object<ID3D12CommandSignature> m_commandSignature;
-	u32 m_countOffset;
-	u32 m_drawCount;
 	std::unique_ptr<ColdData> m_coldData;
 
 	void createTextureDescriptions();
@@ -64,7 +63,7 @@ class GBufferRenderer : public RenderPass
 	void createBufferViews(d3d::ResourceManager* resourceManager, ID3D12Device* device);
 
 public:
-	GBufferRenderer(ID3D12CommandAllocator* cmdAlloc, u32 countOffset);
+	GBufferRenderer(ID3D12CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd);
 	~GBufferRenderer();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -73,8 +72,6 @@ public:
 
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
-
-	void setDrawCount(u32 count) { m_drawCount = count; }
 
 	void submitCommands(ID3D12CommandList** list, u32* index) override;
 };

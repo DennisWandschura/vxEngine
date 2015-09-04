@@ -29,6 +29,7 @@ SOFTWARE.
 #include "Device.h"
 #include "ResourceManager.h"
 #include "ResourceView.h"
+#include "DrawIndexedIndirectCommand.h"
 
 struct GBufferRenderer::ColdData
 {
@@ -37,11 +38,10 @@ struct GBufferRenderer::ColdData
 	D3D12_RESOURCE_DESC resDescs[TextureCount];
 };
 
-GBufferRenderer::GBufferRenderer(ID3D12CommandAllocator* cmdAlloc, u32 countOffset)
+GBufferRenderer::GBufferRenderer(ID3D12CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc),
-	m_countOffset(countOffset),
-	m_drawCount(0),
+	m_drawCmd(drawCmd),
 	m_coldData(new ColdData())
 {
 	createTextureDescriptions();
@@ -487,18 +487,6 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 
 	createBufferViews(s_resourceManager, device);
 
-	D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[1] = {};
-	argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
-
-	D3D12_COMMAND_SIGNATURE_DESC cmdSigDesc;
-	cmdSigDesc.ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
-	cmdSigDesc.NodeMask = 0;
-	cmdSigDesc.NumArgumentDescs = 1;
-	cmdSigDesc.pArgumentDescs = argumentDescs;
-	auto hresult = device->CreateCommandSignature(&cmdSigDesc, nullptr, IID_PPV_ARGS(m_commandSignature.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
 	return true;
 }
 
@@ -513,12 +501,13 @@ void GBufferRenderer::shutdown()
 
 	m_pipelineState.destroy();
 	m_rootSignature.destroy();
-	m_commandSignature.destroy();
+	m_drawCmd = nullptr;
 }
 
 void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
 {
-	if (m_drawCount != 0)
+	auto drawCount = m_drawCmd->getCount();
+	if (drawCount != 0)
 	{
 		auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
@@ -593,7 +582,6 @@ void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
 		m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
 		m_commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
 		
-		auto drawCmdBuffer = s_resourceManager->getBuffer(L"drawCmdBuffer");
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
 		vertexBufferViews[0] = s_resourceManager->getResourceView("meshVertexBufferView")->vbv;
 		vertexBufferViews[1] = s_resourceManager->getResourceView("meshDrawIdBufferView")->vbv;
@@ -603,7 +591,7 @@ void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
 		m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
 		m_commandList->IASetIndexBuffer(&indexBufferView);
 
-		m_commandList->ExecuteIndirect(m_commandSignature.get(), m_drawCount, drawCmdBuffer, 0, drawCmdBuffer, m_countOffset);
+		m_drawCmd->draw(m_commandList.get());
 
 		hresult = m_commandList->Close();
 		VX_ASSERT(hresult == 0);

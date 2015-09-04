@@ -28,20 +28,21 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 */
 #include "GpuSaoBuffer.h"
+#include "GpuMath.h"
 
 #define visibility      fragment.color.r
 #define bilateralKey    fragment.color.gb
 
 /** Used for preventing AO computation on the sky (at infinite depth) and defining the CS Z to bilateral depth key scaling.
 This need not match the real far plane*/
-#define FAR_PLANE_Z (200.0)
+#define FAR_PLANE_Z (300.0)
 
 // Total number of direct samples to take at each pixel
-#define NUM_SAMPLES (9)
+#define NUM_SAMPLES (14)
 
 // This is the number of turns around the circle that the spiral pattern makes.  This should be prime to prevent
 // taps from lining up.  This particular choice was tuned for NUM_SAMPLES == 9
-#define NUM_SPIRAL_TURNS (7)
+//#define NUM_SPIRAL_TURNS (7)
 
 // If using depth mip levels, the log of the maximum pixel offset before we need to switch to a lower 
 // miplevel to maintain reasonable spatial locality in the cache
@@ -51,6 +52,11 @@ This need not match the real far plane*/
 
 // This must be less than or equal to the MAX_MIP_LEVEL defined in SSAO.cpp
 #define MAX_MIP_LEVEL 5
+
+// tau[N-1] = optimal number of spiral turns for N samples 2 
+static const int tau[] = { 1, 1, 2, 3, 2, 5, 2, 3, 2, 3, 3, 5, 5, 3, 4, 7, 5, 5, 7, 9, 8, 5, 5, 7, 7, 7, 8, 5, 8, 11, 12, 7, 10, 13, 8, 11, 8, 7,
+14, 11, 11, 13, 12, 13, 19, 17, 13, 11, 18, 19, 11, 11, 14, 17, 21, 15, 16, 17, 18, 13, 17, 11, 17, 19, 18, 25, 18, 19, 19, 29, 21, 19, 27,
+31, 29, 21, 18, 17, 29, 31, 31, 23, 18, 25, 26, 25, 23, 19, 34, 19, 27, 21, 25, 39, 29, 17, 21, 27 };
 
 struct GSOutput
 {
@@ -65,6 +71,7 @@ struct PixelOutput
 
 Texture2D<float> CS_Z_buffer : register(t0);
 Texture2D<float> CS_Z_buffer1 : register(t1);
+Texture2DArray g_normalTexture : register(t2);
 
 cbuffer SaoBufferBlock : register(b0)
 {
@@ -72,13 +79,13 @@ cbuffer SaoBufferBlock : register(b0)
 };
 
 /** Used for packing Z into the GB channels */
-float CSZToKey(float z) 
+float CSZToKey(float z)
 {
 	return clamp(z * (1.0 / FAR_PLANE_Z), 0.0, 1.0);
 }
 
 /** Used for packing Z into the GB channels */
-void packKey(float key, out float2 p) 
+void packKey(float key, out float2 p)
 {
 	// Round to the nearest 1/256.0
 	float temp = floor(key * 256.0);
@@ -99,7 +106,8 @@ Costs 3 MADD.  Error is on the order of 10^3 at the far plane, partly due to z p
 */
 float3 reconstructCSPosition(float2 S, float z)
 {
-	return float3((S.xy * saoBuffer.projInfo.xy + saoBuffer.projInfo.zw) * z, z);
+	float3 p = float3((S.xy * saoBuffer.projInfo.xy + saoBuffer.projInfo.zw) * z, z);
+	return p;
 }
 
 float sampleZBuffer(int3 ssP)
@@ -121,21 +129,22 @@ float3 getPosition(int2 ssP)
 
 float3 reconstructNonUnitCSFaceNormal(float3 C)
 {
-	return cross(ddy(C), ddx(C));
+	//return cross(ddy(C), ddx(C));
+	return cross(ddy_fine(C), ddx_fine(C));
 }
 
 /** Reconstructs screen-space unit normal from screen-space position */
-float3 reconstructCSFaceNormal(float3 C) 
+float3 reconstructCSFaceNormal(float3 C)
 {
 	return normalize(reconstructNonUnitCSFaceNormal(C));
 }
 
 /** Returns a unit vector and a screen-space radius for the tap on a unit disk (the caller should scale by the actual disk radius) */
-float2 tapLocation(int sampleNumber, float spinAngle, out float ssR) 
+float2 tapLocation(int sampleNumber, float spinAngle, out float ssR)
 {
 	// Radius relative to ssR
 	float alpha = float(sampleNumber + 0.5) * (1.0 / NUM_SAMPLES);
-	float angle = alpha * (NUM_SPIRAL_TURNS * 6.28) + spinAngle;
+	float angle = alpha * (tau[2 * NUM_SAMPLES] * 6.28) + spinAngle;
 
 	ssR = alpha;
 	return float2(cos(angle), sin(angle));
@@ -155,27 +164,26 @@ void getOffsetPositions(int2 ssC, float2 unitOffset, float ssR, float radius2, o
 	P1.z = CS_Z_buffer1.Load(int3(ssP >> mipLevel, mipLevel)).r;
 
 	// Offset to pixel center
-	P0 = reconstructCSPosition(float2(ssP) + float2(0.5, 0.5), P0.z);
+	P0 = reconstructCSPosition(float2(ssP)+float2(0.5, 0.5), P0.z);
 	P1 = reconstructCSPosition(float2(ssP)+float2(0.5, 0.5), P1.z);
 }
 
-float3 getOffsetPosition(int2 ssC, float2 unitOffset, float ssR, float radius2)
+float3 getOffsetPosition(int2 ssC, float2 unitOffset, float ssR)
 {
 	// Derivation:
 	//  mipLevel = floor(log(ssR / MAX_OFFSET));
 	int mipLevel = clamp((int)floor(log2(ssR)) - LOG_MAX_OFFSET, 0, MAX_MIP_LEVEL);
 
-	int2 ssP = int2(ssR*unitOffset) + ssC;
+	int2 ssP = int2(ssR * unitOffset) + ssC;
 
 	float3 P;
 
 	// Divide coordinate by 2^mipLevel
-	//P.z = CS_Z_buffer.Load(int3(ssP >> mipLevel, mipLevel)).r * 100.0;
+	//P.z = CS_Z_buffer.Load(int3(ssP >> mipLevel, mipLevel)).r;
 	P.z = sampleZBuffer(int3(ssP >> mipLevel, mipLevel));
 
 	// Offset to pixel center
 	P = reconstructCSPosition(float2(ssP)+float2(0.5, 0.5), P.z);
-
 	return P;
 }
 
@@ -189,7 +197,7 @@ float fallOffFunction(float vv, float vn, float epsilon, float invRadius2)
 	//float f = max(radius2 - vv, 0.0);
 	//return f * f * f * max((vn - saoBuffer.bias) / (epsilon + vv), 0.0);
 
-	float f = max(1.0 - vv * invRadius2, 0.0); 
+	float f = max(1.0 - vv * invRadius2, 0.0);
 	return f * max((vn - saoBuffer.bias) * rsqrt(epsilon + vv), 0.0);
 
 	// C: Medium contrast (which looks better at high radii), no division.  Note that the 
@@ -226,7 +234,7 @@ float sampleAO(in int2 ssC, in float3 C, in float3 n_C, in float ssDiskRadius, i
 	ssR *= ssDiskRadius;
 
 	// The occluding point in camera space
-	float3 Q = getOffsetPosition(ssC, unitOffset, ssR, radius2);
+	float3 Q = getOffsetPosition(ssC, unitOffset, ssR);//*float3(-1, 1, -1);;
 	return aoValueFromPositionsAndNormal(C, n_C, Q, invRadius2);
 	/*float3 Q0;
 	float3 Q1;
@@ -251,20 +259,20 @@ PixelOutput main(GSOutput input)
 	int2 ssC = int2(input.pos.xy);
 
 	// World space point being shaded
-	float3 C = getPosition(ssC);
+	float3 C = getPosition(ssC);//*float3(-1, 1, -1);
 
 	packKey(CSZToKey(C.z), bilateralKey);
 
 	// Hash function used in the HPG12 AlchemyAO paper
-	float randomPatternRotationAngle = (3 * ssC.x ^ ssC.y + ssC.x * ssC.y) * 10;
+	float randomPatternRotationAngle = (((3 * ssC.x) ^ (ssC.y + ssC.x * ssC.y)));
 
 	// Reconstruct normals from positions. These will lead to 1-pixel black lines
 	// at depth discontinuities, however the blur will wipe those out so they are not visible
 	// in the final image.
-	//float3 n_C = reconstructCSFaceNormal(C);
-	float3 n_C = reconstructNonUnitCSFaceNormal(C);
-	if (dot(n_C, n_C) > (square(C.z * C.z * 0.00006))) 
-	{ 
+	//float3 n_C = reconstructCSFaceNormal(C)*float3(-1, 1, -1);
+	/*float3 n_C = reconstructNonUnitCSFaceNormal(C);
+	if (dot(n_C, n_C) > (square(C.z * C.z * 0.00006)))
+	{
 		// if the threshold # is too big you will see black dots where we used a bad normal at edges, too small -> white
 		// The normals from depth should be very small values before normalization,
 		// except at depth discontinuities, where they will be large and lead
@@ -272,15 +280,19 @@ PixelOutput main(GSOutput input)
 		visibility = 1.0;
 		return fragment;
 	}
-	else 
+	else
 	{
 		n_C = normalize(n_C);
-	}
+	}*/
+
+	float2 compressedNormal = g_normalTexture.Load(int4(ssC, 0, 0)).rg;
+	float3 n_C = normalize(decodeNormal(compressedNormal)) *float3(-1, 1, -1);
 
 	// Choose the screen-space sample radius
 	// proportional to the projected area of the sphere
 	float ssDiskRadius = -saoBuffer.projScale * saoBuffer.radius / C.z;
-	/*if (ssDiskRadius <= MIN_RADIUS) 
+	
+	/*if (ssDiskRadius <= MIN_RADIUS)
 	{
 		// There is no way to compute AO at this radius
 		visibility = 1.0;
@@ -291,16 +303,16 @@ PixelOutput main(GSOutput input)
 	float invRadius2 = 1.0 / radius2;
 
 	float sum = 0.0;
-	for (int i = 0; i < NUM_SAMPLES; ++i) 
+	for (int i = 0; i < NUM_SAMPLES; ++i)
 	{
 		sum += sampleAO(ssC, C, n_C, ssDiskRadius, i, randomPatternRotationAngle, radius2, invRadius2);
 	}
 
 	float intensityDivR6 = saoBuffer.intensity / pow(saoBuffer.radius, 6.0f);
+	float A = max(0.0, 1.0 - sum * intensityDivR6 * (5.0 / NUM_SAMPLES));
 
-	//float A = max(0.0, 1.0 - sum * intensityDivR6 * (5.0 / NUM_SAMPLES));
-	float A = pow(max(0.0, 1.0 - sqrt(sum * (3.0 / NUM_SAMPLES))), saoBuffer.intensity);
-	A = lerp(A, 1.0f, 1.0f - saturate(0.5f * C.z));
+	//float A = pow(max(0.0, 1.0 - sqrt(sum * (3.0 / NUM_SAMPLES))), saoBuffer.intensity);
+	//A = lerp(A, 1.0f, 1.0f - saturate(0.5f * C.z));
 
 	// Bilateral box-filter over a quad for free, respecting depth edges
 	// (the difference that this makes is subtle)
@@ -312,7 +324,7 @@ PixelOutput main(GSOutput input)
 	}*/
 
 	visibility = A;
-	//visibility = lerp(1.0, A, saturate(ssDiskRadius - MIN_RADIUS));
+	//visibility = lerp(1.0, A, saturate(MIN_RADIUS - ssDiskRadius));
 
 	return fragment;
 }
