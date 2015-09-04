@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,19 +24,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct PointLightShadowTransform;
-
-#include <vxLib/math/matrix.h>
-#include "AABB.h"
-#include <vector>
-
-struct Light
+namespace vx
 {
-	vx::float3 m_position;
-	vx::float3 m_direction;
-	f32 m_falloff;
-	f32 m_lumen;
-	u32 m_staticMeshCount;
+	class Allocator;
+}
 
-//	void getTransformationMatrix(vx::mat4* m) const;
-};
+class SceneFile;
+
+#include <vxLib/types.h>
+
+namespace Converter
+{
+	class SceneFileV8
+	{
+	public:
+		static const u8* loadFromMemory(const u8 *ptr, const u8* last, vx::Allocator* allocator, SceneFile* sceneFile);
+
+		static u64 getCrc(const SceneFile &sceneFile);
+	};
+}

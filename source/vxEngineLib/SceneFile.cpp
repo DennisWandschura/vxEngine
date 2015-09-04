@@ -43,6 +43,8 @@ SOFTWARE.
 #include <vxEngineLib/Joint.h>
 #include <vxEngineLib/ConverterSceneFileV5.h>
 #include <vxEngineLib/ConverterSceneFileV6.h>
+#include "ConverterSceneFileV7.h"
+#include "ConverterSceneFileV8.h"
 
 SceneFile::SceneFile(u32 version)
 	:Serializable(version),
@@ -105,7 +107,7 @@ void SceneFile::swap(SceneFile &other)
 	}
 }
 
-const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator)
+/*const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator)
 {
 	ptr = vx::read(m_meshInstanceCount, ptr);
 	ptr = vx::read(m_lightCount, ptr);
@@ -113,7 +115,7 @@ const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* 
 	ptr = vx::read(m_actorCount, ptr);
 	ptr = vx::read(m_waypointCount, ptr);
 
-	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
+	m_pMeshInstances = vx::make_unique<MeshInstanceFileV8[]>(m_meshInstanceCount);
 	m_pLights = vx::make_unique<Light[]>(m_lightCount);
 	m_pSpawns = vx::make_unique<SpawnFile[]>(m_spawnCount);
 
@@ -148,93 +150,7 @@ const u8* SceneFile::loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* 
 	VX_ASSERT(ptr <= last);
 
 	return ptr;
-}
-
-/*const u8* SceneFile::loadVersion5(const u8 *ptr, const u8* last, vx::Allocator* allocator)
-{
-	ptr = vx::read(m_meshInstanceCount, ptr);
-	ptr = vx::read(m_lightCount, ptr);
-	ptr = vx::read(m_spawnCount, ptr);
-	ptr = vx::read(m_actorCount, ptr);
-	ptr = vx::read(m_waypointCount, ptr);
-
-	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
-	m_pLights = vx::make_unique<Light[]>(m_lightCount);
-	m_pSpawns = vx::make_unique<SpawnFile[]>(m_spawnCount);
-
-	ptr = vx::read((u8*)m_pMeshInstances.get(), ptr, sizeof(MeshInstanceFile) * m_meshInstanceCount);
-	ptr = vx::read((u8*)m_pLights.get(), ptr, sizeof(Light) * m_lightCount);
-	ptr = vx::read((u8*)m_pSpawns.get(), ptr, sizeof(SpawnFile) *m_spawnCount);
-
-	if (m_actorCount != 0)
-	{
-		m_pActors = vx::make_unique<ActorFile[]>(m_actorCount);
-
-		ptr = vx::read(m_pActors.get(), ptr, m_actorCount);
-	}
-
-	if (m_waypointCount != 0)
-	{
-		m_waypoints = vx::make_unique<Waypoint[]>(m_waypointCount);
-
-		ptr = vx::read((u8*)m_waypoints.get(), ptr, sizeof(Waypoint) * m_waypointCount);
-	}
-
-	VX_ASSERT(ptr < last);
-
-	ptr = m_navMesh.load(ptr);
-
-	VX_ASSERT(ptr <= last);
-
-	return ptr;
 }*/
-
-const u8* SceneFile::loadVersion7(const u8 *ptr, const u8* last, vx::Allocator* allocator)
-{
-	ptr = vx::read(m_meshInstanceCount, ptr);
-	ptr = vx::read(m_lightCount, ptr);
-	ptr = vx::read(m_spawnCount, ptr);
-	ptr = vx::read(m_actorCount, ptr);
-	ptr = vx::read(m_waypointCount, ptr);
-	ptr = vx::read(m_jointCount, ptr);
-
-	m_pMeshInstances = vx::make_unique<MeshInstanceFile[]>(m_meshInstanceCount);
-	m_pLights = vx::make_unique<Light[]>(m_lightCount);
-	m_pSpawns = vx::make_unique<SpawnFile[]>(m_spawnCount);
-
-
-	ptr = vx::read((u8*)m_pMeshInstances.get(), ptr, sizeof(MeshInstanceFile) * m_meshInstanceCount);
-	ptr = vx::read((u8*)m_pLights.get(), ptr, sizeof(Light) * m_lightCount);
-	ptr = vx::read((u8*)m_pSpawns.get(), ptr, sizeof(SpawnFile) *m_spawnCount);
-
-	if (m_actorCount != 0)
-	{
-		m_pActors = vx::make_unique<ActorFile[]>(m_actorCount);
-
-		ptr = vx::read(m_pActors.get(), ptr, m_actorCount);
-	}
-
-	if (m_waypointCount != 0)
-	{
-		m_waypoints = vx::make_unique<Waypoint[]>(m_waypointCount);
-
-		ptr = vx::read((u8*)m_waypoints.get(), ptr, sizeof(Waypoint) * m_waypointCount);
-	}
-
-	if (m_jointCount != 0)
-	{
-		m_joints = vx::make_unique<Joint[]>(m_jointCount);
-		ptr = vx::read(m_joints.get(), ptr, m_jointCount);
-	}
-
-	VX_ASSERT(ptr < last);
-
-	ptr = m_navMesh.load(ptr);
-
-	VX_ASSERT(ptr <= last);
-
-	return ptr;
-}
 
 const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator)
 {
@@ -243,11 +159,11 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allo
 
 	const u8* result = nullptr;
 
-	if (version == 4)
+	/*if (version == 4)
 	{
 		result = loadVersion4(ptr, last, allocator);
-	}
-	else if (version == 5)
+	}*/
+	if (version == 5)
 	{
 		result = Converter::SceneFileV5::loadFromMemory(ptr, last, allocator, this);
 	}
@@ -255,10 +171,13 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allo
 	{
 		result = Converter::SceneFileV6::loadFromMemory(ptr, last, allocator, this);
 	}
-
 	else if (version == 7)
 	{
-		result = loadVersion7(ptr, last, allocator);
+		result = Converter::SceneFileV7::loadFromMemory(ptr, last, allocator, this);
+	}
+	else if (version == 8)
+	{
+		result = Converter::SceneFileV8::loadFromMemory(ptr, last, allocator, this);
 	}
 	else
 	{
@@ -287,7 +206,7 @@ void SceneFile::saveToFile(vx::File *file) const
 	m_navMesh.saveToFile(file);
 }
 
-u64 SceneFile::getCrcVersion4() const
+/*u64 SceneFile::getCrcVersion4() const
 {
 	auto navMeshVertexSize = sizeof(vx::float3) * m_navMesh.getVertexCount();
 	auto navMeshTriangleSize = sizeof(u16) * m_navMesh.getTriangleCount() * 3;
@@ -363,52 +282,17 @@ u64 SceneFile::getCrcVersion4() const
 	}
 
 	return CityHash64((char*)ptr.get(), totalSize);
-}
+}*/
 
-u64 SceneFile::getCrcVersion7() const
+u64 SceneFile::getCrc(u32 version) const
 {
-	auto navVertexCount = m_navMesh.getVertexCount();
-	auto navIndexCount = m_navMesh.getTriangleCount() * 3;
-	auto navMeshVertexSize = sizeof(vx::float3) * navVertexCount;
-	auto navMeshTriangleSize = sizeof(u16) * navIndexCount;
-	auto navMeshSize = navMeshVertexSize + navMeshTriangleSize;
-
-	u32 meshInstanceSize = sizeof(MeshInstanceFile) * m_meshInstanceCount;
-
-	auto lightSize = sizeof(Light) * m_lightCount;
-	auto spawnSize = sizeof(SpawnFile) * m_spawnCount;
-	auto actorSize = sizeof(ActorFile) * m_actorCount;
-	auto jointSize = sizeof(Joint) * m_jointCount;
-
-	auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize + jointSize;
-	auto ptr = vx::make_unique<u8[]>(totalSize);
-	auto current = ptr.get();
-
-	current = vx::write(current, m_pMeshInstances.get(), m_meshInstanceCount);
-	current = vx::write(current, m_pLights.get(), m_lightCount);
-	current = vx::write(current, m_pSpawns.get(), m_spawnCount);
-	current = vx::write(current, m_pActors.get(), m_actorCount);
-	current = vx::write(current, m_navMesh.getVertices(), navVertexCount);
-	current = vx::write(current, m_navMesh.getTriangleIndices(), navIndexCount);
-	current = vx::write(current, m_joints.get(), m_jointCount);
-
-	auto last = ptr.get() + totalSize;
-	VX_ASSERT(current == last);
-
-	return CityHash64((char*)ptr.get(), totalSize);
-}
-
-u64 SceneFile::getCrc() const
-{
-	auto currentVersion = getVersion();
-
 	u64 crc = 0;
 
-	switch (currentVersion)
+	switch (version)
 	{
-	case 4:
+		/*case 4:
 		crc = getCrcVersion4();
-		break;
+		break;*/
 	case 5:
 		crc = Converter::SceneFileV5::getCrc(*this);
 		break;
@@ -416,7 +300,10 @@ u64 SceneFile::getCrc() const
 		crc = Converter::SceneFileV6::getCrc(*this);
 		break;
 	case 7:
-		crc = getCrcVersion7();
+		crc = Converter::SceneFileV7::getCrc(*this);
+		break;
+	case 8:
+		crc = Converter::SceneFileV8::getCrc(*this);
 		break;
 	default:
 		VX_ASSERT(false);
@@ -426,7 +313,14 @@ u64 SceneFile::getCrc() const
 	return crc;
 }
 
+u64 SceneFile::getCrc() const
+{
+	auto currentVersion = getVersion();
+
+	return getCrc(currentVersion);
+}
+
 u32 SceneFile::getGlobalVersion()
 {
-	return 7;
+	return 8;
 }

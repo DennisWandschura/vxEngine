@@ -46,31 +46,7 @@ MeshInstanceFileV4::MeshInstanceFileV4(const char(&instanceName)[32], const char
 	strcpy_s(m_animation, animationName);
 }
 
-MeshInstanceFile::MeshInstanceFile()
-	:m_name(),
-	m_mesh(),
-	m_material(),
-	m_animation(),
-	m_transform(),
-	m_rigidBodyType()
-{
-}
-
-MeshInstanceFile::MeshInstanceFile(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform, PhysxRigidBodyType rigidBodyType)
-	:m_name(),
-	m_mesh(),
-	m_material(),
-	m_animation(),
-	m_transform(transform),
-	m_rigidBodyType(rigidBodyType)
-{
-	strcpy_s(m_name, instanceName);
-	strcpy_s(m_mesh, meshName);
-	strcpy_s(m_material, materialName);
-	strcpy_s(m_animation, animationName);
-}
-
-void MeshInstanceFile::convert(const MeshInstanceFileV4 &rhs)
+void MeshInstanceFileV4::convert(const MeshInstanceFileV8 &rhs)
 {
 	strcpy_s(m_name, rhs.getName());
 	strcpy_s(m_mesh, rhs.getMeshFile());
@@ -78,49 +54,3 @@ void MeshInstanceFile::convert(const MeshInstanceFileV4 &rhs)
 	strcpy_s(m_animation, rhs.getAnimation());
 	m_transform = rhs.getTransform();
 }
-
-void MeshInstanceFileV4::convert(const MeshInstanceFile &rhs)
-{
-	strcpy_s(m_name, rhs.getName());
-	strcpy_s(m_mesh, rhs.getMeshFile());
-	strcpy_s(m_material, rhs.getMaterialFile());
-	strcpy_s(m_animation, rhs.getAnimation());
-	m_transform = rhs.getTransform();
-}
-
-/*MeshInstanceFileOld::MeshInstanceFileOld()
-	:m_name(),
-	m_mesh(),
-	m_material(),
-	m_transform()
-{
-}
-
-MeshInstanceFileOld::MeshInstanceFileOld(const MeshInstanceFile &rhs)
-	:m_name(),
-	m_mesh(),
-	m_material(),
-	m_transform(rhs.getTransform())
-{
-	strncpy(m_name, rhs.getName(), 32);
-	strncpy(m_mesh, rhs.getMeshFile(), 32);
-	strncpy(m_material, rhs.getMaterialFile(), 32);
-}
-
-MeshInstanceFileOld::MeshInstanceFileOld(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const vx::Transform &transform)
-	:m_name(),
-	m_mesh(),
-	m_material(),
-	m_transform(transform)
-{
-	strcpy_s(m_name, instanceName);
-	strcpy_s(m_mesh, meshName);
-	strcpy_s(m_material, materialName);
-}
-
-void MeshInstanceFileOld::convertTo(MeshInstanceFile* other) const
-{
-	Buffer animation = {};
-
-	*other = MeshInstanceFile(m_name, m_mesh, m_material, animation, m_transform);
-}*/

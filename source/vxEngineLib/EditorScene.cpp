@@ -421,16 +421,31 @@ namespace Editor
 
 	vx::StringID Scene::createMeshInstance()
 	{
+		if (m_meshes.empty())
+			return vx::StringID();
+
 		std::string instanceName = "instance" + std::to_string(m_meshInstances.size());
 		auto nameSid = vx::make_sid(instanceName.c_str());
 
 		auto meshSid = *m_meshes.keys();
 		auto material = m_materials[0];
 
+		auto &mesh = m_meshes[0];
+		auto vertexCount = mesh->getMesh().getVertexCount();
+		auto vertices = mesh->getMesh().getVertices();
+
+		AABB bounds;
+		for (auto i = 0u; i < vertexCount; ++i)
+		{
+			bounds.max = vx::max(bounds.max, vertices[i].position);
+			bounds.min = vx::min(bounds.min, vertices[i].position);
+		}
+
 		MeshInstanceDesc desc;
 		desc.nameSid = nameSid;
 		desc.meshSid = meshSid;
 		desc.material = material;
+		desc.bounds = bounds;
 		desc.rigidBodyType = PhysxRigidBodyType::Static;
 
 		::MeshInstance instance(desc);
@@ -462,6 +477,7 @@ namespace Editor
 			desc.material = it->getMaterial();
 			desc.animationSid = it->getAnimationSid();
 			desc.transform = it->getTransform();
+			desc.bounds = it->getBounds();
 			desc.rigidBodyType = it->getRigidBodyType();
 
 			::MeshInstance newInstance(desc);

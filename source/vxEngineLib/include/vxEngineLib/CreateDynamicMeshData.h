@@ -102,4 +102,9 @@ public:
 	{
 		return m_gpuIndex;
 	}
+
+	const vx::StringID& getMaterialSid() const
+	{
+		return m_materialSid;
+	}
 };

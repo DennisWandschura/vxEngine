@@ -87,7 +87,7 @@ public:
 
 	virtual void keyPressed(u16 key) = 0;
 
-	virtual void getProjectionMatrix(vx::mat4* m) = 0;
+	virtual void getProjectionMatrix(vx::mat4* m) const = 0;
 
 	virtual void getTotalVRam(u32* totalVram) const = 0;
 	virtual void getTotalAvailableVRam(u32* totalAvailableVram) const = 0;

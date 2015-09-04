@@ -33,7 +33,8 @@ namespace vx
 #include <vxEngineLib/PhysxEnums.h>
 #include <vxLib/StringID.h>
 #include "Transform.h"
-#include <vxEngineLib/Reference.h>
+#include <vxEngineLib/AABB.h>
+
 
 struct MeshInstanceDesc
 {
@@ -42,6 +43,7 @@ struct MeshInstanceDesc
 	const Material* material;
 	vx::StringID animationSid;
 	vx::Transform transform;
+	AABB bounds;
 	PhysxRigidBodyType rigidBodyType;
 };
 
@@ -52,6 +54,7 @@ class MeshInstance
 	const Material* m_material;
 	vx::StringID m_animationSid;
 	vx::Transform m_transform;
+	AABB m_bounds;
 	PhysxRigidBodyType m_rigidBodyType;
 
 public:
@@ -70,6 +73,7 @@ public:
 	vx::StringID getAnimationSid() const noexcept{ return m_animationSid; }
 	const vx::Transform& getTransform() const noexcept { return m_transform; }
 	PhysxRigidBodyType getRigidBodyType() const { return m_rigidBodyType; }
+	const AABB& getBounds() const { return m_bounds; }
 
 	void setTranslation(const vx::float3 &translation);
 	void setRotation(const vx::float4 &qRotation) { m_transform.m_qRotation = qRotation; }
@@ -78,4 +82,7 @@ public:
 	void setMeshSid(const vx::StringID &sid) { m_meshSid = sid; }
 	void setAnimationSid(const vx::StringID &sid) { m_animationSid = sid; }
 	void setRigidBodyType(PhysxRigidBodyType type) { m_rigidBodyType = type; }
+	void setBounds(const AABB &bounds) { m_bounds = bounds; }
+
+	void setBounds(const vx::Mesh &mesh);
 };

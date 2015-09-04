@@ -42,7 +42,7 @@ namespace Editor
 class Scene;
 class SceneFile;
 class Material;
-class MeshInstanceFile;
+class MeshInstanceFileV8;
 
 template<typename T>
 class ResourceManager;
@@ -66,7 +66,7 @@ class SceneFactory
 {
 	struct LoadSceneFileDescription;
 
-	static bool checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFile* instances, u32 count);
+	static bool checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFileV8* instances, u32 count);
 	static bool checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc);
 
 public:

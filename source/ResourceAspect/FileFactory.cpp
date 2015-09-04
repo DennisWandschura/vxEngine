@@ -52,6 +52,8 @@ SceneFile FileFactory::load(const u8* ptr, u32 fileSize, bool* result, vx::Alloc
 {
 	*result = false;
 
+	fileSize -= sizeof(vx::FileHeader) * 2;
+
 	vx::FileHeader headerTop = *(vx::FileHeader*)ptr;
 
 	SceneFile data(headerTop.version);
@@ -71,7 +73,7 @@ SceneFile FileFactory::load(const u8* ptr, u32 fileSize, bool* result, vx::Alloc
 			*result = true;
 		}
 
-		auto crc = data.getCrc();
+		auto crc = data.getCrc(headerTop.version);
 		if (crc != headerTop.crc)
 		{
 			printf("wrong crc\n");

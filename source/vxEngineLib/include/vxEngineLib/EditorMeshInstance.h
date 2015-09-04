@@ -50,6 +50,8 @@ namespace Editor
 		void setMaterial(const Material* material) { m_meshInstance.setMaterial(material); }
 		void setMeshSid(const vx::StringID &sid) { m_meshInstance.setMeshSid(sid); }
 		void setAnimationSid(const vx::StringID &sid){ m_meshInstance.setAnimationSid(sid); }
+		void setBounds(const AABB &bounds) { m_meshInstance.setBounds(bounds); }
+		void setBounds(const vx::Mesh &mesh) { m_meshInstance.setBounds(mesh); }
 		void setRigidBodyType(PhysxRigidBodyType type) { m_meshInstance.setRigidBodyType(type); }
 
 		vx::StringID getNameSid() const noexcept{ return m_meshInstance.getNameSid(); }
@@ -58,5 +60,6 @@ namespace Editor
 		vx::StringID getAnimationSid() const noexcept{ return m_meshInstance.getAnimationSid(); }
 		const vx::Transform& getTransform() const noexcept{ return m_meshInstance.getTransform(); }
 		PhysxRigidBodyType getRigidBodyType() const { return m_meshInstance.getRigidBodyType(); }
+		const AABB& getBounds() const { return m_meshInstance.getBounds(); }
 	};
 }

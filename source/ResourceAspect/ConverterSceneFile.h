@@ -41,7 +41,7 @@ namespace Converter
 			MyBase::swap(other);
 		}
 
-		void setMeshInstances(std::unique_ptr<MeshInstanceFile[]> &&instances, u32 count)
+		void setMeshInstances(std::unique_ptr<MeshInstanceFileV8[]> &&instances, u32 count)
 		{
 			m_pMeshInstances = std::move(instances);
 			m_meshInstanceCount = count;
@@ -82,7 +82,7 @@ namespace Converter
 			navMesh.copy(&m_navMesh);
 		}
 
-		const MeshInstanceFile* getMeshInstances() const { return m_pMeshInstances.get(); }
+		const MeshInstanceFileV8* getMeshInstances() const { return m_pMeshInstances.get(); }
 		u32 getMeshInstanceCount() const { return m_meshInstanceCount; }
 
 		u32 getLightCount() const { return m_lightCount; }

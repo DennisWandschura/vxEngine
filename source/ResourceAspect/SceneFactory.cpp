@@ -23,7 +23,7 @@ namespace SceneFactoryCpp
 		SceneFileLoad(SceneFile &&rhs) :SceneFile(std::move(rhs)) {}
 		~SceneFileLoad() {}
 
-		const MeshInstanceFile* getMeshInstances() const { return m_pMeshInstances.get(); }
+		const MeshInstanceFileV8* getMeshInstances() const { return m_pMeshInstances.get(); }
 		u32 getMeshInstanceCount() const { return m_meshInstanceCount; }
 
 		u32 getActorCount() const { return m_actorCount; }
@@ -108,7 +108,7 @@ namespace SceneFactoryCpp
 			const ResourceManager<vx::MeshFile>* meshManager,
 			const ResourceManager<Material>* materialManager,
 			const ResourceManager<vx::Animation>* animationManager,
-			const MeshInstanceFile* instances,
+			const MeshInstanceFileV8* instances,
 			u32 count,
 			vx::sorted_vector<vx::StringID, vx::FileEntry>* missingFiles
 			)
@@ -147,7 +147,7 @@ namespace SceneFactoryCpp
 		const ResourceManager<vx::MeshFile>* meshManager;
 		const ResourceManager<Material>* materialManager;
 		const ResourceManager<vx::Animation>* animationManager;
-		const MeshInstanceFile* meshInstances;
+		const MeshInstanceFileV8* meshInstances;
 		u32 instanceCount;
 		vx::sorted_vector<vx::StringID, vx::FileEntry>* missingFiles;
 		const ActorFile* actorFiles;
@@ -227,7 +227,7 @@ struct SceneFactory::LoadSceneFileDescription
 	SceneFactoryCpp::SceneFileLoad *pSceneFile;
 };
 
-bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFile* instances, u32 count)
+bool SceneFactory::checkMeshInstances(const LoadSceneFileDescription &desc, const MeshInstanceFileV8* instances, u32 count)
 {
 	bool result = true;
 	for (u32 i = 0; i < count; ++i)

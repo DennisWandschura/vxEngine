@@ -22,42 +22,44 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxEngineLib/ConverterSceneFileV5.h>
-#include <vxEngineLib/SceneFile.h>
+#include "ConverterSceneFileV7.h"
 #include <vxEngineLib/memcpy.h>
+#include <vxEngineLib/SceneFile.h>
 #include <vxEngineLib/MeshInstanceFile.h>
 #include <vxEngineLib/Light.h>
 #include <vxEngineLib/Spawn.h>
-#include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/Actor.h>
+#include <vxEngineLib/Joint.h>
+#include <vxEngineLib/Waypoint.h>
 
 namespace Converter
 {
-	const u8* SceneFileV5::loadFromMemory(const u8 *ptr, const u8* last, vx::Allocator* allocator, SceneFile* sceneFile)
+	const u8* SceneFileV7::loadFromMemory(const u8 *ptr, const u8* last, vx::Allocator* allocator, SceneFile* sceneFile)
 	{
 		ptr = vx::read(sceneFile->m_meshInstanceCount, ptr);
 		ptr = vx::read(sceneFile->m_lightCount, ptr);
 		ptr = vx::read(sceneFile->m_spawnCount, ptr);
 		ptr = vx::read(sceneFile->m_actorCount, ptr);
 		ptr = vx::read(sceneFile->m_waypointCount, ptr);
+		ptr = vx::read(sceneFile->m_jointCount, ptr);
 
+		sceneFile->m_pMeshInstances = vx::make_unique<MeshInstanceFileV8[]>(sceneFile->m_meshInstanceCount);
 		sceneFile->m_pLights = vx::make_unique<Light[]>(sceneFile->m_lightCount);
 		sceneFile->m_pSpawns = vx::make_unique<SpawnFile[]>(sceneFile->m_spawnCount);
 
 		if (sceneFile->m_meshInstanceCount != 0)
 		{
 			auto tmpInstances = vx::make_unique<MeshInstanceFileV5[]>(sceneFile->m_meshInstanceCount);
-			ptr = vx::read(tmpInstances.get(), ptr, sceneFile->m_meshInstanceCount);
+			ptr = vx::read((u8*)tmpInstances.get(), ptr, sizeof(MeshInstanceFileV5) * sceneFile->m_meshInstanceCount);
 
-			sceneFile->m_pMeshInstances = vx::make_unique<MeshInstanceFileV8[]>(sceneFile->m_meshInstanceCount);
-			for (u32 i = 0; i < sceneFile->m_meshInstanceCount; ++i)
+			for (auto i = 0u; i < sceneFile->m_meshInstanceCount; ++i)
 			{
 				sceneFile->m_pMeshInstances[i].convert(tmpInstances[i]);
 			}
 		}
 
-		ptr = vx::read(sceneFile->m_pLights.get(), ptr, sceneFile->m_lightCount);
-		ptr = vx::read(sceneFile->m_pSpawns.get(), ptr, sceneFile->m_spawnCount);
+		ptr = vx::read((u8*)sceneFile->m_pLights.get(), ptr, sizeof(Light) * sceneFile->m_lightCount);
+		ptr = vx::read((u8*)sceneFile->m_pSpawns.get(), ptr, sizeof(SpawnFile) *sceneFile->m_spawnCount);
 
 		if (sceneFile->m_actorCount != 0)
 		{
@@ -70,7 +72,13 @@ namespace Converter
 		{
 			sceneFile->m_waypoints = vx::make_unique<Waypoint[]>(sceneFile->m_waypointCount);
 
-			ptr = vx::read(sceneFile->m_waypoints.get(), ptr, sceneFile->m_waypointCount);
+			ptr = vx::read((u8*)sceneFile->m_waypoints.get(), ptr, sizeof(Waypoint) * sceneFile->m_waypointCount);
+		}
+
+		if (sceneFile->m_jointCount != 0)
+		{
+			sceneFile->m_joints = vx::make_unique<Joint[]>(sceneFile->m_jointCount);
+			ptr = vx::read(sceneFile->m_joints.get(), ptr, sceneFile->m_jointCount);
 		}
 
 		VX_ASSERT(ptr < last);
@@ -82,10 +90,12 @@ namespace Converter
 		return ptr;
 	}
 
-	u64 SceneFileV5::getCrc(const SceneFile &sceneFile)
+	u64 SceneFileV7::getCrc(const SceneFile &sceneFile)
 	{
-		auto navMeshVertexSize = sizeof(vx::float3) * sceneFile.m_navMesh.getVertexCount();
-		auto navMeshTriangleSize = sizeof(u16) * sceneFile.m_navMesh.getTriangleCount() * 3;
+		auto navVertexCount = sceneFile.m_navMesh.getVertexCount();
+		auto navIndexCount = sceneFile.m_navMesh.getTriangleCount() * 3;
+		auto navMeshVertexSize = sizeof(vx::float3) * navVertexCount;
+		auto navMeshTriangleSize = sizeof(u16) * navIndexCount;
 		auto navMeshSize = navMeshVertexSize + navMeshTriangleSize;
 
 		u32 meshInstanceSize = sizeof(MeshInstanceFileV5) * sceneFile.m_meshInstanceCount;
@@ -93,52 +103,40 @@ namespace Converter
 		auto lightSize = sizeof(Light) * sceneFile.m_lightCount;
 		auto spawnSize = sizeof(SpawnFile) * sceneFile.m_spawnCount;
 		auto actorSize = sizeof(ActorFile) * sceneFile.m_actorCount;
+		auto jointSize = sizeof(Joint) * sceneFile.m_jointCount;
 
-		auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize;
+		auto totalSize = meshInstanceSize + lightSize + spawnSize + actorSize + navMeshSize + jointSize;
 		auto ptr = vx::make_unique<u8[]>(totalSize);
-
 		auto current = ptr.get();
+
 		if (meshInstanceSize != 0)
 		{
-			auto tmpMeshInstances = vx::make_unique<MeshInstanceFileV5[]>(sceneFile.m_meshInstanceCount);
+			auto tmpInstances = vx::make_unique<MeshInstanceFileV5[]>(sceneFile.m_meshInstanceCount);
 			for (u32 i = 0; i < sceneFile.m_meshInstanceCount; ++i)
 			{
-				tmpMeshInstances[i].convert(sceneFile.m_pMeshInstances[i]);
+				auto &instance = sceneFile.m_pMeshInstances[i];
+
+				tmpInstances[i].convert(instance);
 			}
-			::memcpy(current, tmpMeshInstances.get(), meshInstanceSize);
-			current += meshInstanceSize;
+
+			current = vx::write(current, tmpInstances.get(), sceneFile.m_meshInstanceCount);
 		}
 
-		if (lightSize != 0)
+		current = vx::write(current, sceneFile.m_pLights.get(), sceneFile.m_lightCount);
+		current = vx::write(current, sceneFile.m_pSpawns.get(), sceneFile.m_spawnCount);
+
+		if (sceneFile.m_actorCount != 0)
 		{
-			::memcpy(current, sceneFile.m_pLights.get(), lightSize);
-			current += lightSize;
+			current = vx::write(current, sceneFile.m_pActors.get(), sceneFile.m_actorCount);
 		}
 
-		if (spawnSize != 0)
-		{
-			::memcpy(current, sceneFile.m_pSpawns.get(), spawnSize);
-			current += spawnSize;
-		}
+		if(navVertexCount !=0 )
+			current = vx::write(current, sceneFile.m_navMesh.getVertices(), navVertexCount);
 
-		if (actorSize != 0)
-		{
-			::memcpy(current, sceneFile.m_pActors.get(), actorSize);
-			current += actorSize;
-		}
+		if(navIndexCount != 0)
+			current = vx::write(current, sceneFile.m_navMesh.getTriangleIndices(), navIndexCount);
 
-		if (navMeshVertexSize != 0)
-		{
-			::memcpy(current, sceneFile.m_navMesh.getVertices(), navMeshVertexSize);
-			current += navMeshVertexSize;
-		}
-
-		if (navMeshTriangleSize != 0)
-		{
-			::memcpy(current, sceneFile.m_navMesh.getTriangleIndices(), navMeshTriangleSize);
-			current += navMeshTriangleSize;
-		}
-
+		current = vx::write(current, sceneFile.m_joints.get(), sceneFile.m_jointCount);
 
 		auto last = ptr.get() + totalSize;
 		VX_ASSERT(current == last);

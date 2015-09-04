@@ -203,6 +203,12 @@ const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& SceneBase::getMeshes
 	return m_meshes;
 }
 
+const vx::MeshFile* SceneBase::getMesh(const vx::StringID &sid)
+{
+	auto it = m_meshes.find(sid);
+	return (it == m_meshes.end()) ? nullptr : *it;
+}
+
 u32 SceneBase::getVertexCount() const
 {
 	return m_vertexCount;

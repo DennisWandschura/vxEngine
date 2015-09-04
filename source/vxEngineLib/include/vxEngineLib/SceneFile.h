@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class MeshInstanceFile;
+class MeshInstanceFileV8;
 struct Light;
 struct SpawnFile;
 struct ActorFile;
@@ -48,6 +48,8 @@ namespace Converter
 {
 	class SceneFileV5;
 	class SceneFileV6;
+	class SceneFileV7;
+	class SceneFileV8;
 	class SceneFileToEditorScene;
 	class EditorSceneToSceneFile;
 	class SceneFileToScene;
@@ -81,9 +83,11 @@ class SceneFile : public vx::Serializable
 {
 	friend Converter::SceneFileV5;
 	friend Converter::SceneFileV6;
+	friend Converter::SceneFileV7;
+	friend Converter::SceneFileV8;
 
 protected:
-	std::unique_ptr<MeshInstanceFile[]> m_pMeshInstances;
+	std::unique_ptr<MeshInstanceFileV8[]> m_pMeshInstances;
 	std::unique_ptr<Light[]> m_pLights;
 	std::unique_ptr<SpawnFile[]> m_pSpawns;
 	std::unique_ptr<ActorFile[]> m_pActors;
@@ -97,11 +101,9 @@ protected:
 	u32 m_waypointCount;
 	u32 m_jointCount;
 
-	const u8* loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator);
-	const u8* loadVersion7(const u8 *ptr, const u8* last, vx::Allocator* allocator);
+	//const u8* loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator);
 
-	u64 getCrcVersion4() const;
-	u64 getCrcVersion7() const;
+	//u64 getCrcVersion4() const;
 
 public:
 	explicit SceneFile(u32 version);
@@ -116,6 +118,7 @@ public:
 	void saveToFile(vx::File *file) const override;
 
 	u64 getCrc() const override;
+	u64 getCrc(u32 version) const;
 
 	static u32 getGlobalVersion();
 };

@@ -618,8 +618,11 @@ void EditorEngine::setMeshInstanceMeshSid(u64 instanceSid, u64 meshSid)
 	auto meshInstance = m_pEditorScene->getMeshInstance(vx::StringID(instanceSid));
 	if (meshInstance != nullptr)
 	{
+		auto mesh = m_pEditorScene->getMesh(vx::StringID(meshSid));
 		m_renderAspect->setMeshInstanceMesh(vx::StringID(instanceSid), vx::StringID(meshSid));
 		meshInstance->setMeshSid(vx::StringID(meshSid));
+
+		meshInstance->setBounds(mesh->getMesh());
 
 		m_physicsAspect.editorSetStaticMeshInstanceMesh(meshInstance->getMeshInstance());
 	}
@@ -714,6 +717,9 @@ void EditorEngine::setMeshInstancePosition(u64 sid, const vx::float3 &p)
 
 		auto transform = instance->getTransform();
 
+		auto mesh = m_pEditorScene->getMesh(instance->getMeshSid());
+		instance->setBounds(mesh->getMesh());
+
 		m_renderAspect->setSelectedMeshInstanceTransform(transform);
 		m_physicsAspect.editorSetStaticMeshInstanceTransform(instance->getMeshInstance(), instanceSid);
 	}
@@ -738,6 +744,9 @@ void EditorEngine::setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDe
 		auto transform = instance->getTransform();
 
 		m_renderAspect->setSelectedMeshInstanceTransform(transform);
+		auto mesh = m_pEditorScene->getMesh(instance->getMeshSid());
+		instance->setBounds(mesh->getMesh());
+
 		m_physicsAspect.editorSetStaticMeshInstanceTransform(instance->getMeshInstance(), instanceSid);
 	}
 }

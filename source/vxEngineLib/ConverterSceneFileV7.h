@@ -1,4 +1,6 @@
-﻿/*
+#pragma once
+
+/*
 The MIT License (MIT)
 
 Copyright (c) 2015 Dennis Wandschura
@@ -21,26 +23,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include <vxEngineLib/Light.h>
 
-void Light::getTransformationMatrix(vx::mat4* m) const
+namespace vx
 {
-	const __m128 x_axis = { 1, 0, 0, 0 };
-	const __m128 y_axis = { 0, 1, 0, 0 };
+	class Allocator;
+}
 
-	auto lightPos = vx::loadFloat3(m_position);
-	auto lightDir = vx::loadFloat3(m_direction);
+class SceneFile;
 
-	auto upDir = vx::cross3(x_axis, lightDir);
-	vx::float4a dot = vx::dot3(upDir, upDir);
-	if (dot.x == 0.0f)
+#include <vxLib/types.h>
+
+namespace Converter
+{
+	class SceneFileV7
 	{
-		upDir = vx::cross3(y_axis, lightDir);
-	}
+	public:
+		static const u8* loadFromMemory(const u8 *ptr, const u8* last, vx::Allocator* allocator, SceneFile* sceneFile);
 
-	auto projMatrix = vx::MatrixPerspectiveFovRH(vx::degToRad(m_angle), 1.0f, 0.1f, m_falloff);
-	//auto projMatrix = vx::MatrixOrthographicRH(8, 5, 0.01f, m_falloff);
-	auto viewMatrix = vx::MatrixLookToRH(lightPos, lightDir, upDir);
-
-	*m = projMatrix * viewMatrix;
+		static u64 getCrc(const SceneFile &sceneFile);
+	};
 }

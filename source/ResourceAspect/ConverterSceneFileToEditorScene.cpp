@@ -27,7 +27,7 @@ namespace Converter
 		const ResourceManager<Material>* materialData;
 		const ResourceManager<vx::Animation>* animationData;
 		MeshInstance* pMeshInstances;
-		const MeshInstanceFile* meshInstancesFile;
+		const MeshInstanceFileV8* meshInstancesFile;
 		vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
 		vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
@@ -50,7 +50,7 @@ namespace Converter
 		const ResourceManager<Material>* materialData;
 		const ResourceManager<vx::Animation>* animationData;
 		MeshInstance* pMeshInstances;
-		const MeshInstanceFile* meshInstancesFile;
+		const MeshInstanceFileV8* meshInstancesFile;
 		vx::sorted_vector<vx::StringID, Editor::MeshInstance>* sortedMeshInstances;
 		vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;

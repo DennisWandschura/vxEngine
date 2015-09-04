@@ -96,7 +96,7 @@ namespace Converter
 		auto meshInstanceCount = scene.m_meshInstances.size();
 		if (meshInstanceCount != 0)
 		{
-			auto meshInstances = vx::make_unique<MeshInstanceFile[]>(meshInstanceCount);
+			auto meshInstances = vx::make_unique<MeshInstanceFileV8[]>(meshInstanceCount);
 			for (u32 i = 0; i < meshInstanceCount; ++i)
 			{
 				auto &it = scene.m_meshInstances[i];
@@ -133,7 +133,8 @@ namespace Converter
 				}
 
 				auto transform = it.getTransform();
-				meshInstances[i] = MeshInstanceFile(name, meshName, materialName, animation, transform, it.getRigidBodyType());
+				auto bounds = it.getBounds();
+				meshInstances[i] = MeshInstanceFileV8(name, meshName, materialName, animation, transform, bounds, it.getRigidBodyType());
 			}
 
 			converterSceneFile.setMeshInstances(std::move(meshInstances), meshInstanceCount);

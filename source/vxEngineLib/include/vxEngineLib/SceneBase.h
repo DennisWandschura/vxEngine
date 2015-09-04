@@ -119,6 +119,8 @@ public:
 	const vx::sorted_vector<vx::StringID, const vx::MeshFile*>& getMeshes() const;
 	u32 getVertexCount() const;
 
+	const vx::MeshFile* getMesh(const vx::StringID &sid);
+
 	const Spawn* getSpawns() const;
 	u32 getSpawnCount() const;
 
