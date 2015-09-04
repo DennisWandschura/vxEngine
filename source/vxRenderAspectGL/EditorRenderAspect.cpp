@@ -773,11 +773,17 @@ namespace Editor
 	{
 		auto projectionMatrix = m_projectionMatrix;
 
+		vx::mat4d viewMatrixD;
+		m_camera.getViewMatrix(&viewMatrixD);
+
+		vx::mat4 viewMatrix;
+		viewMatrixD.asFloat(&viewMatrix);
+
 		UniformCameraBufferBlock block;
-		m_camera.getViewMatrix(&block.viewMatrix);
+		block.position = _mm256_cvtpd_ps(m_camera.getPosition());
+		block.viewMatrix = viewMatrix;
 		block.pvMatrix = projectionMatrix * block.viewMatrix;
 		block.inversePVMatrix = vx::MatrixInverse(block.pvMatrix);
-		block.position = m_camera.getPosition();
 
 		m_cameraBuffer.subData(0, sizeof(UniformCameraBufferBlock), &block);
 	}
@@ -860,7 +866,7 @@ namespace Editor
 
 	}
 
-	void RenderAspect::getProjectionMatrix(vx::mat4* m)
+	void RenderAspect::getProjectionMatrix(vx::mat4* m) const
 	{
 		*m = m_projectionMatrix;
 	}
@@ -953,15 +959,16 @@ namespace Editor
 
 	void RenderAspect::moveCamera(f32 dirX, f32 dirY, f32 dirZ)
 	{
-		const f32 speed = 0.05f;
+		const f64 speed = 0.05;
 
-		__m128 direction = { dirX, dirY, dirZ, 0 };
+		__m256d direction = { dirX, dirY, dirZ, 0 };
 		m_camera.move(direction, speed);
 	}
 
 	void VX_CALLCONV RenderAspect::rotateCamera(const __m128 rotation)
 	{
-		m_camera.setRotation(rotation);
+		__m256d ro = _mm256_cvtps_pd(rotation);
+		m_camera.setRotation(ro);
 	}
 
 	void RenderAspect::uploadToNavMeshVertexBuffer(const VertexPositionColor* vertices, u32 count)

@@ -129,7 +129,7 @@ namespace Graphics
 		auto lights = m_lights.get();
 		auto lightDistances = m_lightDistances.get();
 
-		auto cameraPosition = camera.getPosition();
+		auto cameraPosition = _mm256_cvtpd_ps(camera.getPosition());
 
 		for (u32 i = 0;i < totalLights; ++i)
 		{

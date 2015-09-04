@@ -533,11 +533,14 @@ namespace Graphics
 
 		auto lightDistances = m_distances.get();
 
-		auto cameraRotation = camera.getRotation();
-		auto cameraPosition = camera.getPosition();
+		auto cameraRotation = _mm256_cvtpd_ps(camera.getRotation());
+		auto cameraPosition = _mm256_cvtpd_ps(camera.getPosition());
+
+		vx::mat4d viewMatrixD;
+		camera.getViewMatrix(&viewMatrixD);
 
 		mat4 viewMatrix;
-		camera.getViewMatrix(&viewMatrix);
+		viewMatrixD.asFloat(&viewMatrix);
 
 		__m128 viewDir = {0, 0, -1, 0};
 		viewDir = vx::quaternionRotation(viewDir, cameraRotation);

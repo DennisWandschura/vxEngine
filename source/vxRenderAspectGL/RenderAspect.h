@@ -180,7 +180,7 @@ public:
 
 	void keyPressed(u16 key) override;
 
-	void getProjectionMatrix(vx::mat4* m) override;
+	void getProjectionMatrix(vx::mat4* m) const override;
 
 	void getTotalVRam(u32* totalVram) const override;
 	void getTotalAvailableVRam(u32* totalAvailableVram) const override;

@@ -700,8 +700,11 @@ void RenderAspect::update()
 
 	if (m_shadowRenderer)
 	{
+		vx::mat4d viewMatrixD;
+		m_camera.getViewMatrix(&viewMatrixD);
+
 		vx::mat4 viewMatrix;
-		m_camera.getViewMatrix(&viewMatrix);
+		viewMatrixD.asFloat(&viewMatrix);
 
 		auto pvMatrix = m_projectionMatrix * viewMatrix;
 		Frustum frustum;
@@ -801,14 +804,15 @@ void RenderAspect::taskUpdateCamera()
 	m_camera.setPosition(m_updateCameraData.position);
 	m_camera.setRotation(m_updateCameraData.quaternionRotation);
 
-	//auto projectionMatrix = m_renderContext.getProjectionMatrix();
+	vx::mat4d viewMatrixD;
+	m_camera.getViewMatrix(&viewMatrixD);
 
 	UniformCameraBufferBlock block;
-	m_camera.getViewMatrix(&block.viewMatrix);
+	viewMatrixD.asFloat(&block.viewMatrix);
 	block.pvMatrix = m_projectionMatrix * block.viewMatrix;
 	block.inversePVMatrix = vx::MatrixInverse(block.pvMatrix);
-	block.position = m_camera.getPosition();
-	block.qrotation = m_camera.getRotation();
+	block.position = _mm256_cvtpd_ps(m_camera.getPosition());
+	block.qrotation = _mm256_cvtpd_ps(m_camera.getRotation());
 
 	m_cameraBuffer.subData(0, sizeof(UniformCameraBufferBlock), &block);
 }
@@ -944,15 +948,16 @@ void RenderAspect::taskAddDynamicMeshInstance(u8* p, u32* offset)
 	std::size_t* address = (std::size_t*)p;
 
 	CreateDynamicMeshData* data = (CreateDynamicMeshData*)(*address);
-	auto &instance = *data->m_meshInstance;
+	auto &instance = *data->getMeshInstance();
 
 	u32 materialIndex = 0;
-	m_materialManager.getMaterialIndex(data->m_materialSid, m_resourceAspect, &materialIndex);
+	m_materialManager.getMaterialIndex(data->getMaterialSid(), m_resourceAspect, &materialIndex);
 
 	u32 gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_resourceAspect);
 
-	data->m_gpuIndex = gpuIndex;
-	data->increment();
+	data->setGpuIndex(gpuIndex);
+	//data->m_gpuIndex = gpuIndex;
+	//data->increment();
 
 	vx::Message e;
 	e.code = (u32)IngameMessage::Gpu_AddedDynamicMesh;
@@ -1315,7 +1320,7 @@ void RenderAspect::handleFileMessage(const vx::Message &evt)
 	}
 }
 
-void RenderAspect::getProjectionMatrix(vx::mat4* m)
+void RenderAspect::getProjectionMatrix(vx::mat4* m) const
 {
 	*m = m_projectionMatrix;
 }
