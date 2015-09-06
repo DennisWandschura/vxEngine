@@ -1,21 +1,17 @@
 #include "RenderPassVoxelize.h"
 #include "ResourceManager.h"
 #include "ShaderManager.h"
-
-#include <vxLib/math/matrix.h>
-typedef vx::mat4 float4x4;
-
 #include "GpuVoxel.h"
 #include "UploadManager.h"
 #include "d3dx12.h"
 #include "ResourceView.h"
 
 const u32 g_voxelDim = 128;
+const u32 g_voxelDimW = g_voxelDim * 6;
 
-RenderPassVoxelize::RenderPassVoxelize(ID3D12CommandAllocator* cmdAlloc, u32 countOffset)
+RenderPassVoxelize::RenderPassVoxelize(ID3D12CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCommand)
 	:m_cmdAlloc(cmdAlloc),
-	m_drawCount(0),
-	m_countOffset(countOffset)
+	m_drawCommand(drawCommand)
 {
 
 }
@@ -32,9 +28,9 @@ void RenderPassVoxelize::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTex
 	resDesc[0].Alignment = 64 KBYTE;
 	resDesc[0].Width = g_voxelDim;
 	resDesc[0].Height = g_voxelDim;
-	resDesc[0].DepthOrArraySize = g_voxelDim * 2;
+	resDesc[0].DepthOrArraySize = g_voxelDimW;
 	resDesc[0].MipLevels = 1;
-	resDesc[0].Format = DXGI_FORMAT_R32_UINT;
+	resDesc[0].Format = DXGI_FORMAT_R32_TYPELESS;
 	resDesc[0].SampleDesc.Count = 1;
 	resDesc[0].SampleDesc.Quality = 0;
 	resDesc[0].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -55,7 +51,7 @@ void RenderPassVoxelize::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTex
 	auto allocDataTexture = device->GetResourceAllocationInfo(1, 1, &resDesc[0]);
 	auto allocDataBuffer = device->GetResourceAllocationInfo(1, 1, &resDesc[1]);
 
-	*heapSizeTexture += allocDataTexture.SizeInBytes;
+	*heapSizeTexture += allocDataTexture.SizeInBytes * 2;
 	*heapSizeBuffer += allocDataBuffer.SizeInBytes;
 }
 
@@ -66,9 +62,9 @@ bool RenderPassVoxelize::createData(ID3D12Device* device)
 	resDesc[0].Alignment = 64 KBYTE;
 	resDesc[0].Width = g_voxelDim;
 	resDesc[0].Height = g_voxelDim;
-	resDesc[0].DepthOrArraySize = g_voxelDim * 2;
+	resDesc[0].DepthOrArraySize = g_voxelDimW;
 	resDesc[0].MipLevels = 1;
-	resDesc[0].Format = DXGI_FORMAT_R32_UINT;
+	resDesc[0].Format = DXGI_FORMAT_R32_TYPELESS;
 	resDesc[0].SampleDesc.Count = 1;
 	resDesc[0].SampleDesc.Quality = 0;
 	resDesc[0].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -81,7 +77,11 @@ bool RenderPassVoxelize::createData(ID3D12Device* device)
 	desc.resDesc = &resDesc[0];
 	desc.size = allocDataTexture.SizeInBytes;
 	desc.state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-	auto ptr = s_resourceManager->createTexture(L"voxelTexture", desc);
+	auto ptr = s_resourceManager->createTexture(L"voxelTextureOpacity", desc);
+	if (ptr == nullptr)
+		return false;
+
+	ptr = s_resourceManager->createTexture(L"voxelTextureDiffuse", desc);
 	if (ptr == nullptr)
 		return false;
 
@@ -112,11 +112,11 @@ bool RenderPassVoxelize::createRootSignature(ID3D12Device* device)
 	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 0);
 
 	CD3DX12_DESCRIPTOR_RANGE rangeGS[1];
-	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 1);
+	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0, 0, 1);
 
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 1);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, 2);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 2, 0, 0, 3);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
 	rootParameters[0].InitAsDescriptorTable(1, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
@@ -172,14 +172,14 @@ bool RenderPassVoxelize::createDescriptorHeap(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 1;
+	desc.NumDescriptors = 2;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 	if (!m_descriptorHeapClear.create(desc, device))
 		return false;
 
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	desc.NumDescriptors = 3;
+	desc.NumDescriptors = 5;
 
 	return m_descriptorHeap.create(desc, device);
 }
@@ -188,9 +188,11 @@ void RenderPassVoxelize::createViews(ID3D12Device* device)
 {
 	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
 	auto transformBuffer = s_resourceManager->getBuffer(L"transformBuffer");
-	auto voxelTexture = s_resourceManager->getTexture(L"voxelTexture");
+	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
+	auto voxelTextureDiffuse = s_resourceManager->getTexture(L"voxelTextureDiffuse");
 
 	auto transformBufferViewDesc = s_resourceManager->getShaderResourceView("transformBufferView");
+	auto cameraBufferView = s_resourceManager->getConstantBufferView("cameraBufferView");
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbufferDesc;
 	cbufferDesc.BufferLocation = voxelBuffer->GetGPUVirtualAddress();
@@ -198,10 +200,9 @@ void RenderPassVoxelize::createViews(ID3D12Device* device)
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
-	uavDesc.Format = DXGI_FORMAT_R32_UINT;
 	uavDesc.Texture3D.FirstWSlice = 0;
 	uavDesc.Texture3D.MipSlice = 0;
-	uavDesc.Texture3D.WSize = g_voxelDim * 2;
+	uavDesc.Texture3D.WSize = g_voxelDimW;
 
 	auto handle = m_descriptorHeap.getHandleCpu();
 	device->CreateShaderResourceView(transformBuffer, transformBufferViewDesc, handle);
@@ -210,16 +211,30 @@ void RenderPassVoxelize::createViews(ID3D12Device* device)
 	device->CreateConstantBufferView(&cbufferDesc, handle);
 
 	handle.offset(1);
-	device->CreateUnorderedAccessView(voxelTexture, nullptr, &uavDesc, handle);
+	device->CreateConstantBufferView(cameraBufferView, handle);
 
-	device->CreateUnorderedAccessView(voxelTexture, nullptr, &uavDesc, m_descriptorHeapClear.getHandleCpu());
+	uavDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	handle.offset(1);
+	device->CreateUnorderedAccessView(voxelTextureOpacity, nullptr, &uavDesc, handle);
+
+	uavDesc.Format = DXGI_FORMAT_R32_UINT;
+	handle.offset(1);
+	device->CreateUnorderedAccessView(voxelTextureDiffuse, nullptr, &uavDesc, handle);
+
+	uavDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	auto clearHandle = m_descriptorHeapClear.getHandleCpu();
+	device->CreateUnorderedAccessView(voxelTextureOpacity, nullptr, &uavDesc, clearHandle);
+
+	uavDesc.Format = DXGI_FORMAT_R32_UINT;
+	clearHandle.offset(1);
+	device->CreateUnorderedAccessView(voxelTextureDiffuse, nullptr, &uavDesc, clearHandle);
 }
 
 void RenderPassVoxelize::uploadBufferData()
 {
 	GpuVoxel data;
 
-	const f32 gridsize = 8.0f;
+	const f32 gridsize = 16.0f;
 
 	auto halfDim = g_voxelDim / 2;
 	auto gridHalfSize = gridsize / 2.0f;
@@ -227,13 +242,20 @@ void RenderPassVoxelize::uploadBufferData()
 	auto gridCellSize = gridHalfSize / halfDim;
 	auto invGridCellSize = 1.0f / gridCellSize;
 
+	const __m128 axisY = {0, 1, 0, 0};
+	const __m128 axisX = { 1, 0, 0, 0 };
+
 	auto projectionMatrix = vx::MatrixOrthographicRHDX(gridsize, gridsize, 0.0f, gridsize);
 	auto backFront = projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
+	auto leftRight = projectionMatrix * vx::MatrixRotationAxis(axisY, vx::degToRad(90)) * vx::MatrixTranslation(gridHalfSize, 0, 0);
+	auto upDown = projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize) * vx::MatrixRotationAxis(axisX, vx::degToRad(90));
 
 	data.dim = g_voxelDim;
 	data.halfDim = halfDim;
 	data.invGridCellSize = invGridCellSize;
-	data.projectionMatrix = backFront;
+	data.projectionMatrix[0] = leftRight;
+	data.projectionMatrix[1] = upDown;
+	data.projectionMatrix[2] = backFront;
 	data.gridCellSize = gridCellSize;
 
 	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
@@ -254,18 +276,6 @@ bool RenderPassVoxelize::initialize(ID3D12Device* device, void* p)
 	if (!createDescriptorHeap(device))
 		return false;
 
-	D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[1] = {};
-	argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
-
-	D3D12_COMMAND_SIGNATURE_DESC cmdSigDesc;
-	cmdSigDesc.ByteStride = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS);
-	cmdSigDesc.NodeMask = 0;
-	cmdSigDesc.NumArgumentDescs = 1;
-	cmdSigDesc.pArgumentDescs = argumentDescs;
-	auto hresult = device->CreateCommandSignature(&cmdSigDesc, nullptr, IID_PPV_ARGS(m_commandSignature.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
 	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get()))
 		return false;
 
@@ -283,19 +293,30 @@ void RenderPassVoxelize::shutdown()
 
 void RenderPassVoxelize::submitCommands(ID3D12CommandList** list, u32* index)
 {
-	auto voxelTexture = s_resourceManager->getTexture(L"voxelTexture");
-
-	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
-
 	const u32 clearValues[4] = { 0, 0, 0, 0 };
 
-	m_commandList->ClearUnorderedAccessViewUint(m_descriptorHeapClear->GetGPUDescriptorHandleForHeapStart(), m_descriptorHeapClear->GetCPUDescriptorHandleForHeapStart(), voxelTexture, clearValues, 0, nullptr);
-
-	if (m_drawCount != 0)
+	if (m_drawCommand->getCount() != 0)
 	{
+		auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
+		auto voxelTextureDiffuse = s_resourceManager->getTexture(L"voxelTextureDiffuse");
+
+		m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse));
+		auto gpuHandle = m_descriptorHeapClear.getHandleGpu();
+		auto cpuHandle = m_descriptorHeapClear.getHandleCpu();
+		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureOpacity, clearValues, 0, nullptr);
+
+		cpuHandle.offset(1);
+		gpuHandle.offset(1);
+		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureDiffuse, clearValues, 0, nullptr);
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity));
+
 		D3D12_VIEWPORT viewPort;
-		viewPort.Height = (f32)g_voxelDim;
-		viewPort.Width = (f32)g_voxelDim;
+		viewPort.Height = (f32)g_voxelDim * 2;
+		viewPort.Width = (f32)g_voxelDim * 2;
 		viewPort.MaxDepth = 1.0f;
 		viewPort.MinDepth = 0.0f;
 		viewPort.TopLeftX = 0;
@@ -304,8 +325,8 @@ void RenderPassVoxelize::submitCommands(ID3D12CommandList** list, u32* index)
 		D3D12_RECT rectScissor;
 		rectScissor.left = 0;
 		rectScissor.top = 0;
-		rectScissor.right = g_voxelDim;
-		rectScissor.bottom = g_voxelDim;
+		rectScissor.right = g_voxelDim * 2;
+		rectScissor.bottom = g_voxelDim * 2;
 
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
@@ -328,11 +349,11 @@ void RenderPassVoxelize::submitCommands(ID3D12CommandList** list, u32* index)
 		m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
 		m_commandList->IASetIndexBuffer(&indexBufferView);
 
-		m_commandList->ExecuteIndirect(m_commandSignature.get(), m_drawCount, drawCmdBuffer, 0, drawCmdBuffer, m_countOffset);
+		m_drawCommand->draw(m_commandList.get());
+
+		m_commandList->Close();
+
+		list[*index] = m_commandList.get();
+		++(*index);
 	}
-
-	m_commandList->Close();
-
-	list[*index] = m_commandList.get();
-	++(*index);
 }

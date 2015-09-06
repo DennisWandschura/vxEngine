@@ -3,15 +3,23 @@
 struct VSOutput
 {
 	float3 wsPosition : POSITION0;
+	float3 vsNormal : NORMAL0;
+	float2 texCoords : TEXCOORD0;
 	uint lightIndex : BLENDINDICES0;
 	float distanceToLight : BLENDINDICES1;
+	float lightFalloff : BLENDINDICES2;
+	float lightLumen : BLENDINDICES3;
 };
 
 struct GSOutput
 {
 	float4 pos : SV_POSITION;
+	float3 vsNormal : NORMAL0;
+	float2 texCoords : TEXCOORD0;
 	uint slice : SV_RenderTargetArrayIndex;
 	float distanceToLight : BLENDINDICES1;
+	float lightFalloff : BLENDINDICES2;
+	float lightLumen : BLENDINDICES3;
 };
 
 StructuredBuffer<ShadowTransform> shadowTransforms : register(t1);
@@ -32,9 +40,12 @@ void main(
 		{
 			GSOutput element;
 			element.pos = mul(pvMatrix, float4(input[i].wsPosition, 1));
-
+			element.vsNormal = input[i].vsNormal;
+			element.texCoords = input[i].texCoords;
 			element.slice = slice;
 			element.distanceToLight = input[i].distanceToLight;
+			element.lightFalloff = input[i].lightFalloff;
+			element.lightLumen = input[i].lightLumen;
 			output.Append(element);
 		}
 		output.RestartStrip();

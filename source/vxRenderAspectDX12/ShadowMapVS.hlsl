@@ -15,8 +15,12 @@ struct Vertex
 struct VSOutput
 {
 	float3 wsPosition : POSITION0;
+	float3 vsNormal : NORMAL0;
+	float2 texCoords : TEXCOORD0;
 	uint lightIndex : BLENDINDICES0;
 	float distanceToLight : BLENDINDICES1;
+	float lightFalloff : BLENDINDICES2;
+	float lightLumen : BLENDINDICES3;
 };
 
 StructuredBuffer<TransformGpu> s_transforms : register(t0);
@@ -31,19 +35,25 @@ VSOutput main(Vertex input)
 {
 	const float3 lightPositionWS = float3(0, 2.8, -1);
 	const float lightFalloff = 5.0;
+	const float lightLumen = 100.0;
 
 	uint elementId = input.drawId & 0xffff;
 	float3 translation = s_transforms[elementId].translation.xyz;
 	float4 qRotation = unpackQRotation(s_transforms[elementId].packedQRotation);
 
 	float3 wsPosition = quaternionRotation(input.position.xyz, qRotation) + translation;
+	float3 wsNormal = quaternionRotation(input.normal, qRotation);
+	float3 vsNormal = mul(cameraBuffer.viewMatrix, float4(wsNormal, 0)).xyz;
 
-	float distanceToLight = length(lightPositionWS - wsPosition) / lightFalloff;
-	distanceToLight = clamp(distanceToLight, 0, 1);
+	float distanceToLight = length(lightPositionWS - wsPosition);// / lightFalloff;
 
 	VSOutput output;
 	output.wsPosition = wsPosition;
+	output.vsNormal = vsNormal;
+	output.texCoords = input.texCoords;
 	output.lightIndex = 0;
 	output.distanceToLight = distanceToLight;
+	output.lightFalloff = lightFalloff;
+	output.lightLumen = lightLumen;
 	return output;
 }

@@ -6,7 +6,7 @@ struct GSOutput
 
 Texture2D g_saoTexture : register(t0);
 Texture2D g_diffuseTexture : register(t1);
-//Texture2D g_voxelDebugTexture : register(t2);
+Texture2D g_indirectTexture : register(t2);
 SamplerState g_sampler : register(s0);
 
 static const float whitePoint = 3.0;
@@ -22,12 +22,11 @@ float4 main(GSOutput input) : SV_TARGET
 {
 	int2 ssC = int2(input.pos.xy);
 
-	float sao = g_saoTexture.Sample(g_sampler, input.texCoords).r;
-	float3 shadedColor = g_diffuseTexture.Sample(g_sampler, input.texCoords).rgb;
-	//float4 voxelColor = g_voxelDebugTexture.Sample(g_sampler, input.texCoords);
+	//float sao = g_saoTexture.Sample(g_sampler, input.texCoords).r;
+	float4 shadedColor = g_diffuseTexture.Sample(g_sampler, input.texCoords).rgba;
+	float4 voxelColor = g_indirectTexture.Sample(g_sampler, input.texCoords);
 
-	//shadedColor = tonemap(shadedColor * sao);
+	//shadedColor.rgb = tonemap(shadedColor.rgb * sao);
 
-
-	return float4(shadedColor, 1.0f);
+	return float4(voxelColor.rgb, 1.0f);
 }

@@ -1,9 +1,10 @@
 struct GSInput
 {
-	float4 position : SV_POSITION0;
+	float4 position : SV_POSITION;
 	float4 positionPrev : POSITION1;
-	//float3 vsPosition : POSITION2;
 	float3 vsNormal : NORMAL0;
+	float3 vsTangent : NORMAL1;
+	float3 vsBitangent : NORMAL2;
 	float2 texCoords : TEXCOORD0;
 	uint material : BLENDINDICES0;
 };
@@ -12,8 +13,9 @@ struct PSInput
 {
 	float4 position : SV_POSITION;
 	float4 positionPrev : POSITION1;
-	//float3 vsPosition : POSITION2;
 	float3 vsNormal : NORMAL0;
+	float3 vsTangent : NORMAL1;
+	float3 vsBitangent : NORMAL2;
 	float2 texCoords : TEXCOORD0;
 	uint material : BLENDINDICES0;
 	uint slice : SV_RenderTargetArrayIndex;
@@ -32,8 +34,9 @@ void main(
 	{
 		element.position = input[i].position;
 		element.positionPrev = input[i].positionPrev;
-		//element.vsPosition = input[i].vsPosition;
 		element.vsNormal = input[i].vsNormal;
+		element.vsTangent = input[i].vsTangent;
+		element.vsBitangent = input[i].vsBitangent;
 		element.texCoords = input[i].texCoords;
 		element.material = input[i].material;
 
@@ -46,8 +49,9 @@ void main(
 	{
 		element.position = input[j].positionPrev;
 		element.positionPrev = input[j].positionPrev;
-		//element.vsPosition = input[j].vsPosition;
 		element.vsNormal = input[j].vsNormal;
+		element.vsTangent = input[j].vsTangent;
+		element.vsBitangent = input[j].vsBitangent;
 		element.texCoords = input[j].texCoords;
 		element.material = input[j].material;
 

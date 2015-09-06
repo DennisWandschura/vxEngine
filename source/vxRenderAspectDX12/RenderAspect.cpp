@@ -22,9 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/math/matrix.h>
-typedef vx::mat4 float4x4;
-
 #include "RenderAspect.h"
 #include "d3dHelper.h"
 #include <vxLib/Window.h>
@@ -58,6 +55,7 @@ typedef vx::mat4 float4x4;
 #include "RenderPassShadow.h"
 #include <vxEngineLib/ResourceAspectInterface.h>
 #include <vxEngineLib/MeshFile.h>
+#include "RenderPassConeTrace.h"
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/GpuFunctions.h>
@@ -137,27 +135,27 @@ void RenderAspect::createRenderPasses()
 	RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager, &s_settings);
 
 	m_gbufferRenderer = new GBufferRenderer(m_commandAllocator.get(), &m_drawCommandMesh);
-	auto renderPassCullLights = new RenderPassCullLights(m_commandAllocator.get());
-	auto renderPassVisibleLights = new RenderPassVisibleLights(m_commandAllocator.get());
+	//auto renderPassCullLights = new RenderPassCullLights(m_commandAllocator.get());
+	//auto renderPassVisibleLights = new RenderPassVisibleLights(m_commandAllocator.get());
 
 	m_renderPasses.push_back(m_gbufferRenderer);
-	m_renderPasses.push_back(renderPassCullLights);
-	m_renderPasses.push_back(renderPassVisibleLights);
+	//m_renderPasses.push_back(renderPassCullLights);
+	//m_renderPasses.push_back(renderPassVisibleLights);
 	//m_lightManager.getDrawCommand(0))
 	m_renderPasses.push_back(new RenderPassShadow(m_commandAllocator.get(), &m_drawCommandMesh));
 
 	m_renderPasses.push_back(new RenderPassZBuffer(m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassZBufferCreateMipmaps(m_commandAllocator.get()));
 
-	//m_renderPassVoxelize = new RenderPassVoxelize(m_commandAllocator.get(), countOffset);
-	//m_renderPasses.push_back(m_renderPassVoxelize);
+	m_renderPasses.push_back(new RenderPassVoxelize(m_commandAllocator.get(), &m_drawCommandMesh));
 
 	m_renderPasses.push_back(new RenderPassAO(m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassShading(m_commandAllocator.get()));
+	m_renderPasses.push_back(new RenderPassConeTrace(m_commandAllocator.get()));
 	//m_renderPasses.push_back(new RenderPassDrawVoxel(m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassFinal(m_commandAllocator.get(), &m_device));
 
-	m_lightManager.setRenderPasses(renderPassCullLights, renderPassVisibleLights);
+	//m_lightManager.setRenderPasses(renderPassCullLights, renderPassVisibleLights);
 }
 
 void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u64* textureHeapSize, u64* rtDsHeapSize)
@@ -347,6 +345,8 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	{
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
+
+	m_graphicsCommandQueue.wait();
 
 	return RenderAspectInitializeError::OK;
 }

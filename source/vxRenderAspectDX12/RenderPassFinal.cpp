@@ -72,7 +72,7 @@ bool RenderPassFinal::loadShaders(d3d::ShaderManager* shaderManager)
 bool RenderPassFinal::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, 0);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0, 0);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -110,34 +110,7 @@ bool RenderPassFinal::createRootSignature(ID3D12Device* device)
 
 bool RenderPassFinal::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
-	/*auto vsShader = shaderManager->getShader("DrawQuadVs.cso");
-	auto gsShader = shaderManager->getShader("DrawQuadGs.cso");
-	auto psShader = shaderManager->getShader("FinalPS.cso");
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	psoDesc.InputLayout = { nullptr, 0 };
-	psoDesc.pRootSignature = m_rootSignature.get();
-	psoDesc.VS = { reinterpret_cast<UINT8*>(vsShader->GetBufferPointer()), vsShader->GetBufferSize() };
-	psoDesc.GS = { reinterpret_cast<UINT8*>(gsShader->GetBufferPointer()), gsShader->GetBufferSize() };
-	psoDesc.PS = { reinterpret_cast<UINT8*>(psShader->GetBufferPointer()), psShader->GetBufferSize() };
-	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.FrontCounterClockwise = 1;
-	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState.DepthEnable = 0;
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-	psoDesc.NumRenderTargets = 1;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	psoDesc.SampleDesc.Count = 1;
-
-	auto hresult = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_pipelineState.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;*/
-
-	auto rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
@@ -155,9 +128,9 @@ bool RenderPassFinal::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 
 bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 {
-	auto diffuseTexture = s_resourceManager->getTextureRtDs(L"diffuseTexture");
+	auto directLightTexture = s_resourceManager->getTextureRtDs(L"directLightTexture");
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
-	//auto voxelDebug = s_resourceManager->getTextureRtDs(L"voxelDebug");
+	auto indirectTexture = s_resourceManager->getTextureRtDs(L"indirectTexture");
 
 	if (!loadShaders(s_shaderManager))
 		return false;
@@ -166,6 +139,9 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 		return false;
 
 	if (!createPipelineState(device, s_shaderManager))
+		return false;
+
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get()))
 		return false;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
@@ -197,11 +173,11 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 
 	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	handle.offset(1);
-	device->CreateShaderResourceView(diffuseTexture, &srvDesc, handle);
+	device->CreateShaderResourceView(directLightTexture, &srvDesc, handle);
 
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	handle.offset(1);
-	//device->CreateShaderResourceView(voxelDebug, &srvDesc, handle);
+	device->CreateShaderResourceView(indirectTexture, &srvDesc, handle);
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	for (u32 i = 0; i < 2; ++i)
@@ -210,15 +186,17 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 
 		m_renderTarget[i]->SetName(L"DeviceRenderTarget");
 
-		device->CreateRenderTargetView(m_renderTarget[i].get(), nullptr, rtvHandle);
+		auto rtDesc = m_renderTarget[i]->GetDesc();
+
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;rtDesc.Format;
+		rtvDesc.Texture2D.MipSlice = 0,
+		rtvDesc.Texture2D.PlaneSlice = 0;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
+		device->CreateRenderTargetView(m_renderTarget[i].get(), &rtvDesc, rtvHandle);
 		rtvHandle.offset(1);
 	}
-
-	auto rtDesc = m_renderTarget[0]->GetDesc();
-
-	if (device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get(), IID_PPV_ARGS(m_commandList.getAddressOf())) != 0)
-		return false;
-	m_commandList->Close();
 
 	return true;
 }
@@ -234,8 +212,8 @@ void RenderPassFinal::shutdown()
 void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
-	auto diffuseTexture = s_resourceManager->getTextureRtDs(L"diffuseTexture");
-	//auto voxelDebug = s_resourceManager->getTextureRtDs(L"voxelDebug");
+	auto directLightTexture = s_resourceManager->getTextureRtDs(L"directLightTexture");
+	auto indirectTexture = s_resourceManager->getTextureRtDs(L"indirectTexture");
 	auto currentBuffer = m_device->getCurrentBackBufferIndex();
 
 	D3D12_VIEWPORT viewport;
@@ -266,8 +244,8 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 	m_commandList->RSSetScissorRects(1, &rectScissor);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(diffuseTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelDebug, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indirectTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -288,8 +266,8 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-	//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelDebug, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(diffuseTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indirectTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	hresult = m_commandList->Close();

@@ -43,6 +43,7 @@ class RenderPassShadow : public RenderPass
 	bool createRootSignature(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device);
 	bool createCommandList(ID3D12Device* device);
+	bool createRtvs(ID3D12Device* device);
 
 	void uploadData();
 

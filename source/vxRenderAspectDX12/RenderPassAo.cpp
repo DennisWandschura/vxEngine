@@ -264,6 +264,7 @@ bool RenderPassAO::createBuffer()
 	bufferData.intensity = 1.0f;
 	bufferData.projScale = std::abs((f32)s_resolution.x / scale);
 	bufferData.radius = 1.0f;
+	bufferData.zFar = s_settings->m_farZ;
 
 	s_uploadManager->pushUploadBuffer((u8*)&bufferData, saoBuffer, 0, sizeof(GpuSaoBuffer), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 

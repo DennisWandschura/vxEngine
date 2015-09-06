@@ -13,5 +13,6 @@ struct GpuSaoBuffer
 	float intensity;
 	float projScale;
 	float radius;
+	float zFar;
 };
 #endif

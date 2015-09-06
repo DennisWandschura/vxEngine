@@ -37,9 +37,6 @@
     <Filter Include="Shaders\create gbuffer">
       <UniqueIdentifier>{c0397c63-136b-4df8-84e8-19a52375ddf1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\create radiosity buffer">
-      <UniqueIdentifier>{d621decb-3d3f-40a4-b1fa-07ee204a4f2a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\math">
       <UniqueIdentifier>{d1518f71-b303-466f-a769-211daa75df82}</UniqueIdentifier>
     </Filter>
@@ -63,6 +60,12 @@
     </Filter>
     <Filter Include="Shaders\shadowmap">
       <UniqueIdentifier>{ee91f01d-b48d-4d43-8852-eb83b4bc1ca7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\radiosity">
+      <UniqueIdentifier>{d621decb-3d3f-40a4-b1fa-07ee204a4f2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\cone trace">
+      <UniqueIdentifier>{8dd82e59-4512-48ca-b7a5-ab0701bf1ce1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -228,6 +231,18 @@
     <ClInclude Include="DrawIndexedIndirectCommand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GpuProfiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuShading.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassRadiosity.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassConeTrace.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -329,6 +344,15 @@
     <ClCompile Include="RenderPassShadow.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
+    <ClCompile Include="GpuProfiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassRadiosity.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassConeTrace.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -345,9 +369,6 @@
     </FxCompile>
     <FxCompile Include="DeepGBufferGs.hlsl">
       <Filter>Shaders\create gbuffer</Filter>
-    </FxCompile>
-    <FxCompile Include="CreateRadiosityPS.hlsl">
-      <Filter>Shaders\create radiosity buffer</Filter>
     </FxCompile>
     <FxCompile Include="CreateZBufferPS.hlsl">
       <Filter>Shaders\ao</Filter>
@@ -414,6 +435,24 @@
     </FxCompile>
     <FxCompile Include="ShadePS.hlsl">
       <Filter>Shaders\shadng</Filter>
+    </FxCompile>
+    <FxCompile Include="RadiosityPS.hlsl">
+      <Filter>Shaders\radiosity</Filter>
+    </FxCompile>
+    <FxCompile Include="RadiosityBouncePS.hlsl">
+      <Filter>Shaders\radiosity</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelizeCreateMipMax.hlsl">
+      <Filter>Shaders\voxelize</Filter>
+    </FxCompile>
+    <FxCompile Include="ConeTracePS.hlsl">
+      <Filter>Shaders\cone trace</Filter>
+    </FxCompile>
+    <FxCompile Include="ConeTraceGS.hlsl">
+      <Filter>Shaders\cone trace</Filter>
+    </FxCompile>
+    <FxCompile Include="ConeTraceVS.hlsl">
+      <Filter>Shaders\cone trace</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -54,9 +54,18 @@ This need not match the real far plane*/
 #define MAX_MIP_LEVEL 5
 
 // tau[N-1] = optimal number of spiral turns for N samples 2 
-static const int tau[] = { 1, 1, 2, 3, 2, 5, 2, 3, 2, 3, 3, 5, 5, 3, 4, 7, 5, 5, 7, 9, 8, 5, 5, 7, 7, 7, 8, 5, 8, 11, 12, 7, 10, 13, 8, 11, 8, 7,
-14, 11, 11, 13, 12, 13, 19, 17, 13, 11, 18, 19, 11, 11, 14, 17, 21, 15, 16, 17, 18, 13, 17, 11, 17, 19, 18, 25, 18, 19, 19, 29, 21, 19, 27,
-31, 29, 21, 18, 17, 29, 31, 31, 23, 18, 25, 26, 25, 23, 19, 34, 19, 27, 21, 25, 39, 29, 17, 21, 27 };
+static const int tau[] = {
+	//  0   1   2   3   4   5   6   7   8   9
+	1,  1,  1,  2,  3,  2,  5,  2,  3,  2,  // 0
+	3,  3,  5,  5,  3,  4,  7,  5,  5,  7,  // 1
+	9,  8,  5,  5,  7,  7,  7,  8,  5,  8,  // 2
+	11, 12,  7, 10, 13,  8, 11,  8,  7, 14,  // 3
+	11, 11, 13, 12, 13, 19, 17, 13, 11, 18,  // 4
+	19, 11, 11, 14, 17, 21, 15, 16, 17, 18,  // 5
+	13, 17, 11, 17, 19, 18, 25, 18, 19, 19,  // 6
+	29, 21, 19, 27, 31, 29, 21, 18, 17, 29,  // 7
+	31, 31, 23, 18, 25, 26, 25, 23, 19, 34,  // 8
+	19, 27, 21, 25, 39, 29, 17, 21, 27, 29 }; // 9
 
 struct GSOutput
 {
@@ -112,7 +121,7 @@ float3 reconstructCSPosition(float2 S, float z)
 
 float sampleZBuffer(int3 ssP)
 {
-	return CS_Z_buffer.Load(ssP).r * 100.0f;
+	return CS_Z_buffer.Load(ssP).r * saoBuffer.zFar;
 }
 
 /** Read the camera-space position of the point at screen-space pixel ssP */
@@ -123,7 +132,7 @@ float3 getPosition(int2 ssP)
 	P.z = sampleZBuffer(int3(ssP, 0));
 
 	// Offset to pixel center
-	P = reconstructCSPosition(float2(ssP) + float2(0.5, 0.5), P.z);
+	P = reconstructCSPosition(float2(ssP), P.z);
 	return P;
 }
 
@@ -164,8 +173,8 @@ void getOffsetPositions(int2 ssC, float2 unitOffset, float ssR, float radius2, o
 	P1.z = CS_Z_buffer1.Load(int3(ssP >> mipLevel, mipLevel)).r;
 
 	// Offset to pixel center
-	P0 = reconstructCSPosition(float2(ssP)+float2(0.5, 0.5), P0.z);
-	P1 = reconstructCSPosition(float2(ssP)+float2(0.5, 0.5), P1.z);
+	P0 = reconstructCSPosition(float2(ssP), P0.z);
+	P1 = reconstructCSPosition(float2(ssP), P1.z);
 }
 
 float3 getOffsetPosition(int2 ssC, float2 unitOffset, float ssR)
@@ -183,7 +192,7 @@ float3 getOffsetPosition(int2 ssC, float2 unitOffset, float ssR)
 	P.z = sampleZBuffer(int3(ssP >> mipLevel, mipLevel));
 
 	// Offset to pixel center
-	P = reconstructCSPosition(float2(ssP)+float2(0.5, 0.5), P.z);
+	P = reconstructCSPosition(float2(ssP), P.z);
 	return P;
 }
 
@@ -286,7 +295,7 @@ PixelOutput main(GSOutput input)
 	}*/
 
 	float2 compressedNormal = g_normalTexture.Load(int4(ssC, 0, 0)).rg;
-	float3 n_C = normalize(decodeNormal(compressedNormal)) *float3(-1, 1, -1);
+	float3 n_C = normalize(decodeNormal(compressedNormal)) * float3(-1, 1, -1);
 
 	// Choose the screen-space sample radius
 	// proportional to the projected area of the sphere
@@ -312,7 +321,7 @@ PixelOutput main(GSOutput input)
 	float A = max(0.0, 1.0 - sum * intensityDivR6 * (5.0 / NUM_SAMPLES));
 
 	//float A = pow(max(0.0, 1.0 - sqrt(sum * (3.0 / NUM_SAMPLES))), saoBuffer.intensity);
-	//A = lerp(A, 1.0f, 1.0f - saturate(0.5f * C.z));
+	A = lerp(A, 1.0f, 1.0f - saturate(0.5f * C.z));
 
 	// Bilateral box-filter over a quad for free, respecting depth edges
 	// (the difference that this makes is subtle)

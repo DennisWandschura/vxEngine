@@ -1,4 +1,5 @@
 #include "GpuVoxel.h"
+#include "GpuCameraBufferData.h"
 
 struct VSOut
 {
@@ -17,7 +18,12 @@ cbuffer VoxelBuffer : register(b0)
 	GpuVoxel voxel;
 };
 
-uint getVoxelDirection(in float3 vertices[3])
+cbuffer CameraBuffer : register(b1)
+{
+	GpuCameraBufferData camera;
+};
+
+uint getVoxelDirection(in float3 vertices[3], out uint matrixIndex, out uint textureOffset)
 {
 	float3 e0 = vertices[1] - vertices[0];
 	float3 e1 = vertices[2] - vertices[0];
@@ -42,6 +48,10 @@ uint getVoxelDirection(in float3 vertices[3])
 
 	uint3 indices = uint3(0, 2, 4) + offset;
 	indices = indices & cmpAxis;
+	textureOffset = (indices.x + indices.y + indices.z) * voxel.dim;
+
+	uint3 matrixIndices = uint3(0, 1, 2) & cmpAxis;
+	matrixIndex = matrixIndices.x + matrixIndices.y + matrixIndices.z;
 
 	return (indices.x + indices.y + indices.z);
 }
@@ -52,23 +62,36 @@ void main(
 	inout TriangleStream< GSOutput > output
 )
 {
+	float3 cameraPosition = camera.position.xyz;
+
+	float3 voxelCenter = cameraPosition * voxel.invGridCellSize;
+	voxelCenter = float3(int3(voxelCenter)) * voxel.gridCellSize;
+
 	float3 vertices[3];
 	vertices[0] = input[0].wsPosition;
 	vertices[1] = input[1].wsPosition;
 	vertices[2] = input[2].wsPosition;
 
-	uint direction = getVoxelDirection(vertices);
+	vertices[0] -= voxelCenter;
+	vertices[1] -= voxelCenter;
+	vertices[2] -= voxelCenter;
 
-	if (direction == 4 || direction == 5)
-	{
-		uint zOffset = voxel.dim * (direction == 5);
-		for (uint i = 0; i < 3; i++)
-		{
-			GSOutput element;
-			element.pos = mul(voxel.projectionMatrix, float4(input[i].wsPosition, 1.0));
-			element.wsPosition = input[i].wsPosition;
-			element.offset = zOffset;
-			output.Append(element);
-		}
-	}
+	uint matrixIndex = 0;
+	uint textureOffset = 0;
+	uint direction = getVoxelDirection(vertices, matrixIndex, textureOffset);
+
+	GSOutput element;
+	element.offset = textureOffset;
+
+	element.pos = mul(voxel.projectionMatrix[matrixIndex], float4(vertices[0], 1.0));
+	element.wsPosition = vertices[0];
+	output.Append(element);
+
+	element.pos = mul(voxel.projectionMatrix[matrixIndex], float4(vertices[1], 1.0));
+	element.wsPosition = vertices[1];
+	output.Append(element);
+
+	element.pos = mul(voxel.projectionMatrix[matrixIndex], float4(vertices[2], 1.0));
+	element.wsPosition = vertices[2];
+	output.Append(element);
 }

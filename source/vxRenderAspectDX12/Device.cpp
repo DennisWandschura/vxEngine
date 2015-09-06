@@ -67,7 +67,7 @@ namespace d3d
 		desc.BufferCount = 2;
 		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//DXGI_FORMAT_R16G16B16A16_FLOAT;
 		desc.Height = 0;
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
@@ -77,13 +77,16 @@ namespace d3d
 		desc.Width = 0;
 
 		IDXGISwapChain1* swapChain = nullptr;
-		auto hresult = m_factory->CreateSwapChainForHwnd(defaultQueue->get(), hwnd, &desc, nullptr, nullptr, &swapChain);
+		HRESULT hresult = m_factory->CreateSwapChainForHwnd(defaultQueue->get(), hwnd, &desc, nullptr, nullptr, &swapChain);
 		if (hresult != 0)
 			return false;
 
 		hresult = swapChain->QueryInterface(IID_PPV_ARGS(m_swapChain.getAddressOf()));
 		if (hresult != 0)
 			return false;
+
+		//u32 flag = 0;
+		//m_swapChain->CheckColorSpaceSupport(,&flag);
 
 		swapChain->Release();
 
@@ -114,7 +117,13 @@ namespace d3d
 
 	void Device::swapBuffer()
 	{
-		m_swapChain->Present(1, 0);
+		DXGI_PRESENT_PARAMETERS params;
+		params.DirtyRectsCount = 0;
+		params.pDirtyRects = nullptr;
+		params.pScrollOffset = nullptr;
+		params.pScrollRect = nullptr;
+
+		m_swapChain->Present1(1, 0, &params);
 	}
 
 	u32 Device::getCurrentBackBufferIndex()

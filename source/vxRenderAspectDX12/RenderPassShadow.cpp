@@ -31,6 +31,11 @@ SOFTWARE.
 #include "UploadManager.h"
 #include "ResourceView.h"
 
+namespace RenderPassShadowCpp
+{
+	enum Textures { TextureDepth, TextureZDepth, TextureIntensity, TextureNormal, TextureCount };
+}
+
 const u32 shadowMapResolution = 2048;
 
 RenderPassShadow::RenderPassShadow(ID3D12CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd)
@@ -47,75 +52,100 @@ RenderPassShadow::~RenderPassShadow()
 
 void RenderPassShadow::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
-	D3D12_RESOURCE_DESC resDesc[2];
-	resDesc[0].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resDesc[0].Alignment = 64 KBYTE;
-	resDesc[0].Width = shadowMapResolution;
-	resDesc[0].Height = shadowMapResolution;
-	resDesc[0].DepthOrArraySize = 6;
-	resDesc[0].MipLevels = 1;
-	resDesc[0].Format = DXGI_FORMAT_R32_TYPELESS;
-	resDesc[0].SampleDesc.Count = 1;
-	resDesc[0].SampleDesc.Quality = 0;
-	resDesc[0].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc[0].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	D3D12_RESOURCE_DESC resDesc[RenderPassShadowCpp::TextureCount];
+	resDesc[RenderPassShadowCpp::TextureDepth].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resDesc[RenderPassShadowCpp::TextureDepth].Alignment = 64 KBYTE;
+	resDesc[RenderPassShadowCpp::TextureDepth].Width = shadowMapResolution;
+	resDesc[RenderPassShadowCpp::TextureDepth].Height = shadowMapResolution;
+	resDesc[RenderPassShadowCpp::TextureDepth].DepthOrArraySize = 6;
+	resDesc[RenderPassShadowCpp::TextureDepth].MipLevels = 1;
+	resDesc[RenderPassShadowCpp::TextureDepth].Format = DXGI_FORMAT_R32_TYPELESS;
+	resDesc[RenderPassShadowCpp::TextureDepth].SampleDesc.Count = 1;
+	resDesc[RenderPassShadowCpp::TextureDepth].SampleDesc.Quality = 0;
+	resDesc[RenderPassShadowCpp::TextureDepth].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc[RenderPassShadowCpp::TextureDepth].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-	resDesc[1] = resDesc[0];
-	resDesc[1].Format = DXGI_FORMAT_R32_FLOAT;
-	resDesc[1].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	resDesc[RenderPassShadowCpp::TextureZDepth] = resDesc[RenderPassShadowCpp::TextureDepth];
+	resDesc[RenderPassShadowCpp::TextureZDepth].Format = DXGI_FORMAT_R32_FLOAT;
+	resDesc[RenderPassShadowCpp::TextureZDepth].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-	auto info = device->GetResourceAllocationInfo(1, 2, resDesc);
+	resDesc[RenderPassShadowCpp::TextureIntensity] = resDesc[RenderPassShadowCpp::TextureZDepth];
+	resDesc[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R16_FLOAT;
+
+	resDesc[RenderPassShadowCpp::TextureNormal] = resDesc[RenderPassShadowCpp::TextureIntensity];
+	resDesc[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16_FLOAT;
+
+	auto info = device->GetResourceAllocationInfo(1, RenderPassShadowCpp::TextureCount, resDesc);
 
 	*heapSizeRtDs += info.SizeInBytes;
 }
 
 bool RenderPassShadow::createData(ID3D12Device* device)
 {
-	D3D12_RESOURCE_DESC resDesc[2];
-	resDesc[0].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resDesc[0].Alignment = 64 KBYTE;
-	resDesc[0].Width = shadowMapResolution;
-	resDesc[0].Height = shadowMapResolution;
-	resDesc[0].DepthOrArraySize = 6;
-	resDesc[0].MipLevels = 1;
-	resDesc[0].Format = DXGI_FORMAT_R32_TYPELESS;
-	resDesc[0].SampleDesc.Count = 1;
-	resDesc[0].SampleDesc.Quality = 0;
-	resDesc[0].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc[0].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	D3D12_RESOURCE_DESC resDesc[RenderPassShadowCpp::TextureCount];
+	resDesc[RenderPassShadowCpp::TextureDepth].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resDesc[RenderPassShadowCpp::TextureDepth].Alignment = 64 KBYTE;
+	resDesc[RenderPassShadowCpp::TextureDepth].Width = shadowMapResolution;
+	resDesc[RenderPassShadowCpp::TextureDepth].Height = shadowMapResolution;
+	resDesc[RenderPassShadowCpp::TextureDepth].DepthOrArraySize = 6;
+	resDesc[RenderPassShadowCpp::TextureDepth].MipLevels = 1;
+	resDesc[RenderPassShadowCpp::TextureDepth].Format = DXGI_FORMAT_R32_TYPELESS;
+	resDesc[RenderPassShadowCpp::TextureDepth].SampleDesc.Count = 1;
+	resDesc[RenderPassShadowCpp::TextureDepth].SampleDesc.Quality = 0;
+	resDesc[RenderPassShadowCpp::TextureDepth].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc[RenderPassShadowCpp::TextureDepth].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-	resDesc[1] = resDesc[0];
-	resDesc[1].Format = DXGI_FORMAT_R32_FLOAT;
-	resDesc[1].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	resDesc[RenderPassShadowCpp::TextureZDepth] = resDesc[RenderPassShadowCpp::TextureDepth];
+	resDesc[RenderPassShadowCpp::TextureZDepth].Format = DXGI_FORMAT_R32_FLOAT;
+	resDesc[RenderPassShadowCpp::TextureZDepth].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-	auto info = device->GetResourceAllocationInfo(1, 1, &resDesc[0]);
+	resDesc[RenderPassShadowCpp::TextureIntensity] = resDesc[RenderPassShadowCpp::TextureZDepth];
+	resDesc[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R16_FLOAT;
 
-	D3D12_CLEAR_VALUE clearValue{};
-	clearValue.Format = DXGI_FORMAT_D32_FLOAT;
-	clearValue.DepthStencil.Depth = 1.f;
-	clearValue.DepthStencil.Stencil = 0;
+	resDesc[RenderPassShadowCpp::TextureNormal] = resDesc[RenderPassShadowCpp::TextureIntensity];
+	resDesc[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16_FLOAT;
 
-	CreateResourceDesc desc;
-	desc.clearValue = &clearValue;
-	desc.resDesc = &resDesc[0];
-	desc.size = info.SizeInBytes;
-	desc.state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-	auto p = s_resourceManager->createTextureRtDs(L"shadowTexture", desc);
-	if (p == nullptr)
-		return false;
+	D3D12_CLEAR_VALUE clearValues[RenderPassShadowCpp::TextureCount];
+	memset(clearValues, 0, sizeof(clearValues));
+	clearValues[RenderPassShadowCpp::TextureDepth].Format = DXGI_FORMAT_D32_FLOAT;
+	clearValues[RenderPassShadowCpp::TextureDepth].DepthStencil.Depth = 1.f;
+	clearValues[RenderPassShadowCpp::TextureDepth].DepthStencil.Stencil = 0;
 
-	info = device->GetResourceAllocationInfo(1, 1, &resDesc[1]);
+	clearValues[RenderPassShadowCpp::TextureZDepth].Format = DXGI_FORMAT_R32_FLOAT;
+	clearValues[RenderPassShadowCpp::TextureZDepth].Color[0] = 1.0f;
 
-	clearValue.Format = DXGI_FORMAT_R32_FLOAT;
-	clearValue.Color[0] = 1.0f;
+	clearValues[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R16_FLOAT;
 
-	desc.clearValue = &clearValue;
-	desc.resDesc = &resDesc[1];
-	desc.size = info.SizeInBytes;
-	desc.state = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	p = s_resourceManager->createTextureRtDs(L"shadowTextureLinear", desc);
-	if (p == nullptr)
-		return false;
+	clearValues[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16_FLOAT;
+
+	const wchar_t* names[]=
+	{
+		L"shadowTexture",
+		L"shadowTextureLinear",
+		L"shadowTextureIntensity",
+		L"shadowTextureNormal"
+	};
+
+	D3D12_RESOURCE_STATES resStates[RenderPassShadowCpp::TextureCount];
+	resStates[RenderPassShadowCpp::TextureDepth] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	resStates[RenderPassShadowCpp::TextureZDepth] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	resStates[RenderPassShadowCpp::TextureIntensity] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	resStates[RenderPassShadowCpp::TextureNormal] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+	for (u32 i = 0; i < RenderPassShadowCpp::TextureCount; ++i)
+	{
+		auto info = device->GetResourceAllocationInfo(1, 1, &resDesc[i]);
+
+		CreateResourceDesc desc;
+		desc.clearValue = &clearValues[i];
+		desc.resDesc = &resDesc[i];
+		desc.size = info.SizeInBytes;
+		desc.state = resStates[i];
+
+		auto p = s_resourceManager->createTextureRtDs(names[i], desc);
+		if (p == nullptr)
+			return false;
+	}
 
 	return true;
 }
@@ -173,7 +203,7 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
 	};
 
-	auto format = DXGI_FORMAT_R32_FLOAT;
+	DXGI_FORMAT format[3] = { DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R16_FLOAT, DXGI_FORMAT_R16G16_FLOAT };
 
 
 	d3d::PipelineStateDescInput inputDesc;
@@ -186,16 +216,13 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 	inputDesc.shaderDesc.ps = s_shaderManager->getShader("ShadowMapPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
-	inputDesc.rtvCount = 1;
-	inputDesc.rtvFormats = &format;
+	inputDesc.rtvCount = 3;
+	inputDesc.rtvFormats = format;
 
 #define DEPTH_BIAS_D32_FLOAT(d) (d/(1.0/pow(2.0,23.0)))
 
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
-	desc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
-	desc.RasterizerState.DepthBias = DEPTH_BIAS_D32_FLOAT(-0.00001);
-	desc.RasterizerState.DepthBiasClamp = 0;
-	desc.RasterizerState.SlopeScaledDepthBias = 2.5f;
+	//desc.RasterizerState.SlopeScaledDepthBias = 2.5f;
 
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
@@ -203,6 +230,42 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 bool RenderPassShadow::createCommandList(ID3D12Device* device)
 {
 	return m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get());
+}
+
+bool RenderPassShadow::createRtvs(ID3D12Device* device)
+{
+	auto shadowTextureLinear = s_resourceManager->getTextureRtDs(L"shadowTextureLinear");
+	auto shadowTextureIntensity = s_resourceManager->getTextureRtDs(L"shadowTextureIntensity");
+	auto shadowTextureNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
+
+	D3D12_DESCRIPTOR_HEAP_DESC desc;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	desc.NodeMask = 1;
+	desc.NumDescriptors = 3;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	if (!m_heapRtv.create(desc, device))
+		return false;
+
+	auto handle = m_heapRtv.getHandleCpu();
+
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+	rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+	rtvDesc.Texture2DArray.ArraySize = 6;
+	rtvDesc.Texture2DArray.FirstArraySlice = 0;
+	rtvDesc.Texture2DArray.MipSlice = 0;
+	rtvDesc.Texture2DArray.PlaneSlice = 0;
+	device->CreateRenderTargetView(shadowTextureLinear, &rtvDesc, handle);
+
+	rtvDesc.Format = DXGI_FORMAT_R16_FLOAT;
+	handle.offset(1);
+	device->CreateRenderTargetView(shadowTextureIntensity, &rtvDesc, handle);
+
+	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	handle.offset(1);
+	device->CreateRenderTargetView(shadowTextureNormal, &rtvDesc, handle);
+
+	return true;
 }
 
 void RenderPassShadow::uploadData()
@@ -226,6 +289,9 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 		return false;
 
 	if (!createCommandList(device))
+		return false;
+
+	if (!createRtvs(device))
 		return false;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
@@ -276,27 +342,6 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	srvHandle.offset(1);
 	device->CreateConstantBufferView(cameraBufferView, srvHandle);
 
-	{
-		auto shadowTextureLinear = s_resourceManager->getTextureRtDs(L"shadowTextureLinear");
-
-		D3D12_DESCRIPTOR_HEAP_DESC desc;
-		desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		desc.NodeMask = 1;
-		desc.NumDescriptors = 1;
-		desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		if (!m_heapRtv.create(desc, device))
-			return false;
-
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-		rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-		rtvDesc.Texture2DArray.ArraySize = 6;
-		rtvDesc.Texture2DArray.FirstArraySlice = 0;
-		rtvDesc.Texture2DArray.MipSlice = 0;
-		rtvDesc.Texture2DArray.PlaneSlice = 0;
-		device->CreateRenderTargetView(shadowTextureLinear, &rtvDesc, m_heapRtv.getHandleCpu());
-	}
-
 	return true;
 }
 
@@ -308,11 +353,10 @@ void RenderPassShadow::shutdown()
 void RenderPassShadow::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	const f32 clearcolor[] = { 1.0f, 0, 0, 0 };
+	const f32 clearcolor0[] = { 0.0f, 0, 0, 0 };
 	auto count = m_drawCmd->getCount();
 	if (count != 0)
 	{
-		float g_fViewportBias = 0.0000152588f;
-
 		D3D12_VIEWPORT viewPort;
 		viewPort.Height = (f32)shadowMapResolution;
 		viewPort.Width = (f32)shadowMapResolution;
@@ -332,10 +376,21 @@ void RenderPassShadow::submitCommands(ID3D12CommandList** list, u32* index)
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
 
+		auto handleRtv = m_heapRtv.getHandleCpu();
 		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_heapDsv.getHandleCpu();
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_heapRtv.getHandleCpu();
-		m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
-		m_commandList->ClearRenderTargetView(rtvHandle, clearcolor, 0, nullptr);
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[3];
+		rtvHandles[0] = handleRtv;
+
+		handleRtv.offset(1);
+		rtvHandles[1] = handleRtv;
+
+		handleRtv.offset(1);
+		rtvHandles[2] = handleRtv;
+
+		m_commandList->OMSetRenderTargets(2, rtvHandles, FALSE, &dsvHandle);
+		m_commandList->ClearRenderTargetView(rtvHandles[0], clearcolor, 0, nullptr);
+		m_commandList->ClearRenderTargetView(rtvHandles[1], clearcolor0, 0, nullptr);
+		m_commandList->ClearRenderTargetView(rtvHandles[2], clearcolor0, 0, nullptr);
 		m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		auto srvHeap = m_heapSrv.get();

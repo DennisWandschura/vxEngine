@@ -22,7 +22,7 @@ namespace LightManagerCpp
 		auto lightPos = light.position;
 		auto projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::VX_PIDIV2, 1.0f, n, f);
 
-		f32 ss = projectionMatrix.c[0].m128_f32[0] / projectionMatrix.c[1].m128_f32[1];
+		//f32 ss = projectionMatrix.c[0].m128_f32[0] / projectionMatrix.c[1].m128_f32[1];
 
 		//auto projectionMatrixBiased = vx::MatrixPerspectiveFovRHDX(vx::VX_PIDIV2, 1.0f, n, f);
 		//auto projectionMatrix = DirectX::XMMatrixPerspectiveFovRH(vx::VX_PIDIV2, 1.0f, n, f);
@@ -127,8 +127,8 @@ bool LightManager::loadSceneLights(const Light* lights, u32 count, ID3D12Device*
 	}
 
 	m_sceneLightCount = count;
-	m_renderPass->setLightCount(count);
-	m_renderPassCopy->setLightCount(count);
+	//m_renderPass->setLightCount(count);
+	//m_renderPassCopy->setLightCount(count);
 
 	if (!m_drawCommand.create(L"drawCmdShadow", 64, resourceManager, device))
 		return false;
@@ -152,16 +152,39 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 	{
 		auto marker = m_scratchAllocator.getMarker();
 		u32* indices = (u32*)m_scratchAllocator.allocate(sceneLightCount * sizeof(u32));
-		u32 count = frustum.testSpheres(m_sceneLightBounds, sceneLightCount, indices);
+		u32 lightsInFrustumCount = frustum.testSpheres(m_sceneLightBounds, sceneLightCount, indices);
 
-		__m128* boundsInFrustum = (__m128*)m_scratchAllocator.allocate(count * sizeof(__m128), 16);
-		for (u32 i = 0; i < count; ++i)
+		__m128* boundsInFrustum = (__m128*)m_scratchAllocator.allocate(lightsInFrustumCount * sizeof(__m128), 16);
+		for (u32 i = 0; i < lightsInFrustumCount; ++i)
 		{
 			auto index = indices[i];
 			boundsInFrustum[i] = m_sceneLightBounds[index];
 		}
 
-		PlaneSIMD halfPlane;
+		u32 remainingLights = 0;
+		u32 lightsIntersectingPlayerCount = 0;
+		u32* lightsIntersectingPlayerCountIndices = (u32*)m_scratchAllocator.allocate(sizeof(u32) * lightsInFrustumCount);
+		for (u32 i = 0; i < lightsInFrustumCount; ++i)
+		{
+			auto index = indices[i];
+
+			auto &bounds = boundsInFrustum[i];
+			__m128 radius = VX_PERMUTE_PS(bounds, _MM_SHUFFLE(3, 3, 3, 3));
+
+			auto distanceToCenter = vx::length3(_mm_sub_ps(bounds, cameraPosition));
+			auto cmp = _mm_cmplt_ss(distanceToCenter, radius);
+			auto mask = _mm_movemask_ps(cmp) & 0x1;
+			if (mask != 0)
+			{
+				lightsIntersectingPlayerCountIndices[lightsIntersectingPlayerCount++] = index;
+			}
+			else
+			{
+				indices[remainingLights++] = index;
+			}
+		}
+
+		/*PlaneSIMD halfPlane;
 		frustum.getPlaneZ13(&halfPlane);
 		u32 nearHalfCount = 0;
 
@@ -176,7 +199,7 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 			{
 				++nearHalfCount;
 			}
-		}
+		}*/
 
 		/*Pair* pairs = (Pair*)m_scratchAllocator.allocate(count * sizeof(Pair), 16);
 		for (u32 i = 0; i < count; ++i)
