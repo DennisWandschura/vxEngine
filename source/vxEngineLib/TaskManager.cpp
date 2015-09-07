@@ -220,10 +220,11 @@ namespace vx
 	TaskManager::TaskManager()
 		:m_tasksFront(),
 		m_mutexFront(),
-		m_queues(),
+		m_queues(nullptr),
 		m_tasksBack(),
 		m_capacity(0),
-		m_threads(),
+		m_threadCount(0),
+		m_threads(nullptr),
 		m_running(nullptr),
 		m_allocator()
 	{
@@ -236,27 +237,37 @@ namespace vx
 
 	void TaskManager::initialize(u32 count, u32 localQueueCapacity, f32 maxTimeMs, vx::StackAllocator* allocator)
 	{
-		count = std::max(1u, count);
-		for (u32 i = 0; i < count; ++i)
+		if (count != 0)
 		{
-			auto ptr = (LocalQueue*)allocator->allocate(sizeof(LocalQueue), __alignof(LocalQueue));
-			new (ptr) LocalQueue{};
+			m_queues = (LocalQueue**)allocator->allocate(sizeof(LocalQueue*) * count, 8);
+			for (u32 i = 0; i < count; ++i)
+			{
+				auto ptr = (LocalQueue*)allocator->allocate(sizeof(LocalQueue), __alignof(LocalQueue));
+				new (ptr) LocalQueue{};
 
-		//	ptr->initialize(localQueueCapacity, maxTimeMs, this, allocator);
-			m_queues.push_back(ptr);
+				m_queues[i] = ptr;
+			}
+
+			m_queue = m_queues[0];
+			m_queue->initialize(localQueueCapacity, maxTimeMs - 5.0f, this, allocator);
+
+			auto threadCount = count - 1;
+			if (threadCount != 0)
+			{
+				m_threads = (std::thread*)allocator->allocate(sizeof(std::thread) * threadCount, __alignof(std::thread));
+				for (u32 i = 1; i < count; ++i)
+				{
+					auto ptr = m_queues[i];
+					ptr->initialize(localQueueCapacity, maxTimeMs, this, allocator);
+
+					new (&m_threads[i - 1]) std::thread(localThread, ptr, i);
+				}
+			}
+
+			m_capacity = localQueueCapacity;
 		}
 
-		m_queue = m_queues[0];
-		m_queue->initialize(localQueueCapacity, maxTimeMs - 5.0f, this, allocator);
-		for (u32 i = 1; i < count; ++i)
-		{
-			auto ptr = m_queues[i];
-			ptr->initialize(localQueueCapacity, maxTimeMs, this, allocator);
-
-			m_threads.push_back(std::thread(localThread, ptr, i));
-		}
-
-		m_capacity = localQueueCapacity;
+		m_threadCount = count;
 	}
 
 	void TaskManager::initializeThread(std::atomic_uint* running)
@@ -267,18 +278,28 @@ namespace vx
 		s_tid = 0;
 		Task::setAllocator(m_allocator.get());
 		Event::setAllocator(m_allocator.get());
-
-		//printf("Worker Thread tid: %u\n", std::this_thread::get_id());
 	}
 
 	void TaskManager::shutdown()
 	{
-		for (auto &it : m_queues)
+		if (m_threadCount != 0)
 		{
-			it->~LocalQueue();
+			for (u32 i = 0; i < m_threadCount; ++i)
+			{
+				m_queues[i]->~LocalQueue();
+			}
+			m_queues = nullptr;
+
+			for (u32 i = 0; i < (m_threadCount - 1); ++i)
+			{
+				auto &it = m_threads[i];
+				if (it.joinable())
+					it.join();
+
+				it.~thread();
+			}
+			m_threads = nullptr;
 		}
-		m_queues.clear();
-		m_threads.clear();
 	}
 
 	void TaskManager::pushTask(LightTask* task)
@@ -291,7 +312,7 @@ namespace vx
 	{
 		VX_ASSERT(tid >= 0);
 
-		auto sz = m_queues.size();
+		auto sz = m_threadCount;
 		VX_ASSERT(tid < sz);
 			
 		if (sz == 0)
@@ -336,7 +357,9 @@ namespace vx
 		{
 			u32 distributedTasks = 0;
 
-			u32 avgSizePerQueue = static_cast<u32>((m_tasksBack.size() + m_queues.size() - 1) / m_queues.size());
+			auto threadCount = m_threadCount;
+
+			u32 avgSizePerQueue = static_cast<u32>((m_tasksBack.size() + threadCount - 1) / threadCount);
 			avgSizePerQueue = std::min(m_capacity, avgSizePerQueue);
 
 			/*std::sort(m_tasksBack.begin(), m_tasksBack.end(), [](const Task* l, const Task* r)
@@ -346,8 +369,9 @@ namespace vx
 
 			while (!m_tasksBack.empty())
 			{
-				for (auto &it : m_queues)
+				for (u32 i = 0; i < threadCount; ++i)
 				{
+					auto &it = m_queues[i];
 					if (m_tasksBack.empty())
 						break;
 
@@ -377,13 +401,15 @@ namespace vx
 			m_running->store(0);
 		}
 
-		for (auto &it : m_queues)
+		for (u32 i = 0; i < m_threadCount; ++i)
 		{
-			it->signalStop();
+			m_queues[i]->signalStop();
 		}
 
-		for (auto &it : m_threads)
+		for (u32 i = 0; i < m_threadCount - 1; ++i)
 		{
+			auto &it = m_threads[i];
+
 			if (it.joinable())
 				it.join();
 		}

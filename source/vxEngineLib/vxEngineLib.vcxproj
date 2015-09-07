@@ -318,6 +318,7 @@
     <ClInclude Include="include\vxEngineLib\EditorScene.h" />
     <ClInclude Include="include\vxEngineLib\EngineConfig.h" />
     <ClInclude Include="include\vxEngineLib\Event.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\RenderLayer.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />
     <ClInclude Include="include\vxEngineLib\Message.h" />
     <ClInclude Include="include\vxEngineLib\MessageListener.h" />

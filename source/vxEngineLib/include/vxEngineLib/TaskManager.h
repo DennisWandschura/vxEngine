@@ -41,12 +41,13 @@ namespace vx
 		{
 			std::vector<LightTask*> m_tasksFront;
 			std::mutex m_mutexFront;
-			std::vector<LocalQueue*> m_queues;
+			LocalQueue** m_queues;
 		};
 
 		std::vector<LightTask*> m_tasksBack;
 		u32 m_capacity;
-		std::vector<std::thread> m_threads;
+		u32 m_threadCount;
+		std::thread* m_threads;
 		std::atomic_uint* m_running;
 		LocalQueue* m_queue;
 		std::unique_ptr<SmallObjAllocator> m_allocator;

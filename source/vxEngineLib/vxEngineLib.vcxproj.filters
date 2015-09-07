@@ -186,15 +186,6 @@
     <ClInclude Include="include\vxEngineLib\Reference.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\RenderAspectInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\RendererSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\RenderUpdateTask.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -287,6 +278,18 @@
     </ClInclude>
     <ClInclude Include="ConverterSceneFileV8.h">
       <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\RenderAspectInterface.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\RendererSettings.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\RenderUpdateTask.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Graphics\RenderLayer.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
