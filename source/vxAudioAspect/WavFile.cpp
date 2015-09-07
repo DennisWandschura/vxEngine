@@ -22,92 +22,241 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/*#include <vxAudio/WavFile.h>
-#include <fstream>
+#include "WavFile.h"
+#include <algorithm>
 
-struct WavHeader
+namespace WavFileCpp
 {
-	char sGroupID[4];
-	unsigned int dwFileLength;
-	char sRiffType[4];
-};
+	template<typename u32 SIZESRC, u32 SIZEDST>
+	struct CopyArray;
 
-struct WavFormatChunk
-{
-	char sGroupID[4];
-	unsigned int dwChunkSize;
-	unsigned short wFormatTag;
-	unsigned short wChannels;
-	unsigned int dwSamplesPerSec;
-	unsigned int dwAvgBytesPerSec;
-	unsigned short wBlockAlign;
-	unsigned short dwBitsPerSample;
-};
+	template<>
+	struct CopyArray<2, 2>
+	{
+		template<typename T>
+		static void copy(const T* src, T* dst)
+		{
+			dst[0] = src[0];
+			dst[1] = src[1];
+		}
+	};
 
-struct WavChunk
-{
-	char sGroupID[4];
-	unsigned int dwChunkSize;
-};
+	template<>
+	struct CopyArray<2, 8>
+	{
+		template<typename T>
+		static void copy(const T* src, T* dst)
+		{
+			dst[0] = src[0];
+			dst[1] = src[1];
+			dst[2] = 0;
+			dst[3] = 0;
+
+			dst[4] = 0;
+			dst[5] = 0;
+			dst[6] = 0;
+			dst[7] = 0;
+		}
+	};
+
+	template<u32 SRCCHANNELS, u32 DSTCHANNELS>
+	struct Reader
+	{
+		u32 static readShort(u32 frameCount, const u16* src, u16* dst, const u16* end, u32* head)
+		{
+			const u32 srcTotalSize = frameCount * SRCCHANNELS;
+
+			auto newHead = src + srcTotalSize;
+			newHead = std::min(newHead, end);
+
+			auto readBytes = newHead - src;
+			auto readFrames = readBytes / SRCCHANNELS;
+
+			u32 index = 0;
+			for (u32 i = 0; i < readFrames; ++i)
+			{
+				CopyArray<SRCCHANNELS, DSTCHANNELS>::copy(src, dst);
+
+				src += SRCCHANNELS;
+				dst += DSTCHANNELS;
+			}
+
+			*head += static_cast<u32>(readBytes);
+
+			return static_cast<u32>(readFrames);
+		}
+
+		u32 static readFloat(u32 frameCount, const f32* src, f32* dst, const f32* end, u32* head)
+		{
+			const u32 srcTotalSize = frameCount * SRCCHANNELS;
+
+			auto newHead = src + srcTotalSize;
+			newHead = std::min(newHead, end);
+
+			auto readBytes = newHead - src;
+			auto readFrames = readBytes / SRCCHANNELS;
+
+			u32 index = 0;
+			for (u32 i = 0; i < readFrames; ++i)
+			{
+				CopyArray<SRCCHANNELS, DSTCHANNELS>::copy(src, dst);
+
+				src += SRCCHANNELS;
+				dst += DSTCHANNELS;
+			}
+
+			*head += static_cast<u32>(readBytes);
+
+			return static_cast<u32>(readFrames);
+		}
+	};
+}
 
 WavFile::WavFile()
-	:m_data(),
-	m_size(0)
+	:m_data(nullptr),
+	m_head(0),
+	m_dataSize(0)
 {
 
+}
+
+WavFile::WavFile(WavFile &&rhs)
+	:m_data(rhs.m_data),
+	m_head(rhs.m_head),
+	m_dataSize(rhs.m_dataSize)
+{
+	rhs.m_data = nullptr;
+	m_head = 0;
+	m_dataSize = 0;
 }
 
 WavFile::~WavFile()
 {
-
+	if (m_data)
+	{
+		delete[]m_data;
+	}
 }
 
-bool WavFile::loadFromFile(const char* file)
+WavFile& WavFile::operator=(WavFile &&rhs)
 {
-	std::ifstream inFile(file, std::ios::binary);
-	if (!inFile.is_open())
-		return false;
-
-	inFile.seekg(0, std::ifstream::end);
-	auto sz = inFile.tellg();
-	inFile.seekg(0, std::ifstream::beg);
-
-	auto memory = std::make_unique<unsigned char[]>(sz);
-
-	inFile.read((char*)memory.get(), sz);
-	inFile.close();
-
-	WavHeader* header = (WavHeader*)memory.get();
-	WavFormatChunk* formatChunk = (WavFormatChunk*)(header + 1);
-
-	WavChunk* dataChuck = nullptr;
-	unsigned char* ptr = (unsigned char*)(formatChunk + 1);
-	auto ptrEnd = memory.get() + sz;
-	while (true)
+	if (this != &rhs)
 	{
-		WavChunk* chunk = (WavChunk*)(ptr);
-		if (chunk->sGroupID[0] == 'd' &&
-			chunk->sGroupID[1] == 'a' &&
-			chunk->sGroupID[2] == 't'&&
-			chunk->sGroupID[3] == 'a')
-		{
-			dataChuck = chunk;
-			break;
-		}
+		std::swap(m_data, rhs.m_data);
+		std::swap(m_head, rhs.m_head);
+		std::swap(m_dataSize, rhs.m_dataSize);
+	}
+	return *this;
+}
 
-		if (ptr >= ptrEnd)
-			break;
+u32 WavFile::readDataFloat22(u32 frameCount, f32* dst)
+{
+	/*const u32 channels = 2;
+	const u32 srcTotalSize = frameCount * channels * sizeof(f32);
 
-		ptr += chunk->dwChunkSize + sizeof(WavChunk);
+	u32 newHead = m_head + srcTotalSize;
+	newHead = std::min(newHead, m_dataSize);
+
+	u32 readBytes = newHead - m_head;
+	u32 readFrames = readBytes / channels;
+
+	//
+	auto read = readBytes / channels;
+	auto ptr = (float*)(m_data + m_head);
+
+	u32 index = 0;
+	for (u32 i = 0; i < read; ++i)
+	{
+		dst[0] = ptr[0];
+		dst[1] = ptr[0];
+
+		ptr += channels;
+		dst += channels;
 	}
 
-	if (dataChuck == nullptr)
-		return false;
+	m_head += readBytes;
 
-	ptr += sizeof(WavChunk);
-	m_data = std::make_unique<unsigned char[]>(dataChuck->dwChunkSize);
-	memcpy(m_data.get(), ptr, dataChuck->dwChunkSize);
-	m_size = dataChuck->dwChunkSize;
+	return readFrames;*/
 
-	return true;
-}*/
+	auto src = (float*)(m_data + m_head);
+	auto end = (float*)(m_data + m_dataSize);
+
+	return WavFileCpp::Reader<2, 2>::readFloat(frameCount, src, dst, end, &m_head);
+}
+
+u32 WavFile::readDataFloat28(u32 frameCount, f32* dst)
+{
+	const u32 dstChannels = 8;
+	const u32 srcChannels = 2;
+	const u32 srcTotalSize = frameCount * srcChannels * sizeof(f32);
+
+	u32 newHead = m_head + srcTotalSize;
+	newHead = std::min(newHead, m_dataSize);
+
+	u32 readBytes = newHead - m_head;
+	u32 readFrames = readBytes / srcChannels;
+
+	//
+	auto read = readBytes / srcChannels;
+	auto ptr = (float*)(m_data + m_head);
+
+	u32 index = 0;
+	for (u32 i = 0; i < read; ++i)
+	{
+		dst[0] = ptr[0];
+		dst[1] = ptr[0];
+		dst[2] = 0;
+		dst[3] = 0;
+
+		dst[4] = 0;
+		dst[5] = 0;
+		dst[6] = 0;
+		dst[7] = 0;
+
+		ptr += srcChannels;
+		dst += dstChannels;
+	}
+
+	m_head += readBytes;
+
+	return readFrames;
+}
+
+u32 WavFile::readDataFloat(u32 frameCount, u32 srcChannels, f32* dst, u32 dstChannels)
+{
+	const u32 srcChannelBytes = srcChannels * sizeof(f32);
+	u32 srcTotalSize = frameCount * srcChannelBytes;
+
+	u32 newHead = m_head + srcTotalSize;
+	newHead = std::min(newHead, m_dataSize);
+
+	u32 readBytes = newHead - m_head;
+	u32 readFrames = readBytes / srcChannels;
+
+	//
+	auto read = readBytes / srcChannels;
+	auto ptr = (float*)(m_data + m_head);
+
+	auto remainingChannels = dstChannels - srcChannels;
+
+	u32 index = 0;
+	for (u32 i = 0; i < read; ++i)
+	{
+		for (u32 chn = 0; chn < srcChannels; ++chn)
+		{
+			float value = ptr[index++];
+			*dst = value;
+			++dst;
+		}
+
+		for (u32 chn = 0; chn < remainingChannels; ++chn)
+		{
+			*dst = 0.0f;
+			++dst;
+		}
+	}
+
+	m_head += readBytes;
+
+	return readFrames;
+}

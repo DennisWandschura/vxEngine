@@ -1,5 +1,3 @@
-#include "AudioAspect.h"
-
 /*
 The MIT License (MIT)
 
@@ -23,6 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include "AudioAspect.h"
+#include "WavFactory.h"
+#include "WavFile.h"
+#include "WavFormat.h"
+#include <cstdio>
 
 namespace vx
 {
@@ -38,7 +41,16 @@ namespace vx
 
 	bool AudioAspect::initialize()
 	{
-		return m_audioManager.initialize();
+		if (!m_audioManager.initialize())
+			return false;
+
+		WavFile wavFile;
+		WavFormat format;
+		WavFactory::loadFromFile("../data/audio/01 BABYMETAL DEATH.wav", &wavFile, &format);
+
+		m_audioManager.addWavFile(std::move(wavFile), format);
+
+		return true;
 	}
 
 	void AudioAspect::shutdown()
@@ -48,7 +60,7 @@ namespace vx
 
 	void AudioAspect::update()
 	{
-
+		m_audioManager.update();
 	}
 
 	void AudioAspect::handleMessage(const Message &evt)

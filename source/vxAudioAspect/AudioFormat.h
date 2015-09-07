@@ -24,24 +24,40 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxEngineLib/AudioAspectInterface.h>
-#include "AudioManager.h"
+#include <vxLib/types.h>
 
-namespace vx
+namespace Wav
 {
-	class AudioAspect : public ::AudioAspectInterface
+	struct Header
 	{
-		Audio::AudioManager m_audioManager;
+		u8 riff[4];
+		u32 fileSize;
+		u8 wave[4];
 
-	public:
-		AudioAspect();
-		~AudioAspect();
+		bool isValid() const
+		{
+			auto cmp0 = riff[0] == 'R' && riff[1] == 'I' && riff[2] == 'F' && riff[3] == 'F';
+			auto cmp1 = wave[0] == 'W' && wave[1] == 'A' && wave[2] == 'V' && wave[3] == 'E';
 
-		bool initialize() override;
-		void shutdown() override;
-
-		void handleMessage(const Message &evt) override;
-
-		void update() override;
+			return cmp0 && cmp1;
+		}
 	};
-}
+
+	struct FormatHeader
+	{
+		u8 fmt[4];
+		u32 formatSize;
+		u16 formatTag;
+		u16 channels;
+		u32 sampleRate;
+		u32 bytesPerSec;
+		u16 blockAlign;
+		u16 bitsPerSample;
+	};
+
+	struct DataHeader
+	{
+		u8 data[4];
+		u32 dataSize;
+	};
+};
