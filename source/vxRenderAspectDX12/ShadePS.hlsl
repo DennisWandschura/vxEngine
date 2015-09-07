@@ -14,6 +14,11 @@ cbuffer CameraBuffer : register(b0)
 	GpuCameraBufferData cameraBuffer;
 };
 
+cbuffer CameraStaticBuffer : register(b1)
+{
+	GpuCameraStatic cameraStatic;
+};
+
 StructuredBuffer<GpuLight> g_lights : register(t4);
 
 Texture2DArray g_albedoeSlice : register(t0);
@@ -39,14 +44,14 @@ float sampleShadow(in float3 L, float distance, float lightFalloff)
 
 float3 reconstructCSPosition(float2 S, float z)
 {
-	return float3((S.xy * cameraBuffer.projInfo.xy + cameraBuffer.projInfo.zw) * z, -z);
+	return float3((S.xy * cameraStatic.projInfo.xy + cameraStatic.projInfo.zw) * z, -z);
 }
 
 float3 getPosition(int2 ssP)
 {
 	float3 P;
 
-	P.z = g_zBuffer.Load(int3(ssP, 0)).r * cameraBuffer.zFar;
+	P.z = g_zBuffer.Load(int3(ssP, 0)).r * cameraStatic.zFar;
 
 	P = reconstructCSPosition(float2(ssP), P.z);
 
@@ -117,7 +122,6 @@ float4 main(GSOutput input) : SV_TARGET
 
 	for (uint i = 0; i < lightCount; ++i)
 	{
-		//uint i = 0;
 		uint index = i + 1;
 		float3 lightPosition = g_lights[index].position.xyz;
 		float3 lightPositionVS = mul(cameraBuffer.viewMatrix, float4(lightPosition, 1)).xyz;

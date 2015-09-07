@@ -6,7 +6,7 @@
 #include "d3dx12.h"
 #include "ResourceView.h"
 
-const u32 g_voxelDim = 128;
+const u32 g_voxelDim = 64;
 const u32 g_voxelDimW = g_voxelDim * 6;
 
 RenderPassVoxelize::RenderPassVoxelize(ID3D12CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCommand)
@@ -29,7 +29,7 @@ void RenderPassVoxelize::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTex
 	resDesc[0].Width = g_voxelDim;
 	resDesc[0].Height = g_voxelDim;
 	resDesc[0].DepthOrArraySize = g_voxelDimW;
-	resDesc[0].MipLevels = 1;
+	resDesc[0].MipLevels = 3;
 	resDesc[0].Format = DXGI_FORMAT_R32_TYPELESS;
 	resDesc[0].SampleDesc.Count = 1;
 	resDesc[0].SampleDesc.Quality = 0;
@@ -63,7 +63,7 @@ bool RenderPassVoxelize::createData(ID3D12Device* device)
 	resDesc[0].Width = g_voxelDim;
 	resDesc[0].Height = g_voxelDim;
 	resDesc[0].DepthOrArraySize = g_voxelDimW;
-	resDesc[0].MipLevels = 1;
+	resDesc[0].MipLevels = 3;
 	resDesc[0].Format = DXGI_FORMAT_R32_TYPELESS;
 	resDesc[0].SampleDesc.Count = 1;
 	resDesc[0].SampleDesc.Quality = 0;
@@ -81,6 +81,7 @@ bool RenderPassVoxelize::createData(ID3D12Device* device)
 	if (ptr == nullptr)
 		return false;
 
+	resDesc[0].Format = DXGI_FORMAT_R32_UINT;
 	ptr = s_resourceManager->createTexture(L"voxelTextureDiffuse", desc);
 	if (ptr == nullptr)
 		return false;

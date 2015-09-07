@@ -27,6 +27,8 @@ SOFTWARE.
 #include <dxgi1_4.h>
 #include "CommandQueue.h"
 
+#include <vector>
+
 namespace d3d
 {
 	typedef HRESULT(WINAPI *DXGIGetDebugInterfaceProc)(REFIID riid, void **ppDebug);
@@ -53,6 +55,47 @@ namespace d3d
 		hresult = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(m_factory.getAddressOf()));
 		if (hresult != 0)
 			return false;
+
+		/*UINT i = 0;
+		IDXGIAdapter1  * pAdapter;
+		std::vector <IDXGIAdapter1 *> vAdapters;
+		while (m_factory->EnumAdapters1(i, &pAdapter) != DXGI_ERROR_NOT_FOUND)
+		{
+			vAdapters.push_back(pAdapter);
+			++i;
+		}
+
+		const char* COMPUTE_PREEMPTION_GRANULARITY[]=
+		{
+			"DXGI_COMPUTE_PREEMPTION_DMA_BUFFER_BOUNDARY",
+			"DXGI_COMPUTE_PREEMPTION_DISPATCH_BOUNDARY",
+			"DXGI_COMPUTE_PREEMPTION_THREAD_GROUP_BOUNDARY",
+			"DXGI_COMPUTE_PREEMPTION_THREAD_BOUNDARY",
+			"DXGI_COMPUTE_PREEMPTION_INSTRUCTION_BOUNDARY"
+		};
+
+		const char* GRAPHICS_PREEMPTION_GRANULARITY[] =
+		{
+			"DXGI_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY",
+			"DXGI_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY",
+			"DXGI_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY",
+			"DXGI_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY",
+			"DXGI_GRAPHICS_PREEMPTION_INSTRUCTION_BOUNDARY"
+		};
+
+		for (auto &it : vAdapters)
+		{
+			IDXGIAdapter2* tmp = nullptr;
+			auto hr = it->QueryInterface(IID_PPV_ARGS(&tmp));
+			if(hr == 0)
+			{
+				DXGI_ADAPTER_DESC2 desc;
+				tmp->GetDesc2(&desc);
+				printf("%ws\n%s\n", desc.Description, COMPUTE_PREEMPTION_GRANULARITY[desc.ComputePreemptionGranularity]);
+				printf("%s\n", GRAPHICS_PREEMPTION_GRANULARITY[desc.GraphicsPreemptionGranularity]);
+				printf("\n");
+			}
+		}*/
 
 		return true;
 	}

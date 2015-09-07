@@ -95,8 +95,8 @@ bool RenderPassShading::loadShaders()
 bool RenderPassShading::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 7, 0, 0, 1);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0, 0, 0);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 7, 0, 0, 2);
 	//rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 0);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
@@ -171,14 +171,19 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 8;
+	desc.NumDescriptors = 9;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_heapSrv.create(desc, device))
 		return false;
 
 	auto handle = m_heapSrv.getHandleCpu();
 	auto cameraBufferView = s_resourceManager->getConstantBufferView("cameraBufferView");
+	auto cameraStaticBufferView = s_resourceManager->getConstantBufferView("cameraStaticBufferView");
+
 	device->CreateConstantBufferView(cameraBufferView, handle);
+
+	handle.offset(1);
+	device->CreateConstantBufferView(cameraStaticBufferView, handle);
 
 	handle.offset(1);
 	auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");

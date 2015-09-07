@@ -104,6 +104,7 @@ class RenderAspect : public RenderAspectInterface
 
 	bool createCommandList();
 	bool createConstantBuffers();
+	void uploadStaticCameraData();
 
 	void handleFileMessage(const vx::Message &msg);
 

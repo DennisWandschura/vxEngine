@@ -67,6 +67,9 @@
     <Filter Include="Shaders\cone trace">
       <UniqueIdentifier>{8dd82e59-4512-48ca-b7a5-ab0701bf1ce1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\text">
+      <UniqueIdentifier>{0dfbb9f8-341e-4dea-9a9f-91e1b2e3b04e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -186,9 +189,6 @@
     <ClInclude Include="RenderPassShading.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPassFinal.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="LightManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -241,6 +241,15 @@
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="RenderPassConeTrace.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassVoxelMip.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassFinal.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
   </ItemGroup>
@@ -353,6 +362,12 @@
     <ClCompile Include="RenderPassConeTrace.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
+    <ClCompile Include="TextRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassVoxelMip.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -442,9 +457,6 @@
     <FxCompile Include="RadiosityBouncePS.hlsl">
       <Filter>Shaders\radiosity</Filter>
     </FxCompile>
-    <FxCompile Include="VoxelizeCreateMipMax.hlsl">
-      <Filter>Shaders\voxelize</Filter>
-    </FxCompile>
     <FxCompile Include="ConeTracePS.hlsl">
       <Filter>Shaders\cone trace</Filter>
     </FxCompile>
@@ -452,6 +464,21 @@
       <Filter>Shaders\cone trace</Filter>
     </FxCompile>
     <FxCompile Include="ConeTraceVS.hlsl">
+      <Filter>Shaders\cone trace</Filter>
+    </FxCompile>
+    <FxCompile Include="TextPS.hlsl">
+      <Filter>Shaders\text</Filter>
+    </FxCompile>
+    <FxCompile Include="TextVS.hlsl">
+      <Filter>Shaders\text</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelizeCreateMipMaxVS.hlsl">
+      <Filter>Shaders\voxelize</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelizeCreateMipVS.hlsl">
+      <Filter>Shaders\voxelize</Filter>
+    </FxCompile>
+    <FxCompile Include="ConeTraceNewPS.hlsl">
       <Filter>Shaders\cone trace</Filter>
     </FxCompile>
   </ItemGroup>

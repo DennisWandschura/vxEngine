@@ -56,6 +56,7 @@ SOFTWARE.
 #include <vxEngineLib/ResourceAspectInterface.h>
 #include <vxEngineLib/MeshFile.h>
 #include "RenderPassConeTrace.h"
+#include "RenderPassVoxelMip.h"
 
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/GpuFunctions.h>
@@ -66,7 +67,6 @@ SOFTWARE.
 #include "GpuCameraBufferData.h"
 
 const u32 COMPUTE_GUARD_BAND = 192;
-const u32 g_cbufferOffsetLightCount = d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
 
 typedef HRESULT (WINAPI *DXGIGetDebugInterfaceProc)(REFIID riid, void **ppDebug);
 
@@ -148,6 +148,7 @@ void RenderAspect::createRenderPasses()
 	m_renderPasses.push_back(new RenderPassZBufferCreateMipmaps(m_commandAllocator.get()));
 
 	m_renderPasses.push_back(new RenderPassVoxelize(m_commandAllocator.get(), &m_drawCommandMesh));
+	m_renderPasses.push_back(new RenderPassVoxelMip(m_commandAllocator.get()));
 
 	m_renderPasses.push_back(new RenderPassAO(m_commandAllocator.get()));
 	m_renderPasses.push_back(new RenderPassShading(m_commandAllocator.get()));
@@ -229,6 +230,31 @@ bool RenderAspect::createConstantBuffers()
 		return false;
 
 	return true;
+}
+
+void RenderAspect::uploadStaticCameraData()
+{
+	auto projectionMatrixDouble = s_settings.m_projectionMatrix;
+	auto resolution = s_settings.m_resolution;
+
+	vx::float4 projInfo;
+	projInfo.x = 2.0 / (static_cast<f64>(resolution.x) * projectionMatrixDouble.c[0].m256d_f64[0]);
+	projInfo.y = -2.0 / (static_cast<f64>(resolution.y) * projectionMatrixDouble.c[1].m256d_f64[1]);//-2.0 / (resolution.y * projectionMatrixDouble.c[1].m256d_f64[1]);
+	projInfo.z = -1.0 / projectionMatrixDouble.c[0].m256d_f64[0];
+	projInfo.w = 1.0f / projectionMatrixDouble.c[1].m256d_f64[1];//(1.0 + projectionMatrixDouble.c[1].m256d_f64[2]) / projectionMatrixDouble.c[1].m256d_f64[1];
+
+	vx::mat4 projMatrix;
+	projectionMatrixDouble.asFloat(&projMatrix);
+
+	GpuCameraStatic cameraStaticData;
+	cameraStaticData.invProjMatrix = vx::MatrixInverse(projMatrix);
+	cameraStaticData.projInfo = projInfo;
+	cameraStaticData.zFar = s_settings.m_farZ;
+	cameraStaticData.zNear = s_settings.m_nearZ;
+
+	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
+	auto offset = d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
+	m_uploadManager.pushUploadBuffer((u8*)&cameraStaticData, constantBuffer, offset, sizeof(GpuCameraStatic), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 }
 
 RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &desc)
@@ -346,6 +372,8 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
+	uploadStaticCameraData();
+
 	m_graphicsCommandQueue.wait();
 
 	return RenderAspectInitializeError::OK;
@@ -414,12 +442,6 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	auto projectionMatrixDouble = s_settings.m_projectionMatrix;
 	auto resolution = s_settings.m_resolution;
 
-	vx::float4 projInfo;
-	projInfo.x = 2.0 / (static_cast<f64>(resolution.x) * projectionMatrixDouble.c[0].m256d_f64[0]);
-	projInfo.y = -2.0 / (static_cast<f64>(resolution.y) * projectionMatrixDouble.c[1].m256d_f64[1]);//-2.0 / (resolution.y * projectionMatrixDouble.c[1].m256d_f64[1]);
-	projInfo.z = -1.0 / projectionMatrixDouble.c[0].m256d_f64[0];
-	projInfo.w = 1.0f / projectionMatrixDouble.c[1].m256d_f64[1];//(1.0 + projectionMatrixDouble.c[1].m256d_f64[2]) / projectionMatrixDouble.c[1].m256d_f64[1];
-
 	m_camera.setPosition(data.position);
 	m_camera.setRotation(data.quaternionRotation);
 
@@ -442,11 +464,6 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	pvMatrix.asFloat(&bufferData.pvMatrix);
 	pvMatrixPrev.asFloat(&bufferData.pvMatrixPrev);
 	bufferData.invViewMatrix = vx::MatrixInverse(bufferData.viewMatrix);
-	bufferData.projMatrix = projMatrix;
-	bufferData.invProjMatrix = vx::MatrixInverse(projMatrix);
-	bufferData.projInfo = projInfo;
-	bufferData.zFar = s_settings.m_farZ;
-	bufferData.zNear = s_settings.m_nearZ;
 
 	/*f32 zNear = 0.1;
 	f32 zFar = 100.0;
@@ -490,7 +507,6 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
 
-	u32 offset = m_currentBuffer * d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
 	m_uploadManager.pushUploadBuffer((u8*)&bufferData, constantBuffer, 0, sizeof(GpuCameraBufferData), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
 	s_settings.m_viewMatrixPrev = viewMatrix;
@@ -587,13 +603,16 @@ void RenderAspect::updateProfiler(f32 dt)
 void RenderAspect::createCbvCamera()
 {
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
-	auto lightBuffer = m_resourceManager.getBuffer(L"lightBuffer");
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbufferViewDesc{};
 	cbufferViewDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress();
 	cbufferViewDesc.SizeInBytes = d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
 
 	m_resourceManager.insertConstantBufferView("cameraBufferView", cbufferViewDesc);
+
+	cbufferViewDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress() + d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
+	cbufferViewDesc.SizeInBytes = d3d::AlignedSizeType<GpuCameraStatic, 1, 256>::size;
+	m_resourceManager.insertConstantBufferView("cameraStaticBufferView", cbufferViewDesc);
 }
 
 void RenderAspect::createSrvLights(u32 maxCount)

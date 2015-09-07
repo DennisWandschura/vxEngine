@@ -161,7 +161,7 @@ bool RenderPassZBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderMan
 
 bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceManager* resourceManager)
 {
-	auto cbufferDesc = resourceManager->getConstantBufferView("cameraBufferView");
+	auto cbufferDesc = resourceManager->getConstantBufferView("cameraStaticBufferView");
 	auto gbufferDepthTexture = resourceManager->getTextureRtDs(L"gbufferDepth");
 	auto zBufferTexture0 = resourceManager->getTextureRtDs(L"zBuffer0");
 	auto zBufferTexture1 = resourceManager->getTextureRtDs(L"zBuffer1");

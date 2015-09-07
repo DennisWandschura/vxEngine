@@ -133,7 +133,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOMINMAX;_VX_ASSERT;_VX_WINDOWS;_VX_NO_EXCEPTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_VX_ASSERT;_VX_WINDOWS;_VX_NO_EXCEPTIONS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -243,6 +243,7 @@
     <ClInclude Include="RenderPassShadow.h" />
     <ClInclude Include="RenderPassVisibleLights.h" />
     <ClInclude Include="RenderPassVoxelize.h" />
+    <ClInclude Include="RenderPassVoxelMip.h" />
     <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
     <ClInclude Include="RenderSettings.h" />
     <ClInclude Include="ResourceManager.h" />
@@ -254,6 +255,7 @@
     <ClInclude Include="ResourceView.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="TaskUploadGeometry.h" />
+    <ClInclude Include="TextRenderer.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="UploadManager.h" />
     <ClInclude Include="Vertex.h" />
@@ -287,12 +289,14 @@
     <ClCompile Include="RenderPassShadow.cpp" />
     <ClCompile Include="RenderPassVisibleLights.cpp" />
     <ClCompile Include="RenderPassVoxelize.cpp" />
+    <ClCompile Include="RenderPassVoxelMip.cpp" />
     <ClCompile Include="RenderPassZBufferCreateMipmaps.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="RenderPassZBuffer.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="TaskUploadGeometry.cpp" />
+    <ClCompile Include="TextRenderer.cpp" />
     <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="UploadManager.cpp" />
   </ItemGroup>
@@ -310,6 +314,14 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="ConeTraceNewPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="ConeTracePS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
@@ -567,7 +579,31 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="VoxelizeCreateMipMax.hlsl">
+    <FxCompile Include="TextPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="TextVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VoxelizeCreateMipVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VoxelizeCreateMipMaxVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>

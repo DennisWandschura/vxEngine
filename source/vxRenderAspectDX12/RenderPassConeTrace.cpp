@@ -92,17 +92,18 @@ bool RenderPassConeTrace::createRootSignature(ID3D12Device* device)
 {
 	// cbuffer VoxelBuffer : register(b0)
 	// cbuffer CameraBuffer : register(b1)
+	// cbuffer CameraStaticBuffer : register(b2)
 	//	Texture2D<float> g_zBuffer : register(t0);
 	// Texture2DArray g_normalSlice : register(t1);
 	CD3DX12_DESCRIPTOR_RANGE rangeGS[2];
-	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0, 0, 0);
-	rangeGS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, 2);
+	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 3, 0, 0, 0);
+	rangeGS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, 3);
 
 	// cbuffer VoxelBuffer : register(b0)
 	// g_voxelTextureDiffuse : register(t2);
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0, 4);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0, 5);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[2];
 	rootParameters[0].InitAsDescriptorTable(2, rangeGS, D3D12_SHADER_VISIBILITY_GEOMETRY);
@@ -140,7 +141,7 @@ bool RenderPassConeTrace::createPipelineState(ID3D12Device* device)
 	inputDesc.rtvCount = 1;
 	inputDesc.rtvFormats = &rtvFormat;
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
-	desc.BlendState.RenderTarget[0].BlendEnable = 0;
+	desc.BlendState.RenderTarget[0].BlendEnable = 1;
 	desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 	desc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
 	desc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
@@ -187,13 +188,14 @@ bool RenderPassConeTrace::createSrv(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 5;
+	desc.NumDescriptors = 6;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_srvHeap.create(desc, device))
 		return false;
 
 	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
 	auto cameraBufferView = s_resourceManager->getConstantBufferView("cameraBufferView");
+	auto cameraStaticBufferView = s_resourceManager->getConstantBufferView("cameraStaticBufferView");
 	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
 	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
 	auto voxelTextureDiffuse = s_resourceManager->getTexture(L"voxelTextureDiffuse");
@@ -208,6 +210,9 @@ bool RenderPassConeTrace::createSrv(ID3D12Device* device)
 
 	handle.offset(1);
 	device->CreateConstantBufferView(cameraBufferView, handle);
+
+	handle.offset(1);
+	device->CreateConstantBufferView(cameraStaticBufferView, handle);
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescZBuffer;
 	srvDescZBuffer.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -239,7 +244,7 @@ bool RenderPassConeTrace::createSrv(ID3D12Device* device)
 	srvDescVoxel.Format = DXGI_FORMAT_R32_UINT;
 	srvDescVoxel.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDescVoxel.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-	srvDescVoxel.Texture3D.MipLevels = 1;
+	srvDescVoxel.Texture3D.MipLevels = 2;
 	srvDescVoxel.Texture3D.MostDetailedMip = 0;
 	srvDescVoxel.Texture3D.ResourceMinLODClamp = 0;
 
@@ -283,7 +288,7 @@ void RenderPassConeTrace::submitCommands(ID3D12CommandList** list, u32* index)
 {
 	auto voxelTextureDiffuse = s_resourceManager->getTexture(L"voxelTextureDiffuse");
 
-	const f32 clearValues[4] = { 1, 0, 0, 0 };
+	const f32 clearValues[4] = { 0, 0, 0, 0 };
 
 	D3D12_VIEWPORT viewPort;
 	viewPort.Width = (f32)s_resolution.x;
@@ -327,54 +332,4 @@ void RenderPassConeTrace::submitCommands(ID3D12CommandList** list, u32* index)
 
 	list[*index] = m_commandList.get();
 	++(*index);
-
-	/*if (m_drawCommand->getCount() != 0)
-	{
-		auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
-		auto voxelTextureDiffuse = s_resourceManager->getTexture(L"voxelTextureDiffuse");
-
-		m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
-
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse));
-		auto gpuHandle = m_descriptorHeapClear.getHandleGpu();
-		auto cpuHandle = m_descriptorHeapClear.getHandleCpu();
-		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureOpacity, clearValues, 0, nullptr);
-
-		cpuHandle.offset(1);
-		gpuHandle.offset(1);
-		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureDiffuse, clearValues, 0, nullptr);
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity));
-
-
-
-		m_commandList->RSSetViewports(1, &viewPort);
-		m_commandList->RSSetScissorRects(1, &rectScissor);
-
-		auto heap = m_descriptorHeap.get();
-		m_commandList->SetDescriptorHeaps(1, &heap);
-
-		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-		m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(2, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
-
-		auto drawCmdBuffer = s_resourceManager->getBuffer(L"drawCmdBuffer");
-		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
-		vertexBufferViews[0] = s_resourceManager->getResourceView("meshVertexBufferView")->vbv;
-		vertexBufferViews[1] = s_resourceManager->getResourceView("meshDrawIdBufferView")->vbv;
-		auto indexBufferView = s_resourceManager->getResourceView("meshIndexBufferView")->ibv;
-
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
-		m_commandList->IASetIndexBuffer(&indexBufferView);
-
-		m_drawCommand->draw(m_commandList.get());
-
-		m_commandList->Close();
-
-		list[*index] = m_commandList.get();
-		++(*index);
-	}*/
 }

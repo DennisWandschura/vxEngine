@@ -60,7 +60,7 @@ uint getVoxelDirection(in float3 vertices[3], out uint matrixIndex, out uint tex
 void main(
 	triangle VSOut input[3],
 	inout TriangleStream< GSOutput > output
-)
+	)
 {
 	float3 cameraPosition = camera.position.xyz;
 

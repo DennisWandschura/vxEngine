@@ -36,7 +36,7 @@ void main(GSOutput input)
 
 	uint4 colorU8 = uint4(color * 255.0, luminance * 255);
 
-	uint packedColor = colorU8.x | (colorU8.y << 8) | (colorU8.z < 16) | (colorU8.w < 24);
+	uint packedColor = colorU8.x | (colorU8.y << 8) | (colorU8.z << 16) | (colorU8.w << 24);
 	uint oldValue;
 	InterlockedMax(g_voxelTextureDiffuse[(uint3)coords], packedColor, oldValue);
 }
