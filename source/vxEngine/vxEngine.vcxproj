@@ -77,8 +77,8 @@
     <OutDir>..\..\game\bin\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
-    <IncludePath>E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\PhysX-3.3\PhysXSDK\Include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;$(IncludePath)</IncludePath>
-    <LibraryPath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;E:\dev\libraries\openal-soft-1.16.0-bin\libs\Win64;E:\dev\libraries\libogg\bin\x64\intel;E:\dev\libraries\libvorbis-1.3.3\bin\x64\intel;d:\Users\dennis\Documents\Visual Studio 2015\Projects\PhysX-3.3\PhysXSDK\Lib\vc14win64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
+    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\PhysX-3.3\PhysXSDK\Include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\PhysX-3.3\PhysXSDK\Lib\vc14win64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">
