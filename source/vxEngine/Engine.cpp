@@ -70,6 +70,9 @@ Engine::Engine()
 	m_systemAspect(),
 	m_physicsAspect(),
 	m_actorAspect(),
+	m_threadHandle(nullptr),
+	m_lastTime(0),
+	m_lastSystem(0),
 	m_renderAspect(nullptr),
 	m_entityAspect(),
 	m_bRun(0),
@@ -127,6 +130,30 @@ void Engine::update()
 
 	//CpuProfiler::pushMarker("physx");
 	//CpuProfiler::popMarker();
+
+	getThreadInfo();
+}
+
+void Engine::getThreadInfo()
+{
+	u64 creationTime, exitTime, kernelTime, userTime;
+	auto hr = GetThreadTimes(m_threadHandle, (FILETIME*)&creationTime, (FILETIME*)&exitTime, (FILETIME*)&kernelTime, (FILETIME*)&userTime);
+
+	u64 threadTime = kernelTime + userTime;
+
+	FILETIME systemIdle;
+	u64 systemKernel, systemUser;
+	GetSystemTimes(&systemIdle, (FILETIME*)&systemKernel, (FILETIME*)&systemUser);
+	u64 systemTime = systemKernel + systemUser;
+
+	u64 diffThread = threadTime - m_lastTime;
+	u64 diffSystem = systemTime - m_lastSystem;
+
+	auto cpuUsage = (100.0 * diffThread) / diffSystem;
+	//printf("%f\n", cpuUsage);
+
+	m_lastTime = threadTime;
+	m_lastSystem = systemTime;
 }
 
 void Engine::mainLoop(Logfile* logfile)
@@ -273,6 +300,8 @@ bool Engine::createAudioAspect()
 bool Engine::initialize(Logfile* logfile)
 {
 	const std::string dataDir("../data/");
+
+	m_threadHandle = GetCurrentThread();
 
 #if _VX_MEM_PROFILE
 	vx::Allocator::setProfiler(&m_allocManager);

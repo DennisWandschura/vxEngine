@@ -49,6 +49,9 @@ class Engine
 	SystemAspect m_systemAspect;
 	PhysicsAspect m_physicsAspect;
 	ActorAspect m_actorAspect;
+	HANDLE m_threadHandle;
+	u64 m_lastTime;
+	u64 m_lastSystem;
 	RenderAspectInterface* m_renderAspect;
 	EntityAspect m_entityAspect;
 	u32 m_bRun;
@@ -75,6 +78,7 @@ class Engine
 
 	void update();
 	void mainLoop(Logfile* logfile);
+	void getThreadInfo();
 	//void renderLoop(const RenderAspectThreadDesc &desc);
 
 public:

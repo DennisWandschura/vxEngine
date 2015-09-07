@@ -117,14 +117,6 @@ int main()
 	}
 	g_logfile = &mainLogfile;
 
-	/*vx::float3 p0 = {-1.3f, 0, 1.9f};
-	vx::float3 p1 = { 1.14f, 0, 1.98 };
-	vx::float3 p2 = { 0.09, 0, 0.89 };
-	const vx::float3 forward = { 0, 0, -1 };
-
-	auto normal = vx::cross(p1 - p0, p2 - p0);
-	auto det = vx::dot(normal, forward);*/
-
 	_CrtMemState state;
 	// create a checkpoint to for current memory state
 	_CrtMemCheckpoint(&state);
