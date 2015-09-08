@@ -24,6 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace d3d
+{
+	class CommandAllocator;
+}
+
 #include "RenderPass.h"
 #include "CommandList.h"
 #include "DescriptorHeap.h"
@@ -32,7 +37,7 @@ SOFTWARE.
 class RenderPassAO : public RenderPass
 {
 	d3d::GraphicsCommandList m_commandList;
-	ID3D12CommandAllocator* m_cmdAlloc;
+	d3d::CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_rtvHeap;
 	d3d::DescriptorHeap m_srvHeap;
 	d3d::Object<ID3D12PipelineState> m_blurState[2];
@@ -48,7 +53,7 @@ class RenderPassAO : public RenderPass
 	bool createSrv(ID3D12Device* device);
 
 public:
-	explicit RenderPassAO( ID3D12CommandAllocator* cmdAlloc);
+	explicit RenderPassAO(d3d::CommandAllocator* cmdAlloc);
 	~RenderPassAO();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -58,5 +63,5 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
-	void submitCommands(ID3D12CommandList** list, u32* index) override;
+	void submitCommands(Graphics::CommandQueue* queue) override;
 };

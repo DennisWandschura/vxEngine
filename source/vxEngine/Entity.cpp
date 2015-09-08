@@ -3,7 +3,7 @@
 #include <vxEngineLib/Locator.h>
 #include "PhysicsAspect.h"
 #include <characterkinematic/PxController.h>
-#include <vxEngineLib/RenderAspectInterface.h>
+#include <vxEngineLib/Graphics/RenderAspectInterface.h>
 #include <vxEngineLib/GpuFunctions.h>
 #include <PxRigidDynamic.h>
 
@@ -66,22 +66,38 @@ void EntityActor::update(f32 dt, PhysicsAspect* physicsAspect, vx::TransformGpu*
 	transforms[index].packedQRotation = GpuFunctions::packQRotation(qRotation);
 }
 
-void EntityDynamic::update(f32 dt, vx::TransformGpu* transforms, u32* indices, u32 index)
+void EntityDynamic::update(f32 dt, vx::TransformGpu* transforms, u32* indices, u32* index)
 {
 	auto transform = m_rigidDynamic->getGlobalPose();
-	m_position.x = transform.p.x;
-	m_position.y = transform.p.y;
-	m_position.z = transform.p.z;
+	vx::float3 newPosition;
+	newPosition.x = transform.p.x;
+	newPosition.y = transform.p.y;
+	newPosition.z = transform.p.z;
 
-	m_qRotation.x = transform.q.x;
-	m_qRotation.y = transform.q.y;
-	m_qRotation.z = transform.q.z;
-	m_qRotation.w = transform.q.w;
+	vx::float4 newRotation;
+	newRotation.x = transform.q.x;
+	newRotation.y = transform.q.y;
+	newRotation.z = transform.q.z;
+	newRotation.w = transform.q.w;
 
-	auto qRotation = vx::loadFloat4(m_qRotation);
+	auto qRotationOld = vx::loadFloat4(m_qRotation);
+	auto qRotationNew = _mm_loadu_ps(&transform.q.x);
 
-	indices[index] = m_gpuIndex;
-	transforms[index].translation = m_position;
-	transforms[index].scaling = 1.0f;
-	transforms[index].packedQRotation = GpuFunctions::packQRotation(qRotation);
+	auto diffRot = _mm_sub_ps(qRotationNew, qRotationOld);
+	auto distRot = vx::dot4(diffRot, diffRot);
+
+	auto cmpRotation = (distRot.m128_f32[0] >= 0.1);
+	if (cmpRotation)
+	{
+		printf("update\n");
+	}
+
+	m_position = newPosition;
+	vx::storeFloat4(&m_qRotation, qRotationNew);
+
+	auto currentIndex = (*index)++;
+	indices[currentIndex] = m_gpuIndex;
+	transforms[currentIndex].translation = m_position;
+	transforms[currentIndex].scaling = 1.0f;
+	transforms[currentIndex].packedQRotation = GpuFunctions::packQRotation(qRotationNew);
 }

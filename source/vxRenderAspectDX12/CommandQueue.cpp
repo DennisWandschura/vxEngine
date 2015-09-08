@@ -1,10 +1,14 @@
 #include "CommandQueue.h"
 #include <d3d12.h>
+#include "CommandList.h"
 
 namespace d3d
 {
 	CommandQueue::CommandQueue()
-		:m_commandQueue(),
+		:m_lists(),
+		m_listCount(0),
+		m_listCapacity(0),
+		m_commandQueue(),
 		m_currentFence(0),
 		m_event(nullptr),
 		m_fence()
@@ -17,7 +21,7 @@ namespace d3d
 
 	}
 
-	bool CommandQueue::create(const D3D12_COMMAND_QUEUE_DESC &desc, ID3D12Device* device)
+	bool CommandQueue::create(const D3D12_COMMAND_QUEUE_DESC &desc, ID3D12Device* device, u32 capacity)
 	{
 		auto hresult = device->CreateCommandQueue(&desc, IID_PPV_ARGS(m_commandQueue.getAddressOf()));
 		if (hresult != 0)
@@ -28,6 +32,9 @@ namespace d3d
 			return false;
 
 		m_event = CreateEventEx(nullptr, FALSE, FALSE, EVENT_ALL_ACCESS);
+
+		m_lists = std::make_unique<ID3D12CommandList*[]>(capacity);
+		m_listCapacity = capacity;
 
 		return true;
 	}
@@ -41,9 +48,19 @@ namespace d3d
 		m_event = nullptr;
 	}
 
-	void CommandQueue::execute(u32 count, ID3D12CommandList* const * lists)
+	void CommandQueue::pushCommandList(::Graphics::CommandList* p)
 	{
-		m_commandQueue->ExecuteCommandLists(count, lists);
+		VX_ASSERT(m_listCount < m_listCapacity);
+		VX_ASSERT(p->getApiType() == ::Graphics::CommandApiType::D3D);
+		auto ptr = (d3d::GraphicsCommandList*)p;
+
+		m_lists[m_listCount++] = ptr->get();
+	}
+
+	void CommandQueue::execute()
+	{
+		m_commandQueue->ExecuteCommandLists(m_listCount, m_lists.get());
+		m_listCount = 0;
 	}
 
 	void CommandQueue::wait()

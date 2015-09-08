@@ -111,7 +111,7 @@ namespace Editor
 
 	}
 
-	RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &renderDesc)
+	RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &renderDesc, SignalHandlerFun signalHandlerFn)
 	{
 		auto resolution = renderDesc.settings->m_resolution;
 		f32 znear = renderDesc.settings->m_zNear;
@@ -120,6 +120,9 @@ namespace Editor
 		m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(renderDesc.settings->m_fovDeg), (f32)resolution.x / (f32)resolution.y, znear, zfar);
 
 		m_resourceAspect = renderDesc.resourceAspect;
+
+		if(!setSignalHandler(signalHandlerFn))
+			return RenderAspectInitializeError::ERROR_CONTEXT;
 
 		vx::gl::ContextDescription contextDesc;
 		contextDesc.tmpHwnd = (HWND)renderDesc.tmpHwnd;

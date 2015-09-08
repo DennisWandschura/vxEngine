@@ -78,15 +78,50 @@ LightManager::LightManager()
 
 }
 
+LightManager::LightManager(LightManager &&rhs)
+	:m_sceneLights(rhs.m_sceneLights),
+	m_sceneShadowTransforms(rhs.m_sceneShadowTransforms),
+	m_sceneLightBounds(rhs.m_sceneLightBounds),
+	m_gpuLights(rhs.m_gpuLights),
+	m_sceneLightCount(rhs.m_sceneLightCount),
+m_gpuLightCount(rhs.m_gpuLightCount),
+m_drawCommand(std::move(rhs.m_drawCommand)),
+m_scratchAllocator(std::move(rhs.m_scratchAllocator))
+{
+	rhs.m_sceneLights = nullptr;
+	rhs.m_sceneShadowTransforms = nullptr;
+	rhs.m_sceneLightBounds = nullptr;
+	rhs.m_gpuLights = nullptr;
+	rhs.m_sceneLightCount = 0;
+	rhs.m_gpuLightCount = 0;
+}
+
 LightManager::~LightManager()
 {
 	m_gpuLights = nullptr;
 }
 
-void LightManager::getRequiredMemory(u64* heapSizeBuffere)
+void LightManager::getRequiredMemory(u64* heapSizeBuffere, u32 maxLightCountGpu)
 {
 	m_drawCommand.getRequiredMemory(64, heapSizeBuffere);
-	*heapSizeBuffere += 64llu KBYTE;
+
+	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * (maxLightCountGpu + 1), 64llu KBYTE);
+
+	*heapSizeBuffere += 64llu KBYTE + lightBufferSize;
+}
+
+void LightManager::createSrvLights(u32 maxCount, d3d::ResourceManager* resourceManager)
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	srvDesc.Buffer.NumElements = maxCount;
+	srvDesc.Buffer.StructureByteStride = sizeof(GpuLight);
+
+	resourceManager->insertShaderResourceView("lightBufferView", srvDesc);
 }
 
 bool LightManager::initialize(vx::StackAllocator* allocator, u32 gpuLightCount, d3d::ResourceManager* resourceManager)
@@ -104,6 +139,13 @@ bool LightManager::initialize(vx::StackAllocator* allocator, u32 gpuLightCount, 
 	auto shadowTransformBuffer = resourceManager->createBuffer(L"shadowTransformBuffer", 64 KBYTE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	if (shadowTransformBuffer == nullptr)
 		return false;
+
+	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * (gpuLightCount + 1), 64llu KBYTE);
+	auto lightBuffer = resourceManager->createBuffer(L"lightBuffer", lightBufferSize, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	if (lightBuffer == nullptr)
+		return false;
+
+	createSrvLights(gpuLightCount + 1, resourceManager);
 
 	return true;
 }
@@ -127,14 +169,19 @@ bool LightManager::loadSceneLights(const Light* lights, u32 count, ID3D12Device*
 	}
 
 	m_sceneLightCount = count;
-	//m_renderPass->setLightCount(count);
-	//m_renderPassCopy->setLightCount(count);
 
 	if (!m_drawCommand.create(L"drawCmdShadow", 64, resourceManager, device))
 		return false;
 
 	auto shadowTransformBuffer = resourceManager->getBuffer(L"shadowTransformBuffer");
 	uploadManager->pushUploadBuffer((u8*)&m_sceneShadowTransforms[0], shadowTransformBuffer, 0, sizeof(ShadowTransform), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+	auto lightBuffer = resourceManager->getBuffer(L"lightBuffer");
+
+	auto sizeInBytes = sizeof(GpuLight) * count;
+	uploadManager->pushUploadBuffer((u8*)m_sceneLights, lightBuffer, sizeof(GpuLight), sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	uploadManager->pushUploadBuffer((u8*)&count, lightBuffer, 0, sizeof(u32), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	return true;
 }
@@ -219,12 +266,6 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 
 		m_scratchAllocator.clear(marker);
 	}
-}
-
-void LightManager::setRenderPasses(RenderPassCullLights* renderPass, RenderPassVisibleLights* renderPassCopy)
-{
-	m_renderPass = renderPass;
-	m_renderPassCopy = renderPassCopy;
 }
 
 void LightManager::addStaticMeshInstance(const D3D12_DRAW_INDEXED_ARGUMENTS &cmd, const AABB &bounds, UploadManager* uploadManager)

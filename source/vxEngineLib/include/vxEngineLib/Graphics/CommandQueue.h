@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,26 +24,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/math/Vector.h>
-#include <vxEngineLib/ParserNode.h>
-#include <vxEngineLib/Graphics/RendererSettings.h>
+#include <vxEngineLib/Graphics/CommandList.h>
 
-struct EngineConfig
+namespace Graphics
 {
-	Parser::Node m_root;
-	Graphics::RendererSettings m_rendererSettings;
+	class CommandQueue
+	{
+	public:
+		virtual ~CommandQueue() {}
 
-	vx::uint2 m_resolution{1920, 1080};
-
-	f32 m_fovDeg{66.0f};
-	f32 m_zNear{0.1f};
-	f32 m_zFar{250.f};
-	u32 m_threads{1};
-	bool m_vsync{false};
-	bool m_renderDebug{false};
-	bool m_editor{ false };
-
-	bool loadFromFile(const char* file);
-};
-
-extern EngineConfig g_engineConfig;
+		virtual void pushCommandList(CommandList* p) = 0;
+	};
+}

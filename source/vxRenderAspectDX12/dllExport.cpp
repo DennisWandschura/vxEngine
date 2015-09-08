@@ -24,7 +24,7 @@ SOFTWARE.
 #include "dllExport.h"
 #include "RenderAspect.h"
 
-RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
+RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandler, RenderAspectInitializeError* error)
 {
 	const auto sz = sizeof(RenderAspect);
 	const auto align = __alignof(RenderAspect);
@@ -32,7 +32,7 @@ RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, R
 	auto result = (RenderAspect*)_aligned_malloc(sz, align);
 	new (result) RenderAspect{};
 
-	auto initError = result->initialize(desc);
+	auto initError = result->initialize(desc, signalHandler);
 	if (initError != RenderAspectInitializeError::OK)
 	{
 		result->~RenderAspect();
@@ -58,7 +58,7 @@ void destroyRenderAspect(RenderAspectInterface *p)
 	}
 }
 
-Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
+Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandler, RenderAspectInitializeError* error)
 {
 	return nullptr;
 }

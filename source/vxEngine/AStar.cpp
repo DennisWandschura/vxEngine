@@ -31,7 +31,7 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include <vxLib/Container/array.h>
 #include <vxEngineLib/NavMeshGraph.h>
-#include <vxEngineLib/Timer.h>
+#include <vxEngineLib/CpuTimer.h>
 
 f32 AStar::heuristicDistance(const vx::float3 &fromNode, const vx::float3 &goalNode)
 {
@@ -47,7 +47,7 @@ f32 AStar::heuristicDistance2(const vx::float3 &fromNode, const vx::float3 &goal
 
 bool AStar::pathfind(const PathFindDescription &desc)
 {
-	Timer timer;
+	CpuTimer timer;
 
 	desc.outArray->clear();
 	VX_ASSERT(desc.outArray->capacity() != 0);
@@ -222,7 +222,7 @@ bool AStar::pathfind(const PathFindDescription &desc)
 		desc.outArray->push_back(startNode.m_position);
 	}
 
-	auto time = timer.getTimeInMs();
+	auto time = timer.getTimeMs();
 	//printf("Astar time: %f ms\n", time);
 
 	return result;

@@ -38,10 +38,12 @@ namespace vx
 	class TaskManager;
 }
 
+typedef void(*AbortSignalHandlerFun)(int);
+
 #include <vxEngineLib/MessageListener.h>
 #include <vxLib/math/matrix.h>
 #include <string>
-#include <vxEngineLib/RenderUpdateTask.h>
+#include <vxEngineLib/Graphics/RenderUpdateTask.h>
 
 struct RenderAspectDescription
 {
@@ -60,22 +62,35 @@ struct RenderAspectDescription
 	vx::TaskManager* taskManager;
 };
 
-enum class RenderAspectInitializeError : u32 {OK, ERROR_CONTEXT, ERROR_OUT_OF_MEMORY, ERROR_SHADER};
+enum class RenderAspectInitializeError : s32 {OK = 0, ERROR_CONTEXT = -1, ERROR_OUT_OF_MEMORY = -2, ERROR_SHADER = -3, UNKOWN_ERROR = -4};
 
 class RenderAspectInterface : public vx::MessageListener
 {
+	bool setSignalHandler(AbortSignalHandlerFun signalHandlerFn);
+
+protected:
+	virtual RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) = 0;
+
 public:
 	virtual ~RenderAspectInterface() {}
 
-	virtual RenderAspectInitializeError initialize(const RenderAspectDescription &desc) = 0;
+	RenderAspectInitializeError initialize(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn)
+	{
+		if (!setSignalHandler(signalHandlerFn))
+			return RenderAspectInitializeError::UNKOWN_ERROR;
+
+		return initializeImpl(desc);
+	}
+
 	virtual void shutdown(void* hwnd) = 0;
 
 	virtual bool initializeProfiler(Logfile* errorlog) = 0;
 
 	virtual void makeCurrent(bool b) = 0;
 
-	virtual void queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize) = 0;
+	virtual void queueUpdate(RenderUpdateTaskType type, const u8* data, u32 dataSize) = 0;
 	virtual void queueUpdateCamera(const RenderUpdateCameraData &data) = 0;
+
 	virtual void update() = 0;
 
 	virtual void updateProfiler(f32 dt) = 0;
@@ -94,5 +109,5 @@ public:
 	virtual void getAvailableVRam(u32* availableVram) const = 0;
 };
 
-typedef RenderAspectInterface* (*CreateRenderAspectFunction)(const RenderAspectDescription &desc, RenderAspectInitializeError* error);
+typedef RenderAspectInterface* (*CreateRenderAspectFunction)(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn, RenderAspectInitializeError* error);
 typedef void(*DestroyRenderAspectFunction)(RenderAspectInterface *p);

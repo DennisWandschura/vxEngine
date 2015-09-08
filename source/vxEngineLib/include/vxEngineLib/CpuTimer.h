@@ -36,5 +36,7 @@ public:
 	CpuTimer();
 	~CpuTimer();
 
+	void reset();
+
 	f32 getTimeMs() const;
 };

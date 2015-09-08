@@ -413,13 +413,16 @@ void RenderAspect::createOpenCL()
 	auto error = m_context.create(properties, 1, &device);*/
 }
 
-RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &desc)
+RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn)
 {
 	auto errorlog = desc.errorlog;
 	//m_projectionMatrix = MatrixPerspectiveFovRH(params.fovRad, screenAspect, params.nearZ, params.farZ);
 	auto screenAspect = (f32)desc.settings->m_resolution.x / (f32)desc.settings->m_resolution.y;
 	auto fovRad = vx::degToRad(desc.settings->m_fovDeg);
 	m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(fovRad, screenAspect, desc.settings->m_zNear, desc.settings->m_zFar);
+
+	if (!setSignalHandler(signalHandlerFn))
+		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	vx::gl::OpenGLDescription glDescription;
 	glDescription.bDebugMode = desc.settings->m_renderDebug;

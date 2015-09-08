@@ -1,12 +1,17 @@
 #pragma once
 
+namespace d3d
+{
+	class CommandAllocator;
+}
+
 #include "RenderPass.h"
 #include "CommandList.h"
 #include "DescriptorHeap.h"
 
 class RenderPassRadiosity : public RenderPass
 {
-	ID3D12CommandAllocator* m_allocator;
+	d3d::CommandAllocator* m_allocator;
 	d3d::GraphicsCommandList m_commandList;
 	d3d::DescriptorHeap m_rtvHeap;
 	d3d::DescriptorHeap m_srvHeap;
@@ -23,7 +28,7 @@ class RenderPassRadiosity : public RenderPass
 	bool createCommandList(ID3D12Device* device);
 
 public:
-	explicit RenderPassRadiosity(ID3D12CommandAllocator* alloc);
+	explicit RenderPassRadiosity(d3d::CommandAllocator* alloc);
 	~RenderPassRadiosity();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -33,5 +38,5 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
-	void submitCommands(ID3D12CommandList** list, u32* index) override;
+	void submitCommands(Graphics::CommandQueue* queue) override;
 };

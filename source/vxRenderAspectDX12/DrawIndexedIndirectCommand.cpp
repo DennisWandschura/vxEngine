@@ -13,6 +13,17 @@ DrawIndexedIndirectCommand::DrawIndexedIndirectCommand()
 
 }
 
+DrawIndexedIndirectCommand::DrawIndexedIndirectCommand(DrawIndexedIndirectCommand &&rhs)
+	:m_commandSignature(std::move(rhs.m_commandSignature)),
+	m_commmandBuffer(rhs.m_commmandBuffer),
+	m_count(rhs.m_count),
+	m_countOffset(rhs.m_countOffset),
+	m_maxCount(rhs.m_maxCount)
+{
+	rhs.m_count = 0;
+	rhs.m_maxCount = 0;
+}
+
 DrawIndexedIndirectCommand::~DrawIndexedIndirectCommand()
 {
 

@@ -41,6 +41,15 @@ namespace d3d
 
 	}
 
+	Heap::Heap(Heap &&rhs)
+		:m_heap(std::move(rhs.m_heap)),
+		m_device(rhs.m_device),
+		m_offset(rhs.m_offset),
+		m_capacity(rhs.m_capacity)
+	{
+		rhs.m_capacity = 0;
+	}
+
 	Heap::~Heap()
 	{
 	}

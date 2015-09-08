@@ -66,6 +66,8 @@ namespace d3d
 
 	public:
 		Heap(); 
+		Heap(const Heap&) = delete;
+		Heap(Heap &&rhs);
 		~Heap();
 
 		bool create(const D3D12_HEAP_DESC &desc, ID3D12Device* device);

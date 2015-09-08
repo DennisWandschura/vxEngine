@@ -24,13 +24,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace d3d
+{
+	class CommandAllocator;
+}
+
 #include "RenderPass.h"
 #include "CommandList.h"
 #include "DescriptorHeap.h"
 
 class RenderPassVisibleLights : public RenderPass
 {
-	ID3D12CommandAllocator* m_allocator;
+	d3d::CommandAllocator* m_allocator;
 	d3d::GraphicsCommandList m_commandList;
 	d3d::DescriptorHeap m_descriptorHeap;
 	u32 m_lightCount;
@@ -40,7 +45,7 @@ class RenderPassVisibleLights : public RenderPass
 	bool createPipelineState(ID3D12Device* device);
 
 public:
-	explicit RenderPassVisibleLights(ID3D12CommandAllocator* allocator);
+	explicit RenderPassVisibleLights(d3d::CommandAllocator* allocator);
 	~RenderPassVisibleLights();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -50,7 +55,7 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
-	void submitCommands(ID3D12CommandList** list, u32* index) override;
+	void submitCommands(Graphics::CommandQueue* queue) override;
 
 	void setLightCount(u32 count) { m_lightCount = count; }
 };

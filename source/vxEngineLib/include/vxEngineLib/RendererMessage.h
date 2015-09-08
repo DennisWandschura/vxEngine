@@ -23,35 +23,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class MeshInstance;
+#include <vxLib/types.h>
 
-#include <vxEngineLib/Transform.h>
-#include <vxLib/StringID.h>
-
-enum class RenderUpdateTaskType { UpdateCamera, UpdateDynamicTransforms, UpdateText, LoadScene, TakeScreenshot, ToggleRenderMode, CreateActorGpuIndex, AddStaticMeshInstance, AddDynamicMeshInstance};
-
-struct RenderUpdateCameraData
+namespace vx
 {
-	__m256d position;
-	__m256d quaternionRotation;
-};
+	enum class RendererMessage : u16
+	{
+		AddActor,
+		AddedActor,
 
-struct VX_ALIGN(16) RenderUpdateDataTransforms
-{
-	u32 count;
-	u32 padding[3];
-};
+		AddStaticMesh,
+		AddDynamicMesh,
 
-struct RenderUpdateTextData
-{
-	char tex[48];
-	vx::float2 position;
-	vx::float3 color;
-	u32 size;
-};
-
-struct RenderUpdateTaskAddStaticMeshData
-{
-	const MeshInstance* instance;
-	vx::StringID materialSid;
-};
+		AddedDynamicMesh
+	};
+}

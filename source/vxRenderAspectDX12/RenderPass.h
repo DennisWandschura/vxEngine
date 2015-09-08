@@ -24,18 +24,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct ID3D12GraphicsCommandList;
 struct ID3D12RootSignature;
 struct ID3D12PipelineState;
 struct ID3D12Device;
-struct ID3D12CommandList;
-struct ID3D12CommandAllocator;
 class UploadManager;
 
 #include "d3d.h"
 #include <vxLib/math/Vector.h>
 #include "RenderSettings.h"
 #include "PipelineState.h"
+#include <vxEngineLib/Graphics/CommandQueue.h>
 
 namespace d3d
 {
@@ -76,5 +74,5 @@ public:
 	virtual bool initialize(ID3D12Device* device, void* p) = 0;
 	virtual void shutdown() = 0;
 
-	virtual void submitCommands(ID3D12CommandList** list, u32* index) = 0;
+	virtual void submitCommands(Graphics::CommandQueue* queue) = 0;
 };

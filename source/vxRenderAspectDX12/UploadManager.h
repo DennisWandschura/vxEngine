@@ -25,12 +25,12 @@ SOFTWARE.
 */
 
 struct ID3D12Resource;
-struct ID3D12GraphicsCommandList;
 struct ID3D12CommandAllocator;
 
 namespace d3d
 {
 	class Device;
+	class CommandQueue;
 }
 
 #include <vxLib/types.h>
@@ -40,6 +40,7 @@ namespace d3d
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/math/Vector.h>
 #include <mutex>
+#include "CommandList.h"
 
 struct UploadTaskTexture
 {
@@ -90,7 +91,7 @@ class UploadManager
 	u32 m_capacity;
 	u32 m_size;
 	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
-	d3d::Object<ID3D12GraphicsCommandList> m_commandList;
+	d3d::GraphicsCommandList m_commandList;
 	d3d::Object<ID3D12Resource> m_uploadBuffer;
 	d3d::Heap m_heap;
 
@@ -118,5 +119,5 @@ public:
 	void pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state);
 	void pushUploadTexture(const UploadTaskTextureDesc &desc);
 
-	ID3D12GraphicsCommandList* update();
+	void submitCommandList(d3d::CommandQueue* queue);
 };

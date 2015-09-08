@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxEngineLib/EditorRenderAspectInterface.h>
+#include <vxEngineLib/Graphics/EditorRenderAspectInterface.h>
 #include <vxLib/Graphics/Camera.h>
 #include "gl/ObjectManager.h"
 #include <vxGL/RenderContext.h>
@@ -89,7 +89,7 @@ namespace Editor
 		RenderAspect();
 		~RenderAspect();
 
-		RenderAspectInitializeError initialize(const RenderAspectDescription &desc) override;
+		RenderAspectInitializeError initialize(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn) override;
 		void shutdown(void* hwnd);
 
 		bool initializeProfiler(Logfile* errorlog);

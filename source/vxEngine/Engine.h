@@ -25,7 +25,7 @@ SOFTWARE.*/
 #include <atomic>
 #include <vxLib/Allocator/StackAllocator.h>
 #include "SystemAspect.h"
-#include <vxEngineLib/RenderAspectInterface.h>
+#include <vxEngineLib/Graphics/RenderAspectInterface.h>
 #include "PhysicsAspect.h"
 #include "memory.h"
 #include "LevelEditor.h"
@@ -69,8 +69,8 @@ class Engine
 	DestroyRenderAspectFunction m_destroyFn;
 	Memory m_memory;
 
-	bool createRenderAspectGL(const RenderAspectDescription &desc);
-	bool createRenderAspectDX12(const RenderAspectDescription &desc);
+	bool createRenderAspectGL(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn);
+	bool createRenderAspectDX12(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn);
 
 	bool createAudioAspect();
 
@@ -85,7 +85,7 @@ public:
 	Engine();
 	~Engine();
 
-	bool initialize(Logfile* logfile);
+	bool initialize(Logfile* logfile, AbortSignalHandlerFun signalHandlerFn);
 	void shutdown();
 
 	void start(Logfile* logfile);

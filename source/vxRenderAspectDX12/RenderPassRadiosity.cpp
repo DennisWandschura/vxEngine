@@ -3,8 +3,9 @@
 #include "d3dx12.h"
 #include "ShaderManager.h"
 #include "GpuSaoBuffer.h"
+#include "CommandAllocator.h"
 
-RenderPassRadiosity::RenderPassRadiosity(ID3D12CommandAllocator* alloc)
+RenderPassRadiosity::RenderPassRadiosity(d3d::CommandAllocator* alloc)
 	:m_allocator(alloc),
 	m_commandList()
 {
@@ -304,7 +305,7 @@ Texture2DArray g_normalTexture : register(t2); 2
 
 bool RenderPassRadiosity::createCommandList(ID3D12Device* device)
 {
-	return m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator, m_pipelineState.get());
+	return m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator->get(), m_pipelineState.get());
 }
 
 bool RenderPassRadiosity::initialize(ID3D12Device* device, void* p)
@@ -343,13 +344,13 @@ void RenderPassRadiosity::shutdown()
 	m_commandList.destroy();
 }
 
-void RenderPassRadiosity::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassRadiosity::submitCommands(Graphics::CommandQueue* queue)
 {
 	const f32 clearcolor[4] = {0, 0, 0, 0};
 	auto bounce0 = s_resourceManager->getTextureRtDs(L"bounce0");
 	auto bounce1 = s_resourceManager->getTextureRtDs(L"bounce1");
 
-	m_commandList->Reset(m_allocator, m_pipelineState.get());
+	m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
 
 	D3D12_VIEWPORT viewport;
 	viewport.Height = (f32)s_resolution.y;
@@ -439,6 +440,5 @@ void RenderPassRadiosity::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->Close();
 
-	list[*index] = m_commandList.get();
-	++(*index);
+	queue->pushCommandList(&m_commandList);
 }

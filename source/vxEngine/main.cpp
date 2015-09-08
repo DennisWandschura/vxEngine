@@ -32,7 +32,6 @@ SOFTWARE.
 
 #include <vxLib/ScopeGuard.h>
 #include <vxEngineLib/Logfile.h>
-#include <vxEngineLib/Timer.h>
 #include <csignal>
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/debugPrint.h>
@@ -107,7 +106,6 @@ int main()
 	//char buffer[256];
 	//UnDecorateSymbolName("?pushCommand@Segment@Graphics@@QEAAXAEBUProgramUniformCommand@2@PEBE@Z", buffer, 256, 0);
 
-	Timer mainTimer;
 	Logfile mainLogfile;
 
 	if (!mainLogfile.create("logfile.txt"))
@@ -141,7 +139,7 @@ int main()
 	};
 
 	//LOG(mainLogfile, "Initializing Engine", false);
-	if (!engine.initialize(&mainLogfile))
+	if (!engine.initialize(&mainLogfile, ::signalHandler))
 	{
 		mainLogfile.append("Error initializing Engine !");
 		return 1;

@@ -4,7 +4,15 @@
 namespace d3d
 {
 	GraphicsCommandList::GraphicsCommandList()
-		:m_list()
+		: ::Graphics::CommandList(::Graphics::CommandApiType::D3D),
+		m_list()
+	{
+
+	}
+
+	GraphicsCommandList::GraphicsCommandList(GraphicsCommandList &&rhs)
+		: ::Graphics::CommandList(std::move(rhs)),
+		m_list(std::move(rhs.m_list))
 	{
 
 	}

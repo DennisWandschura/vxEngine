@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "Engine.h"
-#include <vxEngineLib/Timer.h>
 #include <vxEngineLib/EngineConfig.h>
 #include <vxEngineLib/Locator.h>
 #include "developer.h"
@@ -95,7 +94,7 @@ Engine::~Engine()
 	if (m_shutdown == 0)
 	{
 		// something bad happened
-		assert(false);
+		VX_ASSERT(false);
 	}
 }
 
@@ -158,8 +157,11 @@ void Engine::getThreadInfo()
 
 void Engine::mainLoop(Logfile* logfile)
 {
-	auto frequency = Timer::getFrequency();
-	const f64 invFrequency = 1.0 / frequency;
+	CpuTimer timer;
+
+	LARGE_INTEGER frequency;
+	QueryPerformanceFrequency(&frequency);
+	const f64 invFrequency = 1.0 / frequency.QuadPart;
 
 	LARGE_INTEGER last;
 	QueryPerformanceCounter(&last);
@@ -169,6 +171,9 @@ void Engine::mainLoop(Logfile* logfile)
 	f32 accum = 0.0f;
 	while (m_bRun != 0)
 	{
+		auto timeMS = timer.getTimeMs();
+		timer.reset();
+
 		LARGE_INTEGER current;
 		QueryPerformanceCounter(&current);
 
@@ -193,6 +198,7 @@ void Engine::mainLoop(Logfile* logfile)
 		m_renderAspect->endFrame();
 
 		last = current;
+
 	}
 }
 
@@ -216,7 +222,7 @@ bool Engine::initializeImpl(const std::string &dataDir)
 	return true;
 }
 
-bool Engine::createRenderAspectGL(const RenderAspectDescription &desc)
+bool Engine::createRenderAspectGL(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn)
 {
 #if _DEBUG
 	auto handle = LoadLibrary(L"../../lib/vxRenderAspectGL_d.dll");
@@ -233,7 +239,7 @@ bool Engine::createRenderAspectGL(const RenderAspectDescription &desc)
 		return false;
 
 	RenderAspectInitializeError error;
-	auto renderAspect = proc(desc, &error);
+	auto renderAspect = proc(desc, signalHandlerFn, &error);
 	if (renderAspect == nullptr)
 		return false;
 
@@ -244,7 +250,7 @@ bool Engine::createRenderAspectGL(const RenderAspectDescription &desc)
 	return true;
 }
 
-bool Engine::createRenderAspectDX12(const RenderAspectDescription &desc)
+bool Engine::createRenderAspectDX12(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn)
 {
 #if _DEBUG
 	auto handle = LoadLibrary(L"../../lib/vxRenderAspectDX12_d.dll");
@@ -259,7 +265,8 @@ bool Engine::createRenderAspectDX12(const RenderAspectDescription &desc)
 	if (proc == nullptr || procDestroy == nullptr)
 		return false;
 
-	auto renderAspect = proc(desc, nullptr);
+	RenderAspectInitializeError error;
+	auto renderAspect = proc(desc, signalHandlerFn, &error);
 	if (renderAspect == nullptr)
 		return false;
 
@@ -297,7 +304,7 @@ bool Engine::createAudioAspect()
 	return true;
 }
 
-bool Engine::initialize(Logfile* logfile)
+bool Engine::initialize(Logfile* logfile, AbortSignalHandlerFun signalHandlerFn)
 {
 	const std::string dataDir("../data/");
 
@@ -343,15 +350,10 @@ bool Engine::initialize(Logfile* logfile)
 		&m_taskManager
 	};
 
-	/*if (!createRenderAspectDX12(renderAspectDesc))
-	{
-		logfile->append("error dx12 renderer\n");
-		return false;
-	}*/
 	auto renderMode = g_engineConfig.m_rendererSettings.m_renderMode;
 	if (renderMode == Graphics::RendererSettings::Mode_GL)
 	{
-		if (!createRenderAspectGL(renderAspectDesc))
+		if (!createRenderAspectGL(renderAspectDesc, signalHandlerFn))
 		{
 			logfile->append("error opengl renderer\n");
 			return false;
@@ -359,7 +361,7 @@ bool Engine::initialize(Logfile* logfile)
 	}
 	else if (renderMode == Graphics::RendererSettings::Mode_DX12)
 	{
-		if (!createRenderAspectDX12(renderAspectDesc))
+		if (!createRenderAspectDX12(renderAspectDesc, signalHandlerFn))
 		{
 			logfile->append("error dx12 renderer\n");
 			return false;
@@ -391,10 +393,10 @@ bool Engine::initialize(Logfile* logfile)
 	Locator::provide(&m_resourceAspect);
 
 	// register aspects that receive events
-	m_msgManager.registerListener(m_renderAspect, 3, (u8)vx::MessageType::File_Event);
-	m_msgManager.registerListener(&m_physicsAspect, 2, (u8)vx::MessageType::File_Event | (u8)vx::MessageType::Ingame_Event);
-	m_msgManager.registerListener(&m_entityAspect, 1, (u8)vx::MessageType::File_Event | (u8)vx::MessageType::Ingame_Event);
-	m_msgManager.registerListener(&m_actorAspect, 2, (u8)vx::MessageType::File_Event | (u8)vx::MessageType::Ingame_Event | (u8)vx::MessageType::AI_Event);
+	m_msgManager.registerListener(m_renderAspect, 3, (u8)vx::MessageType::File| (u8)vx::MessageType::Renderer);
+	m_msgManager.registerListener(&m_physicsAspect, 2, (u8)vx::MessageType::File | (u8)vx::MessageType::Ingame);
+	m_msgManager.registerListener(&m_entityAspect, 1, (u8)vx::MessageType::File | (u8)vx::MessageType::Ingame);
+	m_msgManager.registerListener(&m_actorAspect, 2, (u8)vx::MessageType::File | (u8)vx::MessageType::Ingame | (u8)vx::MessageType::AI);
 
 	m_bRun = 1;
 	m_shutdown = 0;

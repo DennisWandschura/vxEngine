@@ -108,7 +108,7 @@ bool EditorEngine::initializeImpl(const std::string &dataDir, bool flipTextures)
 	return true;
 }
 
-bool EditorEngine::createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc)
+bool EditorEngine::createRenderAspectGL(const std::string &dataDir, const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn)
 {
 	auto handle = LoadLibrary(L"../../../lib/vxRenderAspectGL_d.dll");
 	if (handle == nullptr)
@@ -120,7 +120,7 @@ bool EditorEngine::createRenderAspectGL(const std::string &dataDir, const Render
 		return false;
 
 	RenderAspectInitializeError error;
-	auto renderAspect = proc(desc, &error);
+	auto renderAspect = proc(desc, signalHandlerFn, &error);
 	if (renderAspect == nullptr)
 		return false;
 
@@ -131,7 +131,7 @@ bool EditorEngine::createRenderAspectGL(const std::string &dataDir, const Render
 	return true;
 }
 
-bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, Editor::Scene* pScene, Logfile* logfile)
+bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, AbortSignalHandlerFun signalHandlerFn, Editor::Scene* pScene, Logfile* logfile)
 {
 	vx::activateChannel(vx::debugPrint::Channel_Render);
 	vx::activateChannel(vx::debugPrint::Channel_Editor);
@@ -186,22 +186,21 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	};
 	//renderAspectDesc.hwnd = m_panel;
 
-	if (!createRenderAspectGL(dataDir, renderAspectDesc))
+	if (!createRenderAspectGL(dataDir, renderAspectDesc, signalHandlerFn))
 	{
 		return false;
 	}
 
 	//dev::g_debugRenderSettings.setVoxelize(0);
 	//dev::g_debugRenderSettings.setShadingMode(ShadingMode::Albedo);
-	RenderUpdateTaskType type = RenderUpdateTaskType::ToggleRenderMode;
 	//m_renderAspect->queueUpdateTask(task);
 
 	Locator::provide(&m_physicsAspect);
 
 	m_msgManager.initialize(&m_allocator, 255);
-	m_msgManager.registerListener(m_renderAspect, 1, (u8)vx::MessageType::File_Event);
-	m_msgManager.registerListener(&m_physicsAspect, 1, (u8)vx::MessageType::File_Event);
-	m_msgManager.registerListener(this, 1, (u8)vx::MessageType::File_Event);
+	m_msgManager.registerListener(m_renderAspect, 1, (u8)vx::MessageType::File | (u8)vx::MessageType::Renderer);
+	m_msgManager.registerListener(&m_physicsAspect, 1, (u8)vx::MessageType::File);
+	m_msgManager.registerListener(this, 1, (u8)vx::MessageType::File);
 
 	//m_bRun = 1;
 	m_shutdown = 0;
@@ -255,7 +254,7 @@ void EditorEngine::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case(vx::MessageType::File_Event) :
+	case(vx::MessageType::File) :
 		handleFileEvent(evt);
 		break;
 	default:

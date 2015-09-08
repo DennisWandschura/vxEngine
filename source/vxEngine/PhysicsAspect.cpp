@@ -372,10 +372,10 @@ void PhysicsAspect::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case(vx::MessageType::Ingame_Event) :
+	case(vx::MessageType::Ingame) :
 		handleIngameMessage(evt);
 		break;
-	case(vx::MessageType::File_Event) :
+	case(vx::MessageType::File) :
 		handleFileEvent(evt);
 		break;
 	default:
@@ -412,7 +412,7 @@ void PhysicsAspect::handleIngameMessage(const vx::Message &evt)
 		data->setRigidDynamic(rigidDynamic);
 
 		vx::Message evt;
-		evt.type = vx::MessageType::Ingame_Event;
+		evt.type = vx::MessageType::Ingame;
 		evt.code = (u32)IngameMessage::Physx_AddedDynamicMesh;
 		evt.arg1.ptr = data;
 
@@ -696,7 +696,7 @@ void PhysicsAspect::processScene(const Scene* pScene)
 
 	vx::Message e;
 	e.arg1.ptr = (void*)pScene;
-	e.type = vx::MessageType::Ingame_Event;
+	e.type = vx::MessageType::Ingame;
 	e.code = (u32)IngameMessage::Physx_CreatedScene;
 
 	auto pEvtManager = Locator::getMessageManager();

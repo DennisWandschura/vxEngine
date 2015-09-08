@@ -29,9 +29,10 @@ namespace vx
 {
 	enum class MessageType : u8
 	{
-		File_Event = 1 << 0,
-		Ingame_Event = 1 << 1,
-		AI_Event = 1 << 2,
-		Editor_Event = 1 << 3
+		Renderer = 1 << 0,
+		File = 1 << 1,
+		Ingame = 1 << 2,
+		AI = 1 << 3,
+		Editor = 1 << 4
 	};
 }

@@ -27,14 +27,12 @@ SOFTWARE.
 #include "ShaderManager.h"
 #include "d3dx12.h"
 #include "ResourceManager.h"
-
-typedef vx::mat4 float4x4;
-
+#include "CommandAllocator.h"
 #include "GpuCameraBufferData.h"
 
 const u32 g_zBufferMaxMipLevel = 5u;
 
-RenderPassZBuffer::RenderPassZBuffer(ID3D12CommandAllocator* cmdAlloc)
+RenderPassZBuffer::RenderPassZBuffer(d3d::CommandAllocator* cmdAlloc)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc),
 	m_descriptorHeapRtv(),
@@ -210,10 +208,8 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 	handleRtv.offset(1);
 	device->CreateRenderTargetView(zBufferTexture1, &rtvDesc, handleRtv);
 
-	auto hresult = device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get(), IID_PPV_ARGS(m_commandList.getAddressOf()));
-	if (hresult != 0)
+	if(!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
-	m_commandList->Close();
 
 	return true;
 }
@@ -241,13 +237,13 @@ void RenderPassZBuffer::shutdown()
 	m_descriptorHeap.destroy();
 }
 
-void RenderPassZBuffer::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassZBuffer::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto gbufferDepthTexture = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
 	const f32 clearColor[4] = {1.0f, 0.0f, 0, 0};
 
-	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 	D3D12_VIEWPORT viewport;
 	viewport.Height = (f32)s_resolution.y;
@@ -292,6 +288,5 @@ void RenderPassZBuffer::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->Close();
 
-	list[*index] = m_commandList.get();
-	++(*index);
+	queue->pushCommandList(&m_commandList);
 }

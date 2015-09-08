@@ -3,12 +3,12 @@
 #include "EditorRenderAspect.h"
 #include <vxEngineLib/debugPrint.h>
 
-RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
+RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn, RenderAspectInitializeError* error)
 {
 	auto result = (RenderAspect*)_aligned_malloc(sizeof(RenderAspect), __alignof(RenderAspect));
 	new (result) RenderAspect{};
 
-	auto initError = result->initialize(desc);
+	auto initError = result->initialize(desc, signalHandlerFn);
 	if (initError != RenderAspectInitializeError::OK)
 	{
 		result->~RenderAspect();
@@ -35,12 +35,12 @@ void destroyRenderAspect(RenderAspectInterface *p)
 	}
 }
 
-Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, RenderAspectInitializeError* error)
+Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn, RenderAspectInitializeError* error)
 {
 	auto result = (Editor::RenderAspect*)_aligned_malloc(sizeof(Editor::RenderAspect), __alignof(Editor::RenderAspect));
 	new (result)Editor::RenderAspect{};
 
-	auto initError = result->initialize(desc);
+	auto initError = result->initialize(desc, signalHandlerFn);
 	if (initError != RenderAspectInitializeError::OK)
 	{
 		result->~RenderAspect();

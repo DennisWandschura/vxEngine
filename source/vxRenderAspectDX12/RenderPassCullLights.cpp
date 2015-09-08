@@ -26,8 +26,9 @@ SOFTWARE.
 #include "ShaderManager.h"
 #include "ResourceManager.h"
 #include "GpuLight.h"
+#include "CommandAllocator.h"
 
-RenderPassCullLights::RenderPassCullLights(ID3D12CommandAllocator* allocator)
+RenderPassCullLights::RenderPassCullLights(d3d::CommandAllocator* allocator)
 	:m_allocator(allocator)
 {
 
@@ -373,7 +374,7 @@ bool RenderPassCullLights::initialize(ID3D12Device* device, void* p)
 	if (!createRtvDsv(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator, m_pipelineState.get()))
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator->get(), m_pipelineState.get()))
 		return false;
 
 	return true;
@@ -384,7 +385,7 @@ void RenderPassCullLights::shutdown()
 
 }
 
-void RenderPassCullLights::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassCullLights::submitCommands(Graphics::CommandQueue* queue)
 {
 	if (m_lightCount != 0)
 	{
@@ -408,7 +409,7 @@ void RenderPassCullLights::submitCommands(ID3D12CommandList** list, u32* index)
 		rectScissor.right = s_resolution.x;
 		rectScissor.bottom = s_resolution.y;
 
-		m_commandList->Reset(m_allocator, nullptr);
+		m_commandList->Reset(m_allocator->get(), nullptr);
 
 		m_commandList->RSSetScissorRects(1, &rectScissor);
 		m_commandList->RSSetViewports(1, &viewPort);
@@ -448,7 +449,6 @@ void RenderPassCullLights::submitCommands(ID3D12CommandList** list, u32* index)
 
 		m_commandList->Close();
 
-		list[*index] = m_commandList.get();
-		++(*index);
+		queue->pushCommandList(&m_commandList);
 	}
 }

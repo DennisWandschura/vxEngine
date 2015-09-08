@@ -51,7 +51,24 @@ MeshManager::MeshManager()
 	m_indexCount(0),
 	m_instanceCount(0),
 	m_instanceCapacity(0),
-	m_geometryHeap()
+	m_scratchAllocator(),
+	m_geometryHeap(),
+	m_sortedDrawCommands()
+{
+}
+
+MeshManager::MeshManager(MeshManager &&rhs)
+	:m_vertexBuffer(std::move(rhs.m_vertexBuffer)),
+	m_indexBuffer(std::move(rhs.m_indexBuffer)),
+	m_drawIdBuffer(std::move(rhs.m_drawIdBuffer)),
+	m_meshEntries(std::move(rhs.m_meshEntries)),
+	m_vertexCount(rhs.m_vertexCount),
+	m_indexCount(rhs.m_indexCount),
+	m_instanceCount(rhs.m_instanceCount),
+	m_instanceCapacity(rhs.m_instanceCapacity),
+	m_scratchAllocator(std::move(rhs.m_scratchAllocator)),
+	m_geometryHeap(std::move(rhs.m_geometryHeap)),
+	m_sortedDrawCommands(std::move(rhs.m_sortedDrawCommands))
 {
 }
 
@@ -239,16 +256,16 @@ const MeshManager::MeshEntry* MeshManager::getMeshEntry(const vx::StringID &sid)
 	return result;
 }
 
-void MeshManager::addMeshInstanceImpl(const vx::StringID &instanceSid, const MeshEntry &meshEntry, u16 materialIndex, UploadManager* uploadMgr, DrawIndexedCommand* outCmd)
+void MeshManager::addMeshInstanceImpl(const vx::StringID &instanceSid, const MeshEntry &meshEntry, u16 materialIndex, UploadManager* uploadMgr, D3D12_DRAW_INDEXED_ARGUMENTS* outCmd)
 {
 	auto baseInstance = m_instanceCount++;
 
-	DrawIndexedCommand cmd;
-	cmd.baseInstance = baseInstance;
-	cmd.baseVertex = 0;
-	cmd.firstIndex = meshEntry.indexStart;
-	cmd.indexCount = meshEntry.indexCount;
-	cmd.instanceCount = 1;
+	D3D12_DRAW_INDEXED_ARGUMENTS cmd;
+	cmd.StartInstanceLocation = baseInstance;
+	cmd.BaseVertexLocation = 0;
+	cmd.StartIndexLocation = meshEntry.indexStart;
+	cmd.IndexCountPerInstance = meshEntry.indexCount;
+	cmd.InstanceCount = 1;
 
 	VX_ASSERT((u16)baseInstance == baseInstance);
 	u32 drawId = baseInstance | (materialIndex << 16);
@@ -273,7 +290,7 @@ const MeshManager::MeshEntry* MeshManager::tryAddMesh(const vx::StringID &meshSi
 	return meshEntry;
 }
 
-bool MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, d3d::ResourceManager* resourceManager, UploadManager* uploadMgr, DrawIndexedCommand* outCmd)
+bool MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, d3d::ResourceManager* resourceManager, UploadManager* uploadMgr, D3D12_DRAW_INDEXED_ARGUMENTS* outCmd)
 {
 	if (m_instanceCount >= m_instanceCapacity)
 		return false;
@@ -301,7 +318,7 @@ bool MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 material
 }
 
 bool MeshManager::addMeshInstance(const vx::StringID &instanceSid, const vx::StringID &meshSid, u16 materialIndex, ResourceAspectInterface* resourceAspect,
-	d3d::ResourceManager* resourceManager, UploadManager* uploadMgr, DrawIndexedCommand* outCmd)
+	d3d::ResourceManager* resourceManager, UploadManager* uploadMgr, D3D12_DRAW_INDEXED_ARGUMENTS* outCmd)
 {
 	if (m_instanceCount >= m_instanceCapacity)
 		return false;

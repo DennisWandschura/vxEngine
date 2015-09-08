@@ -42,7 +42,7 @@ namespace vx
 
 class GpuProfiler;
 
-#include <vxEngineLib/RenderAspectInterface.h>
+#include <vxEngineLib/Graphics/RenderAspectInterface.h>
 #include <vxEngineLib/MessageListener.h>
 #include <vxGL/RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
@@ -160,7 +160,7 @@ public:
 	RenderAspect();
 	virtual ~RenderAspect();
 
-	RenderAspectInitializeError initialize(const RenderAspectDescription &desc) override;
+	RenderAspectInitializeError initialize(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn) override;
 	void shutdown(void* hwnd) override;
 
 	bool initializeProfiler(Logfile* errorlog) override;

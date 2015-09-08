@@ -1,10 +1,10 @@
 #include "RenderPassZBufferCreateMipmaps.h"
-#include <d3d12.h>
 #include "ResourceManager.h"
 #include "ShaderManager.h"
 #include "d3dx12.h"
+#include "CommandAllocator.h"
 
-RenderPassZBufferCreateMipmaps::RenderPassZBufferCreateMipmaps(ID3D12CommandAllocator* cmdAlloc)
+RenderPassZBufferCreateMipmaps::RenderPassZBufferCreateMipmaps(d3d::CommandAllocator* cmdAlloc)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc)
 {
@@ -170,7 +170,7 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 	if (!createViews(device, &rtvHandle, &srvHandle, zBuffer1))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get()))
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
 
 	return true;
@@ -232,12 +232,12 @@ void RenderPassZBufferCreateMipmaps::createMipMaps(ID3D12Resource* texture, d3d:
 	}
 }
 
-void RenderPassZBufferCreateMipmaps::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassZBufferCreateMipmaps::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto zBuffer0 = s_resourceManager->getTextureRtDs(L"zBuffer0");
 	auto zBuffer1 = s_resourceManager->getTextureRtDs(L"zBuffer1");
 
-	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 	m_commandList->SetPipelineState(m_pipelineState.get());
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -256,6 +256,5 @@ void RenderPassZBufferCreateMipmaps::submitCommands(ID3D12CommandList** list, u3
 
 	m_commandList->Close();
 	
-	list[*index] = m_commandList.get();
-	++(*index);
+	queue->pushCommandList(&m_commandList);
 }

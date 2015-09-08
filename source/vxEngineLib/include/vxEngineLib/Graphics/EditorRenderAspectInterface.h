@@ -42,7 +42,7 @@ namespace vx
 	struct StringID;
 }
 
-#include <vxEngineLib/RenderAspectInterface.h>
+#include <vxEngineLib/Graphics/RenderAspectInterface.h>
 #include <vxLib/Container/sorted_vector.h>
 
 namespace Editor
@@ -78,5 +78,5 @@ namespace Editor
 	};
 }
 
-typedef Editor::RenderAspectInterface* (*CreateEditorRenderAspectFunction)(const RenderAspectDescription &desc, RenderAspectInitializeError* error);
+typedef Editor::RenderAspectInterface* (*CreateEditorRenderAspectFunction)(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn, RenderAspectInitializeError* error);
 typedef void(*DestroyEditorRenderAspectFunction)(Editor::RenderAspectInterface *p);

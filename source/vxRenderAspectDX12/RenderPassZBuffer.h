@@ -24,13 +24,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace d3d
+{
+	class CommandAllocator;
+}
+
 #include "RenderPass.h"
 #include "DescriptorHeap.h"
+#include "CommandList.h"
 
 class RenderPassZBuffer : public RenderPass
 {
-	d3d::Object<ID3D12GraphicsCommandList> m_commandList;
-	ID3D12CommandAllocator* m_cmdAlloc;
+	d3d::GraphicsCommandList m_commandList;
+	d3d::CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::DescriptorHeap m_descriptorHeap;
 
@@ -40,7 +46,7 @@ class RenderPassZBuffer : public RenderPass
 	bool createDescriptor(ID3D12Device* device, d3d::ResourceManager* resourceManager);
 
 public:
-	explicit RenderPassZBuffer(ID3D12CommandAllocator* cmdAlloc);
+	explicit RenderPassZBuffer(d3d::CommandAllocator* cmdAlloc);
 	~RenderPassZBuffer();
 
 	bool createData(ID3D12Device* device) override;
@@ -50,5 +56,5 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
-	void submitCommands(ID3D12CommandList** list, u32* index) override;
+	void submitCommands(Graphics::CommandQueue* queue) override;
 };

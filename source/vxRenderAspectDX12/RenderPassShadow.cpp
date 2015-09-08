@@ -30,6 +30,7 @@ SOFTWARE.
 #include "DrawIndexedIndirectCommand.h"
 #include "UploadManager.h"
 #include "ResourceView.h"
+#include "CommandAllocator.h"
 
 namespace RenderPassShadowCpp
 {
@@ -38,7 +39,7 @@ namespace RenderPassShadowCpp
 
 const u32 shadowMapResolution = 2048;
 
-RenderPassShadow::RenderPassShadow(ID3D12CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd)
+RenderPassShadow::RenderPassShadow(d3d::CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd)
 	:m_cmdAlloc(alloc),
 	m_drawCmd(drawCmd)
 {
@@ -229,7 +230,7 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 
 bool RenderPassShadow::createCommandList(ID3D12Device* device)
 {
-	return m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get());
+	return m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get());
 }
 
 bool RenderPassShadow::createRtvs(ID3D12Device* device)
@@ -350,7 +351,7 @@ void RenderPassShadow::shutdown()
 
 }
 
-void RenderPassShadow::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 {
 	const f32 clearcolor[] = { 1.0f, 0, 0, 0 };
 	const f32 clearcolor0[] = { 0.0f, 0, 0, 0 };
@@ -371,7 +372,7 @@ void RenderPassShadow::submitCommands(ID3D12CommandList** list, u32* index)
 		rectScissor.right = shadowMapResolution;
 		rectScissor.bottom = shadowMapResolution;
 
-		m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
@@ -413,7 +414,6 @@ void RenderPassShadow::submitCommands(ID3D12CommandList** list, u32* index)
 
 		auto hr = m_commandList->Close();
 
-		list[*index] = m_commandList.get();
-		++(*index);
+		queue->pushCommandList(& m_commandList);
 	}
 }

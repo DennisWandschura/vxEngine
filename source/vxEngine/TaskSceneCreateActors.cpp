@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "TaskSceneCreateActors.h"
 #include <vxEngineLib/Scene.h>
-#include <vxEngineLib/RenderAspectInterface.h>
+#include <vxEngineLib/Graphics/RenderAspectInterface.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/CreateActorData.h>
@@ -35,6 +35,7 @@ SOFTWARE.
 #include "PhysicsAspect.h"
 #include <vxEngineLib/Locator.h>
 #include "PhysicsDefines.h"
+#include <vxEngineLib/RendererMessage.h>
 
 thread_local f32 TaskSceneCreateActors::s_time{0.0f};
 thread_local u64 TaskSceneCreateActors::s_counter{0};
@@ -86,16 +87,19 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 
 		if (it.type != PlayerType::Human)
 		{
-			std::size_t address = (std::size_t)data;
+			vx::Message msg;
+			msg.type = vx::MessageType::Renderer;
+			msg.code = (u32)vx::RendererMessage::AddActor;
+			msg.arg1.ptr = data;
 
-			m_renderAspect->queueUpdateTask(RenderUpdateTaskType::CreateActorGpuIndex, (u8*)&address, sizeof(std::size_t));
+			msgManager->addMessage(msg);
 		}
 		
 		auto controller = m_physicsAspect->createActor(transform.m_translation, height);
 		data->setPhysx(controller);
 
 		vx::Message msg;
-		msg.type = vx::MessageType::Ingame_Event;
+		msg.type = vx::MessageType::Ingame;
 		msg.code = (u32)IngameMessage::Physx_AddedActor;
 		msg.arg1.ptr = data;
 

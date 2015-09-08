@@ -3,8 +3,9 @@
 #include "GpuLight.h"
 #include "ShaderManager.h"
 #include "ResourceManager.h"
+#include "CommandAllocator.h"
 
-RenderPassVisibleLights::RenderPassVisibleLights(ID3D12CommandAllocator* allocator)
+RenderPassVisibleLights::RenderPassVisibleLights(d3d::CommandAllocator* allocator)
 	:RenderPass(),
 	m_allocator(allocator),
 	m_commandList()
@@ -102,7 +103,7 @@ bool RenderPassVisibleLights::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device))
 		return false;
 
-	if(!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator))
+	if(!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator->get()))
 		return false;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
@@ -160,7 +161,7 @@ void RenderPassVisibleLights::shutdown()
 	m_allocator = nullptr;
 }
 
-void RenderPassVisibleLights::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassVisibleLights::submitCommands(Graphics::CommandQueue* queue)
 {
 	if (m_lightCount != 0)
 	{
@@ -183,7 +184,7 @@ void RenderPassVisibleLights::submitCommands(ID3D12CommandList** list, u32* inde
 		// ps res
 		auto visibleLightIndexBuffer = s_resourceManager->getBuffer(L"visibleLightIndexBuffer");
 
-		m_commandList->Reset(m_allocator, m_pipelineState.get());
+		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
 
 		auto resolution = s_resolution;
 
@@ -208,7 +209,6 @@ void RenderPassVisibleLights::submitCommands(ID3D12CommandList** list, u32* inde
 
 		m_commandList->Close();
 
-		list[*index] = m_commandList.get();
-		++(*index);
+		queue->pushCommandList(&m_commandList);
 	}
 }

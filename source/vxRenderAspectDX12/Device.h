@@ -54,7 +54,7 @@ namespace d3d
 		Device();
 		~Device();
 
-		bool initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, CommandQueue* defaultQueue);
+		bool initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, u32 queueCapacity, CommandQueue* defaultQueue);
 		void shutdown();
 
 		void swapBuffer();

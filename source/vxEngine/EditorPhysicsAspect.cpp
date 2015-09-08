@@ -95,7 +95,7 @@ namespace Editor
 	{
 		switch (evt.type)
 		{
-		case(vx::MessageType::File_Event) :
+		case(vx::MessageType::File) :
 			handleFileEvent(evt);
 			break;
 		default:

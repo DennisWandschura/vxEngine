@@ -5,8 +5,9 @@
 #include "GpuSaoBuffer.h"
 #include <vxLib/math/matrix.h>
 #include "UploadManager.h"
+#include "CommandAllocator.h"
 
-RenderPassAO::RenderPassAO( ID3D12CommandAllocator* cmdAlloc)
+RenderPassAO::RenderPassAO(d3d::CommandAllocator* cmdAlloc)
 	:RenderPass(),
 	m_commandList(),
 	m_cmdAlloc(cmdAlloc)
@@ -384,7 +385,7 @@ bool RenderPassAO::initialize(ID3D12Device* device, void* p)
 		return false;
 	}
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get()))
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
 
 	if (!createRtv(device))
@@ -401,7 +402,7 @@ void RenderPassAO::shutdown()
 
 }
 
-void RenderPassAO::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassAO::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
@@ -431,7 +432,7 @@ void RenderPassAO::submitCommands(ID3D12CommandList** list, u32* index)
 	rectScissor.top = 0;
 	rectScissor.bottom = resolution.y;
 
-	auto hr = m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+	auto hr = m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
@@ -486,6 +487,5 @@ void RenderPassAO::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->Close();
 
-	list[*index] = m_commandList.get();
-	++(*index);
+	queue->pushCommandList(&m_commandList);
 }

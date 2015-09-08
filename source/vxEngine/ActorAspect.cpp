@@ -72,7 +72,7 @@ void ActorAspect::handleFileEvent(const vx::Message &evt)
 
 		vx::Message evt;
 		evt.arg1.ptr = &m_navmeshGraph;
-		evt.type = vx::MessageType::Ingame_Event;
+		evt.type = vx::MessageType::Ingame;
 		evt.code = (u32)IngameMessage::Created_NavGraph;
 
 		auto pEvtManager = Locator::getMessageManager();
@@ -82,7 +82,7 @@ void ActorAspect::handleFileEvent(const vx::Message &evt)
 
 		vx::Message evtInfluence;
 		evtInfluence.arg1.ptr = &m_influenceMap;
-		evtInfluence.type = vx::MessageType::Ingame_Event;
+		evtInfluence.type = vx::MessageType::Ingame;
 		evtInfluence.code = (u32)IngameMessage::Created_InfluenceMap;
 
 		pEvtManager->addMessage(evtInfluence);
@@ -110,13 +110,13 @@ void ActorAspect::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case vx::MessageType::AI_Event:
+	case vx::MessageType::AI:
 		//handleAIEvent(evt);
 		break;
-	case vx::MessageType::Ingame_Event:
+	case vx::MessageType::Ingame:
 		handleIngameMessage(evt);
 		break;
-	case vx::MessageType::File_Event:
+	case vx::MessageType::File:
 		handleFileEvent(evt);
 		break;
 	default:

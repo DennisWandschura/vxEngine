@@ -38,7 +38,7 @@ SOFTWARE.
 #include <vxEngineLib/FileMessage.h>
 #include <vxEngineLib/MeshInstance.h>
 #include <vxEngineLib/Material.h>
-#include <vxEngineLib/RenderAspectInterface.h>
+#include <vxEngineLib/Graphics/RenderAspectInterface.h>
 #include "TaskSceneCreateStaticMeshes.h"
 #include <vxEngineLib/TaskManager.h>
 #include "TaskSceneCreateActors.h"
@@ -170,7 +170,7 @@ void EntityAspect::createActorEntity(const CreateActorData &data)
 	createdData->componentActor = componentActor;
 
 	vx::Message evt;
-	evt.type = vx::MessageType::Ingame_Event;
+	evt.type = vx::MessageType::Ingame;
 	evt.code = (u32)IngameMessage::Created_Actor;
 	evt.arg1.ptr = createdData;
 
@@ -209,7 +209,7 @@ void EntityAspect::updateEntityActor(f32 dt)
 		RenderUpdateDataTransforms* renderUpdateData = (RenderUpdateDataTransforms*)dataPtr;
 		renderUpdateData->count = count;
 
-		Locator::getRenderAspect()->queueUpdateTask(RenderUpdateTaskType::UpdateDynamicTransforms, dataPtr, totalSizeInBytes);
+		Locator::getRenderAspect()->queueUpdate(RenderUpdateTaskType::UpdateDynamicTransforms, dataPtr, totalSizeInBytes);
 	}
 }
 
@@ -234,16 +234,19 @@ void EntityAspect::updateEntityDynamic(f32 dt)
 		auto ptr = m_poolEntityDynamic.first();
 		while (ptr != nullptr)
 		{
-			ptr->update(dt, pTransforms, indices, index);
+			ptr->update(dt, pTransforms, indices, &index);
 
-			++index;
 			ptr = m_poolEntityDynamic.next_nocheck(ptr);
 		}
+		count = index;
 
-		RenderUpdateDataTransforms* renderUpdateData = (RenderUpdateDataTransforms*)dataPtr;
-		renderUpdateData->count = count;
+		if (count != 0)
+		{
+			RenderUpdateDataTransforms* renderUpdateData = (RenderUpdateDataTransforms*)dataPtr;
+			renderUpdateData->count = count;
 
-		Locator::getRenderAspect()->queueUpdateTask(RenderUpdateTaskType::UpdateDynamicTransforms, dataPtr, totalSizeInBytes);
+			Locator::getRenderAspect()->queueUpdate(RenderUpdateTaskType::UpdateDynamicTransforms, dataPtr, totalSizeInBytes);
+		}
 	}
 }
 
@@ -265,10 +268,10 @@ void EntityAspect::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case vx::MessageType::Ingame_Event:
+	case vx::MessageType::Ingame:
 		handleIngameMessage(evt);
 		break;
-	case vx::MessageType::File_Event:
+	case vx::MessageType::File:
 		handleFileEvent(evt);
 		break;
 	default:
@@ -282,7 +285,7 @@ void EntityAspect::handleFileEvent(const vx::Message &evt)
 	{
 		vx::Message e;
 		e.arg1 = evt.arg2;
-		e.type = vx::MessageType::Ingame_Event;
+		e.type = vx::MessageType::Ingame;
 		e.code = (u32)IngameMessage::Level_Started;
 
 		auto pEvtManager = Locator::getMessageManager();

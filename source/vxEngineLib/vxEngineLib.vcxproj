@@ -314,11 +314,16 @@
     <ClInclude Include="include\vxEngineLib\debugPrint.h" />
     <ClInclude Include="include\vxEngineLib\DoubleBufferRaw.h" />
     <ClInclude Include="include\vxEngineLib\EditorMeshInstance.h" />
-    <ClInclude Include="include\vxEngineLib\EditorRenderAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\EditorScene.h" />
     <ClInclude Include="include\vxEngineLib\EngineConfig.h" />
     <ClInclude Include="include\vxEngineLib\Event.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\CommandList.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\CommandQueue.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\EditorRenderAspectInterface.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\RenderAspectInterface.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\RendererSettings.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\RenderLayer.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\RenderUpdateTask.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />
     <ClInclude Include="include\vxEngineLib\Message.h" />
     <ClInclude Include="include\vxEngineLib\MessageListener.h" />
@@ -359,9 +364,7 @@
     <ClInclude Include="include\vxEngineLib\Pool.h" />
     <ClInclude Include="include\vxEngineLib\Ray.h" />
     <ClInclude Include="include\vxEngineLib\Reference.h" />
-    <ClInclude Include="include\vxEngineLib\RenderAspectInterface.h" />
-    <ClInclude Include="include\vxEngineLib\RendererSettings.h" />
-    <ClInclude Include="include\vxEngineLib\RenderUpdateTask.h" />
+    <ClInclude Include="include\vxEngineLib\RendererMessage.h" />
     <ClInclude Include="include\vxEngineLib\ResourceAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\Scene.h" />
     <ClInclude Include="include\vxEngineLib\SceneBase.h" />
@@ -376,7 +379,6 @@
     <ClInclude Include="include\vxEngineLib\Task.h" />
     <ClInclude Include="include\vxEngineLib\TaskManager.h" />
     <ClInclude Include="include\vxEngineLib\ThreadSafeStack.h" />
-    <ClInclude Include="include\vxEngineLib\Timer.h" />
     <ClInclude Include="include\vxEngineLib\Transform.h" />
     <ClInclude Include="include\vxEngineLib\Triangle.h" />
     <ClInclude Include="include\vxEngineLib\Waypoint.h" />
@@ -443,6 +445,7 @@
     <ClCompile Include="Event.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Graphics\RenderAspectInterface.cpp" />
     <ClCompile Include="Logfile.cpp" />
     <ClCompile Include="MeshInstanceFileV4.cpp" />
     <ClCompile Include="MeshInstanceFileV8.cpp" />
@@ -570,11 +573,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Triangle.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

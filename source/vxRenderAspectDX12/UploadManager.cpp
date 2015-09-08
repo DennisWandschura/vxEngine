@@ -26,6 +26,7 @@ SOFTWARE.
 #include "d3dx12.h"
 #include "Device.h"
 #include <atomic>
+#include "CommandQueue.h"
 
 namespace UploadManagerCpp
 {
@@ -120,11 +121,9 @@ bool UploadManager::initialize(ID3D12Device* device)
 
 	m_commandAllocator->SetName(L"UploadManagerCommandAllocator");
 
-	hresult = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr, IID_PPV_ARGS(m_commandList.getAddressOf()));
-	if (hresult != 0)
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr))
 		return false;
 
-	m_commandList->Close();
 	m_commandList->SetName(L"UploadManagerCommandList");
 
 	m_capacity = UploadManagerCpp::g_bufferSize;
@@ -351,7 +350,7 @@ void UploadManager::processTasks()
 	m_tasksBack.clear();
 }
 
-ID3D12GraphicsCommandList* UploadManager::update()
+void UploadManager::submitCommandList(d3d::CommandQueue* queue)
 {
 	processQueue();
 
@@ -378,5 +377,5 @@ ID3D12GraphicsCommandList* UploadManager::update()
 
 	m_size = 0;
 
-	return m_commandList.get();
+	queue->pushCommandList(&m_commandList);
 }

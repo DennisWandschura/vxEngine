@@ -136,12 +136,12 @@ namespace d3d
 		return true;
 	}
 
-	bool Device::initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, CommandQueue* defaultQueue)
+	bool Device::initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, u32 queueCapacity, CommandQueue* defaultQueue)
 	{
 		if (!createDevice())
 			return false;
 
-		if (!defaultQueue->create(queueDesc, m_device.get()))
+		if (!defaultQueue->create(queueDesc, m_device.get(), queueCapacity))
 			return false;
 
 		if (!createSwapChain(window, defaultQueue))

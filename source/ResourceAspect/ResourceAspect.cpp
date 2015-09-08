@@ -166,7 +166,7 @@ void ResourceAspect::shutdown()
 void ResourceAspect::pushFileMessage(vx::FileMessage type, vx::Variant arg1, vx::Variant arg2)
 {
 	vx::Message msg;
-	msg.type = vx::MessageType::File_Event;
+	msg.type = vx::MessageType::File;
 	msg.code = (u32)type;
 	msg.arg1 = arg1;
 	msg.arg2 = arg2;

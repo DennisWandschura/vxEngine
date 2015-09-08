@@ -22,13 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "RenderPassFinal.h"
-#include <d3d12.h>
 #include "ShaderManager.h"
 #include "d3dx12.h"
 #include "ResourceManager.h"
 #include "Device.h"
+#include "CommandAllocator.h"
 
-RenderPassFinal::RenderPassFinal(ID3D12CommandAllocator* cmdAlloc, d3d::Device* device)
+RenderPassFinal::RenderPassFinal(d3d::CommandAllocator* cmdAlloc, d3d::Device* device)
 	:RenderPass(),
 	m_commandList(),
 	m_cmdAlloc(cmdAlloc),
@@ -72,7 +72,7 @@ bool RenderPassFinal::loadShaders(d3d::ShaderManager* shaderManager)
 bool RenderPassFinal::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0, 0, 0);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, 0);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -130,8 +130,6 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 {
 	auto directLightTexture = s_resourceManager->getTextureRtDs(L"directLightTexture");
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
-	auto indirectTexture = s_resourceManager->getTextureRtDs(L"indirectTexture");
-	auto gbufferAlbedo = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 
 	if (!loadShaders(s_shaderManager))
 		return false;
@@ -142,13 +140,13 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device, s_shaderManager))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get()))
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 4;
+	desc.NumDescriptors = 2;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_descriptorHeapSrv.create(desc, device))
 		return false;
@@ -175,21 +173,6 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	handle.offset(1);
 	device->CreateShaderResourceView(directLightTexture, &srvDesc, handle);
-
-	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	handle.offset(1);
-	device->CreateShaderResourceView(indirectTexture, &srvDesc, handle);
-
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	srvDesc.Texture2DArray.ArraySize = 1;
-	srvDesc.Texture2DArray.FirstArraySlice = 0;
-	srvDesc.Texture2DArray.MipLevels = 1;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.PlaneSlice = 0;
-	srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
-	handle.offset(1);
-	device->CreateShaderResourceView(gbufferAlbedo, &srvDesc, handle);
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	for (u32 i = 0; i < 2; ++i)
@@ -221,12 +204,10 @@ void RenderPassFinal::shutdown()
 	m_descriptorHeapSrv.destroy();
 }
 
-void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto directLightTexture = s_resourceManager->getTextureRtDs(L"directLightTexture");
-	auto indirectTexture = s_resourceManager->getTextureRtDs(L"indirectTexture");
-	auto gbufferAlbedo = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 
 	auto currentBuffer = m_device->getCurrentBackBufferIndex();
 
@@ -251,7 +232,7 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[1];
 	rtvHandles[0] = rtvHandle;
 
-	auto hresult = m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+	auto hresult = m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 	VX_ASSERT(hresult == 0);
 
 	m_commandList->RSSetViewports(1, &viewport);
@@ -259,8 +240,6 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indirectTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferAlbedo, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -281,14 +260,11 @@ void RenderPassFinal::submitCommands(ID3D12CommandList** list, u32* index)
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferAlbedo, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indirectTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	hresult = m_commandList->Close();
 	VX_ASSERT(hresult == 0);
 
-	list[*index] = m_commandList.get();
-	++(*index);
+	queue->pushCommandList(&m_commandList);
 }

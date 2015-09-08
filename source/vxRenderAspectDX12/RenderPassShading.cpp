@@ -4,8 +4,9 @@
 #include "ResourceManager.h"
 #include "GpuLight.h"
 #include "GpuShadowTransform.h"
+#include "CommandAllocator.h"
 
-RenderPassShading::RenderPassShading(ID3D12CommandAllocator* cmdAlloc)
+RenderPassShading::RenderPassShading(d3d::CommandAllocator* cmdAlloc)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc)
 {
@@ -317,7 +318,7 @@ bool RenderPassShading::initialize(ID3D12Device* device, void* p)
 	if (!createRtv(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get()))
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
 
 	return true;
@@ -328,7 +329,7 @@ void RenderPassShading::shutdown()
 
 }
 
-void RenderPassShading::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassShading::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
@@ -341,7 +342,7 @@ void RenderPassShading::submitCommands(ID3D12CommandList** list, u32* index)
 	//auto shadowTransformBuffer = s_resourceManager->getBuffer(L"shadowTransformBuffer");
 
 	const f32 clearColor[4] = {1, 0, 0, 0};
-	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 	auto resolution = s_resolution;
 
@@ -401,6 +402,5 @@ void RenderPassShading::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->Close();
 
-	list[*index] =m_commandList.get();
-	++(*index);
+	queue->pushCommandList(&m_commandList);
 }

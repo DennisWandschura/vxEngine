@@ -30,6 +30,7 @@ SOFTWARE.
 #include "ResourceManager.h"
 #include "ResourceView.h"
 #include "DrawIndexedIndirectCommand.h"
+#include "CommandAllocator.h"
 
 struct GBufferRenderer::ColdData
 {
@@ -38,7 +39,7 @@ struct GBufferRenderer::ColdData
 	D3D12_RESOURCE_DESC resDescs[TextureCount];
 };
 
-GBufferRenderer::GBufferRenderer(ID3D12CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd)
+GBufferRenderer::GBufferRenderer(d3d::CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc),
 	m_drawCmd(drawCmd),
@@ -437,10 +438,8 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	if (!createDescriptorHeap(device))
 		return false;
 
-	if (device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get(), IID_PPV_ARGS(m_commandList.getAddressOf())) != 0)
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
-
-	m_commandList->Close();
 
 	auto gbufferAlbedo = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
@@ -504,14 +503,14 @@ void GBufferRenderer::shutdown()
 	m_drawCmd = nullptr;
 }
 
-void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
+void GBufferRenderer::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto drawCount = m_drawCmd->getCount();
 	if (drawCount != 0)
 	{
 		auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
-		auto hresult = m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+		auto hresult = m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 		VX_ASSERT(hresult == 0);
 		// copylayer 0 depth buffer to layer 1
 		CD3DX12_RESOURCE_BARRIER barriers[2];
@@ -596,7 +595,6 @@ void GBufferRenderer::submitCommands(ID3D12CommandList** list, u32* index)
 		hresult = m_commandList->Close();
 		VX_ASSERT(hresult == 0);
 
-		list[*index] = m_commandList.get();
-		++(*index);
+		queue->pushCommandList(&m_commandList);
 	}
 }

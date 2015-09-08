@@ -24,6 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace d3d
+{
+	class CommandAllocator;
+}
+
 class DrawIndexedIndirectCommand;
 
 #include "RenderPass.h"
@@ -33,7 +38,7 @@ class DrawIndexedIndirectCommand;
 class RenderPassShadow : public RenderPass
 {
 	d3d::GraphicsCommandList m_commandList;
-	ID3D12CommandAllocator* m_cmdAlloc;
+	d3d::CommandAllocator* m_cmdAlloc;
 	DrawIndexedIndirectCommand* m_drawCmd;
 	d3d::DescriptorHeap m_heapDsv;
 	d3d::DescriptorHeap m_heapRtv;
@@ -48,7 +53,7 @@ class RenderPassShadow : public RenderPass
 	void uploadData();
 
 public:
-	RenderPassShadow(ID3D12CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd);
+	RenderPassShadow(d3d::CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd);
 	~RenderPassShadow();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -58,5 +63,5 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
-	void submitCommands(ID3D12CommandList** list, u32* index) override;
+	void submitCommands(Graphics::CommandQueue* queue) override;
 };

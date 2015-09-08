@@ -1,3 +1,4 @@
+#pragma once
 /*
 The MIT License (MIT)
 
@@ -21,64 +22,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include <vxEngineLib/Timer.h>
-#include <Windows.h>
 
-u64 Timer::s_frequency{ 0 };
+class MeshInstance;
 
-Timer::Timer()
+#include <vxEngineLib/Transform.h>
+#include <vxLib/StringID.h>
+
+enum class RenderUpdateTaskType { UpdateCamera, UpdateDynamicTransforms, UpdateText };
+
+struct RenderUpdateCameraData
 {
-	if (s_frequency == 0)
-	{
-		LARGE_INTEGER f;
-		QueryPerformanceFrequency(&f);
+	__m256d position;
+	__m256d quaternionRotation;
+};
 
-		s_frequency = f.QuadPart;
-	}
-
-	LARGE_INTEGER start;
-	QueryPerformanceCounter(&start);
-
-	m_startTime = start.QuadPart;
-}
-
-Timer::Timer(const Timer &rhs)
-	:m_startTime(rhs.m_startTime)
+struct VX_ALIGN(16) RenderUpdateDataTransforms
 {
-}
+	u32 count;
+	u32 padding[3];
+};
 
-Timer::Timer(Timer &&rhs)
-	: m_startTime(rhs.m_startTime)
+struct RenderUpdateTextData
 {
-}
-
-void Timer::reset()
-{
-	LARGE_INTEGER start;
-	QueryPerformanceCounter(&start);
-
-	m_startTime = start.QuadPart;
-}
-
-u64 Timer::getTime() const
-{
-	LARGE_INTEGER current;
-	QueryPerformanceCounter(&current);
-
-	return current.QuadPart - m_startTime;
-}
-
-f32 Timer::getTimeInMs() const
-{
-	auto timeInMicroseconds = getTime();
-
-	timeInMicroseconds *= 1000000;
-	timeInMicroseconds /= s_frequency;
-
-	return (f32)((f64)timeInMicroseconds * 0.001f);
-}
-
-u64 Timer::getFrequency()
-{
-	return s_frequency;
-}
+	char tex[48];
+	vx::float2 position;
+	vx::float3 color;
+	u32 size;
+};

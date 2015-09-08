@@ -74,5 +74,5 @@ struct EntityDynamic
 	u16 m_actionComponentIndex;
 	physx::PxRigidDynamic* m_rigidDynamic;
 
-	void update(f32 dt, vx::TransformGpu* transforms, u32* indices, u32 index);
+	void update(f32 dt, vx::TransformGpu* transforms, u32* indices, u32* index);
 };

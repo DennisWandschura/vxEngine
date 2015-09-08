@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,23 +24,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+enum D3D12_COMMAND_LIST_TYPE;
+struct ID3D12CommandAllocator;
 
-class Timer
+#include "d3d.h"
+
+namespace d3d
 {
-	static u64 s_frequency;
+	class CommandAllocator
+	{
+		d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
 
-	u64 m_startTime;
+	public:
+		CommandAllocator();
+		CommandAllocator(const CommandAllocator&) = delete;
+		CommandAllocator(CommandAllocator &&rhs);
+		~CommandAllocator();
 
-public:
-	Timer();
-	Timer(const Timer &rhs);
-	Timer(Timer &&rhs);
+		bool create(D3D12_COMMAND_LIST_TYPE type, ID3D12Device* device);
+		void destroy();
 
-	void reset();
-
-	u64 getTime() const;
-	f32 getTimeInMs() const;
-
-	static u64 getFrequency();
-};
+		ID3D12CommandAllocator* get() { return m_commandAllocator.get(); }
+		ID3D12CommandAllocator* operator->() { return m_commandAllocator.get(); }
+	};
+}

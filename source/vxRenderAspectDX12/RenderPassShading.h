@@ -1,5 +1,10 @@
 #pragma once
 
+namespace d3d
+{
+	class CommandAllocator;
+}
+
 #include "RenderPass.h"
 #include "DescriptorHeap.h"
 #include "CommandList.h"
@@ -7,7 +12,7 @@
 class RenderPassShading : public RenderPass
 {
 	d3d::GraphicsCommandList m_commandList;
-	ID3D12CommandAllocator* m_cmdAlloc;
+	d3d::CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_heapSrv;
 	d3d::DescriptorHeap m_heapRtv;
 
@@ -19,7 +24,7 @@ class RenderPassShading : public RenderPass
 	bool createRtv(ID3D12Device* device);
 
 public:
-	explicit RenderPassShading(ID3D12CommandAllocator* cmdAlloc);
+	explicit RenderPassShading(d3d::CommandAllocator* cmdAlloc);
 	~RenderPassShading();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -29,5 +34,5 @@ public:
 	bool initialize(ID3D12Device* device, void* p)override;
 	void shutdown() override;
 
-	void submitCommands(ID3D12CommandList** list, u32* index) override;
+	void submitCommands(Graphics::CommandQueue* queue) override;
 };
