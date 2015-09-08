@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,31 +24,33 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class MeshInstance;
+#include <vxLib/types.h>
 
-#include <vxEngineLib/Transform.h>
-#include <vxLib/StringID.h>
-
-enum class RenderUpdateTaskType { UpdateCamera, UpdateDynamicTransforms, UpdateText };
-
-struct RenderUpdateCameraData
+namespace Graphics
 {
-	__m256d position;
-	__m256d quaternionRotation;
-};
+	enum class CommandApiType : u32 { D3D, GL };
 
-struct RenderUpdateDataTransforms
-{
-	vx::TransformGpu* transforms;
-	u32* indices;
-	u32 count;
-	u32 padding;
-};
+	class CommandList
+	{
+		CommandApiType m_type;
 
-struct RenderUpdateTextData
-{
-	char tex[48];
-	vx::float2 position;
-	vx::float3 color;
-	u32 size;
-};
+	public:
+		explicit CommandList(CommandApiType type):m_type(type){ }
+		CommandList(CommandList&) = delete;
+		CommandList(CommandList &&rhs) :m_type(rhs.m_type) {}
+
+		virtual ~CommandList() {}
+
+		CommandList& operator=(const CommandList&) = delete;
+		CommandList& operator=(CommandList &&rhs)
+		{
+			auto tmp = m_type;
+			m_type = rhs.m_type;
+			rhs.m_type = tmp;
+
+			return *this;
+		}
+
+		CommandApiType getApiType() const { return m_type; }
+	};
+}

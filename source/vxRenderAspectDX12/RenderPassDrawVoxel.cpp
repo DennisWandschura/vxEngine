@@ -275,7 +275,7 @@ void RenderPassDrawVoxel::shutdown()
 
 }
 
-void RenderPassDrawVoxel::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
 	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
@@ -328,6 +328,5 @@ void RenderPassDrawVoxel::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->Close();
 
-	list[*index] = m_commandList.get();
-	++(*index);
+	queue->pushCommandList(&m_commandList);
 }

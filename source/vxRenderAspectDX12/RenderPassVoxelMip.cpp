@@ -132,7 +132,7 @@ void RenderPassVoxelMip::shutdown()
 
 }
 
-void RenderPassVoxelMip::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassVoxelMip::submitCommands(Graphics::CommandQueue* queue)
 {
 	const u32 voxelDim = 64;
 	const u32 voxelDimZ = voxelDim * 6;
@@ -164,6 +164,5 @@ void RenderPassVoxelMip::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->Close();
 
-	list[*index] = m_commandList.get();
-	++(*index);
+	queue->pushCommandList(&m_commandList);
 }

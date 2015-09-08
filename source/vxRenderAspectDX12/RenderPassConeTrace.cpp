@@ -284,7 +284,7 @@ void RenderPassConeTrace::shutdown()
 
 }
 
-void RenderPassConeTrace::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassConeTrace::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto voxelTextureDiffuse = s_resourceManager->getTexture(L"voxelTextureDiffuse");
 
@@ -330,6 +330,5 @@ void RenderPassConeTrace::submitCommands(ID3D12CommandList** list, u32* index)
 
 	m_commandList->Close();
 
-	list[*index] = m_commandList.get();
-	++(*index);
+	queue->pushCommandList(&m_commandList);
 }

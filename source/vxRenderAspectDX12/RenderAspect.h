@@ -41,30 +41,19 @@ namespace vx
 	class MessageManager;
 }
 
-#include <vxEngineLib/RenderAspectInterface.h>
-#include <d3d12.h>
-#include <vxEngineLib/mutex.h>
-#include <vxEngineLib/DoubleBufferRaw.h>
-#include <vxLib/Graphics/Camera.h>
-#include <vector>
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
+#include <vxEngineLib/Graphics/RenderAspectInterface.h>
+#include <vxEngineLib/Graphics/RenderLayer.h>
+#include "CommandQueue.h"
 #include "Device.h"
-#include "Heap.h"
-#include "DescriptorHeap.h"
-#include <mutex>
-#include "UploadManager.h"
-#include "MeshManager.h"
-#include "MaterialManager.h"
-#include <vxLib/Allocator/StackAllocator.h>
-#include "ShaderManager.h"
+#include "RenderSettings.h"
+#include "CopyManager.h"
 #include "ResourceManager.h"
 #include "Debug.h"
-#include "LightManager.h"
-#include "CommandQueue.h"
 #include "Frustum.h"
-#include "RenderSettings.h"
-#include "DrawIndexedIndirectCommand.h"
+#include "UploadManager.h"
+#include "ShaderManager.h"
+#include "MaterialManager.h"
+#include <vxLib/Graphics/Camera.h>
 
 class RenderAspect : public RenderAspectInterface
 {
@@ -72,51 +61,24 @@ class RenderAspect : public RenderAspectInterface
 
 	d3d::CommandQueue m_graphicsCommandQueue;
 	d3d::Device m_device;
-	std::mutex m_mutexCmdList;
-	DrawIndexedIndirectCommand m_drawCommandMesh;
-	std::vector<DrawIndexedCommand> m_drawCommands;
-	ID3D12GraphicsCommandList* m_commandList;
-	ID3D12GraphicsCommandList* m_commandCopyBuffers;
+	std::vector<Graphics::RenderLayer*> m_activeLayers;
+	CopyManager m_copyManager;
 	d3d::ResourceManager m_resourceManager;
-	u32 m_currentBuffer;
-	u32 m_lastBuffer;
 	vx::Camera m_camera;
-	std::vector<RenderPass*> m_renderPasses;
 	d3d::Debug m_debug;
 	Frustum m_frustum;
 	UploadManager m_uploadManager;
-	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
-	GBufferRenderer* m_gbufferRenderer;
-	LightManager m_lightManager;
-	MeshManager m_meshManager;
 	MaterialManager m_materialManager;
 	vx::TaskManager* m_taskManager;
 	ResourceAspectInterface* m_resourceAspect;
 	vx::StackAllocator m_allocator;
 	vx::MessageManager* m_msgManager;
 	d3d::ShaderManager m_shaderManager;
-	//RenderPassVoxelize* m_renderPassVoxelize;
-	std::vector<u32> m_copyTransforms;
 
-	void createRenderPasses();
 	void getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u64* textureHeapSize, u64* rtDsHeapSize);
-	bool initializeRenderPasses();
 
-	bool createCommandList();
 	bool createConstantBuffers();
 	void uploadStaticCameraData();
-
-	void handleFileMessage(const vx::Message &msg);
-
-	void processTasks();
-	void taskTakeScreenshot();
-	void taskUpdateText(const u8* p, u32* offset);
-	void loadScene(Scene* scene);
-	void taskToggleRenderMode();
-	void taskCreateActorGpuIndex(const u8* p, u32* offset);
-	void taskUpdateDynamicTransforms(const u8* p, u32* offset);
-	void taskAddStaticMeshInstance(const u8* p, u32* offset);
-	void taskAddDynamicMeshInstance(const u8* p, u32* offset);
 
 	void updateCamera(const RenderUpdateCameraData &data);
 
@@ -127,33 +89,23 @@ class RenderAspect : public RenderAspectInterface
 	void createSrvTextures(u32 srgbCount, u32 rgbCount);
 	void createSrvLights(u32 maxCount);
 
-	D3D12_DRAW_INDEXED_ARGUMENTS addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex);
-
-	void updateTransform(const vx::Transform &transform, u32 index);
-	void updateTransformStatic(const vx::TransformGpu &transform, u32 index);
-	void updateTransformDynamic(const vx::TransformGpu &transform, u32 index);
-
-	void copyTransform(u32 index);
-
-	void copyTransforms(ID3D12GraphicsCommandList* cmdList);
-	void updateLights(const Light* lights, u32 count);
+	RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) override;
 
 public:
 	RenderAspect();
 	~RenderAspect();
 
-	RenderAspectInitializeError initialize(const RenderAspectDescription &desc);
-	void shutdown(void* hwnd);
+	void shutdown(void* hwnd) override;
 
 	bool initializeProfiler(Logfile* errorlog);
 
 	void makeCurrent(bool b);
 
-	void queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize);
-	void queueUpdateCamera(const RenderUpdateCameraData &data);
-	void update();
+	void queueUpdate(RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
+	void queueUpdateCamera(const RenderUpdateCameraData &data) override;
+	void update() override;
 
-	void updateProfiler(f32 dt);
+	void updateProfiler(f32 dt) override;
 
 	void submitCommands() override;
 	void endFrame() override;

@@ -224,13 +224,15 @@ void EntityAspect::updateEntityDynamic(f32 dt)
 			m_allocator.clear(marker);
 		};
 
-		auto totalSizeInBytes = sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count + sizeof(u32) * count;
-		auto dataPtr = m_allocator.allocate(totalSizeInBytes, 16);
+		auto renderUpdateData = (RenderUpdateDataTransforms*)m_allocator.allocate(sizeof(RenderUpdateDataTransforms), 8);
 
-		vx::TransformGpu* pTransforms = (vx::TransformGpu*)(dataPtr + sizeof(RenderUpdateDataTransforms));
-		u32* indices = (u32*)(dataPtr + sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count);
+		vx::TransformGpu* pTransforms = (vx::TransformGpu*)m_allocator.allocate(sizeof(vx::TransformGpu) * count, 16);
+		u32* indices = (u32*)m_allocator.allocate(sizeof(u32) * count, 4);
+
+		u8* last = (u8*)(indices + count);
+		auto dataSize = last - reinterpret_cast<u8*>(renderUpdateData);
+
 		u32 index = 0;
-
 		auto ptr = m_poolEntityDynamic.first();
 		while (ptr != nullptr)
 		{
@@ -242,10 +244,11 @@ void EntityAspect::updateEntityDynamic(f32 dt)
 
 		if (count != 0)
 		{
-			RenderUpdateDataTransforms* renderUpdateData = (RenderUpdateDataTransforms*)dataPtr;
+			renderUpdateData->transforms = pTransforms;
+			renderUpdateData->indices = indices;
 			renderUpdateData->count = count;
 
-			Locator::getRenderAspect()->queueUpdate(RenderUpdateTaskType::UpdateDynamicTransforms, dataPtr, totalSizeInBytes);
+			Locator::getRenderAspect()->queueUpdate(RenderUpdateTaskType::UpdateDynamicTransforms, (u8*)renderUpdateData, dataSize);
 		}
 	}
 }

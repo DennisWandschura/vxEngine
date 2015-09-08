@@ -384,8 +384,9 @@ void RenderLayerGame::taskUpdateDynamicTransforms(const u8* p, u32* offset)
 	auto data = (RenderUpdateDataTransforms*)p;
 	u32 count = data->count;
 
-	auto transforms = (vx::TransformGpu*)(data + 1);
-	auto indices = (u32*)(p + sizeof(RenderUpdateDataTransforms) + sizeof(vx::TransformGpu) * count);
+	auto transforms = data->transforms;
+
+	u32* indices = data->indices;
 
 	for (u32 i = 0; i < count; ++i)
 	{

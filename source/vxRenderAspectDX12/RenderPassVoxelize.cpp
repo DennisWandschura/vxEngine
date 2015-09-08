@@ -292,7 +292,7 @@ void RenderPassVoxelize::shutdown()
 
 }
 
-void RenderPassVoxelize::submitCommands(ID3D12CommandList** list, u32* index)
+void RenderPassVoxelize::submitCommands(Graphics::CommandQueue* queue)
 {
 	const u32 clearValues[4] = { 0, 0, 0, 0 };
 
@@ -354,7 +354,6 @@ void RenderPassVoxelize::submitCommands(ID3D12CommandList** list, u32* index)
 
 		m_commandList->Close();
 
-		list[*index] = m_commandList.get();
-		++(*index);
+		queue->pushCommandList(&m_commandList);
 	}
 }

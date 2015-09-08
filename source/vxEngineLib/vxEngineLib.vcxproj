@@ -319,11 +319,15 @@
     <ClInclude Include="include\vxEngineLib\Event.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\CommandList.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\CommandQueue.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\dds.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\EditorRenderAspectInterface.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\RenderLayer.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\RenderAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\RendererSettings.h" />
-    <ClInclude Include="include\vxEngineLib\Graphics\RenderLayer.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\RenderUpdateTask.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\Surface.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\Texture.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\TextureFactory.h" />
     <ClInclude Include="include\vxEngineLib\Logfile.h" />
     <ClInclude Include="include\vxEngineLib\Message.h" />
     <ClInclude Include="include\vxEngineLib\MessageListener.h" />
@@ -334,10 +338,6 @@
     <ClInclude Include="include\vxEngineLib\FileMessage.h" />
     <ClInclude Include="include\vxEngineLib\FileFactory.h" />
     <ClInclude Include="include\vxEngineLib\GpuFunctions.h" />
-    <ClInclude Include="include\vxEngineLib\Graphics\dds.h" />
-    <ClInclude Include="include\vxEngineLib\Graphics\Surface.h" />
-    <ClInclude Include="include\vxEngineLib\Graphics\Texture.h" />
-    <ClInclude Include="include\vxEngineLib\Graphics\TextureFactory.h" />
     <ClInclude Include="include\vxEngineLib\InfluenceMap.h" />
     <ClInclude Include="include\vxEngineLib\Joint.h" />
     <ClInclude Include="include\vxEngineLib\Light.h" />

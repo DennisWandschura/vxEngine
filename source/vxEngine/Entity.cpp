@@ -86,18 +86,20 @@ void EntityDynamic::update(f32 dt, vx::TransformGpu* transforms, u32* indices, u
 	auto diffRot = _mm_sub_ps(qRotationNew, qRotationOld);
 	auto distRot = vx::dot4(diffRot, diffRot);
 
-	auto cmpRotation = (distRot.m128_f32[0] >= 0.1);
-	if (cmpRotation)
+	auto diffPos = newPosition - m_position;
+	auto distPos = diffPos.x * diffPos.x + diffPos.y * diffPos.y + diffPos.z * diffPos.z;
+	auto cmpPos = (distPos != 0.0);
+
+	auto cmpRotation = (distRot.m128_f32[0] != 0.0);
+	if (cmpRotation || cmpPos)
 	{
-		printf("update\n");
+		auto currentIndex = (*index)++;
+		indices[currentIndex] = m_gpuIndex;
+		transforms[currentIndex].translation = newPosition;
+		transforms[currentIndex].scaling = 1.0f;
+		transforms[currentIndex].packedQRotation = GpuFunctions::packQRotation(qRotationNew);
 	}
 
 	m_position = newPosition;
 	vx::storeFloat4(&m_qRotation, qRotationNew);
-
-	auto currentIndex = (*index)++;
-	indices[currentIndex] = m_gpuIndex;
-	transforms[currentIndex].translation = m_position;
-	transforms[currentIndex].scaling = 1.0f;
-	transforms[currentIndex].packedQRotation = GpuFunctions::packQRotation(qRotationNew);
 }

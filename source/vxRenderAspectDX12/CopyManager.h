@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,31 +24,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class MeshInstance;
+#include "CommandList.h"
+#include "CommandAllocator.h"
+#include <vxEngineLib/Graphics/CommandQueue.h>
+#include <vector>
 
-#include <vxEngineLib/Transform.h>
-#include <vxLib/StringID.h>
-
-enum class RenderUpdateTaskType { UpdateCamera, UpdateDynamicTransforms, UpdateText };
-
-struct RenderUpdateCameraData
+class CopyManager
 {
-	__m256d position;
-	__m256d quaternionRotation;
-};
+	struct Entry;
 
-struct RenderUpdateDataTransforms
-{
-	vx::TransformGpu* transforms;
-	u32* indices;
-	u32 count;
-	u32 padding;
-};
+	d3d::GraphicsCommandList m_commandListCopy;
+	d3d::CommandAllocator m_allocator;
+	std::vector<Entry> m_entries;
 
-struct RenderUpdateTextData
-{
-	char tex[48];
-	vx::float2 position;
-	vx::float3 color;
-	u32 size;
+public:
+	CopyManager();
+	~CopyManager();
+
+	bool initialize(ID3D12Device* device);
+	void destroy();
+
+	void pushCopyBuffer(ID3D12Resource* src, u64 srcOffset, u32 srcStateBefore, u64 size, ID3D12Resource* dst, u64 dstOffset, u32 dstStateBefore);
+
+	void submitList(Graphics::CommandQueue* queue);
 };

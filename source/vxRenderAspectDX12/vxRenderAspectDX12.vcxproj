@@ -204,6 +204,7 @@
     <ClInclude Include="CommandList.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="ConverterMesh.h" />
+    <ClInclude Include="CopyManager.h" />
     <ClInclude Include="CreateResourceDesc.h" />
     <ClInclude Include="d3dObject.h" />
     <ClInclude Include="Debug.h" />
@@ -215,6 +216,7 @@
     <ClInclude Include="GpuVoxel.h" />
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="PipelineState.h" />
+    <ClInclude Include="RenderLayerGame.h" />
     <ClInclude Include="RenderPassConeTrace.h" />
     <ClInclude Include="RenderPassCullLights.h" />
     <ClInclude Include="RenderPassDrawVoxel.h" />
@@ -262,9 +264,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BufferView.cpp" />
+    <ClCompile Include="CommandAllocator.cpp" />
     <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="ConverterMesh.cpp" />
+    <ClCompile Include="CopyManager.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="Device.cpp" />
@@ -274,6 +278,8 @@
     <ClCompile Include="GpuProfiler.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="PipelineState.cpp" />
+    <ClCompile Include="RenderAspect.cpp" />
+    <ClCompile Include="RenderLayerGame.cpp" />
     <ClCompile Include="RenderPassAo.cpp" />
     <ClCompile Include="RenderPassConeTrace.cpp" />
     <ClCompile Include="RenderPassCullLights.cpp" />
@@ -292,7 +298,6 @@
     <ClCompile Include="RenderPassVoxelMip.cpp" />
     <ClCompile Include="RenderPassZBufferCreateMipmaps.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
-    <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="RenderPassZBuffer.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="TaskUploadGeometry.cpp" />

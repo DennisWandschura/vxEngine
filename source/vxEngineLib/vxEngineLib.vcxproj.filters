@@ -30,18 +30,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\vxEngineLib\Graphics\Surface.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Graphics\Texture.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Graphics\TextureFactory.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Graphics\dds.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\SceneFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -273,10 +261,10 @@
     <ClInclude Include="ConverterSceneFileV8.h">
       <Filter>Header Files\Converter</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Graphics\EditorRenderAspectInterface.h">
-      <Filter>Header Files\Graphics</Filter>
+    <ClInclude Include="include\vxEngineLib\RendererMessage.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Graphics\RenderUpdateTask.h">
+    <ClInclude Include="include\vxEngineLib\Graphics\EditorRenderAspectInterface.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\Graphics\RenderAspectInterface.h">
@@ -285,16 +273,28 @@
     <ClInclude Include="include\vxEngineLib\Graphics\RendererSettings.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Graphics\RenderLayer.h">
+    <ClInclude Include="include\vxEngineLib\Graphics\RenderUpdateTask.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\RendererMessage.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\vxEngineLib\Graphics\Surface.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Graphics\Texture.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Graphics\TextureFactory.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Graphics\CommandList.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\Graphics\CommandQueue.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Graphics\CommandList.h">
+    <ClInclude Include="include\vxEngineLib\Graphics\dds.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Graphics\RenderLayer.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
