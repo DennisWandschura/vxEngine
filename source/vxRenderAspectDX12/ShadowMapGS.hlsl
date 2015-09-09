@@ -6,9 +6,10 @@ struct VSOutput
 	float3 vsNormal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
 	uint lightIndex : BLENDINDICES0;
-	float distanceToLight : BLENDINDICES1;
-	float lightFalloff : BLENDINDICES2;
-	float lightLumen : BLENDINDICES3;
+	uint material : BLENDINDICES1;
+	float distanceToLight : BLENDINDICES2;
+	float lightFalloff : BLENDINDICES3;
+	float lightLumen : BLENDINDICES4;
 };
 
 struct GSOutput
@@ -17,6 +18,7 @@ struct GSOutput
 	float3 vsNormal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
 	uint slice : SV_RenderTargetArrayIndex;
+	uint material : BLENDINDICES0;
 	float distanceToLight : BLENDINDICES1;
 	float lightFalloff : BLENDINDICES2;
 	float lightLumen : BLENDINDICES3;
@@ -43,6 +45,7 @@ void main(
 			element.vsNormal = input[i].vsNormal;
 			element.texCoords = input[i].texCoords;
 			element.slice = slice;
+			element.material = input[i].material;
 			element.distanceToLight = input[i].distanceToLight;
 			element.lightFalloff = input[i].lightFalloff;
 			element.lightLumen = input[i].lightLumen;

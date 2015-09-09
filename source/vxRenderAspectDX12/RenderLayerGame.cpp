@@ -281,7 +281,7 @@ D3D12_DRAW_INDEXED_ARGUMENTS RenderLayerGame::addMeshInstance(const MeshInstance
 
 	auto materialBuffer = m_resourceManager->getBuffer(L"materialBuffer");
 	auto materialOffset = sizeof(u32) * materialIndex;
-	m_uploadManager->pushUploadBuffer((u8*)&materialSlices, materialBuffer, materialOffset, sizeof(u32), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_uploadManager->pushUploadBuffer((u8*)&materialSlices, materialBuffer->get(), materialOffset, sizeof(u32), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 	m_drawCommandMesh.uploadDrawCommand(cmd.StartInstanceLocation, cmd, m_uploadManager);
 
@@ -344,7 +344,7 @@ void RenderLayerGame::createActorGpuIndex(CreateActorData* data)
 
 	auto materialBuffer = m_resourceManager->getBuffer(L"materialBuffer");
 	auto materialOffset = sizeof(u32) * materialIndex;
-	m_uploadManager->pushUploadBuffer((u8*)&materialSlices, materialBuffer, materialOffset, sizeof(u32), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_uploadManager->pushUploadBuffer((u8*)&materialSlices, materialBuffer->get(), materialOffset, sizeof(u32), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 	//auto cmdOffset = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * cmd.StartInstanceLocation;
 }
@@ -361,7 +361,7 @@ void RenderLayerGame::updateTransform(const vx::Transform &meshTransform, u32 in
 
 	auto transformBufferPrev = m_resourceManager->getBuffer(L"transformBufferPrev");
 	auto transformOffset = sizeof(vx::TransformGpu) * index;
-	m_uploadManager->pushUploadBuffer((u8*)&gpuTransform, transformBufferPrev, transformOffset, sizeof(vx::TransformGpu), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_uploadManager->pushUploadBuffer((u8*)&gpuTransform, transformBufferPrev->get(), transformOffset, sizeof(vx::TransformGpu), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 }
 
 void RenderLayerGame::updateTransformStatic(const vx::TransformGpu &transform, u32 index)
@@ -369,7 +369,7 @@ void RenderLayerGame::updateTransformStatic(const vx::TransformGpu &transform, u
 	auto transformBuffer = m_resourceManager->getBuffer(L"transformBuffer");
 
 	auto transformOffset = sizeof(vx::TransformGpu) * index;
-	m_uploadManager->pushUploadBuffer((u8*)&transform, transformBuffer, transformOffset, sizeof(vx::TransformGpu), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_uploadManager->pushUploadBuffer((u8*)&transform, transformBuffer->get(), transformOffset, sizeof(vx::TransformGpu), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 }
 
 void RenderLayerGame::updateTransformDynamic(const vx::TransformGpu &transform, u32 index)
@@ -407,7 +407,7 @@ void RenderLayerGame::copyTransform(u32 index)
 
 	u64 offset = sizeof(vx::TransformGpu) * index;
 
-	m_copyManager->pushCopyBuffer(transformBuffer, offset, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, sizeof(vx::TransformGpu), transformBufferPrev, offset, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	m_copyManager->pushCopyBuffer(transformBuffer->get(), offset, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, sizeof(vx::TransformGpu), transformBufferPrev->get(), offset, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 }
 
 void RenderLayerGame::addDynamicMeshInstance(CreateDynamicMeshData* data)

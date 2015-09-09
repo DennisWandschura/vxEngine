@@ -221,7 +221,7 @@ void RenderPassDrawVoxel::createViews(ID3D12Device* device)
 	device->CreateConstantBufferView(cbvCamera, handle);
 
 	handle.offset(1);
-	device->CreateShaderResourceView(voxelTextureOpacity, &srvDesc, handle);
+	device->CreateShaderResourceView(voxelTextureOpacity->get(), &srvDesc, handle);
 }
 
 void RenderPassDrawVoxel::createDepthRenderTarget(ID3D12Device* device)
@@ -241,9 +241,9 @@ void RenderPassDrawVoxel::createDepthRenderTarget(ID3D12Device* device)
 	dsvDesc.Texture2D.MipSlice = 0;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 
-	device->CreateRenderTargetView(voxelDebug, &rtvDesc, m_heapRtv->GetCPUDescriptorHandleForHeapStart());
+	device->CreateRenderTargetView(voxelDebug->get(), &rtvDesc, m_heapRtv->GetCPUDescriptorHandleForHeapStart());
 
-	device->CreateDepthStencilView(voxelDebugDepth, &dsvDesc, m_heapDsv->GetCPUDescriptorHandleForHeapStart());
+	device->CreateDepthStencilView(voxelDebugDepth->get(), &dsvDesc, m_heapDsv->GetCPUDescriptorHandleForHeapStart());
 }
 
 bool RenderPassDrawVoxel::initialize(ID3D12Device* device, void* p)
@@ -309,8 +309,8 @@ void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0 , nullptr);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 	auto srvHeap = m_descriptorHeapSrv.get();
 	m_commandList->SetDescriptorHeaps(1, &srvHeap);
@@ -323,8 +323,8 @@ void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
 
 	m_commandList->DrawInstanced(256, 256 * 256, 0, 0);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	m_commandList->Close();
 

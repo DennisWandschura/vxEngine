@@ -174,14 +174,14 @@ bool LightManager::loadSceneLights(const Light* lights, u32 count, ID3D12Device*
 		return false;
 
 	auto shadowTransformBuffer = resourceManager->getBuffer(L"shadowTransformBuffer");
-	uploadManager->pushUploadBuffer((u8*)&m_sceneShadowTransforms[0], shadowTransformBuffer, 0, sizeof(ShadowTransform), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	uploadManager->pushUploadBuffer((u8*)&m_sceneShadowTransforms[0], shadowTransformBuffer->get(), 0, sizeof(ShadowTransform), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 	auto lightBuffer = resourceManager->getBuffer(L"lightBuffer");
 
 	auto sizeInBytes = sizeof(GpuLight) * count;
-	uploadManager->pushUploadBuffer((u8*)m_sceneLights, lightBuffer, sizeof(GpuLight), sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	uploadManager->pushUploadBuffer((u8*)m_sceneLights, lightBuffer->get(), sizeof(GpuLight), sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-	uploadManager->pushUploadBuffer((u8*)&count, lightBuffer, 0, sizeof(u32), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	uploadManager->pushUploadBuffer((u8*)&count, lightBuffer->get(), 0, sizeof(u32), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	return true;
 }

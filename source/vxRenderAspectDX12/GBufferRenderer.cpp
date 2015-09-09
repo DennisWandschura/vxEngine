@@ -219,35 +219,6 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
 	};
 
-	/*auto vsShader = shaderManager->getShader("MeshVertex.cso");
-	auto gsShader = shaderManager->getShader("DeepGBufferGs.cso");
-	auto psShader = shaderManager->getShader("PsGBuffer.cso");
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	psoDesc.InputLayout = { inputLayout, _countof(inputLayout) };
-	psoDesc.pRootSignature = m_rootSignature.get();
-	psoDesc.VS = { reinterpret_cast<UINT8*>(vsShader->GetBufferPointer()), vsShader->GetBufferSize() };
-	psoDesc.GS = { reinterpret_cast<UINT8*>(gsShader->GetBufferPointer()), gsShader->GetBufferSize() };
-	psoDesc.PS = { reinterpret_cast<UINT8*>(psShader->GetBufferPointer()), psShader->GetBufferSize() };
-	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.FrontCounterClockwise = 1;
-	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-	psoDesc.NumRenderTargets = 3;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	psoDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	psoDesc.RTVFormats[2] = DXGI_FORMAT_R8G8_UNORM;
-	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-	psoDesc.SampleDesc.Count = 1;
-
-	auto hresult = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_pipelineState.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;*/
-
 	DXGI_FORMAT rtvFormats[] =
 	{
 		DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -408,19 +379,19 @@ void GBufferRenderer::createBufferViews(d3d::ResourceManager* resourceManager, I
 	device->CreateConstantBufferView(cameraBufferViewDesc, handle);
 
 	handle.offset(1);
-	device->CreateShaderResourceView(transformBuffer, transformBufferViewDesc, handle);
+	device->CreateShaderResourceView(transformBuffer->get(), transformBufferViewDesc, handle);
 
 	handle.offset(1);
-	device->CreateShaderResourceView(materialBuffer, materialBufferViewDesc, handle);
+	device->CreateShaderResourceView(materialBuffer->get(), materialBufferViewDesc, handle);
 
 	handle.offset(1);
-	device->CreateShaderResourceView(transformBufferPrev, transformBufferPrevViewDesc, handle);
+	device->CreateShaderResourceView(transformBufferPrev->get(), transformBufferPrevViewDesc, handle);
 
 	handle.offset(1);
-	device->CreateShaderResourceView(srgbTexture, srgbTextureViewDesc, handle);
+	device->CreateShaderResourceView(srgbTexture->get(), srgbTextureViewDesc, handle);
 
 	handle.offset(1);
-	device->CreateShaderResourceView(rgbTexture, rgbTextureViewDesc, handle);
+	device->CreateShaderResourceView(rgbTexture->get(), rgbTextureViewDesc, handle);
 }
 
 bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
@@ -455,11 +426,11 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	depthViewDesc.Texture2DArray.FirstArraySlice = 0;
 	depthViewDesc.Texture2DArray.MipSlice = 0;
 	auto dsHandle = m_descriptorHeapDs.getHandleCpu();
-	device->CreateDepthStencilView(gbufferDepth, &depthViewDesc, dsHandle);
+	device->CreateDepthStencilView(gbufferDepth->get(), &depthViewDesc, dsHandle);
 
 	dsHandle.offset(1);
 	depthViewDesc.Texture2DArray.ArraySize = 1;
-	device->CreateDepthStencilView(gbufferDepth, &depthViewDesc, dsHandle);
+	device->CreateDepthStencilView(gbufferDepth->get(), &depthViewDesc, dsHandle);
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -470,19 +441,19 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
 	auto rtvHandle = m_descriptorHeapRt.getHandleCpu();
-	device->CreateRenderTargetView(gbufferAlbedo, &rtvDesc, rtvHandle);
+	device->CreateRenderTargetView(gbufferAlbedo->get(), &rtvDesc, rtvHandle);
 
 	rtvHandle.offset(1);
 	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-	device->CreateRenderTargetView(gbufferNormal, &rtvDesc, rtvHandle);
+	device->CreateRenderTargetView(gbufferNormal->get(), &rtvDesc, rtvHandle);
 
 	rtvHandle.offset(1);
 	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-	device->CreateRenderTargetView(gbufferVelocity, &rtvDesc, rtvHandle);
+	device->CreateRenderTargetView(gbufferVelocity->get(), &rtvDesc, rtvHandle);
 
 	rtvHandle.offset(1);
 	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-	device->CreateRenderTargetView(gbufferSurface, &rtvDesc, rtvHandle);
+	device->CreateRenderTargetView(gbufferSurface->get(), &rtvDesc, rtvHandle);
 
 	createBufferViews(s_resourceManager, device);
 
@@ -513,17 +484,17 @@ void GBufferRenderer::submitCommands(Graphics::CommandQueue* queue)
 		auto hresult = m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 		VX_ASSERT(hresult == 0);
 		// copylayer 0 depth buffer to layer 1
-		CD3DX12_RESOURCE_BARRIER barriers[2];
-		barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE, 0);
-		barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_DEST, 1);
+		D3D12_RESOURCE_BARRIER barriers[2];
+		barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_SOURCE, 0);
+		barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_COPY_DEST, 1);
 		m_commandList->ResourceBarrier(2, barriers);
 
-		CD3DX12_TEXTURE_COPY_LOCATION src(gbufferDepth, 0);
-		CD3DX12_TEXTURE_COPY_LOCATION dst(gbufferDepth, 1);
+		CD3DX12_TEXTURE_COPY_LOCATION src(gbufferDepth->get(), 0);
+		CD3DX12_TEXTURE_COPY_LOCATION dst(gbufferDepth->get(), 1);
 		m_commandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 
-		barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE, 0);
-		barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_DEPTH_WRITE, 1);
+		barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE, 0);
+		barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_DEPTH_WRITE, 1);
 		m_commandList->ResourceBarrier(2, barriers);
 
 	//	const f32 clearColor[] = { 1.0f, 0.0f, 0.0f, 1 };

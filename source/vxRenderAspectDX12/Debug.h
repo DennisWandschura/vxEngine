@@ -28,6 +28,7 @@ struct IDXGIDebug;
 struct IDXGIInfoQueue;
 struct ID3D12InfoQueue;
 struct ID3D12Debug;
+class Logfile;
 
 #include "d3d.h"
 #include <vxLib/Allocator/StackAllocator.h>
@@ -41,6 +42,7 @@ namespace d3d
 		vx::StackAllocator m_scratchAllocator;
 		d3d::Object<ID3D12Debug> m_debug;
 		d3d::Object<IDXGIDebug> m_dxgiDebug;
+		Logfile* m_errorLog;
 		void* m_dxgidebugDllHandle;
 
 	public:
@@ -48,7 +50,7 @@ namespace d3d
 		~Debug();
 
 		bool initializeDebugMode();
-		bool initialize(vx::StackAllocator* allocator, ID3D12Device* device);
+		bool initialize(vx::StackAllocator* allocator, ID3D12Device* device, Logfile* errorLog);
 		void shutdownDevice();
 		void shutdown();
 

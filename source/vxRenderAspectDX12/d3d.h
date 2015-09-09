@@ -60,6 +60,4 @@ namespace d3d
 	{
 		enum : size_t { size = (sizeof(T) * COUNT) + (ALIGNMENT - 1) & ~(ALIGNMENT - 1) };
 	};
-
-	typedef Object<ID3D12Resource> Resource;
 }

@@ -256,6 +256,8 @@ bool UploadManager::tryUploadTexture(const UploadTaskTextureDesc &desc)
 
 void UploadManager::pushUploadTexture(const UploadTaskTextureDesc &desc)
 {
+	VX_ASSERT(desc.dst != nullptr);
+
 	if (!tryUploadTexture(desc))
 	{
 		QueuedUploadTask queuedTask;

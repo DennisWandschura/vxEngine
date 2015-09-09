@@ -30,13 +30,14 @@ namespace d3d
 {
 	class GraphicsCommandList;
 	class ResourceManager;
+	class Resource;
 }
 
 #include "d3d.h"
 
 class GpuProfiler
 {
-	ID3D12Resource* m_buffer;
+	d3d::Resource* m_buffer;
 	d3d::Object<ID3D12QueryHeap> m_queryHeap;
 	s64 m_currentFrame;
 	u32 m_count[3];

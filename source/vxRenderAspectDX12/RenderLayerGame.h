@@ -103,8 +103,11 @@ class RenderLayerGame : public Graphics::RenderLayer
 
 public:
 	explicit RenderLayerGame(const RenderLayerGameDesc &desc);
+	RenderLayerGame(const RenderLayerGame&) = delete;
 	RenderLayerGame(RenderLayerGame &&rhs);
 	~RenderLayerGame();
+
+	RenderLayerGame& operator=(const RenderLayerGame&) = delete;
 
 	void createRenderPasses() override;
 

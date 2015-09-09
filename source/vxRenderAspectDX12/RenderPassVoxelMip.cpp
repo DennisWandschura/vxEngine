@@ -85,7 +85,7 @@ void RenderPassVoxelMip::createViews(ID3D12Device* device)
 	srvDesc.Texture3D.ResourceMinLODClamp = 0;
 
 	auto handle = m_uavHeap.getHandleCpu();
-	device->CreateShaderResourceView(voxelTextureDiffuse, &srvDesc, handle);
+	device->CreateShaderResourceView(voxelTextureDiffuse->get(), &srvDesc, handle);
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 	uavDesc.Format = DXGI_FORMAT_R32_UINT;
@@ -95,7 +95,7 @@ void RenderPassVoxelMip::createViews(ID3D12Device* device)
 	uavDesc.Texture3D.WSize = texDesc.DepthOrArraySize / 2;
 
 	handle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureDiffuse, nullptr, &uavDesc, handle);
+	device->CreateUnorderedAccessView(voxelTextureDiffuse->get(), nullptr, &uavDesc, handle);
 }
 
 bool RenderPassVoxelMip::initialize(ID3D12Device* device, void* p)
@@ -147,8 +147,8 @@ void RenderPassVoxelMip::submitCommands(Graphics::CommandQueue* queue)
 	u32 dstDim = voxelDim >> dstMip;
 	u32 dstDimZ = voxelDimZ >> dstMip;
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureDiffuse, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srcMip));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureDiffuse->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srcMip));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse->get()));
 
 	auto heap = m_uavHeap.get();
 	m_commandList->SetDescriptorHeaps(1, &heap);
@@ -159,8 +159,8 @@ void RenderPassVoxelMip::submitCommands(Graphics::CommandQueue* queue)
 
 	m_commandList->DrawInstanced(dstDim, dstDim * dstDimZ, 0, 0);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureDiffuse, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, srcMip));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse->get()));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureDiffuse->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, srcMip));
 
 	m_commandList->Close();
 

@@ -290,7 +290,7 @@ bool RenderPassCullLights::createViews(ID3D12Device* device)
 	auto visibleLightIndexBuffer = s_resourceManager->getBuffer(L"visibleLightIndexBuffer");
 
 	auto handle = m_rvHeap.getHandleCpu();
-	device->CreateShaderResourceView(lightBuffer, lightBufferView, handle);
+	device->CreateShaderResourceView(lightBuffer->get(), lightBufferView, handle);
 
 	handle.offset(1);
 	device->CreateConstantBufferView(cameraBufferView, handle);
@@ -305,11 +305,11 @@ bool RenderPassCullLights::createViews(ID3D12Device* device)
 	uavDesc.Buffer.StructureByteStride = sizeof(u32);
 
 	handle.offset(1);
-	device->CreateUnorderedAccessView(visibleLightIndexBuffer, nullptr, &uavDesc, handle);
+	device->CreateUnorderedAccessView(visibleLightIndexBuffer->get(), nullptr, &uavDesc, handle);
 
 	uavDesc.Buffer.StructureByteStride = sizeof(GpuLight);
 	handle.offset(1);
-	device->CreateUnorderedAccessView(lightBufferDst, nullptr, &uavDesc, handle);
+	device->CreateUnorderedAccessView(lightBufferDst->get(), nullptr, &uavDesc, handle);
 
 	return true;
 }
@@ -333,7 +333,7 @@ bool RenderPassCullLights::createRtvDsv(ID3D12Device* device)
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	rtvDesc.Texture2D.MipSlice = 0;
 	rtvDesc.Texture2D.PlaneSlice = 0;
-	device->CreateRenderTargetView(lightTexture, &rtvDesc, m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
+	device->CreateRenderTargetView(lightTexture->get(), &rtvDesc, m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
 
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	if (device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(m_dsvHeap.getAddressOf())) != 0)
@@ -346,7 +346,7 @@ bool RenderPassCullLights::createRtvDsv(ID3D12Device* device)
 	depthViewDesc.Texture2DArray.ArraySize = 1;
 	depthViewDesc.Texture2DArray.FirstArraySlice = 0;
 	depthViewDesc.Texture2DArray.MipSlice = 0;
-	device->CreateDepthStencilView(gbufferDepth, &depthViewDesc, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
+	device->CreateDepthStencilView(gbufferDepth->get(), &depthViewDesc, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 
 	return true;
 }
@@ -422,7 +422,7 @@ void RenderPassCullLights::submitCommands(Graphics::CommandQueue* queue)
 		{
 			m_commandList->SetPipelineState(m_pipelineStateZeroLights.get());
 
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 			// zero light buffers
 
 			m_commandList->SetGraphicsRootSignature(m_rootSignatureZeroLights.get());
@@ -430,7 +430,7 @@ void RenderPassCullLights::submitCommands(Graphics::CommandQueue* queue)
 
 			m_commandList->DrawInstanced(m_lightCount + 1, 1, 0, 0);
 
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		}
 
 		m_commandList->SetPipelineState(m_pipelineState.get());
@@ -441,11 +441,11 @@ void RenderPassCullLights::submitCommands(Graphics::CommandQueue* queue)
 		auto dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
 		m_commandList->OMSetRenderTargets(0, nullptr, 0, &dsvHandle);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		m_commandList->DrawInstanced(m_lightCount, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		m_commandList->Close();
 

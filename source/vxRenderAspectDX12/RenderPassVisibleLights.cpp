@@ -130,11 +130,11 @@ bool RenderPassVisibleLights::initialize(ID3D12Device* device, void* p)
 	srvDesc.Buffer.StructureByteStride = sizeof(GpuLight);
 
 	auto handle = m_descriptorHeap.getHandleCpu();
-	device->CreateShaderResourceView(lightBuffer, &srvDesc, handle);
+	device->CreateShaderResourceView(lightBuffer->get(), &srvDesc, handle);
 
 	srvDesc.Buffer.StructureByteStride = sizeof(u32);
 	handle.offset(1);
-	device->CreateShaderResourceView(visibleLightIndexBuffer, &srvDesc, handle);
+	device->CreateShaderResourceView(visibleLightIndexBuffer->get(), &srvDesc, handle);
 
 	const auto sizeInBytes = lightCount * sizeof(GpuLight);
 	//const auto count = sizeInBytes / sizeof(u32);
@@ -149,7 +149,7 @@ bool RenderPassVisibleLights::initialize(ID3D12Device* device, void* p)
 	uavDesc.Buffer.StructureByteStride = sizeof(GpuLight);
 
 	handle.offset(1);
-	device->CreateUnorderedAccessView(lightBufferDst, nullptr, &uavDesc, handle);
+	device->CreateUnorderedAccessView(lightBufferDst->get(), nullptr, &uavDesc, handle);
 
 	return true;
 }
@@ -191,8 +191,8 @@ void RenderPassVisibleLights::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->RSSetViewports(1, &viewport);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		auto descHeap = m_descriptorHeap.get();
 		m_commandList->SetDescriptorHeaps(1, &descHeap);
@@ -204,8 +204,8 @@ void RenderPassVisibleLights::submitCommands(Graphics::CommandQueue* queue)
 
 		m_commandList->DrawInstanced(m_lightCount + 1, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		m_commandList->Close();
 

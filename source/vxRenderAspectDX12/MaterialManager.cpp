@@ -39,7 +39,8 @@ struct MaterialManager::MaterialEntry
 MaterialManager::MaterialManager()
 	:m_materialEntries(),
 	m_texturesSrgba(),
-	m_texturesRgba()
+	m_texturesRgba(),
+	m_resourceManager(nullptr)
 {
 
 }
@@ -64,6 +65,8 @@ bool MaterialManager::initialize(const vx::uint3 &dimSrgb, const vx::uint3 &dimR
 	if (!m_texturesRgba.initialize(allocator, L"rgbTexture", dimRgb, DXGI_FORMAT_BC7_UNORM, resourceManager, device))
 		return false;
 
+	m_resourceManager = resourceManager;
+
 	return true;
 }
 
@@ -81,12 +84,12 @@ bool MaterialManager::tryGetTexture(const vx::StringID &sid, const ResourceAspec
 
 	if (format == Graphics::TextureFormat::BC7_UNORM_SRGB)
 	{
-		if(!m_texturesSrgba.addTexture(sid, *texture, uploadManager, slice))
+		if(!m_texturesSrgba.addTexture(sid, *texture, m_resourceManager, uploadManager, slice))
 			return false;
 	}
 	else if (format == Graphics::TextureFormat::BC7_UNORM)
 	{
-		if (!m_texturesRgba.addTexture(sid, *texture, uploadManager, slice))
+		if (!m_texturesRgba.addTexture(sid, *texture, m_resourceManager, uploadManager, slice))
 			return false;
 	}
 	else

@@ -2,6 +2,7 @@
 #include "Heap.h"
 #include <d3d12.h>
 #include "ResourceView.h"
+#include <vxEngineLib/Logfile.h>
 
 namespace d3d
 {
@@ -20,7 +21,8 @@ namespace d3d
 
 	ResourceManager::ResourceManager()
 		:m_buffers(),
-		m_textures()
+		m_textures(),
+		m_logfile(nullptr)
 	{
 
 	}
@@ -63,10 +65,12 @@ namespace d3d
 		return true;
 	}
 
-	bool ResourceManager::initializeHeaps(u64 heapSizeBuffer, u64 heapSizeTexture, u64 heapSizeRtDs, ID3D12Device* device)
+	bool ResourceManager::initializeHeaps(u64 heapSizeBuffer, u64 heapSizeTexture, u64 heapSizeRtDs, ID3D12Device* device, Logfile* logfile)
 	{
 		if (!createHeaps(heapSizeBuffer, heapSizeTexture, heapSizeRtDs, device))
 			return false;
+
+		m_logfile = logfile;
 
 		return true;
 	}
@@ -82,7 +86,7 @@ namespace d3d
 		m_rtDsHeap.destroy();
 	}
 
-	ID3D12Resource* ResourceManager::createBuffer(const wchar_t* id, u64 size, u32 state, u32 flags)
+	Resource* ResourceManager::createBuffer(const wchar_t* id, u64 size, u32 state, u32 flags)
 	{
 		auto ptr = getBuffer(id);
 		if (ptr == nullptr)
@@ -97,17 +101,29 @@ namespace d3d
 			if (m_bufferHeap.createResourceBuffer(resDesc))
 			{
 				auto sid = vx::make_sid(id);
-				auto it = m_buffers.insert(std::move(sid), std::move(buffer));
-				ptr = it->get();
+				auto it = m_buffers.insert(std::move(sid), Resource(std::move(buffer), resDesc.state));
+				ptr = (&*it);
 
 				ptr->SetName(id);
+
+				char buffer[64];
+				auto sz = sprintf(buffer, "Buffer %ws %p\n", id, (*ptr).get());
+				if (sz < 64)
+				{
+					m_logfile->append(buffer, sz);
+				}
+				else
+				{
+					puts("");
+				}
+				//printf("Buffer %ws %p\n", id, (*ptr).get());
 			}
 		}
 
 		return ptr;
 	}
 
-	ID3D12Resource* ResourceManager::createTexture(const wchar_t* id, const CreateResourceDesc &desc)
+	Resource* ResourceManager::createTexture(const wchar_t* id, const CreateResourceDesc &desc)
 	{
 		auto ptr = getTexture(id);
 		if (ptr == nullptr)
@@ -119,16 +135,19 @@ namespace d3d
 			if (m_textureHeap.createResource(resDesc))
 			{
 				auto sid = vx::make_sid(id);
-				auto it = m_textures.insert(std::move(sid), std::move(texture));
-				ptr = it->get();
+
+				auto it = m_textures.insert(std::move(sid), Resource(std::move(texture), desc.state));
+				ptr = &(*it);
 				ptr->SetName(id);
+
+				//printf("Texture %ws %p\n", id, (*ptr).get());
 			}
 		}
 
 		return ptr;
 	}
 
-	ID3D12Resource* ResourceManager::createTextureRtDs(const wchar_t* id, const CreateResourceDesc &desc)
+	Resource* ResourceManager::createTextureRtDs(const wchar_t* id, const CreateResourceDesc &desc)
 	{
 		auto ptr = getTextureRtDs(id);
 		if (ptr == nullptr)
@@ -140,9 +159,11 @@ namespace d3d
 			if (m_rtDsHeap.createResource(resDesc))
 			{
 				auto sid = vx::make_sid(id);
-				auto it = m_texturesRtDs.insert(std::move(sid), std::move(texture));
-				ptr = it->get();
+				auto it = m_texturesRtDs.insert(std::move(sid), Resource(std::move(texture), desc.state));
+				ptr = (&*it);
 				ptr->SetName(id);
+
+				//printf("TextureRtDs %ws %p\n", id, (*ptr).get());
 			}
 		}
 
@@ -167,28 +188,43 @@ namespace d3d
 		m_resourceViews.insert(sid, desc);
 	}
 
-	ID3D12Resource* ResourceManager::getBuffer(const wchar_t* id)
+	Resource* ResourceManager::getBuffer(const wchar_t* id)
 	{
 		auto sid = vx::make_sid(id);
+		return getBuffer(sid);
+	}
+
+	Resource* ResourceManager::getBuffer(const vx::StringID &sid)
+	{
 		auto it = m_buffers.find(sid);
 
-		return (it != m_buffers.end()) ? it->get() : nullptr;
+		return (it != m_buffers.end()) ? &(*it) : nullptr;
 	}
 
-	ID3D12Resource* ResourceManager::getTexture(const wchar_t* id)
+	Resource* ResourceManager::getTexture(const wchar_t* id)
 	{
 		auto sid = vx::make_sid(id);
+		return getTexture(sid);
+	}
+
+	Resource* ResourceManager::getTexture(const vx::StringID &sid)
+	{
 		auto it = m_textures.find(sid);
 
-		return (it != m_textures.end()) ? it->get() : nullptr;
+		return (it != m_textures.end()) ? &(*it) : nullptr;
 	}
 
-	ID3D12Resource* ResourceManager::getTextureRtDs(const wchar_t* id)
+	Resource* ResourceManager::getTextureRtDs(const wchar_t* id)
 	{
 		auto sid = vx::make_sid(id);
+		return getTextureRtDs(sid);
+	}
+
+	Resource* ResourceManager::getTextureRtDs(const vx::StringID &sid)
+	{
 		auto it = m_texturesRtDs.find(sid);
 
-		return (it != m_texturesRtDs.end()) ? it->get() : nullptr;
+		return (it != m_texturesRtDs.end()) ? &(*it) : nullptr;
 	}
 
 	const ResourceView* ResourceManager::getResourceView(const char* id) const

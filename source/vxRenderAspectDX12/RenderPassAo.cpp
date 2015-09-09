@@ -267,7 +267,7 @@ bool RenderPassAO::createBuffer()
 	bufferData.radius = 1.0f;
 	bufferData.zFar = s_settings->m_farZ;
 
-	s_uploadManager->pushUploadBuffer((u8*)&bufferData, saoBuffer, 0, sizeof(GpuSaoBuffer), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	s_uploadManager->pushUploadBuffer((u8*)&bufferData, saoBuffer->get(), 0, sizeof(GpuSaoBuffer), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	return true;
 }
@@ -292,10 +292,10 @@ bool RenderPassAO::createRtv(ID3D12Device* device)
 	desc.Texture2D.PlaneSlice = 0;
 
 	auto handle = m_rtvHeap.getHandleCpu();
-	device->CreateRenderTargetView(aoTexture, &desc, handle);
+	device->CreateRenderTargetView(aoTexture->get(), &desc, handle);
 
 	handle.offset(1);
-	device->CreateRenderTargetView(aoBlurXTexture, &desc, handle);
+	device->CreateRenderTargetView(aoBlurXTexture->get(), &desc, handle);
 
 	return true;
 }
@@ -327,10 +327,10 @@ bool RenderPassAO::createSrv(ID3D12Device* device)
 	srvDesc.Texture2D.PlaneSlice = 0;
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	device->CreateShaderResourceView(zBuffer0, &srvDesc, handle);
+	device->CreateShaderResourceView(zBuffer0->get(), &srvDesc, handle);
 
 	handle.offset(1);
-	device->CreateShaderResourceView(zBuffer1, &srvDesc, handle);
+	device->CreateShaderResourceView(zBuffer1->get(), &srvDesc, handle);
 
 	srvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
@@ -341,7 +341,7 @@ bool RenderPassAO::createSrv(ID3D12Device* device)
 	srvDesc.Texture2DArray.PlaneSlice = 0;
 	srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
 	handle.offset(1);
-	device->CreateShaderResourceView(gbufferNormal, &srvDesc, handle);
+	device->CreateShaderResourceView(gbufferNormal->get(), &srvDesc, handle);
 
 	handle.offset(1);
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
@@ -353,11 +353,11 @@ bool RenderPassAO::createSrv(ID3D12Device* device)
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvDesc.Texture2D.MipLevels = 1;
-	device->CreateShaderResourceView(aoTexture, &srvDesc, handle);
+	device->CreateShaderResourceView(aoTexture->get(), &srvDesc, handle);
 
 	handle.offset(1);
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	device->CreateShaderResourceView(aoBlurXTexture, &srvDesc, handle);
+	device->CreateShaderResourceView(aoBlurXTexture->get(), &srvDesc, handle);
 
 	return true;
 }
@@ -452,8 +452,10 @@ void RenderPassAO::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
 	{
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		//m_commandList->ResourceBarrier(1, &aoTexture->barrierTransition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		//m_commandList->ResourceBarrier(1, &gbufferNormal->barrierTransition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		m_commandList->SetPipelineState(m_blurState[0].get());
 
@@ -467,12 +469,12 @@ void RenderPassAO::submitCommands(Graphics::CommandQueue* queue)
 
 		m_commandList->DrawInstanced(1, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	}
 
 	{
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoBlurXTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoBlurXTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		m_commandList->SetPipelineState(m_blurState[1].get());
 
@@ -482,7 +484,7 @@ void RenderPassAO::submitCommands(Graphics::CommandQueue* queue)
 
 		m_commandList->DrawInstanced(1, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoBlurXTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoBlurXTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	}
 
 	m_commandList->Close();

@@ -206,7 +206,7 @@ void RenderPassVoxelize::createViews(ID3D12Device* device)
 	uavDesc.Texture3D.WSize = g_voxelDimW;
 
 	auto handle = m_descriptorHeap.getHandleCpu();
-	device->CreateShaderResourceView(transformBuffer, transformBufferViewDesc, handle);
+	device->CreateShaderResourceView(transformBuffer->get(), transformBufferViewDesc, handle);
 
 	handle.offset(1);
 	device->CreateConstantBufferView(&cbufferDesc, handle);
@@ -216,19 +216,19 @@ void RenderPassVoxelize::createViews(ID3D12Device* device)
 
 	uavDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	handle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureOpacity, nullptr, &uavDesc, handle);
+	device->CreateUnorderedAccessView(voxelTextureOpacity->get(), nullptr, &uavDesc, handle);
 
 	uavDesc.Format = DXGI_FORMAT_R32_UINT;
 	handle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureDiffuse, nullptr, &uavDesc, handle);
+	device->CreateUnorderedAccessView(voxelTextureDiffuse->get(), nullptr, &uavDesc, handle);
 
 	uavDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	auto clearHandle = m_descriptorHeapClear.getHandleCpu();
-	device->CreateUnorderedAccessView(voxelTextureOpacity, nullptr, &uavDesc, clearHandle);
+	device->CreateUnorderedAccessView(voxelTextureOpacity->get(), nullptr, &uavDesc, clearHandle);
 
 	uavDesc.Format = DXGI_FORMAT_R32_UINT;
 	clearHandle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureDiffuse, nullptr, &uavDesc, clearHandle);
+	device->CreateUnorderedAccessView(voxelTextureDiffuse->get(), nullptr, &uavDesc, clearHandle);
 }
 
 void RenderPassVoxelize::uploadBufferData()
@@ -260,7 +260,7 @@ void RenderPassVoxelize::uploadBufferData()
 	data.gridCellSize = gridCellSize;
 
 	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
-	s_uploadManager->pushUploadBuffer((u8*)&data, voxelBuffer, 0, sizeof(GpuVoxel), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	s_uploadManager->pushUploadBuffer((u8*)&data, voxelBuffer->get(), 0, sizeof(GpuVoxel), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 }
 
 bool RenderPassVoxelize::initialize(ID3D12Device* device, void* p)
@@ -303,17 +303,17 @@ void RenderPassVoxelize::submitCommands(Graphics::CommandQueue* queue)
 
 		m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse->get()));
 		auto gpuHandle = m_descriptorHeapClear.getHandleGpu();
 		auto cpuHandle = m_descriptorHeapClear.getHandleCpu();
-		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureOpacity, clearValues, 0, nullptr);
+		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureOpacity->get(), clearValues, 0, nullptr);
 
 		cpuHandle.offset(1);
 		gpuHandle.offset(1);
-		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureDiffuse, clearValues, 0, nullptr);
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity));
+		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureDiffuse->get(), clearValues, 0, nullptr);
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureDiffuse->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity->get()));
 
 		D3D12_VIEWPORT viewPort;
 		viewPort.Height = (f32)g_voxelDim * 2;

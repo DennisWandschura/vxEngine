@@ -71,7 +71,7 @@ void RenderPassShadow::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTextu
 	resDesc[RenderPassShadowCpp::TextureZDepth].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	resDesc[RenderPassShadowCpp::TextureIntensity] = resDesc[RenderPassShadowCpp::TextureZDepth];
-	resDesc[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R16_FLOAT;
+	resDesc[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	resDesc[RenderPassShadowCpp::TextureNormal] = resDesc[RenderPassShadowCpp::TextureIntensity];
 	resDesc[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16_FLOAT;
@@ -101,7 +101,7 @@ bool RenderPassShadow::createData(ID3D12Device* device)
 	resDesc[RenderPassShadowCpp::TextureZDepth].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	resDesc[RenderPassShadowCpp::TextureIntensity] = resDesc[RenderPassShadowCpp::TextureZDepth];
-	resDesc[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R16_FLOAT;
+	resDesc[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	resDesc[RenderPassShadowCpp::TextureNormal] = resDesc[RenderPassShadowCpp::TextureIntensity];
 	resDesc[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16_FLOAT;
@@ -115,7 +115,7 @@ bool RenderPassShadow::createData(ID3D12Device* device)
 	clearValues[RenderPassShadowCpp::TextureZDepth].Format = DXGI_FORMAT_R32_FLOAT;
 	clearValues[RenderPassShadowCpp::TextureZDepth].Color[0] = 1.0f;
 
-	clearValues[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R16_FLOAT;
+	clearValues[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	clearValues[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16_FLOAT;
 
@@ -168,18 +168,37 @@ bool RenderPassShadow::loadShaders()
 bool RenderPassShadow::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangeVS[2];
-	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, 0);
-	rangeVS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 2);
+	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0, 0);
+	rangeVS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 3);
 
 	CD3DX12_DESCRIPTOR_RANGE rangeGS[1];
 	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 0, 1);
 
-	CD3DX12_ROOT_PARAMETER rootParameters[2];
+	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0, 4);
+
+	CD3DX12_ROOT_PARAMETER rootParameters[3];
 	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
 	rootParameters[1].InitAsDescriptorTable(1, rangeGS, D3D12_SHADER_VISIBILITY_GEOMETRY);
+	rootParameters[2].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
+
+	D3D12_STATIC_SAMPLER_DESC sampler = {};
+	sampler.Filter = D3D12_FILTER_ANISOTROPIC;
+	sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.MipLODBias = 0;
+	sampler.MaxAnisotropy = 4;
+	sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+	sampler.MinLOD = 0.0f;
+	sampler.MaxLOD = 0.0f;
+	sampler.ShaderRegister = 0;
+	sampler.RegisterSpace = 0;
+	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.Init(2, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	rootSignatureDesc.Init(3, rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	ID3DBlob* blob = nullptr;
 	ID3DBlob* errorBlob = nullptr;
@@ -204,7 +223,7 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
 	};
 
-	DXGI_FORMAT format[3] = { DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R16_FLOAT, DXGI_FORMAT_R16G16_FLOAT };
+	DXGI_FORMAT format[3] = { DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R16G16_FLOAT };
 
 
 	d3d::PipelineStateDescInput inputDesc;
@@ -256,15 +275,15 @@ bool RenderPassShadow::createRtvs(ID3D12Device* device)
 	rtvDesc.Texture2DArray.FirstArraySlice = 0;
 	rtvDesc.Texture2DArray.MipSlice = 0;
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
-	device->CreateRenderTargetView(shadowTextureLinear, &rtvDesc, handle);
+	device->CreateRenderTargetView(shadowTextureLinear->get(), &rtvDesc, handle);
 
-	rtvDesc.Format = DXGI_FORMAT_R16_FLOAT;
+	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	handle.offset(1);
-	device->CreateRenderTargetView(shadowTextureIntensity, &rtvDesc, handle);
+	device->CreateRenderTargetView(shadowTextureIntensity->get(), &rtvDesc, handle);
 
 	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
 	handle.offset(1);
-	device->CreateRenderTargetView(shadowTextureNormal, &rtvDesc, handle);
+	device->CreateRenderTargetView(shadowTextureNormal->get(), &rtvDesc, handle);
 
 	return true;
 }
@@ -275,7 +294,7 @@ void RenderPassShadow::uploadData()
 
 	ShadowTransform data;
 
-	s_uploadManager->pushUploadBuffer((u8*)&data, shadowTransformBuffer, 0, sizeof(ShadowTransform), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	s_uploadManager->pushUploadBuffer((u8*)&data, shadowTransformBuffer->get(), 0, sizeof(ShadowTransform), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 }
 
 bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
@@ -312,10 +331,10 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	dsvDesc.Texture2DArray.FirstArraySlice = 0;
 	dsvDesc.Texture2DArray.MipSlice = 0;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-	device->CreateDepthStencilView(shadowTexture, &dsvDesc, m_heapDsv.getHandleCpu());
+	device->CreateDepthStencilView(shadowTexture->get(), &dsvDesc, m_heapDsv.getHandleCpu());
 
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	desc.NumDescriptors = 3;
+	desc.NumDescriptors = 5;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_heapSrv.create(desc, device))
 		return false;
@@ -324,9 +343,14 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	auto transformBuffer = s_resourceManager->getBuffer(L"transformBuffer");
 	auto shadowTransformBuffer = s_resourceManager->getBuffer(L"shadowTransformBuffer");
 	auto cameraBufferView = s_resourceManager->getConstantBufferView("cameraBufferView");
+	auto materialBufferViewDesc = s_resourceManager->getShaderResourceView("materialBufferView");
+	auto srgbTextureViewDesc = s_resourceManager->getShaderResourceView("srgbTextureView");
+
+	auto materialBuffer = s_resourceManager->getBuffer(L"materialBuffer");
+	auto srgbTexture = s_resourceManager->getTexture(L"srgbTexture");
 
 	auto srvHandle = m_heapSrv.getHandleCpu();
-	device->CreateShaderResourceView(transformBuffer, transformBufferViewDesc, srvHandle);
+	device->CreateShaderResourceView(transformBuffer->get(), transformBufferViewDesc, srvHandle);
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Buffer.FirstElement = 0;
@@ -338,10 +362,16 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
 
 	srvHandle.offset(1);
-	device->CreateShaderResourceView(shadowTransformBuffer, &srvDesc, srvHandle);
+	device->CreateShaderResourceView(shadowTransformBuffer->get(), &srvDesc, srvHandle);
+
+	srvHandle.offset(1);
+	device->CreateShaderResourceView(materialBuffer->get(), materialBufferViewDesc, srvHandle);
 
 	srvHandle.offset(1);
 	device->CreateConstantBufferView(cameraBufferView, srvHandle);
+
+	srvHandle.offset(1);
+	device->CreateShaderResourceView(srgbTexture->get(), srgbTextureViewDesc, srvHandle);
 
 	return true;
 }
@@ -400,6 +430,7 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 		m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
 		m_commandList->SetGraphicsRootDescriptorTable(1, srvHeap->GetGPUDescriptorHandleForHeapStart());
+		m_commandList->SetGraphicsRootDescriptorTable(2, srvHeap->GetGPUDescriptorHandleForHeapStart());
 
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
 		vertexBufferViews[0] = s_resourceManager->getResourceView("meshVertexBufferView")->vbv;

@@ -201,6 +201,7 @@
   <ItemGroup>
     <ClInclude Include="AdjacencyTreeBuilder.h" />
     <ClInclude Include="BufferView.h" />
+    <ClInclude Include="CommandAllocator.h" />
     <ClInclude Include="CommandList.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="ConverterMesh.h" />
@@ -217,7 +218,6 @@
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="PipelineState.h" />
     <ClInclude Include="RenderLayerGame.h" />
-    <ClInclude Include="RenderPassConeTrace.h" />
     <ClInclude Include="RenderPassCullLights.h" />
     <ClInclude Include="RenderPassDrawVoxel.h" />
     <ClInclude Include="RenderPassFinal.h" />
@@ -248,6 +248,7 @@
     <ClInclude Include="RenderPassVoxelMip.h" />
     <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
     <ClInclude Include="RenderSettings.h" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RenderAspect.h" />
@@ -281,7 +282,6 @@
     <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="RenderLayerGame.cpp" />
     <ClCompile Include="RenderPassAo.cpp" />
-    <ClCompile Include="RenderPassConeTrace.cpp" />
     <ClCompile Include="RenderPassCullLights.cpp" />
     <ClCompile Include="RenderPassDrawVoxel.cpp" />
     <ClCompile Include="RenderPassFinal.cpp" />

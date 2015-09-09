@@ -196,10 +196,10 @@ bool RenderPassRadiosity::createRtv(ID3D12Device* device)
 	rtvDesc.Texture2D.PlaneSlice = 0;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	auto handle = m_rtvHeap.getHandleCpu();
-	device->CreateRenderTargetView(bounce0, &rtvDesc, handle);
+	device->CreateRenderTargetView(bounce0->get(), &rtvDesc, handle);
 
 	handle.offset(1);
-	device->CreateRenderTargetView(bounce1, &rtvDesc, handle);
+	device->CreateRenderTargetView(bounce1->get(), &rtvDesc, handle);
 
 	return true;
 }
@@ -239,12 +239,12 @@ Texture2DArray g_normalTexture : register(t2); 2
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 
 	auto handle = m_srvHeap.getHandleCpu();
-	device->CreateShaderResourceView(zBuffer0, &srvDesc, handle);
+	device->CreateShaderResourceView(zBuffer0->get(), &srvDesc, handle);
 
 	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvDesc.Texture2D.MipLevels = 1;
 	handle.offset(1);
-	device->CreateShaderResourceView(bounce1, &srvDesc, handle);
+	device->CreateShaderResourceView(bounce1->get(), &srvDesc, handle);
 
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 	srvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
@@ -255,7 +255,7 @@ Texture2DArray g_normalTexture : register(t2); 2
 	srvDesc.Texture2DArray.PlaneSlice = 0;
 	srvDesc.Texture2DArray.ResourceMinLODClamp=0;
 	handle.offset(1);
-	device->CreateShaderResourceView(gbufferNormal, &srvDesc, handle);
+	device->CreateShaderResourceView(gbufferNormal->get(), &srvDesc, handle);
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
 	cbvDesc.BufferLocation = saoBuffer->GetGPUVirtualAddress();
@@ -277,7 +277,7 @@ Texture2DArray g_normalTexture : register(t2); 2
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 
 	handle.offset(1);
-	device->CreateShaderResourceView(bounce0, &srvDesc, handle);
+	device->CreateShaderResourceView(bounce0->get(), &srvDesc, handle);
 
 	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -287,7 +287,7 @@ Texture2DArray g_normalTexture : register(t2); 2
 	srvDesc.Texture2D.PlaneSlice = 0;
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 	handle.offset(1);
-	device->CreateShaderResourceView(directLightTexture, &srvDesc, handle);
+	device->CreateShaderResourceView(directLightTexture->get(), &srvDesc, handle);
 
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -298,7 +298,7 @@ Texture2DArray g_normalTexture : register(t2); 2
 	srvDesc.Texture2DArray.PlaneSlice = 0;
 	srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
 	handle.offset(1);
-	device->CreateShaderResourceView(gbufferAlbedo, &srvDesc, handle);
+	device->CreateShaderResourceView(gbufferAlbedo->get(), &srvDesc, handle);
 
 	return true;
 }
@@ -400,18 +400,18 @@ void RenderPassRadiosity::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->OMSetRenderTargets(1, &d3dRtvHandle, 0, nullptr);
 	m_commandList->ClearRenderTargetView(rtvHandle, clearcolor, 0, nullptr);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce1, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer0, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce1->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer0->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 	m_commandList->SetGraphicsRootDescriptorTable(0, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
 
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce1, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer0->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce1->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
 
 	////////////////////////////////////////
 	auto directLightTexture = s_resourceManager->getTextureRtDs(L"directLightTexture");
@@ -427,16 +427,16 @@ void RenderPassRadiosity::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->SetGraphicsRootSignature(m_rootSignatureGather.get());
 	m_commandList->SetGraphicsRootDescriptorTable(0, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce0, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferAlbedo, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce0->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferAlbedo->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
 
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferAlbedo, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferAlbedo->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce0->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
 
 	m_commandList->Close();
 

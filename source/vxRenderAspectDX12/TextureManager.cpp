@@ -104,9 +104,11 @@ bool TextureManager::createTextureBuffer(const wchar_t* id, const vx::uint3 &tex
 	desc.size = allocInfo.SizeInBytes;
 	desc.state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
-	m_textureBuffer = resourceManager->createTexture(id, desc);
-	if (m_textureBuffer == nullptr)
+	auto ptr = resourceManager->createTexture(id, desc);
+	if (ptr == nullptr)
 		return false;
+
+	m_textureBuffer = vx::make_sid(id);
 
 	auto textureFormat = Graphics::dxgiFormatToTextureFormat(dxgiFormat);
 	auto textureSize = Graphics::getTextureSize(textureFormat, vx::uint2(textureDim.x, textureDim.y)) * textureDim.z;
@@ -144,7 +146,6 @@ void TextureManager::shutdown()
 	m_entries = nullptr;
 	m_capacity = 0;
 	m_freelist.destroy();
-	m_textureBuffer = nullptr;
 }
 
 void TextureManager::addTexture(const AddTextureDesc &desc)
@@ -187,7 +188,7 @@ TextureManager::Entry* TextureManager::findEntry(const vx::StringID &sid) const
 	return entry;
 }
 
-bool TextureManager::addTexture(const vx::StringID &sid, const Graphics::Texture &texture, UploadManager* uploadManager, u32* slice)
+bool TextureManager::addTexture(const vx::StringID &sid, const Graphics::Texture &texture, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, u32* slice)
 {
 	Entry* entry = findEntry(sid);
 
@@ -214,13 +215,15 @@ bool TextureManager::addTexture(const vx::StringID &sid, const Graphics::Texture
 
 	auto &face = texture.getFace(0);
 	auto dim = face.getDimension();
+
+	auto dstTexture = resourceManager->getTexture(m_textureBuffer);
 	
 	UploadTaskTextureDesc desc;
 	desc.data = face.getPixels();
 	desc.dataSize = face.getSize();
 	desc.dim.x = dim.x;
 	desc.dim.y = dim.y;
-	desc.dst = m_textureBuffer;
+	desc.dst = dstTexture->get();
 	desc.format = m_format;
 	desc.rowPitch = texture.getFaceRowPitch(0);
 	desc.slice = index;

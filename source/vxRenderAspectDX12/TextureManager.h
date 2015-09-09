@@ -36,6 +36,7 @@ namespace d3d
 {
 	class Heap;
 	class ResourceManager;
+	class Resource;
 }
 
 namespace Graphics
@@ -59,7 +60,7 @@ class TextureManager
 	Entry* m_entries;
 	u32 m_capacity;
 	u32 m_format;
-	ID3D12Resource* m_textureBuffer;
+	vx::StringID m_textureBuffer;
 
 	bool createTextureBuffer(const wchar_t* id, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::ResourceManager* resourceManager, ID3D12Device* device);
 
@@ -69,15 +70,20 @@ class TextureManager
 
 public:
 	TextureManager();
+	TextureManager(const TextureManager&) = delete;
+	TextureManager(TextureManager &&rhs);
 	~TextureManager();
+
+	TextureManager& operator=(const TextureManager&) = delete;
+	TextureManager& operator=(TextureManager &&rhs);
 
 	void getRequiredMemory(const vx::uint3 &textureDim, u32 dxgiFormat, u64* heapSizeTexture, ID3D12Device* device);
 
 	bool initialize(vx::StackAllocator* allocator, const wchar_t* textureId, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::ResourceManager* resourceManager, ID3D12Device* device);
 	void shutdown();
 
-	bool addTexture(const vx::StringID &sid, const Graphics::Texture &texture, UploadManager* uploadManager, u32* slice);
+	bool addTexture(const vx::StringID &sid, const Graphics::Texture &texture, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, u32* slice);
 	bool removeTexture(const vx::StringID &sid);
 
-	ID3D12Resource* getTexture() { return m_textureBuffer; }
+	//d3d::Resource* getTexture() { return m_textureBuffer; }
 };

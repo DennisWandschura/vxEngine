@@ -168,11 +168,11 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 
 	auto handle = m_descriptorHeapSrv.getHandleCpu();
-	device->CreateShaderResourceView(aoTexture, &srvDesc, handle);
+	device->CreateShaderResourceView(aoTexture->get(), &srvDesc, handle);
 
 	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	handle.offset(1);
-	device->CreateShaderResourceView(directLightTexture, &srvDesc, handle);
+	device->CreateShaderResourceView(directLightTexture->get(), &srvDesc, handle);
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	for (u32 i = 0; i < 2; ++i)
@@ -238,8 +238,8 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->RSSetViewports(1, &viewport);
 	m_commandList->RSSetScissorRects(1, &rectScissor);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -260,8 +260,8 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	hresult = m_commandList->Close();
 	VX_ASSERT(hresult == 0);

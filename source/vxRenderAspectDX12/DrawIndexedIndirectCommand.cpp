@@ -63,7 +63,7 @@ bool DrawIndexedIndirectCommand::create(const wchar_t* id, u32 maxCount, d3d::Re
 	auto cmdSize = d3d::getAlignedSize(sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * maxCount, 256llu);
 	auto bufferSize = d3d::getAlignedSize(cmdSize + 256llu, 64llu KBYTE);
 
-	m_commmandBuffer = resourceManager->createBuffer(id, bufferSize, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	m_commmandBuffer = resourceManager->createBuffer(id, bufferSize, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT)->get();
 	if (m_commmandBuffer == nullptr)
 		return false;
 

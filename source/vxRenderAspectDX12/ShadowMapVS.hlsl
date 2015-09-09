@@ -18,13 +18,15 @@ struct VSOutput
 	float3 vsNormal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
 	uint lightIndex : BLENDINDICES0;
-	float distanceToLight : BLENDINDICES1;
-	float lightFalloff : BLENDINDICES2;
-	float lightLumen : BLENDINDICES3;
+	uint material : BLENDINDICES1;
+	float distanceToLight : BLENDINDICES2;
+	float lightFalloff : BLENDINDICES3;
+	float lightLumen : BLENDINDICES4;
 };
 
 StructuredBuffer<TransformGpu> s_transforms : register(t0);
 StructuredBuffer<ShadowTransform> shadowTransforms : register(t1);
+StructuredBuffer<uint> s_materials : register(t2);
 
 cbuffer CameraBuffer : register(b0)
 {
@@ -38,6 +40,8 @@ VSOutput main(Vertex input)
 	const float lightLumen = 100.0;
 
 	uint elementId = input.drawId & 0xffff;
+	uint materialIndex = input.drawId >> 16;
+
 	float3 translation = s_transforms[elementId].translation.xyz;
 	float4 qRotation = unpackQRotation(s_transforms[elementId].packedQRotation);
 
@@ -52,6 +56,7 @@ VSOutput main(Vertex input)
 	output.vsNormal = vsNormal;
 	output.texCoords = input.texCoords;
 	output.lightIndex = 0;
+	output.material = s_materials[materialIndex];
 	output.distanceToLight = distanceToLight;
 	output.lightFalloff = lightFalloff;
 	output.lightLumen = lightLumen;

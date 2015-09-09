@@ -27,6 +27,7 @@ SOFTWARE.
 #include <dxgidebug.h>
 #include <d3d12.h>
 #include <cstdio>
+#include <vxEngineLib/Logfile.h>
 
 namespace d3d
 {
@@ -54,8 +55,10 @@ namespace d3d
 		return true;
 	}
 
-	bool Debug::initialize(vx::StackAllocator* allocator, ID3D12Device* device)
+	bool Debug::initialize(vx::StackAllocator* allocator, ID3D12Device* device, Logfile* errorLog)
 	{
+		m_errorLog = errorLog;
+
 		const u32 scratchAllocSize = 10 KBYTE;
 		auto scratchAllocPtr = allocator->allocate(scratchAllocSize);
 		VX_ASSERT(scratchAllocPtr);
@@ -125,7 +128,9 @@ namespace d3d
 
 				if (msg->Severity == D3D12_MESSAGE_SEVERITY_ERROR)
 				{
-				//	VX_ASSERT(false);
+					m_errorLog->append(msg->pDescription, msg->DescriptionByteLength - 1);
+					m_errorLog->append('\n');
+					VX_ASSERT(false);
 				}
 
 				printf("%s\n", msg->pDescription);
@@ -143,7 +148,7 @@ namespace d3d
 		auto count = m_dxgiInfoQueue->GetNumStoredMessagesAllowedByRetrievalFilters(DXGI_DEBUG_ALL);
 		if (count != 0)
 		{
-			printf("\nLive Objects\n");
+			m_errorLog->append("\nLive Objects\n");
 			for (u64 i = 0; i < count; ++i)
 			{
 				auto marker = m_scratchAllocator.getMarker();
@@ -155,7 +160,9 @@ namespace d3d
 
 				m_dxgiInfoQueue->GetMessageA(DXGI_DEBUG_ALL, i, ptr, &msgSize);
 
-				printf("%s\n", ptr->pDescription);
+				//printf("%s\n", ptr->pDescription);
+				m_errorLog->append(ptr->pDescription, ptr->DescriptionByteLength - 1);
+				m_errorLog->append('\n');
 
 				m_scratchAllocator.clear(marker);
 			}

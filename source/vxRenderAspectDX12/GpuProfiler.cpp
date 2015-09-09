@@ -59,9 +59,9 @@ void GpuProfiler::frame(d3d::GraphicsCommandList* cmdList)
 		{
 			auto offset = d3d::getAlignedSize(m_countPerFrame * sizeof(u64), 8llu) * queryBuffer;
 
-			(*cmdList)->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_buffer, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COPY_DEST));
-			(*cmdList)->ResolveQueryData(m_queryHeap.get(), D3D12_QUERY_TYPE_TIMESTAMP, 0, m_count[queryBuffer], m_buffer, offset);
-			(*cmdList)->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_buffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ));
+			(*cmdList)->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_buffer->get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COPY_DEST));
+			(*cmdList)->ResolveQueryData(m_queryHeap.get(), D3D12_QUERY_TYPE_TIMESTAMP, 0, m_count[queryBuffer], m_buffer->get(), offset);
+			(*cmdList)->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_buffer->get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ));
 
 			m_count[queryBuffer] = 0;
 		}

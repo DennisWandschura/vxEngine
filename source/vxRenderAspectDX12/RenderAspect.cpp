@@ -125,7 +125,7 @@ void RenderAspect::uploadStaticCameraData()
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
 	auto offset = d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
-	m_uploadManager.pushUploadBuffer((u8*)&cameraStaticData, constantBuffer, offset, sizeof(GpuCameraStatic), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+	m_uploadManager.pushUploadBuffer((u8*)&cameraStaticData, constantBuffer->get(), offset, sizeof(GpuCameraStatic), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 }
 
 RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescription &desc)
@@ -175,7 +175,7 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 
 	if (debugMode)
 	{
-		if (!m_debug.initialize(desc.pAllocator, device))
+		if (!m_debug.initialize(desc.pAllocator, device, errorlog))
 			return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
@@ -220,7 +220,7 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 
 	getRequiredMemory(textureDimSrgb, textureDimRgb, &bufferHeapSize, &textureHeapSize, &rtDsHeapSize);
 
-	if(!m_resourceManager.initializeHeaps(bufferHeapSize, textureHeapSize, rtDsHeapSize, device))
+	if(!m_resourceManager.initializeHeaps(bufferHeapSize, textureHeapSize, rtDsHeapSize, device, errorlog))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	if (!m_materialManager.initialize(textureDimSrgb, textureDimRgb, &m_allocator, &m_resourceManager, device))
@@ -351,7 +351,7 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
 
-	m_uploadManager.pushUploadBuffer((u8*)&bufferData, constantBuffer, 0, sizeof(GpuCameraBufferData), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+	m_uploadManager.pushUploadBuffer((u8*)&bufferData, constantBuffer->get(), 0, sizeof(GpuCameraBufferData), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
 	s_settings.m_viewMatrixPrev = viewMatrix;
 

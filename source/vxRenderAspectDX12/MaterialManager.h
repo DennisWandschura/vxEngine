@@ -49,6 +49,7 @@ class MaterialManager
 	vx::sorted_vector<vx::StringID, MaterialEntry> m_materialEntries;
 	TextureManager m_texturesSrgba;
 	TextureManager m_texturesRgba;
+	d3d::ResourceManager* m_resourceManager;
 
 	bool tryGetTexture(const vx::StringID &sid, const ResourceAspectInterface* resourceAspect, UploadManager* uploadManager, u32* slice);
 

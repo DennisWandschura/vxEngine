@@ -70,6 +70,18 @@
     <Filter Include="Shaders\text">
       <UniqueIdentifier>{0dfbb9f8-341e-4dea-9a9f-91e1b2e3b04e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Layers">
+      <UniqueIdentifier>{fb169311-186f-4248-b581-83108dde10dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Objects">
+      <UniqueIdentifier>{997c810f-41dc-4cdd-8957-1ba7e8d3eca3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Objects">
+      <UniqueIdentifier>{a7fb374b-4841-43d0-8cbb-5981e9a340ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Layers">
+      <UniqueIdentifier>{85f11ca9-9e92-4026-8acf-7e78b2743cf0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -87,22 +99,7 @@
     <ClInclude Include="TaskUploadGeometry.h">
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceBarrier.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BufferView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="d3d.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DescriptorHeap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Device.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Heap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UploadManager.h">
@@ -138,9 +135,6 @@
     <ClInclude Include="GpuTransform.h">
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GpuLight.h">
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
@@ -157,9 +151,6 @@
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="ResourceManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mat3.h">
@@ -183,9 +174,6 @@
     <ClInclude Include="Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RenderPassShading.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
@@ -193,9 +181,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Frustum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CommandQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RenderPassCullLights.h">
@@ -210,12 +195,6 @@
     <ClInclude Include="RenderPassShadow.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineState.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="d3dObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RenderPassVoxelize.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
@@ -228,9 +207,6 @@
     <ClInclude Include="GpuShadowTransform.h">
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
-    <ClInclude Include="DrawIndexedIndirectCommand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GpuProfiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -238,9 +214,6 @@
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
     <ClInclude Include="RenderPassRadiosity.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPassConeTrace.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="TextRenderer.h">
@@ -252,11 +225,53 @@
     <ClInclude Include="RenderPassFinal.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="RenderLayerGame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CopyManager.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferView.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandList.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dObject.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeap.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Device.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Heap.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineState.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderLayerGame.h">
+      <Filter>Header Files\Layers</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderManager.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandAllocator.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawIndexedIndirectCommand.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceBarrier.h">
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceView.h">
+      <Filter>Header Files\Objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -265,18 +280,6 @@
     </ClCompile>
     <ClCompile Include="TaskUploadGeometry.cpp">
       <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="BufferView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DescriptorHeap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Device.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Heap.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="UploadManager.cpp">
       <Filter>Source Files</Filter>
@@ -308,14 +311,8 @@
     <ClCompile Include="GBufferRenderer.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="Debug.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPass.cpp">
       <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandList.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassAo.cpp">
       <Filter>Source Files\RenderPass</Filter>
@@ -332,26 +329,17 @@
     <ClCompile Include="Frustum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CommandQueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPassCullLights.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassVisibleLights.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineState.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPassVoxelize.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassDrawVoxel.cpp">
       <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="DrawIndexedIndirectCommand.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassShadow.cpp">
       <Filter>Source Files\RenderPass</Filter>
@@ -362,26 +350,50 @@
     <ClCompile Include="RenderPassRadiosity.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPassConeTrace.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="TextRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassVoxelMip.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="RenderLayerGame.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CopyManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandAllocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RenderAspect.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeap.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Device.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandList.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAllocator.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferView.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Heap.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineState.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawIndexedIndirectCommand.cpp">
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderLayerGame.cpp">
+      <Filter>Source Files\Layers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
