@@ -183,12 +183,14 @@ void Engine::mainLoop(Logfile* logfile)
 
 		accum += frameTime;
 
-		m_renderAspect->update();
+
 		m_renderAspect->submitCommands();
 
 		while (accum >= g_dt)
 		{
 			update();
+
+			m_renderAspect->update();
 
 			m_renderAspect->updateProfiler(g_dt);
 
