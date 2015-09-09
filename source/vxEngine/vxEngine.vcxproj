@@ -77,8 +77,8 @@
     <OutDir>..\..\game\bin\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
-    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\PhysX-3.3\PhysXSDK\Include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;$(IncludePath)</IncludePath>
-    <LibraryPath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\PhysX-3.3\PhysXSDK\Lib\vc14win64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\..\PhysX-3.3\PhysXSDK\Include;..\source\ResourceAspect\include;..\source\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\lib;..\..\..\PhysX-3.3\PhysXSDK\Lib\vc14win64;../../../vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">

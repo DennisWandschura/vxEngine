@@ -95,7 +95,7 @@
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxAnimationAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\source\ResourceAspect\include;..\..\..\vxLib\include;include;..\vxEngineLib\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>

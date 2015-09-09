@@ -139,7 +139,7 @@
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
     <TargetName>$(ProjectName)_editor_d</TargetName>
-    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\vxGL\include;..\source\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>

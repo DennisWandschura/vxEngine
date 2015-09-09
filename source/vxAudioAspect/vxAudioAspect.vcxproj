@@ -93,11 +93,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\vxLib\include;..\source\vxEngineLib\include;$(IncludePath)</IncludePath>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
     <OutDir>..\..\lib\</OutDir>
-    <LibraryPath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">
     <IncludePath>E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;$(IncludePath)</IncludePath>

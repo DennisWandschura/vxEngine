@@ -546,11 +546,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>E:\dev\libraries\nvapi R343-developer\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxRenderAspectGL\include;C:\Intel\INDE\code_builder_5.1.0.25\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\game\data\shaders\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>E:\dev\libraries\nvapi R343-developer\include;..\source\vxRenderAspectGL\include;..\source\ResourceAspect\include;..\..\game\data\shaders\include;..\..\..\vxGL\include;..\..\..\vxLib\include;..\source\vxEngineLib\include;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)_d</TargetName>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
-    <LibraryPath>E:\dev\libraries\nvapi R343-developer\amd64;C:\Intel\INDE\code_builder_5.1.0.25\lib\x64;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\lib\vs14;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
+    <LibraryPath>E:\dev\libraries\nvapi R343-developer\amd64;..\..\lib;..\..\..\vxGL\lib\vs14;..\..\..\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">
     <IncludePath>E:\dev\libraries\nvapi R343-developer\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxRenderAspectGL\include;C:\Intel\INDE\code_builder_5.1.0.25\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\game\data\shaders\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxGL\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>

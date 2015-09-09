@@ -95,7 +95,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\vxLib\include;..\source\vxEngineLib\include;$(IncludePath)</IncludePath>
     <OutDir>..\..\lib\</OutDir>
     <TargetName>$(ProjectName)_d</TargetName>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
