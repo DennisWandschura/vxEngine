@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class RenderPassShadow;
+class RenderPassShading;
 struct GpuLight;
 struct Light;
 class Frustum;
@@ -48,6 +50,8 @@ class LightManager
 	GpuLight* m_gpuLights;
 	u32 m_sceneLightCount;
 	u32 m_gpuLightCount;
+	RenderPassShadow* m_renderPassShadow;
+	RenderPassShading* m_renderPassShading;
 	DrawIndexedIndirectCommand m_drawCommand;
 	vx::StackAllocator m_scratchAllocator;
 
@@ -68,6 +72,9 @@ public:
 	void __vectorcall update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum);
 
 	void addStaticMeshInstance(const D3D12_DRAW_INDEXED_ARGUMENTS &cmd, const AABB &bounds, UploadManager* uploadManager);
+
+	void setRenderPassShadow(RenderPassShadow* renderPassShadow) { m_renderPassShadow = renderPassShadow; }
+	void setRenderPassShading(RenderPassShading* renderPassShading) { m_renderPassShading = renderPassShading; }
 
 	DrawIndexedIndirectCommand* getDrawCommand(u32 i);
 };

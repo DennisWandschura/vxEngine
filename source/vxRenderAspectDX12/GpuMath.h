@@ -2,6 +2,7 @@
 #define _GPU_MATH_HH
 
 static const float g_PI = 3.141592654;
+static const float3 g_luminanceVector = float3(0.2126, 0.7152, 0.0722);
 
 float3 quaternionRotation(in float3 v, in float4 q)
 {
@@ -23,6 +24,11 @@ float3 decodeNormal(float2 enc)
 	n.xy = fenc*g;
 	n.z = 1 - f / 2;
 	return n;
+}
+
+float getLuminance(in float3 color)
+{
+	return dot(color, g_luminanceVector);
 }
 
 #endif

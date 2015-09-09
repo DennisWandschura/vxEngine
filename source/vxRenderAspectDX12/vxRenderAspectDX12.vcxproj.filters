@@ -46,9 +46,6 @@
     <Filter Include="Shaders\final">
       <UniqueIdentifier>{8ac29fe5-861d-410d-81d6-20b50bb3295a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\shadng">
-      <UniqueIdentifier>{4485ffa2-6b42-4005-a754-ea11f94d8c76}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\cull lights">
       <UniqueIdentifier>{8ba0b537-e930-4fa5-a75d-d2121d3c70f4}</UniqueIdentifier>
     </Filter>
@@ -81,6 +78,9 @@
     </Filter>
     <Filter Include="Source Files\Layers">
       <UniqueIdentifier>{85f11ca9-9e92-4026-8acf-7e78b2743cf0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\shading">
+      <UniqueIdentifier>{4485ffa2-6b42-4005-a754-ea11f94d8c76}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -476,7 +476,7 @@
       <Filter>Shaders\shadowmap</Filter>
     </FxCompile>
     <FxCompile Include="ShadePS.hlsl">
-      <Filter>Shaders\shadng</Filter>
+      <Filter>Shaders\shading</Filter>
     </FxCompile>
     <FxCompile Include="RadiosityPS.hlsl">
       <Filter>Shaders\radiosity</Filter>
@@ -507,6 +507,15 @@
     </FxCompile>
     <FxCompile Include="ConeTraceNewPS.hlsl">
       <Filter>Shaders\cone trace</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowMapFilterPS.hlsl">
+      <Filter>Shaders\shadowmap</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadeGS.hlsl">
+      <Filter>Shaders\shading</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadeVS.hlsl">
+      <Filter>Shaders\shading</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

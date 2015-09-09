@@ -13,9 +13,10 @@ struct GpuCameraBufferData
 struct GpuCameraStatic
 {
 	float4x4 orthoMatrix;
+	float4x4 projMatrix;
 	float4x4 invProjMatrix;
 	float4 projInfo;
 	float zNear;
 	float zFar;
-	float padding[2];
+	float2 resolution;
 };

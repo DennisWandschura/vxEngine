@@ -15,6 +15,8 @@ class RenderPassShading : public RenderPass
 	d3d::CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_heapSrv;
 	d3d::DescriptorHeap m_heapRtv;
+	d3d::DescriptorHeap m_heapDsv;
+	u32 m_lightCount;
 
 	bool createTexture(ID3D12Device* device);
 	bool loadShaders();
@@ -35,4 +37,6 @@ public:
 	void shutdown() override;
 
 	void submitCommands(Graphics::CommandQueue* queue) override;
+
+	void setLightCount(u32 lightCount) { m_lightCount = lightCount; }
 };

@@ -87,7 +87,6 @@ class RenderAspect : public RenderAspectInterface
 	void createSrvTransform(u32 instanceCount);
 	void createSrvMaterial(u32 instanceCount);
 	void createSrvTextures(u32 srgbCount, u32 rgbCount);
-	void createSrvLights(u32 maxCount);
 
 	RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) override;
 

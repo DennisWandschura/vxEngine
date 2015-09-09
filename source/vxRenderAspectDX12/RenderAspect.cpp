@@ -122,6 +122,7 @@ void RenderAspect::uploadStaticCameraData()
 	cameraStaticData.projInfo = projInfo;
 	cameraStaticData.zFar = s_settings.m_farZ;
 	cameraStaticData.zNear = s_settings.m_nearZ;
+	cameraStaticData.resolution = vx::float2a(resolution);
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
 	auto offset = d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
@@ -234,7 +235,6 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	createSrvTransformPrev(g_maxMeshInstances);
 	createSrvTransform(g_maxMeshInstances);
 	createSrvMaterial(g_maxMeshInstances);
-	createSrvLights(g_maxLightCount);
 
 	for (auto &it : m_activeLayers)
 	{
@@ -466,20 +466,6 @@ void RenderAspect::createCbvCamera()
 	cbufferViewDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress() + d3d::AlignedSizeType<GpuCameraBufferData, 1, 256>::size;
 	cbufferViewDesc.SizeInBytes = d3d::AlignedSizeType<GpuCameraStatic, 1, 256>::size;
 	m_resourceManager.insertConstantBufferView("cameraStaticBufferView", cbufferViewDesc);
-}
-
-void RenderAspect::createSrvLights(u32 maxCount)
-{
-	/*D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Buffer.FirstElement = 0;
-	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-	srvDesc.Buffer.NumElements = maxCount;
-	srvDesc.Buffer.StructureByteStride = sizeof(GpuLight);
-
-	m_resourceManager.insertShaderResourceView("lightBufferView", srvDesc);*/
 }
 
 void RenderAspect::createSrvTransformPrev(u32 instanceCount)

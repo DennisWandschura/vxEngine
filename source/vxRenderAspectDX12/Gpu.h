@@ -31,6 +31,7 @@ SOFTWARE.
 
 typedef vx::uint2 uint2;
 
+typedef vx::float2a float2;
 typedef vx::float3 float3;
 typedef vx::float4a float4;
 

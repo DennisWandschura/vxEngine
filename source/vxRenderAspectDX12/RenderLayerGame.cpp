@@ -79,11 +79,18 @@ RenderLayerGame::~RenderLayerGame()
 void RenderLayerGame::createRenderPasses()
 {
 	pushRenderPass(std::make_unique<GBufferRenderer>(&m_commandAllocator, &m_drawCommandMesh));
-	pushRenderPass(std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh));
+
+	auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
+	m_lightManager.setRenderPassShadow(rnederPassShadow.get());
+	pushRenderPass(std::move(rnederPassShadow));
 	pushRenderPass(std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassAO>(&m_commandAllocator));
-	pushRenderPass(std::make_unique<RenderPassShading>(&m_commandAllocator));
+
+	auto renderPassShading = std::make_unique<RenderPassShading>(&m_commandAllocator);
+	m_lightManager.setRenderPassShading(renderPassShading.get());
+	pushRenderPass(std::move(renderPassShading));
+
 	pushRenderPass(std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
 }
 

@@ -6,6 +6,7 @@
 #include "RenderPassVisibleLights.h"
 #include "GpuShadowTransform.h"
 #include "ResourceManager.h"
+#include "RenderPassShading.h"
 #include "UploadManager.h"
 
 enum FrustumPlane { FrustumPlaneNear, FrustumPlaneLeft, FrustumPlaneRight };
@@ -73,7 +74,9 @@ LightManager::LightManager()
 	m_sceneShadowTransforms(nullptr),
 	m_gpuLights(nullptr),
 	m_sceneLightCount(0),
-	m_gpuLightCount(0)
+	m_gpuLightCount(0),
+	m_renderPassShadow(nullptr),
+	m_renderPassShading(nullptr)
 {
 
 }
@@ -84,9 +87,9 @@ LightManager::LightManager(LightManager &&rhs)
 	m_sceneLightBounds(rhs.m_sceneLightBounds),
 	m_gpuLights(rhs.m_gpuLights),
 	m_sceneLightCount(rhs.m_sceneLightCount),
-m_gpuLightCount(rhs.m_gpuLightCount),
-m_drawCommand(std::move(rhs.m_drawCommand)),
-m_scratchAllocator(std::move(rhs.m_scratchAllocator))
+	m_gpuLightCount(rhs.m_gpuLightCount),
+	m_drawCommand(std::move(rhs.m_drawCommand)),
+	m_scratchAllocator(std::move(rhs.m_scratchAllocator))
 {
 	rhs.m_sceneLights = nullptr;
 	rhs.m_sceneShadowTransforms = nullptr;
@@ -105,7 +108,7 @@ void LightManager::getRequiredMemory(u64* heapSizeBuffere, u32 maxLightCountGpu)
 {
 	m_drawCommand.getRequiredMemory(64, heapSizeBuffere);
 
-	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * (maxLightCountGpu + 1), 64llu KBYTE);
+	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * maxLightCountGpu, 64llu KBYTE);
 
 	*heapSizeBuffere += 64llu KBYTE + lightBufferSize;
 }
@@ -140,7 +143,7 @@ bool LightManager::initialize(vx::StackAllocator* allocator, u32 gpuLightCount, 
 	if (shadowTransformBuffer == nullptr)
 		return false;
 
-	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * (gpuLightCount + 1), 64llu KBYTE);
+	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * gpuLightCount, 64llu KBYTE);
 	auto lightBuffer = resourceManager->createBuffer(L"lightBuffer", lightBufferSize, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	if (lightBuffer == nullptr)
 		return false;
@@ -179,9 +182,10 @@ bool LightManager::loadSceneLights(const Light* lights, u32 count, ID3D12Device*
 	auto lightBuffer = resourceManager->getBuffer(L"lightBuffer");
 
 	auto sizeInBytes = sizeof(GpuLight) * count;
-	uploadManager->pushUploadBuffer((u8*)m_sceneLights, lightBuffer->get(), sizeof(GpuLight), sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	uploadManager->pushUploadBuffer((u8*)m_sceneLights, lightBuffer->get(), 0, sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-	uploadManager->pushUploadBuffer((u8*)&count, lightBuffer->get(), 0, sizeof(u32), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	//uploadManager->pushUploadBuffer((u8*)&count, lightBuffer->get(), 0, sizeof(u32), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	m_renderPassShading->setLightCount(count);
 
 	return true;
 }
@@ -231,38 +235,20 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 			}
 		}
 
-		/*PlaneSIMD halfPlane;
-		frustum.getPlaneZ13(&halfPlane);
-		u32 nearHalfCount = 0;
-
-		for (u32 i = 0; i < count; ++i)
+		auto pairs = (Pair*)m_scratchAllocator.allocate(sizeof(Pair) * remainingLights, __alignof(Pair));
+		for (u32 i = 0; i < remainingLights; ++i)
 		{
-			auto bounds = boundsInFrustum[i];
+			auto index = indices[i];
 
-			auto radius = VX_PERMUTE_PS(bounds, _MM_SHUFFLE(3, 3, 3, 3));
-			auto center = _mm_and_ps(bounds, vx::g_VXMask3);
+			auto dist = vx::length3(_mm_sub_ps(boundsInFrustum[index], cameraPosition));
+			pairs[i].distance = dist.m128_f32[0];
+			pairs[i].index = index;
+		}
 
-			if (testFrustumPlane(center,radius , halfPlane))
-			{
-				++nearHalfCount;
-			}
-		}*/
-
-		/*Pair* pairs = (Pair*)m_scratchAllocator.allocate(count * sizeof(Pair), 16);
-		for (u32 i = 0; i < count; ++i)
+		std::sort(pairs, pairs + remainingLights, [](const Pair &lhs, const Pair &rhs)
 		{
-			auto lightPositon = bounds[i];
-
-			auto dirToLight = _mm_sub_ps(lightPositon, cameraPosition);
-			auto distance = _mm_sqrt_ps(vx::dot3(dirToLight, dirToLight));
-			dirToLight = _mm_div_ps(dirToLight, distance);
-
-			auto dd = vx::dot3(dirToLight, cameraDirection);
-		//	dirToLight = _mm_and_ps(dirToLight, vx::g_VXMask3);
-
-			pairs[i].distance = distance.m128_f32[0];
-			pairs[i].index = i;
-		}*/
+			return lhs.distance < rhs.distance;
+		});
 
 		m_scratchAllocator.clear(marker);
 	}
