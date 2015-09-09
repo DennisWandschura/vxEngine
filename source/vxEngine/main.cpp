@@ -50,17 +50,17 @@ namespace
 
 	void shutdown()
 	{
-		if (g_logfile)
-		{
-			g_logfile->close();
-			g_logfile = nullptr;
-		}
-
 		if (g_engine)
 		{
 			g_engine->stop();
 			g_engine->shutdown();
 			g_engine = nullptr;
+		}
+
+		if (g_logfile)
+		{
+			g_logfile->close();
+			g_logfile = nullptr;
 		}
 	}
 
