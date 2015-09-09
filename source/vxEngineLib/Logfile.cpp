@@ -81,6 +81,23 @@ void Logfile::flush()
 	m_size = 0;
 }
 
+void Logfile::copyToBuffer(const char* str, u32 size)
+{
+	memcpy(m_buffer + m_size, str, size);
+	m_size += size;
+	m_buffer[m_size] = '\0';
+}
+
+void Logfile::append(char c)
+{
+	if ((m_size + 1) >= m_capacity)
+	{
+		flush();
+	}
+
+	copyToBuffer(&c, 1);
+}
+
 void Logfile::append(const char* text)
 {
 	auto sz = strlen(text);
@@ -97,8 +114,5 @@ void Logfile::append(const char* text, u32 size)
 		flush();
 	}
 
-	memcpy(m_buffer + m_size, text, size);
-
-	m_size += size;
-	m_buffer[m_size] = '\0';
+	copyToBuffer(text, size);
 }
