@@ -95,7 +95,7 @@
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>..\source\ResourceAspect\include;..\..\..\vxLib\include;include;..\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\ResourceAspect\include;..\..\..\vxLib\include;include;..\vxEngineLib\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>

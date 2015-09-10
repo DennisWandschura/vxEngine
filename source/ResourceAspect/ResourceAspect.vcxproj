@@ -94,7 +94,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\source\vxFbxImporter\include;..\..\..\PhysX-3.3\PhysXSDK\Include;..\..\..\vxLib\include;..\source\vxEngineLib\include;..\source\ResourceAspect\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\vxFbxImporter\include;..\..\..\PhysX-3.3\PhysXSDK\Include;..\..\..\vxLib\include;..\vxEngineLib\include;..\ResourceAspect\include;$(IncludePath)</IncludePath>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
     <TargetName>$(ProjectName)_d</TargetName>
