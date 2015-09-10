@@ -139,7 +139,7 @@ int main()
 	};
 
 	//LOG(mainLogfile, "Initializing Engine", false);
-	if (!engine.initialize(&mainLogfile, ::signalHandler))
+	if (!engine.initialize(&mainLogfile, &alloc, ::signalHandler))
 	{
 		mainLogfile.append("Error initializing Engine !");
 		return 1;

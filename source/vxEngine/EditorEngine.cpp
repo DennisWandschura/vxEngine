@@ -120,7 +120,7 @@ bool EditorEngine::createRenderAspectGL(const std::string &dataDir, const Render
 		return false;
 
 	RenderAspectInitializeError error;
-	auto renderAspect = proc(desc, signalHandlerFn, &error);
+	auto renderAspect = proc();
 	if (renderAspect == nullptr)
 		return false;
 
@@ -187,6 +187,11 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	//renderAspectDesc.hwnd = m_panel;
 
 	if (!createRenderAspectGL(dataDir, renderAspectDesc, signalHandlerFn))
+	{
+		return false;
+	}
+
+	if (m_renderAspect->initialize(renderAspectDesc, signalHandlerFn) != RenderAspectInitializeError::OK)
 	{
 		return false;
 	}

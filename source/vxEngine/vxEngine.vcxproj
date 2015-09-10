@@ -77,7 +77,7 @@
     <OutDir>..\..\game\bin\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
-    <IncludePath>..\..\..\PhysX-3.3\PhysXSDK\Include;..\source\ResourceAspect\include;..\source\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\PhysX-3.3\PhysXSDK\Include;..\ResourceAspect\include;..\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>
     <LibraryPath>..\..\lib;..\..\..\PhysX-3.3\PhysXSDK\Lib\vc14win64;../../../vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
@@ -265,6 +265,7 @@
     <ClInclude Include="input\Keys.h" />
     <ClInclude Include="LookWhereYoureGoing.h" />
     <ClInclude Include="PhysicsCpuDispatcher.h" />
+    <ClInclude Include="Primitive.h" />
     <ClInclude Include="PseudoRandom.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="EditorEngine.h" />
@@ -276,7 +277,6 @@
     <ClInclude Include="BVH.h" />
     <ClInclude Include="developer.h" />
     <ClInclude Include="EventsIngame.h" />
-    <ClInclude Include="Primitive.h" />
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="TaskPhysxCreateJoints.h" />
     <ClInclude Include="TaskSceneCreateActors.h" />

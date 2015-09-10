@@ -60,6 +60,11 @@ namespace EngineCpp
 			scheduler->update();
 		}
 	}
+
+	const wchar_t* g_dx12DllDebug = L"../../lib/vxRenderAspectDX12_d.dll";
+	const wchar_t* g_dx12Dll = L"../../lib/vxRenderAspectDX12.dll";
+	const wchar_t* g_glDllDebug = L"../../lib/vxRenderAspectGL_d.dll";
+	const wchar_t* g_glDll = L"../../lib/vxRenderAspectGL.dll";
 }
 
 Engine::Engine()
@@ -83,8 +88,7 @@ Engine::Engine()
 	m_shutdown(0),
 	m_scene(),
 	m_renderAspectDll(nullptr),
-	m_audioAspectDll(nullptr),
-	m_destroyFn(nullptr)
+	m_audioAspectDll(nullptr)
 {
 	g_pEngine = this;
 }
@@ -224,14 +228,34 @@ bool Engine::initializeImpl(const std::string &dataDir)
 	return true;
 }
 
-bool Engine::createRenderAspectGL(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn)
+bool Engine::createRenderAspect(Graphics::RendererSettings::Mode mode)
 {
-#if _DEBUG
-	auto handle = LoadLibrary(L"../../lib/vxRenderAspectGL_d.dll");
-#else
-	auto handle = LoadLibrary(L"../../lib/vxRenderAspectGL.dll");
-#endif
 
+	const wchar_t* dllFile = nullptr;
+
+	switch (mode)
+	{
+	case Graphics::RendererSettings::Mode_GL:
+	{
+#if _DEBUG
+		dllFile = EngineCpp::g_glDllDebug;
+#else
+		dllFile = EngineCpp::g_glDll;
+#endif
+	}break;
+	case Graphics::RendererSettings::Mode_DX12:
+	{
+#if _DEBUG
+		dllFile = EngineCpp::g_dx12DllDebug;
+#else
+		dllFile = EngineCpp::g_dx12Dll;
+#endif
+	}break;
+	default:
+		break;
+	}
+
+	auto handle = LoadLibrary(dllFile);
 	if (handle == nullptr)
 		return false;
 
@@ -240,43 +264,21 @@ bool Engine::createRenderAspectGL(const RenderAspectDescription &desc, AbortSign
 	if (proc == nullptr || procDestroy == nullptr)
 		return false;
 
-	RenderAspectInitializeError error;
-	auto renderAspect = proc(desc, signalHandlerFn, &error);
+	auto renderAspect = proc();
 	if (renderAspect == nullptr)
 		return false;
 
 	m_renderAspect = renderAspect;
 	m_renderAspectDll = handle;
-	m_destroyFn = procDestroy;
 
 	return true;
 }
 
-bool Engine::createRenderAspectDX12(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn)
+void Engine::destroyRenderAspect()
 {
-#if _DEBUG
-	auto handle = LoadLibrary(L"../../lib/vxRenderAspectDX12_d.dll");
-#else
-	auto handle = LoadLibrary(L"../../lib/vxRenderAspectDX12.dll");
-#endif
-	if (handle == nullptr)
-		return false;
-
-	auto proc = (CreateRenderAspectFunction)GetProcAddress(handle, "createRenderAspect");
-	auto procDestroy = (DestroyRenderAspectFunction)GetProcAddress(handle, "destroyRenderAspect");
-	if (proc == nullptr || procDestroy == nullptr)
-		return false;
-
-	RenderAspectInitializeError error;
-	auto renderAspect = proc(desc, signalHandlerFn, &error);
-	if (renderAspect == nullptr)
-		return false;
-
-	m_renderAspect = renderAspect;
-	m_renderAspectDll = handle;
-	m_destroyFn = procDestroy;
-
-	return true;
+	auto procDestroy = (DestroyRenderAspectFunction)GetProcAddress(m_renderAspectDll, "destroyRenderAspect");
+	procDestroy(m_renderAspect);
+	m_renderAspect = nullptr;
 }
 
 bool Engine::createAudioAspect()
@@ -306,7 +308,7 @@ bool Engine::createAudioAspect()
 	return true;
 }
 
-bool Engine::initialize(Logfile* logfile, AbortSignalHandlerFun signalHandlerFn)
+bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMainThread, AbortSignalHandlerFun signalHandlerFn)
 {
 	const std::string dataDir("../data/");
 
@@ -349,25 +351,19 @@ bool Engine::initialize(Logfile* logfile, AbortSignalHandlerFun signalHandlerFn)
 		logfile,
 		&m_resourceAspect,
 		&m_msgManager,
-		&m_taskManager
+		&m_taskManager,
+		smallObjAllocatorMainThread
 	};
 
 	auto renderMode = g_engineConfig.m_rendererSettings.m_renderMode;
-	if (renderMode == Graphics::RendererSettings::Mode_GL)
+	if (!createRenderAspect(renderMode))
 	{
-		if (!createRenderAspectGL(renderAspectDesc, signalHandlerFn))
-		{
-			logfile->append("error opengl renderer\n");
-			return false;
-		}
+		return false;
 	}
-	else if (renderMode == Graphics::RendererSettings::Mode_DX12)
+
+	if (m_renderAspect->initialize(renderAspectDesc, signalHandlerFn) != RenderAspectInitializeError::OK)
 	{
-		if (!createRenderAspectDX12(renderAspectDesc, signalHandlerFn))
-		{
-			logfile->append("error dx12 renderer\n");
-			return false;
-		}
+		return false;
 	}
 
 	if (!m_physicsAspect.initialize(&m_taskManager))
@@ -425,9 +421,8 @@ void Engine::shutdown()
 	if (m_renderAspect)
 	{
 		m_renderAspect->shutdown(m_systemAspect.getWindow().getHwnd());
-		m_destroyFn(m_renderAspect);
+		destroyRenderAspect();
 		m_renderAspect = nullptr;
-		m_destroyFn = nullptr;
 	}
 
 	m_systemAspect.shutdown();
@@ -468,9 +463,6 @@ void Engine::shutdown()
 
 void Engine::start(Logfile* logfile)
 {
-	//RenderAspectThreadDesc desc{ &m_systemAspect.getWindow(), &g_engineConfig};
-	//m_renderThread = vx::thread(&Engine::renderLoop, this, desc);
-
 	std::string level;
 	g_engineConfig.m_root.get("level")->as(&level);
 

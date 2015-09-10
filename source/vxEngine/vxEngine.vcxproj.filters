@@ -219,9 +219,6 @@
     <ClInclude Include="Editor.h">
       <Filter>Header Files\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="Primitive.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EntityAspect.h">
       <Filter>Header Files\Entity</Filter>
     </ClInclude>
@@ -341,6 +338,9 @@
     </ClInclude>
     <ClInclude Include="TaskSceneCreateActors.h">
       <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

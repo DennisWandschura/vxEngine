@@ -37,6 +37,7 @@ SOFTWARE.*/
 #include <vxEngineLib/TaskManager.h>
 #include <vxResourceAspect/ResourceAspect.h>
 #include <vxEngineLib/AudioAspectInterface.h>
+#include <vxEngineLib/Graphics/RendererSettings.h>
 #if _VX_MEM_PROFILE
 #include <vxLib/Allocator/AllocationProfiler.h>
 #endif
@@ -66,11 +67,10 @@ class Engine
 	Scene m_scene;
 	HMODULE m_renderAspectDll;
 	HMODULE m_audioAspectDll;
-	DestroyRenderAspectFunction m_destroyFn;
 	Memory m_memory;
 
-	bool createRenderAspectGL(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn);
-	bool createRenderAspectDX12(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn);
+	bool createRenderAspect(Graphics::RendererSettings::Mode mode);
+	void destroyRenderAspect();
 
 	bool createAudioAspect();
 
@@ -85,7 +85,7 @@ public:
 	Engine();
 	~Engine();
 
-	bool initialize(Logfile* logfile, AbortSignalHandlerFun signalHandlerFn);
+	bool initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMainThread, AbortSignalHandlerFun signalHandlerFn);
 	void shutdown();
 
 	void start(Logfile* logfile);
