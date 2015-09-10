@@ -273,6 +273,9 @@
     <ClInclude Include="ResourceView.h">
       <Filter>Header Files\Objects</Filter>
     </ClInclude>
+    <ClInclude Include="DownloadMananger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -395,6 +398,9 @@
     <ClCompile Include="RenderLayerGame.cpp">
       <Filter>Source Files\Layers</Filter>
     </ClCompile>
+    <ClCompile Include="DownloadManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -429,9 +435,6 @@
     </FxCompile>
     <FxCompile Include="FinalPS.hlsl">
       <Filter>Shaders\final</Filter>
-    </FxCompile>
-    <FxCompile Include="CullLightsCS.hlsl">
-      <Filter>Shaders\cull lights</Filter>
     </FxCompile>
     <FxCompile Include="CullLightsGS.hlsl">
       <Filter>Shaders\cull lights</Filter>
@@ -511,10 +514,10 @@
     <FxCompile Include="ShadowMapFilterPS.hlsl">
       <Filter>Shaders\shadowmap</Filter>
     </FxCompile>
-    <FxCompile Include="ShadeGS.hlsl">
+    <FxCompile Include="ShadeVS.hlsl">
       <Filter>Shaders\shading</Filter>
     </FxCompile>
-    <FxCompile Include="ShadeVS.hlsl">
+    <FxCompile Include="ShadeGS.hlsl">
       <Filter>Shaders\shading</Filter>
     </FxCompile>
   </ItemGroup>

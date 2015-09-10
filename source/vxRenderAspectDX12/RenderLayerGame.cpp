@@ -27,12 +27,12 @@
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include "Device.h"
 #include "CopyManager.h"
+#include "RenderPassCullLights.h"
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
 const u32 g_maxIndexCount{ 40000 };
 const u32 g_maxMeshInstances{ 128 };
-const u32 g_maxLightCount{ 64 };
 
 RenderLayerGame::RenderLayerGame(const RenderLayerGameDesc &desc)
 	:m_renderPasses(),
@@ -48,7 +48,9 @@ RenderLayerGame::RenderLayerGame(const RenderLayerGameDesc &desc)
 	m_resourceManager(desc.m_resourceManager),
 	m_materialManager(desc.m_materialManager),
 	m_resourceAspect(desc.m_resourceAspect),
-	m_meshManager()
+	m_meshManager(),
+	m_downloadManager(desc.m_downloadManager),
+	m_settings(desc.m_settings)
 {
 }
 
@@ -66,7 +68,9 @@ RenderLayerGame::RenderLayerGame(RenderLayerGame &&rhs)
 	m_resourceManager(rhs.m_resourceManager),
 	m_materialManager(rhs.m_materialManager),
 	m_resourceAspect(rhs.m_resourceAspect),
-	m_meshManager(std::move(rhs.m_meshManager))
+	m_meshManager(std::move(rhs.m_meshManager)),
+	m_downloadManager(rhs.m_downloadManager),
+	m_settings(rhs.m_settings)
 {
 
 }
@@ -79,6 +83,10 @@ RenderLayerGame::~RenderLayerGame()
 void RenderLayerGame::createRenderPasses()
 {
 	pushRenderPass(std::make_unique<GBufferRenderer>(&m_commandAllocator, &m_drawCommandMesh));
+
+	auto renderPassCullLights = std::make_unique<RenderPassCullLights>(&m_commandAllocator, m_downloadManager);
+	m_lightManager.setRenderPassCullLights(renderPassCullLights.get());
+	pushRenderPass(std::move(renderPassCullLights));
 
 	auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
 	m_lightManager.setRenderPassShadow(rnederPassShadow.get());
@@ -96,7 +104,7 @@ void RenderLayerGame::createRenderPasses()
 
 void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs)
 {
-	m_lightManager.getRequiredMemory(heapSizeBuffer, g_maxLightCount);
+	m_lightManager.getRequiredMemory(heapSizeBuffer, m_settings->m_gpuLightCount, m_settings->m_shadowCastingLightCount);
 
 	m_drawCommandMesh.getRequiredMemory(g_maxMeshInstances, heapSizeBuffer);
 
@@ -115,7 +123,7 @@ bool RenderLayerGame::initialize(vx::StackAllocator* allocator)
 		return false;
 	}
 
-	if (!m_lightManager.initialize(allocator, g_maxLightCount, m_resourceManager))
+	if (!m_lightManager.initialize(allocator, m_settings->m_gpuLightCount, m_settings->m_shadowCastingLightCount, m_resourceManager))
 		return false;
 
 	if (!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, m_resourceManager, device, allocator))
@@ -163,7 +171,7 @@ void RenderLayerGame::update()
 	__m128 cameraDirection = { 0, 0, -1, 0 };
 	cameraDirection = vx::quaternionRotation(cameraDirection, cameraRotation);
 
-	m_lightManager.update(cameraPosition, cameraDirection, *m_frustum);
+	m_lightManager.update(cameraPosition, cameraDirection, *m_frustum, m_resourceManager, m_uploadManager);
 }
 
 void RenderLayerGame::submitCommandLists(Graphics::CommandQueue* queue)

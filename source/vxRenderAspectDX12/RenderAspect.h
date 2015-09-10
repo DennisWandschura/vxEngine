@@ -24,17 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct ID3D12Resource;
-struct ID3D12CommandAllocator;
-struct ID3D12CommandSignature;
-
-class Scene;
-class ResourceAspect;
-struct ResourceView;
-struct Light;
 class RenderPass;
-class GBufferRenderer;
-class RenderPassVoxelize;
 
 namespace vx
 {
@@ -54,6 +44,7 @@ namespace vx
 #include "ShaderManager.h"
 #include "MaterialManager.h"
 #include <vxLib/Graphics/Camera.h>
+#include "DownloadMananger.h"
 
 class RenderAspect : public RenderAspectInterface
 {
@@ -67,6 +58,7 @@ class RenderAspect : public RenderAspectInterface
 	vx::Camera m_camera;
 	d3d::Debug m_debug;
 	Frustum m_frustum;
+	DownloadManager m_downloadManager;
 	UploadManager m_uploadManager;
 	MaterialManager m_materialManager;
 	vx::TaskManager* m_taskManager;

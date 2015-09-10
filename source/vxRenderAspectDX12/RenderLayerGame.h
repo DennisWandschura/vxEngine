@@ -30,6 +30,7 @@ class MaterialManager;
 class CreateActorData;
 class CreateDynamicMeshData;
 class CopyManager;
+class DownloadManager;
 
 namespace d3d
 {
@@ -65,6 +66,8 @@ struct RenderLayerGameDesc
 	Frustum* m_frustum;
 	MaterialManager* m_materialManager;
 	ResourceAspectInterface* m_resourceAspect;
+	DownloadManager* m_downloadManager;
+	RenderSettings* m_settings;
 };
 
 class RenderLayerGame : public Graphics::RenderLayer
@@ -83,6 +86,8 @@ class RenderLayerGame : public Graphics::RenderLayer
 	MaterialManager* m_materialManager;
 	ResourceAspectInterface* m_resourceAspect;
 	MeshManager m_meshManager;
+	DownloadManager* m_downloadManager;
+	RenderSettings* m_settings;
 
 	void handleRendererMessage(const vx::Message &msg);
 	void handleFileMessage(const vx::Message &msg);

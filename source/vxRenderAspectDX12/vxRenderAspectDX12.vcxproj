@@ -95,11 +95,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\..\..\vxLib\include;..\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\vxLib\include;..\vxEngineLib\include;$(IncludePath)</IncludePath>
     <OutDir>..\..\lib\</OutDir>
     <TargetName>$(ProjectName)_d</TargetName>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
-    <LibraryPath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\lib\vs14;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\vxLib\lib\vs14;..\..\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">
     <IncludePath>d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxLib\include;d:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\include;$(IncludePath)</IncludePath>
@@ -209,6 +209,7 @@
     <ClInclude Include="CreateResourceDesc.h" />
     <ClInclude Include="d3dObject.h" />
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="DownloadMananger.h" />
     <ClInclude Include="DrawIndexedIndirectCommand.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GpuProfiler.h" />
@@ -274,6 +275,7 @@
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="dllExport.cpp" />
+    <ClCompile Include="DownloadManager.cpp" />
     <ClCompile Include="DrawIndexedIndirectCommand.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GpuProfiler.cpp" />
@@ -359,20 +361,6 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="CullLightsCS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="CullLightsGS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|Win32'">Geometry</ShaderType>

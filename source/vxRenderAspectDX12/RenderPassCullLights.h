@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class DownloadManager;
+
 namespace d3d
 {
 	class CommandAllocator;
@@ -32,30 +34,32 @@ namespace d3d
 #include "RenderPass.h"
 #include "CommandList.h"
 #include "DescriptorHeap.h"
+#include <vxEngineLib/Event.h>
 
 class RenderPassCullLights : public RenderPass
 {
 	d3d::GraphicsCommandList m_commandList;
 	d3d::CommandAllocator* m_allocator;
 	d3d::DescriptorHeap m_rvHeap;
-	d3d::Object<ID3D12DescriptorHeap> m_rtvHeap;
 	d3d::Object<ID3D12DescriptorHeap> m_dsvHeap;
 	d3d::Object<ID3D12PipelineState> m_pipelineStateZeroLights;
 	d3d::Object<ID3D12RootSignature> m_rootSignatureZeroLights;
 	u32 m_lightCount;
+	Event m_checkEvent;
+	Event m_downloadEvent;
+	DownloadManager* m_downloadManager;
+	u8* m_cpuDst;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
 	bool createRootSignatureZero(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device);
 	bool createPipelineStateZero(ID3D12Device* device);
-	bool createTexture(ID3D12Device* device);
-	bool createBuffer();
 	bool createViews(ID3D12Device* device);
 	bool createRtvDsv(ID3D12Device* device);
 
 public:
-	explicit RenderPassCullLights(d3d::CommandAllocator* allocator);
+	RenderPassCullLights(d3d::CommandAllocator* allocator, DownloadManager* downloadManager);
 	~RenderPassCullLights();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
@@ -68,4 +72,5 @@ public:
 	void submitCommands(Graphics::CommandQueue* queue) override;
 
 	void setLightCount(u32 count) { m_lightCount = count; }
+	void setEvent(const Event &checkEvt, const Event &dlEvent, u8* cpuDst);
 };

@@ -13,8 +13,6 @@ enum FrustumPlane { FrustumPlaneNear, FrustumPlaneLeft, FrustumPlaneRight };
 
 namespace LightManagerCpp
 {
-	const u32 g_maxLights = 256;
-
 	void getShadowTransform(const GpuLight &light, ShadowTransform* shadowTransform)
 	{
 		auto n = 0.1f;
@@ -74,9 +72,12 @@ LightManager::LightManager()
 	m_sceneShadowTransforms(nullptr),
 	m_gpuLights(nullptr),
 	m_sceneLightCount(0),
-	m_gpuLightCount(0),
+	m_maxLightCount(0),
+	m_maxShadowCastingLights(0),
+	m_resultBufferCount(0),
 	m_renderPassShadow(nullptr),
-	m_renderPassShading(nullptr)
+	m_renderPassShading(nullptr),
+	m_renderPassCullLights(nullptr)
 {
 
 }
@@ -87,7 +88,7 @@ LightManager::LightManager(LightManager &&rhs)
 	m_sceneLightBounds(rhs.m_sceneLightBounds),
 	m_gpuLights(rhs.m_gpuLights),
 	m_sceneLightCount(rhs.m_sceneLightCount),
-	m_gpuLightCount(rhs.m_gpuLightCount),
+	m_maxLightCount(rhs.m_maxLightCount),
 	m_drawCommand(std::move(rhs.m_drawCommand)),
 	m_scratchAllocator(std::move(rhs.m_scratchAllocator))
 {
@@ -96,7 +97,7 @@ LightManager::LightManager(LightManager &&rhs)
 	rhs.m_sceneLightBounds = nullptr;
 	rhs.m_gpuLights = nullptr;
 	rhs.m_sceneLightCount = 0;
-	rhs.m_gpuLightCount = 0;
+	rhs.m_maxLightCount = 0;
 }
 
 LightManager::~LightManager()
@@ -104,13 +105,16 @@ LightManager::~LightManager()
 	m_gpuLights = nullptr;
 }
 
-void LightManager::getRequiredMemory(u64* heapSizeBuffere, u32 maxLightCountGpu)
+void LightManager::getRequiredMemory(u64* heapSizeBuffere, u32 maxLightCount, u32 maxShadowCastingLights)
 {
 	m_drawCommand.getRequiredMemory(64, heapSizeBuffere);
 
-	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * maxLightCountGpu, 64llu KBYTE);
+	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * maxLightCount, 64llu KBYTE);
+	const u64 shadowTransformBufferSize = d3d::getAlignedSize(sizeof(ShadowTransform) * maxShadowCastingLights, 64llu KBYTE);
+	const auto visibleLightsBufferSize = d3d::getAlignedSize(sizeof(u32) * maxLightCount, 64llu KBYTE);
+	const auto shadowCastingLightsBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * maxShadowCastingLights, 64llu KBYTE);
 
-	*heapSizeBuffere += 64llu KBYTE + lightBufferSize;
+	*heapSizeBuffere += shadowTransformBufferSize + lightBufferSize + visibleLightsBufferSize + shadowCastingLightsBufferSize;
 }
 
 void LightManager::createSrvLights(u32 maxCount, d3d::ResourceManager* resourceManager)
@@ -127,35 +131,57 @@ void LightManager::createSrvLights(u32 maxCount, d3d::ResourceManager* resourceM
 	resourceManager->insertShaderResourceView("lightBufferView", srvDesc);
 }
 
-bool LightManager::initialize(vx::StackAllocator* allocator, u32 gpuLightCount, d3d::ResourceManager* resourceManager)
+bool LightManager::initialize(vx::StackAllocator* allocator, u32 maxLightCount, u32 maxShadowCastingLights, d3d::ResourceManager* resourceManager)
 {
-	//m_gpuLights = (GpuLight*)allocator->allocate(sizeof(GpuLight) * gpuLightCount, 16);
-	m_gpuLightCount = gpuLightCount;
+	m_gpuLights = (GpuLight*)allocator->allocate(sizeof(GpuLight) * maxLightCount, 16);
+	m_sceneLights = (GpuLight*)allocator->allocate(sizeof(GpuLight) * maxLightCount, 16);
+	m_sceneShadowTransforms = (ShadowTransform*)allocator->allocate(sizeof(ShadowTransform) * maxLightCount, 16);
+	m_sceneLightBounds = (__m128*)allocator->allocate(sizeof(__m128) * maxLightCount, 16);
 
-	m_sceneLights = (GpuLight*)allocator->allocate(sizeof(GpuLight) * LightManagerCpp::g_maxLights, 16);
-	m_sceneShadowTransforms = (ShadowTransform*)allocator->allocate(sizeof(ShadowTransform) * LightManagerCpp::g_maxLights, 16);
-	m_sceneLightBounds = (__m128*)allocator->allocate(sizeof(__m128) * LightManagerCpp::g_maxLights, 16);
+	m_visibleLightsResult = (u32*)allocator->allocate(sizeof(u32) * maxLightCount, 4);
 
 	auto scratchPtr = allocator->allocate(64 KBYTE, 16);
 	m_scratchAllocator = vx::StackAllocator(scratchPtr, 64 KBYTE);
 
-	auto shadowTransformBuffer = resourceManager->createBuffer(L"shadowTransformBuffer", 64 KBYTE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	const u64 shadowTransformBufferSize = d3d::getAlignedSize(sizeof(ShadowTransform) * maxShadowCastingLights, 64llu KBYTE);
+	auto shadowTransformBuffer = resourceManager->createBuffer(L"shadowTransformBuffer", shadowTransformBufferSize, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 	if (shadowTransformBuffer == nullptr)
 		return false;
 
-	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * gpuLightCount, 64llu KBYTE);
+	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * maxLightCount, 64llu KBYTE);
 	auto lightBuffer = resourceManager->createBuffer(L"lightBuffer", lightBufferSize, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	if (lightBuffer == nullptr)
 		return false;
 
-	createSrvLights(gpuLightCount + 1, resourceManager);
+	const auto visibleLightsBufferSize = d3d::getAlignedSize(sizeof(u32) * maxLightCount, 64llu KBYTE);
+	auto visibleLightIndicesBuffer = resourceManager->createBuffer(L"visibleLightIndicesBuffer", visibleLightsBufferSize, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	if (visibleLightIndicesBuffer == nullptr)
+		return false;
+
+	const auto shadowCastingLightsBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * maxShadowCastingLights, 64llu KBYTE);
+	auto shadowCastingLightsBuffer = resourceManager->createBuffer(L"shadowCastingLightsBuffer", shadowCastingLightsBufferSize, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	if (shadowCastingLightsBuffer == nullptr)
+		return false;
+
+	createSrvLights(maxLightCount, resourceManager);
+
+	m_maxShadowCastingLights = maxShadowCastingLights;
+	m_maxLightCount = maxLightCount;
+
+	m_downloadEvent = Event::createEvent();
+	m_downloadEvent.setStatus(EventStatus::Queued);
+
+	m_checkLightsEvent = Event::createEvent();
+	m_checkLightsEvent.setStatus(EventStatus::Complete);
+
+	m_renderPassCullLights->setEvent(m_checkLightsEvent, m_downloadEvent, (u8*)m_visibleLightsResult);
 
 	return true;
 }
 
 bool LightManager::loadSceneLights(const Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
 {
-	VX_ASSERT(count <= LightManagerCpp::g_maxLights);
+	VX_ASSERT(count <= m_maxLightCount);
 
 	for (u32 i = 0; i < count; ++i)
 	{
@@ -179,18 +205,16 @@ bool LightManager::loadSceneLights(const Light* lights, u32 count, ID3D12Device*
 	auto shadowTransformBuffer = resourceManager->getBuffer(L"shadowTransformBuffer");
 	uploadManager->pushUploadBuffer((u8*)&m_sceneShadowTransforms[0], shadowTransformBuffer->get(), 0, sizeof(ShadowTransform), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-	auto lightBuffer = resourceManager->getBuffer(L"lightBuffer");
-
+	auto shadowCastingLightsBuffer = resourceManager->getBuffer(L"shadowCastingLightsBuffer");
 	auto sizeInBytes = sizeof(GpuLight) * count;
-	uploadManager->pushUploadBuffer((u8*)m_sceneLights, lightBuffer->get(), 0, sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	uploadManager->pushUploadBuffer((u8*)m_sceneLights, shadowCastingLightsBuffer->get(), 0, sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-	//uploadManager->pushUploadBuffer((u8*)&count, lightBuffer->get(), 0, sizeof(u32), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	m_renderPassShading->setLightCount(count);
 
 	return true;
 }
 
-void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum)
+void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
 {
 	struct Pair
 	{
@@ -199,7 +223,55 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 	};
 
 	auto sceneLightCount = m_sceneLightCount;
-	if (sceneLightCount != 0)
+	if (sceneLightCount == 0)
+		return;
+
+	bool startCheck = false;
+
+	auto statusCheckLights = m_checkLightsEvent.getStatus();
+	if (statusCheckLights == EventStatus::Complete)
+	{
+		// checked on gpu
+
+		auto dlStatus = m_downloadEvent.getStatus();
+		if (dlStatus == EventStatus::Complete)
+		{
+			u32 visibleLightCount = 0;
+			// finished dl to cpu, upload resulting light buffer to gpu
+
+			auto marker = m_scratchAllocator.getMarker();
+			auto visibleLights = (GpuLight*)m_scratchAllocator.allocate(sizeof(GpuLight) * m_resultBufferCount, __alignof(GpuLight));
+			for (u32 i = 0; i < m_resultBufferCount; ++i)
+			{
+				auto visible = m_visibleLightsResult[i];
+				if (visible != 0)
+				{
+					visibleLights[visibleLightCount++] = m_gpuLights[i];
+				}
+			}
+
+			auto shadowCastingLightsBuffer = resourceManager->getBuffer(L"shadowCastingLightsBuffer");
+			auto sizeInBytes = sizeof(GpuLight) * visibleLightCount;
+			uploadManager->pushUploadBuffer((u8*)visibleLights, shadowCastingLightsBuffer->get(), 0, sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+			m_renderPassShading->setLightCount(visibleLightCount);
+
+			m_scratchAllocator.clear(marker);
+
+			m_resultBufferCount = 0;
+			m_downloadEvent.setStatus(EventStatus::Queued);
+		}
+		else if(dlStatus == EventStatus::Running)
+		{
+			// wait
+		}
+		else
+		{
+			// start update
+			startCheck = true;
+		}
+	}
+
+	if (startCheck)
 	{
 		auto marker = m_scratchAllocator.getMarker();
 		u32* indices = (u32*)m_scratchAllocator.allocate(sceneLightCount * sizeof(u32));
@@ -212,44 +284,22 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 			boundsInFrustum[i] = m_sceneLightBounds[index];
 		}
 
-		u32 remainingLights = 0;
-		u32 lightsIntersectingPlayerCount = 0;
-		u32* lightsIntersectingPlayerCountIndices = (u32*)m_scratchAllocator.allocate(sizeof(u32) * lightsInFrustumCount);
 		for (u32 i = 0; i < lightsInFrustumCount; ++i)
 		{
 			auto index = indices[i];
 
-			auto &bounds = boundsInFrustum[i];
-			__m128 radius = VX_PERMUTE_PS(bounds, _MM_SHUFFLE(3, 3, 3, 3));
-
-			auto distanceToCenter = vx::length3(_mm_sub_ps(bounds, cameraPosition));
-			auto cmp = _mm_cmplt_ss(distanceToCenter, radius);
-			auto mask = _mm_movemask_ps(cmp) & 0x1;
-			if (mask != 0)
-			{
-				lightsIntersectingPlayerCountIndices[lightsIntersectingPlayerCount++] = index;
-			}
-			else
-			{
-				indices[remainingLights++] = index;
-			}
+			m_gpuLights[i] = m_sceneLights[index];
 		}
 
-		auto pairs = (Pair*)m_scratchAllocator.allocate(sizeof(Pair) * remainingLights, __alignof(Pair));
-		for (u32 i = 0; i < remainingLights; ++i)
-		{
-			auto index = indices[i];
+		auto lightBuffer = resourceManager->getBuffer(L"lightBuffer");
+		auto sizeInBytes = sizeof(GpuLight) * lightsInFrustumCount;
+		uploadManager->pushUploadBuffer((u8*)m_gpuLights, lightBuffer->get(), 0, sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-			auto dist = vx::length3(_mm_sub_ps(boundsInFrustum[index], cameraPosition));
-			pairs[i].distance = dist.m128_f32[0];
-			pairs[i].index = index;
-		}
+		m_checkLightsEvent.setStatus(EventStatus::Running);
 
-		std::sort(pairs, pairs + remainingLights, [](const Pair &lhs, const Pair &rhs)
-		{
-			return lhs.distance < rhs.distance;
-		});
+		m_renderPassCullLights->setLightCount(lightsInFrustumCount);
 
+		m_resultBufferCount = lightsInFrustumCount;
 		m_scratchAllocator.clear(marker);
 	}
 }
@@ -282,4 +332,9 @@ void LightManager::addStaticMeshInstance(const D3D12_DRAW_INDEXED_ARGUMENTS &cmd
 DrawIndexedIndirectCommand* LightManager::getDrawCommand(u32 i)
 {
 	return &m_drawCommand;
+}
+
+void LightManager::setRenderPassCullLights(RenderPassCullLights* renderPassCullLights)
+{
+	m_renderPassCullLights = renderPassCullLights;
 }

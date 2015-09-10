@@ -30,11 +30,6 @@ cbuffer CameraBuffer : register(b0)
 	GpuCameraBufferData camera;
 };
 
-cbuffer CameraStaticBuffer : register(b1)
-{
-	GpuCameraStatic cameraStatic;
-};
-
 void emitQuad(GSOutput element, in float4 positions[4], inout TriangleStream< GSOutput > output)
 {
 	element.pos = positions[0];

@@ -26,6 +26,7 @@ SOFTWARE.
 
 struct ID3D12Resource;
 struct ID3D12CommandAllocator;
+class Event;
 
 namespace d3d
 {
@@ -117,6 +118,7 @@ public:
 	void shutdown();
 
 	void pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state);
+	void pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state, const Event &evt);
 	void pushUploadTexture(const UploadTaskTextureDesc &desc);
 
 	void submitCommandList(d3d::CommandQueue* queue);

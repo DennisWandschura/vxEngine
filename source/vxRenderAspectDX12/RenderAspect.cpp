@@ -40,6 +40,7 @@ RenderSettings RenderAspect::s_settings{};
 
 RenderAspect::RenderAspect()
 	:m_device(),
+	m_downloadManager(),
 	m_resourceManager(),
 	m_taskManager(nullptr),
 	m_resourceAspect(nullptr),
@@ -133,6 +134,8 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 {
 	auto errorlog = desc.errorlog;
 
+	Event::setAllocator(desc.smallObjAllocatorMainThread);
+
 	m_taskManager = desc.taskManager;
 	m_resourceAspect = desc.resourceAspect;
 	m_msgManager = desc.msgManager;
@@ -146,6 +149,7 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	s_settings.m_fovRad = fovRad;
 	s_settings.m_resolution = desc.settings->m_resolution;
 	s_settings.m_gpuLightCount = 64;
+	s_settings.m_shadowCastingLightCount = 10;
 	s_settings.m_textureDim = 1024;
 	s_settings.m_shadowDim = 2048;
 
@@ -191,7 +195,14 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	}
 
 	if (!m_copyManager.initialize(device))
+	{
 		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
+
+	if (!m_downloadManager.initialize(device))
+	{
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
 
 	u64 bufferHeapSize = 0; 
 	u64 textureHeapSize = 0;
@@ -209,6 +220,8 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	renderLayerGameDesc.m_resourceAspect = m_resourceAspect;
 	renderLayerGameDesc.m_resourceManager = &m_resourceManager;
 	renderLayerGameDesc.m_uploadManager = &m_uploadManager;
+	renderLayerGameDesc.m_downloadManager = &m_downloadManager;
+	renderLayerGameDesc.m_settings = &s_settings;
 	auto renderLayerGame = new RenderLayerGame(renderLayerGameDesc);
 	m_activeLayers.push_back(renderLayerGame);
 
@@ -260,6 +273,7 @@ void RenderAspect::shutdown(void* hwnd)
 
 	m_materialManager.shutdown();
 
+	m_downloadManager.shutdown();
 	m_uploadManager.shutdown();
 
 	m_resourceManager.shutdown();
@@ -533,7 +547,10 @@ void RenderAspect::createSrvTextures(u32 srgbCount, u32 rgbCount)
 
 void RenderAspect::submitCommands()
 {
+	m_downloadManager.downloadToCpu();
+
 	m_copyManager.submitList(&m_graphicsCommandQueue);
+	m_downloadManager.submitCommandList(&m_graphicsCommandQueue);
 	m_uploadManager.submitCommandList(&m_graphicsCommandQueue);
 
 	for (auto &it : m_activeLayers)

@@ -26,6 +26,7 @@ SOFTWARE.
 
 class RenderPassShadow;
 class RenderPassShading;
+class RenderPassCullLights;
 struct GpuLight;
 struct Light;
 class Frustum;
@@ -41,6 +42,7 @@ namespace d3d
 #include <vxLib/math/Vector.h>
 #include <vxLib/Allocator/StackAllocator.h>
 #include "DrawIndexedIndirectCommand.h"
+#include <vxEngineLib/Event.h>
 
 class LightManager
 {
@@ -49,9 +51,15 @@ class LightManager
 	__m128* m_sceneLightBounds;
 	GpuLight* m_gpuLights;
 	u32 m_sceneLightCount;
-	u32 m_gpuLightCount;
+	u32 m_maxLightCount;
+	u32 m_maxShadowCastingLights;
+	u32 m_resultBufferCount;
+	u32* m_visibleLightsResult;
+	Event m_downloadEvent;
+	Event m_checkLightsEvent;
 	RenderPassShadow* m_renderPassShadow;
 	RenderPassShading* m_renderPassShading;
+	RenderPassCullLights* m_renderPassCullLights;
 	DrawIndexedIndirectCommand m_drawCommand;
 	vx::StackAllocator m_scratchAllocator;
 
@@ -63,18 +71,19 @@ public:
 	LightManager(LightManager &&rhs);
 	~LightManager();
 
-	void getRequiredMemory(u64* heapSizeBuffere, u32 maxLightCountGpu);
+	void getRequiredMemory(u64* heapSizeBuffere, u32 maxLightCount, u32 maxShadowCastingLights);
 
-	bool initialize(vx::StackAllocator* allocator, u32 gpuLightCount, d3d::ResourceManager* resourceManager);
+	bool initialize(vx::StackAllocator* allocator, u32 maxLightCount, u32 maxShadowCastingLights, d3d::ResourceManager* resourceManager);
 
 	bool loadSceneLights(const Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 
-	void __vectorcall update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum);
+	void __vectorcall update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 
 	void addStaticMeshInstance(const D3D12_DRAW_INDEXED_ARGUMENTS &cmd, const AABB &bounds, UploadManager* uploadManager);
 
 	void setRenderPassShadow(RenderPassShadow* renderPassShadow) { m_renderPassShadow = renderPassShadow; }
 	void setRenderPassShading(RenderPassShading* renderPassShading) { m_renderPassShading = renderPassShading; }
+	void setRenderPassCullLights(RenderPassCullLights* renderPassCullLights);
 
 	DrawIndexedIndirectCommand* getDrawCommand(u32 i);
 };

@@ -24,11 +24,44 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace Graphics
+{
+	class CommandQueue;
+}
 
-#include <vxEngineLib/Graphics/EditorRenderAspectInterface.h>
+#include "CommandList.h"
+#include "CommandAllocator.h"
+#include "Heap.h"
+#include "Resource.h"
+#include <vector>
+#include <vxEngineLib/Event.h>
 
-extern "C" __declspec(dllexport) RenderAspectInterface* createRenderAspect();
-extern "C" __declspec(dllexport) void destroyRenderAspect(RenderAspectInterface *p);
+class DownloadManager
+{
+	struct DownloadEntry;
+	struct CopyEntry;
 
-extern "C" __declspec(dllexport) Editor::RenderAspectInterface* createEditorRenderAspect();
-extern "C" __declspec(dllexport) void destroyEditorRenderAspect(Editor::RenderAspectInterface *p);
+	d3d::CommandAllocator m_allocator;
+	d3d::GraphicsCommandList m_commandList;
+	d3d::Resource m_bufferDownload;
+	std::vector<CopyEntry> m_copyEntries;
+	std::vector<DownloadEntry> m_entries;
+	u32 m_capacity;
+	u32 m_size;
+	d3d::Heap m_heapDownload;
+
+	bool queueCopyBuffer(d3d::Resource* cpySrc, u32 cpyOffset, u32 size, u8* cpuDst, const Event &evt);
+
+public:
+	DownloadManager();
+	~DownloadManager();
+
+	bool initialize(ID3D12Device* device);
+	void shutdown();
+
+	void pushDownloadBuffer(u8* dst, u32 size, d3d::Resource* cpySrc, u32 cpyOffset, const Event &evt);
+
+	void submitCommandList(Graphics::CommandQueue* queue);
+
+	void downloadToCpu();
+};

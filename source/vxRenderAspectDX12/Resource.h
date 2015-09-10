@@ -67,6 +67,11 @@ namespace d3d
 
 		ID3D12Resource* get() { return m_res.get(); }
 
+		ID3D12Resource** getAddressOf()
+		{
+			return m_res.getAddressOf();
+		}
+
 		D3D12_RESOURCE_BARRIER barrierTransition(D3D12_RESOURCE_STATES newState, u32 subResource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
 		{
 			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_res.get(), m_currentState, newState, subResource);

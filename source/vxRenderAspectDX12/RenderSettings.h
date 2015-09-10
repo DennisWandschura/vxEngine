@@ -35,6 +35,7 @@ struct RenderSettings
 	f64 m_farZ;
 	f64 m_fovRad;
 	u32 m_gpuLightCount;
+	u32 m_shadowCastingLightCount;
 	u32 m_textureDim;
 	u32 m_shadowDim;
 };

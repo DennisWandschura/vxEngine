@@ -96,29 +96,12 @@ bool RenderPassShading::loadShaders()
 
 bool RenderPassShading::createRootSignature(ID3D12Device* device)
 {
-	/*
-		cbuffer CameraBuffer : register(b0)
-		StructuredBuffer<GpuLight> g_lights : register(t0);
-
-		cbuffer CameraBuffer : register(b0)
-		cbuffer CameraStaticBuffer : register(b1)
-
-		cbuffer CameraBuffer : register(b0)
-		cbuffer CameraStaticBuffer : register(b1)
-		Texture2DArray g_albedoeSlice : register(t1);
-		Texture2DArray g_normalSlice : register(t2);
-		Texture2D<float> g_zBuffer : register(t3);
-		Texture2DArray g_surfaceSlice : register(t4);
-		TextureCube<float> g_shadowTexture : register(t5);
-		TextureCube<half> g_shadowTextureIntensity : register(t6);
-	*/
-
 	CD3DX12_DESCRIPTOR_RANGE rangeVS[2];
 	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
 	rangeVS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 2);
 
 	CD3DX12_DESCRIPTOR_RANGE rangeGS[1];
-	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0, 0, 0);
+	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
 
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0, 0, 0);
@@ -230,7 +213,7 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	handle.offset(1);
 	device->CreateConstantBufferView(cameraStaticBufferView, handle);
 
-	auto lightBufferDst = s_resourceManager->getBuffer(L"lightBuffer");
+	auto shadowCastingLightsBuffer = s_resourceManager->getBuffer(L"shadowCastingLightsBuffer");
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
@@ -238,11 +221,11 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
 	srvDesc.Buffer.FirstElement = 0;
 	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-	srvDesc.Buffer.NumElements = s_settings->m_gpuLightCount;
+	srvDesc.Buffer.NumElements = s_settings->m_shadowCastingLightCount;
 	srvDesc.Buffer.StructureByteStride = sizeof(GpuLight);
 
 	handle.offset(1);
-	device->CreateShaderResourceView(lightBufferDst->get(), &srvDesc, handle);
+	device->CreateShaderResourceView(shadowCastingLightsBuffer->get(), &srvDesc, handle);
 
 	auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 
@@ -451,7 +434,7 @@ void RenderPassShading::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-
+		
 		m_commandList->DrawInstanced(m_lightCount, 1, 0, 0);
 
 		//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureIntensity->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));

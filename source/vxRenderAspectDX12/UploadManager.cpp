@@ -27,6 +27,7 @@ SOFTWARE.
 #include "Device.h"
 #include <atomic>
 #include "CommandQueue.h"
+#include <vxEngineLib/Event.h>
 
 namespace UploadManagerCpp
 {
@@ -41,6 +42,7 @@ struct UploadManager::UploadTask
 		UploadTaskBuffer buffer;
 		UploadTaskTexture texture;
 	};
+	Event evt;
 
 	UploadTask() {}
 };
@@ -213,6 +215,13 @@ void UploadManager::pushQueueTask(QueuedUploadTask &&task)
 
 void UploadManager::pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state)
 {
+	Event emptyEvt;
+
+	pushUploadBuffer(data, dstBuffer, dstOffset, size, state, emptyEvt);
+}
+
+void UploadManager::pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state, const Event &evt)
+{
 	if (!tryUploadBuffer(data, dstBuffer, dstOffset, size, state))
 	{
 		QueuedUploadTask queuedTask;
@@ -346,6 +355,11 @@ void UploadManager::processTasks()
 
 			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.texture.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.texture.state));
 		}break;
+		}
+
+		if (it.evt.isValid())
+		{
+			it.evt.setStatus(EventStatus::Complete);
 		}
 	}
 
