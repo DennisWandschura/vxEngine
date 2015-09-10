@@ -1,5 +1,8 @@
 // Auto-generated Unity file - do not modify
 
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Graphics/RenderAspectInterface.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Graphics\RenderAspectInterface.cpp"
+
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Graphics/Surface.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Graphics\Surface.cpp"
 
@@ -33,6 +36,12 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterSceneFileV6.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterSceneFileV6.cpp"
 
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterSceneFileV7.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterSceneFileV7.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterSceneFileV8.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterSceneFileV8.cpp"
+
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/CpuTimer.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\CpuTimer.cpp"
 
@@ -54,9 +63,6 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/InfluenceMap.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\InfluenceMap.cpp"
 
-#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Light.cpp" )
-#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Light.cpp"
-
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Locator.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Locator.cpp"
 
@@ -75,8 +81,14 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/MeshInstance.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\MeshInstance.cpp"
 
-#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/MeshInstanceFile.cpp" )
-#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\MeshInstanceFile.cpp"
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/MeshInstanceFileV4.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\MeshInstanceFileV4.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/MeshInstanceFileV5.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\MeshInstanceFileV5.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/MeshInstanceFileV8.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\MeshInstanceFileV8.cpp"
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/MessageManager.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\MessageManager.cpp"
@@ -119,9 +131,6 @@
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/TaskManager.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\TaskManager.cpp"
-
-#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Timer.cpp" )
-#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Timer.cpp"
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Triangle.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Triangle.cpp"

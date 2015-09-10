@@ -143,6 +143,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

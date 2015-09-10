@@ -205,6 +205,7 @@
       <EnableAnsiAliasing>true</EnableAnsiAliasing>
       <PreprocessorDefinitions>_VX_ASSERT;_VX_WINDOWS;NDEBUG;NOMINMAX;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_VX_NO_EXCEPTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -269,7 +270,9 @@
     <ClCompile Include="TaskSaveEditorScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="TaskSaveMeshFile.cpp" />
+    <ClCompile Include="TaskSaveMeshFile.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="testConvertSceneFileToScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

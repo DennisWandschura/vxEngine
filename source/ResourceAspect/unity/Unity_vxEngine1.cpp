@@ -48,6 +48,9 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/ResourceAspect/TaskSaveEditorScene.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\TaskSaveEditorScene.cpp"
 
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/ResourceAspect/TaskSaveMeshFile.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\TaskSaveMeshFile.cpp"
+
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/ResourceAspect/testConvertSceneFileToScene.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\ResourceAspect\testConvertSceneFileToScene.cpp"
 

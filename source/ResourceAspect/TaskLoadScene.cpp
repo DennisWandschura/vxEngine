@@ -170,6 +170,7 @@ TaskReturnType TaskLoadScene::runImpl()
 
 	if(!loadFile(&fileData, &fileSize))
 	{
+		printf("Error loading scene file\n");
 		return TaskReturnType::Failure;
 	}
 

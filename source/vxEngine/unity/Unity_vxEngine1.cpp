@@ -9,6 +9,9 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ActionFollowPath.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ActionFollowPath.cpp"
 
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ActionGrabEntity.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ActionGrabEntity.cpp"
+
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ActionManager.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ActionManager.cpp"
 
@@ -20,6 +23,9 @@
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ActionPlayerMove.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ActionPlayerMove.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ActionPlayerUse.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ActionPlayerUse.cpp"
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ActionPrintText.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ActionPrintText.cpp"
@@ -132,8 +138,8 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/TaskPhysxCreateJoints.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\TaskPhysxCreateJoints.cpp"
 
-#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/TaskSceneCreateActorsGpu.cpp" )
-#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\TaskSceneCreateActorsGpu.cpp"
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/TaskSceneCreateActors.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\TaskSceneCreateActors.cpp"
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/TaskSceneCreateStaticMeshes.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\TaskSceneCreateStaticMeshes.cpp"

@@ -70,7 +70,7 @@ namespace d3d
 			return false;
 		}
 
-		m_dxgidebugDllHandle = GetModuleHandle("Dxgidebug.dll");
+		m_dxgidebugDllHandle = GetModuleHandle(L"Dxgidebug.dll");
 		if (m_dxgidebugDllHandle == nullptr)
 			return false;
 
@@ -154,11 +154,11 @@ namespace d3d
 				auto marker = m_scratchAllocator.getMarker();
 
 				size_t msgSize = 0;
-				m_dxgiInfoQueue->GetMessageA(DXGI_DEBUG_ALL, i, nullptr, &msgSize);
+				m_dxgiInfoQueue->GetMessage(DXGI_DEBUG_ALL, i, nullptr, &msgSize);
 
 				DXGI_INFO_QUEUE_MESSAGE* ptr = (DXGI_INFO_QUEUE_MESSAGE*)m_scratchAllocator.allocate(msgSize);
 
-				m_dxgiInfoQueue->GetMessageA(DXGI_DEBUG_ALL, i, ptr, &msgSize);
+				m_dxgiInfoQueue->GetMessage(DXGI_DEBUG_ALL, i, ptr, &msgSize);
 
 				//printf("%s\n", ptr->pDescription);
 				m_errorLog->append(ptr->pDescription, ptr->DescriptionByteLength - 1);

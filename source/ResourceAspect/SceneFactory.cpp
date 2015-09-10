@@ -320,6 +320,10 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDesc &desc, const 
 	{
 		result = SceneFactoryCpp::checkIfAssetsAreLoaded(desc, std::move(sceneFile));
 	}
+	else
+	{
+		printf("SceneFactory::createFromMemory failed\n");
+	}
 
 	if (result)
 	{

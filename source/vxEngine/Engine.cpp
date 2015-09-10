@@ -363,22 +363,32 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 
 	if (m_renderAspect->initialize(renderAspectDesc, signalHandlerFn) != RenderAspectInitializeError::OK)
 	{
+		logfile->append("error initializing render aspect\n");
 		return false;
 	}
 
 	if (!m_physicsAspect.initialize(&m_taskManager))
+	{
+		logfile->append("error initializing physics aspect\n");
 		return false;
+	}
 
 #if _VX_MEM_PROFILE
 	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, &m_allocManager))
 		return false;
 #else
 	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, nullptr))
+	{
+		logfile->append("error initializing entity aspect\n");
 		return false;
+	}
 #endif
 
 	if (!createAudioAspect())
+	{
+		logfile->append("error initializing audio aspect\n");
 		return false;
+	}
 
 #if _VX_MEM_PROFILE
 	m_actorAspect.initialize(&m_allocator, &m_allocManager);

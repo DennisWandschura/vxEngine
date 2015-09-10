@@ -64,7 +64,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -106,9 +106,10 @@
     <OutDir>..\..\lib\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>E:\dev\libraries\openal-soft-1.16.0-bin\include;E:\dev\libraries\libogg\include;E:\dev\libraries\libvorbis-1.3.3\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxEngineLib\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxEngine\source\vxAudioAspect\include;d:\Users\dw\Documents\Visual Studio 2013\Projects\vxLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\vxLib\include;..\vxEngineLib\include;$(IncludePath)</IncludePath>
     <OutDir>..\..\lib\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
+    <LibraryPath>..\..\..\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -139,6 +140,7 @@
       <PreprocessorDefinitions>_VX_ASSERT;_VX_NO_EXCEPTIONS;_VX_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -183,15 +185,18 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <PreprocessorDefinitions>_VX_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_ASSERT;_VX_NO_EXCEPTIONS;_VX_WINDOWS;NOMINMAX;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CallingConvention>FastCall</CallingConvention>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>vxlib_s.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>"E:\dev\fastbuild-x64\fbuild.exe" -config generate_unity.bff</Command>
@@ -204,7 +209,9 @@
     <ClCompile Include="AudioManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="dllExport.cpp" />
+    <ClCompile Include="dllExport.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="ogg_stream.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -212,7 +219,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="WavFactory.cpp" />
+    <ClCompile Include="WavFactory.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="WavFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

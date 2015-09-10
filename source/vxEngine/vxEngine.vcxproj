@@ -220,6 +220,7 @@
       <GenerateAlternateCodePaths>AVX</GenerateAlternateCodePaths>
       <InterproceduralOptimization>NoIPO</InterproceduralOptimization>
       <Optimization>Full</Optimization>
+      <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -325,7 +326,9 @@
     <ClCompile Include="ActionFollowPath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="ActionGrabEntity.cpp" />
+    <ClCompile Include="ActionGrabEntity.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="ActionPlayAnimation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -338,7 +341,9 @@
     <ClCompile Include="ActionPlayerMove.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="ActionPlayerUse.cpp" />
+    <ClCompile Include="ActionPlayerUse.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="ActionPrintText.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
