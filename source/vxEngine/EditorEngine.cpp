@@ -119,7 +119,6 @@ bool EditorEngine::createRenderAspectGL(const std::string &dataDir, const Render
 	if (proc == nullptr || procDestroy == nullptr)
 		return false;
 
-	RenderAspectInitializeError error;
 	auto renderAspect = proc();
 	if (renderAspect == nullptr)
 		return false;

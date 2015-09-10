@@ -23,11 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct PointLightShadowTransform;
-
-#include <vxLib/math/matrix.h>
-#include "AABB.h"
-#include <vector>
+#include <vxLib/math/Vector.h>
 
 struct Light
 {
@@ -36,6 +32,4 @@ struct Light
 	f32 m_falloff;
 	f32 m_lumen;
 	u32 m_staticMeshCount;
-
-//	void getTransformationMatrix(vx::mat4* m) const;
 };

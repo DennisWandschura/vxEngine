@@ -78,25 +78,24 @@ namespace Editor
 		void createCommandList();
 		bool createEditorTextures();
 
-		void handleLoadScene(const vx::Message &evt);
-		void handleFileEvent(const vx::Message &evt);
+		void handleLoadScene(const vx::Message &msg);
+		void handleFileMessage(const vx::Message &msg);
+		void handleRendererMessage(const vx::Message &msg);
 
 		void bindBuffers();
 
-		void reportLiveObjects();
+		RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) override;
 
 	public:
 		RenderAspect();
 		~RenderAspect();
-
-		RenderAspectInitializeError initialize(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn) override;
 		void shutdown(void* hwnd);
 
 		bool initializeProfiler(Logfile* errorlog);
 
 		void makeCurrent(bool b);
 
-		void queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
+		void queueUpdate(RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
 		void queueUpdateCamera(const RenderUpdateCameraData &data);
 		void update();
 

@@ -8,6 +8,7 @@
 #include "ResourceManager.h"
 #include "RenderPassShading.h"
 #include "UploadManager.h"
+#include <vxEngineLib/AABB.h>
 
 enum FrustumPlane { FrustumPlaneNear, FrustumPlaneLeft, FrustumPlaneRight };
 

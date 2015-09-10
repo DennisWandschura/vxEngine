@@ -70,7 +70,8 @@ bool TaskLoadScene::loadFile(u8** outData, u32* outFileSize)
 	auto fileSize = file.getSize();
 	VX_ASSERT(fileSize == static_cast<u32>(fileSize));
 
-	auto fileData = m_scratchAllocator.allocate(fileSize, 4);
+	auto fileData = m_scratchAllocator.allocate(fileSize, 16);
+	memset(fileData, 0, fileSize);
 
 	file.read(fileData, static_cast<u32>(fileSize));
 	*outFileSize = static_cast<u32>(fileSize);

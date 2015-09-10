@@ -87,6 +87,17 @@ public:
 	PhysxRigidBodyType getRigidBodyType() const { return m_rigidBodyType; }
 };
 
+struct MeshInstanceFileV8Desc
+{
+	char instanceName[32];
+	char meshName[32];
+	char materialName[32];
+	char animationName[32];
+	vx::Transform transform;
+	AABB bounds; 
+	PhysxRigidBodyType rigidBodyType;
+};
+
 class MeshInstanceFileV8
 {
 	friend MeshInstanceFileV5;
@@ -104,7 +115,7 @@ class MeshInstanceFileV8
 
 public:
 	MeshInstanceFileV8();
-	MeshInstanceFileV8(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform, const AABB &bounds, PhysxRigidBodyType rigidBodyType);
+	explicit MeshInstanceFileV8(const MeshInstanceFileV8Desc &desc);
 
 	void convert(const MeshInstanceFileV4 &rhs);
 	void convert(const MeshInstanceFileV5 &rhs);

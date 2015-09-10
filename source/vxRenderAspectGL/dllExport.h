@@ -26,8 +26,8 @@ SOFTWARE.
 
 #include <vxEngineLib/Graphics/EditorRenderAspectInterface.h>
 
-extern "C" __declspec(dllexport) RenderAspectInterface* createRenderAspect(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn, RenderAspectInitializeError* error);
+extern "C" __declspec(dllexport) RenderAspectInterface* createRenderAspect();
 extern "C" __declspec(dllexport) void destroyRenderAspect(RenderAspectInterface *p);
 
-extern "C" __declspec(dllexport) Editor::RenderAspectInterface* createEditorRenderAspect(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn, RenderAspectInitializeError* error);
+extern "C" __declspec(dllexport) Editor::RenderAspectInterface* createEditorRenderAspect();
 extern "C" __declspec(dllexport) void destroyEditorRenderAspect(Editor::RenderAspectInterface *p);

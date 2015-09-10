@@ -34,22 +34,24 @@ MeshInstanceFileV8::MeshInstanceFileV8()
 	m_rigidBodyType(),
 	m_padding()
 {
+	memset(m_padding, 0, sizeof(m_padding));
 }
 
-MeshInstanceFileV8::MeshInstanceFileV8(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform, const AABB &bounds, PhysxRigidBodyType rigidBodyType)
+MeshInstanceFileV8::MeshInstanceFileV8(const MeshInstanceFileV8Desc &desc)
 	:m_name(),
 	m_mesh(),
 	m_material(),
 	m_animation(),
-	m_transform(transform),
-	m_bounds(bounds),
-	m_rigidBodyType(rigidBodyType),
+	m_transform(desc.transform),
+	m_bounds(desc.bounds),
+	m_rigidBodyType(desc.rigidBodyType),
 	m_padding()
 {
-	strncpy(m_name, instanceName, 32);
-	strncpy(m_mesh, meshName, 32);
-	strncpy(m_material, materialName, 32);
-	strncpy(m_animation, animationName, 32);
+	strncpy(m_name, desc.instanceName, 32);
+	strncpy(m_mesh, desc.meshName, 32);
+	strncpy(m_material, desc.materialName, 32);
+	strncpy(m_animation, desc.animationName, 32);
+	memset(m_padding, 0, sizeof(m_padding));
 }
 
 void MeshInstanceFileV8::convert(const MeshInstanceFileV4 &rhs)

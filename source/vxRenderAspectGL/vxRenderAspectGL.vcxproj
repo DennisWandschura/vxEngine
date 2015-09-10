@@ -546,7 +546,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>E:\dev\libraries\nvapi R343-developer\include;..\source\vxRenderAspectGL\include;..\source\ResourceAspect\include;..\..\game\data\shaders\include;..\..\..\vxGL\include;..\..\..\vxLib\include;..\source\vxEngineLib\include;$(IncludePath)</IncludePath>
+    <IncludePath>E:\dev\libraries\nvapi R343-developer\include;..\vxRenderAspectGL\include;..\ResourceAspect\include;..\..\game\data\shaders\include;..\..\..\vxGL\include;..\..\..\vxLib\include;..\vxEngineLib\include;$(IncludePath)</IncludePath>
     <TargetName>$(ProjectName)_d</TargetName>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>..\..\lib\</OutDir>
@@ -602,7 +602,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;vxLib_sd.lib;vxGL_sd.lib;vxEngineLib_d.lib;opencl.lib;nvapi64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vxLib_sd.lib;vxGL_sd.lib;vxEngineLib_d.lib;nvapi64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>

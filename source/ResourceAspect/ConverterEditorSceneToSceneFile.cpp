@@ -108,33 +108,32 @@ namespace Converter
 				auto instanceMaterialName = scene.getMaterialName(materialSid);
 				auto instanceAnimationName = scene.getAnimationName(it.getAnimationSid());
 
-				char meshName[32] = {};
+				MeshInstanceFileV8Desc desc;
+
 				if (instanceMeshName)
 				{
-					strncpy(meshName, instanceMeshName, 32);
+					strncpy(desc.meshName, instanceMeshName, 32);
 				}
 
-				char materialName[32] = {};
 				if (instanceMaterialName)
 				{
-					strncpy(materialName, instanceMaterialName, 32);
+					strncpy(desc.materialName, instanceMaterialName, 32);
 				}
 
-				char name[32] = {};
 				if (instanceName)
 				{
-					strncpy(name, instanceName, 32);
+					strncpy(desc.instanceName, instanceName, 32);
 				}
 
-				char animation[32] = {};
 				if (instanceAnimationName)
 				{
-					strncpy(animation, instanceAnimationName, 32);
+					strncpy(desc.animationName, instanceAnimationName, 32);
 				}
 
-				auto transform = it.getTransform();
-				auto bounds = it.getBounds();
-				meshInstances[i] = MeshInstanceFileV8(name, meshName, materialName, animation, transform, bounds, it.getRigidBodyType());
+				desc.transform = it.getTransform();
+				desc.bounds = it.getBounds();
+				desc.rigidBodyType = it.getRigidBodyType();
+				meshInstances[i] = MeshInstanceFileV8(desc);
 			}
 
 			converterSceneFile.setMeshInstances(std::move(meshInstances), meshInstanceCount);

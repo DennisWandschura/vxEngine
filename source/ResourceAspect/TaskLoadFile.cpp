@@ -61,12 +61,13 @@ bool TaskLoadFile::loadFromFile(managed_ptr<u8[]>* outPtr, u32* outFileSize)
 	}
 	lock.unlock();
 
+	memset(outPtr->get(), 0, fileSize);
+
 	if (!f.read(outPtr->get(), static_cast<u32>(fileSize)))
 	{
 		return false;
 	}
 
-	//outPtr->swap(ptr);
 	*outFileSize = static_cast<u32>(fileSize);
 
 	return true;
@@ -88,7 +89,6 @@ bool TaskLoadFile::readAndCheckHeader(const u8* fileData, u32 fileSize, const u8
 
 	if (!headerBottom.isEqual(headerTop))
 	{
-		//printf("invalid file\n");
 		return false;
 	}
 

@@ -55,6 +55,7 @@ SOFTWARE.
 #include <vxGL/ProgramPipeline.h>
 #include <vxEngineLib/Joint.h>
 #include <vxEngineLib/ArrayAllocator.h>
+#include <vxEngineLib/RendererMessage.h>
 
 struct InfluenceCellVertex
 {
@@ -111,7 +112,7 @@ namespace Editor
 
 	}
 
-	RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &renderDesc, SignalHandlerFun signalHandlerFn)
+	RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescription &renderDesc)
 	{
 		auto resolution = renderDesc.settings->m_resolution;
 		f32 znear = renderDesc.settings->m_zNear;
@@ -120,9 +121,6 @@ namespace Editor
 		m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(renderDesc.settings->m_fovDeg), (f32)resolution.x / (f32)resolution.y, znear, zfar);
 
 		m_resourceAspect = renderDesc.resourceAspect;
-
-		if(!setSignalHandler(signalHandlerFn))
-			return RenderAspectInitializeError::ERROR_CONTEXT;
 
 		vx::gl::ContextDescription contextDesc;
 		contextDesc.tmpHwnd = (HWND)renderDesc.tmpHwnd;
@@ -762,7 +760,7 @@ namespace Editor
 
 	}
 
-	void RenderAspect::queueUpdateTask(RenderUpdateTaskType type, const u8* data, u32 dataSize)
+	void RenderAspect::queueUpdate(RenderUpdateTaskType type, const u8* data, u32 dataSize)
 	{
 
 	}
@@ -853,11 +851,13 @@ namespace Editor
 	{
 		switch (evt.type)
 		{
-		case(vx::MessageType::File_Event) :
-			handleFileEvent(evt);
+		case(vx::MessageType::File) :
+			handleFileMessage(evt);
 			break;
-		case(vx::MessageType::Editor_Event) :
+		case(vx::MessageType::Editor) :
 			//handleEditorEvent(evt);
+			break;
+		case(vx::MessageType::Renderer) :
 			break;
 		default:
 			break;
@@ -1320,15 +1320,19 @@ namespace Editor
 		updateSpawns(spawns, spawnCount);
 	}
 
-	void RenderAspect::handleFileEvent(const vx::Message &evt)
+	void RenderAspect::handleFileMessage(const vx::Message &msg)
 	{
-		if ((vx::FileMessage)evt.code == vx::FileMessage::EditorScene_Loaded)
+		if ((vx::FileMessage)msg.code == vx::FileMessage::EditorScene_Loaded)
 		{
-			handleLoadScene(evt);
+			handleLoadScene(msg);
 		}
-		else if ((vx::FileMessage)evt.code == vx::FileMessage::Mesh_Loaded)
+		else if ((vx::FileMessage)msg.code == vx::FileMessage::Mesh_Loaded)
 		{
 			//handleLoadMesh(evt);
 		}
+	}
+
+	void RenderAspect::handleRendererMessage(const vx::Message &msg)
+	{
 	}
 }

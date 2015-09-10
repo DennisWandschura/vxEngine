@@ -54,7 +54,6 @@ class GpuProfiler;
 #include "Graphics/CommandList.h"
 #include <vxEngineLib/DoubleBufferRaw.h>
 #include "Graphics/Frame.h"
-#include "opencl/context.h"
 #include <vxEngineLib/mutex.h>
 #include "Graphics/TextRenderer.h"
 #include "Graphics/LightRenderer.h"
@@ -99,7 +98,6 @@ protected:
 	vx::gl::RenderContext m_renderContext;
 	vx::Camera m_camera;
 	vx::mat4 m_projectionMatrix;
-	cl::Context m_context;
 	ResourceAspectInterface* m_resourceAspect;
 	vx::MessageManager* m_msgManager;
 	
@@ -154,20 +152,18 @@ protected:
 	u16 addActorToBuffer(const vx::StringID &actorSid, const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material);
 	u16 getActorGpuIndex();
 
-	void createOpenCL();
+	RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) override;
 
 public:
 	RenderAspect();
 	virtual ~RenderAspect();
-
-	RenderAspectInitializeError initialize(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn) override;
 	void shutdown(void* hwnd) override;
 
 	bool initializeProfiler(Logfile* errorlog) override;
 
 	void makeCurrent(bool b) override;
 
-	void queueUpdateTask(const RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
+	void queueUpdate(RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
 	void queueUpdateCamera(const RenderUpdateCameraData &data) override;
 	void update() override;
 

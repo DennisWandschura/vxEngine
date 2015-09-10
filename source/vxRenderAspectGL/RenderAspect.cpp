@@ -388,41 +388,13 @@ void RenderAspect::createFrameBuffers()
 	}
 }
 
-void RenderAspect::createOpenCL()
-{
-	/*auto platformCount = cl::Platform::getPlatformCount();
-
-	auto platforms = vx::make_unique<cl::Platform[]>(platformCount);
-	cl::Platform::getPlatforms(platformCount, platforms.get());
-
-	auto &platform = platforms[0];
-	auto platformName = platform.getInfo(cl::PlatformInfo::Name);
-
-	auto deviceCount = cl::Device::getDeviceCount(platform, cl::DeviceType::Gpu);
-	cl::Device device;
-	cl::Device::getDevices(platform, cl::DeviceType::Gpu, 1, &device);
-
-	auto glcon = wglGetCurrentContext();
-
-	cl_context_properties properties[] =
-	{
-		CL_CONTEXT_PLATFORM, (cl_context_properties)platform.get(),
-		0
-	};
-
-	auto error = m_context.create(properties, 1, &device);*/
-}
-
-RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescription &desc, SignalHandlerFun signalHandlerFn)
+RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescription &desc)
 {
 	auto errorlog = desc.errorlog;
 	//m_projectionMatrix = MatrixPerspectiveFovRH(params.fovRad, screenAspect, params.nearZ, params.farZ);
 	auto screenAspect = (f32)desc.settings->m_resolution.x / (f32)desc.settings->m_resolution.y;
 	auto fovRad = vx::degToRad(desc.settings->m_fovDeg);
 	m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(fovRad, screenAspect, desc.settings->m_zNear, desc.settings->m_zFar);
-
-	if (!setSignalHandler(signalHandlerFn))
-		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	vx::gl::OpenGLDescription glDescription;
 	glDescription.bDebugMode = desc.settings->m_renderDebug;
@@ -567,8 +539,6 @@ RenderAspectInitializeError RenderAspect::initialize(const RenderAspectDescripti
 	volumetricRenderer->initialize(&m_allocator, errorlog, nullptr);
 	m_renderer.push_back(std::move(volumetricRenderer));
 
-	createOpenCL();
-
 	createFrame();
 
 	bindBuffers();
@@ -670,7 +640,7 @@ void RenderAspect::makeCurrent(bool b)
 	m_renderContext.makeCurrent(b);
 }
 
-void RenderAspect::queueUpdateTask(RenderUpdateTaskType type, const u8* data, u32 dataSize)
+void RenderAspect::queueUpdate(RenderUpdateTaskType type, const u8* data, u32 dataSize)
 {
 	vx::lock_guard<vx::mutex> lck(m_updateMutex);
 
@@ -766,7 +736,7 @@ void RenderAspect::processTasks()
 		case RenderUpdateTaskType::UpdateText:
 			taskUpdateText(p, &offset);
 			break;
-		case RenderUpdateTaskType::CreateActorGpuIndex:
+		/*case RenderUpdateTaskType::CreateActorGpuIndex:
 			taskCreateActorGpuIndex(p, &offset);
 			break;
 		case RenderUpdateTaskType::AddStaticMeshInstance:
@@ -783,7 +753,7 @@ void RenderAspect::processTasks()
 			break;
 		case RenderUpdateTaskType::ToggleRenderMode:
 			taskToggleRenderMode();
-			break;
+			break;*/
 		default:
 			VX_ASSERT(false);
 			break;
@@ -909,7 +879,7 @@ void RenderAspect::taskCreateActorGpuIndex(u8* p, u32* offset)
 	vx::Message e;
 	e.arg1.ptr = data;
 	e.code = (u32)IngameMessage::Gpu_AddedActor;
-	e.type = vx::MessageType::Ingame_Event;
+	e.type = vx::MessageType::Ingame;
 
 	m_msgManager->addMessage(e);
 
@@ -934,7 +904,7 @@ void RenderAspect::taskUpdateDynamicTransforms(u8* p, u32* offset)
 
 void RenderAspect::taskAddStaticMeshInstance(u8* p, u32* offset)
 {
-	RenderUpdateTaskAddStaticMeshData* data = (RenderUpdateTaskAddStaticMeshData*)p;
+	/*RenderUpdateTaskAddStaticMeshData* data = (RenderUpdateTaskAddStaticMeshData*)p;
 
 	auto &instance = *data->instance;
 
@@ -943,7 +913,7 @@ void RenderAspect::taskAddStaticMeshInstance(u8* p, u32* offset)
 
 	u32 gpuIndex = m_meshManager.addMeshInstance(instance, materialIndex, m_resourceAspect);
 
-	*offset += sizeof(RenderUpdateTaskAddStaticMeshData);
+	*offset += sizeof(RenderUpdateTaskAddStaticMeshData);*/
 }
 
 void RenderAspect::taskAddDynamicMeshInstance(u8* p, u32* offset)
@@ -964,7 +934,7 @@ void RenderAspect::taskAddDynamicMeshInstance(u8* p, u32* offset)
 
 	vx::Message e;
 	e.code = (u32)IngameMessage::Gpu_AddedDynamicMesh;
-	e.type = vx::MessageType::Ingame_Event;
+	e.type = vx::MessageType::Ingame;
 	e.arg1.ptr = data;
 
 	m_msgManager->addMessage(e);
@@ -1291,8 +1261,10 @@ void RenderAspect::handleMessage(const vx::Message &evt)
 {
 	switch (evt.type)
 	{
-	case(vx::MessageType::File_Event) :
+	case(vx::MessageType::File) :
 		handleFileMessage(evt);
+		break;
+	case(vx::MessageType::Renderer) :
 		break;
 	default:
 		break;
@@ -1307,7 +1279,7 @@ void RenderAspect::handleFileMessage(const vx::Message &evt)
 	{
 	case vx::FileMessage::Scene_Loaded:
 	{
-		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Queuing loading Scene into Render");
+		/*vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Queuing loading Scene into Render");
 		auto pScene = (Scene*)evt.arg2.ptr;
 
 		RenderUpdateTaskType type = RenderUpdateTaskType::LoadScene;
@@ -1316,7 +1288,7 @@ void RenderAspect::handleFileMessage(const vx::Message &evt)
 		data.ptr = pScene;
 		data.editor = false;
 
-		queueUpdateTask(type, (u8*)&data, sizeof(TaskLoadScene));
+		queueUpdateTask(type, (u8*)&data, sizeof(TaskLoadScene));*/
 	}break;
 	default:
 		break;

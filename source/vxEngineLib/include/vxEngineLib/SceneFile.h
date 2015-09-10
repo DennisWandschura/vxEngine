@@ -101,10 +101,6 @@ protected:
 	u32 m_waypointCount;
 	u32 m_jointCount;
 
-	//const u8* loadVersion4(const u8 *ptr, const u8* last, vx::Allocator* allocator);
-
-	//u64 getCrcVersion4() const;
-
 public:
 	explicit SceneFile(u32 version);
 	SceneFile(const SceneFile&) = delete;
