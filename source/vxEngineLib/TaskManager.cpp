@@ -298,7 +298,7 @@ namespace vx
 	{
 		m_running = running;
 
-		m_allocator = std::make_unique<SmallObjAllocator>(1024);
+		m_allocator = vx::aligned_ptr<SmallObjAllocator>(1024);
 		s_tid = 0;
 		Task::setAllocator(m_allocator.get());
 		Event::setAllocator(m_allocator.get());

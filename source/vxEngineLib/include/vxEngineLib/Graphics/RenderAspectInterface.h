@@ -29,6 +29,7 @@ struct EngineConfig;
 class ResourceAspectInterface;
 class FileAspectInterface;
 class Logfile;
+class SmallObjAllocator;
 
 namespace vx
 {
@@ -60,6 +61,7 @@ struct RenderAspectDescription
 	ResourceAspectInterface* resourceAspect;
 	vx::MessageManager* msgManager;
 	vx::TaskManager* taskManager;
+	SmallObjAllocator* smallObjAllocatorMainThread;
 };
 
 enum class RenderAspectInitializeError : s32 {OK = 0, ERROR_CONTEXT = -1, ERROR_OUT_OF_MEMORY = -2, ERROR_SHADER = -3, UNKOWN_ERROR = -4};
@@ -109,5 +111,5 @@ public:
 	virtual void getAvailableVRam(u32* availableVram) const = 0;
 };
 
-typedef RenderAspectInterface* (*CreateRenderAspectFunction)(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn, RenderAspectInitializeError* error);
+typedef RenderAspectInterface* (*CreateRenderAspectFunction)();
 typedef void(*DestroyRenderAspectFunction)(RenderAspectInterface *p);

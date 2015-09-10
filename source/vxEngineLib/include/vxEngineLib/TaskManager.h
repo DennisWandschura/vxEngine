@@ -25,6 +25,7 @@ SOFTWARE.
 */
 
 #include <vxEngineLib/Task.h>
+#include <vxEngineLib/memory.h>
 #include <vector>
 #include <mutex>
 #include <atomic>
@@ -50,7 +51,7 @@ namespace vx
 		std::thread* m_threads;
 		std::atomic_uint* m_running;
 		LocalQueue* m_queue;
-		std::unique_ptr<SmallObjAllocator> m_allocator;
+		vx::aligned_ptr<SmallObjAllocator> m_allocator;
 
 		void doWork();
 

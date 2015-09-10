@@ -62,3 +62,55 @@ typename std::enable_if<std::is_array<T>::value && std::extent<T>::value == 0,
 
 	return ptr;
 }
+
+namespace vx
+{
+	template<typename T>
+	class aligned_ptr
+	{
+		T* m_ptr;
+
+	public:
+		aligned_ptr() :m_ptr(nullptr) {}
+		aligned_ptr(const aligned_ptr&) = delete;
+		aligned_ptr(aligned_ptr &&rhs) :m_ptr(rhs.m_ptr) { rhs.m_ptr = nullptr; }
+
+		template<typename ...Args>
+		aligned_ptr(Args&& ...args)
+		{
+			m_ptr = (T*)_aligned_malloc(sizeof(T), __alignof(T));
+			new (m_ptr) T(std::forward<Args>(args)...);
+		}
+
+		~aligned_ptr()
+		{
+			if (m_ptr)
+			{
+				m_ptr->~T();
+				_aligned_free(m_ptr);
+				m_ptr = nullptr;
+			}
+		}
+
+		aligned_ptr& operator=(const aligned_ptr &) = delete;
+
+		aligned_ptr& operator=(aligned_ptr &&rhs)
+		{
+			if (this != &rhs)
+			{
+				this->swap(rhs);
+			}
+			return *this;
+		}
+
+		void swap(aligned_ptr &other)
+		{
+			auto tmp = m_ptr;
+			m_ptr = other.m_ptr;
+			other.m_ptr = tmp;
+		}
+
+		T* get() { return m_ptr; }
+		const T* get() const { return m_ptr; }
+	};
+}

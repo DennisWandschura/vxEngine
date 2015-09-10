@@ -61,7 +61,7 @@ public:
 
 			for (auto &it : s_allocators)
 			{
-				if (it->deallocate((u8*)p, static_cast<u32>(size)))
+				if (it != s_allocator && it->deallocate((u8*)p, static_cast<u32>(size)))
 				{
 					found = true;
 					break;

@@ -79,7 +79,7 @@ public:
 	u16 getBlockSize() const { return m_blockSize; }
 };
 
-class SmallObjAllocator
+class VX_ALIGN(64) SmallObjAllocator
 {
 	static const u16 s_maxObjSize = 0xffffu;
 

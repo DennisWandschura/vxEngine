@@ -78,5 +78,5 @@ namespace Editor
 	};
 }
 
-typedef Editor::RenderAspectInterface* (*CreateEditorRenderAspectFunction)(const RenderAspectDescription &desc, AbortSignalHandlerFun signalHandlerFn, RenderAspectInitializeError* error);
+typedef Editor::RenderAspectInterface* (*CreateEditorRenderAspectFunction)();
 typedef void(*DestroyEditorRenderAspectFunction)(Editor::RenderAspectInterface *p);
