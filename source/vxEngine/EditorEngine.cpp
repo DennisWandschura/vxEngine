@@ -714,14 +714,9 @@ void EditorEngine::setMeshInstancePosition(u64 sid, const vx::float3 &p)
 	if (m_pEditorScene)
 	{
 		auto instanceSid = vx::StringID(sid);
+		m_pEditorScene->setMeshInstancePosition(instanceSid, p);
 		auto instance = m_pEditorScene->getMeshInstance(instanceSid);
-
-		instance->setTranslation(p);
-
 		auto transform = instance->getTransform();
-
-		auto mesh = m_pEditorScene->getMesh(instance->getMeshSid());
-		instance->setBounds(mesh->getMesh());
 
 		m_renderAspect->setSelectedMeshInstanceTransform(transform);
 		m_physicsAspect.editorSetStaticMeshInstanceTransform(instance->getMeshInstance(), instanceSid);
@@ -732,9 +727,6 @@ void EditorEngine::setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDe
 {
 	if (m_pEditorScene)
 	{
-		auto instanceSid = vx::StringID(sid);
-		auto instance = m_pEditorScene->getMeshInstance(instanceSid);
-
 		auto rotation = vx::degToRad(rotationDeg);
 		auto r = vx::loadFloat3(rotation);
 
@@ -742,14 +734,14 @@ void EditorEngine::setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDe
 
 		vx::float4 tmp;
 		vx::storeFloat4(&tmp, q);
-		instance->setRotation(tmp);
+		
+		auto instanceSid = vx::StringID(sid);
+		m_pEditorScene->setMeshInstanceRotation(instanceSid, tmp);
 
+		auto instance = m_pEditorScene->getMeshInstance(instanceSid);
 		auto transform = instance->getTransform();
 
 		m_renderAspect->setSelectedMeshInstanceTransform(transform);
-		auto mesh = m_pEditorScene->getMesh(instance->getMeshSid());
-		instance->setBounds(mesh->getMesh());
-
 		m_physicsAspect.editorSetStaticMeshInstanceTransform(instance->getMeshInstance(), instanceSid);
 	}
 }

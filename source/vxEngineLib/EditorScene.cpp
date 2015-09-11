@@ -36,6 +36,30 @@ SOFTWARE.
 namespace EditorSceneCpp
 {
 	const u32 g_invalidId = 0xffffffff;
+
+	void computeBounds(const vx::Mesh &mesh, const vx::Transform &transform, AABB* bounds)
+	{
+		auto vertexCount = mesh.getVertexCount();
+		auto vertices = mesh.getVertices();
+
+		auto qRotation = vx::loadFloat4(transform.m_qRotation);
+		auto translation = vx::loadFloat3(transform.m_translation);
+
+		bounds->max = vx::float3(-FLT_MAX);
+		bounds->min = vx::float3(FLT_MAX);
+		for (auto i = 0u; i < vertexCount; ++i)
+		{
+			auto p = vx::loadFloat3(vertices[i].position);
+			p = vx::quaternionRotation(p, qRotation);
+			p = _mm_add_ps(p, translation);
+
+			vx::float3 tmp;
+			vx::storeFloat3(&tmp, p);
+
+			bounds->max = vx::max(bounds->max, tmp);
+			bounds->min = vx::min(bounds->min, tmp);
+		}
+	}
 }
 
 namespace Editor
@@ -421,7 +445,7 @@ namespace Editor
 
 	vx::StringID Scene::createMeshInstance()
 	{
-		if (m_meshes.empty())
+		if (m_meshes.empty() || m_materials.empty())
 			return vx::StringID();
 
 		std::string instanceName = "instance" + std::to_string(m_meshInstances.size());
@@ -430,22 +454,19 @@ namespace Editor
 		auto meshSid = *m_meshes.keys();
 		auto material = m_materials[0];
 
-		auto &mesh = m_meshes[0];
-		auto vertexCount = mesh->getMesh().getVertexCount();
-		auto vertices = mesh->getMesh().getVertices();
+		auto meshFile = m_meshes[0];
 
+		vx::Transform transform;
 		AABB bounds;
-		for (auto i = 0u; i < vertexCount; ++i)
-		{
-			bounds.max = vx::max(bounds.max, vertices[i].position);
-			bounds.min = vx::min(bounds.min, vertices[i].position);
-		}
+		::EditorSceneCpp::computeBounds(meshFile->getMesh(), transform, &bounds);
 
 		MeshInstanceDesc desc;
+		memset(&desc, 0, sizeof(MeshInstanceDesc));
 		desc.nameSid = nameSid;
 		desc.meshSid = meshSid;
 		desc.material = material;
 		desc.bounds = bounds;
+		desc.transform = transform;
 		desc.rigidBodyType = PhysxRigidBodyType::Static;
 
 		::MeshInstance instance(desc);
@@ -526,6 +547,40 @@ namespace Editor
 	const vx::sorted_vector<vx::StringID, MeshInstance>& Scene::getSortedMeshInstances() const
 	{
 		return m_meshInstances;
+	}
+
+	void Scene::setMeshInstancePosition(const vx::StringID &sid, const vx::float3 &p)
+	{
+		auto instance = getMeshInstance(sid);
+		if (instance)
+		{
+			instance->setTranslation(p);
+			auto meshSid = instance->getMeshSid();
+			auto meshFile = getMesh(meshSid);
+			auto transform = instance->getTransform();
+
+			AABB bounds;
+			::EditorSceneCpp::computeBounds(meshFile->getMesh(), transform, &bounds);
+
+			instance->setBounds(bounds);
+		}
+	}
+
+	void Scene::setMeshInstanceRotation(const vx::StringID &sid, const vx::float4 &q)
+	{
+		auto instance = getMeshInstance(sid);
+		if (instance)
+		{
+			instance->setRotation(q);
+			auto meshSid = instance->getMeshSid();
+			auto meshFile = getMesh(meshSid);
+			auto transform = instance->getTransform();
+
+			AABB bounds;
+			::EditorSceneCpp::computeBounds(meshFile->getMesh(), transform, &bounds);
+
+			instance->setBounds(bounds);
+		}
 	}
 
 	void Scene::addSpawn(Spawn &&newSpawn)

@@ -29,10 +29,25 @@ SOFTWARE.
 #include <vxLib/File/FileHandle.h>
 #include <vxEngineLib/SmallObject.h>
 #include <vxEngineLib/Logfile.h>
+#include <csignal>
 
 #ifdef _VX_EDITOR
 namespace Editor
 {
+	void signalHandler(int signal)
+	{
+		if (signal == SIGABRT)
+		{
+			puts("SIGABRT received");
+			//shutdown();
+		}
+		else
+		{
+			printf("Unexpected signal %d  received\n", signal);
+		}
+		std::exit(EXIT_FAILURE);
+	}
+
 	struct Editor
 	{
 		//Timer clock;
@@ -49,7 +64,7 @@ namespace Editor
 
 	Editor* g_pEditor{ nullptr };
 	void* g_pMemory{ nullptr };
-	SmallObjAllocator* g_alloc{nullptr};
+	vx::aligned_ptr<SmallObjAllocator> g_alloc{};
 	LARGE_INTEGER g_last{};
 	f64 g_invFrequency{ 1.0 };
 	const u32 g_hz = 40u;
@@ -84,14 +99,14 @@ namespace Editor
 
 		auto pEditor = new(g_pMemory)Editor();
 
-		g_alloc = new SmallObjAllocator(1 KBYTE);
-		SmallObject::setAllocator(g_alloc);
-		Task::setAllocator(g_alloc);
-		Event::setAllocator(g_alloc);
+		g_alloc = vx::aligned_ptr<SmallObjAllocator>(1 KBYTE);
+		SmallObject::setAllocator(g_alloc.get());
+		Task::setAllocator(g_alloc.get());
+		Event::setAllocator(g_alloc.get());
 
 		//pEditor->logfile.create("editor_log.xml");
 		pEditor->logfile.create("log.txt");
-		if (!pEditor->engine.initializeEditor((HWND)hwndPanel, (HWND)hwndTmp, vx::uint2(panelSizeX, panelSizeY), &pEditor->scene, &pEditor->logfile))
+		if (!pEditor->engine.initializeEditor((HWND)hwndPanel, (HWND)hwndTmp, vx::uint2(panelSizeX, panelSizeY), signalHandler, &pEditor->scene, &pEditor->logfile))
 			return false;
 
 		g_pEditor = pEditor;
@@ -118,10 +133,9 @@ namespace Editor
 			g_pEditor->logfile.close();
 		}
 
-		if (g_alloc)
+		if (g_alloc.get())
 		{
-			delete(g_alloc);
-			g_alloc = nullptr;
+			g_alloc.reset();
 			Task::setAllocator(nullptr);
 			Event::setAllocator(nullptr);
 		}

@@ -109,6 +109,7 @@ namespace Converter
 				auto instanceAnimationName = scene.getAnimationName(it.getAnimationSid());
 
 				MeshInstanceFileV8Desc desc;
+				memset(&desc, 0, sizeof(desc));
 
 				if (instanceMeshName)
 				{

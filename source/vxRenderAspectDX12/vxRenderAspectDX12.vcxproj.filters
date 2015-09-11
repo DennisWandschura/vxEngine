@@ -79,6 +79,9 @@
     <Filter Include="Shaders\shading">
       <UniqueIdentifier>{4485ffa2-6b42-4005-a754-ea11f94d8c76}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\ssil">
+      <UniqueIdentifier>{25fa0de8-ee85-49e4-b4b0-ebf682f09c35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -273,6 +276,9 @@
     <ClInclude Include="DownloadMananger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RenderPassSSIL.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -398,6 +404,9 @@
     <ClCompile Include="DownloadManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RenderPassSSIL.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -504,6 +513,9 @@
     </FxCompile>
     <FxCompile Include="ShadeGS.hlsl">
       <Filter>Shaders\shading</Filter>
+    </FxCompile>
+    <FxCompile Include="SsilPS.hlsl">
+      <Filter>Shaders\ssil</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

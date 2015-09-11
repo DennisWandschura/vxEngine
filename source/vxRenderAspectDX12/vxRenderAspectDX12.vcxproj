@@ -187,6 +187,7 @@
     <ClInclude Include="RenderPassRadiosity.h" />
     <ClInclude Include="RenderPassShading.h" />
     <ClInclude Include="RenderPassShadow.h" />
+    <ClInclude Include="RenderPassSSIL.h" />
     <ClInclude Include="RenderPassVisibleLights.h" />
     <ClInclude Include="RenderPassVoxelize.h" />
     <ClInclude Include="RenderPassVoxelMip.h" />
@@ -238,6 +239,7 @@
     <ClCompile Include="RenderPassRadiosity.cpp" />
     <ClCompile Include="RenderPassShading.cpp" />
     <ClCompile Include="RenderPassShadow.cpp" />
+    <ClCompile Include="RenderPassSSIL.cpp" />
     <ClCompile Include="RenderPassVisibleLights.cpp" />
     <ClCompile Include="RenderPassVoxelize.cpp" />
     <ClCompile Include="RenderPassVoxelMip.cpp" />
@@ -413,6 +415,11 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="SsilPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="TextPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>

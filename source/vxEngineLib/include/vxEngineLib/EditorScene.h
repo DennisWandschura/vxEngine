@@ -130,6 +130,8 @@ namespace Editor
 		const MeshInstance* getMeshInstancesEditor() const;
 		u32 getMeshInstanceCount() const override;
 		const vx::sorted_vector<vx::StringID, MeshInstance>& getSortedMeshInstances() const;
+		void setMeshInstancePosition(const vx::StringID &sid, const vx::float3 &p);
+		void setMeshInstanceRotation(const vx::StringID &sid, const vx::float4 &q);
 
 		const char* getMeshInstanceName(const vx::StringID &sid) const;
 		const char* getMaterialName(const vx::StringID &sid) const;

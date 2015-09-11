@@ -28,6 +28,7 @@
 #include "Device.h"
 #include "CopyManager.h"
 #include "RenderPassCullLights.h"
+#include "RenderPassSSIL.h"
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
@@ -99,6 +100,7 @@ void RenderLayerGame::createRenderPasses()
 	m_lightManager.setRenderPassShading(renderPassShading.get());
 	pushRenderPass(std::move(renderPassShading));
 
+	pushRenderPass(std::make_unique<RenderPassSSIL>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
 }
 

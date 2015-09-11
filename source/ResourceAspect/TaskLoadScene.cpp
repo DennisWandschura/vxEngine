@@ -200,6 +200,7 @@ TaskReturnType TaskLoadScene::runImpl()
 
 		for (auto &it : missingFiles)
 		{
+			//printf("missing files %u\n", missingFiles.size());
 			auto type = it.getType();
 			switch (type)
 			{

@@ -67,7 +67,7 @@ SOFTWARE.
 
 #ifdef _PHYSX_CHECKED
 #pragma comment(lib, "PhysX3ExtensionsCHECKED.lib")
-#pragma comment(lib, "PhysXVisualDebuggerSDKCHECKED.lib")
+//#pragma comment(lib, "PhysXVisualDebuggerSDKCHECKED.lib")
 #else
 #endif
 

@@ -46,6 +46,7 @@ bool TaskLoadFile::loadFromFile(managed_ptr<u8[]>* outPtr, u32* outFileSize)
 	if (!f.open(m_fileNameWithPath.c_str(), vx::FileAccess::Read))
 	{
 		//LOG_ERROR_ARGS(m_logfile, "Error opening file '%s'\n", false, file);
+		printf("ERROR TaskLoadFile::loadFromFile opening file %s\n", m_fileNameWithPath.c_str());
 		return false;
 	}
 

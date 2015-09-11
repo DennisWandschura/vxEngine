@@ -26,7 +26,6 @@ SOFTWARE.
 namespace physx
 {
 	class PxFoundation;
-	class PxProfileZoneManager;
 	class PxPhysics;
 	class PxScene;
 	class PxDefaultCpuDispatcher;
@@ -41,16 +40,6 @@ namespace physx
 	class PxJoint;
 	class PxRigidActor;
 	struct PxQueryFilterData;
-
-	namespace debugger
-	{
-		namespace comm
-		{
-			class PvdConnection;
-		}
-	}
-
-	typedef debugger::comm::PvdConnection PxVisualDebuggerConnection;
 }
 
 namespace vx
@@ -128,7 +117,6 @@ protected:
 	physx::PxDefaultCpuDispatcher* m_pCpuDispatcher;
 	physx::PxCooking* m_pCooking;
 	MyHitReportCallback* m_callback;
-	physx::PxVisualDebuggerConnection* m_connection;
 	MySimulationCallback* m_mySimCallback;
 
 	physx::PxTriangleMesh* processTriangleMesh(const vx::MeshFile &mesh);

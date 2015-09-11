@@ -84,12 +84,7 @@ namespace vx
 
 		~aligned_ptr()
 		{
-			if (m_ptr)
-			{
-				m_ptr->~T();
-				_aligned_free(m_ptr);
-				m_ptr = nullptr;
-			}
+			reset();
 		}
 
 		aligned_ptr& operator=(const aligned_ptr &) = delete;
@@ -101,6 +96,16 @@ namespace vx
 				this->swap(rhs);
 			}
 			return *this;
+		}
+
+		void reset()
+		{
+			if (m_ptr)
+			{
+				m_ptr->~T();
+				_aligned_free(m_ptr);
+				m_ptr = nullptr;
+			}
 		}
 
 		void swap(aligned_ptr &other)
