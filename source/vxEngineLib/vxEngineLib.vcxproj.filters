@@ -186,12 +186,6 @@
     <ClInclude Include="include\vxEngineLib\PhysxEnums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\ConverterSceneFileV5.h">
-      <Filter>Header Files\Converter</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\ConverterSceneFileV6.h">
-      <Filter>Header Files\Converter</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\Task.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -254,9 +248,6 @@
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\AudioAspectInterface.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ConverterSceneFileV7.h">
-      <Filter>Header Files\Converter</Filter>
     </ClInclude>
     <ClInclude Include="ConverterSceneFileV8.h">
       <Filter>Header Files\Converter</Filter>
@@ -383,12 +374,6 @@
     <ClCompile Include="Graphics\TextureFactory.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="ConverterSceneFileV5.cpp">
-      <Filter>Source Files\Converter</Filter>
-    </ClCompile>
-    <ClCompile Include="ConverterSceneFileV6.cpp">
-      <Filter>Source Files\Converter</Filter>
-    </ClCompile>
     <ClCompile Include="TaskManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -419,17 +404,8 @@
     <ClCompile Include="Logfile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MeshInstanceFileV4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MeshInstanceFileV8.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshInstanceFileV5.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ConverterSceneFileV7.cpp">
-      <Filter>Source Files\Converter</Filter>
     </ClCompile>
     <ClCompile Include="ConverterSceneFileV8.cpp">
       <Filter>Source Files\Converter</Filter>

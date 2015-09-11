@@ -1,5 +1,4 @@
 #pragma once
-
 /*
 The MIT License (MIT)
 
@@ -24,22 +23,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace vx
-{
-	class Allocator;
-}
-
-class SceneFile;
-
 #include <vxLib/types.h>
 
-namespace Converter
+class Timer
 {
-	class SceneFileV6
-	{
-	public:
-		static const u8* loadFromMemory(const u8 *ptr, const u8* last, vx::Allocator* allocator, SceneFile* sceneFile);
+	static u64 s_frequency;
 
-		static u64 getCrc(const SceneFile &sceneFile);
-	};
-}
+	u64 m_startTime;
+
+public:
+	Timer();
+	Timer(const Timer &rhs);
+	Timer(Timer &&rhs);
+
+	void reset();
+
+	u64 getTime() const;
+	f32 getTimeInMs() const;
+
+	static u64 getFrequency();
+};

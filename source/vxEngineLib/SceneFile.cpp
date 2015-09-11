@@ -39,9 +39,6 @@ SOFTWARE.
 #include <vxLib/File/FileHandle.h>
 #include <vxEngineLib/Animation.h>
 #include <vxEngineLib/Joint.h>
-#include <vxEngineLib/ConverterSceneFileV5.h>
-#include <vxEngineLib/ConverterSceneFileV6.h>
-#include "ConverterSceneFileV7.h"
 #include "ConverterSceneFileV8.h"
 
 SceneFile::SceneFile(u32 version)
@@ -111,20 +108,7 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allo
 	auto last = ptr + size;
 
 	const u8* result = nullptr;
-
-	if (version == 5)
-	{
-		result = Converter::SceneFileV5::loadFromMemory(ptr, last, allocator, this);
-	}
-	else if (version == 6)
-	{
-		result = Converter::SceneFileV6::loadFromMemory(ptr, last, allocator, this);
-	}
-	else if (version == 7)
-	{
-		result = Converter::SceneFileV7::loadFromMemory(ptr, last, allocator, this);
-	}
-	else if (version == 8)
+	if (version == 8)
 	{
 		result = Converter::SceneFileV8::loadFromMemory(ptr, last, allocator, this);
 	}
@@ -161,15 +145,6 @@ u64 SceneFile::getCrc(u32 version) const
 
 	switch (version)
 	{
-	case 5:
-		crc = Converter::SceneFileV5::getCrc(*this);
-		break;
-	case 6:
-		crc = Converter::SceneFileV6::getCrc(*this);
-		break;
-	case 7:
-		crc = Converter::SceneFileV7::getCrc(*this);
-		break;
 	case 8:
 		crc = Converter::SceneFileV8::getCrc(*this);
 		break;

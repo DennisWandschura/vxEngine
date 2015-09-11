@@ -53,23 +53,3 @@ MeshInstanceFileV8::MeshInstanceFileV8(const MeshInstanceFileV8Desc &desc)
 	strncpy(m_animation, desc.animationName, 32);
 	memset(m_padding, 0, sizeof(m_padding));
 }
-
-void MeshInstanceFileV8::convert(const MeshInstanceFileV4 &rhs)
-{
-	strcpy_s(m_name, rhs.getName());
-	strcpy_s(m_mesh, rhs.getMeshFile());
-	strcpy_s(m_material, rhs.getMaterialFile());
-	strcpy_s(m_animation, rhs.getAnimation());
-	m_transform = rhs.getTransform();
-}
-
-void MeshInstanceFileV8::convert(const MeshInstanceFileV5 &rhs)
-{
-	strncpy(m_name, rhs.m_name, 32);
-	strncpy(m_mesh, rhs.m_mesh, 32);
-	strncpy(m_material, rhs.m_material, 32);
-	strncpy(m_animation, rhs.m_animation, 32);
-	m_transform = rhs.m_transform;
-	m_rigidBodyType = rhs.m_rigidBodyType;
-	memcpy(m_padding, rhs.m_padding, sizeof(m_padding));
-}

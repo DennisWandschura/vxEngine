@@ -28,65 +28,6 @@ SOFTWARE.
 #include "Transform.h"
 #include "AABB.h"
 
-class MeshInstanceFileV8;
-
-class MeshInstanceFileV4
-{
-	using Buffer = char[32];
-
-	Buffer m_name;
-	Buffer m_mesh;
-	Buffer m_material;
-	Buffer m_animation;
-	vx::Transform m_transform;
-
-public:
-	MeshInstanceFileV4();
-	MeshInstanceFileV4(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform);
-
-	void convert(const MeshInstanceFileV8 &rhs);
-
-	const char* getName() const noexcept{ return m_name; }
-	const char* getMeshFile() const noexcept{ return m_mesh; }
-	const char* getMaterialFile() const noexcept{ return m_material; }
-	const char* getAnimation() const noexcept{ return m_animation; }
-	const vx::Transform& getTransform() const noexcept{ return m_transform; }
-};
-
-class MeshInstanceFileV5
-{
-	friend MeshInstanceFileV8;
-
-	using Buffer = char[32];
-
-	Buffer m_name;
-	Buffer m_mesh;
-	Buffer m_material;
-	Buffer m_animation;
-	vx::Transform m_transform;
-	PhysxRigidBodyType m_rigidBodyType;
-	u8 m_padding[3];
-
-public:
-	MeshInstanceFileV5();
-	MeshInstanceFileV5(const MeshInstanceFileV5 &);
-	MeshInstanceFileV5(MeshInstanceFileV5 &&);
-	MeshInstanceFileV5(const char(&instanceName)[32], const char(&meshName)[32], const char(&materialName)[32], const char(&animationName)[32], const vx::Transform &transform, PhysxRigidBodyType rigidBodyType);
-	~MeshInstanceFileV5();
-
-	MeshInstanceFileV5& operator=(const MeshInstanceFileV5 &rhs);
-
-	void convert(const MeshInstanceFileV4 &rhs);
-	void convert(const MeshInstanceFileV8 &rhs);
-
-	const char* getName() const noexcept{ return m_name; }
-	const char* getMeshFile() const noexcept{ return m_mesh; }
-	const char* getMaterialFile() const noexcept{ return m_material; }
-	const char* getAnimation() const noexcept{ return m_animation; }
-	const vx::Transform& getTransform() const noexcept{ return m_transform; }
-	PhysxRigidBodyType getRigidBodyType() const { return m_rigidBodyType; }
-};
-
 struct MeshInstanceFileV8Desc
 {
 	char instanceName[32];
@@ -100,8 +41,6 @@ struct MeshInstanceFileV8Desc
 
 class MeshInstanceFileV8
 {
-	friend MeshInstanceFileV5;
-
 	using Buffer = char[32];
 
 	Buffer m_name;
@@ -116,9 +55,6 @@ class MeshInstanceFileV8
 public:
 	MeshInstanceFileV8();
 	explicit MeshInstanceFileV8(const MeshInstanceFileV8Desc &desc);
-
-	void convert(const MeshInstanceFileV4 &rhs);
-	void convert(const MeshInstanceFileV5 &rhs);
 
 	const char* getName() const noexcept { return m_name; }
 	const char* getMeshFile() const noexcept { return m_mesh; }
