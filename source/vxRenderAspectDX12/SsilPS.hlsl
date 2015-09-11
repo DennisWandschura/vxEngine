@@ -65,7 +65,7 @@ float2 tapLocation(int sampleNumber, float spinAngle, float radialJitter, out fl
 	return float2(cos(angle), sin(angle));
 }
 
-void sampleDirectLightning(in int2 texelPos, in float3 position, in float3 normal, inout float3 irradianceSum)
+void sampleDirectLightning(in int2 texelPos, in float3 position, in float3 normal, inout float3 irradianceSum, inout int numSamplesUsed)
 {
 	float3 currentPosition = getPosition(texelPos);
 	float3 currentNormal = sampleNormal(texelPos, 0);
@@ -74,20 +74,21 @@ void sampleDirectLightning(in int2 texelPos, in float3 position, in float3 norma
 	float3 w_i = normalize(YminusX);
 
 	float iDotN = clamp(dot(w_i, normal), 0, 1);
+	numSamplesUsed += (iDotN == 0.0) ? 0 : 1;
 
 	float4 directLight = g_directLightning.Load(int3(texelPos, 0));
 
 	irradianceSum += directLight.rgb * iDotN;
 }
 
-void sampleIndirectLight(float ssDiskRadius, int tapIndex, float randomPatternRotationAngle, float radialJitter, in int2 texel, in float3 position, in float3 normal, inout float3 irradianceSum)
+void sampleIndirectLight(float ssDiskRadius, int tapIndex, float randomPatternRotationAngle, float radialJitter, in int2 texel, in float3 position, in float3 normal, inout float3 irradianceSum, inout int numSamplesUsed)
 {
 	float ssR;
 	float2 unitOffset = tapLocation(tapIndex, randomPatternRotationAngle, radialJitter, ssR);
 
 	ssR *= ssDiskRadius;
 	int2 ssP = int2(ssR * unitOffset) + texel;
-	sampleDirectLightning(ssP, position, normal, irradianceSum);
+	sampleDirectLightning(ssP, position, normal, irradianceSum, numSamplesUsed);
 }
 
 float4 main(GSOutput input) : SV_TARGET
@@ -105,14 +106,16 @@ float4 main(GSOutput input) : SV_TARGET
 
 	float ssDiskRadius = projScale * radius / vsPosition.z;
 
+	int numSamplesUsed = 0;
 	float3 irradianceSum = 0;
 	for (int i = 0; i < NUM_SAMPLES; ++i)
 	{
-		sampleIndirectLight(ssDiskRadius, i, randomPatternRotationAngle, radialJitter, texel, vsPosition, vsNormal, irradianceSum);
+		sampleIndirectLight(ssDiskRadius, i, randomPatternRotationAngle, radialJitter, texel, vsPosition, vsNormal, irradianceSum, numSamplesUsed);
 	}
 
 	const float solidAngleHemisphere = 2 * g_PI;
-	float3 E_X = irradianceSum * solidAngleHemisphere / (NUM_SAMPLES + 0.00001);
+	float3 E_X = irradianceSum * solidAngleHemisphere / (numSamplesUsed + 0.00001);
+	float confidence = float(numSamplesUsed) / float(NUM_SAMPLES);
 
-	return float4(E_X, 1.0f);
+	return float4(E_X, confidence);
 }

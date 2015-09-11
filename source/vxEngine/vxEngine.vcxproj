@@ -77,8 +77,8 @@
     <OutDir>..\..\game\bin\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
-    <IncludePath>..\..\..\PhysX-3.3.2\Include;..\ResourceAspect\include;..\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\lib;..\..\..\PhysX-3.3.2\Lib\vc14win64;../../../vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\..\PhysX-3.3\PhysXSDK\Include;..\ResourceAspect\include;..\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\lib;..\..\..\PhysX-3.3\PhysXSDK\Lib\vc14win64;../../../vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">
@@ -93,8 +93,8 @@
     <OutDir>..\..\lib\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>..\ResourceAspect\include;..\..\..\PhysX-3.3.2\Include;..\..\..\vxLib\include;..\vxEngineLib\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\lib;..\..\..\PhysX-3.3.2\Lib\vc14win64;..\..\..\vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\..\PhysX-3.3\PhysXSDK\Include;..\ResourceAspect\include;..\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\lib;..\..\..\PhysX-3.3\PhysXSDK\Lib\vc14win64;../../../vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\..\..\PhysX-3.3.2\Include;..\ResourceAspect\include;..\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>

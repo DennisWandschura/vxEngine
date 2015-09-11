@@ -190,7 +190,8 @@ PhysicsAspect::PhysicsAspect()
 	m_pCpuDispatcher(nullptr),
 	m_pCooking(nullptr),
 	m_callback(nullptr),
-	m_mySimCallback(nullptr)
+	m_mySimCallback(nullptr),
+	m_connection(nullptr)
 {
 	m_flag.store(0);
 	m_currentWriterTid.store(0);
@@ -257,6 +258,19 @@ bool PhysicsAspect::initialize(vx::TaskManager* taskManager)
 		return false;
 	}
 
+	auto pvd = m_pPhysics->getPvdConnectionManager();
+	if (pvd)
+	{
+		// setup connection parameters
+		const char*     pvd_host_ip = "127.0.0.1";  // IP of the PC which is running PVD
+		int             port = 5425;         // TCP port to connect to, where PVD is listening
+		unsigned int    timeout = 100;          // timeout in milliseconds to wait for PVD to respond,
+												// consoles and remote PCs need a higher timeout.
+		physx::PxVisualDebuggerConnectionFlags connectionFlags = physx::PxVisualDebuggerExt::getAllConnectionFlags();
+		m_connection = physx::PxVisualDebuggerExt::createConnection(pvd,
+			pvd_host_ip, port, timeout, connectionFlags);
+	}
+
 	m_pActorMaterial = m_pPhysics->createMaterial(1, 1, 0.1f);
 
 	m_pControllerManager = PxCreateControllerManager(*m_pScene);
@@ -276,6 +290,13 @@ void PhysicsAspect::shutdown()
 	}
 
 	m_joints.clear();
+
+	if (m_connection)
+	{
+		m_connection->disconnect();
+		m_connection->release();
+		m_connection = nullptr;
+	}
 
 	if (m_pControllerManager)
 	{
