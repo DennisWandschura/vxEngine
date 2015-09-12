@@ -97,8 +97,8 @@
     <LibraryPath>..\..\lib;..\..\..\PhysX-3.3\PhysXSDK\Lib\vc14win64;../../../vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\..\..\PhysX-3.3.2\Include;..\ResourceAspect\include;..\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\lib;..\..\..\PhysX-3.3.2\Lib\vc14win64;../../../vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\..\PhysX-3.3\PhysXSDK\Include;..\ResourceAspect\include;..\vxEngineLib\include;..\..\..\vxLib\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\lib;..\..\..\PhysX-3.3\PhysXSDK\Lib\vc14win64;../../../vxLib\lib\vs14;$(LibraryPath)</LibraryPath>
     <OutDir>..\..\game\bin\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <ExtensionsToDeleteOnClean>$(ExtensionsToDeleteOnClean)</ExtensionsToDeleteOnClean>
