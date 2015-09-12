@@ -50,6 +50,7 @@ class LightManager
 	ShadowTransform* m_sceneShadowTransforms;
 	__m128* m_sceneLightBounds;
 	GpuLight* m_gpuLights;
+	ShadowTransform* m_gpuShadowTransforms;
 	u32 m_sceneLightCount;
 	u32 m_maxLightCount;
 	u32 m_maxShadowCastingLights;
@@ -64,6 +65,7 @@ class LightManager
 	vx::StackAllocator m_scratchAllocator;
 
 	void createSrvLights(u32 maxCount, d3d::ResourceManager* resourceManager);
+	void createSrvShadowCastingLights(u32 maxCount, d3d::ResourceManager* resourceManager);
 
 public:
 	LightManager();

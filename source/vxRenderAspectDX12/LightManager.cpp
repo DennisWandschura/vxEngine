@@ -9,6 +9,7 @@
 #include "RenderPassShading.h"
 #include "UploadManager.h"
 #include <vxEngineLib/AABB.h>
+#include "RenderPassShadow.h"
 
 enum FrustumPlane { FrustumPlaneNear, FrustumPlaneLeft, FrustumPlaneRight };
 
@@ -132,11 +133,29 @@ void LightManager::createSrvLights(u32 maxCount, d3d::ResourceManager* resourceM
 	resourceManager->insertShaderResourceView("lightBufferView", srvDesc);
 }
 
+void LightManager::createSrvShadowCastingLights(u32 maxCount, d3d::ResourceManager* resourceManager)
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	srvDesc.Buffer.NumElements = maxCount;
+	srvDesc.Buffer.StructureByteStride = sizeof(GpuLight);
+
+	resourceManager->insertShaderResourceView("shadowCastingLightsBufferView", srvDesc);
+
+	srvDesc.Buffer.StructureByteStride = sizeof(ShadowTransform);
+	resourceManager->insertShaderResourceView("shadowTransformBufferView", srvDesc);
+}
+
 bool LightManager::initialize(vx::StackAllocator* allocator, u32 maxLightCount, u32 maxShadowCastingLights, d3d::ResourceManager* resourceManager)
 {
 	m_gpuLights = (GpuLight*)allocator->allocate(sizeof(GpuLight) * maxLightCount, 16);
 	m_sceneLights = (GpuLight*)allocator->allocate(sizeof(GpuLight) * maxLightCount, 16);
-	m_sceneShadowTransforms = (ShadowTransform*)allocator->allocate(sizeof(ShadowTransform) * maxLightCount, 16);
+	m_sceneShadowTransforms = (ShadowTransform*)allocator->allocate(sizeof(ShadowTransform) * maxLightCount, __alignof(ShadowTransform));
+	m_gpuShadowTransforms = (ShadowTransform*)allocator->allocate(sizeof(ShadowTransform) * maxLightCount, __alignof(ShadowTransform));
 	m_sceneLightBounds = (__m128*)allocator->allocate(sizeof(__m128) * maxLightCount, 16);
 
 	m_visibleLightsResult = (u32*)allocator->allocate(sizeof(u32) * maxLightCount, 4);
@@ -165,6 +184,7 @@ bool LightManager::initialize(vx::StackAllocator* allocator, u32 maxLightCount, 
 		return false;
 
 	createSrvLights(maxLightCount, resourceManager);
+	createSrvShadowCastingLights(maxShadowCastingLights, resourceManager);
 
 	m_maxShadowCastingLights = maxShadowCastingLights;
 	m_maxLightCount = maxLightCount;
@@ -203,14 +223,14 @@ bool LightManager::loadSceneLights(const Light* lights, u32 count, ID3D12Device*
 	if (!m_drawCommand.create(L"drawCmdShadow", 64, resourceManager, device))
 		return false;
 
-	auto shadowTransformBuffer = resourceManager->getBuffer(L"shadowTransformBuffer");
+	/*auto shadowTransformBuffer = resourceManager->getBuffer(L"shadowTransformBuffer");
 	uploadManager->pushUploadBuffer((u8*)&m_sceneShadowTransforms[0], shadowTransformBuffer->get(), 0, sizeof(ShadowTransform), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 	auto shadowCastingLightsBuffer = resourceManager->getBuffer(L"shadowCastingLightsBuffer");
 	auto sizeInBytes = sizeof(GpuLight) * count;
 	uploadManager->pushUploadBuffer((u8*)m_sceneLights, shadowCastingLightsBuffer->get(), 0, sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-	m_renderPassShading->setLightCount(count);
+	m_renderPassShading->setLightCount(count);*/
 
 	return true;
 }
@@ -242,19 +262,56 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 
 			auto marker = m_scratchAllocator.getMarker();
 			auto visibleLights = (GpuLight*)m_scratchAllocator.allocate(sizeof(GpuLight) * m_resultBufferCount, __alignof(GpuLight));
+			auto visibleTransforms = (ShadowTransform*)m_scratchAllocator.allocate(sizeof(ShadowTransform) * m_resultBufferCount, __alignof(ShadowTransform));
 			for (u32 i = 0; i < m_resultBufferCount; ++i)
 			{
 				auto visible = m_visibleLightsResult[i];
 				if (visible != 0)
 				{
+					visibleTransforms[visibleLightCount] = m_gpuShadowTransforms[i];
 					visibleLights[visibleLightCount++] = m_gpuLights[i];
 				}
 			}
 
-			auto shadowCastingLightsBuffer = resourceManager->getBuffer(L"shadowCastingLightsBuffer");
-			auto sizeInBytes = sizeof(GpuLight) * visibleLightCount;
-			uploadManager->pushUploadBuffer((u8*)visibleLights, shadowCastingLightsBuffer->get(), 0, sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-			m_renderPassShading->setLightCount(visibleLightCount);
+			if (visibleLightCount != 0)
+			{
+				auto sortedPairs = (Pair*)m_scratchAllocator.allocate(sizeof(Pair) * visibleLightCount, __alignof(Pair));
+				for (u32 i = 0; i < visibleLightCount; ++i)
+				{
+					auto lightPosition = visibleLights[i].position;
+					auto distanceToLight = vx::length3(_mm_sub_ps(lightPosition, cameraPosition));
+
+					_mm_store_ss(&sortedPairs[i].distance, distanceToLight);
+					sortedPairs[i].index = i;
+				}
+
+				std::sort(sortedPairs, sortedPairs + visibleLightCount, [](const Pair &lhs, const Pair &rhs)
+				{
+					return lhs.distance < rhs.distance;
+				});
+
+				auto shadowTransformsToGpu = (ShadowTransform*)m_scratchAllocator.allocate(sizeof(ShadowTransform) * visibleLightCount, __alignof(ShadowTransform));
+				auto lightsToGpu = (GpuLight*)m_scratchAllocator.allocate(sizeof(GpuLight) * visibleLightCount, __alignof(GpuLight));
+				for (u32 i = 0; i < visibleLightCount; ++i)
+				{
+					auto index = sortedPairs[i].index;
+
+					lightsToGpu[i] = visibleLights[index];
+					shadowTransformsToGpu[i] = visibleTransforms[index];
+				}
+
+				auto shadowCastingLightsBuffer = resourceManager->getBuffer(L"shadowCastingLightsBuffer");
+				auto shadowTransformBuffer = resourceManager->getBuffer(L"shadowTransformBuffer");
+
+				auto sizeInBytesLights = sizeof(GpuLight) * visibleLightCount;
+				auto sizeInBytesShadow = sizeof(ShadowTransform) * visibleLightCount;
+				uploadManager->pushUploadBuffer((u8*)lightsToGpu, shadowCastingLightsBuffer->get(), 0, sizeInBytesLights, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+				uploadManager->pushUploadBuffer((u8*)shadowTransformsToGpu, shadowTransformBuffer->get(), 0, sizeInBytesShadow, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+				m_renderPassShading->setLightCount(visibleLightCount);
+				m_renderPassShadow->setLightCount(visibleLightCount);
+			}
 
 			m_scratchAllocator.clear(marker);
 
@@ -290,6 +347,7 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 			auto index = indices[i];
 
 			m_gpuLights[i] = m_sceneLights[index];
+			m_gpuShadowTransforms[i] = m_sceneShadowTransforms[index];
 		}
 
 		auto lightBuffer = resourceManager->getBuffer(L"lightBuffer");

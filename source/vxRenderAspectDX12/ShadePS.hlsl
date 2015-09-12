@@ -9,6 +9,7 @@ struct GSOutput
 	float3 wsPosition : POSITION0;
 	float3 vsPosition : POSITION1;
 	float2 falloffLumen : BLENDINDICES0;
+	uint lightIndex : BLENDINDICES1;
 };
 
 cbuffer CameraBuffer : register(b0)
@@ -25,9 +26,7 @@ Texture2DArray g_albedoeSlice : register(t1);
 Texture2D<float> g_zBuffer : register(t2);
 Texture2DArray g_normalSlice : register(t3);
 Texture2DArray g_surfaceSlice : register(t4);
-
-//TextureCube<float> g_shadowTexture : register(t5);
-//TextureCube<half> g_shadowTextureIntensity : register(t6);
+TextureCubeArray<float> g_shadowTextureLinear : register(t5);
 
 SamplerState g_sampler : register(s0);
 SamplerState g_samplerShadow : register(s1);
@@ -54,16 +53,15 @@ float getFalloff(float distance, float lightFalloff)
 	return result * result / (distance * distance + 1.0);
 }
 
-/*float sampleShadow(in float3 L, float distance, float lightFalloff)
+float sampleShadow(in float3 L, float distance, float lightFalloff, uint lightIndex)
 {
 	float3 position_ls = -L;
 	position_ls.x = -position_ls.x;
 
 	float cmp = distance / lightFalloff;
-	float sampledDepth = g_shadowTexture.Sample(g_samplerShadow, position_ls).r;
+	float sampledDepth = g_shadowTextureLinear.Sample(g_samplerShadow, float4(position_ls, lightIndex)).r;
 	return (cmp < sampledDepth) ? 1 : 0;
 }
-*/
 
 float ggx(float alpha, float nDotH)
 {
@@ -149,11 +147,7 @@ float4 main(GSOutput input) : SV_TARGET
 
 	float3 diffuseColor = albedoColor / g_PI *(1.0 - fresnel(specularReflectance, nDotL));
 
-	float visibility = 1;
-			//if (i == 0)
-			//{
-			//	visibility = sampleShadow(LWS, distance, lightFalloff);
-			//}
+	float visibility = sampleShadow(LWS, distance, lightFalloff, input.lightIndex);
 
 	shadedColor = (specularColor * nDotL + diffuseColor) * lightIntensity * visibility;
 

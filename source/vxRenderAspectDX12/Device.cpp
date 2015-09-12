@@ -27,8 +27,6 @@ SOFTWARE.
 #include <dxgi1_4.h>
 #include "CommandQueue.h"
 
-#include <vector>
-
 namespace d3d
 {
 	typedef HRESULT(WINAPI *DXGIGetDebugInterfaceProc)(REFIID riid, void **ppDebug);
@@ -49,6 +47,11 @@ namespace d3d
 	bool Device::createDevice()
 	{
 		auto hresult = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(m_device.getAddressOf()));
+		if (hresult != 0)
+		{
+			hresult = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(m_device.getAddressOf()));
+		}
+		
 		if (hresult != 0)
 			return false;
 
@@ -110,7 +113,7 @@ namespace d3d
 		desc.BufferCount = 2;
 		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//DXGI_FORMAT_R16G16B16A16_FLOAT;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		desc.Height = 0;
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
@@ -127,9 +130,6 @@ namespace d3d
 		hresult = swapChain->QueryInterface(IID_PPV_ARGS(m_swapChain.getAddressOf()));
 		if (hresult != 0)
 			return false;
-
-		//u32 flag = 0;
-		//m_swapChain->CheckColorSpaceSupport(,&flag);
 
 		swapChain->Release();
 

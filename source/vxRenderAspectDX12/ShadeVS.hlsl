@@ -6,6 +6,7 @@ struct VSOutput
 	float3 wsPosition : POSITION0;
 	float3 vsPosition : POSITION1;
 	float2 falloffLumen : BLENDINDICES0;
+	uint lightIndex : BLENDINDICES1;
 };
 
 cbuffer CameraBuffer : register(b0)
@@ -29,6 +30,7 @@ VSOutput main(uint vertexID : SV_VertexID)
 	output.wsPosition = lightPosition;
 	output.vsPosition = lightPositionVS;
 	output.falloffLumen = float2(lightFalloff, lightLumen);
+	output.lightIndex = lightIndex;
 
 	return output;
 }

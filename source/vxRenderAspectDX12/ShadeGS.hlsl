@@ -5,6 +5,7 @@ struct VSOutput
 	float3 wsPosition : POSITION0;
 	float3 vsPosition : POSITION1;
 	float2 falloffLumen : BLENDINDICES0;
+	uint lightIndex : BLENDINDICES1;
 };
 
 struct GSOutput
@@ -13,6 +14,7 @@ struct GSOutput
 	float3 wsPosition : POSITION0;
 	float3 vsPosition : POSITION1;
 	float2 falloffLumen : BLENDINDICES0;
+	uint lightIndex : BLENDINDICES1;
 };
 
 static const float2 g_positions[4] =
@@ -79,6 +81,7 @@ void main(
 	element.wsPosition = input[0].wsPosition;
 	element.vsPosition = input[0].vsPosition;
 	element.falloffLumen = input[0].falloffLumen;
+	element.lightIndex = input[0].lightIndex;
 
 	float4 positions[4];
 	// front

@@ -105,7 +105,7 @@ bool RenderPassShading::createRootSignature(ID3D12Device* device)
 
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0, 0, 0);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 1, 0, 3);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 1, 0, 3);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
 	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
@@ -187,7 +187,7 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 7;
+	desc.NumDescriptors = 8;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_heapSrv.create(desc, device))
 		return false;
@@ -201,7 +201,6 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	Texture2D<float> g_zBuffer : register(t3);
 	Texture2DArray g_surfaceSlice : register(t4);
 	TextureCube<float> g_shadowTexture : register(t5);
-	TextureCube<half> g_shadowTextureIntensity : register(t6);
 	*/
 
 	auto cameraBufferView = s_resourceManager->getConstantBufferView("cameraBufferView");
@@ -214,21 +213,14 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	device->CreateConstantBufferView(cameraStaticBufferView, handle);
 
 	auto shadowCastingLightsBuffer = s_resourceManager->getBuffer(L"shadowCastingLightsBuffer");
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-	srvDesc.Buffer.FirstElement = 0;
-	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-	srvDesc.Buffer.NumElements = s_settings->m_shadowCastingLightCount;
-	srvDesc.Buffer.StructureByteStride = sizeof(GpuLight);
+	auto shadowCastingLightsBufferView = s_resourceManager->getShaderResourceView("shadowCastingLightsBufferView");
 
 	handle.offset(1);
-	device->CreateShaderResourceView(shadowCastingLightsBuffer->get(), &srvDesc, handle);
+	device->CreateShaderResourceView(shadowCastingLightsBuffer->get(), shadowCastingLightsBufferView, handle);
 
 	auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
@@ -282,34 +274,17 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	handle.offset(1);
 	auto gbufferSurface = s_resourceManager->getTextureRtDs(L"gbufferSurface");
 	device->CreateShaderResourceView(gbufferSurface->get(), &srvDescSurface, handle);
-	/*
-	srvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Texture2DArray.ArraySize = 1;
-	srvDesc.Texture2DArray.FirstArraySlice = 0;
-	srvDesc.Texture2DArray.MipLevels = 1;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.PlaneSlice = 0;
-	srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
-
-	
-
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	srvDesc.TextureCube.MipLevels = 1;
-	srvDesc.TextureCube.MostDetailedMip = 0;
-	srvDesc.TextureCube.ResourceMinLODClamp = 0;
 
 	auto shadowTextureLinear = s_resourceManager->getTextureRtDs(L"shadowTextureLinear");
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
+	srvDesc.TextureCubeArray.First2DArrayFace = 0;
+	srvDesc.TextureCubeArray.MipLevels = 1;
+	srvDesc.TextureCubeArray.MostDetailedMip = 0;
+	srvDesc.TextureCubeArray.NumCubes = 10;
+	srvDesc.TextureCubeArray.ResourceMinLODClamp = 0;
 	handle.offset(1);
 	device->CreateShaderResourceView(shadowTextureLinear->get(), &srvDesc, handle);
-
-	//srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-	auto shadowTextureIntensity = s_resourceManager->getTextureRtDs(L"shadowTextureIntensity");
-	handle.offset(1);
-	device->CreateShaderResourceView(shadowTextureIntensity->get(), &srvDesc, handle);*/
 
 	return true;
 }
@@ -386,11 +361,10 @@ void RenderPassShading::submitCommands(Graphics::CommandQueue* queue)
 		auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 		auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 		auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
-		//auto lightBuffer = s_resourceManager->getBuffer(L"lightBuffer");
 		auto gbufferSurface = s_resourceManager->getTextureRtDs(L"gbufferSurface");
 		auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
-		//auto shadowTextureLinear = s_resourceManager->getTextureRtDs(L"shadowTextureLinear");
-		//auto shadowTextureIntensity = s_resourceManager->getTextureRtDs(L"shadowTextureIntensity");
+		auto shadowTextureLinear = s_resourceManager->getTextureRtDs(L"shadowTextureLinear");
+		auto shadowCastingLightsBuffer = s_resourceManager->getBuffer(L"shadowCastingLightsBuffer");
 
 		const f32 clearColor[4] = { 0, 0, 0, 0 };
 		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
@@ -419,6 +393,8 @@ void RenderPassShading::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferSurface->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureLinear->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		auto srvHeap = m_heapSrv.get();
 		m_commandList->SetDescriptorHeaps(1, &srvHeap);
@@ -437,8 +413,8 @@ void RenderPassShading::submitCommands(Graphics::CommandQueue* queue)
 		
 		m_commandList->DrawInstanced(m_lightCount, 1, 0, 0);
 
-		//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureIntensity->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-		//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureLinear->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureLinear->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferSurface->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));

@@ -43,14 +43,13 @@ class RenderPassShadow : public RenderPass
 	d3d::DescriptorHeap m_heapDsv;
 	d3d::DescriptorHeap m_heapRtv;
 	d3d::DescriptorHeap m_heapSrv;
+	u32 m_lightCount;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device);
 	bool createCommandList(ID3D12Device* device);
-	bool createRtvs(ID3D12Device* device);
-
-	void uploadData();
+	bool createRtvs(ID3D12Device* device, u32 shadowCastingLightCount);
 
 public:
 	RenderPassShadow(d3d::CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd);
@@ -64,4 +63,6 @@ public:
 	void shutdown() override;
 
 	void submitCommands(Graphics::CommandQueue* queue) override;
+
+	void setLightCount(u32 lightCount) { m_lightCount = lightCount; }
 };

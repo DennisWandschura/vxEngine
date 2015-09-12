@@ -1,6 +1,6 @@
 #include "GpuTransform.h"
 #include "GpuMath.h"
-#include "GpuShadowTransform.h"
+#include "gpulight.h"
 #include "GpuCameraBufferData.h"
 
 struct Vertex
@@ -25,19 +25,26 @@ struct VSOutput
 };
 
 StructuredBuffer<TransformGpu> s_transforms : register(t0);
-StructuredBuffer<ShadowTransform> shadowTransforms : register(t1);
-StructuredBuffer<uint> s_materials : register(t2);
+StructuredBuffer<uint> s_materials : register(t1);
+StructuredBuffer<GpuLight> g_shadowLights : register(t2);
 
 cbuffer CameraBuffer : register(b0)
 {
 	GpuCameraBufferData cameraBuffer;
 };
 
+cbuffer RootSignatureConstants : register(b1)
+{
+	uint g_lightIndex;
+};
+
 VSOutput main(Vertex input)
 {
-	const float3 lightPositionWS = float3(0, 2.8, -1);
-	const float lightFalloff = 5.0;
-	const float lightLumen = 100.0;
+	uint lightIndex = g_lightIndex;
+
+	float3 lightPositionWS = g_shadowLights[lightIndex].position.xyz;
+	const float lightFalloff = g_shadowLights[lightIndex].falloff;
+	const float lightLumen = g_shadowLights[lightIndex].lumen;
 
 	uint elementId = input.drawId & 0xffff;
 	uint materialIndex = input.drawId >> 16;
@@ -49,13 +56,13 @@ VSOutput main(Vertex input)
 	float3 wsNormal = quaternionRotation(input.normal, qRotation);
 	float3 vsNormal = mul(cameraBuffer.viewMatrix, float4(wsNormal, 0)).xyz;
 
-	float distanceToLight = length(lightPositionWS - wsPosition);// / lightFalloff;
+	float distanceToLight = length(lightPositionWS - wsPosition);
 
 	VSOutput output;
 	output.wsPosition = wsPosition;
 	output.vsNormal = vsNormal;
 	output.texCoords = input.texCoords;
-	output.lightIndex = 0;
+	output.lightIndex = lightIndex;
 	output.material = s_materials[materialIndex];
 	output.distanceToLight = distanceToLight;
 	output.lightFalloff = lightFalloff;

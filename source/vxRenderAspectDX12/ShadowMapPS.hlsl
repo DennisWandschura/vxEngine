@@ -20,7 +20,7 @@ struct PSOut
 	half2 normals : SV_TARGET2;
 };
 
-Texture2DArray g_srgb : register(t2);
+Texture2DArray g_srgb : register(t4);
 SamplerState g_sampler : register(s0);
 
 uint3 getTextureSlices(uint packedSlices)
