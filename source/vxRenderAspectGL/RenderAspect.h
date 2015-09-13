@@ -121,9 +121,8 @@ protected:
 	void createTextures();
 	void createFrameBuffers();
 
-	////////////// Event handling
 	void handleFileMessage(const vx::Message &msg);
-	//////////////
+	void handleRendererMessage(const vx::Message &msg);
 
 	void bindBuffers();
 

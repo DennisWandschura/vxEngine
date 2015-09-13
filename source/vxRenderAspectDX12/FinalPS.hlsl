@@ -11,6 +11,8 @@ Texture2D<half4> g_directTexture : register(t1);
 Texture2D<half4> g_indirectTexture : register(t2);
 Texture2DArray<float4> g_albedoTexture : register(t3);
 
+Texture2DArray<float4> g_shadowTextureLinear : register(t4);
+
 SamplerState g_sampler : register(s0);
 
 static const float whitePoint = 3.0;
@@ -28,11 +30,11 @@ float4 main(GSOutput input) : SV_TARGET
 
 	float sao = g_saoTexture.Sample(g_sampler, input.texCoords).r;
 	float4 directColor = g_directTexture.Sample(g_sampler, input.texCoords).rgba;
-	float3 indirectColor = g_indirectTexture.Sample(g_sampler, input.texCoords).rgb;
+	float4 indirectColor = g_indirectTexture.Sample(g_sampler, input.texCoords);
 	float3 albedo = g_albedoTexture.Sample(g_sampler, float3(input.texCoords, 0)).rgb;
 
-	indirectColor = indirectColor * albedo / g_PI * sao;
-	float3 finalColor = directColor.rgb + indirectColor;
+	indirectColor.rgb = indirectColor.rgb * albedo / g_PI * sao;
+	float3 finalColor = directColor.rgb + indirectColor.rgb;
 	finalColor = tonemap(finalColor);
 
 	return float4(finalColor.rgb, 1.0f);

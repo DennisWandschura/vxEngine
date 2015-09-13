@@ -276,7 +276,7 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 	device->CreateShaderResourceView(gbufferSurface->get(), &srvDescSurface, handle);
 
 	auto shadowTextureLinear = s_resourceManager->getTextureRtDs(L"shadowTextureLinear");
-	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
 	srvDesc.TextureCubeArray.First2DArrayFace = 0;
 	srvDesc.TextureCubeArray.MipLevels = 1;

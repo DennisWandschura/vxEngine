@@ -121,7 +121,7 @@
             // 
             // translationZ
             // 
-            this.translationZ.DecimalPlaces = 4;
+            this.translationZ.DecimalPlaces = 6;
             this.translationZ.Location = new System.Drawing.Point(272, 3);
             this.translationZ.Maximum = new decimal(new int[] {
             50000,
@@ -140,7 +140,7 @@
             // 
             // translationY
             // 
-            this.translationY.DecimalPlaces = 4;
+            this.translationY.DecimalPlaces = 6;
             this.translationY.Location = new System.Drawing.Point(166, 3);
             this.translationY.Maximum = new decimal(new int[] {
             50000,
@@ -159,7 +159,7 @@
             // 
             // translationX
             // 
-            this.translationX.DecimalPlaces = 4;
+            this.translationX.DecimalPlaces = 6;
             this.translationX.Location = new System.Drawing.Point(60, 3);
             this.translationX.Maximum = new decimal(new int[] {
             50000,

@@ -132,7 +132,8 @@ namespace Editor
 		void updateSpawns(const Spawn* spawns, u32 count);
 		void updateJoints(const Joint* joints, u32 count, const vx::sorted_vector<vx::StringID, MeshInstance> &meshinstances);
 
-		const vx::Camera& getCamera() const;
+		void getViewMatrix(vx::mat4* viewMatrix) const override;
+		void getCameraPosition(vx::float4a* position) const override;
 
 		void getProjectionMatrix(vx::mat4* m) const override;
 	};

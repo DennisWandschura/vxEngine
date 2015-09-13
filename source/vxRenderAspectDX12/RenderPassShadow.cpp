@@ -53,7 +53,7 @@ namespace RenderPassShadowCpp
 		resDesc[RenderPassShadowCpp::TextureDepth].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 		resDesc[RenderPassShadowCpp::TextureZDepth] = resDesc[RenderPassShadowCpp::TextureDepth];
-		resDesc[RenderPassShadowCpp::TextureZDepth].Format = DXGI_FORMAT_R32_FLOAT;
+		resDesc[RenderPassShadowCpp::TextureZDepth].Format = DXGI_FORMAT_R32G32_FLOAT;
 		resDesc[RenderPassShadowCpp::TextureZDepth].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 		resDesc[RenderPassShadowCpp::TextureIntensity] = resDesc[RenderPassShadowCpp::TextureZDepth];
@@ -121,7 +121,7 @@ bool RenderPassShadow::createData(ID3D12Device* device)
 	clearValues[RenderPassShadowCpp::TextureDepth].DepthStencil.Depth = 1.f;
 	clearValues[RenderPassShadowCpp::TextureDepth].DepthStencil.Stencil = 0;
 
-	clearValues[RenderPassShadowCpp::TextureZDepth].Format = DXGI_FORMAT_R32_FLOAT;
+	clearValues[RenderPassShadowCpp::TextureZDepth].Format = DXGI_FORMAT_R32G32_FLOAT;
 	clearValues[RenderPassShadowCpp::TextureZDepth].Color[0] = 1.0f;
 
 	clearValues[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -243,7 +243,7 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
 	};
 
-	DXGI_FORMAT format[3] = { DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R16G16_FLOAT };
+	DXGI_FORMAT format[3] = { DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R16G16_FLOAT };
 
 
 	d3d::PipelineStateDescInput inputDesc;
@@ -259,10 +259,9 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 	inputDesc.rtvCount = 3;
 	inputDesc.rtvFormats = format;
 
-#define DEPTH_BIAS_D32_FLOAT(d) (d/(1.0/pow(2.0,23.0)))
-
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
-	//desc.RasterizerState.SlopeScaledDepthBias = 2.5f;
+	desc.RasterizerState.SlopeScaledDepthBias = 2.5f;
+	desc.RasterizerState.DepthBias = 5;
 
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
@@ -300,7 +299,7 @@ bool RenderPassShadow::createRtvs(ID3D12Device* device, u32 shadowCastingLightCo
 	{
 		rtvDesc.Texture2DArray.FirstArraySlice = i * 6;
 
-		rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		rtvDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
 		device->CreateRenderTargetView(shadowTextureLinear->get(), &rtvDesc, handle);
 
 		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -465,8 +464,6 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 
 		auto handleRtv = m_heapRtv.getHandleCpu();
 		auto handleDsv = m_heapDsv.getHandleCpu();
-
-		handleDsv.offset(1);
 
 		for (u32 i = 0; i < m_lightCount; ++i)
 		{

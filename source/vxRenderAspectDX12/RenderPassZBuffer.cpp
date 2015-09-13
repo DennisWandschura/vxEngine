@@ -112,35 +112,6 @@ bool RenderPassZBuffer::createRootSignature(ID3D12Device* device)
 
 bool RenderPassZBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
-	/*auto vsShader = shaderManager->getShader("DrawQuadVs.cso");
-	auto gsShader = shaderManager->getShader("DrawQuadGs.cso");
-	auto psShader = shaderManager->getShader("CreateZBufferPS.cso");
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	psoDesc.InputLayout = { nullptr, 0 };
-	psoDesc.pRootSignature = m_rootSignature.get();
-	psoDesc.VS = { reinterpret_cast<UINT8*>(vsShader->GetBufferPointer()), vsShader->GetBufferSize() };
-	psoDesc.GS = { reinterpret_cast<UINT8*>(gsShader->GetBufferPointer()), gsShader->GetBufferSize() };
-	psoDesc.PS = { reinterpret_cast<UINT8*>(psShader->GetBufferPointer()), psShader->GetBufferSize() };
-	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.FrontCounterClockwise = 1;
-	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState.DepthEnable = 0;
-	psoDesc.DepthStencilState.StencilEnable = 0;
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-	psoDesc.NumRenderTargets = 2;
-	psoDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT;
-	psoDesc.RTVFormats[1] = DXGI_FORMAT_R32_FLOAT;
-	psoDesc.SampleDesc.Count = 1;
-
-	auto hresult = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_pipelineState.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;*/
-
 	DXGI_FORMAT rtvFormats[] = { DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32_FLOAT };;
 
 	d3d::PipelineStateDescInput inputDesc;

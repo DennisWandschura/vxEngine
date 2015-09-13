@@ -775,7 +775,7 @@ namespace Editor
 		auto projectionMatrix = m_projectionMatrix;
 
 		vx::mat4d viewMatrixD;
-		m_camera.getViewMatrix(&viewMatrixD);
+		m_camera.getViewMatrixRH(&viewMatrixD);
 
 		vx::mat4 viewMatrix;
 		viewMatrixD.asFloat(&viewMatrix);
@@ -1254,9 +1254,18 @@ namespace Editor
 		}
 	}
 
-	const vx::Camera& RenderAspect::getCamera() const
+	void RenderAspect::getViewMatrix(vx::mat4* viewMatrix) const
 	{
-		return m_camera;
+		vx::mat4d tmp;
+		m_camera.getViewMatrixRH(&tmp);
+
+		tmp.asFloat(viewMatrix);
+	}
+
+	void RenderAspect::getCameraPosition(vx::float4a* position) const
+	{
+		auto p = m_camera.getPosition();
+		*position = _mm256_cvtpd_ps(p);
 	}
 
 	void RenderAspect::updateNavMeshIndexBuffer(const u16* indices, u32 triangleCount)

@@ -52,7 +52,7 @@ class LightManager
 	GpuLight* m_gpuLights;
 	ShadowTransform* m_gpuShadowTransforms;
 	u32 m_sceneLightCount;
-	u32 m_maxLightCount;
+	u32 m_maxSceneLightCount;
 	u32 m_maxShadowCastingLights;
 	u32 m_resultBufferCount;
 	u32* m_visibleLightsResult;
@@ -73,9 +73,9 @@ public:
 	LightManager(LightManager &&rhs);
 	~LightManager();
 
-	void getRequiredMemory(u64* heapSizeBuffere, u32 maxLightCount, u32 maxShadowCastingLights);
+	void getRequiredMemory(u64* heapSizeBuffere, u32 maxSceneLightCount, u32 maxShadowCastingLights);
 
-	bool initialize(vx::StackAllocator* allocator, u32 maxLightCount, u32 maxShadowCastingLights, d3d::ResourceManager* resourceManager);
+	bool initialize(vx::StackAllocator* allocator, u32 maxSceneLightCount, u32 maxShadowCastingLights, d3d::ResourceManager* resourceManager);
 
 	bool loadSceneLights(const Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 

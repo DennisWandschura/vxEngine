@@ -62,6 +62,10 @@ namespace d3d
 
 		m_rtDsHeap.setName(L"ResourceManagerHeapRtDs");
 
+		printf("Buffers: %.4f MB\n", heapSizeBuffer / 1024.0 / 1024.0);
+		printf("Textures: %.4f MB\n", heapSizeTexture / 1024.0 / 1024.0);
+		printf("Render Targets: %.4f MB\n", heapSizeRtDs / 1024.0 / 1024.0);
+
 		return true;
 	}
 

@@ -304,7 +304,7 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	m_camera.setRotation(data.quaternionRotation);
 
 	vx::mat4d viewMatrix;
-	m_camera.getViewMatrix(&viewMatrix);
+	m_camera.getViewMatrixRH(&viewMatrix);
 
 	auto viewMatrixPrev = s_settings.m_viewMatrixPrev;
 	auto pvMatrixPrev = projectionMatrixDouble * viewMatrixPrev;

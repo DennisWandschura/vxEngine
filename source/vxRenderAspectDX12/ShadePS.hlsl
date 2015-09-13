@@ -26,7 +26,7 @@ Texture2DArray g_albedoeSlice : register(t1);
 Texture2D<float> g_zBuffer : register(t2);
 Texture2DArray g_normalSlice : register(t3);
 Texture2DArray g_surfaceSlice : register(t4);
-TextureCubeArray<float> g_shadowTextureLinear : register(t5);
+TextureCubeArray<float2> g_shadowTextureLinear : register(t5);
 
 SamplerState g_sampler : register(s0);
 SamplerState g_samplerShadow : register(s1);
@@ -53,14 +53,24 @@ float getFalloff(float distance, float lightFalloff)
 	return result * result / (distance * distance + 1.0);
 }
 
+float ChebyshevUpperBound(float2 Moments, float t)
+{
+	const float g_MinVariance = 0.000001;
+
+	float p = (t <= Moments.x);
+	float Variance = Moments.y - (Moments.x * Moments.x);
+	Variance = max(Variance, g_MinVariance);
+	float d = t - Moments.x;
+	float p_max = Variance / (Variance + d*d);
+	return max(p, p_max);
+}
+
 float sampleShadow(in float3 L, float distance, float lightFalloff, uint lightIndex)
 {
-	float3 position_ls = -L;
-	position_ls.x = -position_ls.x;
-
 	float cmp = distance / lightFalloff;
-	float sampledDepth = g_shadowTextureLinear.Sample(g_samplerShadow, float4(position_ls, lightIndex)).r;
-	return (cmp < sampledDepth) ? 1 : 0;
+	float2 sampledDepth = g_shadowTextureLinear.Sample(g_sampler, float4(-L.x, -L.y, L.z, lightIndex)).rg;
+
+	return ChebyshevUpperBound(sampledDepth, cmp);
 }
 
 float ggx(float alpha, float nDotH)
@@ -106,10 +116,10 @@ float4 main(GSOutput input) : SV_TARGET
 	float3 positionWS = mul(cameraBuffer.invViewMatrix, float4(positionVS, 1)).xyz;
 
 	float lightFalloff = input.falloffLumen.x;
-	float3 lightPosition = input.wsPosition;
 
-	float3 LWS = lightPosition - positionWS;
+	float3 LWS = input.wsPosition - positionWS;
 	float distance = length(LWS);
+
 	if (distance >= lightFalloff)
 		discard;
 
@@ -127,8 +137,6 @@ float4 main(GSOutput input) : SV_TARGET
 
 	float3 v = normalize(-positionVS);
 
-	float3 shadedColor = 0.0f;
-
 	float3 LVS = input.vsPosition - positionVS;
 	float3 l = normalize(LVS);
 
@@ -145,11 +153,10 @@ float4 main(GSOutput input) : SV_TARGET
 
 	float3 specularColor = getSpecular(roughness, nDotH, nDotL, nDotV, vDotH, specularReflectance);
 
-	float3 diffuseColor = albedoColor / g_PI *(1.0 - fresnel(specularReflectance, nDotL));
+	float3 diffuseColor = albedoColor / g_PI * (1.0 - fresnel(specularReflectance, nDotL));
 
 	float visibility = sampleShadow(LWS, distance, lightFalloff, input.lightIndex);
-
-	shadedColor = (specularColor * nDotL + diffuseColor) * lightIntensity * visibility;
+	float3 shadedColor = (specularColor * nDotL + diffuseColor) * lightIntensity * visibility;
 
 	return float4(shadedColor, 1.0f);
 }

@@ -74,7 +74,8 @@ namespace Editor
 		virtual void updateSpawns(const Spawn* spawns, u32 count) = 0;
 		virtual void updateJoints(const Joint* joints, u32 count, const vx::sorted_vector<vx::StringID, Editor::MeshInstance> &meshinstances) = 0;
 
-		virtual const vx::Camera& getCamera() const = 0;
+		virtual void getViewMatrix(vx::mat4* viewMatrix) const = 0;
+		virtual void getCameraPosition(vx::float4a* position) const = 0;
 	};
 }
 

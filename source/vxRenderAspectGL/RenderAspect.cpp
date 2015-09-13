@@ -60,6 +60,7 @@ SOFTWARE.
 #include "Graphics/VolumetricLightRenderer.h"
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include <vxEngineLib/Logfile.h>
+#include <vxEngineLib/RendererMessage.h>
 
 struct PlaneSimd
 {
@@ -674,7 +675,7 @@ void RenderAspect::update()
 	if (m_shadowRenderer)
 	{
 		vx::mat4d viewMatrixD;
-		m_camera.getViewMatrix(&viewMatrixD);
+		m_camera.getViewMatrixRH(&viewMatrixD);
 
 		vx::mat4 viewMatrix;
 		viewMatrixD.asFloat(&viewMatrix);
@@ -778,7 +779,7 @@ void RenderAspect::taskUpdateCamera()
 	m_camera.setRotation(m_updateCameraData.quaternionRotation);
 
 	vx::mat4d viewMatrixD;
-	m_camera.getViewMatrix(&viewMatrixD);
+	m_camera.getViewMatrixRH(&viewMatrixD);
 
 	UniformCameraBufferBlock block;
 	viewMatrixD.asFloat(&block.viewMatrix);
@@ -1257,17 +1258,47 @@ void RenderAspect::takeScreenshot()
 	//ScreenshotFactory::writeScreenshotToFile(m_resolution, pScreenshotData);
 }
 
-void RenderAspect::handleMessage(const vx::Message &evt)
+void RenderAspect::handleMessage(const vx::Message &msg)
 {
-	switch (evt.type)
+	switch (msg.type)
 	{
 	case(vx::MessageType::File) :
-		handleFileMessage(evt);
+		handleFileMessage(msg);
 		break;
 	case(vx::MessageType::Renderer) :
+		handleRendererMessage(msg);
 		break;
 	default:
 		break;
+	}
+}
+
+void RenderAspect::handleRendererMessage(const vx::Message &msg)
+{
+	auto type = (vx::RendererMessage)msg.code;
+	switch (type)
+	{
+	case vx::RendererMessage::AddActor:
+	{
+
+	}break;
+	case vx::RendererMessage::AddStaticMesh:
+	{
+		auto instancePtr = (MeshInstance*)msg.arg1.ptr;
+		auto sid = vx::StringID(msg.arg2.u64);
+
+		u32 materialIndex = 0;
+		m_materialManager.getMaterialIndex(sid, m_resourceAspect, &materialIndex);
+
+		u32 gpuIndex = m_meshManager.addMeshInstance(*instancePtr, materialIndex, m_resourceAspect);
+	}break;
+	case vx::RendererMessage::AddDynamicMesh:
+	{
+		//taskAddDynamicMeshInstance(p, &offset);
+	}break;
+	default:
+	{
+	}break;
 	}
 }
 
@@ -1279,16 +1310,28 @@ void RenderAspect::handleFileMessage(const vx::Message &evt)
 	{
 	case vx::FileMessage::Scene_Loaded:
 	{
-		/*vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Queuing loading Scene into Render");
-		auto pScene = (Scene*)evt.arg2.ptr;
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "Queuing loading Scene into Render");
+		auto scene = (Scene*)evt.arg2.ptr;
 
-		RenderUpdateTaskType type = RenderUpdateTaskType::LoadScene;
+		/*RenderUpdateTaskType type = RenderUpdateTaskType::LoadScene;
 
 		TaskLoadScene data;
 		data.ptr = pScene;
 		data.editor = false;
 
 		queueUpdateTask(type, (u8*)&data, sizeof(TaskLoadScene));*/
+		if (m_shadowRenderer)
+			m_shadowRenderer->updateDrawCmds();
+
+		auto lightCount = scene->getLightCount();
+		auto lights = scene->getLights();
+
+		m_lightRenderer->setLights(lights, lightCount);
+
+		if (m_shadowRenderer)
+		{
+			m_shadowRenderer->setLights(lights, lightCount);
+		}
 	}break;
 	default:
 		break;

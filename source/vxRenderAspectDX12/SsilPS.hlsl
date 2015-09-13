@@ -65,30 +65,37 @@ float2 tapLocation(int sampleNumber, float spinAngle, float radialJitter, out fl
 	return float2(cos(angle), sin(angle));
 }
 
-void sampleDirectLightning(in int2 texelPos, in float3 position, in float3 normal, inout float3 irradianceSum, inout int numSamplesUsed)
+void sampleDirectLightning(float radius, in int2 texelPos, in float3 position, in float3 normal, inout float3 irradianceSum, inout int numSamplesUsed)
 {
 	float3 currentPosition = getPosition(texelPos);
 	float3 currentNormal = sampleNormal(texelPos, 0);
 
 	float3 YminusX = currentPosition - position;
-	float3 w_i = normalize(YminusX);
+	float distance = length(YminusX);
+	float3 w_i = YminusX / distance;
 
 	float iDotN = clamp(dot(w_i, normal), 0, 1);
-	numSamplesUsed += (iDotN == 0.0) ? 0 : 1;
+	bool cmp0 = (iDotN != 0.0);
+	bool cmp1 = (distance <= radius);
 
-	float4 directLight = g_directLightning.Load(int3(texelPos, 0));
+	int sampleUsed = (cmp0 && cmp1) ? 1 : 0;
+	numSamplesUsed += sampleUsed;
 
-	irradianceSum += directLight.rgb * iDotN;
+	//if (cmp1)
+	{
+		float4 directLight = g_directLightning.Load(int3(texelPos, 0));
+		irradianceSum += directLight.rgb * iDotN * sampleUsed;
+	}
 }
 
-void sampleIndirectLight(float ssDiskRadius, int tapIndex, float randomPatternRotationAngle, float radialJitter, in int2 texel, in float3 position, in float3 normal, inout float3 irradianceSum, inout int numSamplesUsed)
+void sampleIndirectLight(float radius, float ssDiskRadius, int tapIndex, float randomPatternRotationAngle, float radialJitter, in int2 texel, in float3 position, in float3 normal, inout float3 irradianceSum, inout int numSamplesUsed)
 {
 	float ssR;
 	float2 unitOffset = tapLocation(tapIndex, randomPatternRotationAngle, radialJitter, ssR);
 
 	ssR *= ssDiskRadius;
 	int2 ssP = int2(ssR * unitOffset) + texel;
-	sampleDirectLightning(ssP, position, normal, irradianceSum, numSamplesUsed);
+	sampleDirectLightning(radius, ssP, position, normal, irradianceSum, numSamplesUsed);
 }
 
 float4 main(GSOutput input) : SV_TARGET
@@ -110,7 +117,7 @@ float4 main(GSOutput input) : SV_TARGET
 	float3 irradianceSum = 0;
 	for (int i = 0; i < NUM_SAMPLES; ++i)
 	{
-		sampleIndirectLight(ssDiskRadius, i, randomPatternRotationAngle, radialJitter, texel, vsPosition, vsNormal, irradianceSum, numSamplesUsed);
+		sampleIndirectLight(radius, ssDiskRadius, i, randomPatternRotationAngle, radialJitter, texel, vsPosition, vsNormal, irradianceSum, numSamplesUsed);
 	}
 
 	const float solidAngleHemisphere = 2 * g_PI;

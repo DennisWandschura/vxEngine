@@ -15,7 +15,7 @@ struct GSOutput
 
 struct PSOut
 {
-	float zDepth : SV_TARGET0;
+	float2 zDepth : SV_TARGET0;
 	float3 albedoColor : SV_TARGET1;
 	half2 normals : SV_TARGET2;
 };
@@ -33,13 +33,27 @@ uint3 getTextureSlices(uint packedSlices)
 	return result;
 }
 
+float2 getMoments(float z)
+{
+	float2 Moments;
+	Moments.x = z;
+
+	float dx = ddx(z);
+	float dy = ddy(z);
+	Moments.y = z*z + 0.25*(dx*dx + dy*dy);
+
+	return Moments;
+}
+
 PSOut main(GSOutput input)
 {
 	float falloffValue = getFalloff(input.distanceToLight, input.lightFalloff);
 	uint3 textureSlices = getTextureSlices(input.material);
 
+	float z = input.distanceToLight / input.lightFalloff;
+
 	PSOut output;
-	output.zDepth = input.distanceToLight / input.lightFalloff;
+	output.zDepth = getMoments(z);
 	output.albedoColor = g_srgb.Sample(g_sampler, float3(input.texCoords, textureSlices.x)).rgb;
 	output.normals = encodeNormal(input.vsNormal);
 	

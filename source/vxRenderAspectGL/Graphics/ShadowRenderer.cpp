@@ -537,7 +537,7 @@ namespace Graphics
 		auto cameraPosition = _mm256_cvtpd_ps(camera.getPosition());
 
 		vx::mat4d viewMatrixD;
-		camera.getViewMatrix(&viewMatrixD);
+		camera.getViewMatrixRH(&viewMatrixD);
 
 		mat4 viewMatrix;
 		viewMatrixD.asFloat(&viewMatrix);
