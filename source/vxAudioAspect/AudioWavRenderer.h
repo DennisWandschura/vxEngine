@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,50 +23,61 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "AudioAspect.h"
+
+#include "AudioRenderer.h"
 #include "WavFile.h"
-#include <cstdio>
 #include "WavFormat.h"
 
-namespace vx
+namespace Audio
 {
-	AudioAspect::AudioAspect()
+	class WavRenderer : public Renderer
 	{
+		WavFile* m_wavFile;
+		WavFormat m_format;
 
-	}
+	public:
+		WavRenderer();
+		WavRenderer(const WavRenderer&) = delete;
+		WavRenderer(WavRenderer &&rhs);
+		~WavRenderer();
 
-	AudioAspect::~AudioAspect()
-	{
-
-	}
-
-	bool AudioAspect::initialize()
-	{
-		if (!m_audioManager.initialize())
-			return false;
-
-		/*auto wavFile = new WavFile();
-		WavFormat format;
-		if (Audio::loadWavFile("../data/audio/BABYMETAL DEATH.wav", wavFile, &format))
+		void setFile(WavFile* wavFile, const WavFormat &format)
 		{
-			m_audioManager.addWavFile(wavFile, format);
-		}*/
+			m_wavFile = wavFile;
+			m_format = format;
+		}
 
-		return true;
-	}
+		u32 readBuffer(u8* buffer, u32 frameCount) override
+		{
+			u32 readFrames = 0;
+			auto bytesPerSample = m_format.m_bytesPerSample;
+			if (bytesPerSample == 2)
+			{
+				if (m_dstBytes == 2)
+				{
+					readFrames = m_wavFile->loadDataShort(frameCount, m_format.m_channels, (s16*)buffer, m_dstChannels);
+				}
+				else if (m_dstBytes == 4)
+				{
+					readFrames = m_wavFile->loadDataShortToFloat(frameCount, m_format.m_channels, (float*)buffer, m_dstChannels);
+				}
+			}
+			else if (bytesPerSample == 4)
+			{
+				readFrames = m_wavFile->loadDataFloat(frameCount, m_format.m_channels, (float*)buffer, m_dstChannels);
+			}
 
-	void AudioAspect::shutdown()
-	{
-		m_audioManager.shutdown();
-	}
+			return readFrames;
+		}
 
-	void AudioAspect::update(f32 dt)
-	{
-		m_audioManager.update(dt);
-	}
+		void update() override
+		{
 
-	void AudioAspect::handleMessage(const Message &evt)
-	{
+		}
 
-	}
+		u32 eof() const
+		{
+			return m_wavFile->eof();
+		}
+	};
 }

@@ -137,7 +137,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PreprocessorDefinitions>_VX_ASSERT;_VX_NO_EXCEPTIONS;_VX_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_VX_ASSERT;_VX_NO_EXCEPTIONS;_VX_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <CallingConvention>FastCall</CallingConvention>
@@ -209,18 +209,14 @@
     <ClCompile Include="AudioManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="AudioRenderer.cpp" />
+    <ClCompile Include="AudioWavRenderer.cpp" />
     <ClCompile Include="dllExport.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="ogg_stream.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="unity\Unity_vxAudioAspect1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="WavFactory.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="WavFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -231,11 +227,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioAspect.h" />
-    <ClInclude Include="AudioFormat.h" />
     <ClInclude Include="AudioManager.h" />
+    <ClInclude Include="AudioRenderer.h" />
+    <ClInclude Include="AudioWavRenderer.h" />
     <ClInclude Include="dllExport.h" />
-    <ClInclude Include="ogg_stream.h" />
-    <ClInclude Include="WavFactory.h" />
     <ClInclude Include="WavFile.h" />
     <ClInclude Include="WavFormat.h" />
   </ItemGroup>

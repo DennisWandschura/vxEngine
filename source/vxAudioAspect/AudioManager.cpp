@@ -28,19 +28,9 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include <Audioclient.h>
 #include "WavFile.h"
-#include "WavFormat.h"
 
 namespace Audio
 {
-
-	struct AudioManager::WavEntry
-	{
-		IAudioClient* m_client;
-		IAudioRenderClient* m_renderClient;
-		s64 m_devicePeriod;
-		WavFile wav;
-	};
-
 	AudioManager::AudioManager()
 		:m_device(nullptr)
 	{
@@ -73,24 +63,6 @@ namespace Audio
 		format.wBitsPerSample = 32;
 		format.cbSize = 22;
 
-		/*WAVEFORMATEX wave_format = {};
-		wave_format.wFormatTag = WAVE_FORMAT_PCM;
-		wave_format.nChannels = 2;
-		wave_format.nSamplesPerSec = 44100;
-		wave_format.nAvgBytesPerSec = 44100 * 2 * 16 / 8;
-		wave_format.nBlockAlign = 2 * 16 / 8;
-		const auto wChannels = 2;
-		const auto wBitsPerSample = 16;
-		const auto blockAlign = wChannels * ((wBitsPerSample + 7) / 8);
-		wave_format.wBitsPerSample = 16;*/
-
-	//	m_client->GetMixFormat(&m_format);
-
-		//WAVEFORMATEX* closest;
-		//hr = m_client->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, m_format, &closest);
-
-		//AUDCLNT_STREAMFLAGS_EVENTCALLBACK
-
 		return true;
 	}
 
@@ -106,24 +78,31 @@ namespace Audio
 			m_device->Release();
 			m_device = nullptr;
 		}
+
+		m_entries.clear();
+
+		for (auto &it : m_wavFiles)
+		{
+			delete(it);
+		}
+		m_wavFiles.clear();
 	}
 
-	void AudioManager::update()
+	void AudioManager::update(f32 dt)
 	{
-		for (auto &it : m_entries2Channel4Byte)
+		for (auto &it : m_entries)
 		{
-
+			if (!it.eof())
+			{
+				it.update();
+				it.play(dt);
+			}
 		}
 	}
 
-	void AudioManager::addWavFile(WavFile &&wav, const WavFormat &format)
+	void AudioManager::addWavFile(WavFile* wav, const WavFormat &format)
 	{
-		VX_ASSERT(format.bytesPerSample == 4);
-		VX_ASSERT(format.channels == 2);
-		VX_ASSERT(format.formatTag == WAVE_FORMAT_IEEE_FLOAT);
-
-		WAVE_FORMAT_FLAC;
-
+		m_wavFiles.push_back(wav);
 
 		IAudioClient* client = nullptr;
 		auto hr = m_device->Activate(
@@ -135,6 +114,8 @@ namespace Audio
 		s64 devicePeriod;
 		REFERENCE_TIME MinimumDevicePeriod = 0;
 		hr = client->GetDevicePeriod(&devicePeriod, &MinimumDevicePeriod);
+
+		MinimumDevicePeriod *= 10;
 
 		WAVEFORMATEX* mixFormat;
 		client->GetMixFormat(&mixFormat);
@@ -149,8 +130,8 @@ namespace Audio
 
 		VX_ASSERT(hr == 0);
 
-		u32 NumBufferFrames = 0;
-		hr = client->GetBufferSize(&NumBufferFrames);
+		u32 bufferFrames = 0;
+		hr = client->GetBufferSize(&bufferFrames);
 
 		IAudioRenderClient* renderClient = nullptr;
 		hr = client->GetService(
@@ -165,12 +146,22 @@ namespace Audio
 
 		hr = client->Start();*/
 
-		WavEntry entry;
-		entry.m_client = client;
-		entry.m_devicePeriod = devicePeriod;
-		entry.m_renderClient = renderClient;
-		entry.wav = std::move(wav);
+		auto hnsActualDuration = (double)MinimumDevicePeriod * bufferFrames / mixFormat->nSamplesPerSec;
+		const f32 waitTime = hnsActualDuration / MinimumDevicePeriod / 2.0f;
 
-		m_entries2Channel4Byte.push_back(std::move(entry));
+		Audio::WavRenderer renderer;
+		renderer.setFile(wav, format);
+		renderer.setDestinationFormat(bufferFrames, mixFormat->nChannels, mixFormat->wBitsPerSample / 8, renderClient, client, waitTime);
+
+		BYTE *pData = nullptr;
+		hr = renderClient->GetBuffer(bufferFrames, &pData);
+
+		auto read_count = renderer.readBuffer(pData, bufferFrames);
+
+		hr = renderClient->ReleaseBuffer((UINT32)read_count, 0);
+
+		hr = client->Start();
+
+		m_entries.push_back(std::move(renderer));
 	}
 }

@@ -4,7 +4,6 @@
 
 struct WavFormat
 {
-	u8 bytesPerSample;
-	u8 channels;
-	u16 formatTag;
+	u32 m_channels;
+	u32 m_bytesPerSample;
 };

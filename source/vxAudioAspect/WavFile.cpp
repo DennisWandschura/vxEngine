@@ -24,110 +24,75 @@ SOFTWARE.
 
 #include "WavFile.h"
 #include <algorithm>
+#include "WavFormat.h"
 
 namespace WavFileCpp
 {
-	template<typename u32 SIZESRC, u32 SIZEDST>
-	struct CopyArray;
+	template<typename SOURCE, typename DEST>
+	struct ConvertData;
 
-	template<>
-	struct CopyArray<2, 2>
+	template<typename T>
+	struct ConvertData<T, T>
 	{
-		template<typename T>
-		static void copy(const T* src, T* dst)
+		void operator()(T* dst, const T* src)
 		{
-			dst[0] = src[0];
-			dst[1] = src[1];
+			*dst = *src;
 		}
 	};
 
 	template<>
-	struct CopyArray<2, 8>
+	struct ConvertData<s16, float>
 	{
-		template<typename T>
-		static void copy(const T* src, T* dst)
+		void operator()(float* dst, const s16* src)
 		{
-			dst[0] = src[0];
-			dst[1] = src[1];
-			dst[2] = 0;
-			dst[3] = 0;
+			const float cvt = 1.0f / 0x7fff;
 
-			dst[4] = 0;
-			dst[5] = 0;
-			dst[6] = 0;
-			dst[7] = 0;
+			float tmp = *src;
+
+			*dst = tmp * cvt;
 		}
 	};
 
-	template<u32 SRCCHANNELS, u32 DSTCHANNELS>
-	struct Reader
+	template<typename SRC_TYPE, typename DST_TYPE>
+	u32 writeData(const u8* buffer, u32* head, u32 srcChannels, u32 dataSize, DST_TYPE* dst, u32 frameCount, u32 dstChannels)
 	{
-		u32 static readShort(u32 frameCount, const u16* src, u16* dst, const u16* end, u32* head)
+		const u32 srcChannelSize = srcChannels * sizeof(SRC_TYPE);
+		u32 sizeInBytes = frameCount * srcChannelSize;
+
+		u32 newHead = *head + sizeInBytes;
+		newHead = std::min(newHead, dataSize);
+
+		u32 readBytes = newHead - *head;
+		u32 readFrames = readBytes / srcChannelSize;
+
+		auto src = (SRC_TYPE*)(buffer + *head);
+
+		auto remainingChannels = dstChannels - srcChannels;
+		auto remainingDstSize = remainingChannels * sizeof(DST_TYPE);
+
+		u32 index = 0;
+		for (u32 i = 0; i < readFrames; ++i)
 		{
-			const u32 srcTotalSize = frameCount * SRCCHANNELS;
-
-			auto newHead = src + srcTotalSize;
-			newHead = std::min(newHead, end);
-
-			auto readBytes = newHead - src;
-			auto readFrames = readBytes / SRCCHANNELS;
-
-			u32 index = 0;
-			for (u32 i = 0; i < readFrames; ++i)
+			for (u32 chn = 0; chn < srcChannels; ++chn)
 			{
-				CopyArray<SRCCHANNELS, DSTCHANNELS>::copy(src, dst);
-
-				src += SRCCHANNELS;
-				dst += DSTCHANNELS;
+				ConvertData<SRC_TYPE, DST_TYPE>()(dst++, src++);
 			}
 
-			*head += static_cast<u32>(readBytes);
-
-			return static_cast<u32>(readFrames);
+			memset(dst, 0, remainingDstSize);
+			dst += remainingChannels;
 		}
 
-		u32 static readFloat(u32 frameCount, const f32* src, f32* dst, const f32* end, u32* head)
-		{
-			const u32 srcTotalSize = frameCount * SRCCHANNELS;
+		*head += readBytes;
 
-			auto newHead = src + srcTotalSize;
-			newHead = std::min(newHead, end);
-
-			auto readBytes = newHead - src;
-			auto readFrames = readBytes / SRCCHANNELS;
-
-			u32 index = 0;
-			for (u32 i = 0; i < readFrames; ++i)
-			{
-				CopyArray<SRCCHANNELS, DSTCHANNELS>::copy(src, dst);
-
-				src += SRCCHANNELS;
-				dst += DSTCHANNELS;
-			}
-
-			*head += static_cast<u32>(readBytes);
-
-			return static_cast<u32>(readFrames);
-		}
-	};
+		return readFrames;
+	}
 }
 
 WavFile::WavFile()
 	:m_data(nullptr),
-	m_head(0),
-	m_dataSize(0)
+	m_dataSize(0),
+	m_head(0)
 {
-
-}
-
-WavFile::WavFile(WavFile &&rhs)
-	:m_data(rhs.m_data),
-	m_head(rhs.m_head),
-	m_dataSize(rhs.m_dataSize)
-{
-	rhs.m_data = nullptr;
-	m_head = 0;
-	m_dataSize = 0;
 }
 
 WavFile::~WavFile()
@@ -135,128 +100,131 @@ WavFile::~WavFile()
 	if (m_data)
 	{
 		delete[]m_data;
+		m_data = nullptr;
+		m_dataSize = 0;
 	}
 }
 
-WavFile& WavFile::operator=(WavFile &&rhs)
+void WavFile::create(u8* data, u32 dataSize)
 {
-	if (this != &rhs)
-	{
-		std::swap(m_data, rhs.m_data);
-		std::swap(m_head, rhs.m_head);
-		std::swap(m_dataSize, rhs.m_dataSize);
-	}
-	return *this;
+	m_data = data;
+	m_dataSize = dataSize;
+	m_head = 0;
 }
 
-u32 WavFile::readDataFloat22(u32 frameCount, f32* dst)
+u32 WavFile::loadDataFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u32 dstChannels)
 {
-	/*const u32 channels = 2;
-	const u32 srcTotalSize = frameCount * channels * sizeof(f32);
-
-	u32 newHead = m_head + srcTotalSize;
-	newHead = std::min(newHead, m_dataSize);
-
-	u32 readBytes = newHead - m_head;
-	u32 readFrames = readBytes / channels;
-
-	//
-	auto read = readBytes / channels;
-	auto ptr = (float*)(m_data + m_head);
-
-	u32 index = 0;
-	for (u32 i = 0; i < read; ++i)
-	{
-		dst[0] = ptr[0];
-		dst[1] = ptr[0];
-
-		ptr += channels;
-		dst += channels;
-	}
-
-	m_head += readBytes;
-
-	return readFrames;*/
-
-	auto src = (float*)(m_data + m_head);
-	auto end = (float*)(m_data + m_dataSize);
-
-	return WavFileCpp::Reader<2, 2>::readFloat(frameCount, src, dst, end, &m_head);
+	return WavFileCpp::writeData<float, float>(m_data, &m_head, srcChannels, m_dataSize, pData, bufferFrameCount, dstChannels);
 }
 
-u32 WavFile::readDataFloat28(u32 frameCount, f32* dst)
+u32 WavFile::loadDataShort(u32 bufferFrameCount, u32 srcChannels, s16* pData, u32 dstChannels)
 {
-	const u32 dstChannels = 8;
-	const u32 srcChannels = 2;
-	const u32 srcTotalSize = frameCount * srcChannels * sizeof(f32);
-
-	u32 newHead = m_head + srcTotalSize;
-	newHead = std::min(newHead, m_dataSize);
-
-	u32 readBytes = newHead - m_head;
-	u32 readFrames = readBytes / srcChannels;
-
-	//
-	auto read = readBytes / srcChannels;
-	auto ptr = (float*)(m_data + m_head);
-
-	u32 index = 0;
-	for (u32 i = 0; i < read; ++i)
-	{
-		dst[0] = ptr[0];
-		dst[1] = ptr[0];
-		dst[2] = 0;
-		dst[3] = 0;
-
-		dst[4] = 0;
-		dst[5] = 0;
-		dst[6] = 0;
-		dst[7] = 0;
-
-		ptr += srcChannels;
-		dst += dstChannels;
-	}
-
-	m_head += readBytes;
-
-	return readFrames;
+	return WavFileCpp::writeData<s16, s16>(m_data, &m_head, srcChannels, m_dataSize, pData, bufferFrameCount, dstChannels);
 }
 
-u32 WavFile::readDataFloat(u32 frameCount, u32 srcChannels, f32* dst, u32 dstChannels)
+u32 WavFile::loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u16 dstChannels)
 {
-	const u32 srcChannelBytes = srcChannels * sizeof(f32);
-	u32 srcTotalSize = frameCount * srcChannelBytes;
+	return WavFileCpp::writeData<s16, float>(m_data, &m_head, srcChannels, m_dataSize, pData, bufferFrameCount, dstChannels);
+}
 
-	u32 newHead = m_head + srcTotalSize;
-	newHead = std::min(newHead, m_dataSize);
+struct WaveHeader
+{
+	u8 riff[4];
+	u32 fileSize;
+	u8 wave[4];
+};
 
-	u32 readBytes = newHead - m_head;
-	u32 readFrames = readBytes / srcChannels;
+struct WaveFormatData
+{
+	u8 fmt[4];
+	u32 formatSize;
+	u16 format_tag;
+	u16 channels;
+	u32 sample_rate;
+	u32 bytesPerSec;
+	u16 block_align;
+	u16 bits_per_sample;
+};
 
-	//
-	auto read = readBytes / srcChannels;
-	auto ptr = (float*)(m_data + m_head);
+struct WaveDataHeader
+{
+	u8 data[4];
+	u32 dataSize;
+};
 
-	auto remainingChannels = dstChannels - srcChannels;
-
-	u32 index = 0;
-	for (u32 i = 0; i < read; ++i)
+namespace Audio
+{
+	bool loadWavFile(const char* name, WavFile* wavFile, WavFormat* format)
 	{
-		for (u32 chn = 0; chn < srcChannels; ++chn)
+		FILE* f = nullptr;
+		f = fopen(name, "rb");
+		if (f == nullptr)
 		{
-			float value = ptr[index++];
-			*dst = value;
-			++dst;
+			return false;
 		}
 
-		for (u32 chn = 0; chn < remainingChannels; ++chn)
+		u8 id[4]; //four bytes to hold 'RIFF' 
+		u32 size; //32 bit value to hold file size 
+		u32 formatSize = 0;
+
+		fread(id, sizeof(u8), 4, f);
+		if (id[0] != 'R' ||
+			id[1] != 'I' ||
+			id[2] != 'F' ||
+			id[3] != 'F')
 		{
-			*dst = 0.0f;
-			++dst;
+			fclose(f);
+			return false;
 		}
+
+		fread(&size, sizeof(u32), 1, f);
+
+		fread(id, 1, 4, f);
+		if (id[0] != 'W' ||
+			id[1] != 'A' ||
+			id[2] != 'V' ||
+			id[3] != 'E')
+		{
+			fclose(f);
+			return false;
+		}
+
+		WaveFormatData formatData;
+		fread(&formatData, sizeof(WaveFormatData), 1, f);
+
+		while (true)
+		{
+			u8 data[4];
+			fread(data, 1, 4, f);
+
+			if (data[0] == 'd' &&
+				data[1] == 'a' &&
+				data[2] == 't' &&
+				data[3] == 'a')
+				break;
+		}
+
+		u32 dataSize = 0;
+		fread(&dataSize, sizeof(u32), 1, f);
+
+		//WaveDataHeader dataHeader;
+		//fread(&dataHeader, sizeof(WaveDataHeader), 1, f); //read in 'data' 
+
+		auto buffer = new u8[dataSize];
+		auto read = fread(buffer, sizeof(u8), dataSize, f);
+
+		if (read != dataSize)
+		{
+			fclose(f);
+			return false;
+		}
+
+		wavFile->create(buffer, dataSize);
+		format->m_channels = formatData.channels;
+		format->m_bytesPerSample = formatData.bits_per_sample / 8;
+
+		fclose(f);
+
+		return true;
 	}
-
-	m_head += readBytes;
-
-	return readFrames;
 }

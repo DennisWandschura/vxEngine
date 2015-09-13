@@ -24,40 +24,51 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+struct IAudioRenderClient;
+struct IAudioClient;
+
 #include <vxLib/types.h>
 
-namespace Wav
+namespace Audio
 {
-	struct Header
+	class Renderer
 	{
-		u8 riff[4];
-		u32 fileSize;
-		u8 wave[4];
+		IAudioRenderClient* m_renderClient;
+		IAudioClient* m_audioClient;
+		f32 m_waitTime;
+		f32 m_accum;
+		u32 m_bufferFrames;
 
-		bool isValid() const
+	protected:
+		u16 m_dstChannels;
+		u16 m_dstBytes;
+
+	public:
+		Renderer() :m_renderClient(nullptr), m_audioClient(nullptr), m_waitTime(0), m_accum(0), m_bufferFrames(0), m_dstChannels(0), m_dstBytes(0) {}
+		Renderer(const Renderer&) = delete;
+		Renderer(Renderer &&rhs);
+
+		virtual ~Renderer();
+
+		Renderer& operator=(const Renderer&) = delete;
+		Renderer& operator=(Renderer &&rhs);
+
+		void setDestinationFormat(u32 bufferFrames, u16 dstChannels, u16 dstBytes, IAudioRenderClient* audioRenderClient, IAudioClient* audioClient, f32 waitTime)
 		{
-			auto cmp0 = riff[0] == 'R' && riff[1] == 'I' && riff[2] == 'F' && riff[3] == 'F';
-			auto cmp1 = wave[0] == 'W' && wave[1] == 'A' && wave[2] == 'V' && wave[3] == 'E';
-
-			return cmp0 && cmp1;
+			m_dstChannels = dstChannels;
+			m_dstBytes = dstBytes;
+			m_renderClient = audioRenderClient;
+			m_audioClient = audioClient;
+			m_waitTime = waitTime;
+			m_accum = 0;
+			m_bufferFrames = bufferFrames;
 		}
-	};
 
-	struct FormatHeader
-	{
-		u8 fmt[4];
-		u32 formatSize;
-		u16 formatTag;
-		u16 channels;
-		u32 sampleRate;
-		u32 bytesPerSec;
-		u16 blockAlign;
-		u16 bitsPerSample;
-	};
+		virtual u32 readBuffer(u8* buffer, u32 frameCount) = 0;
+		virtual void update() = 0;
 
-	struct DataHeader
-	{
-		u8 data[4];
-		u32 dataSize;
+		void play(f32 dt);
+
+		virtual u32 eof() const = 0;
 	};
-};
+}

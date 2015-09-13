@@ -42,6 +42,6 @@ namespace vx
 
 		void handleMessage(const Message &evt) override;
 
-		void update() override;
+		void update(f32 dt) override;
 	};
 }

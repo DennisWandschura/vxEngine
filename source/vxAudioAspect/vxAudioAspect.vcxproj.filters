@@ -24,9 +24,6 @@
     <ClCompile Include="AudioManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ogg_stream.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="WavFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,7 +33,10 @@
     <ClCompile Include="dllExport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WavFactory.cpp">
+    <ClCompile Include="AudioRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioWavRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,9 +44,6 @@
     <None Include="generate_unity.bff" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ogg_stream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WavFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -59,13 +56,13 @@
     <ClInclude Include="dllExport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AudioFormat.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WavFactory.h">
+    <ClInclude Include="AudioRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WavFormat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioWavRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

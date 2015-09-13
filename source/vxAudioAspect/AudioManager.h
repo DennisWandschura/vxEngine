@@ -24,27 +24,21 @@ SOFTWARE.
 */
 
 struct IMMDevice;
-struct IAudioClient;
-struct tWAVEFORMATEX;
 class WavFile;
 struct WavFormat;
 
-typedef tWAVEFORMATEX WAVEFORMATEX;
-
 #include <vxLib/types.h>
 #include <vector>
+#include "AudioWavRenderer.h"
 
 namespace Audio
 {
 	class AudioManager
 	{
-		struct WavEntry;
+		std::vector<Audio::WavRenderer> m_entries;
+		std::vector<WavFile*> m_wavFiles;
 
-		std::vector<WavEntry> m_entries2Channel4Byte;
-
-		//IAudioClient* m_client;
 		IMMDevice* m_device;
-		//WAVEFORMATEX m_format;
 
 	public:
 		AudioManager();
@@ -53,8 +47,8 @@ namespace Audio
 		bool initialize();
 		void shutdown();
 
-		void update();
+		void update(f32 dt);
 
-		void addWavFile(WavFile &&wav, const WavFormat &format);
+		void addWavFile(WavFile* wav, const WavFormat &format);
 	};
 }

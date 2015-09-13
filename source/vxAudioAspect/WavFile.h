@@ -24,34 +24,35 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+struct WavFormat;
+
 #include <vxLib/types.h>
 
 class WavFile
 {
 	u8* m_data;
-	u32 m_head;
 	u32 m_dataSize;
+	u32 m_head;
 
 public:
 	WavFile();
-	WavFile(const WavFile &) = delete;
-	WavFile(WavFile &&rhs);
 	~WavFile();
 
-	WavFile& operator=(const WavFile&) = delete;
-	WavFile& operator=(WavFile &&rhs);
+	void create(u8* data, u32 dataSize);
 
-	void create(u8* data, u32 size)
+	u32 loadDataFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u32 dstChannels);
+
+	u32 loadDataShort(u32 bufferFrameCount, u32 srcChannels, s16* pData, u32 dstChannels);
+
+	u32 loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u16 dstChannels);
+
+	u32 eof() const
 	{
-		m_data = data;
-		m_dataSize = size;
+		return (m_dataSize == m_head);
 	}
-
-	u32 readDataFloat(u32 frameCount, u32 srcChannels, f32* dst, u32 dstChannels);
-
-	u32 readDataFloat22(u32 frameCount, f32* dst);
-	u32 readDataFloat28(u32 frameCount, f32* dst);
-
-	const u8* getData() const { return m_data; }
-	u32 getSize() const { return m_dataSize; }
 };
+
+namespace Audio
+{
+	extern bool loadWavFile(const char* file, WavFile* wavFile, WavFormat* format);
+}
