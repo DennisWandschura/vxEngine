@@ -285,6 +285,9 @@
     <ClInclude Include="RenderPassFilterRSM.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="GpuLpv.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">

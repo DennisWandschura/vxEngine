@@ -38,4 +38,6 @@ struct RenderSettings
 	u32 m_shadowCastingLightCount;
 	u32 m_textureDim;
 	u32 m_shadowDim;
+	u32 m_lpvDim;
+	f32 m_lpvGridSize;
 };

@@ -35,6 +35,7 @@ struct GpuShadowTransform;
 struct D3D12_DRAW_INDEXED_ARGUMENTS;
 struct AABB;
 class RenderPassFilterRSM;
+struct RenderSettings;
 
 namespace d3d
 {
@@ -79,7 +80,7 @@ public:
 
 	void getRequiredMemory(u64* heapSizeBuffere, u32 maxSceneLightCount, u32 maxShadowCastingLights);
 
-	bool initialize(vx::StackAllocator* allocator, u32 maxSceneLightCount, u32 maxShadowCastingLights, d3d::ResourceManager* resourceManager);
+	bool initialize(const RenderSettings &settings, vx::StackAllocator* allocator, u32 maxSceneLightCount, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 
 	bool loadSceneLights(const Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 

@@ -135,7 +135,7 @@ bool RenderLayerGame::initialize(vx::StackAllocator* allocator)
 		return false;
 	}
 
-	if (!m_lightManager.initialize(allocator, m_settings->m_gpuLightCount, m_settings->m_shadowCastingLightCount, m_resourceManager))
+	if (!m_lightManager.initialize(*m_settings, allocator, m_settings->m_gpuLightCount, m_resourceManager, m_uploadManager))
 		return false;
 
 	if (!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, m_resourceManager, device, allocator))

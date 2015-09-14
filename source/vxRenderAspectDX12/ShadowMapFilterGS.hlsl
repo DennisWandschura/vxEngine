@@ -10,6 +10,7 @@ struct GSOutput
 	float3 dirToLight : NORMAL0;
 	uint lightIndex : BLENDINDICES0;
 	uint index : BLENDINDICES1;
+	uint slice : SV_RenderTargetArrayIndex;
 };
 
 static const float2 positions[4] =
@@ -44,6 +45,7 @@ void main(
 	[unroll]
 	for (int i = 0; i < 6; ++i)
 	{
+		element.slice = input[0].lightIndex * 6 + i;
 		element.index = i;
 		element.dirToLight = -lightDirections[i];
 

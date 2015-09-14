@@ -38,6 +38,7 @@ class RenderPassFilterRSM : public RenderPass
 	d3d::CommandAllocator* m_allocator;
 	d3d::GraphicsCommandList m_commandList;
 	d3d::DescriptorHeap m_srvHeap;
+	d3d::DescriptorHeap m_srvHeapPass2;
 	d3d::DescriptorHeap m_rtvHeap;
 	u32 m_lightCount;
 
@@ -46,7 +47,8 @@ class RenderPassFilterRSM : public RenderPass
 	bool createPipelineState(ID3D12Device* device);
 	bool createSrvHeap(ID3D12Device* device);
 	bool createRtvHeap(ID3D12Device* device);
-	void createViews();
+	void createViews(ID3D12Device* device);
+	void createViewsPass2(ID3D12Device* device);
 
 public:
 	explicit RenderPassFilterRSM(d3d::CommandAllocator* allocator);

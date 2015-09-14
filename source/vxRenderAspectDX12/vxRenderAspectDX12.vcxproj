@@ -155,6 +155,7 @@
     <ClInclude Include="DownloadMananger.h" />
     <ClInclude Include="DrawIndexedIndirectCommand.h" />
     <ClInclude Include="Frustum.h" />
+    <ClInclude Include="GpuLpv.h" />
     <ClInclude Include="GpuProfiler.h" />
     <ClInclude Include="GpuShading.h" />
     <ClInclude Include="GpuShadowTransform.h" />

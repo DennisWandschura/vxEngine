@@ -151,7 +151,9 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	s_settings.m_gpuLightCount = 64;
 	s_settings.m_shadowCastingLightCount = 10;
 	s_settings.m_textureDim = 1024;
-	s_settings.m_shadowDim = 2048;
+	s_settings.m_shadowDim = 512;
+	s_settings.m_lpvDim = 32;
+	s_settings.m_lpvGridSize = 8.0f;
 
 	const u32 allocSize = 1 MBYTE;
 	auto allocPtr = desc.pAllocator->allocate(allocSize);

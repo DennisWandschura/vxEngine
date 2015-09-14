@@ -11,6 +11,7 @@
 #include <vxEngineLib/AABB.h>
 #include "RenderPassShadow.h"
 #include "RenderPassFilterRSM.h"
+#include "GpuLpv.h"
 
 enum FrustumPlane { FrustumPlaneNear, FrustumPlaneLeft, FrustumPlaneRight };
 
@@ -102,9 +103,9 @@ void LightManager::getRequiredMemory(u64* heapSizeBuffere, u32 maxSceneLightCoun
 	const u64 shadowReverseTransformBufferSize = d3d::getAlignedSize(sizeof(GpuShadowTransformReverse) * maxShadowCastingLights, 64llu KBYTE);
 	const auto shadowCastingLightsBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * maxShadowCastingLights, 64llu KBYTE);
 
-	const auto iblConstancBufferSize = 64 KBYTE;
+	const auto lpvConstantBufferSize = 64 KBYTE;
 
-	*heapSizeBuffere += shadowTransformBufferSize + lightBufferSize + visibleLightsBufferSize + shadowCastingLightsBufferSize + shadowReverseTransformBufferSize + iblConstancBufferSize;
+	*heapSizeBuffere += shadowTransformBufferSize + lightBufferSize + visibleLightsBufferSize + shadowCastingLightsBufferSize + shadowReverseTransformBufferSize + lpvConstantBufferSize;
 }
 
 void LightManager::createSrvLights(u32 maxCount, d3d::ResourceManager* resourceManager)
@@ -138,8 +139,10 @@ void LightManager::createSrvShadowCastingLights(u32 maxCount, d3d::ResourceManag
 	resourceManager->insertShaderResourceView("shadowTransformBufferView", srvDesc);
 }
 
-bool LightManager::initialize(vx::StackAllocator* allocator, u32 maxSceneLightCount, u32 maxShadowCastingLights, d3d::ResourceManager* resourceManager)
+bool LightManager::initialize(const RenderSettings &settings, vx::StackAllocator* allocator, u32 maxSceneLightCount, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
 {
+	auto maxShadowCastingLights = settings.m_shadowCastingLightCount;
+
 	m_sceneLights = (GpuLight*)allocator->allocate(sizeof(GpuLight) * maxSceneLightCount, 16);
 	m_sceneShadowTransforms = (GpuShadowTransform*)allocator->allocate(sizeof(GpuShadowTransform) * maxSceneLightCount, __alignof(GpuShadowTransform));
 	m_sceneShadowReverseTransforms = (GpuShadowTransformReverse*)allocator->allocate(sizeof(GpuShadowTransformReverse) * maxSceneLightCount, __alignof(GpuShadowTransformReverse));
@@ -179,9 +182,9 @@ bool LightManager::initialize(vx::StackAllocator* allocator, u32 maxSceneLightCo
 	if (shadowCastingLightsBuffer == nullptr)
 		return false;
 
-	const auto iblConstantBufferSize = 64 KBYTE;
-	auto iblConstantBuffer = resourceManager->createBuffer(L"iblConstantBuffer", iblConstantBufferSize, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	if (iblConstantBuffer == nullptr)
+	const auto lpvConstantBufferSize = 64 KBYTE;
+	auto lpvConstantBuffer = resourceManager->createBuffer(L"lpvConstantBuffer", lpvConstantBufferSize, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	if (lpvConstantBuffer == nullptr)
 		return false;
 
 	createSrvLights(maxSceneLightCount, resourceManager);
@@ -197,6 +200,20 @@ bool LightManager::initialize(vx::StackAllocator* allocator, u32 maxSceneLightCo
 	m_checkLightsEvent.setStatus(EventStatus::Complete);
 
 	m_renderPassCullLights->setEvent(m_checkLightsEvent, m_downloadEvent, (u8*)m_visibleLightsResult);
+
+
+	auto halfDim = settings.m_lpvDim / 2;
+	auto gridHalfSize = settings.m_lpvGridSize / 2.0f;
+
+	auto gridCellSize = gridHalfSize / halfDim;
+	auto invGridCellSize = 1.0f / gridCellSize;
+
+	GpuLpv lpvData;
+	lpvData.dim = settings.m_lpvDim;
+	lpvData.gridCellSize = gridCellSize;
+	lpvData.halfDim = halfDim;
+	lpvData.invGridCellSize = invGridCellSize;
+	uploadManager->pushUploadBuffer((u8*)&lpvData, lpvConstantBuffer->get(), 0, sizeof(GpuLpv), lpvConstantBuffer->getOriginalState());
 
 	return true;
 }

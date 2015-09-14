@@ -25,6 +25,7 @@ SOFTWARE.
 #include "ResourceManager.h"
 #include "ShaderManager.h"
 #include "CommandAllocator.h"
+#include "GpuShadowTransform.h"
 
 RenderPassFilterRSM::RenderPassFilterRSM(d3d::CommandAllocator* allocator)
 	:RenderPass(),
@@ -42,7 +43,7 @@ RenderPassFilterRSM::~RenderPassFilterRSM()
 void RenderPassFilterRSM::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
 	const u32 textureCount = 10;
-	const u32 resolution = 256;
+	const u32 resolution0 = 256;
 
 	D3D12_RESOURCE_DESC resDesc;
 	resDesc.Alignment = 64 KBYTE;
@@ -50,19 +51,22 @@ void RenderPassFilterRSM::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTe
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	resDesc.Height = resolution;
+	resDesc.Height = resolution0;
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc.MipLevels = 1;
+	resDesc.MipLevels = 2;
 	resDesc.SampleDesc.Count = 1;
 	resDesc.SampleDesc.Quality = 0;
-	resDesc.Width = resolution;
+	resDesc.Width = resolution0;
 
-	auto allocColor = device->GetResourceAllocationInfo(1, 1, &resDesc);
+	auto allocColor0 = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	resDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-	auto allocNormal = device->GetResourceAllocationInfo(1, 1, &resDesc);
+	auto allocNormal0 = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
-	*heapSizeRtDs += allocColor.SizeInBytes + allocNormal.SizeInBytes;
+	resDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	auto allocDepth = device->GetResourceAllocationInfo(1, 1, &resDesc);
+
+	*heapSizeRtDs += allocColor0.SizeInBytes + allocNormal0.SizeInBytes + allocDepth.SizeInBytes;
 }
 
 bool RenderPassFilterRSM::createData(ID3D12Device* device)
@@ -78,7 +82,7 @@ bool RenderPassFilterRSM::createData(ID3D12Device* device)
 	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	resDesc.Height = resolution;
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc.MipLevels = 1;
+	resDesc.MipLevels = 2;
 	resDesc.SampleDesc.Count = 1;
 	resDesc.SampleDesc.Quality = 0;
 	resDesc.Width = resolution;
@@ -107,6 +111,15 @@ bool RenderPassFilterRSM::createData(ID3D12Device* device)
 	desc.size = alloc.SizeInBytes;
 
 	ptr = s_resourceManager->createTextureRtDs(L"rsmFilteredNormal", desc);
+	if (ptr == nullptr)
+		return false;
+
+	clearValues[0].Format = DXGI_FORMAT_R32_FLOAT;
+	clearValues[0].Color[0] = 1.0f;
+	resDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
+	desc.size = alloc.SizeInBytes;
+	ptr = s_resourceManager->createTextureRtDs(L"rsmFilteredDepth", desc);
 	if (ptr == nullptr)
 		return false;
 
@@ -169,10 +182,11 @@ bool RenderPassFilterRSM::createRootSignature(ID3D12Device* device)
 
 bool RenderPassFilterRSM::createPipelineState(ID3D12Device* device)
 {
-	DXGI_FORMAT formats[2]=
+	DXGI_FORMAT formats[3]=
 	{
 		DXGI_FORMAT_R8G8B8A8_UNORM,
-		DXGI_FORMAT_R16G16_FLOAT
+		DXGI_FORMAT_R16G16_FLOAT,
+		DXGI_FORMAT_R32_FLOAT
 	};
 
 	d3d::PipelineStateDescInput inputDesc;
@@ -184,7 +198,7 @@ bool RenderPassFilterRSM::createPipelineState(ID3D12Device* device)
 	inputDesc.shaderDesc.gs = s_shaderManager->getShader("ShadowMapFilterGS.cso");
 	inputDesc.shaderDesc.ps = s_shaderManager->getShader("ShadowMapFilterPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-	inputDesc.rtvCount = 2;
+	inputDesc.rtvCount = 3;
 	inputDesc.rtvFormats = formats;
 
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
@@ -197,10 +211,13 @@ bool RenderPassFilterRSM::createSrvHeap(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 4;
+	desc.NumDescriptors = 5;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 	if (!m_srvHeap.create(desc, device))
+		return false;
+
+	if (!m_srvHeapPass2.create(desc, device))
 		return false;
 
 	return true;
@@ -211,7 +228,7 @@ bool RenderPassFilterRSM::createRtvHeap(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 2;
+	desc.NumDescriptors = 6;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 
 	if (!m_rtvHeap.create(desc, device))
@@ -224,24 +241,190 @@ bool RenderPassFilterRSM::createRtvHeap(ID3D12Device* device)
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
 
-	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
-
 	auto handle = m_rtvHeap.getHandleCpu();
-	device->CreateRenderTargetView(rsmFilteredColor->get(), &rtvDesc, handle);
 
-	rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
 	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
+	auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
+	{
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		device->CreateRenderTargetView(rsmFilteredColor->get(), &rtvDesc, handle);
 
-	handle.offset(1);
-	device->CreateRenderTargetView(rsmFilteredNormal->get(), &rtvDesc, handle);
+		rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+		handle.offset(1);
+		device->CreateRenderTargetView(rsmFilteredNormal->get(), &rtvDesc, handle);
+
+		rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		handle.offset(1);
+		device->CreateRenderTargetView(rsmFilteredDepth->get(), &rtvDesc, handle);
+	}
+	{
+		rtvDesc.Texture2DArray.MipSlice = 1;
+
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		handle.offset(1);
+		device->CreateRenderTargetView(rsmFilteredColor->get(), &rtvDesc, handle);
+
+		rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+		handle.offset(1);
+		device->CreateRenderTargetView(rsmFilteredNormal->get(), &rtvDesc, handle);
+
+		rtvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		handle.offset(1);
+		device->CreateRenderTargetView(rsmFilteredDepth->get(), &rtvDesc, handle);
+	}
 
 	return true;
 }
 
-void RenderPassFilterRSM::createViews()
+void RenderPassFilterRSM::createViews(ID3D12Device* device)
 {
+	/*
 
+Texture2DArray g_srcRSMColor : register(t0);
+Texture2DArray<half2> g_srcRSMNormal : register(t1);
+Texture2DArray<float> g_srcRSMDepth : register(t2);
+StructuredBuffer<GpuShadowTransformReverse> g_transforms : register(t3);
+
+cbuffer lpvConstantBuffer : register(b0)
+*/
+
+	auto shadowTextureColor = s_resourceManager->getTextureRtDs(L"shadowTextureColor");
+	auto shadowTextureNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
+	auto shadowTextureDepth = s_resourceManager->getTextureRtDs(L"shadowTextureDepth");
+	auto shadowReverseTransformBuffer = s_resourceManager->getBuffer(L"shadowReverseTransformBuffer");
+	auto lpvConstantBuffer = s_resourceManager->getBuffer(L"lpvConstantBuffer");
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmColor;
+	srvDescRsmColor.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDescRsmColor.Shader4ComponentMapping =D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING ;
+	srvDescRsmColor.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDescRsmColor.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
+	srvDescRsmColor.Texture2DArray.FirstArraySlice = 0;
+	srvDescRsmColor.Texture2DArray.MipLevels = 1;
+	srvDescRsmColor.Texture2DArray.MostDetailedMip = 0;
+	srvDescRsmColor.Texture2DArray.PlaneSlice = 0;
+	srvDescRsmColor.Texture2DArray.ResourceMinLODClamp = 0;
+
+	auto handle = m_srvHeap.getHandleCpu();
+	device->CreateShaderResourceView(shadowTextureColor->get(), &srvDescRsmColor, handle);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmNormals;
+	srvDescRsmNormals.Format = DXGI_FORMAT_R16G16_FLOAT;
+	srvDescRsmNormals.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDescRsmNormals.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDescRsmNormals.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
+	srvDescRsmNormals.Texture2DArray.FirstArraySlice = 0;
+	srvDescRsmNormals.Texture2DArray.MipLevels = 1;
+	srvDescRsmNormals.Texture2DArray.MostDetailedMip = 0;
+	srvDescRsmNormals.Texture2DArray.PlaneSlice = 0;
+	srvDescRsmNormals.Texture2DArray.ResourceMinLODClamp = 0;
+
+	handle.offset(1);
+	device->CreateShaderResourceView(shadowTextureNormal->get(), &srvDescRsmNormals, handle);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmDepth;
+	srvDescRsmDepth.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDescRsmDepth.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDescRsmDepth.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDescRsmDepth.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
+	srvDescRsmDepth.Texture2DArray.FirstArraySlice = 0;
+	srvDescRsmDepth.Texture2DArray.MipLevels = 1;
+	srvDescRsmDepth.Texture2DArray.MostDetailedMip = 0;
+	srvDescRsmDepth.Texture2DArray.PlaneSlice = 0;
+	srvDescRsmDepth.Texture2DArray.ResourceMinLODClamp = 0;
+
+	handle.offset(1);
+	device->CreateShaderResourceView(shadowTextureDepth->get(), &srvDescRsmDepth, handle);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescBuffer;
+	srvDescBuffer.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDescBuffer.Format = DXGI_FORMAT_UNKNOWN;
+	srvDescBuffer.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDescBuffer.Buffer.FirstElement = 0;
+	srvDescBuffer.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	srvDescBuffer.Buffer.NumElements = s_settings->m_shadowCastingLightCount;
+	srvDescBuffer.Buffer.StructureByteStride = sizeof(GpuShadowTransformReverse) ;
+
+	handle.offset(1);
+	device->CreateShaderResourceView(shadowReverseTransformBuffer->get(), &srvDescBuffer, handle);
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+	cbvDesc.BufferLocation = lpvConstantBuffer->GetGPUVirtualAddress();
+	cbvDesc.SizeInBytes = 256;
+
+	handle.offset(1);
+	device->CreateConstantBufferView(&cbvDesc, handle);
+}
+
+void RenderPassFilterRSM::createViewsPass2(ID3D12Device* device)
+{
+	auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
+	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
+	auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
+	auto shadowReverseTransformBuffer = s_resourceManager->getBuffer(L"shadowReverseTransformBuffer");
+	auto lpvConstantBuffer = s_resourceManager->getBuffer(L"lpvConstantBuffer");
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmColor;
+	srvDescRsmColor.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDescRsmColor.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDescRsmColor.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDescRsmColor.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
+	srvDescRsmColor.Texture2DArray.FirstArraySlice = 0;
+	srvDescRsmColor.Texture2DArray.MipLevels = 1;
+	srvDescRsmColor.Texture2DArray.MostDetailedMip = 0;
+	srvDescRsmColor.Texture2DArray.PlaneSlice = 0;
+	srvDescRsmColor.Texture2DArray.ResourceMinLODClamp = 0;
+
+	auto handle = m_srvHeapPass2.getHandleCpu();
+	device->CreateShaderResourceView(rsmFilteredColor->get(), &srvDescRsmColor, handle);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmNormals;
+	srvDescRsmNormals.Format = DXGI_FORMAT_R16G16_FLOAT;
+	srvDescRsmNormals.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDescRsmNormals.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDescRsmNormals.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
+	srvDescRsmNormals.Texture2DArray.FirstArraySlice = 0;
+	srvDescRsmNormals.Texture2DArray.MipLevels = 1;
+	srvDescRsmNormals.Texture2DArray.MostDetailedMip = 0;
+	srvDescRsmNormals.Texture2DArray.PlaneSlice = 0;
+	srvDescRsmNormals.Texture2DArray.ResourceMinLODClamp = 0;
+
+	handle.offset(1);
+	device->CreateShaderResourceView(rsmFilteredNormal->get(), &srvDescRsmNormals, handle);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmDepth;
+	srvDescRsmDepth.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDescRsmDepth.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDescRsmDepth.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDescRsmDepth.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
+	srvDescRsmDepth.Texture2DArray.FirstArraySlice = 0;
+	srvDescRsmDepth.Texture2DArray.MipLevels = 1;
+	srvDescRsmDepth.Texture2DArray.MostDetailedMip = 0;
+	srvDescRsmDepth.Texture2DArray.PlaneSlice = 0;
+	srvDescRsmDepth.Texture2DArray.ResourceMinLODClamp = 0;
+
+	handle.offset(1);
+	device->CreateShaderResourceView(rsmFilteredDepth->get(), &srvDescRsmDepth, handle);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescBuffer;
+	srvDescBuffer.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDescBuffer.Format = DXGI_FORMAT_UNKNOWN;
+	srvDescBuffer.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDescBuffer.Buffer.FirstElement = 0;
+	srvDescBuffer.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	srvDescBuffer.Buffer.NumElements = s_settings->m_shadowCastingLightCount;
+	srvDescBuffer.Buffer.StructureByteStride = sizeof(GpuShadowTransformReverse);
+
+	handle.offset(1);
+	device->CreateShaderResourceView(shadowReverseTransformBuffer->get(), &srvDescBuffer, handle);
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+	cbvDesc.BufferLocation = lpvConstantBuffer->GetGPUVirtualAddress();
+	cbvDesc.SizeInBytes = 256;
+
+	handle.offset(1);
+	device->CreateConstantBufferView(&cbvDesc, handle);
 }
 
 bool RenderPassFilterRSM::initialize(ID3D12Device* device, void* p)
@@ -274,7 +457,8 @@ bool RenderPassFilterRSM::initialize(ID3D12Device* device, void* p)
 		return false;
 	}
 
-	createViews();
+	createViews(device);
+	createViewsPass2(device);
 
 	return true;
 }
@@ -288,6 +472,7 @@ void RenderPassFilterRSM::submitCommands(Graphics::CommandQueue* queue)
 {
 	const u32 resolution = 256;
 	const f32 clearColor[4] = {0, 0, 0, 0};
+	const f32 clearColor1[4] = { 1, 0, 0, 0 };
 
 	if (m_lightCount != 0)
 	{
@@ -312,14 +497,78 @@ void RenderPassFilterRSM::submitCommands(Graphics::CommandQueue* queue)
 
 		auto rtvHandle = m_rtvHeap.getHandleCpu();
 
-		D3D12_CPU_DESCRIPTOR_HANDLE handles[2];
+		auto shadowTextureColor = s_resourceManager->getTextureRtDs(L"shadowTextureColor");
+		auto shadowTextureNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
+		auto shadowTextureDepth = s_resourceManager->getTextureRtDs(L"shadowTextureDepth");
+
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureDepth->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+
+		D3D12_CPU_DESCRIPTOR_HANDLE handles[3];
 		handles[0] = rtvHandle;
 		rtvHandle.offset(1);
 		handles[1] = rtvHandle;
+		rtvHandle.offset(1);
+		handles[2] = rtvHandle;
 
-		m_commandList->OMSetRenderTargets(2, handles, 0, nullptr);
+		m_commandList->OMSetRenderTargets(3, handles, 0, nullptr);
 		m_commandList->ClearRenderTargetView(handles[0], clearColor, 0, nullptr);
 		m_commandList->ClearRenderTargetView(handles[1], clearColor, 0, nullptr);
+		m_commandList->ClearRenderTargetView(handles[2], clearColor1, 0, nullptr);
+
+		auto srvHeap = m_srvHeap.get();
+		m_commandList->SetDescriptorHeaps(1, &srvHeap);
+		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+		m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
+
+		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+		m_commandList->DrawInstanced(m_lightCount, 1, 0, 0);
+
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureColor->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureDepth->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE, 0));
+
+		//////////////////////
+		rtvHandle.offset(1);
+		handles[0] = rtvHandle;
+		rtvHandle.offset(1);
+		handles[1] = rtvHandle;
+		rtvHandle.offset(1);
+		handles[2] = rtvHandle;
+
+		viewport.Height = (f32)resolution / 2;
+		viewport.Width = (f32)resolution / 2;
+		rectScissor.right = resolution / 2;
+		rectScissor.bottom = resolution / 2;
+
+		m_commandList->RSSetViewports(1, &viewport);
+		m_commandList->RSSetScissorRects(1, &rectScissor);
+
+		auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
+		auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
+		auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
+
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+
+		m_commandList->OMSetRenderTargets(3, handles, 0, nullptr);
+		m_commandList->ClearRenderTargetView(handles[0], clearColor, 0, nullptr);
+		m_commandList->ClearRenderTargetView(handles[1], clearColor, 0, nullptr);
+		m_commandList->ClearRenderTargetView(handles[2], clearColor1, 0, nullptr);
+
+		srvHeap = m_srvHeapPass2.get();
+		m_commandList->SetDescriptorHeaps(1, &srvHeap);
+		m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
+
+		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+		m_commandList->DrawInstanced(m_lightCount, 1, 0, 0);
+
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+		////////////////
 
 		m_commandList->Close();
 

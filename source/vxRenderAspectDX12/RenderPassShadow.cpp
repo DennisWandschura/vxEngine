@@ -32,8 +32,6 @@ SOFTWARE.
 #include "ResourceView.h"
 #include "CommandAllocator.h"
 
-const u32 g_shadowMapResolutionHigh = 512;
-
 namespace RenderPassShadowCpp
 {
 	enum Textures { TextureDepth, TextureZDepth, TextureIntensity, TextureNormal, TextureCount };
@@ -80,7 +78,7 @@ RenderPassShadow::~RenderPassShadow()
 void RenderPassShadow::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
 	D3D12_RESOURCE_DESC resDescHigh[RenderPassShadowCpp::TextureCount];
-	RenderPassShadowCpp::getDescription(resDescHigh, g_shadowMapResolutionHigh, 10);
+	RenderPassShadowCpp::getDescription(resDescHigh, s_settings->m_shadowDim, s_settings->m_shadowCastingLightCount);
 
 	auto infoHigh = device->GetResourceAllocationInfo(1, RenderPassShadowCpp::TextureCount, resDescHigh);
 
@@ -90,7 +88,7 @@ void RenderPassShadow::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTextu
 bool RenderPassShadow::createData(ID3D12Device* device)
 {
 	D3D12_RESOURCE_DESC resDescHigh[RenderPassShadowCpp::TextureCount];
-	RenderPassShadowCpp::getDescription(resDescHigh, g_shadowMapResolutionHigh, 10);
+	RenderPassShadowCpp::getDescription(resDescHigh, s_settings->m_shadowDim, s_settings->m_shadowCastingLightCount);
 
 	D3D12_CLEAR_VALUE clearValues[RenderPassShadowCpp::TextureCount];
 	memset(clearValues, 0, sizeof(clearValues));
@@ -107,9 +105,9 @@ bool RenderPassShadow::createData(ID3D12Device* device)
 
 	const wchar_t* names[]=
 	{
-		L"shadowTexture",
+		L"shadowTextureDepth",
 		L"shadowTextureLinear",
-		L"shadowTextureIntensity",
+		L"shadowTextureColor",
 		L"shadowTextureNormal"
 	};
 
@@ -252,7 +250,7 @@ bool RenderPassShadow::createCommandList(ID3D12Device* device)
 bool RenderPassShadow::createRtvs(ID3D12Device* device, u32 shadowCastingLightCount)
 {
 	auto shadowTextureLinear = s_resourceManager->getTextureRtDs(L"shadowTextureLinear");
-	auto shadowTextureIntensity = s_resourceManager->getTextureRtDs(L"shadowTextureIntensity");
+	auto shadowTextureColor = s_resourceManager->getTextureRtDs(L"shadowTextureColor");
 	auto shadowTextureNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
 
 	const u32 renderTargetCount = 3;
@@ -282,7 +280,7 @@ bool RenderPassShadow::createRtvs(ID3D12Device* device, u32 shadowCastingLightCo
 
 		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		handle.offset(1);
-		device->CreateRenderTargetView(shadowTextureIntensity->get(), &rtvDesc, handle);
+		device->CreateRenderTargetView(shadowTextureColor->get(), &rtvDesc, handle);
 
 		rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
 		handle.offset(1);
@@ -308,19 +306,18 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	if (!createCommandList(device))
 		return false;
 
-	u32 shadowCastingLightCount = 10;
-	if (!createRtvs(device, shadowCastingLightCount))
+	if (!createRtvs(device, s_settings->m_shadowCastingLightCount))
 		return false;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = shadowCastingLightCount;
+	desc.NumDescriptors = s_settings->m_shadowCastingLightCount;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	if (!m_heapDsv.create(desc, device))
 		return false;
 
-	auto shadowTexture = s_resourceManager->getTextureRtDs(L"shadowTexture");
+	auto shadowTextureDepth = s_resourceManager->getTextureRtDs(L"shadowTextureDepth");
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
@@ -330,10 +327,10 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 
 	auto handle = m_heapDsv.getHandleCpu();
-	for (u32 i = 0; i < shadowCastingLightCount; ++i)
+	for (u32 i = 0; i < s_settings->m_shadowCastingLightCount; ++i)
 	{
 		dsvDesc.Texture2DArray.FirstArraySlice = i * 6;
-		device->CreateDepthStencilView(shadowTexture->get(), &dsvDesc, handle);
+		device->CreateDepthStencilView(shadowTextureDepth->get(), &dsvDesc, handle);
 
 		handle.offset(1);
 	}
@@ -401,8 +398,8 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 	if (count != 0 && m_lightCount != 0)
 	{
 		D3D12_VIEWPORT viewPort;
-		viewPort.Height = (f32)g_shadowMapResolutionHigh;
-		viewPort.Width = (f32)g_shadowMapResolutionHigh;
+		viewPort.Height = (f32)s_settings->m_shadowDim;
+		viewPort.Width = (f32)s_settings->m_shadowDim;
 		viewPort.MaxDepth = 1.0f;
 		viewPort.MinDepth = 0.0f;
 		viewPort.TopLeftX = 0;
@@ -411,8 +408,8 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 		D3D12_RECT rectScissor;
 		rectScissor.left = 0;
 		rectScissor.top = 0;
-		rectScissor.right = g_shadowMapResolutionHigh;
-		rectScissor.bottom = g_shadowMapResolutionHigh;
+		rectScissor.right = s_settings->m_shadowDim;
+		rectScissor.bottom = s_settings->m_shadowDim;
 
 		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
