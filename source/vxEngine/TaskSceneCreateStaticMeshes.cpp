@@ -108,7 +108,7 @@ TaskReturnType TaskSceneCreateStaticMeshes::runImpl()
 	}
 
 	++s_counter;
-	auto time = timer.getTimeMs();
+	auto time = timer.getTimeMiliseconds();
 
 	s_time = (s_time * (s_counter - 1) + time) / s_counter;
 

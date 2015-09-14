@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -22,41 +21,50 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include <vxEngineLib/Graphics/font.h>
 
-struct IMMDevice;
-class WavFile;
-struct WavFormat;
-class AudioFile;
-
-#include <vxLib/types.h>
-#include "AudioWavRenderer.h"
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vector>
-
-namespace Audio
+namespace Graphics
 {
-	class AudioManager
+	Font::Font()
+		:m_textureSlice(0),
+		m_textureDim(0),
+		m_atlas()
 	{
-		struct Entry;
 
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
+	}
 
-		IMMDevice* m_device;
+	Font::Font(u32 textureSlice, u32 dim, FontAtlas &&fontAtlas)
+		: m_textureSlice(textureSlice),
+		m_textureDim(dim),
+		m_atlas(std::move(fontAtlas))
+	{
 
-	public:
-		AudioManager();
-		~AudioManager();
+	}
 
-		bool initialize();
-		void shutdown();
+	Font::Font(Font &&rhs)
+		: m_textureSlice(rhs.m_textureSlice),
+		m_textureDim(rhs.m_textureDim),
+		m_atlas(std::move(rhs.m_atlas))
+	{
+	}
 
-		void update(f32 dt);
+	Font::~Font()
+	{
+	}
 
-		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
+	Font& Font::operator=(Font &&rhs)
+	{
+		if (this != &rhs)
+		{
+			std::swap(m_textureSlice, rhs.m_textureSlice);
+			std::swap(m_textureDim, rhs.m_textureDim);
+			m_atlas = std::move(rhs.m_atlas);
+		}
+		return *this;
+	}
 
-		void playSound(const vx::StringID &sid);
-	};
+	const FontAtlasEntry* Font::getAtlasEntry(u32 code) const
+	{
+		return m_atlas.getEntry(code);
+	}
 }

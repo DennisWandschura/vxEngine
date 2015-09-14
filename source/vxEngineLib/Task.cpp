@@ -37,7 +37,7 @@ void Task::setEventStatus(EventStatus status, bool hasEvent)
 
 bool Task::checkTimeout()
 {
-	auto time = m_timer.getTimeMs();
+	auto time = m_timer.getTimeMiliseconds();
 
 	return (time >= m_timeoutTime);
 }

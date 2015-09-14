@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -23,40 +22,64 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct IMMDevice;
-class WavFile;
-struct WavFormat;
-class AudioFile;
+#include "RenderLayerPerfOverlay.h"
 
-#include <vxLib/types.h>
-#include "AudioWavRenderer.h"
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vector>
-
-namespace Audio
+RenderLayerPerfOverlay::RenderLayerPerfOverlay()
+	:Graphics::RenderLayer(),
+	m_textRenderer()
 {
-	class AudioManager
+
+}
+
+RenderLayerPerfOverlay::~RenderLayerPerfOverlay()
+{
+
+}
+
+void RenderLayerPerfOverlay::createRenderPasses()
+{
+
+}
+
+void RenderLayerPerfOverlay::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs)
+{
+	m_textRenderer.getRequiredMemory(heapSizeBuffer, heapSizeTexture);
+}
+
+bool RenderLayerPerfOverlay::initialize(vx::StackAllocator* allocator)
+{
+	//m_textRenderer.initialize();
+
+	return true;
+}
+
+void RenderLayerPerfOverlay::shudown()
+{
+
+}
+
+void RenderLayerPerfOverlay::update()
+{
+
+}
+
+void RenderLayerPerfOverlay::queueUpdate(const RenderUpdateTaskType type, const u8* data, u32 dataSize)
+{
+	switch (type)
 	{
-		struct Entry;
+	case RenderUpdateTaskType::UpdateText:
+		break;
+	default:
+		break;
+	}
+}
 
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
+void RenderLayerPerfOverlay::submitCommandLists(Graphics::CommandQueue* queue)
+{
 
-		IMMDevice* m_device;
+}
 
-	public:
-		AudioManager();
-		~AudioManager();
-
-		bool initialize();
-		void shutdown();
-
-		void update(f32 dt);
-
-		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
-
-		void playSound(const vx::StringID &sid);
-	};
+u32 RenderLayerPerfOverlay::getCommandListCount() const
+{
+	return 0;
 }

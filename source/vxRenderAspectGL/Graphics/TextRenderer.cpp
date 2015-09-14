@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 #include "TextRenderer.h"
-#include "../Font.h"
+#include <vxEngineLib/Graphics/Font.h>
 #include <vxGL/gl.h>
 #include <vxGL/ShaderManager.h>
 #include <vxGL/ProgramPipeline.h>

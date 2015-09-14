@@ -29,7 +29,7 @@ SOFTWARE.
 #include "CpuProfiler.h"
 #include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/debugPrint.h>
-#include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/FileEntry.h>
 #include <vxEngineLib/Logfile.h>
 
 Engine* g_pEngine{ nullptr };
@@ -161,34 +161,22 @@ void Engine::getThreadInfo()
 
 void Engine::mainLoop(Logfile* logfile)
 {
-	CpuTimer timer;
-
-	LARGE_INTEGER frequency;
-	QueryPerformanceFrequency(&frequency);
-	const f64 invFrequency = 1.0 / frequency.QuadPart;
-
-	LARGE_INTEGER last;
-	QueryPerformanceCounter(&last);
-
 	m_renderAspect->initializeProfiler(logfile);
+
+	CpuTimer timer;
 
 	f32 accum = 0.0f;
 	while (m_bRun != 0)
 	{
-		auto timeMS = timer.getTimeMs();
+		auto frameTime = timer.getTimeSeconds();
 		timer.reset();
 
-		LARGE_INTEGER current;
-		QueryPerformanceCounter(&current);
-
-		auto frameTicks = (current.QuadPart - last.QuadPart) * 1000;
-		f32 frameTime = static_cast<f32>(frameTicks * invFrequency) * 0.001f;
 		frameTime = fminf(frameTime, g_dt);
-
 		accum += frameTime;
 
-
 		m_renderAspect->submitCommands();
+
+		m_taskManager.updateMainThread();
 
 		while (accum >= g_dt)
 		{
@@ -202,9 +190,6 @@ void Engine::mainLoop(Logfile* logfile)
 		}
 
 		m_renderAspect->endFrame();
-
-		last = current;
-
 	}
 }
 
@@ -302,7 +287,7 @@ bool Engine::createAudioAspect()
 	m_audioAspect = audioAspect;
 	m_audioAspectDll = handle;
 
-	if (!m_audioAspect->initialize())
+	if (!m_audioAspect->initialize(&m_resourceAspect))
 		return false;
 
 	return true;
@@ -330,13 +315,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 	if (!initializeImpl(dataDir))
 		return false;
 
-	m_taskManager.initialize(2, 10, 30.0f, &m_allocator);
-
-#if _VX_MEM_PROFILE
-	//m_taskManager.initialize(1, &m_allocator, 1024, &m_allocManager);
-#else
-	//m_taskManager.initialize(1, &m_allocator, 1024, nullptr);
-#endif
+	m_taskManager.initialize(2, 20, 30.0f, &m_allocator);
 
 	if (!m_systemAspect.initialize(g_engineConfig, EngineCpp::callbackKeyPressed, EngineCpp::callbackKeyReleased, nullptr))
 		return false;
@@ -405,7 +384,8 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 	m_msgManager.registerListener(&m_physicsAspect, 2, (u8)vx::MessageType::File | (u8)vx::MessageType::Ingame);
 	m_msgManager.registerListener(&m_entityAspect, 1, (u8)vx::MessageType::File | (u8)vx::MessageType::Ingame);
 	m_msgManager.registerListener(&m_actorAspect, 2, (u8)vx::MessageType::File | (u8)vx::MessageType::Ingame | (u8)vx::MessageType::AI);
-
+	m_msgManager.registerListener(m_audioAspect, 1, (u8)vx::MessageType::File | (u8)vx::MessageType::Audio);
+		
 	m_bRun = 1;
 	m_shutdown = 0;
 
@@ -424,6 +404,7 @@ void Engine::shutdown()
 	{
 		m_audioAspect->shutdown();
 		delete m_audioAspect;
+		m_audioAspect = nullptr;
 	}
 	m_entityAspect.shutdown();
 	m_physicsAspect.shutdown();

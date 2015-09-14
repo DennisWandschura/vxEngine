@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace Graphics
 {
-	/*struct TextRenderer::Entry
+	struct TextRenderer::Entry
 	{
 		char m_text[48];
 		vx::float4 m_color;
@@ -44,6 +44,8 @@ namespace Graphics
 		vx::float3 uv;
 		vx::float4 color;
 	};
+
+
 
 	TextRenderer::TextRenderer()
 		:m_vboId(0),
@@ -63,6 +65,19 @@ namespace Graphics
 	{
 
 	}
+
+	void TextRenderer::getRequiredMemory(u64* bufferSize, u64* textureSize)
+	{
+		const auto verticesPerCharacter = 4u;
+		auto totalVertexCount = verticesPerCharacter * m_capacity;
+
+		const auto indicesPerCharacter = 6u;
+		auto indexCount = indicesPerCharacter * m_capacity;
+
+		auto vertexSizeInBytes = totalVertexCount * sizeof(TextVertex);
+	}
+
+	/*
 
 	void TextRenderer::createVertexBuffer()
 	{

@@ -21,47 +21,38 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include "Font.h"
 
-Font::Font()
-	:m_textureSlice(0),
-	m_textureDim(0),
-	m_atlas()
+#include "ActionPlaySound.h"
+#include <vxEngineLib/MessageManager.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/AudioMessage.h>
+#include <vxEngineLib/MessageTypes.h>
+
+ActionPlaySound::ActionPlaySound(const vx::StringID &sid, vx::MessageManager* msgManager, f32 time)
+	:m_sid(sid),
+	m_msgManager(msgManager),
+	m_timer(),
+	m_time(time)
 {
 
 }
 
-Font::Font(u32 textureSlice, u32 dim, FontAtlas &&fontAtlas)
-	: m_textureSlice(textureSlice),
-	m_textureDim(dim),
-	m_atlas(std::move(fontAtlas))
+ActionPlaySound::~ActionPlaySound()
 {
 
 }
 
-Font::Font(Font &&rhs)
-	: m_textureSlice(rhs.m_textureSlice),
-	m_textureDim(rhs.m_textureDim),
-	m_atlas(std::move(rhs.m_atlas))
+void ActionPlaySound::run()
 {
-}
-
-Font::~Font()
-{
-}
-
-Font& Font::operator=(Font &&rhs)
-{
-	if (this != &rhs)
+	auto elapsedTime = m_timer.getTimeSeconds();
+	if (elapsedTime >= m_time)
 	{
-		std::swap(m_textureSlice, rhs.m_textureSlice);
-		std::swap(m_textureDim, rhs.m_textureDim);
-		m_atlas = std::move(rhs.m_atlas);
-	}
-	return *this;
-}
+		vx::Message msg;
+		msg.arg1.u64 = m_sid.value;
+		msg.code = (u32)vx::AudioMessage::PlaySound;
+		msg.type = vx::MessageType::Audio;
+		m_msgManager->addMessage(msg);
 
-const FontAtlasEntry* Font::getAtlasEntry(u32 code) const
-{
-	return m_atlas.getEntry(code);
+		m_timer.reset();
+	}
 }

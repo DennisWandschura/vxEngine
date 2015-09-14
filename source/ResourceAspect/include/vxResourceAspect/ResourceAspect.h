@@ -60,6 +60,7 @@ class ResourceAspect : public ResourceAspectInterface
 	static char s_meshFolder[32];
 	static char s_animationFolder[32];
 	static char s_assetFolder[32];
+	static char s_audioFolder[32];
 
 	struct FileRequest;
 	struct TaskLoadFileDesc;
@@ -71,6 +72,7 @@ class ResourceAspect : public ResourceAspectInterface
 	ResourceManager<Material> m_materialData;
 	ResourceManager<vx::Animation> m_animationData;
 	ResourceManager<Graphics::Texture> m_textureData;
+	ResourceManager<AudioFile> m_audioData;
 	vx::TaskManager* m_taskManager;
 	vx::MessageManager* m_msgManager;
 	physx::PxCooking* m_cooking;
@@ -88,6 +90,7 @@ class ResourceAspect : public ResourceAspectInterface
 	void pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, void* userData, std::string &&filename);
 
 	void taskGetFileNameWithPath(const TaskLoadFileDesc &desc, const char* folder);
+	void taskLoadAudio(const TaskLoadFileDesc &desc, const char* folder);
 	void taskLoadScene(const TaskLoadFileDesc &desc, const char* folder, bool editor);
 	void taskLoadMesh(const TaskLoadFileDesc &desc, const char* folder);
 	void taskLoadMaterial(const TaskLoadFileDesc &desc, const char* folder);
@@ -106,7 +109,7 @@ public:
 
 	void update();
 
-	void requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg);
+	void requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg) override;
 	void requestSaveFile(const vx::FileEntry &fileEntry, void* p);
 
 	const Graphics::Texture* getTexture(const vx::StringID &sid) const override;
@@ -115,6 +118,7 @@ public:
 	const vx::MeshFile* getMesh(const vx::StringID &sid) const override;
 	vx::MeshFile* getMesh(const vx::StringID &sid);
 	const vx::Animation* getAnimation(const vx::StringID &sid) const override;
+	const AudioFile* getAudioFile(const vx::StringID &sid) const override;
 
 	ResourceManager<vx::MeshFile>* getMeshManager();
 };

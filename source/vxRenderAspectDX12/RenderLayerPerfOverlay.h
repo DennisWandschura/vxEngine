@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,40 +24,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct IMMDevice;
-class WavFile;
-struct WavFormat;
-class AudioFile;
+#include <vxEngineLib/Graphics/RenderLayer.h>
+#include "TextRenderer.h"
+#include <vxEngineLib/Graphics/Font.h>
 
-#include <vxLib/types.h>
-#include "AudioWavRenderer.h"
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vector>
-
-namespace Audio
+class RenderLayerPerfOverlay : public Graphics::RenderLayer
 {
-	class AudioManager
-	{
-		struct Entry;
+	Graphics::TextRenderer m_textRenderer;
+	Graphics::Font m_font;
 
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
+public:
+	RenderLayerPerfOverlay();
+	~RenderLayerPerfOverlay();
 
-		IMMDevice* m_device;
+	void createRenderPasses() override;
 
-	public:
-		AudioManager();
-		~AudioManager();
+	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs) override;
 
-		bool initialize();
-		void shutdown();
+	bool initialize(vx::StackAllocator* allocator) override;
+	void shudown() override;
 
-		void update(f32 dt);
+	void update() override;
 
-		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
+	void queueUpdate(const RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
 
-		void playSound(const vx::StringID &sid);
-	};
-}
+	void submitCommandLists(Graphics::CommandQueue* queue) override;
+
+	u32 getCommandListCount() const override;
+};

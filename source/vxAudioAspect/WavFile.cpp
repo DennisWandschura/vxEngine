@@ -95,21 +95,55 @@ WavFile::WavFile()
 {
 }
 
-WavFile::~WavFile()
+WavFile::WavFile(const WavFile &rhs)
+	:m_data(rhs.m_data),
+	m_dataSize(rhs.m_dataSize),
+	m_head(rhs.m_head)
 {
-	if (m_data)
-	{
-		delete[]m_data;
-		m_data = nullptr;
-		m_dataSize = 0;
-	}
 }
 
-void WavFile::create(u8* data, u32 dataSize)
+WavFile::WavFile(WavFile &&rhs)
+	:m_data(rhs.m_data),
+	m_dataSize(rhs.m_dataSize),
+	m_head(rhs.m_head)
 {
-	m_data = data;
-	m_dataSize = dataSize;
-	m_head = 0;
+	rhs.m_data = nullptr;
+	rhs.m_dataSize = 0;
+}
+
+WavFile::WavFile(const u8* data, u32 dataSize)
+	:m_data(data),
+	m_dataSize(dataSize),
+	m_head(0)
+{
+}
+
+WavFile::~WavFile()
+{
+	m_data = nullptr;
+	m_dataSize = 0;
+}
+
+WavFile& WavFile::operator=(const WavFile &rhs)
+{
+	if (this != &rhs)
+	{
+		m_data = rhs.m_data;
+		m_dataSize = rhs.m_dataSize;
+		m_head = rhs.m_head;
+	}
+	return *this;
+}
+
+WavFile& WavFile::operator=(WavFile &&rhs)
+{
+	if (this != &rhs)
+	{
+		std::swap(m_data, rhs.m_data);
+		std::swap(m_dataSize, rhs.m_dataSize);
+		std::swap(m_head, rhs.m_head);
+	}
+	return *this;
 }
 
 u32 WavFile::loadDataFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u32 dstChannels)
@@ -125,106 +159,4 @@ u32 WavFile::loadDataShort(u32 bufferFrameCount, u32 srcChannels, s16* pData, u3
 u32 WavFile::loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u16 dstChannels)
 {
 	return WavFileCpp::writeData<s16, float>(m_data, &m_head, srcChannels, m_dataSize, pData, bufferFrameCount, dstChannels);
-}
-
-struct WaveHeader
-{
-	u8 riff[4];
-	u32 fileSize;
-	u8 wave[4];
-};
-
-struct WaveFormatData
-{
-	u8 fmt[4];
-	u32 formatSize;
-	u16 format_tag;
-	u16 channels;
-	u32 sample_rate;
-	u32 bytesPerSec;
-	u16 block_align;
-	u16 bits_per_sample;
-};
-
-struct WaveDataHeader
-{
-	u8 data[4];
-	u32 dataSize;
-};
-
-namespace Audio
-{
-	bool loadWavFile(const char* name, WavFile* wavFile, WavFormat* format)
-	{
-		FILE* f = nullptr;
-		f = fopen(name, "rb");
-		if (f == nullptr)
-		{
-			return false;
-		}
-
-		u8 id[4]; //four bytes to hold 'RIFF' 
-		u32 size; //32 bit value to hold file size 
-		u32 formatSize = 0;
-
-		fread(id, sizeof(u8), 4, f);
-		if (id[0] != 'R' ||
-			id[1] != 'I' ||
-			id[2] != 'F' ||
-			id[3] != 'F')
-		{
-			fclose(f);
-			return false;
-		}
-
-		fread(&size, sizeof(u32), 1, f);
-
-		fread(id, 1, 4, f);
-		if (id[0] != 'W' ||
-			id[1] != 'A' ||
-			id[2] != 'V' ||
-			id[3] != 'E')
-		{
-			fclose(f);
-			return false;
-		}
-
-		WaveFormatData formatData;
-		fread(&formatData, sizeof(WaveFormatData), 1, f);
-
-		while (true)
-		{
-			u8 data[4];
-			fread(data, 1, 4, f);
-
-			if (data[0] == 'd' &&
-				data[1] == 'a' &&
-				data[2] == 't' &&
-				data[3] == 'a')
-				break;
-		}
-
-		u32 dataSize = 0;
-		fread(&dataSize, sizeof(u32), 1, f);
-
-		//WaveDataHeader dataHeader;
-		//fread(&dataHeader, sizeof(WaveDataHeader), 1, f); //read in 'data' 
-
-		auto buffer = new u8[dataSize];
-		auto read = fread(buffer, sizeof(u8), dataSize, f);
-
-		if (read != dataSize)
-		{
-			fclose(f);
-			return false;
-		}
-
-		wavFile->create(buffer, dataSize);
-		format->m_channels = formatData.channels;
-		format->m_bytesPerSample = formatData.bits_per_sample / 8;
-
-		fclose(f);
-
-		return true;
-	}
 }

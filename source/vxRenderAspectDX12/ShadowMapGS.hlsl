@@ -24,7 +24,7 @@ struct GSOutput
 	float lightLumen : BLENDINDICES3;
 };
 
-StructuredBuffer<ShadowTransform> shadowTransforms : register(t3);
+StructuredBuffer<GpuShadowTransform> shadowTransforms : register(t3);
 
 [maxvertexcount(3 * 6)]
 void main(

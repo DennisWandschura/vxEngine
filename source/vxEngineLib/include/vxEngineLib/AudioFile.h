@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,41 +23,47 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#pragma once
 
-#include <vxLib/Container/sorted_vector.h>
+#include <vxlib/types.h>
+#include <vxenginelib/managed_ptr.h>
 
-struct FontAtlasEntry
+enum class AudioFileType : u32{ WAV, FLAC, Invalid };
+
+struct AudioFileDesc
 {
-	f32 x;
-	f32 y;
-	f32 width;
-	f32 height;
-	f32 offsetX;
-	f32 offsetY;
-	f32 advanceX;
-
-	FontAtlasEntry();
+	managed_ptr<u8[]> m_data;
+	u32 m_size;
+	AudioFileType m_type;
+	u32 m_samplesPerSec;
+	u16 m_channels;
+	u16 m_bytesPerSample;
 };
 
-class FontAtlas
+class AudioFile
 {
-	vx::sorted_vector<u32, FontAtlasEntry> m_data;
-
-	FontAtlasEntry readEntry(std::ifstream &infile, u32 &id);
-	size_t readEntry(const char *ptr, FontAtlasEntry &entry, u32 &id);
+	managed_ptr<u8[]> m_data;
+	u32 m_size;
+	AudioFileType m_type;
+	u32 m_samplesPerSec;
+	u16 m_channels;
+	u16 m_bytesPerSample;
 
 public:
-	FontAtlas();
-	FontAtlas(const FontAtlas&) = delete;
-	FontAtlas(FontAtlas &&other);
-	~FontAtlas();
+	AudioFile();
+	AudioFile(const AudioFile&) = delete;
+	AudioFile(AudioFile &&rhs);
+	explicit AudioFile(AudioFileDesc &&desc);
+	~AudioFile();
 
-	FontAtlas& operator=(const FontAtlas &rhs) = delete;
-	FontAtlas& operator=(FontAtlas &&rhs);
+	AudioFile& operator=(const AudioFile&) = delete;
+	AudioFile& operator=(AudioFile &&rhs);
 
-	bool loadFromFile(const char *file);
-	bool loadFromMemory(const char *data);
+	void swap(AudioFile &rhs);
 
-	const FontAtlasEntry* getEntry(u32 code) const;
+	const u8* getData() const { return m_data.get(); }
+	u32 getSize() const { return m_size; }
+	AudioFileType getType() const { return m_type; }
+	u32 getSamplesPerSec() const { return m_samplesPerSec; }
+	u32 getChannels() const { return m_channels; }
+	u32 getBytesPerSample() const { return m_bytesPerSample; }
 };

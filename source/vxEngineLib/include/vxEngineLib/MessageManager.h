@@ -58,6 +58,6 @@ namespace vx
 
 		void update();
 
-		void addMessage(const Message &evt);
+		void addMessage(const Message &msg);
 	};
 }

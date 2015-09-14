@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "TaskLoadScene.h"
 #include <vxResourceAspect/SceneFactory.h>
-#include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/FileEntry.h>
 #include <vxLib/File/File.h>
 #include <vxLib/ScopeGuard.h>
 #include "TaskLoadMesh.h"

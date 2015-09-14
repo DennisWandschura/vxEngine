@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include <vxResourceAspect/MaterialFactory.h>
-#include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/FileEntry.h>
 #include <vxEngineLib/Material.h>
 #include <vxLib/Container/sorted_array.h>
 #include <vxResourceAspect/ResourceManager.h>

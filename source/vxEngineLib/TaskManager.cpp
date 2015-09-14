@@ -259,12 +259,12 @@ namespace vx
 		shutdown();
 	}
 
-	void TaskManager::initialize(u32 count, u32 localQueueCapacity, f32 maxTimeMs, vx::StackAllocator* allocator)
+	void TaskManager::initialize(u32 threadCount, u32 localQueueCapacity, f32 maxTimeMs, vx::StackAllocator* allocator)
 	{
-		if (count != 0)
+		if (threadCount != 0)
 		{
-			m_queues = (LocalQueue**)allocator->allocate(sizeof(LocalQueue*) * count, 8);
-			for (u32 i = 0; i < count; ++i)
+			m_queues = (LocalQueue**)allocator->allocate(sizeof(LocalQueue*) * threadCount, 8);
+			for (u32 i = 0; i < threadCount; ++i)
 			{
 				auto ptr = (LocalQueue*)allocator->allocate(sizeof(LocalQueue), __alignof(LocalQueue));
 				new (ptr) LocalQueue{};
@@ -275,11 +275,11 @@ namespace vx
 			m_queue = m_queues[0];
 			m_queue->initialize(localQueueCapacity, maxTimeMs - 5.0f, this, allocator);
 
-			auto threadCount = count - 1;
-			if (threadCount != 0)
+			auto workerThreadCount = threadCount - 1;
+			if (workerThreadCount != 0)
 			{
-				m_threads = (std::thread*)allocator->allocate(sizeof(std::thread) * threadCount, __alignof(std::thread));
-				for (u32 i = 1; i < count; ++i)
+				m_threads = (std::thread*)allocator->allocate(sizeof(std::thread) * workerThreadCount, __alignof(std::thread));
+				for (u32 i = 1; i < threadCount; ++i)
 				{
 					auto ptr = m_queues[i];
 					ptr->initialize(localQueueCapacity, maxTimeMs, this, allocator);
@@ -291,7 +291,7 @@ namespace vx
 			m_capacity = localQueueCapacity;
 		}
 
-		m_threadCount = count;
+		m_threadCount = threadCount;
 	}
 
 	void TaskManager::initializeThread(std::atomic_uint* running)
@@ -377,6 +377,11 @@ namespace vx
 		}
 	}
 
+	void TaskManager::updateMainThread()
+	{
+
+	}
+
 	void TaskManager::update()
 	{
 		if (!m_tasksBack.empty())
@@ -432,12 +437,15 @@ namespace vx
 			m_queues[i]->signalStop();
 		}
 
-		for (u32 i = 0; i < m_threadCount - 1; ++i)
+		if (m_threadCount > 0)
 		{
-			auto &it = m_threads[i];
+			for (u32 i = 0; i < m_threadCount - 1; ++i)
+			{
+				auto &it = m_threads[i];
 
-			if (it.joinable())
-				it.join();
+				if (it.joinable())
+					it.join();
+			}
 		}
 	}
 }

@@ -25,7 +25,7 @@ SOFTWARE.
 #include <vxResourceAspect/ResourceManager.h>
 #include <vxEngineLib/Material.h>
 #include <vxResourceAspect/MaterialFactory.h>
-#include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/FileEntry.h>
 #include "TaskLoadTexture.h"
 #include <vxEngineLib/TaskManager.h>
 

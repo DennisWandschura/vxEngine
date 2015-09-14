@@ -63,12 +63,6 @@
     <ClCompile Include="EditorRenderAspect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Font.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FontAtlas.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GpuProfiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -249,12 +243,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EditorRenderAspect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Font.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FontAtlas.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Frustum.h">

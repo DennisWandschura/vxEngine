@@ -43,7 +43,7 @@ SOFTWARE.
 #include <vxLib/Graphics/Camera.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/Joint.h>
-#include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/FileEntry.h>
 
 #include <Dbghelp.h>
 

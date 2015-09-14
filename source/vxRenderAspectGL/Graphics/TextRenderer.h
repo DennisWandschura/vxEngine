@@ -23,8 +23,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-class Font;
+namespace Graphics
+{
+	class Font;
+}
 
 namespace vx
 {
@@ -44,7 +46,7 @@ namespace Graphics
 {
 	struct TextRendererDesc
 	{
-		const Font* font;
+		const Graphics::Font* font;
 		vx::StackAllocator* allocator;
 		u32 maxCharacters;
 		u32 textureIndex;
@@ -64,7 +66,7 @@ namespace Graphics
 		u32 m_size;
 		u32 m_capacity;
 		u32 m_texureIndex;
-		const Font* m_font;
+		const Graphics::Font* m_font;
 
 		void createVertexBuffer();
 		void createIndexBuffer();

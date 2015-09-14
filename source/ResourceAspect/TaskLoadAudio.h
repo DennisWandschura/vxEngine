@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 The MIT License (MIT)
 
@@ -21,51 +23,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#include <vxResourceAspect/FileEntry.h>
 
-namespace vx
+class AudioFile;
+
+template<typename T>
+class ResourceManager;
+
+#include "TaskLoadFile.h"
+#include <vxLib/StringID.h>
+
+struct TaskLoadAudioDesc
 {
-	FileEntry::FileEntry()
-		:m_fileHandle(),
-		m_type()
-	{
-	}
+	std::string m_fileNameWithPath;
+	std::string m_fileName;
+	ResourceManager<AudioFile>* audioDataManager;
+	Event evt;
+	vx::StringID m_sid;
+};
 
-	FileEntry::FileEntry(const char *file, FileType t)
-		: m_fileHandle(file),
-		m_type(t)
-	{
-	}
+class TaskLoadAudio : public TaskLoadFile
+{
+	ResourceManager<AudioFile>* m_audioDataManager;
+	vx::StringID m_sid;
+	std::string m_fileName;
 
-	FileEntry::FileEntry(const FileEntry &rhs)
-		: m_fileHandle(rhs.m_fileHandle),
-		m_type(rhs.m_type)
-	{
-	}
+	TaskReturnType runImpl() override;
 
-	FileEntry::FileEntry(FileEntry &&rhs)
-		: m_fileHandle(rhs.m_fileHandle),
-		m_type(rhs.m_type)
-	{
-	}
+public:
+	explicit TaskLoadAudio(TaskLoadAudioDesc &&desc);
+	~TaskLoadAudio();
 
-	FileEntry& FileEntry::operator=(const FileEntry &rhs)
-	{
-		if (this != &rhs)
-		{
-			m_fileHandle = rhs.m_fileHandle;
-			m_type = rhs.m_type;
-		}
-		return *this;
-	}
-
-	FileEntry& FileEntry::operator=(FileEntry &&rhs)
-	{
-		if (this != &rhs)
-		{
-			m_fileHandle = rhs.m_fileHandle;
-			m_type = rhs.m_type;
-		}
-		return *this;
-	}
-}
+	f32 getTimeMs() const override { return 0; }
+};

@@ -28,9 +28,16 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include <Audioclient.h>
 #include "WavFile.h"
+#include <vxEngineLib/AudioFile.h>
 
 namespace Audio
 {
+	struct AudioManager::Entry
+	{
+		WavFile file;
+		WavFormat format;
+	};
+
 	AudioManager::AudioManager()
 		:m_device(nullptr)
 	{
@@ -79,30 +86,43 @@ namespace Audio
 			m_device = nullptr;
 		}
 
-		m_entries.clear();
-
-		for (auto &it : m_wavFiles)
-		{
-			delete(it);
-		}
-		m_wavFiles.clear();
+		m_activeEntries.clear();
+		m_inactiveEntries.clear();
 	}
 
 	void AudioManager::update(f32 dt)
 	{
-		for (auto &it : m_entries)
+		for (auto &it : m_activeEntries)
 		{
 			if (!it.eof())
 			{
 				it.update();
 				it.play(dt);
+
+				m_activeEntries1.push_back(std::move(it));
 			}
 		}
+		m_activeEntries.clear();
+
+		m_activeEntries.swap(m_activeEntries1);
 	}
 
-	void AudioManager::addWavFile(WavFile* wav, const WavFormat &format)
+	void AudioManager::addAudioFile(const vx::StringID &sid, const AudioFile &file)
 	{
-		m_wavFiles.push_back(wav);
+		Entry entry;
+		entry.format.m_bytesPerSample = file.getBytesPerSample();
+		entry.format.m_channels = file.getChannels();
+		entry.file = WavFile(file.getData(), file.getSize());
+
+		auto tmp = vx::StringID(sid);
+		m_inactiveEntries.insert(std::move(tmp), std::move(entry));
+	}
+
+	void AudioManager::playSound(const vx::StringID &sid)
+	{
+		const auto entry = m_inactiveEntries.find(sid);
+		if (entry == m_inactiveEntries.end())
+			return;
 
 		IAudioClient* client = nullptr;
 		auto hr = m_device->Activate(
@@ -137,31 +157,22 @@ namespace Audio
 		hr = client->GetService(
 			IID_PPV_ARGS(&renderClient));
 
-		/*u8* buffer = nullptr;
-		renderClient->GetBuffer(NumBufferFrames, &buffer);
-
-		auto read_count = wav.readDataFloat28(NumBufferFrames, (float*)buffer);
-
-		hr = renderClient->ReleaseBuffer((UINT32)read_count, 0);
-
-		hr = client->Start();*/
-
 		auto hnsActualDuration = (double)MinimumDevicePeriod * bufferFrames / mixFormat->nSamplesPerSec;
 		const f32 waitTime = hnsActualDuration / MinimumDevicePeriod / 2.0f;
 
-		Audio::WavRenderer renderer;
-		renderer.setFile(wav, format);
-		renderer.setDestinationFormat(bufferFrames, mixFormat->nChannels, mixFormat->wBitsPerSample / 8, renderClient, client, waitTime);
+		Audio::WavRendererDesc desc;
+		desc.rendererDesc.audioClient = client;
+		desc.rendererDesc.audioRenderClient = renderClient;
+		desc.rendererDesc.bufferFrames = bufferFrames;
+		desc.rendererDesc.dstBytes = mixFormat->wBitsPerSample / 8;
+		desc.rendererDesc.dstChannels = mixFormat->nChannels;
+		desc.rendererDesc.waitTime = waitTime;
+		desc.m_format = entry->format;
+		desc.m_wavFile = entry->file;
 
-		BYTE *pData = nullptr;
-		hr = renderClient->GetBuffer(bufferFrames, &pData);
+		Audio::WavRenderer renderer(std::move(desc));
 
-		auto read_count = renderer.readBuffer(pData, bufferFrames);
-
-		hr = renderClient->ReleaseBuffer((UINT32)read_count, 0);
-
-		hr = client->Start();
-
-		m_entries.push_back(std::move(renderer));
+		renderer.startPlay();
+		m_activeEntries.push_back(std::move(renderer));
 	}
 }

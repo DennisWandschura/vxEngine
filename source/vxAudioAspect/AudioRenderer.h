@@ -31,6 +31,16 @@ struct IAudioClient;
 
 namespace Audio
 {
+	struct RendererDesc
+	{
+		u32 bufferFrames;
+		u16 dstChannels; 
+		u16 dstBytes;
+		IAudioRenderClient* audioRenderClient;
+		IAudioClient* audioClient;
+		f32 waitTime;
+	};
+
 	class Renderer
 	{
 		IAudioRenderClient* m_renderClient;
@@ -45,28 +55,19 @@ namespace Audio
 
 	public:
 		Renderer() :m_renderClient(nullptr), m_audioClient(nullptr), m_waitTime(0), m_accum(0), m_bufferFrames(0), m_dstChannels(0), m_dstBytes(0) {}
-		Renderer(const Renderer&) = delete;
+		explicit Renderer(RendererDesc &&desc);
+		Renderer(const Renderer &rhs) = delete;
 		Renderer(Renderer &&rhs);
 
 		virtual ~Renderer();
 
-		Renderer& operator=(const Renderer&) = delete;
+		Renderer& operator=(const Renderer &rhs) = delete;
 		Renderer& operator=(Renderer &&rhs);
-
-		void setDestinationFormat(u32 bufferFrames, u16 dstChannels, u16 dstBytes, IAudioRenderClient* audioRenderClient, IAudioClient* audioClient, f32 waitTime)
-		{
-			m_dstChannels = dstChannels;
-			m_dstBytes = dstBytes;
-			m_renderClient = audioRenderClient;
-			m_audioClient = audioClient;
-			m_waitTime = waitTime;
-			m_accum = 0;
-			m_bufferFrames = bufferFrames;
-		}
 
 		virtual u32 readBuffer(u8* buffer, u32 frameCount) = 0;
 		virtual void update() = 0;
 
+		void startPlay();
 		void play(f32 dt);
 
 		virtual u32 eof() const = 0;

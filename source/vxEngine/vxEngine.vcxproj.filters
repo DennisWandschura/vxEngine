@@ -342,6 +342,9 @@
     <ClInclude Include="Primitive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ActionPlaySound.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -487,6 +490,9 @@
     </ClCompile>
     <ClCompile Include="TaskSceneCreateActors.cpp">
       <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionPlaySound.cpp">
+      <Filter>Source Files\Actions</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

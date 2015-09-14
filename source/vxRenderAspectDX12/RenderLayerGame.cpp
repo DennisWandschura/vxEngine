@@ -29,6 +29,7 @@
 #include "CopyManager.h"
 #include "RenderPassCullLights.h"
 #include "RenderPassSSIL.h"
+#include "RenderPassFilterRSM.h"
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
@@ -92,6 +93,11 @@ void RenderLayerGame::createRenderPasses()
 	auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
 	m_lightManager.setRenderPassShadow(rnederPassShadow.get());
 	pushRenderPass(std::move(rnederPassShadow));
+
+	auto renderPassFilterRSM = std::make_unique<RenderPassFilterRSM>(&m_commandAllocator);
+	m_lightManager.setRenderPassFilterRSM(renderPassFilterRSM.get());
+	pushRenderPass(std::move(renderPassFilterRSM));
+
 	pushRenderPass(std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassAO>(&m_commandAllocator));
@@ -115,6 +121,10 @@ void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTextur
 	{
 		it->getRequiredMemory(heapSizeBuffer, heapSizeTexture, heapSizeRtDs, device);
 	}
+
+	//D3D12_RESOURCE_DESC 
+
+	//device->GetResourceAllocationInfo(1, 1,);
 }
 
 bool RenderLayerGame::initialize(vx::StackAllocator* allocator)

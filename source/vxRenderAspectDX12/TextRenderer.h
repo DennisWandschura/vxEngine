@@ -69,6 +69,8 @@ namespace Graphics
 		TextRenderer();
 		~TextRenderer();
 
+		void getRequiredMemory(u64* bufferSize, u64* textureSize);
+
 		bool initialize(vx::StackAllocator* scratchAllocator, const void* p);
 		void shutdown();
 

@@ -24,21 +24,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct WavFormat;
-
 #include <vxLib/types.h>
 
 class WavFile
 {
-	u8* m_data;
+	const u8* m_data;
 	u32 m_dataSize;
 	u32 m_head;
 
 public:
 	WavFile();
+	WavFile(const WavFile&);
+	WavFile(WavFile &&rhs);
+	WavFile(const u8* data, u32 dataSize);
 	~WavFile();
 
-	void create(u8* data, u32 dataSize);
+	WavFile& operator=(const WavFile &rhs);
+	WavFile& operator=(WavFile &&rhs);
 
 	u32 loadDataFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u32 dstChannels);
 
@@ -51,8 +53,3 @@ public:
 		return (m_dataSize == m_head);
 	}
 };
-
-namespace Audio
-{
-	extern bool loadWavFile(const char* file, WavFile* wavFile, WavFormat* format);
-}

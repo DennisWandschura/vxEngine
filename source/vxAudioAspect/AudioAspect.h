@@ -32,15 +32,19 @@ namespace vx
 	class AudioAspect : public ::AudioAspectInterface
 	{
 		Audio::AudioManager m_audioManager;
+		ResourceAspectInterface* m_resourceAspect;
+
+		void onFileMessage(const Message &msg);
+		void onAudioMessage(const Message &msg);
 
 	public:
 		AudioAspect();
 		~AudioAspect();
 
-		bool initialize() override;
+		bool initialize(ResourceAspectInterface* resourceAspect) override;
 		void shutdown() override;
 
-		void handleMessage(const Message &evt) override;
+		void handleMessage(const Message &msg) override;
 
 		void update(f32 dt) override;
 	};

@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,40 +24,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct IMMDevice;
-class WavFile;
-struct WavFormat;
-class AudioFile;
-
-#include <vxLib/types.h>
-#include "AudioWavRenderer.h"
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vector>
-
-namespace Audio
+namespace d3d
 {
-	class AudioManager
-	{
-		struct Entry;
-
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
-
-		IMMDevice* m_device;
-
-	public:
-		AudioManager();
-		~AudioManager();
-
-		bool initialize();
-		void shutdown();
-
-		void update(f32 dt);
-
-		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
-
-		void playSound(const vx::StringID &sid);
-	};
+	class CommandAllocator;
 }
+
+#include "RenderPass.h"
+#include "CommandList.h"
+#include "DescriptorHeap.h"
+
+class RenderPassFilterRSM : public RenderPass
+{
+	d3d::CommandAllocator* m_allocator;
+	d3d::GraphicsCommandList m_commandList;
+	d3d::DescriptorHeap m_srvHeap;
+	d3d::DescriptorHeap m_rtvHeap;
+	u32 m_lightCount;
+
+	bool loadShaders();
+	bool createRootSignature(ID3D12Device* device);
+	bool createPipelineState(ID3D12Device* device);
+	bool createSrvHeap(ID3D12Device* device);
+	bool createRtvHeap(ID3D12Device* device);
+	void createViews();
+
+public:
+	explicit RenderPassFilterRSM(d3d::CommandAllocator* allocator);
+	~RenderPassFilterRSM();
+
+	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+
+	bool createData(ID3D12Device* device) override;
+
+	bool initialize(ID3D12Device* device, void* p)override;
+	void shutdown() override;
+
+	void submitCommands(Graphics::CommandQueue* queue) override;
+
+	void setLightCount(u32 lightCount) { m_lightCount = lightCount; }
+};

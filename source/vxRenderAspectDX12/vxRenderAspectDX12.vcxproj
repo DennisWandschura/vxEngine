@@ -162,6 +162,7 @@
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="PipelineState.h" />
     <ClInclude Include="RenderLayerGame.h" />
+    <ClInclude Include="RenderLayerPerfOverlay.h" />
     <ClInclude Include="RenderPassCullLights.h" />
     <ClInclude Include="RenderPassDrawVoxel.h" />
     <ClInclude Include="RenderPassFinal.h" />
@@ -184,6 +185,7 @@
     <ClInclude Include="MaterialManager.h" />
     <ClInclude Include="MeshManager.h" />
     <ClInclude Include="RenderPassAo.h" />
+    <ClInclude Include="RenderPassFilterRSM.h" />
     <ClInclude Include="RenderPassRadiosity.h" />
     <ClInclude Include="RenderPassShading.h" />
     <ClInclude Include="RenderPassShadow.h" />
@@ -227,9 +229,11 @@
     <ClCompile Include="PipelineState.cpp" />
     <ClCompile Include="RenderAspect.cpp" />
     <ClCompile Include="RenderLayerGame.cpp" />
+    <ClCompile Include="RenderLayerPerfOverlay.cpp" />
     <ClCompile Include="RenderPassAo.cpp" />
     <ClCompile Include="RenderPassCullLights.cpp" />
     <ClCompile Include="RenderPassDrawVoxel.cpp" />
+    <ClCompile Include="RenderPassFilterRSM.cpp" />
     <ClCompile Include="RenderPassFinal.cpp" />
     <ClCompile Include="GBufferRenderer.cpp" />
     <ClCompile Include="Heap.cpp" />
@@ -389,6 +393,19 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">5.1</ShaderModel>
     </FxCompile>
     <FxCompile Include="ShadeVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="ShadowMapFilterGS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="ShadowMapFilterVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>

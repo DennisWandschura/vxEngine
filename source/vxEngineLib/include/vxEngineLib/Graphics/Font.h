@@ -23,40 +23,29 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct IMMDevice;
-class WavFile;
-struct WavFormat;
-class AudioFile;
+#include "FontAtlas.h"
 
-#include <vxLib/types.h>
-#include "AudioWavRenderer.h"
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vector>
-
-namespace Audio
+namespace Graphics
 {
-	class AudioManager
+	class Font
 	{
-		struct Entry;
-
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
-
-		IMMDevice* m_device;
+		u32 m_textureSlice;
+		u32 m_textureDim;
+		FontAtlas m_atlas;						// 32
 
 	public:
-		AudioManager();
-		~AudioManager();
+		Font();
+		Font(u32 textureSlice, u32 dim, FontAtlas &&fontAtlas);
+		Font(Font &&other);
+		Font(const Font&) = delete;
+		~Font();
 
-		bool initialize();
-		void shutdown();
+		Font& operator=(const Font&) = delete;
+		Font& operator=(Font &&rhs);
 
-		void update(f32 dt);
+		const FontAtlasEntry* getAtlasEntry(u32 code) const;
 
-		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
-
-		void playSound(const vx::StringID &sid);
+		u32 getTextureSlice() const { return m_textureSlice; }
+		u32 getTextureDim() const { return m_textureDim; }
 	};
 }

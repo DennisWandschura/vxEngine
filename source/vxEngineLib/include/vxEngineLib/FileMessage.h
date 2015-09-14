@@ -38,7 +38,7 @@ namespace vx
 		Material_Loaded,
 		// arg1 contains sid to file, arg2 userdata
 		Mesh_Loaded,
-		Wav_Loaded,
+		Audio_Loaded,
 		Animation_Loaded,
 
 		Fbx_Loaded,

@@ -36,9 +36,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FileEntry.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MaterialFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -96,15 +93,15 @@
     <ClCompile Include="TaskSaveMeshFile.cpp">
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
+    <ClCompile Include="TaskLoadAudio.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\SceneFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxResourceAspect\FileEntry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxResourceAspect\FileFactory.h">
@@ -159,6 +156,9 @@
       <Filter>Header Files\tests</Filter>
     </ClInclude>
     <ClInclude Include="TaskSaveMeshFile.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadAudio.h">
       <Filter>Header Files\Tasks</Filter>
     </ClInclude>
   </ItemGroup>

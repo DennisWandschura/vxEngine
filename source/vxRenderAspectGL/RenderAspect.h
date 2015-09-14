@@ -46,7 +46,6 @@ class GpuProfiler;
 #include <vxEngineLib/MessageListener.h>
 #include <vxGL/RenderContext.h>
 #include <vxLib\Graphics\Camera.h>
-#include "Font.h"
 #include "gl/ObjectManager.h"
 #include <vxGL/ShaderManager.h>
 #include <vector>

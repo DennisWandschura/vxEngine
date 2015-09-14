@@ -222,7 +222,7 @@ bool AStar::pathfind(const PathFindDescription &desc)
 		desc.outArray->push_back(startNode.m_position);
 	}
 
-	auto time = timer.getTimeMs();
+	auto time = timer.getTimeMiliseconds();
 	//printf("Astar time: %f ms\n", time);
 
 	return result;

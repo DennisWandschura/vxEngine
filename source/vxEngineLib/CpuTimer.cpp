@@ -51,7 +51,7 @@ void CpuTimer::reset()
 	m_start = start.QuadPart;
 }
 
-f32 CpuTimer::getTimeMs() const
+f32 CpuTimer::getTimeSeconds() const
 {
 	LARGE_INTEGER end;
 	QueryPerformanceCounter(&end);
@@ -59,4 +59,14 @@ f32 CpuTimer::getTimeMs() const
 	auto time = (end.QuadPart - m_start) * 1000000 / s_frequency;
 
 	return f32(time * 1.0e-6);
+}
+
+f32 CpuTimer::getTimeMiliseconds() const
+{
+	LARGE_INTEGER end;
+	QueryPerformanceCounter(&end);
+
+	auto time = (end.QuadPart - m_start) * 1000000 / s_frequency;
+
+	return f32(time * 0.001f);
 }

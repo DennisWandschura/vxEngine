@@ -1,5 +1,5 @@
 #include "TaskLoadFbx.h"
-#include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/FileEntry.h>
 #include <vxResourceAspect/ResourceAspect.h>
 #include <vxResourceAspect/ResourceManager.h>
 

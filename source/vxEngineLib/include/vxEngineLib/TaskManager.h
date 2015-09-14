@@ -69,6 +69,7 @@ namespace vx
 
 		void swapBuffer();
 
+		void updateMainThread();
 		void update();
 
 		void stop();

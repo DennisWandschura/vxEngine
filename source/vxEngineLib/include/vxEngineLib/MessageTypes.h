@@ -33,6 +33,7 @@ namespace vx
 		File = 1 << 1,
 		Ingame = 1 << 2,
 		AI = 1 << 3,
-		Editor = 1 << 4
+		Editor = 1 << 4,
+		Audio = 1 << 5
 	};
 }

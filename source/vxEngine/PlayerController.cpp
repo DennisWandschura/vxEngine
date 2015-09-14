@@ -28,6 +28,7 @@ SOFTWARE.
 #include "ActionUpdateGpuTransform.h"
 #include <vxLib/memory.h>
 #include "ActionPlayerUse.h"
+#include "ActionPlaySound.h"
 
 #include <vxLib/math/Vector.h>
 #include <vxLib/RawInput.h>
@@ -52,17 +53,19 @@ void PlayerController::initialize(vx::StackAllocator* allocator)
 	m_scratchAllocator = vx::StackAllocator(allocator->allocate(allocSize, 8), allocSize);
 }
 
-void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect, ComponentActionManager* components)
+void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect, ComponentActionManager* components, vx::MessageManager* messageManager)
 {
 	m_actions.push_back(vx::make_unique<ActionPlayerLookAround>(playerEntity, dt));
 	m_actions.push_back(vx::make_unique<ActionPlayerMove>(playerEntity, 0.1f, 0.5f));
 	m_actions.push_back(vx::make_unique<ActionUpdateGpuTransform>(playerEntity, renderAspect));
 	m_actions.push_back(vx::make_unique<ActionPlayerUse>(playerEntity, components));
+	m_actions.push_back(vx::make_unique<ActionPlaySound>(vx::make_sid("walk_test.wav"), messageManager, 2.0f));
 
 	auto &actionLookAround = m_actions[0];
 	auto &actionMoveStanding = m_actions[1];
 	auto &actionUpdateGpuTransform = m_actions[2];
 	auto &actionUse = m_actions[3];
+	auto &actionPlaySound = m_actions[4];
 
 	m_actionUse = (ActionPlayerUse*)actionUse.get();
 
@@ -73,6 +76,7 @@ void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, Rende
 	stateStanding->addAction(actionMoveStanding.get());
 	stateStanding->addAction(actionUpdateGpuTransform.get());
 	stateStanding->addAction(actionUse.get());
+	stateStanding->addAction(actionPlaySound.get());
 
 	m_stateMachine.setInitialState(stateStanding);
 }

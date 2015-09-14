@@ -106,7 +106,7 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 		msgManager->addMessage(msg);
 	}
 
-	auto time = timer.getTimeMs();
+	auto time = timer.getTimeMiliseconds();
 
 	++s_counter;
 

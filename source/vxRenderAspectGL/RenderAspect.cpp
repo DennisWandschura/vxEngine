@@ -61,6 +61,7 @@ SOFTWARE.
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include <vxEngineLib/Logfile.h>
 #include <vxEngineLib/RendererMessage.h>
+#include <vxEngineLib/Graphics/Font.h>
 
 struct PlaneSimd
 {
@@ -146,7 +147,7 @@ struct RenderAspect::ColdData
 	vx::gl::Texture m_ambientColorBlurTexture[2];
 	// contains index into texture array sorted by texture handle
 
-	Font m_font;
+	Graphics::Font m_font;
 };
 
 RenderAspect::RenderAspect()
@@ -570,12 +571,12 @@ bool RenderAspect::initializeProfiler(Logfile* errorlog)
 
 		auto dim = texture.getFace(0).getDimension();
 
-		FontAtlas fontAtlas;
+		Graphics::FontAtlas fontAtlas;
 		if (!fontAtlas.loadFromFile((dataDir + "fonts/meta/VerdanaRegular.sdff").c_str()))
 			return false;
 
 		VX_ASSERT(dim.x == dim.y);
-		m_pColdData->m_font = Font(textureIndex, dim.x, std::move(fontAtlas));
+		m_pColdData->m_font = Graphics::Font(textureIndex, dim.x, std::move(fontAtlas));
 	}
 
 	Graphics::TextRendererDesc desc;

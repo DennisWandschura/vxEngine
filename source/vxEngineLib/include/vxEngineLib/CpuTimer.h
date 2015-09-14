@@ -38,5 +38,6 @@ public:
 
 	void reset();
 
-	f32 getTimeMs() const;
+	f32 getTimeSeconds() const;
+	f32 getTimeMiliseconds() const;
 };

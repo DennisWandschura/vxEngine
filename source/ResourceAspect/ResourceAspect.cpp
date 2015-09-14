@@ -27,7 +27,7 @@ SOFTWARE.
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/Graphics/Texture.h>
 #include <vxEngineLib/Event.h>
-#include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/FileEntry.h>
 #include "TaskLoadScene.h"
 #include <vxEngineLib/TaskManager.h>
 #include <vxEngineLib/FileMessage.h>
@@ -42,6 +42,8 @@ SOFTWARE.
 #include <Windows.h>
 #include <FbxFactoryInterface.h>
 #include "TaskSaveMeshFile.h"
+#include "TaskLoadAudio.h"
+#include <vxEngineLib/AudioFile.h>
 
 char ResourceAspect::s_textureFolder[32] = { "data/textures/" };
 char ResourceAspect::s_materialFolder[32] = { "data/materials/" };
@@ -49,6 +51,7 @@ char ResourceAspect::s_sceneFolder[32] = { "data/scenes/" };
 char ResourceAspect::s_meshFolder[32] = { "data/mesh/" };
 char ResourceAspect::s_animationFolder[32] = { "data/animation/" };
 char ResourceAspect::s_assetFolder[32] = { "../../../assets/" };
+char ResourceAspect::s_audioFolder[32] = { "data/audio/" };
 
 struct ResourceAspect::FileRequest
 {
@@ -91,6 +94,7 @@ void ResourceAspect::setDirectories(const std::string &dataDir)
 	strcpy_s(s_meshFolder, (dataDir + "mesh/").c_str());
 	strcpy_s(s_animationFolder, (dataDir + "animation/").c_str());
 	strcpy_s(s_assetFolder, (dataDir + "../../assets/").c_str());
+	strcpy_s(s_audioFolder, (dataDir + "audio/").c_str());
 }
 
 bool ResourceAspect::loadFbxFactory()
@@ -128,6 +132,9 @@ bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::st
 	if (!m_textureData.initialize(128, 50 MBYTE, 20 MBYTE, mainAllocator))
 		return false;
 
+	if (!m_audioData.initialize(128, 10 MBYTE, 1 MBYTE, mainAllocator))
+		return false;
+
 	if (editor)
 	{
 		if (!loadFbxFactory())
@@ -157,6 +164,7 @@ void ResourceAspect::shutdown()
 		m_dllHandle = nullptr;
 	}
 
+	m_audioData.shutdown();
 	m_textureData.shutdown();
 	m_animationData.shutdown();
 	m_materialData.shutdown();
@@ -235,6 +243,16 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 		pushFileMessage(vx::FileMessage::EditorScene_Loaded, arg1, arg2);
 
 	}break;
+	case vx::FileType::Audio:
+	{
+		vx::Variant arg1;
+		arg1.u64 = sid.value;
+
+		vx::Variant arg2;
+		arg2.ptr = userData;
+
+		pushFileMessage(vx::FileMessage::Audio_Loaded, arg1, arg2);
+	}break;
 	default:
 		break;
 	}
@@ -299,6 +317,24 @@ void ResourceAspect::taskGetFileNameWithPath(const TaskLoadFileDesc &desc, const
 	{
 		VX_ASSERT(false);
 	}
+}
+
+void ResourceAspect::taskLoadAudio(const TaskLoadFileDesc &desc, const char* folder)
+{
+	auto filename = std::string(desc.fileName);
+	taskGetFileNameWithPath(desc, folder);
+
+	auto evt = Event::createEvent();
+
+	TaskLoadAudioDesc loadDesc;
+	loadDesc.audioDataManager = &m_audioData ;
+	loadDesc.m_fileName = filename;
+	loadDesc.evt = evt;
+	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
+	loadDesc.m_sid = desc.sid;
+
+	auto task = new TaskLoadAudio(std::move(loadDesc));
+	pushTask(task, desc.type, desc.sid, evt, desc.p, std::move(filename));
 }
 
 void ResourceAspect::taskLoadScene(const TaskLoadFileDesc &desc, const char* folder, bool editor)
@@ -498,6 +534,10 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant
 		//VX_ASSERT(false);
 		//*folder = s_animationFolder;
 	}break;
+	case vx::FileType::Audio:
+	{
+		taskLoadAudio(desc, s_audioFolder);
+	}break;
 	default:
 		break;
 	}
@@ -560,6 +600,11 @@ vx::MeshFile* ResourceAspect::getMesh(const vx::StringID &sid)
 const vx::Animation* ResourceAspect::getAnimation(const vx::StringID &sid) const
 {
 	return m_animationData.find(sid);
+}
+
+const AudioFile* ResourceAspect::getAudioFile(const vx::StringID &sid) const
+{
+	return m_audioData.find(sid);
 }
 
 ResourceManager<vx::MeshFile>* ResourceAspect::getMeshManager()

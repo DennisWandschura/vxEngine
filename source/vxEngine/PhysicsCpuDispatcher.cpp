@@ -54,7 +54,7 @@ public:
 		m_task->run();
 		m_task->release();
 
-		auto time = timer.getTimeMs();
+		auto time = timer.getTimeMiliseconds();
 		auto oldCounter = s_counter++;
 		s_time = (s_time * oldCounter + time) / s_counter;
 

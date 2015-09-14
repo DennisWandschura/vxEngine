@@ -28,6 +28,9 @@
     <Filter Include="Source Files\Converter">
       <UniqueIdentifier>{28b3c1c9-aac5-4ab9-8f1a-9c1af83a9a80}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Messages">
+      <UniqueIdentifier>{7d74c6ee-0b23-42f6-9bc2-12454cab5000}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxEngineLib\SceneFile.h">
@@ -85,9 +88,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\EngineConfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\FileAspectInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\FileFactory.h">
@@ -204,19 +204,10 @@
     <ClInclude Include="include\vxEngineLib\Message.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\MessageTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\MessageListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\MessageManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\IngameMessage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\FileMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\Event.h">
@@ -252,9 +243,6 @@
     <ClInclude Include="ConverterSceneFileV8.h">
       <Filter>Header Files\Converter</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\RendererMessage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\Graphics\EditorRenderAspectInterface.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -287,6 +275,33 @@
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\Graphics\RenderLayer.h">
       <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Graphics\Font.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Graphics\FontAtlas.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\MessageTypes.h">
+      <Filter>Header Files\Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\RendererMessage.h">
+      <Filter>Header Files\Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\FileMessage.h">
+      <Filter>Header Files\Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\IngameMessage.h">
+      <Filter>Header Files\Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\AudioMessage.h">
+      <Filter>Header Files\Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\FileEntry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\AudioFile.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -412,6 +427,18 @@
     </ClCompile>
     <ClCompile Include="Graphics\RenderAspectInterface.cpp">
       <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\FontAtlas.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\Font.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="FileEntry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioFile.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -23,40 +23,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct IMMDevice;
-class WavFile;
-struct WavFormat;
-class AudioFile;
-
-#include <vxLib/types.h>
-#include "AudioWavRenderer.h"
 #include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vector>
 
-namespace Audio
+namespace Graphics
 {
-	class AudioManager
+	struct FontAtlasEntry
 	{
-		struct Entry;
+		f32 x;
+		f32 y;
+		f32 width;
+		f32 height;
+		f32 offsetX;
+		f32 offsetY;
+		f32 advanceX;
 
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
+		FontAtlasEntry();
+	};
 
-		IMMDevice* m_device;
+	class FontAtlas
+	{
+		vx::sorted_vector<u32, FontAtlasEntry> m_data;
+
+		FontAtlasEntry readEntry(std::ifstream &infile, u32 &id);
+		size_t readEntry(const char *ptr, FontAtlasEntry &entry, u32 &id);
 
 	public:
-		AudioManager();
-		~AudioManager();
+		FontAtlas();
+		FontAtlas(const FontAtlas&) = delete;
+		FontAtlas(FontAtlas &&other);
+		~FontAtlas();
 
-		bool initialize();
-		void shutdown();
+		FontAtlas& operator=(const FontAtlas &rhs) = delete;
+		FontAtlas& operator=(FontAtlas &&rhs);
 
-		void update(f32 dt);
+		bool loadFromFile(const char *file);
+		bool loadFromMemory(const char *data);
 
-		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
-
-		void playSound(const vx::StringID &sid);
+		const FontAtlasEntry* getEntry(u32 code) const;
 	};
 }

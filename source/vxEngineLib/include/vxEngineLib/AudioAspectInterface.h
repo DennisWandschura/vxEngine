@@ -2,13 +2,14 @@
 
 #include <vxlib/types.h>
 #include <vxEngineLib/MessageListener.h>
+#include <vxEngineLib/ResourceAspectInterface.h>
 
 class AudioAspectInterface : public vx::MessageListener
 {
 public:
 	virtual ~AudioAspectInterface() {}
 
-	virtual bool initialize() = 0;
+	virtual bool initialize(ResourceAspectInterface* resourceAspect) = 0;
 	virtual void shutdown() = 0;
 
 	virtual void update(f32 dt) = 0;

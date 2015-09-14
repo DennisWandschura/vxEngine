@@ -30,54 +30,35 @@ SOFTWARE.
 
 namespace Audio
 {
+	struct WavRendererDesc
+	{
+		RendererDesc rendererDesc;
+		WavFile m_wavFile;
+		WavFormat m_format;
+	};
+
 	class WavRenderer : public Renderer
 	{
-		WavFile* m_wavFile;
+		WavFile m_wavFile;
 		WavFormat m_format;
 
 	public:
 		WavRenderer();
-		WavRenderer(const WavRenderer&) = delete;
+		WavRenderer(const WavRenderer &rhs) = delete;
 		WavRenderer(WavRenderer &&rhs);
+		explicit WavRenderer(WavRendererDesc &&desc);
 		~WavRenderer();
 
-		void setFile(WavFile* wavFile, const WavFormat &format)
-		{
-			m_wavFile = wavFile;
-			m_format = format;
-		}
+		WavRenderer& operator=(const WavRenderer&) = delete;
+		WavRenderer& operator=(WavRenderer &&rhs);
 
-		u32 readBuffer(u8* buffer, u32 frameCount) override
-		{
-			u32 readFrames = 0;
-			auto bytesPerSample = m_format.m_bytesPerSample;
-			if (bytesPerSample == 2)
-			{
-				if (m_dstBytes == 2)
-				{
-					readFrames = m_wavFile->loadDataShort(frameCount, m_format.m_channels, (s16*)buffer, m_dstChannels);
-				}
-				else if (m_dstBytes == 4)
-				{
-					readFrames = m_wavFile->loadDataShortToFloat(frameCount, m_format.m_channels, (float*)buffer, m_dstChannels);
-				}
-			}
-			else if (bytesPerSample == 4)
-			{
-				readFrames = m_wavFile->loadDataFloat(frameCount, m_format.m_channels, (float*)buffer, m_dstChannels);
-			}
-
-			return readFrames;
-		}
+		u32 readBuffer(u8* buffer, u32 frameCount) override;
 
 		void update() override
 		{
 
 		}
 
-		u32 eof() const
-		{
-			return m_wavFile->eof();
-		}
+		u32 eof() const;
 	};
 }

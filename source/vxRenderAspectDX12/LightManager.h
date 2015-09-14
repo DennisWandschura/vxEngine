@@ -27,12 +27,14 @@ SOFTWARE.
 class RenderPassShadow;
 class RenderPassShading;
 class RenderPassCullLights;
+struct GpuShadowTransformReverse;
 struct GpuLight;
 struct Light;
 class Frustum;
-struct ShadowTransform;
+struct GpuShadowTransform;
 struct D3D12_DRAW_INDEXED_ARGUMENTS;
 struct AABB;
+class RenderPassFilterRSM;
 
 namespace d3d
 {
@@ -47,10 +49,12 @@ namespace d3d
 class LightManager
 {
 	GpuLight* m_sceneLights;
-	ShadowTransform* m_sceneShadowTransforms;
+	GpuShadowTransform* m_sceneShadowTransforms;
+	GpuShadowTransformReverse* m_sceneShadowReverseTransforms;
 	__m128* m_sceneLightBounds;
 	GpuLight* m_gpuLights;
-	ShadowTransform* m_gpuShadowTransforms;
+	GpuShadowTransform* m_gpuShadowTransforms;
+	GpuShadowTransformReverse* m_gpuShadowReverseTransforms;
 	u32 m_sceneLightCount;
 	u32 m_maxSceneLightCount;
 	u32 m_maxShadowCastingLights;
@@ -61,7 +65,7 @@ class LightManager
 	RenderPassShadow* m_renderPassShadow;
 	RenderPassShading* m_renderPassShading;
 	RenderPassCullLights* m_renderPassCullLights;
-	DrawIndexedIndirectCommand m_drawCommand;
+	RenderPassFilterRSM* m_renderPassFilterRSM;
 	vx::StackAllocator m_scratchAllocator;
 
 	void createSrvLights(u32 maxCount, d3d::ResourceManager* resourceManager);
@@ -86,6 +90,5 @@ public:
 	void setRenderPassShadow(RenderPassShadow* renderPassShadow) { m_renderPassShadow = renderPassShadow; }
 	void setRenderPassShading(RenderPassShading* renderPassShading) { m_renderPassShading = renderPassShading; }
 	void setRenderPassCullLights(RenderPassCullLights* renderPassCullLights);
-
-	DrawIndexedIndirectCommand* getDrawCommand(u32 i);
+	void setRenderPassFilterRSM(RenderPassFilterRSM* renderPassFilterRSM) { m_renderPassFilterRSM = renderPassFilterRSM; }
 };

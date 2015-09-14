@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,43 +24,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
-
-#include <vxLib/File/FileHandle.h>
-
 namespace vx
 {
-	enum class FileType : u8 { Invalid, Mesh, Texture, Material, Scene, EditorScene, Fbx, Animation };
-
-	enum class FileStatus : u8
-	{
-		Exists, Loaded
-	};
-
-	class FileEntry
-	{
-		vx::FileHandle m_fileHandle;
-		FileType m_type;
-
-	public:
-		FileEntry();
-		FileEntry(const char *file, FileType t);
-
-		template<size_t SIZE>
-		FileEntry(const char(&file)[SIZE], FileType t)
-			:m_fileHandle(file),
-			m_type(t)
-		{
-		}
-
-		FileEntry(const FileEntry &rhs);
-		FileEntry(FileEntry &&rhs);
-
-		FileEntry& operator=(const FileEntry &rhs);
-		FileEntry& operator=(FileEntry &&rhs);
-
-		FileType getType() const noexcept{ return m_type; }
-		const char* getString() const noexcept{ return m_fileHandle.m_string; }
-		const vx::StringID& getSid() const { return m_fileHandle.m_sid; }
-	};
+	class MessageManager;
 }
+
+#include "Action.h"
+#include <vxLib/StringID.h>
+#include <vxEngineLib/CpuTimer.h>
+
+class ActionPlaySound : public Action
+{
+	vx::StringID m_sid;
+	vx::MessageManager* m_msgManager;
+	CpuTimer m_timer;
+	f32 m_time;
+
+public:
+	ActionPlaySound(const vx::StringID &sid, vx::MessageManager* msgManager, f32 time);
+	~ActionPlaySound();
+
+	void run() override;
+};

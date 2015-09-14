@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -22,41 +21,51 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include <vxEngineLib/FileEntry.h>
 
-struct IMMDevice;
-class WavFile;
-struct WavFormat;
-class AudioFile;
-
-#include <vxLib/types.h>
-#include "AudioWavRenderer.h"
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vector>
-
-namespace Audio
+namespace vx
 {
-	class AudioManager
+	FileEntry::FileEntry()
+		:m_fileHandle(),
+		m_type()
 	{
-		struct Entry;
+	}
 
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
+	FileEntry::FileEntry(const char *file, FileType t)
+		: m_fileHandle(file),
+		m_type(t)
+	{
+	}
 
-		IMMDevice* m_device;
+	FileEntry::FileEntry(const FileEntry &rhs)
+		: m_fileHandle(rhs.m_fileHandle),
+		m_type(rhs.m_type)
+	{
+	}
 
-	public:
-		AudioManager();
-		~AudioManager();
+	FileEntry::FileEntry(FileEntry &&rhs)
+		: m_fileHandle(rhs.m_fileHandle),
+		m_type(rhs.m_type)
+	{
+	}
 
-		bool initialize();
-		void shutdown();
+	FileEntry& FileEntry::operator=(const FileEntry &rhs)
+	{
+		if (this != &rhs)
+		{
+			m_fileHandle = rhs.m_fileHandle;
+			m_type = rhs.m_type;
+		}
+		return *this;
+	}
 
-		void update(f32 dt);
-
-		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
-
-		void playSound(const vx::StringID &sid);
-	};
+	FileEntry& FileEntry::operator=(FileEntry &&rhs)
+	{
+		if (this != &rhs)
+		{
+			m_fileHandle = rhs.m_fileHandle;
+			m_type = rhs.m_type;
+		}
+		return *this;
+	}
 }

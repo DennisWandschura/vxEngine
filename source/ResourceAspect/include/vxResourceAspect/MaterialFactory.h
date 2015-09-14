@@ -45,7 +45,7 @@ namespace vx
 	class FileEntry;
 }
 
-#include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/FileEntry.h>
 #include <vector>
 
 struct MaterialFactoryLoadDescription

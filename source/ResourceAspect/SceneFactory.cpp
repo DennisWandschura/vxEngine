@@ -2,7 +2,7 @@
 #include <vxResourceAspect/ResourceManager.h>
 #include <vxEngineLib/SceneFile.h>
 #include <vxEngineLib/MeshInstanceFile.h>
-#include <vxResourceAspect/FileEntry.h>
+#include <vxEngineLib/FileEntry.h>
 #include <vxEngineLib/Actor.h>
 #include <vxResourceAspect/FileFactory.h>
 #include <vxResourceAspect/ConverterSceneFileToScene.h>

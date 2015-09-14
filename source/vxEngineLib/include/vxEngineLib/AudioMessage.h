@@ -23,40 +23,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct IMMDevice;
-class WavFile;
-struct WavFormat;
-class AudioFile;
-
 #include <vxLib/types.h>
-#include "AudioWavRenderer.h"
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vector>
 
-namespace Audio
+namespace vx
 {
-	class AudioManager
+	enum class AudioMessage : u16
 	{
-		struct Entry;
-
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
-
-		IMMDevice* m_device;
-
-	public:
-		AudioManager();
-		~AudioManager();
-
-		bool initialize();
-		void shutdown();
-
-		void update(f32 dt);
-
-		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
-
-		void playSound(const vx::StringID &sid);
+		PlaySound
 	};
 }

@@ -23,26 +23,41 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "FontAtlas.h"
+#include <vxLib/File/FileHandle.h>
 
-class Font
+namespace vx
 {
-	u32 m_textureSlice;
-	u32 m_textureDim;
-	FontAtlas m_atlas;						// 32
+	enum class FileType : u8 { Invalid, Mesh, Texture, Material, Scene, EditorScene, Fbx, Animation, Audio };
 
-public:
-	Font();
-	Font(u32 textureSlice, u32 dim, FontAtlas &&fontAtlas);
-	Font(Font &&other);
-	Font(const Font&) = delete;
-	~Font();
+	enum class FileStatus : u8
+	{
+		Exists, Loaded
+	};
 
-	Font& operator=(const Font&) = delete;
-	Font& operator=(Font &&rhs);
+	class FileEntry
+	{
+		vx::FileHandle m_fileHandle;
+		FileType m_type;
 
-	const FontAtlasEntry* getAtlasEntry(u32 code) const;
-	
-	u32 getTextureSlice() const { return m_textureSlice; }
-	u32 getTextureDim() const { return m_textureDim; }
-};
+	public:
+		FileEntry();
+		FileEntry(const char *file, FileType t);
+
+		template<size_t SIZE>
+		FileEntry(const char(&file)[SIZE], FileType t)
+			:m_fileHandle(file),
+			m_type(t)
+		{
+		}
+
+		FileEntry(const FileEntry &rhs);
+		FileEntry(FileEntry &&rhs);
+
+		FileEntry& operator=(const FileEntry &rhs);
+		FileEntry& operator=(FileEntry &&rhs);
+
+		FileType getType() const noexcept{ return m_type; }
+		const char* getString() const noexcept{ return m_fileHandle.m_string; }
+		const vx::StringID& getSid() const { return m_fileHandle.m_sid; }
+	};
+}

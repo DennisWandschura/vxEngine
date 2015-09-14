@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "GpuProfiler.h"
-#include "Font.h"
+#include <vxEngineLib/Graphics/Font.h>
 #include <Windows.h>
 #include <vxLib/memory.h>
 #include <vxGL/gl.h>

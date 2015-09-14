@@ -245,6 +245,7 @@
     <ClInclude Include="ActionPlayerLookAround.h" />
     <ClInclude Include="ActionPlayerMove.h" />
     <ClInclude Include="ActionPlayerUse.h" />
+    <ClInclude Include="ActionPlaySound.h" />
     <ClInclude Include="ActionPrintText.h" />
     <ClInclude Include="ActionSetFollowPath.h" />
     <ClInclude Include="ActionUpdateGpuTransform.h" />
@@ -344,6 +345,7 @@
     <ClCompile Include="ActionPlayerUse.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ActionPlaySound.cpp" />
     <ClCompile Include="ActionPrintText.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

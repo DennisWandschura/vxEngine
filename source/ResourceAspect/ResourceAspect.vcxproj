@@ -226,9 +226,6 @@
     <ClCompile Include="ConverterSceneFileToScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="FileEntry.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="FileFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -249,6 +246,7 @@
     <ClCompile Include="TaskLoadAnimation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="TaskLoadAudio.cpp" />
     <ClCompile Include="TaskLoadFbx.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -286,7 +284,6 @@
     <ClInclude Include="include\vxResourceAspect\ConverterEditorSceneToSceneFile.h" />
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToEditorScene.h" />
     <ClInclude Include="include\vxResourceAspect\ConverterSceneFileToScene.h" />
-    <ClInclude Include="include\vxResourceAspect\FileEntry.h" />
     <ClInclude Include="include\vxResourceAspect\FileFactory.h" />
     <ClInclude Include="include\vxResourceAspect\LoadFileCallback.h" />
     <ClInclude Include="include\vxResourceAspect\MaterialFactory.h" />
@@ -294,6 +291,7 @@
     <ClInclude Include="include\vxResourceAspect\ResourceManager.h" />
     <ClInclude Include="include\vxResourceAspect\SceneFactory.h" />
     <ClInclude Include="TaskLoadAnimation.h" />
+    <ClInclude Include="TaskLoadAudio.h" />
     <ClInclude Include="TaskLoadFbx.h" />
     <ClInclude Include="TaskLoadFile.h" />
     <ClInclude Include="TaskLoadMaterial.h" />

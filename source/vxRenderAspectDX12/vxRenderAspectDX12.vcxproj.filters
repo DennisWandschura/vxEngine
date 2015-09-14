@@ -279,6 +279,12 @@
     <ClInclude Include="RenderPassSSIL.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="RenderLayerPerfOverlay.h">
+      <Filter>Header Files\Layers</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassFilterRSM.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -407,6 +413,12 @@
     <ClCompile Include="Debug.cpp">
       <Filter>Source Files\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="RenderLayerPerfOverlay.cpp">
+      <Filter>Source Files\Layers</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassFilterRSM.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -516,6 +528,12 @@
     </FxCompile>
     <FxCompile Include="SsilPS.hlsl">
       <Filter>Shaders\ssil</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowMapFilterGS.hlsl">
+      <Filter>Shaders\shadowmap</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowMapFilterVS.hlsl">
+      <Filter>Shaders\shadowmap</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

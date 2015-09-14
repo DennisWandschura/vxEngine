@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -23,40 +22,62 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct IMMDevice;
-class WavFile;
-struct WavFormat;
-class AudioFile;
+#include <vxEngineLib/AudioFile.h>
+#include <vxEngineLib/ArrayAllocator.h>
 
-#include <vxLib/types.h>
-#include "AudioWavRenderer.h"
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-#include <vector>
-
-namespace Audio
+AudioFile::AudioFile()
+	:m_data(),
+	m_size(0),
+	m_type(),
+	m_samplesPerSec(0),
+	m_channels(0),
+	m_bytesPerSample(0)
 {
-	class AudioManager
+
+}
+
+AudioFile::AudioFile(AudioFile &&rhs)
+	:m_data(std::move(rhs.m_data)),
+	m_size(rhs.m_size),
+	m_type(rhs.m_type),
+	m_samplesPerSec(rhs.m_samplesPerSec),
+	m_channels(rhs.m_channels),
+	m_bytesPerSample(rhs.m_bytesPerSample)
+{
+
+}
+
+AudioFile::AudioFile(AudioFileDesc &&desc)
+	:m_data(std::move(desc.m_data)),
+	m_size(desc.m_size),
+	m_type(desc.m_type),
+	m_samplesPerSec(desc.m_samplesPerSec),
+	m_channels(desc.m_channels),
+	m_bytesPerSample(desc.m_bytesPerSample)
+{
+
+}
+
+AudioFile::~AudioFile()
+{
+
+}
+
+AudioFile& AudioFile::operator=(AudioFile &&rhs)
+{
+	if (this != &rhs)
 	{
-		struct Entry;
+		swap(rhs);
+	}
+	return *this;
+}
 
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
-
-		IMMDevice* m_device;
-
-	public:
-		AudioManager();
-		~AudioManager();
-
-		bool initialize();
-		void shutdown();
-
-		void update(f32 dt);
-
-		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
-
-		void playSound(const vx::StringID &sid);
-	};
+void AudioFile::swap(AudioFile &rhs)
+{
+	m_data.swap(rhs.m_data);
+	std::swap(m_size, rhs.m_size);
+	std::swap(m_type, rhs.m_type);
+	std::swap(m_samplesPerSec, rhs.m_samplesPerSec);
+	std::swap(m_channels, rhs.m_channels);
+	std::swap(m_bytesPerSample, rhs.m_bytesPerSample);
 }

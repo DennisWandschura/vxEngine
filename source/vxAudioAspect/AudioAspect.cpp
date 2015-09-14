@@ -25,10 +25,18 @@ SOFTWARE.
 #include "WavFile.h"
 #include <cstdio>
 #include "WavFormat.h"
+#include <vxEngineLib/FileEntry.h>
+#include <vxLib/Variant.h>
+#include <vxEngineLib/Message.h>
+#include <vxEngineLib/MessageTypes.h>
+#include <vxEngineLib/FileMessage.h>
+#include <vxEngineLib/AudioFile.h>
+#include <vxEngineLib/AudioMessage.h>
 
 namespace vx
 {
 	AudioAspect::AudioAspect()
+		:m_resourceAspect(nullptr)
 	{
 
 	}
@@ -38,17 +46,18 @@ namespace vx
 
 	}
 
-	bool AudioAspect::initialize()
+	bool AudioAspect::initialize(ResourceAspectInterface* resourceAspect)
 	{
 		if (!m_audioManager.initialize())
 			return false;
 
-		/*auto wavFile = new WavFile();
-		WavFormat format;
-		if (Audio::loadWavFile("../data/audio/BABYMETAL DEATH.wav", wavFile, &format))
-		{
-			m_audioManager.addWavFile(wavFile, format);
-		}*/
+		m_resourceAspect = resourceAspect;
+
+		vx::FileEntry wavFile("walk_test.wav", vx::FileType::Audio);
+		vx::Variant args;
+		args.u64 = 0;
+
+		m_resourceAspect->requestLoadFile(wavFile, args);
 
 		return true;
 	}
@@ -63,8 +72,47 @@ namespace vx
 		m_audioManager.update(dt);
 	}
 
-	void AudioAspect::handleMessage(const Message &evt)
+	void AudioAspect::onFileMessage(const Message &msg)
 	{
+		auto type = (vx::FileMessage)msg.code;
+		if (type == vx::FileMessage::Audio_Loaded)
+		{
+			auto sid = vx::StringID(msg.arg1.u64);
+			auto file = m_resourceAspect->getAudioFile(sid);
 
+			m_audioManager.addAudioFile(sid, *file);
+		}
+	}
+
+	void AudioAspect::onAudioMessage(const Message &msg)
+	{
+		auto type = (vx::AudioMessage)msg.code;
+		switch (type)
+		{
+		case vx::AudioMessage::PlaySound:
+		{
+			auto sid = vx::StringID(msg.arg1.u64);
+			m_audioManager.playSound(sid);
+		}break;
+		default:
+			break;
+		}
+	}
+
+	void AudioAspect::handleMessage(const Message &msg)
+	{
+		auto type = msg.type;
+		switch (type)
+		{
+		case vx::MessageType::File:
+		{
+			onFileMessage(msg);
+		}break;
+		case vx::MessageType::Audio:
+			onAudioMessage(msg);
+			break;
+		default:
+			break;
+		}
 	}
 }
