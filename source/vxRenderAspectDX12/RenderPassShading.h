@@ -5,11 +5,11 @@ namespace d3d
 	class CommandAllocator;
 }
 
-#include "RenderPass.h"
+#include "RenderPassLight.h"
 #include "DescriptorHeap.h"
 #include "CommandList.h"
 
-class RenderPassShading : public RenderPass
+class RenderPassShading : public RenderPassLight
 {
 	d3d::GraphicsCommandList m_commandList;
 	d3d::CommandAllocator* m_cmdAlloc;
@@ -38,5 +38,5 @@ public:
 
 	void submitCommands(Graphics::CommandQueue* queue) override;
 
-	void setLightCount(u32 lightCount) { m_lightCount = lightCount; }
+	void setLightCount(u32 count) override { m_lightCount = count; }
 };

@@ -9,7 +9,7 @@ struct Output
 	float2 surfaceSlice : SV_TARGET3;
 };
 
-struct PSInput
+struct VSOutput
 {
 	float4 position : SV_POSITION;
 	float4 positionPrev : POSITION1;
@@ -18,7 +18,7 @@ struct PSInput
 	float3 vsBitangent : NORMAL2;
 	float2 texCoords : TEXCOORD0;
 	uint material : BLENDINDICES0;
-	uint slice : SV_RenderTargetArrayIndex;
+	//uint slice : SV_RenderTargetArrayIndex;
 };
 
 cbuffer CameraBuffer : register(b0)
@@ -40,7 +40,7 @@ uint3 getTextureSlices(uint packedSlices)
 	return result;
 }
 
-Output main(PSInput input)
+Output main(VSOutput input)
 {
 	uint3 textureSlices = getTextureSlices(input.material);
 

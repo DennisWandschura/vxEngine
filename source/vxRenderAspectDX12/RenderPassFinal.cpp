@@ -78,7 +78,7 @@ bool RenderPassFinal::createRootSignature(ID3D12Device* device)
 	rootParameters[0].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
-	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 	sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 	sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
 	sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
@@ -182,29 +182,25 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Texture2DArray.ArraySize = 1;
-	srvDesc.Texture2DArray.FirstArraySlice = 0;
-	srvDesc.Texture2DArray.MipLevels = 1;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.PlaneSlice = 0;
-	srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels=1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.PlaneSlice = 0;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 
 	handle.offset(1);
 	device->CreateShaderResourceView(albedoSlice->get(), &srvDesc, handle);
 
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	srvDesc.Texture2DArray.ArraySize = 6;
-	srvDesc.Texture2DArray.FirstArraySlice = 0;
-	srvDesc.Texture2DArray.MipLevels = 2;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.PlaneSlice = 0;
-	srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.PlaneSlice = 0;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 
-	auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
+	auto voxelOcclusion = s_resourceManager->getTextureRtDs(L"voxelIndirect");
 	handle.offset(1);
-	device->CreateShaderResourceView(rsmFilteredColor->get(), &srvDesc, handle);
+	device->CreateShaderResourceView(voxelOcclusion->get(), &srvDesc, handle);
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	for (u32 i = 0; i < 2; ++i)
@@ -242,7 +238,7 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 	auto directLightTexture = s_resourceManager->getTextureRtDs(L"directLightTexture");
 	auto indirectLightTexture = s_resourceManager->getTextureRtDs(L"indirectLightTexture");
 	auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
-	auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
+	auto voxelIndirect = s_resourceManager->getTextureRtDs(L"voxelIndirect");
 
 	auto currentBuffer = m_device->getCurrentBackBufferIndex();
 
@@ -277,7 +273,7 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indirectLightTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(albedoSlice->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelIndirect->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -298,7 +294,7 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelIndirect->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(albedoSlice->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indirectLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));

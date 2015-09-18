@@ -30,11 +30,56 @@
 #include "RenderPassCullLights.h"
 #include "RenderPassSSIL.h"
 #include "RenderPassFilterRSM.h"
+#include "RenderPassInjectRSM.h"
+#include "RenderPassDrawVoxel.h"
+#include "RenderPassVoxelize.h"
+#include "RenderPassVoxelMip.h"
+#include "RenderPassOcclusion.h"
+#include "RenderPassConeTrace.h"
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
 const u32 g_maxIndexCount{ 40000 };
 const u32 g_maxMeshInstances{ 128 };
+
+namespace RenderLayerGameCpp
+{
+	D3D12_RESOURCE_DESC getResDescVoxelOpacity(u32 dim)
+	{
+		D3D12_RESOURCE_DESC desc;
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+		desc.Alignment = 64 KBYTE;
+		desc.Width = dim;
+		desc.Height = dim;
+		desc.DepthOrArraySize = dim;
+		desc.MipLevels = 4;
+		desc.Format = DXGI_FORMAT_R32_UINT;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+		return desc;
+	}
+
+	D3D12_RESOURCE_DESC getResDescVoxelColor(u32 dim)
+	{
+		D3D12_RESOURCE_DESC desc;
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+		desc.Alignment = 64 KBYTE;
+		desc.Width = dim;
+		desc.Height = dim;
+		desc.DepthOrArraySize = dim * 6;
+		desc.MipLevels = 4;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+		return desc;
+	}
+}
 
 RenderLayerGame::RenderLayerGame(const RenderLayerGameDesc &desc)
 	:m_renderPasses(),
@@ -90,21 +135,33 @@ void RenderLayerGame::createRenderPasses()
 	m_lightManager.setRenderPassCullLights(renderPassCullLights.get());
 	pushRenderPass(std::move(renderPassCullLights));
 
-	auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
-	m_lightManager.setRenderPassShadow(rnederPassShadow.get());
-	pushRenderPass(std::move(rnederPassShadow));
+	//auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
+	//m_lightManager.setRenderPassShadow(rnederPassShadow.get());
+	//pushRenderPass(std::move(rnederPassShadow));
 
-	auto renderPassFilterRSM = std::make_unique<RenderPassFilterRSM>(&m_commandAllocator);
-	m_lightManager.setRenderPassFilterRSM(renderPassFilterRSM.get());
-	pushRenderPass(std::move(renderPassFilterRSM));
+	pushRenderPass(std::move(std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh)));
+
+	//auto renderPassFilterRSM = std::make_unique<RenderPassFilterRSM>(&m_commandAllocator);
+	//m_lightManager.setRenderPassFilterRSM(renderPassFilterRSM.get());
+//	pushRenderPass(std::move(renderPassFilterRSM));
+
+	/*auto renderPassInjectRSM = std::make_unique<RenderPassInjectRSM>(&m_commandAllocator);
+	m_lightManager.setRenderPassInjectRSM(renderPassInjectRSM.get());
+	pushRenderPass(std::move(renderPassInjectRSM));*/
 
 	pushRenderPass(std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassAO>(&m_commandAllocator));
 
+	pushRenderPass(std::make_unique<RenderPassVoxelMip>(&m_commandAllocator));
+
+	pushRenderPass(std::make_unique<RenderPassConeTrace>(&m_commandAllocator));
+
 	auto renderPassShading = std::make_unique<RenderPassShading>(&m_commandAllocator);
-	m_lightManager.setRenderPassShading(renderPassShading.get());
+	m_lightManager.addRenderPass(renderPassShading.get());
 	pushRenderPass(std::move(renderPassShading));
+
+	//pushRenderPass(std::make_unique<RenderPassDrawVoxel>(&m_commandAllocator));
 
 	pushRenderPass(std::make_unique<RenderPassSSIL>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
@@ -122,9 +179,31 @@ void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTextur
 		it->getRequiredMemory(heapSizeBuffer, heapSizeTexture, heapSizeRtDs, device);
 	}
 
-	//D3D12_RESOURCE_DESC 
+	auto resDescVoxelOpacity = RenderLayerGameCpp::getResDescVoxelOpacity(m_settings->m_lpvDim);
+	auto resDescVoxelColor = RenderLayerGameCpp::getResDescVoxelColor(m_settings->m_lpvDim);
+	auto voxelOpacityInfo = m_device->getDevice()->GetResourceAllocationInfo(1,1, &resDescVoxelOpacity);
+	auto voxelColorInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColor);
+	*heapSizeTexture += voxelOpacityInfo.SizeInBytes + voxelColorInfo.SizeInBytes;
+}
 
-	//device->GetResourceAllocationInfo(1, 1,);
+void RenderLayerGame::createGpuObjects()
+{
+	auto resDescVoxelOpacity = RenderLayerGameCpp::getResDescVoxelOpacity(m_settings->m_lpvDim);
+	auto resDescVoxelColor = RenderLayerGameCpp::getResDescVoxelColor(m_settings->m_lpvDim);
+	auto voxelOpacityInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelOpacity);
+	auto voxelColorInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColor);
+
+	CreateResourceDesc lpvDesc;
+	lpvDesc.clearValue =nullptr;
+	lpvDesc.resDesc = &resDescVoxelOpacity;
+	lpvDesc.size = voxelOpacityInfo.SizeInBytes;
+	lpvDesc.state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+	m_resourceManager->createTexture(L"voxelTextureOpacity", lpvDesc);
+
+	lpvDesc.resDesc = &resDescVoxelColor;
+	lpvDesc.size = voxelColorInfo.SizeInBytes;
+	m_resourceManager->createTexture(L"voxelTextureColor", lpvDesc);
 }
 
 bool RenderLayerGame::initialize(vx::StackAllocator* allocator)
@@ -141,9 +220,10 @@ bool RenderLayerGame::initialize(vx::StackAllocator* allocator)
 	if (!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, m_resourceManager, device, allocator))
 		return false;
 
-
 	if (!m_drawCommandMesh.create(L"drawCmdBuffer", g_maxMeshInstances, m_resourceManager, m_device->getDevice()))
 		return false;
+
+	createGpuObjects();
 
 	for (auto &it : m_renderPasses)
 	{
@@ -168,7 +248,9 @@ void RenderLayerGame::shudown()
 	}
 	m_renderPasses.clear();
 
+	m_drawCommandMesh.destroy();
 	m_meshManager.shutdown();
+	m_commandAllocator.destroy();
 
 	m_copyManager = nullptr;
 }

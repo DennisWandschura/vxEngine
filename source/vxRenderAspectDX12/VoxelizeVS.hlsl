@@ -14,9 +14,12 @@ struct Vertex
 struct VSOut
 {
 	float3 wsPosition : POSITION0;
+	uint material : BLENDINDICES0;
+	float2 texCoords : TEXCOORD0;
 };
 
 StructuredBuffer<TransformGpu> s_transforms : register(t0);
+StructuredBuffer<uint> s_materials : register(t1);
 
 VSOut main(Vertex input)
 {
@@ -29,6 +32,8 @@ VSOut main(Vertex input)
 
 	VSOut output;
 	output.wsPosition = wsPosition;
+	output.material = s_materials[materialIndex];;
+	output.texCoords = input.texCoords;
 
 	return output;
 }

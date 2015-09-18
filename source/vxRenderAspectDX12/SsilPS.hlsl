@@ -31,7 +31,7 @@ cbuffer CameraStaticBuffer : register(b0)
 
 Texture2D<float> g_zBuffer : register(t0);
 Texture2D<float4> g_directLightning : register(t1);
-Texture2DArray<half2> g_normalSlice : register(t2);
+Texture2D<half2> g_normalSlice : register(t2);
 
 float3 reconstructCSPosition(float2 S, float z)
 {
@@ -51,7 +51,7 @@ float3 getPosition(int2 ssP)
 
 float3 sampleNormal(in int2 texel, int mip)
 {
-	float2 packedNormal = g_normalSlice.Load(int4(texel, 0, mip));
+	float2 packedNormal = g_normalSlice.Load(int3(texel, mip));
 	return decodeNormal(packedNormal.rg);
 }
 

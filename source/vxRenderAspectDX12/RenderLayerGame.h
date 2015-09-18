@@ -89,6 +89,8 @@ class RenderLayerGame : public Graphics::RenderLayer
 	DownloadManager* m_downloadManager;
 	RenderSettings* m_settings;
 
+	void createGpuObjects();
+
 	void handleRendererMessage(const vx::Message &msg);
 	void handleFileMessage(const vx::Message &msg);
 	void loadScene(Scene* scene);

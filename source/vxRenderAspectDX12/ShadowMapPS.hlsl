@@ -4,7 +4,9 @@
 struct GSOutput
 {
 	float4 pos : SV_POSITION;
-	float3 vsNormal : NORMAL0;
+	float3 wsPosition : POSITION0;
+	float3 lightPositionWS : POSITION1;
+	float3 normal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
 	uint slice : SV_RenderTargetArrayIndex;
 	uint material : BLENDINDICES0;
@@ -17,7 +19,7 @@ struct PSOut
 {
 	float2 zDepth : SV_TARGET0;
 	float3 albedoColor : SV_TARGET1;
-	half2 normals : SV_TARGET2;
+	half4 normals : SV_TARGET2;
 };
 
 Texture2DArray g_srgb : register(t4);
@@ -50,12 +52,19 @@ PSOut main(GSOutput input)
 	float falloffValue = getFalloff(input.distanceToLight, input.lightFalloff);
 	uint3 textureSlices = getTextureSlices(input.material);
 
+	float3 dirToLight = input.lightPositionWS - input.wsPosition;
+	float3 l = dirToLight / input.distanceToLight;
+
 	float z = input.distanceToLight / input.lightFalloff;
+
+	float3 albedoColor = g_srgb.Sample(g_sampler, float3(input.texCoords, textureSlices.x)).rgb;
+
+	float nDotL = max(dot(l, input.normal), 0);
 
 	PSOut output;
 	output.zDepth = getMoments(z);
-	output.albedoColor = g_srgb.Sample(g_sampler, float3(input.texCoords, textureSlices.x)).rgb;
-	output.normals = encodeNormal(input.vsNormal);
+	output.albedoColor = albedoColor / g_PI * falloffValue * nDotL;
+	output.normals = half4(input.normal, 1);
 	
 	return output;
 }

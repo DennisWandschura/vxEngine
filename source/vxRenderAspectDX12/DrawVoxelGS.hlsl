@@ -22,14 +22,11 @@ cbuffer CameraBuffer : register(b1)
 	GpuCameraBufferData camera;
 };
 
-Texture3D<uint> g_voxelTexture : register(t0);
+Texture3D<uint> g_voxelTextureOpacity : register(t0);
 
 void outputQuad(float3 wsPosition[4], uint3 voxelPos, float3 color, inout TriangleStream< GSOutput > output)
 {
-	float3 cameraPosition = camera.position.xyz;
-	//	cameraPosition.y = 0;
-	float3 voxelCenter = cameraPosition * voxel.invGridCellSize;
-	voxelCenter = float3(int3(voxelCenter)) * voxel.gridCellSize;
+	float3 voxelCenter = voxel.gridCenter;
 
 	wsPosition[0] = wsPosition[0] * voxel.gridCellSize + voxelCenter;
 	wsPosition[1] = wsPosition[1] * voxel.gridCellSize + voxelCenter;
@@ -84,18 +81,28 @@ void main(
 	uint3 textureOffset = uint3(0, 0, 0);
 	float3 wsPosition[4];
 
+	uint opacity = g_voxelTextureOpacity.Load(int4(voxelPos, 0));
+
+	uint valueXP = opacity & 0x1;
+	uint valueXN = (opacity >> 1) & 0x1;
+
 	// +x
-	uint valueX = g_voxelTexture.Load(int4(voxelPos, 0)).r;
-	if (valueX != 0)
+	if (valueXP != 0)
 	{
 		wsPosition[0] = float3(l, b, n);
 		wsPosition[1] = float3(l, b, f);
 		wsPosition[2] = float3(l, t, f);
 		wsPosition[3] = float3(l, t, n);
 		outputQuad(wsPosition, voxelPos, float3(0.25, 0.5, 0), output);
+
+		wsPosition[0] = float3(r, b, f);
+		wsPosition[1] = float3(r, b, n);
+		wsPosition[2] = float3(r, t, n);
+		wsPosition[3] = float3(r, t, f);
+		outputQuad(wsPosition, voxelPos, float3(0.25, 0.5, 0.25), output);
 	}
 
-	textureOffset.z = voxel.dim;
+	/*textureOffset.z = voxel.dim;
 	uint valueXX = g_voxelTexture.Load(int4(voxelPos + textureOffset, 0)).r;
 	if (valueXX != 0)
 	{
@@ -119,8 +126,10 @@ void main(
 
 	textureOffset.z = 4 * voxel.dim;
 	// +z
-	uint value0 = g_voxelTexture.Load(int4(voxelPos + textureOffset, 0)).r;
-	if (value0 != 0)
+	uint value0 = g_voxelTexture.Load(int4(voxelPos + textureOffset, 0)).r;*/
+
+	/*uint opacityZP = (opacity >> 4) & 0x1;
+	if (opacityZP != 0)
 	{
 		wsPosition[0] = float3(l, b, n);
 		wsPosition[1] = float3(r, b, n);
@@ -129,15 +138,15 @@ void main(
 		outputQuad(wsPosition, voxelPos, float3(0.5, 0, 0), output);
 	}
 
-	textureOffset.z += voxel.dim;
+	//textureOffset.z += voxel.dim;
 	// -z
-	uint value1 = g_voxelTexture.Load(int4(voxelPos + textureOffset, 0)).r;
-	if (value1 != 0)
+	uint opacityZN = (opacity >> 5) & 0x1;
+	if (opacityZN != 0)
 	{
 		wsPosition[0] = float3(r, b, f);
 		wsPosition[1] = float3(l, b, f);
 		wsPosition[2] = float3(l, t, f);
 		wsPosition[3] = float3(r, t, f);
 		outputQuad(wsPosition, voxelPos, float3(0.5, 0.5, 0), output);
-	}
+	}*/
 }

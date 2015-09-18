@@ -3,7 +3,8 @@
 struct VSOutput
 {
 	float3 wsPosition : POSITION0;
-	float3 vsNormal : NORMAL0;
+	float3 lightPositionWS : POSITION1;
+	float3 normal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
 	uint lightIndex : BLENDINDICES0;
 	uint material : BLENDINDICES1;
@@ -15,7 +16,9 @@ struct VSOutput
 struct GSOutput
 {
 	float4 pos : SV_POSITION;
-	float3 vsNormal : NORMAL0;
+	float3 wsPosition : POSITION0;
+	float3 lightPositionWS : POSITION1;
+	float3 normal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
 	uint slice : SV_RenderTargetArrayIndex;
 	uint material : BLENDINDICES0;
@@ -42,7 +45,9 @@ void main(
 		{
 			GSOutput element;
 			element.pos = mul(pvMatrix, float4(input[i].wsPosition, 1));
-			element.vsNormal = input[i].vsNormal;
+			element.wsPosition = input[i].wsPosition;
+			element.lightPositionWS = input[i].lightPositionWS;
+			element.normal = input[i].normal;
 			element.texCoords = input[i].texCoords;
 			element.slice = slice;
 			element.material = input[i].material;

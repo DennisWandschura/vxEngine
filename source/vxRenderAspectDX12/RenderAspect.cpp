@@ -77,7 +77,6 @@ bool RenderAspect::createConstantBuffers()
 	const auto transformBufferSize = d3d::AlignedSizeType<vx::TransformGpu, g_maxMeshInstances, 64 KBYTE>::size;
 	const auto materialBufferSize = d3d::AlignedSizeType<u32, g_maxMeshInstances, 64 KBYTE>::size;
 
-
 	const wchar_t* names[] =
 	{
 		L"constantBuffer",
@@ -152,7 +151,7 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	s_settings.m_shadowCastingLightCount = 10;
 	s_settings.m_textureDim = 1024;
 	s_settings.m_shadowDim = 512;
-	s_settings.m_lpvDim = 32;
+	s_settings.m_lpvDim = 128;
 	s_settings.m_lpvGridSize = 8.0f;
 
 	const u32 allocSize = 1 MBYTE;
@@ -319,7 +318,6 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	viewMatrix.asFloat(&vMatrix);
 
 	GpuCameraBufferData bufferData;
-	bufferData.position = _mm256_cvtpd_ps(data.position);
 	viewMatrix.asFloat(&bufferData.viewMatrix);
 	pvMatrix.asFloat(&bufferData.pvMatrix);
 	pvMatrixPrev.asFloat(&bufferData.pvMatrixPrev);

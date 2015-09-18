@@ -26,6 +26,7 @@ SOFTWARE.
 #include "ShaderManager.h"
 #include "CommandAllocator.h"
 #include "GpuShadowTransform.h"
+#include "GpuVoxel.h"
 
 RenderPassFilterRSM::RenderPassFilterRSM(d3d::CommandAllocator* allocator)
 	:RenderPass(),
@@ -60,7 +61,7 @@ void RenderPassFilterRSM::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTe
 
 	auto allocColor0 = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
-	resDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	resDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	auto allocNormal0 = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	resDesc.Format = DXGI_FORMAT_R32_FLOAT;
@@ -105,8 +106,8 @@ bool RenderPassFilterRSM::createData(ID3D12Device* device)
 	if (ptr == nullptr)
 		return false;
 
-	clearValues[0].Format = DXGI_FORMAT_R16G16_FLOAT;
-	resDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	clearValues[0].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	resDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
 	desc.size = alloc.SizeInBytes;
 
@@ -185,7 +186,7 @@ bool RenderPassFilterRSM::createPipelineState(ID3D12Device* device)
 	DXGI_FORMAT formats[3]=
 	{
 		DXGI_FORMAT_R8G8B8A8_UNORM,
-		DXGI_FORMAT_R16G16_FLOAT,
+		DXGI_FORMAT_R16G16B16A16_FLOAT,
 		DXGI_FORMAT_R32_FLOAT
 	};
 
@@ -250,7 +251,7 @@ bool RenderPassFilterRSM::createRtvHeap(ID3D12Device* device)
 		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		device->CreateRenderTargetView(rsmFilteredColor->get(), &rtvDesc, handle);
 
-		rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+		rtvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		handle.offset(1);
 		device->CreateRenderTargetView(rsmFilteredNormal->get(), &rtvDesc, handle);
 
@@ -265,7 +266,7 @@ bool RenderPassFilterRSM::createRtvHeap(ID3D12Device* device)
 		handle.offset(1);
 		device->CreateRenderTargetView(rsmFilteredColor->get(), &rtvDesc, handle);
 
-		rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+		rtvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		handle.offset(1);
 		device->CreateRenderTargetView(rsmFilteredNormal->get(), &rtvDesc, handle);
 
@@ -293,7 +294,7 @@ cbuffer lpvConstantBuffer : register(b0)
 	auto shadowTextureNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
 	auto shadowTextureDepth = s_resourceManager->getTextureRtDs(L"shadowTextureDepth");
 	auto shadowReverseTransformBuffer = s_resourceManager->getBuffer(L"shadowReverseTransformBuffer");
-	auto lpvConstantBuffer = s_resourceManager->getBuffer(L"lpvConstantBuffer");
+	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmColor;
 	srvDescRsmColor.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -310,7 +311,7 @@ cbuffer lpvConstantBuffer : register(b0)
 	device->CreateShaderResourceView(shadowTextureColor->get(), &srvDescRsmColor, handle);
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmNormals;
-	srvDescRsmNormals.Format = DXGI_FORMAT_R16G16_FLOAT;
+	srvDescRsmNormals.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvDescRsmNormals.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDescRsmNormals.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 	srvDescRsmNormals.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
@@ -350,8 +351,8 @@ cbuffer lpvConstantBuffer : register(b0)
 	device->CreateShaderResourceView(shadowReverseTransformBuffer->get(), &srvDescBuffer, handle);
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	cbvDesc.BufferLocation = lpvConstantBuffer->GetGPUVirtualAddress();
-	cbvDesc.SizeInBytes = 256;
+	cbvDesc.BufferLocation = voxelBuffer->GetGPUVirtualAddress();
+	cbvDesc.SizeInBytes = d3d::AlignedSizeType<GpuVoxel, 1, 256>::size;;
 
 	handle.offset(1);
 	device->CreateConstantBufferView(&cbvDesc, handle);
@@ -363,7 +364,7 @@ void RenderPassFilterRSM::createViewsPass2(ID3D12Device* device)
 	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
 	auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
 	auto shadowReverseTransformBuffer = s_resourceManager->getBuffer(L"shadowReverseTransformBuffer");
-	auto lpvConstantBuffer = s_resourceManager->getBuffer(L"lpvConstantBuffer");
+	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmColor;
 	srvDescRsmColor.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -380,7 +381,7 @@ void RenderPassFilterRSM::createViewsPass2(ID3D12Device* device)
 	device->CreateShaderResourceView(rsmFilteredColor->get(), &srvDescRsmColor, handle);
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmNormals;
-	srvDescRsmNormals.Format = DXGI_FORMAT_R16G16_FLOAT;
+	srvDescRsmNormals.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvDescRsmNormals.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDescRsmNormals.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 	srvDescRsmNormals.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
@@ -420,8 +421,8 @@ void RenderPassFilterRSM::createViewsPass2(ID3D12Device* device)
 	device->CreateShaderResourceView(shadowReverseTransformBuffer->get(), &srvDescBuffer, handle);
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
-	cbvDesc.BufferLocation = lpvConstantBuffer->GetGPUVirtualAddress();
-	cbvDesc.SizeInBytes = 256;
+	cbvDesc.BufferLocation = voxelBuffer->GetGPUVirtualAddress();
+	cbvDesc.SizeInBytes = d3d::AlignedSizeType<GpuVoxel, 1, 256>::size;;
 
 	handle.offset(1);
 	device->CreateConstantBufferView(&cbvDesc, handle);

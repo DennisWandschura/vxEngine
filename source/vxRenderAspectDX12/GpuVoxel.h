@@ -2,13 +2,13 @@
 #define _GPUVOXEL_HH
 #ifdef _VX_WINDOWS
 #pragma once
-#endif
-
 #include "Gpu.h"
+#endif
 
 struct GpuVoxel
 {
 	float4x4 projectionMatrix[3];
+	float4 gridCenter;
 	int dim;
 	int halfDim;
 	float invGridCellSize;

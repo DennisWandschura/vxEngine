@@ -58,7 +58,7 @@ namespace RenderPassShadowCpp
 		resDesc[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		resDesc[RenderPassShadowCpp::TextureNormal] = resDesc[RenderPassShadowCpp::TextureIntensity];
-		resDesc[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16_FLOAT;
+		resDesc[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	}
 }
 
@@ -101,7 +101,7 @@ bool RenderPassShadow::createData(ID3D12Device* device)
 
 	clearValues[RenderPassShadowCpp::TextureIntensity].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	clearValues[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16_FLOAT;
+	clearValues[RenderPassShadowCpp::TextureNormal].Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
 	const wchar_t* names[]=
 	{
@@ -219,7 +219,7 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
 	};
 
-	DXGI_FORMAT format[3] = { DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R16G16_FLOAT };
+	DXGI_FORMAT format[3] = { DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R16G16B16A16_FLOAT };
 
 
 	d3d::PipelineStateDescInput inputDesc;
@@ -282,7 +282,7 @@ bool RenderPassShadow::createRtvs(ID3D12Device* device, u32 shadowCastingLightCo
 		handle.offset(1);
 		device->CreateRenderTargetView(shadowTextureColor->get(), &rtvDesc, handle);
 
-		rtvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+		rtvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		handle.offset(1);
 		device->CreateRenderTargetView(shadowTextureNormal->get(), &rtvDesc, handle);
 

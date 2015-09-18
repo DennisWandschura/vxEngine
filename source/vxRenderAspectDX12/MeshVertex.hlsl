@@ -11,7 +11,7 @@ struct Vertex
 	uint drawId : BLENDINDICES0;
 };
 
-struct GSInput
+struct VSOutput
 {
 	float4 position : SV_POSITION;
 	float4 positionPrev : POSITION1;
@@ -31,7 +31,7 @@ StructuredBuffer<TransformGpu> s_transforms : register(t0);
 StructuredBuffer<uint> s_materials : register(t1);
 StructuredBuffer<TransformGpu> s_transformsPrev : register(t2);
 
-GSInput main(Vertex input)
+VSOutput main(Vertex input)
 {
 	uint elementId = input.drawId & 0xffff;
 	uint materialIndex = input.drawId >> 16;
@@ -54,7 +54,7 @@ GSInput main(Vertex input)
 	float4 qRotationPrev = unpackQRotation(s_transformsPrev[elementId].packedQRotation);
 	float3 wsPositionPrev = quaternionRotation(input.position.xyz, qRotationPrev) + translationPrev;
 
-	GSInput output;
+	VSOutput output;
 	output.position = mul(cameraBuffer.pvMatrix, float4(wsPosition, 1));
 	output.positionPrev = mul(cameraBuffer.pvMatrixPrev, float4(wsPositionPrev, 1));
 	output.vsNormal = vsNormal;

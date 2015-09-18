@@ -166,10 +166,6 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 	if (!createViews(device, &rtvHandle, &srvHandle, zBuffer0->get()))
 		return false;
 
-	auto zBuffer1 = s_resourceManager->getTextureRtDs(L"zBuffer1");
-	if (!createViews(device, &rtvHandle, &srvHandle, zBuffer1->get()))
-		return false;
-
 	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
 
@@ -235,7 +231,6 @@ void RenderPassZBufferCreateMipmaps::createMipMaps(ID3D12Resource* texture, d3d:
 void RenderPassZBufferCreateMipmaps::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto zBuffer0 = s_resourceManager->getTextureRtDs(L"zBuffer0");
-	auto zBuffer1 = s_resourceManager->getTextureRtDs(L"zBuffer1");
 
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
@@ -251,8 +246,6 @@ void RenderPassZBufferCreateMipmaps::submitCommands(Graphics::CommandQueue* queu
 	auto rtvHandleCpu = m_descriptorHeapRtv.getHandleCpu();
 
 	createMipMaps(zBuffer0->get(), &rtvHandleCpu, &srvHandleGpu);
-
-	createMipMaps(zBuffer1->get(), &rtvHandleCpu, &srvHandleGpu);
 
 	auto hr = m_commandList->Close();
 	

@@ -15,7 +15,8 @@ struct Vertex
 struct VSOutput
 {
 	float3 wsPosition : POSITION0;
-	float3 vsNormal : NORMAL0;
+	float3 lightPositionWS : POSITION1;
+	float3 normal : NORMAL0;
 	float2 texCoords : TEXCOORD0;
 	uint lightIndex : BLENDINDICES0;
 	uint material : BLENDINDICES1;
@@ -54,13 +55,13 @@ VSOutput main(Vertex input)
 
 	float3 wsPosition = quaternionRotation(input.position.xyz, qRotation) + translation;
 	float3 wsNormal = quaternionRotation(input.normal, qRotation);
-	float3 vsNormal = mul(cameraBuffer.viewMatrix, float4(wsNormal, 0)).xyz;
 
 	float distanceToLight = length(lightPositionWS - wsPosition);
 
 	VSOutput output;
 	output.wsPosition = wsPosition;
-	output.vsNormal = vsNormal;
+	output.lightPositionWS = lightPositionWS;
+	output.normal = wsNormal;
 	output.texCoords = input.texCoords;
 	output.lightIndex = lightIndex;
 	output.material = s_materials[materialIndex];

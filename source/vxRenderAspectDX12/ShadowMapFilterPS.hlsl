@@ -1,6 +1,6 @@
 #include "gpumath.h"
 #include "GpuShadowTransform.h"
-#include "gpulpv.h"
+#include "gpuvoxel.h"
 
 struct GSOutput
 {
@@ -15,24 +15,24 @@ struct GSOutput
 struct PSOutput
 {
 	float4 color : SV_TARGET0;
-	half2 normal: SV_TARGET1;
+	half4 normal: SV_TARGET1;
 	float depth : SV_TARGET2;
 };
 
 struct RSMTexel
 {
 	float3 color;
-	float3 normal;
+	half3 normal;
 	float depth;
 };
 
-cbuffer lpvConstantBuffer : register(b0)
+cbuffer voxelBuffer : register(b0)
 {
-	GpuLpv g_lpv;
+	GpuVoxel g_voxel;
 };
 
 Texture2DArray g_srcRSMColor : register(t0);
-Texture2DArray<half2> g_srcRSMNormal : register(t1);
+Texture2DArray<half4> g_srcRSMNormal : register(t1);
 Texture2DArray<float> g_srcRSMDepth : register(t2);
 StructuredBuffer<GpuShadowTransformReverse> g_transforms : register(t3);
 
@@ -42,7 +42,7 @@ RSMTexel fetchRSM(half2 vTexCoords, uint cubeSlice)
 {
 	RSMTexel result;
 	result.color = g_srcRSMColor.Sample(g_sampler, float3(vTexCoords, cubeSlice)).rgb;
-	result.normal = decodeNormal(g_srcRSMNormal.Sample(g_sampler, float3(vTexCoords, cubeSlice)));
+	result.normal = g_srcRSMNormal.Sample(g_sampler, float3(vTexCoords, cubeSlice)).rgb;
 	result.depth = g_srcRSMDepth.Sample(g_sampler, float3(vTexCoords, cubeSlice));
 
 	return result;
@@ -50,8 +50,8 @@ RSMTexel fetchRSM(half2 vTexCoords, uint cubeSlice)
 
 half3 GetGridPos(in float3 wsPosition)
 {
-	float3 offset = wsPosition * g_lpv.invGridCellSize;
-	return half3(int3(offset) + g_lpv.halfDim);
+	float3 offset = wsPosition * g_voxel.invGridCellSize;
+	return half3(int3(offset) +g_voxel.halfDim);
 }
 
 half3 GetGridCell(const in half2 texCoord, const in float fDepth, in float4x4 invPvMatrix)
@@ -138,7 +138,7 @@ PSOutput main(GSOutput input)
 
 	PSOutput output;
 	output.color = float4(texel.color, 1);
-	output.normal = encodeNormal(texel.normal);
+	output.normal = half4(texel.normal, 1);
 	output.depth = texel.depth;
 
 	return output;

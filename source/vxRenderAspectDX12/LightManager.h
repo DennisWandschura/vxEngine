@@ -24,9 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class RenderPassShadow;
-class RenderPassShading;
-class RenderPassCullLights;
 struct GpuShadowTransformReverse;
 struct GpuLight;
 struct Light;
@@ -34,8 +31,9 @@ class Frustum;
 struct GpuShadowTransform;
 struct D3D12_DRAW_INDEXED_ARGUMENTS;
 struct AABB;
-class RenderPassFilterRSM;
 struct RenderSettings;
+class RenderPassLight;
+class RenderPassCullLights;
 
 namespace d3d
 {
@@ -48,7 +46,7 @@ namespace d3d
 #include <vxEngineLib/Event.h>
 
 class LightManager
-{
+{	
 	GpuLight* m_sceneLights;
 	GpuShadowTransform* m_sceneShadowTransforms;
 	GpuShadowTransformReverse* m_sceneShadowReverseTransforms;
@@ -60,13 +58,13 @@ class LightManager
 	u32 m_maxSceneLightCount;
 	u32 m_maxShadowCastingLights;
 	u32 m_resultBufferCount;
+	f32 m_gridCellSize;
+	f32 m_invGridCellSize;
 	u32* m_visibleLightsResult;
 	Event m_downloadEvent;
 	Event m_checkLightsEvent;
-	RenderPassShadow* m_renderPassShadow;
-	RenderPassShading* m_renderPassShading;
 	RenderPassCullLights* m_renderPassCullLights;
-	RenderPassFilterRSM* m_renderPassFilterRSM;
+	std::vector<RenderPassLight*> m_renderPasses;
 	vx::StackAllocator m_scratchAllocator;
 
 	void createSrvLights(u32 maxCount, d3d::ResourceManager* resourceManager);
@@ -88,8 +86,6 @@ public:
 
 	void addStaticMeshInstance(const D3D12_DRAW_INDEXED_ARGUMENTS &cmd, const AABB &bounds, UploadManager* uploadManager);
 
-	void setRenderPassShadow(RenderPassShadow* renderPassShadow) { m_renderPassShadow = renderPassShadow; }
-	void setRenderPassShading(RenderPassShading* renderPassShading) { m_renderPassShading = renderPassShading; }
-	void setRenderPassCullLights(RenderPassCullLights* renderPassCullLights);
-	void setRenderPassFilterRSM(RenderPassFilterRSM* renderPassFilterRSM) { m_renderPassFilterRSM = renderPassFilterRSM; }
+	void addRenderPass(RenderPassLight* rp) { m_renderPasses.push_back(rp); }
+	void setRenderPassCullLights(RenderPassCullLights* rp) { m_renderPassCullLights = rp; }
 };

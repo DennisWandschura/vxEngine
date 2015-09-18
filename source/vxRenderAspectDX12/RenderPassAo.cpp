@@ -110,8 +110,8 @@ bool RenderPassAO::loadShaders(d3d::ShaderManager* shaderManager)
 bool RenderPassAO::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0, 0);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 3);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, 0);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 2);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(2, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -135,7 +135,7 @@ bool RenderPassAO::createRootSignature(ID3D12Device* device)
 bool RenderPassAO::createRootSignatureBlurX(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 4);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 3);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -159,7 +159,7 @@ bool RenderPassAO::createRootSignatureBlurX(ID3D12Device* device)
 bool RenderPassAO::createRootSignatureBlurY(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 5);
+	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 4);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
@@ -303,7 +303,6 @@ bool RenderPassAO::createRtv(ID3D12Device* device)
 bool RenderPassAO::createSrv(ID3D12Device* device)
 {
 	auto zBuffer0 = s_resourceManager->getTextureRtDs(L"zBuffer0");
-	auto zBuffer1 = s_resourceManager->getTextureRtDs(L"zBuffer1");
 	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
 	auto saoBuffer = s_resourceManager->getBuffer(L"saoBuffer");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
@@ -329,17 +328,12 @@ bool RenderPassAO::createSrv(ID3D12Device* device)
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	device->CreateShaderResourceView(zBuffer0->get(), &srvDesc, handle);
 
-	handle.offset(1);
-	device->CreateShaderResourceView(zBuffer1->get(), &srvDesc, handle);
-
 	srvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Texture2DArray.ArraySize = 2;
-	srvDesc.Texture2DArray.FirstArraySlice = 0;
-	srvDesc.Texture2DArray.MipLevels = 1;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.PlaneSlice = 0;
-	srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.PlaneSlice = 0;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 	handle.offset(1);
 	device->CreateShaderResourceView(gbufferNormal->get(), &srvDesc, handle);
 

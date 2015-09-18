@@ -2,16 +2,13 @@
 #include "GpuLight.h"
 #include <vxEngineLib/Light.h>
 #include "Frustum.h"
-#include "RenderPassCullLights.h"
-#include "RenderPassVisibleLights.h"
 #include "GpuShadowTransform.h"
 #include "ResourceManager.h"
-#include "RenderPassShading.h"
 #include "UploadManager.h"
 #include <vxEngineLib/AABB.h>
-#include "RenderPassShadow.h"
-#include "RenderPassFilterRSM.h"
-#include "GpuLpv.h"
+#include "GpuVoxel.h"
+#include "RenderPassCullLights.h"
+#include "RenderPassLight.h"
 
 enum FrustumPlane { FrustumPlaneNear, FrustumPlaneLeft, FrustumPlaneRight };
 
@@ -64,10 +61,7 @@ LightManager::LightManager()
 	m_maxSceneLightCount(0),
 	m_maxShadowCastingLights(0),
 	m_resultBufferCount(0),
-	m_renderPassShadow(nullptr),
-	m_renderPassShading(nullptr),
-	m_renderPassCullLights(nullptr),
-	m_renderPassFilterRSM(nullptr)
+	m_renderPassCullLights(nullptr)
 {
 
 }
@@ -103,9 +97,9 @@ void LightManager::getRequiredMemory(u64* heapSizeBuffere, u32 maxSceneLightCoun
 	const u64 shadowReverseTransformBufferSize = d3d::getAlignedSize(sizeof(GpuShadowTransformReverse) * maxShadowCastingLights, 64llu KBYTE);
 	const auto shadowCastingLightsBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * maxShadowCastingLights, 64llu KBYTE);
 
-	const auto lpvConstantBufferSize = 64 KBYTE;
+	const auto voxelBufferSize = d3d::getAlignedSize(sizeof(GpuVoxel), 64llu KBYTE);
 
-	*heapSizeBuffere += shadowTransformBufferSize + lightBufferSize + visibleLightsBufferSize + shadowCastingLightsBufferSize + shadowReverseTransformBufferSize + lpvConstantBufferSize;
+	*heapSizeBuffere += shadowTransformBufferSize + lightBufferSize + visibleLightsBufferSize + shadowCastingLightsBufferSize + shadowReverseTransformBufferSize + voxelBufferSize;
 }
 
 void LightManager::createSrvLights(u32 maxCount, d3d::ResourceManager* resourceManager)
@@ -182,9 +176,9 @@ bool LightManager::initialize(const RenderSettings &settings, vx::StackAllocator
 	if (shadowCastingLightsBuffer == nullptr)
 		return false;
 
-	const auto lpvConstantBufferSize = 64 KBYTE;
-	auto lpvConstantBuffer = resourceManager->createBuffer(L"lpvConstantBuffer", lpvConstantBufferSize, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	if (lpvConstantBuffer == nullptr)
+	const auto voxelBufferSize = d3d::getAlignedSize(sizeof(GpuVoxel), 64llu KBYTE);
+	auto voxelBuffer = resourceManager->createBuffer(L"voxelBuffer", voxelBufferSize, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	if (voxelBuffer == nullptr)
 		return false;
 
 	createSrvLights(maxSceneLightCount, resourceManager);
@@ -201,19 +195,36 @@ bool LightManager::initialize(const RenderSettings &settings, vx::StackAllocator
 
 	m_renderPassCullLights->setEvent(m_checkLightsEvent, m_downloadEvent, (u8*)m_visibleLightsResult);
 
+	auto gridsize = settings.m_lpvGridSize;
+	auto dim = settings.m_lpvDim;
 
-	auto halfDim = settings.m_lpvDim / 2;
-	auto gridHalfSize = settings.m_lpvGridSize / 2.0f;
+	auto halfDim = dim / 2;
+	auto gridHalfSize = gridsize / 2.0f;
 
 	auto gridCellSize = gridHalfSize / halfDim;
 	auto invGridCellSize = 1.0f / gridCellSize;
 
-	GpuLpv lpvData;
-	lpvData.dim = settings.m_lpvDim;
-	lpvData.gridCellSize = gridCellSize;
-	lpvData.halfDim = halfDim;
-	lpvData.invGridCellSize = invGridCellSize;
-	uploadManager->pushUploadBuffer((u8*)&lpvData, lpvConstantBuffer->get(), 0, sizeof(GpuLpv), lpvConstantBuffer->getOriginalState());
+	m_gridCellSize = gridCellSize;
+	m_invGridCellSize = invGridCellSize;
+
+	const __m128 axisY = { 0, 1, 0, 0 };
+	const __m128 axisX = { 1, 0, 0, 0 };
+
+	auto projectionMatrix = vx::MatrixOrthographicRHDX(gridsize, gridsize, 0.0f, gridsize);
+	auto backFront = projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize);
+	auto leftRight = projectionMatrix * vx::MatrixRotationAxis(axisY, vx::degToRad(90)) * vx::MatrixTranslation(gridHalfSize, 0, 0);
+	auto upDown = projectionMatrix * vx::MatrixTranslation(0, 0, -gridHalfSize) * vx::MatrixRotationAxis(axisX, vx::degToRad(90));
+
+	GpuVoxel voxelBufferData;
+	voxelBufferData.projectionMatrix[0] = leftRight;
+	voxelBufferData.projectionMatrix[1] = upDown;
+	voxelBufferData.projectionMatrix[2] = backFront;
+	voxelBufferData.dim = dim;
+	voxelBufferData.halfDim = halfDim;
+	voxelBufferData.gridCellSize = gridCellSize;
+	voxelBufferData.invGridCellSize = invGridCellSize;
+
+	uploadManager->pushUploadBuffer(voxelBufferData, voxelBuffer->get(), 0, voxelBuffer->getOriginalState());
 
 	return true;
 }
@@ -254,6 +265,18 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 	auto sceneLightCount = m_sceneLightCount;
 	if (sceneLightCount == 0)
 		return;
+
+	auto voxelBuffer = resourceManager->getBuffer(L"voxelBuffer");
+
+	__m128 invGridCellSize = { m_invGridCellSize ,m_invGridCellSize ,m_invGridCellSize ,m_invGridCellSize };
+	__m128 gridCellSize = { m_gridCellSize, m_gridCellSize, m_gridCellSize, m_gridCellSize };
+
+	auto voxelCenter = _mm_mul_ps(cameraPosition, invGridCellSize);
+	voxelCenter = _mm_floor_ps(voxelCenter);
+	voxelCenter = _mm_mul_ps(voxelCenter, gridCellSize);
+
+	const auto voxelCenterOffset = offsetof(GpuVoxel, gridCenter);
+	uploadManager->pushUploadBuffer(voxelCenter, voxelBuffer->get(), voxelCenterOffset, voxelBuffer->getOriginalState());
 
 	bool startCheck = false;
 
@@ -325,9 +348,10 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 
 				uploadManager->pushUploadBuffer((u8*)shadowReverseTransformsToGpu, shadowReverseTransformBuffer->get(), 0, sizeInBytesShadowReverse, shadowReverseTransformBuffer->getOriginalState());
 
-				m_renderPassShading->setLightCount(visibleLightCount);
-				m_renderPassShadow->setLightCount(visibleLightCount);
-				m_renderPassFilterRSM->setLightCount(visibleLightCount);
+				for (auto &it : m_renderPasses)
+				{
+					it->setLightCount(visibleLightCount);
+				}
 			}
 
 			m_scratchAllocator.clear(marker);
@@ -383,9 +407,4 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 
 void LightManager::addStaticMeshInstance(const D3D12_DRAW_INDEXED_ARGUMENTS &cmd, const AABB &bounds, UploadManager* uploadManager)
 {
-}
-
-void LightManager::setRenderPassCullLights(RenderPassCullLights* renderPassCullLights)
-{
-	m_renderPassCullLights = renderPassCullLights;
 }

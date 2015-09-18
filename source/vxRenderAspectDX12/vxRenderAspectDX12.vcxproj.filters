@@ -49,9 +49,6 @@
     <Filter Include="Shaders\cull lights">
       <UniqueIdentifier>{8ba0b537-e930-4fa5-a75d-d2121d3c70f4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\voxelize">
-      <UniqueIdentifier>{ac07f20e-0604-4fc0-b8f3-f7eb1eb450ad}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\draw voxel">
       <UniqueIdentifier>{5acf76d7-2750-4b90-ba9a-bad01ab71542}</UniqueIdentifier>
     </Filter>
@@ -81,6 +78,12 @@
     </Filter>
     <Filter Include="Shaders\ssil">
       <UniqueIdentifier>{25fa0de8-ee85-49e4-b4b0-ebf682f09c35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\lpv">
+      <UniqueIdentifier>{781725a2-b25f-440c-a54e-1c0c0351fd1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\voxel">
+      <UniqueIdentifier>{42cc15f4-49a9-460d-8a28-3baed8539e37}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -195,9 +198,6 @@
     <ClInclude Include="RenderPassShadow.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPassVoxelize.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="GpuVoxel.h">
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
@@ -218,9 +218,6 @@
     </ClInclude>
     <ClInclude Include="TextRenderer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPassVoxelMip.h">
-      <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="RenderPassFinal.h">
       <Filter>Header Files\RenderPass</Filter>
@@ -288,6 +285,24 @@
     <ClInclude Include="GpuLpv.h">
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
+    <ClInclude Include="RenderPassInjectRSM.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassVoxelize.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassVoxelMip.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassLight.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassOcclusion.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassConeTrace.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -350,9 +365,6 @@
     <ClCompile Include="RenderPassVisibleLights.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPassVoxelize.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPassDrawVoxel.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
@@ -367,9 +379,6 @@
     </ClCompile>
     <ClCompile Include="TextRenderer.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderPassVoxelMip.cpp">
-      <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="CopyManager.cpp">
       <Filter>Source Files</Filter>
@@ -422,6 +431,21 @@
     <ClCompile Include="RenderPassFilterRSM.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
+    <ClCompile Include="RenderPassInjectRSM.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassVoxelize.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassVoxelMip.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassOcclusion.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassConeTrace.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -472,15 +496,6 @@
     <FxCompile Include="ZeroLightsVS.hlsl">
       <Filter>Shaders\cull lights</Filter>
     </FxCompile>
-    <FxCompile Include="VoxelizeVS.hlsl">
-      <Filter>Shaders\voxelize</Filter>
-    </FxCompile>
-    <FxCompile Include="VoxelizeGS.hlsl">
-      <Filter>Shaders\voxelize</Filter>
-    </FxCompile>
-    <FxCompile Include="VoxelizePS.hlsl">
-      <Filter>Shaders\voxelize</Filter>
-    </FxCompile>
     <FxCompile Include="DrawVoxelVS.hlsl">
       <Filter>Shaders\draw voxel</Filter>
     </FxCompile>
@@ -514,12 +529,6 @@
     <FxCompile Include="TextVS.hlsl">
       <Filter>Shaders\text</Filter>
     </FxCompile>
-    <FxCompile Include="VoxelizeCreateMipMaxVS.hlsl">
-      <Filter>Shaders\voxelize</Filter>
-    </FxCompile>
-    <FxCompile Include="VoxelizeCreateMipVS.hlsl">
-      <Filter>Shaders\voxelize</Filter>
-    </FxCompile>
     <FxCompile Include="ShadowMapFilterPS.hlsl">
       <Filter>Shaders\shadowmap</Filter>
     </FxCompile>
@@ -537,6 +546,45 @@
     </FxCompile>
     <FxCompile Include="ShadowMapFilterVS.hlsl">
       <Filter>Shaders\shadowmap</Filter>
+    </FxCompile>
+    <FxCompile Include="InjectVplVS.hlsl">
+      <Filter>Shaders\lpv</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelMipVS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="InjectRsmVoxelPS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="InjectRsmVoxelVS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelizeVS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelizeGS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelizePS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelMipOpacityVS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="ConeTraceOpacityVS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="ConeTraceOpacityPS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="CreateMipVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ConeTraceVS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="ConeTracePS.hlsl">
+      <Filter>Shaders\voxel</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

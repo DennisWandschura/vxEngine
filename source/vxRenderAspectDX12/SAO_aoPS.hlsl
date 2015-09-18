@@ -79,8 +79,7 @@ struct PixelOutput
 };
 
 Texture2D<float> CS_Z_buffer : register(t0);
-Texture2D<float> CS_Z_buffer1 : register(t1);
-Texture2DArray g_normalTexture : register(t2);
+Texture2D<half2> g_normalTexture : register(t1);
 
 cbuffer SaoBufferBlock : register(b0)
 {
@@ -160,7 +159,7 @@ float2 tapLocation(int sampleNumber, float spinAngle, out float ssR)
 }
 
 /** Read the camera-space position of the point at screen-space pixel ssP + unitOffset * ssR.  Assumes length(unitOffset) == 1 */
-void getOffsetPositions(int2 ssC, float2 unitOffset, float ssR, float radius2, out float3 P0, out float3 P1)
+/*void getOffsetPositions(int2 ssC, float2 unitOffset, float ssR, float radius2, out float3 P0, out float3 P1)
 {
 	// Derivation:
 	//  mipLevel = floor(log(ssR / MAX_OFFSET));
@@ -175,7 +174,7 @@ void getOffsetPositions(int2 ssC, float2 unitOffset, float ssR, float radius2, o
 	// Offset to pixel center
 	P0 = reconstructCSPosition(float2(ssP), P0.z);
 	P1 = reconstructCSPosition(float2(ssP), P1.z);
-}
+}*/
 
 float3 getOffsetPosition(int2 ssC, float2 unitOffset, float ssR)
 {
@@ -294,7 +293,7 @@ PixelOutput main(GSOutput input)
 		n_C = normalize(n_C);
 	}*/
 
-	float2 compressedNormal = g_normalTexture.Load(int4(ssC, 0, 0)).rg;
+	float2 compressedNormal = g_normalTexture.Load(int3(ssC, 0)).rg;
 	float3 n_C = normalize(decodeNormal(compressedNormal)) * float3(-1, 1, -1);
 
 	// Choose the screen-space sample radius

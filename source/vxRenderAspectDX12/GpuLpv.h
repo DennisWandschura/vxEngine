@@ -12,6 +12,7 @@ struct GpuLpv
 	int halfDim;
 	float invGridCellSize;
 	float gridCellSize;
+	float4 center;
 };
 
 #endif

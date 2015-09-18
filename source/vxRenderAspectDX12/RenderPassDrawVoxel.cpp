@@ -3,8 +3,9 @@
 #include "ShaderManager.h"
 #include "d3dx12.h"
 #include "GpuVoxel.h"
+#include "CommandAllocator.h"
 
-RenderPassDrawVoxel::RenderPassDrawVoxel(ID3D12CommandAllocator* cmdAlloc)
+RenderPassDrawVoxel::RenderPassDrawVoxel(d3d::CommandAllocator* cmdAlloc)
 	:m_cmdAlloc(cmdAlloc)
 {
 
@@ -260,7 +261,7 @@ bool RenderPassDrawVoxel::initialize(ID3D12Device* device, void* p)
 	if (!createDescriptorHeap(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc, m_pipelineState.get()))
+	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
 
 	createViews(device);
@@ -299,7 +300,7 @@ void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
 	rectScissor.right = s_resolution.x;
 	rectScissor.bottom = s_resolution.y;
 
-	m_commandList->Reset(m_cmdAlloc, m_pipelineState.get());
+	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 	m_commandList->RSSetViewports(1, &viewPort);
 	m_commandList->RSSetScissorRects(1, &rectScissor);
@@ -309,7 +310,7 @@ void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0 , nullptr);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+	//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 	auto srvHeap = m_descriptorHeapSrv.get();
@@ -321,10 +322,10 @@ void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
 
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-	m_commandList->DrawInstanced(256, 256 * 256, 0, 0);
+	m_commandList->DrawInstanced(32, 32 * 32, 0, 0);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	m_commandList->Close();
 

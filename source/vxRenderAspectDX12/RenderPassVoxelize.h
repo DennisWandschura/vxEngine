@@ -1,5 +1,10 @@
 #pragma once
 
+namespace d3d
+{
+	class CommandAllocator;
+}
+
 #include "RenderPass.h"
 #include "DescriptorHeap.h"
 #include "CommandList.h"
@@ -8,7 +13,7 @@
 class RenderPassVoxelize : public RenderPass
 {
 	d3d::GraphicsCommandList m_commandList;
-	ID3D12CommandAllocator* m_cmdAlloc;
+	d3d::CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_descriptorHeap;
 	d3d::DescriptorHeap m_descriptorHeapClear;
 	DrawIndexedIndirectCommand* m_drawCommand;
@@ -19,10 +24,8 @@ class RenderPassVoxelize : public RenderPass
 	bool createDescriptorHeap(ID3D12Device* device);
 	void createViews(ID3D12Device* device);
 
-	void uploadBufferData();
-
 public:
-	RenderPassVoxelize(ID3D12CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCommand);
+	RenderPassVoxelize(d3d::CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCommand);
 	~RenderPassVoxelize();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;

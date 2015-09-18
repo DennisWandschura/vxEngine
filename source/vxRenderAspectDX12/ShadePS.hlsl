@@ -22,11 +22,11 @@ cbuffer CameraStaticBuffer : register(b1)
 	GpuCameraStatic cameraStatic;
 };
 
-Texture2DArray g_albedoeSlice : register(t1);
+Texture2D g_albedoeSlice : register(t1);
 Texture2D<float> g_zBuffer : register(t2);
-Texture2DArray g_normalSlice : register(t3);
-Texture2DArray g_surfaceSlice : register(t4);
-TextureCubeArray<float2> g_shadowTextureLinear : register(t5);
+Texture2D g_normalSlice : register(t3);
+Texture2D g_surfaceSlice : register(t4);
+//TextureCubeArray<float2> g_shadowTextureLinear : register(t5);
 
 SamplerState g_sampler : register(s0);
 SamplerState g_samplerShadow : register(s1);
@@ -67,10 +67,11 @@ float ChebyshevUpperBound(float2 Moments, float t)
 
 float sampleShadow(in float3 L, float distance, float lightFalloff, uint lightIndex)
 {
-	float cmp = distance / lightFalloff;
-	float2 sampledDepth = g_shadowTextureLinear.Sample(g_sampler, float4(-L.x, -L.y, L.z, lightIndex)).rg;
+	//float cmp = distance / lightFalloff;
+	//float2 sampledDepth = g_shadowTextureLinear.Sample(g_sampler, float4(-L.x, -L.y, L.z, lightIndex)).rg;
 
-	return ChebyshevUpperBound(sampledDepth, cmp);
+	//return ChebyshevUpperBound(sampledDepth, cmp);
+	return 1.0;
 }
 
 float ggx(float alpha, float nDotH)
@@ -123,9 +124,9 @@ float4 main(GSOutput input) : SV_TARGET
 	if (distance >= lightFalloff)
 		discard;
 
-	float3 albedoColor = g_albedoeSlice.Sample(g_sampler, float3(texCoords, 0.0)).rgb;
-	float2 packedNormal = g_normalSlice.Sample(g_sampler, float3(texCoords, 0.0)).rg;
-	float2 surfaceSlice = g_surfaceSlice.Sample(g_sampler, float3(texCoords, 0.0)).rg;
+	float3 albedoColor = g_albedoeSlice.Sample(g_sampler, texCoords).rgb;
+	float2 packedNormal = g_normalSlice.Sample(g_sampler, texCoords).rg;
+	float2 surfaceSlice = g_surfaceSlice.Sample(g_sampler, texCoords).rg;
 
 	float lightLumen = input.falloffLumen.y;
 

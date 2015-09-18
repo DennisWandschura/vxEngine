@@ -31,4 +31,23 @@ float getLuminance(in float3 color)
 	return dot(color, g_luminanceVector);
 }
 
+uint packR8G8B8A8(float4 color)
+{
+	color = clamp(color, 0, 1);
+	uint4 colorU8 = uint4(color * 255.0);
+	uint packedColor = colorU8.x | (colorU8.y << 8) | (colorU8.z << 16) | (colorU8.w << 24);
+	return packedColor;
+}
+
+float4 unpackR8G8B8A8(uint packedColor)
+{
+	uint4 tmp;
+	tmp.x = packedColor & 0xff;
+	tmp.y = (packedColor >> 8) & 0xff;
+	tmp.z = (packedColor >> 16) & 0xff;
+	tmp.w = (packedColor >> 24) & 0xff;
+
+	return float4(tmp) * 255.0;
+}
+
 #endif

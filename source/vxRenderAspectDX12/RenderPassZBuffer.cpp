@@ -112,7 +112,7 @@ bool RenderPassZBuffer::createRootSignature(ID3D12Device* device)
 
 bool RenderPassZBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
-	DXGI_FORMAT rtvFormats[] = { DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_R32_FLOAT };;
+	DXGI_FORMAT rtvFormats[] = { DXGI_FORMAT_R32_FLOAT };
 
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
@@ -122,7 +122,7 @@ bool RenderPassZBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderMan
 	inputDesc.shaderDesc.ps = s_shaderManager->getShader("CreateZBufferPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvFormats = rtvFormats;
-	inputDesc.rtvCount = 2;
+	inputDesc.rtvCount = 1;
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
 
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
@@ -133,7 +133,6 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 	auto cbufferDesc = resourceManager->getConstantBufferView("cameraStaticBufferView");
 	auto gbufferDepthTexture = resourceManager->getTextureRtDs(L"gbufferDepth");
 	auto zBufferTexture0 = resourceManager->getTextureRtDs(L"zBuffer0");
-	auto zBufferTexture1 = resourceManager->getTextureRtDs(L"zBuffer1");
 	auto zBufferDesc = zBufferTexture0->GetDesc();
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
@@ -145,13 +144,11 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 	D3D12_SHADER_RESOURCE_VIEW_DESC depthDesc;
 	depthDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	depthDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	depthDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
-	depthDesc.Texture2DArray.ArraySize = 2;
-	depthDesc.Texture2DArray.FirstArraySlice = 0;
-	depthDesc.Texture2DArray.MipLevels = 1;
-	depthDesc.Texture2DArray.MostDetailedMip = 0;
-	depthDesc.Texture2DArray.PlaneSlice = 0;
-	depthDesc.Texture2DArray.ResourceMinLODClamp = 0;
+	depthDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	depthDesc.Texture2D.MipLevels = 1;
+	depthDesc.Texture2D.MostDetailedMip = 0;
+	depthDesc.Texture2D.PlaneSlice = 0;
+	depthDesc.Texture2D.ResourceMinLODClamp = 0;
 
 	if (!m_descriptorHeap.create(desc, device))
 		return false;
@@ -175,9 +172,6 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 	rtvDesc.Texture2D.MipSlice = 0;
 	rtvDesc.Texture2D.PlaneSlice = 0;
 	device->CreateRenderTargetView(zBufferTexture0->get(), &rtvDesc, handleRtv);
-
-	handleRtv.offset(1);
-	device->CreateRenderTargetView(zBufferTexture1->get(), &rtvDesc, handleRtv);
 
 	if(!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
@@ -236,14 +230,12 @@ void RenderPassZBuffer::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[2];
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[1];
 	rtvHandles[0] = rtvHandle;
 	rtvHandle.offset(1);
-	rtvHandles[1] = rtvHandle;
 
-	m_commandList->OMSetRenderTargets(2, rtvHandles, FALSE, nullptr);
+	m_commandList->OMSetRenderTargets(1, rtvHandles, FALSE, nullptr);
 	m_commandList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
-	m_commandList->ClearRenderTargetView(rtvHandles[1], clearColor, 0, nullptr);
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 

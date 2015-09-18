@@ -6,27 +6,25 @@ namespace d3d
 }
 
 #include "RenderPass.h"
-#include "CommandList.h"
 #include "DescriptorHeap.h"
+#include "CommandList.h"
 
-class RenderPassDrawVoxel : public RenderPass
+class RenderPassConeTrace : public RenderPass
 {
 	d3d::GraphicsCommandList m_commandList;
 	d3d::CommandAllocator* m_cmdAlloc;
-	d3d::DescriptorHeap m_descriptorHeapSrv;
-	d3d::Object<ID3D12DescriptorHeap> m_heapRtv;
-	d3d::Object<ID3D12DescriptorHeap> m_heapDsv;
+	d3d::DescriptorHeap m_rtvHeap;
+	d3d::DescriptorHeap m_srvHeap;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device);
-	bool createDescriptorHeap(ID3D12Device* device);
-	void createViews(ID3D12Device* device);
-	void createDepthRenderTarget(ID3D12Device* device);
+	bool createRtv(ID3D12Device* device);
+	bool createSrv(ID3D12Device* device);
 
 public:
-	explicit RenderPassDrawVoxel(d3d::CommandAllocator* cmdAlloc);
-	~RenderPassDrawVoxel();
+	explicit RenderPassConeTrace(d3d::CommandAllocator* cmdAlloc);
+	~RenderPassConeTrace();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
 
