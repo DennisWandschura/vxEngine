@@ -38,6 +38,7 @@ class ActionPlaySound : public Action
 	vx::StringID m_sid;
 	vx::MessageManager* m_msgManager;
 	CpuTimer m_timer;
+	f32 m_elapsedTime;
 	f32 m_time;
 
 public:

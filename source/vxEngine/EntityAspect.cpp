@@ -143,6 +143,7 @@ void EntityAspect::createPlayerEntity(const CreateActorData &data)
 		m_entityHuman->m_orientation.x = 0;
 		m_entityHuman->m_orientation.y = 0;
 		m_entityHuman->m_footPositionY = 0;
+		m_entityHuman->m_state = 0;
 
 		m_playerController.initializePlayer(g_dt, m_entityHuman, Locator::getRenderAspect(), &m_componentActionManager, Locator::getMessageManager());
 

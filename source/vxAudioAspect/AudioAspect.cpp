@@ -23,7 +23,6 @@ SOFTWARE.
 */
 #include "AudioAspect.h"
 #include "WavFile.h"
-#include <cstdio>
 #include "WavFormat.h"
 #include <vxEngineLib/FileEntry.h>
 #include <vxLib/Variant.h>
@@ -53,7 +52,7 @@ namespace vx
 
 		m_resourceAspect = resourceAspect;
 
-		vx::FileEntry wavFile("walk_test.wav", vx::FileType::Audio);
+		vx::FileEntry wavFile("step1.wav", vx::FileType::Audio);
 		vx::Variant args;
 		args.u64 = 0;
 

@@ -32,6 +32,7 @@ ActionPlaySound::ActionPlaySound(const vx::StringID &sid, vx::MessageManager* ms
 	:m_sid(sid),
 	m_msgManager(msgManager),
 	m_timer(),
+	m_elapsedTime(0),
 	m_time(time)
 {
 
@@ -44,8 +45,14 @@ ActionPlaySound::~ActionPlaySound()
 
 void ActionPlaySound::run()
 {
-	/*auto elapsedTime = m_timer.getTimeSeconds();
-	if (elapsedTime >= m_time)
+	auto elapsedTime = m_timer.getTimeSeconds();
+	m_timer.reset();
+
+
+	m_elapsedTime += elapsedTime;
+	auto diff = m_time - m_elapsedTime;
+
+	if (diff <= 0.0f)
 	{
 		vx::Message msg;
 		msg.arg1.u64 = m_sid.value;
@@ -53,6 +60,6 @@ void ActionPlaySound::run()
 		msg.type = vx::MessageType::Audio;
 		m_msgManager->addMessage(msg);
 
-		m_timer.reset();
-	}*/
+		m_elapsedTime = 0.0f;
+	}
 }

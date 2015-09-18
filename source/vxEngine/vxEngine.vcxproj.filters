@@ -345,6 +345,9 @@
     <ClInclude Include="ActionPlaySound.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
+    <ClInclude Include="ConditionPlayerMoving.h">
+      <Filter>Header Files\AI\Conditions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -493,6 +496,9 @@
     </ClCompile>
     <ClCompile Include="ActionPlaySound.cpp">
       <Filter>Source Files\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionPlayerMoving.cpp">
+      <Filter>Source Files\AI\Conditions</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

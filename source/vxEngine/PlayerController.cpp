@@ -29,13 +29,15 @@ SOFTWARE.
 #include <vxLib/memory.h>
 #include "ActionPlayerUse.h"
 #include "ActionPlaySound.h"
+#include "Transition.h"
+#include "ConditionPlayerMoving.h"
 
-#include <vxLib/math/Vector.h>
-#include <vxLib/RawInput.h>
-#include <vxLib/Graphics/Camera.h>
-#include "input/Keys.h"
-#include "EntityAspect.h"
-#include "PhysicsDefines.h"
+//#include <vxLib/math/Vector.h>
+//#include <vxLib/RawInput.h>
+//#include <vxLib/Graphics/Camera.h>
+//#include "input/Keys.h"
+//#include "EntityAspect.h"
+//#include "PhysicsDefines.h"
 
 PlayerController::PlayerController()
 	:m_actionUse(nullptr)
@@ -59,7 +61,7 @@ void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, Rende
 	m_actions.push_back(vx::make_unique<ActionPlayerMove>(playerEntity, 0.1f, 0.5f));
 	m_actions.push_back(vx::make_unique<ActionUpdateGpuTransform>(playerEntity, renderAspect));
 	m_actions.push_back(vx::make_unique<ActionPlayerUse>(playerEntity, components));
-	m_actions.push_back(vx::make_unique<ActionPlaySound>(vx::make_sid("walk_test.wav"), messageManager, 2.0f));
+	m_actions.push_back(vx::make_unique<ActionPlaySound>(vx::make_sid("step1.wav"), messageManager, 0.28f));
 
 	auto &actionLookAround = m_actions[0];
 	auto &actionMoveStanding = m_actions[1];
@@ -70,13 +72,30 @@ void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, Rende
 	m_actionUse = (ActionPlayerUse*)actionUse.get();
 
 	m_states.push_back(State());
+	m_states.push_back(State());
 
 	auto stateStanding = &m_states[0];
+	auto stateMoving = &m_states[1];
+
 	stateStanding->addAction(actionLookAround.get());
 	stateStanding->addAction(actionMoveStanding.get());
 	stateStanding->addAction(actionUpdateGpuTransform.get());
 	stateStanding->addAction(actionUse.get());
-	stateStanding->addAction(actionPlaySound.get());
+
+	auto conditionMoving = new ConditionPlayerMoving(playerEntity);
+	auto transitionStandingToMoving = new Transition(conditionMoving, stateMoving);
+
+	stateStanding->addTransition(transitionStandingToMoving);
+
+	stateMoving->addAction(actionLookAround.get());
+	stateMoving->addAction(actionMoveStanding.get());
+	stateMoving->addAction(actionUpdateGpuTransform.get());
+	stateMoving->addAction(actionUse.get());
+	stateMoving->addAction(actionPlaySound.get());
+
+	auto conditionStopMoving = new ConditionPlayerNotMoving(playerEntity);
+	auto transitionMovingToStanding = new Transition(conditionStopMoving, stateStanding);
+	stateMoving->addTransition(transitionMovingToStanding);
 
 	m_stateMachine.setInitialState(stateStanding);
 }

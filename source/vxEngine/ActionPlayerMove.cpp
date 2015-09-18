@@ -62,10 +62,12 @@ void ActionPlayerMove::run()
 	__m128 vMoveVelocity = { moveVelocity, 0.0f, moveVelocity, 0 };
 	vVelocity = _mm_mul_ps(vVelocity, vMoveVelocity);
 
+	auto d = vx::dot3(vVelocity, vVelocity);
+	s32 isMoving = (d.m128_f32[0] != 0.0f);
+
+	m_player->m_state ^= (-isMoving ^ m_player->m_state) & (1 << (s32)EntityHuman::State::Walking);
+
 	auto vy = m_player->m_velocity.y;
 	vx::storeFloat4(&m_player->m_velocity, vVelocity);
 	m_player->m_velocity.y = vy;
-
-	//_mm_store_ss(&m_inputComponent->velocity.x, vVelocity);
-	//m_inputComponent->velocity.z = vVelocity.f[2];
 }

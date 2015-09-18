@@ -42,12 +42,15 @@ class PhysicsAspect;
 
 struct EntityHuman
 {
+	enum class State : u32 {Walking = 0};
+
 	vx::float4 m_qRotation;
 	vx::float3 m_position;
 	f32 m_footPositionY;
 	physx::PxController* m_controller;
 	vx::float2 m_orientation;
 	vx::float4 m_velocity;
+	u32 m_state;
 
 	void update(f32 dt);
 };
