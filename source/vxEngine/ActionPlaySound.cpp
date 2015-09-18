@@ -44,7 +44,7 @@ ActionPlaySound::~ActionPlaySound()
 
 void ActionPlaySound::run()
 {
-	auto elapsedTime = m_timer.getTimeSeconds();
+	/*auto elapsedTime = m_timer.getTimeSeconds();
 	if (elapsedTime >= m_time)
 	{
 		vx::Message msg;
@@ -54,5 +54,5 @@ void ActionPlaySound::run()
 		m_msgManager->addMessage(msg);
 
 		m_timer.reset();
-	}
+	}*/
 }
