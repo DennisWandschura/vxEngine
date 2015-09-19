@@ -45,6 +45,7 @@ namespace vx
 #include "MaterialManager.h"
 #include <vxLib/Graphics/Camera.h>
 #include "DownloadMananger.h"
+#include <vxEngineLib/CpuProfiler.h>
 
 class RenderAspect : public RenderAspectInterface
 {
@@ -57,6 +58,7 @@ class RenderAspect : public RenderAspectInterface
 	d3d::ResourceManager m_resourceManager;
 	vx::Camera m_camera;
 	d3d::Debug m_debug;
+	CpuProfiler* m_cpuProfiler;
 	Frustum m_frustum;
 	DownloadManager m_downloadManager;
 	UploadManager m_uploadManager;

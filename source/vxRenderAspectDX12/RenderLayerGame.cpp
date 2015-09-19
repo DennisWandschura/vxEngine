@@ -36,6 +36,7 @@
 #include "RenderPassVoxelMip.h"
 #include "RenderPassOcclusion.h"
 #include "RenderPassConeTrace.h"
+#include "GpuVoxel.h"
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
@@ -62,7 +63,7 @@ namespace RenderLayerGameCpp
 		return desc;
 	}
 
-	D3D12_RESOURCE_DESC getResDescVoxelColor(u32 dim)
+	D3D12_RESOURCE_DESC getResDescVoxelColor(u32 dim, u32 mipLevels)
 	{
 		D3D12_RESOURCE_DESC desc;
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
@@ -70,7 +71,25 @@ namespace RenderLayerGameCpp
 		desc.Width = dim;
 		desc.Height = dim;
 		desc.DepthOrArraySize = dim * 6;
-		desc.MipLevels = 4;
+		desc.MipLevels = mipLevels;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+		return desc;
+	}
+
+	D3D12_RESOURCE_DESC getResDescVoxelColorLastUpdate(u32 dim)
+	{
+		D3D12_RESOURCE_DESC desc;
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+		desc.Alignment = 64 KBYTE;
+		desc.Width = dim;
+		desc.Height = dim;
+		desc.DepthOrArraySize = dim * 6;
+		desc.MipLevels = 1;
 		desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
@@ -108,6 +127,7 @@ RenderLayerGame::RenderLayerGame(RenderLayerGame &&rhs)
 	m_lightManager(std::move(rhs.m_lightManager)),
 	m_camera(rhs.m_camera),
 	m_frustum(rhs.m_frustum),
+	m_lastVoxelCenter(0, 0, 0),
 	m_drawCommandMesh(std::move(m_drawCommandMesh)),
 	m_device(rhs.m_device),
 	m_uploadManager(rhs.m_uploadManager),
@@ -180,21 +200,25 @@ void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTextur
 	}
 
 	auto resDescVoxelOpacity = RenderLayerGameCpp::getResDescVoxelOpacity(m_settings->m_lpvDim);
-	auto resDescVoxelColor = RenderLayerGameCpp::getResDescVoxelColor(m_settings->m_lpvDim);
+	auto resDescVoxelColor = RenderLayerGameCpp::getResDescVoxelColor(m_settings->m_lpvDim, m_settings->m_lpvMip);
 	auto voxelOpacityInfo = m_device->getDevice()->GetResourceAllocationInfo(1,1, &resDescVoxelOpacity);
 	auto voxelColorInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColor);
-	*heapSizeTexture += voxelOpacityInfo.SizeInBytes + voxelColorInfo.SizeInBytes;
+
+	auto resDescVoxelColorLast = RenderLayerGameCpp::getResDescVoxelColorLastUpdate(m_settings->m_lpvDim);
+	auto allocInfoVoxelColorLast = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColorLast);
+
+	*heapSizeTexture += voxelOpacityInfo.SizeInBytes + voxelColorInfo.SizeInBytes + allocInfoVoxelColorLast.SizeInBytes;
 }
 
 void RenderLayerGame::createGpuObjects()
 {
 	auto resDescVoxelOpacity = RenderLayerGameCpp::getResDescVoxelOpacity(m_settings->m_lpvDim);
-	auto resDescVoxelColor = RenderLayerGameCpp::getResDescVoxelColor(m_settings->m_lpvDim);
+	auto resDescVoxelColor = RenderLayerGameCpp::getResDescVoxelColor(m_settings->m_lpvDim, m_settings->m_lpvMip);
 	auto voxelOpacityInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelOpacity);
 	auto voxelColorInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColor);
 
 	CreateResourceDesc lpvDesc;
-	lpvDesc.clearValue =nullptr;
+	lpvDesc.clearValue = nullptr;
 	lpvDesc.resDesc = &resDescVoxelOpacity;
 	lpvDesc.size = voxelOpacityInfo.SizeInBytes;
 	lpvDesc.state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
@@ -204,6 +228,12 @@ void RenderLayerGame::createGpuObjects()
 	lpvDesc.resDesc = &resDescVoxelColor;
 	lpvDesc.size = voxelColorInfo.SizeInBytes;
 	m_resourceManager->createTexture(L"voxelTextureColor", lpvDesc);
+
+	auto resDescVoxelColorLast = RenderLayerGameCpp::getResDescVoxelColorLastUpdate(m_settings->m_lpvDim);
+	auto allocInfoVoxelColorLast = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColorLast);
+	lpvDesc.resDesc = &resDescVoxelColorLast;
+	lpvDesc.size = allocInfoVoxelColorLast.SizeInBytes;
+	m_resourceManager->createTexture(L"voxelTextureColorPrevious", lpvDesc);
 }
 
 bool RenderLayerGame::initialize(vx::StackAllocator* allocator)
@@ -237,6 +267,15 @@ bool RenderLayerGame::initialize(vx::StackAllocator* allocator)
 			return false;
 	}
 
+	auto gridsize = m_settings->m_lpvGridSize;
+	auto dim = m_settings->m_lpvDim;
+	auto halfDim = dim / 2;
+	auto gridHalfSize = gridsize / 2.0f;
+	auto gridCellSize = gridHalfSize / halfDim;
+	auto invGridCellSize = 1.0f / gridCellSize;
+	m_gridCellSize = gridCellSize;
+	m_invGridCellSize = invGridCellSize;
+
 	return true;
 }
 
@@ -266,6 +305,30 @@ void RenderLayerGame::update()
 	cameraDirection = vx::quaternionRotation(cameraDirection, cameraRotation);
 
 	m_lightManager.update(cameraPosition, cameraDirection, *m_frustum, m_resourceManager, m_uploadManager);
+
+	auto voxelBuffer = m_resourceManager->getBuffer(L"voxelBuffer");
+
+	__m128 invGridCellSize = { m_invGridCellSize, m_invGridCellSize, m_invGridCellSize, m_invGridCellSize };
+	__m128 gridCellSize = { m_gridCellSize, m_gridCellSize, m_gridCellSize, m_gridCellSize };
+
+	vx::float4a voxelCenter = _mm_mul_ps(cameraPosition, invGridCellSize);
+	voxelCenter = _mm_floor_ps(voxelCenter);
+	voxelCenter = _mm_mul_ps(voxelCenter, gridCellSize);
+
+	auto newVoxelCenter = vx::int3(voxelCenter.x, voxelCenter.y, voxelCenter.z);
+	if (m_lastVoxelCenter.x != newVoxelCenter.x ||
+		m_lastVoxelCenter.y != newVoxelCenter.y ||
+		m_lastVoxelCenter.z != newVoxelCenter.z)
+	{
+		m_uploadManager->pushUploadBuffer(voxelCenter, voxelBuffer->get(), offsetof(GpuVoxel, gridCenter), voxelBuffer->getOriginalState());
+		m_uploadManager->pushUploadBuffer(vx::float4a(m_lastVoxelCenter.x, m_lastVoxelCenter.y, m_lastVoxelCenter.z, 1), voxelBuffer->get(), offsetof(GpuVoxel, prevGridCenter), voxelBuffer->getOriginalState());
+
+		auto voxelTextureColor = m_resourceManager->getTexture(L"voxelTextureColor");
+		auto voxelTextureColorPrevious = m_resourceManager->getTexture(L"voxelTextureColorPrevious");
+		m_copyManager->pushCopyTexture(voxelTextureColor->get(), voxelTextureColor->getOriginalState(), voxelTextureColorPrevious->get(), voxelTextureColorPrevious->getOriginalState());
+
+		m_lastVoxelCenter = newVoxelCenter;
+	}
 }
 
 void RenderLayerGame::submitCommandLists(Graphics::CommandQueue* queue)

@@ -78,14 +78,14 @@ void sampleDirectLightning(float radius, in int2 texelPos, in float3 position, i
 	bool cmp0 = (iDotN != 0.0);
 	bool cmp1 = (distance <= radius);
 
-	int sampleUsed = (cmp0 && cmp1) ? 1 : 0;
-	numSamplesUsed += sampleUsed;
+	float4 directLight = g_directLightning.Load(int3(texelPos, 0));
+	float3 lightIntensity = directLight.rgb * iDotN;
+	float lightSum = lightIntensity.x + lightIntensity.y + lightIntensity.z;
+	int sampleUsed = (cmp0 && cmp1 && (lightSum != 0.0)) ? 1 : 0;
 
-	//if (cmp1)
-	{
-		float4 directLight = g_directLightning.Load(int3(texelPos, 0));
-		irradianceSum += directLight.rgb * iDotN * sampleUsed;
-	}
+	irradianceSum += lightIntensity * sampleUsed;
+
+	numSamplesUsed += sampleUsed;
 }
 
 void sampleIndirectLight(float radius, float ssDiskRadius, int tapIndex, float randomPatternRotationAngle, float radialJitter, in int2 texel, in float3 position, in float3 normal, inout float3 irradianceSum, inout int numSamplesUsed)

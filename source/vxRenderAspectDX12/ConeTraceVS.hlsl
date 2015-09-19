@@ -57,18 +57,23 @@ float3 getVsPosition(int2 ssP)
 
 VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 {
-	float2 resolution = float2(1920, 1080);
-	uint2 texelPos = uint2(vertexID, instanceID);
+	uint w, h;
+	g_zBuffer.GetDimensions(w, h);
+	float2 resolution = float2(w, h);
+
+	uint2 texelPos = uint2(vertexID, instanceID) * 4;
 	float2 texCoord = texelPos / resolution;
 
 	float3 vsPosition = getVsPosition(texelPos);
 	float3 wsPosition = mul(g_camera.invViewMatrix, float4(vsPosition, 1)).xyz;
 
 	float3 vsNormal = decodeNormal(g_normalSlice.Load(int4(texelPos, 0, 0)));
+	vsNormal = normalize(vsNormal);
 	float3 wsNormal = mul(g_camera.invViewMatrix, float4(vsNormal, 0)).xyz;
 
-	float3 offset = (wsPosition.xyz - g_voxel.gridCenter.xyz) * g_voxel.invGridCellSize;
-	int3 voxelPosition = int3(offset)+g_voxel.halfDim;
+	float3 offset = floor(wsPosition * g_voxel.invGridCellSize);
+	float3 center = g_voxel.gridCenter.xyz* g_voxel.invGridCellSize;
+	int3 voxelPosition = int3(offset - center) + g_voxel.halfDim;
 
 	float2 screenPos = texCoord * float2(2, -2) - float2(1, -1);
 

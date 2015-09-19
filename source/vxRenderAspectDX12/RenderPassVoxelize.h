@@ -16,6 +16,7 @@ class RenderPassVoxelize : public RenderPass
 	d3d::CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_descriptorHeap;
 	d3d::DescriptorHeap m_descriptorHeapClear;
+	d3d::DescriptorHeap m_rtvHeap;
 	DrawIndexedIndirectCommand* m_drawCommand;
 
 	bool loadShaders();

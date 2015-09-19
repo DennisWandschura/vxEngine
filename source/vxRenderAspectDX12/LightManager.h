@@ -58,8 +58,6 @@ class LightManager
 	u32 m_maxSceneLightCount;
 	u32 m_maxShadowCastingLights;
 	u32 m_resultBufferCount;
-	f32 m_gridCellSize;
-	f32 m_invGridCellSize;
 	u32* m_visibleLightsResult;
 	Event m_downloadEvent;
 	Event m_checkLightsEvent;

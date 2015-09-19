@@ -89,7 +89,7 @@ bool RenderPassConeTrace::createRootSignature(ID3D12Device* device)
 
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0, 5);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 2, 0, 5);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[2];
 	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
@@ -169,7 +169,7 @@ bool RenderPassConeTrace::createSrv(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 6;
+	desc.NumDescriptors = 7;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 	if (!m_srvHeap.create(desc, device))
@@ -227,9 +227,14 @@ bool RenderPassConeTrace::createSrv(ID3D12Device* device)
 	srvDescVoxel.Texture3D.MostDetailedMip = 0;
 	srvDescVoxel.Texture3D.ResourceMinLODClamp = 0;
 
-	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureColor");
+	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 	handle.offset(1);
-	device->CreateShaderResourceView(voxelTextureOpacity->get(), &srvDescVoxel, handle);
+	device->CreateShaderResourceView(voxelTextureColor->get(), &srvDescVoxel, handle);
+
+	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
+	handle.offset(1);
+	srvDescVoxel.Texture3D.MipLevels = 1;
+	device->CreateShaderResourceView(voxelTextureColor->get(), &srvDescVoxel, handle);
 
 	return true;
 }
@@ -265,6 +270,7 @@ void RenderPassConeTrace::shutdown()
 void RenderPassConeTrace::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
+	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
 
 	const f32 clearColor[4] = { 0, 0, 0, 0 };
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
@@ -289,6 +295,7 @@ void RenderPassConeTrace::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->RSSetScissorRects(1, &rectScissor);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureColor->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap.getHandleCpu();
 
@@ -302,8 +309,9 @@ void RenderPassConeTrace::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->SetGraphicsRootDescriptorTable(1, heap->GetGPUDescriptorHandleForHeapStart());
 
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-	m_commandList->DrawInstanced(resolution.x, resolution.y, 0, 0);
+	m_commandList->DrawInstanced(resolution.x / 4, resolution.y / 4, 0, 0);
 
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureColor->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 
 	m_commandList->Close();

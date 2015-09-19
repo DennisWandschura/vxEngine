@@ -78,6 +78,9 @@ class RenderLayerGame : public Graphics::RenderLayer
 	LightManager m_lightManager;
 	vx::Camera* m_camera;
 	Frustum* m_frustum;
+	f32 m_gridCellSize;
+	f32 m_invGridCellSize;
+	vx::int3 m_lastVoxelCenter;
 	DrawIndexedIndirectCommand m_drawCommandMesh;
 	d3d::Device* m_device;
 	UploadManager* m_uploadManager;

@@ -35,6 +35,8 @@ typedef vx::float2a float2;
 typedef vx::float3 float3;
 typedef vx::float4a float4;
 
+typedef vx::int4a int4;
+
 typedef vx::mat4 float4x4;
 
 #endif

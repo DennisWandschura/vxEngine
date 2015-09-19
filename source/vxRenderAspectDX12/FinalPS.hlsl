@@ -11,7 +11,7 @@ Texture2D<half4> g_directTexture : register(t1);
 Texture2D<half4> g_indirectTexture : register(t2);
 Texture2D<float4> g_albedoTexture : register(t3);
 
-Texture2D<float4> voxelIndirect : register(t4);
+Texture2D<float4> g_voxelIndirect : register(t4);
 
 SamplerState g_sampler : register(s0);
 
@@ -33,11 +33,14 @@ float4 main(GSOutput input) : SV_TARGET
 	float4 indirectColor = g_indirectTexture.Sample(g_sampler, input.texCoords);
 	float3 albedo = g_albedoTexture.Sample(g_sampler, input.texCoords).rgb;
 
-	float3 voxelAo = voxelIndirect.Sample(g_sampler, input.texCoords).rgb;
+	float indirectWeight = indirectColor.a;
+	float3 voxelIndirectColor = g_voxelIndirect.Sample(g_sampler, input.texCoords).rgb;
 
+	indirectColor.rgb = indirectColor.rgb * indirectWeight + voxelIndirectColor * (1.0 - indirectWeight);
 	indirectColor.rgb = indirectColor.rgb * albedo / g_PI * sao;
+	//indirectColor.rgb = (voxelIndirect + indirectColor.rgb) * albedo / g_PI * sao;
 	float3 finalColor = directColor.rgb + indirectColor.rgb;
 	finalColor = tonemap(finalColor);
 
-	return float4(voxelAo, 1.0f);
+	return float4(voxelIndirectColor.rgb, 1.0f);
 }

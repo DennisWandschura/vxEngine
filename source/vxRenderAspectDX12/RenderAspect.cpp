@@ -132,6 +132,7 @@ void RenderAspect::uploadStaticCameraData()
 RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescription &desc)
 {
 	auto errorlog = desc.errorlog;
+	m_cpuProfiler = desc.cpuProfiler;
 
 	Event::setAllocator(desc.smallObjAllocatorMainThread);
 
@@ -152,7 +153,8 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	s_settings.m_textureDim = 1024;
 	s_settings.m_shadowDim = 512;
 	s_settings.m_lpvDim = 128;
-	s_settings.m_lpvGridSize = 8.0f;
+	s_settings.m_lpvGridSize = 48.f;
+	s_settings.m_lpvMip = 6;
 
 	const u32 allocSize = 1 MBYTE;
 	auto allocPtr = desc.pAllocator->allocate(allocSize);
@@ -547,6 +549,8 @@ void RenderAspect::createSrvTextures(u32 srgbCount, u32 rgbCount)
 
 void RenderAspect::submitCommands()
 {
+	m_cpuProfiler->pushMarker("build command queue");
+
 	m_downloadManager.downloadToCpu();
 
 	m_copyManager.submitList(&m_graphicsCommandQueue);
@@ -558,7 +562,7 @@ void RenderAspect::submitCommands()
 		it->submitCommandLists(&m_graphicsCommandQueue);
 	}
 
-
+	m_cpuProfiler->popMarker();
 	m_graphicsCommandQueue.execute();
 }
 

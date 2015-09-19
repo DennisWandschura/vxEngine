@@ -42,12 +42,13 @@ bool RenderPassVoxelMip::createRootSignature(ID3D12Device* device)
 	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 0);
 	rangeVS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, 1);
 
-	CD3DX12_ROOT_PARAMETER rootParameters[2];
-	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
-	rootParameters[1].InitAsConstants(1, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+	CD3DX12_ROOT_PARAMETER rootParameters[3];
+	rootParameters[0].InitAsDescriptorTable(1, &rangeVS[0], D3D12_SHADER_VISIBILITY_VERTEX);
+	rootParameters[1].InitAsDescriptorTable(1, &rangeVS[1], D3D12_SHADER_VISIBILITY_VERTEX);
+	rootParameters[2].InitAsConstants(2, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.Init(2, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	rootSignatureDesc.Init(3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	ID3DBlob* blob = nullptr;
 	ID3DBlob* errorBlob = nullptr;
@@ -72,7 +73,7 @@ bool RenderPassVoxelMip::createPipelineState(ID3D12Device* device)
 	inputDesc.depthEnabled = 0;
 
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
-	
+
 	return m_pipelineState.create(desc, &m_pipelineState, device);
 }
 
@@ -81,6 +82,8 @@ void RenderPassVoxelMip::createViews(ID3D12Device* device)
 	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 	auto texDesc = voxelTextureColor->GetDesc();
 
+	auto handle = m_uavHeap.getHandleCpu();
+
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -88,35 +91,31 @@ void RenderPassVoxelMip::createViews(ID3D12Device* device)
 	srvDesc.Texture3D.MipLevels = 1;
 	srvDesc.Texture3D.ResourceMinLODClamp = 0;
 
-	//D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-	//uavDesc.Format = DXGI_FORMAT_R32_UINT;
-	//uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
-	//uavDesc.Texture3D.FirstWSlice = 0;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+	uavDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
 
-	auto handle = m_uavHeap.getHandleCpu();
+	u32 mipLevels = texDesc.MipLevels;
 
-	srvDesc.Texture3D.MostDetailedMip = 0;
-	device->CreateShaderResourceView(voxelTextureColor->get(), &srvDesc, handle);
+	u32 wSize = texDesc.DepthOrArraySize;
 
-	/*u32 wSize = texDesc.DepthOrArraySize / 2;
-	auto handle = m_uavHeap.getHandleCpu();
-	for (u32 i = 0; i < 3; ++i)
+	for (u32 i = 0; i < mipLevels - 1; ++i)
 	{
-		u32 srcMip = i;
 		u32 dstMip = i + 1;
 
-		srvDesc.Texture3D.MostDetailedMip = srcMip;
-		device->CreateShaderResourceView(voxelTextureColor->get(), &srvDesc, handle);
-
+		auto dstWSize = wSize >> dstMip;
+		uavDesc.Texture3D.FirstWSlice = 0;
+		uavDesc.Texture3D.WSize = dstWSize;
 		uavDesc.Texture3D.MipSlice = dstMip;
-		uavDesc.Texture3D.WSize = wSize;
+
+		srvDesc.Texture3D.MostDetailedMip = i;
+		device->CreateShaderResourceView(voxelTextureColor->get(), &srvDesc, handle);
 
 		handle.offset(1);
 		device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, handle);
 
-		wSize /= 2;
 		handle.offset(1);
-	}*/
+	}
 }
 
 bool RenderPassVoxelMip::initialize(ID3D12Device* device, void* p)
@@ -130,9 +129,11 @@ bool RenderPassVoxelMip::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device))
 		return false;
 
+	auto mipLevels = s_settings->m_lpvMip;
+
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
 	heapDesc.NodeMask = 1;
-	heapDesc.NumDescriptors = 2 * 4;
+	heapDesc.NumDescriptors = 2 * mipLevels;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_uavHeap.create(heapDesc, device))
@@ -155,42 +156,53 @@ void RenderPassVoxelMip::shutdown()
 
 void RenderPassVoxelMip::submitCommands(Graphics::CommandQueue* queue)
 {
+	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
+
 	const u32 voxelDim = s_settings->m_lpvDim;
+	auto mipLevels = s_settings->m_lpvMip;
 
-/*	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
-
-	u32 maxMip = 3;
+	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 	auto heap = m_uavHeap.get();
 	m_commandList->SetDescriptorHeaps(1, &heap);
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
+	auto gpuHandle = m_uavHeap.getHandleGpu();
+	
+
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-	auto gpuHandle = m_uavHeap.getHandleGpu();
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 
-	u32 dstDim = voxelDim >> 1;
-	for (u32 i = 0; i < maxMip; ++i)
+	for (u32 axis = 0; axis < 6; ++axis)
 	{
-		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle);
+		auto gpuHandleUav = gpuHandle;
+		for (u32 i = 0; i < mipLevels - 1; ++i)
+		{
+			u32 srcMip = i;
+			u32 dstMip = i + 1;
+			u32 dstDim = voxelDim >> dstMip;
 
-		u32 srcMip = i;
-		u32 dstMip = i + 1;
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureColor->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srcMip));
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srcMip));
+			m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandleUav);
+			m_commandList->SetGraphicsRootDescriptorTable(1, gpuHandleUav);
 
-		m_commandList->DrawInstanced(dstDim, dstDim * dstDim, 0, 0);
+			vx::uint2 rootData(axis, srcMip);
+			m_commandList->SetGraphicsRoot32BitConstants(2, 2, &rootData, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, srcMip));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity->get()));
+			m_commandList->DrawInstanced(dstDim, dstDim * dstDim, 0, 0);
 
-		dstDim = dstDim >> 1;
-		gpuHandle.offset(2);
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureColor->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, srcMip));
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
+
+			gpuHandleUav.offset(2);
+		}
 	}
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity->get()));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 
 	m_commandList->Close();
 
-	queue->pushCommandList(&m_commandList);*/
+	queue->pushCommandList(&m_commandList);
 }

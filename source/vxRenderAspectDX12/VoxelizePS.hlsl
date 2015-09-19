@@ -24,9 +24,12 @@ cbuffer VoxelBuffer : register(b0)
 	GpuVoxel voxel;
 };
 
-void writeOpacity(uint3 gridPosition, int axis)
+void writeOpacity(uint3 gridPosition, int axis, uint coverageMask)
 {
-	uint mask = (1 << axis);
+	const uint tmp = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3);
+	coverageMask = coverageMask & tmp;
+
+	uint mask = (coverageMask << axis * 4);
 
 	uint oldValue;
 	InterlockedOr(g_voxelTextureOpacity[(uint3)gridPosition], mask, oldValue);
@@ -42,7 +45,7 @@ uint3 getTextureSlices(uint packedSlices)
 	return result;
 }
 
-void main(GSOutput input)
+void main(GSOutput input, uint coverage : SV_Coverage)
 {
 	float3 offset = input.wsPosition * voxel.invGridCellSize;
 	int3 coords = int3(offset) + voxel.halfDim;
@@ -54,7 +57,7 @@ void main(GSOutput input)
 	uint3 textureSlices = getTextureSlices(input.material);
 	float4 diffuseColor = g_textureSrgba.Sample(g_sampler, float3(input.texCoords, float(textureSlices.x)));
 
-	writeOpacity(coords, input.axis);
+	writeOpacity(coords, input.axis, coverage);
 
 	coords.z += input.offset;
 

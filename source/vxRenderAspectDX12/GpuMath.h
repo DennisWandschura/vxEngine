@@ -9,10 +9,24 @@ float3 quaternionRotation(in float3 v, in float4 q)
 	return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
 }
 
+float signNotZero(in float k) {
+	return k >= 0.0 ? 1.0 : -1.0;
+}
+
+float2 signNotZero(in float2 v) {
+	return float2(signNotZero(v.x), signNotZero(v.y));
+}
+
 float2 encodeNormal(float3 n)
 {
 	float f = sqrt(8 * n.z + 8);
 	return n.xy / f + 0.5;
+	/*float l1norm = abs(v.x) + abs(v.y) + abs(v.z);
+	float2 result = v.xy * (1.0 / l1norm);
+	if (v.z < 0.0) {
+		result = (1.0 - abs(result.yx)) * signNotZero(result.xy);
+	}
+	return result;*/
 }
 
 float3 decodeNormal(float2 enc)
@@ -24,6 +38,11 @@ float3 decodeNormal(float2 enc)
 	n.xy = fenc*g;
 	n.z = 1 - f / 2;
 	return n;
+	/*float3 v = float3(enc.x, enc.y, 1.0 - abs(enc.x) - abs(enc.y));
+	if (v.z < 0) {
+		v.xy = (1.0 - abs(v.yx)) * signNotZero(v.xy);
+	}
+	return normalize(v);*/
 }
 
 float getLuminance(in float3 color)

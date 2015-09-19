@@ -21,10 +21,56 @@ RenderPassVoxelize::~RenderPassVoxelize()
 
 void RenderPassVoxelize::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
+	auto resolution = s_settings->m_lpvDim * 4;
+
+	D3D12_RESOURCE_DESC resDesc;
+	resDesc.Alignment = 64 KBYTE;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	resDesc.Height = resolution;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc.MipLevels = 1;
+	resDesc.SampleDesc.Count = 4;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.Width = resolution;
+
+	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
+
+	*heapSizeRtDs += allocInfo.SizeInBytes;
 }
 
 bool RenderPassVoxelize::createData(ID3D12Device* device)
 {
+	auto resolution = s_settings->m_lpvDim * 4;
+
+	D3D12_RESOURCE_DESC resDesc;
+	resDesc.Alignment = 64 KBYTE;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	resDesc.Height = resolution;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resDesc.MipLevels = 1;
+	resDesc.SampleDesc.Count = 4;
+	resDesc.SampleDesc.Quality = 0;
+	resDesc.Width = resolution;
+
+	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
+
+	D3D12_CLEAR_VALUE clearValue;
+	memset(&clearValue, 0, sizeof(clearValue));
+	clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	CreateResourceDesc desc;
+	desc.clearValue = &clearValue;
+	desc.resDesc = &resDesc;
+	desc.size = allocInfo.SizeInBytes;
+	desc.state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+	s_resourceManager->createTextureRtDs(L"voxelRT", desc);
 	return true;
 }
 
@@ -116,6 +162,8 @@ bool RenderPassVoxelize::createPipelineState(ID3D12Device* device)
 		{ "BLENDINDICES", 0, DXGI_FORMAT_R32_UINT, 1, 0, D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA, 1 }
 	};
 	
+	auto format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.depthEnabled = 0;
 	inputDesc.inputLayout.pInputElementDescs = inputLayout;
@@ -125,10 +173,16 @@ bool RenderPassVoxelize::createPipelineState(ID3D12Device* device)
 	inputDesc.shaderDesc.gs = s_shaderManager->getShader("VoxelizeGS.cso");
 	inputDesc.shaderDesc.ps = s_shaderManager->getShader("VoxelizePS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	inputDesc.rtvCount = 1;
+	inputDesc.rtvFormats = &format;
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
 	desc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON;
 	desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+
+	desc.RasterizerState.MultisampleEnable = 1;
+	desc.SampleDesc.Count = 4;
+	desc.SampleDesc.Quality = 0;
 
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
@@ -236,6 +290,22 @@ bool RenderPassVoxelize::initialize(ID3D12Device* device, void* p)
 	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
 
+	D3D12_DESCRIPTOR_HEAP_DESC desc;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	desc.NodeMask = 1;
+	desc.NumDescriptors = 1;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	if(!m_rtvHeap.create(desc, device))
+		return false;
+
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
+	rtvDesc.Texture2DMS.UnusedField_NothingToDefine = 0;
+
+	auto voxelRT = s_resourceManager->getTextureRtDs(L"voxelRT");
+	device->CreateRenderTargetView(voxelRT->get(), &rtvDesc, m_rtvHeap.getHandleCpu());
+
 	createViews(device);
 
 	return true;
@@ -270,8 +340,8 @@ void RenderPassVoxelize::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity->get()));
 
 		D3D12_VIEWPORT viewPort;
-		viewPort.Height = (f32)s_settings->m_lpvDim * 2;
-		viewPort.Width = (f32)s_settings->m_lpvDim * 2;
+		viewPort.Height = (f32)s_settings->m_lpvDim * 4;
+		viewPort.Width = (f32)s_settings->m_lpvDim * 4;
 		viewPort.MaxDepth = 1.0f;
 		viewPort.MinDepth = 0.0f;
 		viewPort.TopLeftX = 0;
@@ -280,11 +350,14 @@ void RenderPassVoxelize::submitCommands(Graphics::CommandQueue* queue)
 		D3D12_RECT rectScissor;
 		rectScissor.left = 0;
 		rectScissor.top = 0;
-		rectScissor.right = s_settings->m_lpvDim * 2;
-		rectScissor.bottom = s_settings->m_lpvDim * 2;
+		rectScissor.right = s_settings->m_lpvDim * 4;
+		rectScissor.bottom = s_settings->m_lpvDim * 4;
 
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
+
+ 		D3D12_CPU_DESCRIPTOR_HANDLE rthvHandle = m_rtvHeap.getHandleCpu();
+		m_commandList->OMSetRenderTargets(1,&rthvHandle, 0, nullptr);
 
 		auto heap = m_descriptorHeap.get();
 		m_commandList->SetDescriptorHeaps(1, &heap);

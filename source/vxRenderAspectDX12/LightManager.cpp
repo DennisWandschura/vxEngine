@@ -204,9 +204,6 @@ bool LightManager::initialize(const RenderSettings &settings, vx::StackAllocator
 	auto gridCellSize = gridHalfSize / halfDim;
 	auto invGridCellSize = 1.0f / gridCellSize;
 
-	m_gridCellSize = gridCellSize;
-	m_invGridCellSize = invGridCellSize;
-
 	const __m128 axisY = { 0, 1, 0, 0 };
 	const __m128 axisX = { 1, 0, 0, 0 };
 
@@ -265,18 +262,6 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 	auto sceneLightCount = m_sceneLightCount;
 	if (sceneLightCount == 0)
 		return;
-
-	auto voxelBuffer = resourceManager->getBuffer(L"voxelBuffer");
-
-	__m128 invGridCellSize = { m_invGridCellSize ,m_invGridCellSize ,m_invGridCellSize ,m_invGridCellSize };
-	__m128 gridCellSize = { m_gridCellSize, m_gridCellSize, m_gridCellSize, m_gridCellSize };
-
-	auto voxelCenter = _mm_mul_ps(cameraPosition, invGridCellSize);
-	voxelCenter = _mm_floor_ps(voxelCenter);
-	voxelCenter = _mm_mul_ps(voxelCenter, gridCellSize);
-
-	const auto voxelCenterOffset = offsetof(GpuVoxel, gridCenter);
-	uploadManager->pushUploadBuffer(voxelCenter, voxelBuffer->get(), voxelCenterOffset, voxelBuffer->getOriginalState());
 
 	bool startCheck = false;
 

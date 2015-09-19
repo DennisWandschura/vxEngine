@@ -40,4 +40,5 @@ struct RenderSettings
 	u32 m_shadowDim;
 	u32 m_lpvDim;
 	f32 m_lpvGridSize;
+	u32 m_lpvMip;
 };
