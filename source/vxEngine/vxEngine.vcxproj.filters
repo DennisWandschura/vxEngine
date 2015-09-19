@@ -276,9 +276,6 @@
     <ClInclude Include="ActionActorCreatePath.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
-    <ClInclude Include="CpuProfiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ActionManager.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
@@ -448,9 +445,6 @@
     </ClCompile>
     <ClCompile Include="ActionActorCreatePath.cpp">
       <Filter>Source Files\Actions</Filter>
-    </ClCompile>
-    <ClCompile Include="CpuProfiler.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LookWhereYoureGoing.cpp">
       <Filter>Source Files\AI\Steering</Filter>

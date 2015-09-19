@@ -27,12 +27,15 @@ struct IMMDevice;
 class WavFile;
 struct WavFormat;
 class AudioFile;
+struct IAudioSessionManager2;
+struct IAudioSessionControl;
 
 #include <vxLib/types.h>
 #include "AudioWavRenderer.h"
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
 #include <vector>
+#include <guiddef.h>
 
 namespace Audio
 {
@@ -45,6 +48,9 @@ namespace Audio
 		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
 
 		IMMDevice* m_device;
+		IAudioSessionManager2* m_sessionManager;
+		IAudioSessionControl* m_sessionControl;
+		GUID m_sessionGUID;
 
 	public:
 		AudioManager();
@@ -58,5 +64,7 @@ namespace Audio
 		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
 
 		void playSound(const vx::StringID &sid);
+
+		void setMasterVolume(f32 volume);
 	};
 }

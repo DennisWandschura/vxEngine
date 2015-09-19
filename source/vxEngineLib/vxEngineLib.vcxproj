@@ -308,6 +308,7 @@
     <ClInclude Include="include\vxEngineLib\AudioMessage.h" />
     <ClInclude Include="include\vxEngineLib\Component.h" />
     <ClInclude Include="include\vxEngineLib\copy.h" />
+    <ClInclude Include="include\vxEngineLib\CpuProfiler.h" />
     <ClInclude Include="include\vxEngineLib\CpuTimer.h" />
     <ClInclude Include="include\vxEngineLib\CreateActorData.h" />
     <ClInclude Include="include\vxEngineLib\CreateDynamicMeshData.h" />
@@ -417,6 +418,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Editor|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="CpuProfiler.cpp" />
     <ClCompile Include="CpuTimer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

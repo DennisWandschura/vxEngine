@@ -33,6 +33,7 @@ namespace vx
 	{
 		Audio::AudioManager m_audioManager;
 		ResourceAspectInterface* m_resourceAspect;
+		f32 m_masterVolume;
 
 		void onFileMessage(const Message &msg);
 		void onAudioMessage(const Message &msg);
@@ -47,5 +48,7 @@ namespace vx
 		void handleMessage(const Message &msg) override;
 
 		void update(f32 dt) override;
+
+		void setMasterVolume(f32 volume) override;
 	};
 }

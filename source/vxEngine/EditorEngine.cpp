@@ -179,6 +179,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 		&m_allocator,
 		&g_engineConfig,
 		logfile,
+		nullptr,
 		&m_resourceAspect,
 		&m_msgManager,
 		&m_taskManager

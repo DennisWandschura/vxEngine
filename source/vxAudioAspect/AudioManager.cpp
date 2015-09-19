@@ -29,6 +29,7 @@ SOFTWARE.
 #include <Audioclient.h>
 #include "WavFile.h"
 #include <vxEngineLib/AudioFile.h>
+#include <audiopolicy.h>
 
 namespace Audio
 {
@@ -39,8 +40,11 @@ namespace Audio
 	};
 
 	AudioManager::AudioManager()
-		:m_device(nullptr)
+		:m_device(nullptr),
+		m_sessionManager(nullptr),
+		m_sessionControl(nullptr)
 	{
+		m_sessionGUID = { 1337, 101, 101, { 0, 0,  0,  0,  0,  0,  0,  0 } };
 	}
 
 	bool AudioManager::initialize()
@@ -55,11 +59,21 @@ namespace Audio
 			CLSCTX_ALL,
 			__uuidof(IMMDeviceEnumerator),
 			(void**)&pDeviceEnumerator);
+		if (hr != S_OK)
+			return false;
 
 		hr = pDeviceEnumerator->GetDefaultAudioEndpoint(
 			eRender,
 			eConsole,
 			&m_device);
+		if (hr != S_OK)
+			return false;
+
+		hr = m_device->Activate(__uuidof(IAudioSessionManager2), CLSCTX_ALL, nullptr, (void**)&m_sessionManager);
+		if (hr != S_OK)
+			return false;
+
+		hr = m_sessionManager->GetAudioSessionControl(&m_sessionGUID, 0, &m_sessionControl);
 
 		WAVEFORMATEX format;
 		format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
@@ -80,14 +94,26 @@ namespace Audio
 
 	void AudioManager::shutdown()
 	{
+		m_activeEntries.clear();
+		m_inactiveEntries.clear();
+
+		if (m_sessionControl)
+		{
+			m_sessionControl->Release();
+			m_sessionControl = nullptr;
+		}
+
+		if (m_sessionManager)
+		{
+			m_sessionManager->Release();
+			m_sessionManager = nullptr;
+		}
+
 		if (m_device)
 		{
 			m_device->Release();
 			m_device = nullptr;
 		}
-
-		m_activeEntries.clear();
-		m_inactiveEntries.clear();
 	}
 
 	void AudioManager::update(f32 dt)
@@ -146,7 +172,7 @@ namespace Audio
 			MinimumDevicePeriod,
 			0,
 			mixFormat,
-			nullptr);
+			&m_sessionGUID);
 
 		VX_ASSERT(hr == 0);
 
@@ -174,5 +200,13 @@ namespace Audio
 
 		renderer.startPlay();
 		m_activeEntries.push_back(std::move(renderer));
+	}
+
+	void AudioManager::setMasterVolume(f32 volume)
+	{
+		ISimpleAudioVolume* simpleAudioVolume = nullptr;
+		m_sessionManager->GetSimpleAudioVolume(&m_sessionGUID, 0, &simpleAudioVolume);
+
+		simpleAudioVolume->SetMasterVolume(volume, nullptr);
 	}
 }

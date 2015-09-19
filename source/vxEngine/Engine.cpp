@@ -178,13 +178,19 @@ void Engine::mainLoop(Logfile* logfile)
 
 		m_taskManager.updateMainThread();
 
+		m_cpuProfiler.frame();
+
 		while (accum >= g_dt)
 		{
+			m_cpuProfiler.pushMarker("update()");
+
 			update();
 
 			m_renderAspect->update();
 
 			m_renderAspect->updateProfiler(g_dt);
+
+			m_cpuProfiler.popMarker();
 
 			accum -= g_dt;
 		}
@@ -310,6 +316,8 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 		return false;
 	}
 
+	m_cpuProfiler.initialize();
+
 	g_engineConfig.m_editor = false;
 
 	if (!initializeImpl(dataDir))
@@ -328,6 +336,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 		&m_allocator,
 		&g_engineConfig,
 		logfile,
+		&m_cpuProfiler,
 		&m_resourceAspect,
 		&m_msgManager,
 		&m_taskManager,
@@ -400,6 +409,8 @@ void Engine::shutdown()
 {
 	m_scene.reset();
 
+	m_cpuProfiler.shutdown();
+
 	if (m_audioAspect)
 	{
 		m_audioAspect->shutdown();
@@ -427,8 +438,6 @@ void Engine::shutdown()
 		m_taskManagerThread.join();
 
 	m_taskManager.shutdown();
-
-	//CpuProfiler::shutdown();
 
 	m_allocator.clear();
 	m_allocator.release();

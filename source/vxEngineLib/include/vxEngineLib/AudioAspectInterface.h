@@ -13,6 +13,8 @@ public:
 	virtual void shutdown() = 0;
 
 	virtual void update(f32 dt) = 0;
+
+	virtual void setMasterVolume(f32 volume) = 0;
 };
 
 typedef AudioAspectInterface* (*CreateAudioAspectFunctionType)();

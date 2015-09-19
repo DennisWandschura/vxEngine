@@ -30,6 +30,7 @@ class ResourceAspectInterface;
 class FileAspectInterface;
 class Logfile;
 class SmallObjAllocator;
+class CpuProfiler;
 
 namespace vx
 {
@@ -58,6 +59,7 @@ struct RenderAspectDescription
 	vx::StackAllocator* pAllocator;
 	const EngineConfig* settings;
 	Logfile* errorlog;
+	CpuProfiler* cpuProfiler;
 	ResourceAspectInterface* resourceAspect;
 	vx::MessageManager* msgManager;
 	vx::TaskManager* taskManager;

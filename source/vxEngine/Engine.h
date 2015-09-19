@@ -38,6 +38,7 @@ SOFTWARE.*/
 #include <vxResourceAspect/ResourceAspect.h>
 #include <vxEngineLib/AudioAspectInterface.h>
 #include <vxEngineLib/Graphics/RendererSettings.h>
+#include <vxEngineLib/CpuProfiler.h>
 #if _VX_MEM_PROFILE
 #include <vxLib/Allocator/AllocationProfiler.h>
 #endif
@@ -57,6 +58,7 @@ class Engine
 	EntityAspect m_entityAspect;
 	u32 m_bRun;
 	ResourceAspect m_resourceAspect;
+	CpuProfiler m_cpuProfiler;
 #if _VX_MEM_PROFILE
 	vx::AllocationProfiler m_allocManager;
 #endif

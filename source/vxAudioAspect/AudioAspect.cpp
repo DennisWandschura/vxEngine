@@ -35,7 +35,8 @@ SOFTWARE.
 namespace vx
 {
 	AudioAspect::AudioAspect()
-		:m_resourceAspect(nullptr)
+		:m_resourceAspect(nullptr),
+		m_masterVolume(1.0f)
 	{
 
 	}
@@ -113,5 +114,14 @@ namespace vx
 		default:
 			break;
 		}
+	}
+
+	void AudioAspect::setMasterVolume(f32 volume)
+	{
+		volume = std::min(volume, 1.0f);
+		volume = std::max(volume, 0.0f);
+
+		m_masterVolume = volume;
+		m_audioManager.setMasterVolume(m_masterVolume);
 	}
 }
