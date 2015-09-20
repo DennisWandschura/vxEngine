@@ -31,11 +31,11 @@ namespace d3d
 
 class DrawIndexedIndirectCommand;
 
-#include "RenderPass.h"
+#include "RenderPassLight.h"
 #include "CommandList.h"
 #include "DescriptorHeap.h"
 
-class RenderPassShadow : public RenderPass
+class RenderPassShadow : public RenderPassLight
 {
 	d3d::GraphicsCommandList m_commandList;
 	d3d::CommandAllocator* m_cmdAlloc;
@@ -43,7 +43,7 @@ class RenderPassShadow : public RenderPass
 	d3d::DescriptorHeap m_heapDsv;
 	d3d::DescriptorHeap m_heapRtv;
 	d3d::DescriptorHeap m_heapSrv;
-	u32 m_lightCount;
+	d3d::DescriptorHeap m_heapUav;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
@@ -63,6 +63,4 @@ public:
 	void shutdown() override;
 
 	void submitCommands(Graphics::CommandQueue* queue) override;
-
-	void setLightCount(u32 lightCount) { m_lightCount = lightCount; }
 };

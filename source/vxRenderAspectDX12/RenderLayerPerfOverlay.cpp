@@ -24,9 +24,10 @@ SOFTWARE.
 
 #include "RenderLayerPerfOverlay.h"
 
-RenderLayerPerfOverlay::RenderLayerPerfOverlay()
+RenderLayerPerfOverlay::RenderLayerPerfOverlay(ID3D12Device* device)
 	:Graphics::RenderLayer(),
-	m_textRenderer()
+	m_textRenderer(),
+	m_device(device)
 {
 
 }
@@ -43,7 +44,7 @@ void RenderLayerPerfOverlay::createRenderPasses()
 
 void RenderLayerPerfOverlay::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs)
 {
-	m_textRenderer.getRequiredMemory(heapSizeBuffer, heapSizeTexture);
+	m_textRenderer.getRequiredMemory(heapSizeBuffer, heapSizeTexture, m_device);
 }
 
 bool RenderLayerPerfOverlay::initialize(vx::StackAllocator* allocator)

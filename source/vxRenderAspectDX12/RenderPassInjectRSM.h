@@ -29,33 +29,38 @@ namespace d3d
 	class CommandAllocator;
 }
 
-#include "RenderPass.h"
+#include "RenderPassLight.h"
 #include "CommandList.h"
 #include "DescriptorHeap.h"
 
-class RenderPassOcclusion : public RenderPass
+class RenderPassInjectRSM : public RenderPassLight
 {
-	d3d::GraphicsCommandList m_commandList;
 	d3d::CommandAllocator* m_allocator;
-	d3d::DescriptorHeap m_rtvHeap;
+	d3d::GraphicsCommandList m_commandList;
 	d3d::DescriptorHeap m_srvHeap;
+	d3d::DescriptorHeap m_uavClearHeap;
+	d3d::DescriptorHeap m_rtvHeap;;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device);
-	bool createRtv(ID3D12Device* device);
+
 	bool createSrv(ID3D12Device* device);
+	bool createUav(ID3D12Device* device);
+	bool createUavClear(ID3D12Device* device);
 
 public:
-	explicit RenderPassOcclusion(d3d::CommandAllocator* allocator);
-	~RenderPassOcclusion();
+	explicit RenderPassInjectRSM(d3d::CommandAllocator* allocator);
+	~RenderPassInjectRSM();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 
-	bool initialize(ID3D12Device* device, void* p)override;
+	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
 	void submitCommands(Graphics::CommandQueue* queue) override;
+
+	void setLightCount(u32 lightCount) { m_lightCount = lightCount; }
 };

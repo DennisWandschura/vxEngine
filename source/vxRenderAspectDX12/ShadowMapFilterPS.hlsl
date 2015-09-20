@@ -67,13 +67,12 @@ half GetTexelLum(const in RSMTexel texel, const in float3 lightDir)
 	return getLuminance(texel.color) * max(0.h, dot(texel.normal, lightDir));
 }
 
-RSMTexel getRsmTexel(in float3 dirToLight, in float2 texCoords, uint lightIndex, uint index)
+RSMTexel getRsmTexel(in float3 dirToLight, in float2 texCoords, uint lightIndex, uint index, uint slice)
 {
-	uint w, h, d;
+	/*uint w, h, d;
 	g_srcRSMColor.GetDimensions(w, h, d);
 
 	float2 invDim = 1.0 / float2(w, h);
-	uint cubeSlice = lightIndex * 6 + index;
 
 	float4x4 invPvMatrix = g_transforms[lightIndex].invPvMatrix[index];
 
@@ -86,7 +85,7 @@ RSMTexel getRsmTexel(in float3 dirToLight, in float2 texCoords, uint lightIndex,
 			for (int j = 0; j < 2; j++)
 			{
 				half2 vTexCoords = texCoords + half2(i, j) * invDim;
-				RSMTexel texel = fetchRSM(vTexCoords, cubeSlice);
+				RSMTexel texel = fetchRSM(vTexCoords, slice);
 				
 				half fCurTexLum = GetTexelLum(texel, dirToLight);
 				if (fCurTexLum > fMaxLum)
@@ -105,7 +104,7 @@ RSMTexel getRsmTexel(in float3 dirToLight, in float2 texCoords, uint lightIndex,
 		for (int j = 0; j < 2; j++)
 		{
 			half2 vTexCoords = texCoords + half2(i, j) * invDim;
-			RSMTexel texel = fetchRSM(vTexCoords, cubeSlice);
+			RSMTexel texel = fetchRSM(vTexCoords, slice);
 			half3 vTexelGridCell = GetGridCell(vTexCoords, texel.depth, invPvMatrix);
 			half3 dGrid = vTexelGridCell - vChosenGridCell;
 			if (dot(dGrid, dGrid) < 3)
@@ -124,17 +123,37 @@ RSMTexel getRsmTexel(in float3 dirToLight, in float2 texCoords, uint lightIndex,
 		cRes.depth /= nSamples;
 		cRes.color /= 4;
 		cRes.normal /= nSamples;
+	}*/
+
+	uint w, h, d;
+	g_srcRSMColor.GetDimensions(w, h, d);
+
+	float2 invDim = 1.0 / float2(w, h);
+	RSMTexel cRes = (RSMTexel)0;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < 2; j++)
+		{
+			float2 vTexCoords = texCoords + float2(i, j) * invDim;
+			RSMTexel  texel = fetchRSM(vTexCoords, slice);
+
+			cRes.color += texel.color;
+			cRes.depth += texel.depth;
+			cRes.normal += texel.normal;
+		}
 	}
+
+	cRes.color /= 4;
+	cRes.depth /= 4;
+	cRes.normal /= 4;
 
 	return cRes;
 }
 
 PSOutput main(GSOutput input)
 {
-	uint w, h, d;
-	g_srcRSMColor.GetDimensions(w, h, d);
-
-	RSMTexel texel = getRsmTexel(input.dirToLight, input.texCoords, input.lightIndex, input.index);
+	RSMTexel texel = getRsmTexel(input.dirToLight, input.texCoords, input.lightIndex, input.index, input.slice);
 
 	PSOutput output;
 	output.color = float4(texel.color, 1);

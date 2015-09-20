@@ -113,7 +113,7 @@ bool RenderPassVoxelize::createRootSignature(ID3D12Device* device)
 	CD3DX12_DESCRIPTOR_RANGE rangePS[3];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 2);
 	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0, 4);
-	rangePS[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 2, 0, 0, 5);
+	rangePS[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, 5);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
 	rootParameters[0].InitAsDescriptorTable(1, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
@@ -138,17 +138,7 @@ bool RenderPassVoxelize::createRootSignature(ID3D12Device* device)
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init(3, rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-	ID3DBlob* blob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
-	auto hresult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &errorBlob);
-	if (hresult != 0)
-		return false;
-
-	hresult = device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(m_rootSignature.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;
+	return m_rootSignature.create(&rootSignatureDesc, device);
 }
 
 bool RenderPassVoxelize::createPipelineState(ID3D12Device* device)
@@ -190,16 +180,16 @@ bool RenderPassVoxelize::createPipelineState(ID3D12Device* device)
 bool RenderPassVoxelize::createDescriptorHeap(ID3D12Device* device)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
-	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 2;
+	desc.NumDescriptors = 1;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 	if (!m_descriptorHeapClear.create(desc, device))
 		return false;
 
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	desc.NumDescriptors = 7;
+	desc.NumDescriptors = 6;
 
 	return m_descriptorHeap.create(desc, device);
 }
@@ -217,7 +207,6 @@ void RenderPassVoxelize::createViews(ID3D12Device* device)
 	*/
 	
 	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
-	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 
 	auto cameraBufferView = s_resourceManager->getConstantBufferView("cameraBufferView");
 
@@ -258,19 +247,9 @@ void RenderPassVoxelize::createViews(ID3D12Device* device)
 	device->CreateUnorderedAccessView(voxelTextureOpacity->get(), nullptr, &uavDesc, handle);
 
 	uavDesc.Format = DXGI_FORMAT_R32_UINT;
-	uavDesc.Texture3D.WSize = s_settings->m_lpvDim * 6;
-	handle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, handle);
-
-	uavDesc.Format = DXGI_FORMAT_R32_UINT;
 	uavDesc.Texture3D.WSize = s_settings->m_lpvDim;
 	auto clearHandle = m_descriptorHeapClear.getHandleCpu();
 	device->CreateUnorderedAccessView(voxelTextureOpacity->get(), nullptr, &uavDesc, clearHandle);
-
-	uavDesc.Format = DXGI_FORMAT_R32_UINT;
-	uavDesc.Texture3D.WSize = s_settings->m_lpvDim * 6;
-	clearHandle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, clearHandle);
 }
 
 bool RenderPassVoxelize::initialize(ID3D12Device* device, void* p)
@@ -328,15 +307,10 @@ void RenderPassVoxelize::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity->get()));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		auto gpuHandle = m_descriptorHeapClear.getHandleGpu();
 		auto cpuHandle = m_descriptorHeapClear.getHandleCpu();
 		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureOpacity->get(), clearValues, 0, nullptr);
 
-		cpuHandle.offset(1);
-		gpuHandle.offset(1);
-		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureColor->get(), clearValues, 0, nullptr);
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureOpacity->get()));
 
 		D3D12_VIEWPORT viewPort;

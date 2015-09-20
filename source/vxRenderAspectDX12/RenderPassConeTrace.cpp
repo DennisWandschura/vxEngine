@@ -3,6 +3,7 @@
 #include "ShaderManager.h"
 #include "ResourceManager.h"
 #include "GpuVoxel.h"
+#include "ResourceDesc.h"
 
 RenderPassConeTrace::RenderPassConeTrace(d3d::CommandAllocator* cmdAlloc)
 	:m_commandList(),
@@ -19,19 +20,7 @@ RenderPassConeTrace::~RenderPassConeTrace()
 
 void RenderPassConeTrace::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
-	D3D12_RESOURCE_DESC resDesc;
-	resDesc.Alignment = 64 KBYTE;
-	resDesc.DepthOrArraySize = 1;
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	resDesc.Height = s_resolution.y;
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc.MipLevels = 3;
-	resDesc.SampleDesc.Count = 1;
-	resDesc.SampleDesc.Quality = 0;
-	resDesc.Width = s_resolution.x;
-
+	d3d::ResourceDesc resDesc = d3d::ResourceDesc::getDescTexture2D(s_resolution, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	auto alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	*heapSizeRtDs += alloc.SizeInBytes;
@@ -39,19 +28,7 @@ void RenderPassConeTrace::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTe
 
 bool RenderPassConeTrace::createData(ID3D12Device* device)
 {
-	D3D12_RESOURCE_DESC resDesc;
-	resDesc.Alignment = 64 KBYTE;
-	resDesc.DepthOrArraySize = 1;
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	resDesc.Height = s_resolution.y;
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resDesc.MipLevels = 1;
-	resDesc.SampleDesc.Count = 1;
-	resDesc.SampleDesc.Quality = 0;
-	resDesc.Width = s_resolution.x;
-
+	d3d::ResourceDesc resDesc = d3d::ResourceDesc::getDescTexture2D(s_resolution, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	auto alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	D3D12_CLEAR_VALUE clearValue{};
@@ -98,17 +75,7 @@ bool RenderPassConeTrace::createRootSignature(ID3D12Device* device)
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init(2, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-	ID3DBlob* blob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
-	auto hresult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &errorBlob);
-	if (hresult != 0)
-		return false;
-
-	hresult = device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(m_rootSignature.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;
+	return m_rootSignature.create(&rootSignatureDesc, device);
 }
 
 bool RenderPassConeTrace::createPipelineState(ID3D12Device* device)

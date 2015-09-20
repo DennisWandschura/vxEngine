@@ -31,6 +31,7 @@ SOFTWARE.
 #include "UploadManager.h"
 #include "ResourceView.h"
 #include "CommandAllocator.h"
+#include "GpuVoxel.h"
 
 namespace RenderPassShadowCpp
 {
@@ -63,9 +64,9 @@ namespace RenderPassShadowCpp
 }
 
 RenderPassShadow::RenderPassShadow(d3d::CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd)
-	:m_cmdAlloc(alloc),
-	m_drawCmd(drawCmd),
-	m_lightCount(0)
+	:RenderPassLight(),
+	m_cmdAlloc(alloc),
+	m_drawCmd(drawCmd)
 {
 
 }
@@ -168,13 +169,15 @@ bool RenderPassShadow::createRootSignature(ID3D12Device* device)
 	CD3DX12_DESCRIPTOR_RANGE rangeGS[1];
 	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0, 4);
 
-	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
+	CD3DX12_DESCRIPTOR_RANGE rangePS[3];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 4, 0, 5);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3, 0, 6);
+	rangePS[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 2, 0, 7);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[4];
 	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
 	rootParameters[1].InitAsDescriptorTable(1, rangeGS, D3D12_SHADER_VISIBILITY_GEOMETRY);
-	rootParameters[2].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[2].InitAsDescriptorTable(3, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[3].InitAsConstants(1, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -195,17 +198,7 @@ bool RenderPassShadow::createRootSignature(ID3D12Device* device)
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init(4, rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-	ID3DBlob* blob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
-	auto hresult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &errorBlob);
-	if (hresult != 0)
-		return false;
-
-	hresult = device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(m_rootSignature.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;
+	return m_rootSignature.create(&rootSignatureDesc, device);
 }
 
 bool RenderPassShadow::createPipelineState(ID3D12Device* device)
@@ -336,10 +329,17 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	}
 
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	desc.NumDescriptors = 6;
+	desc.NumDescriptors = 8;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_heapSrv.create(desc, device))
 		return false;
+
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	desc.NumDescriptors = 1;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	if (!m_heapUav.create(desc, device))
+		return false;
+	
 
 	/*
 	StructuredBuffer<TransformGpu> s_transforms : register(t0);
@@ -382,6 +382,28 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	srvHandle.offset(1);
 	device->CreateShaderResourceView(srgbTexture->get(), srgbTextureViewDesc, srvHandle);
 
+
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+	uavDesc.Format = DXGI_FORMAT_R32_UINT;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	uavDesc.Texture3D.FirstWSlice = 0;
+	uavDesc.Texture3D.MipSlice = 0;
+	uavDesc.Texture3D.WSize = s_settings->m_lpvDim * 6;
+
+	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
+	srvHandle.offset(1);
+	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, srvHandle);
+
+	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, m_heapUav.getHandleCpu());
+
+	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
+	D3D12_CONSTANT_BUFFER_VIEW_DESC voxelBufferDesc;
+	voxelBufferDesc.BufferLocation = voxelBuffer->GetGPUVirtualAddress();
+	voxelBufferDesc.SizeInBytes = d3d::AlignedSizeType<GpuVoxel, 1, 256>::size;
+
+	srvHandle.offset(1);
+	device->CreateConstantBufferView(&voxelBufferDesc, srvHandle);
+
 	return true;
 }
 
@@ -394,8 +416,10 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 {
 	const f32 clearcolor[] = { 1.0f, 0, 0, 0 };
 	const f32 clearcolor0[] = { 0.0f, 0, 0, 0 };
+	const u32 clearValues[4] = { 0, 0, 0, 0 };
+
 	auto count = m_drawCmd->getCount();
-	if (count != 0 && m_lightCount != 0)
+	if (count != 0 && m_visibleLightCount != 0)
 	{
 		D3D12_VIEWPORT viewPort;
 		viewPort.Height = (f32)s_settings->m_shadowDim;
@@ -412,6 +436,14 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 		rectScissor.bottom = s_settings->m_shadowDim;
 
 		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+
+		auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
+		auto gpuHandle = m_heapUav.getHandleGpu();
+		auto cpuHandle = m_heapUav.getHandleCpu();
+		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureColor->get(), clearValues, 0, nullptr);
+
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
@@ -440,7 +472,7 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 		auto handleRtv = m_heapRtv.getHandleCpu();
 		auto handleDsv = m_heapDsv.getHandleCpu();
 
-		for (u32 i = 0; i < m_lightCount; ++i)
+		for (u32 i = 0; i < m_visibleLightCount; ++i)
 		{
 			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = handleDsv;
 			D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[3];
@@ -466,6 +498,8 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 			handleDsv.offset(1);
 		}
 
+		//auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		auto hr = m_commandList->Close();

@@ -1,6 +1,9 @@
 #ifndef _GPU_MATH_HH
 #define _GPU_MATH_HH
 
+#define UINT8_MAX 255
+#define UINT10_MAX 2047
+
 static const float g_PI = 3.141592654;
 static const float3 g_luminanceVector = float3(0.2126, 0.7152, 0.0722);
 

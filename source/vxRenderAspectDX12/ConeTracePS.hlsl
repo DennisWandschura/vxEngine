@@ -97,7 +97,7 @@ float4 coneTrace(in float3 direction, in uint3 voxelPosition, in uint3 voxelDim,
 	while (accum.a < 1.0 && dist > 0.0)
 	{
 		float sampleDiameter = max(minDiameter, coneRatio * traveledDist);
-		sampleDiameter = minDiameter;
+		//sampleDiameter = minDiameter;
 		float sampleLOD = log2(sampleDiameter * minVoxelDiameterInv);
 		sampleLOD = clamp(sampleLOD, 0.0, 5.0);
 
@@ -147,15 +147,14 @@ float4 main(VSOutput input) : SV_TARGET
 
 	float maxDist = 0.3;
 	float coneRatio = 1.0;
-	const int sum = 6;
+	const int sum = 12;
 	for (int i = 0; i < sum; ++i)
 	{
-		float3 direction = quaternionRotation(input.wsNormal, qRotations_normal[i]);
+		float3 direction = quaternionRotation(input.wsNormal, qRotations_high[i]);
 		accum += coneTrace(direction, input.voxelPosition, voxelDim, coneRatio, maxDist);
 	}
 
 	accum /= sum;
 
-	accum = clamp(accum, 0, 1);
 	return float4(accum.rgb, 1.0);
 }

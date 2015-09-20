@@ -95,17 +95,7 @@ bool RenderPassFinal::createRootSignature(ID3D12Device* device)
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init(1, rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-	ID3DBlob* blob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
-	auto hresult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &errorBlob);
-	if (hresult != 0)
-		return false;
-
-	hresult = device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(m_rootSignature.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;
+	return m_rootSignature.create(&rootSignatureDesc, device);
 }
 
 bool RenderPassFinal::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
@@ -198,9 +188,9 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 	srvDesc.Texture2D.PlaneSlice = 0;
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 
-	auto voxelOcclusion = s_resourceManager->getTextureRtDs(L"voxelIndirect");
+	auto voxelBlur = s_resourceManager->getTextureRtDs(L"voxelBlur");
 	handle.offset(1);
-	device->CreateShaderResourceView(voxelOcclusion->get(), &srvDesc, handle);
+	device->CreateShaderResourceView(voxelBlur->get(), &srvDesc, handle);
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	for (u32 i = 0; i < 2; ++i)
@@ -238,7 +228,7 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 	auto directLightTexture = s_resourceManager->getTextureRtDs(L"directLightTexture");
 	auto indirectLightTexture = s_resourceManager->getTextureRtDs(L"indirectLightTexture");
 	auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
-	auto voxelIndirect = s_resourceManager->getTextureRtDs(L"voxelIndirect");
+	auto voxelBlur = s_resourceManager->getTextureRtDs(L"voxelBlur");
 
 	auto currentBuffer = m_device->getCurrentBackBufferIndex();
 
@@ -273,7 +263,7 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indirectLightTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(albedoSlice->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelIndirect->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBlur->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -294,7 +284,7 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTarget[currentBuffer].get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelIndirect->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBlur->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(albedoSlice->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indirectLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));

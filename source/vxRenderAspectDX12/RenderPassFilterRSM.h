@@ -29,18 +29,17 @@ namespace d3d
 	class CommandAllocator;
 }
 
-#include "RenderPass.h"
+#include "RenderPassLight.h"
 #include "CommandList.h"
 #include "DescriptorHeap.h"
 
-class RenderPassFilterRSM : public RenderPass
+class RenderPassFilterRSM : public RenderPassLight
 {
 	d3d::CommandAllocator* m_allocator;
 	d3d::GraphicsCommandList m_commandList;
 	d3d::DescriptorHeap m_srvHeap;
 	d3d::DescriptorHeap m_srvHeapPass2;
 	d3d::DescriptorHeap m_rtvHeap;
-	u32 m_lightCount;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);

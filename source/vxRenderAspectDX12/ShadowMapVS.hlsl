@@ -20,7 +20,6 @@ struct VSOutput
 	float2 texCoords : TEXCOORD0;
 	uint lightIndex : BLENDINDICES0;
 	uint material : BLENDINDICES1;
-	float distanceToLight : BLENDINDICES2;
 	float lightFalloff : BLENDINDICES3;
 	float lightLumen : BLENDINDICES4;
 };
@@ -56,8 +55,6 @@ VSOutput main(Vertex input)
 	float3 wsPosition = quaternionRotation(input.position.xyz, qRotation) + translation;
 	float3 wsNormal = quaternionRotation(input.normal, qRotation);
 
-	float distanceToLight = length(lightPositionWS - wsPosition);
-
 	VSOutput output;
 	output.wsPosition = wsPosition;
 	output.lightPositionWS = lightPositionWS;
@@ -65,7 +62,6 @@ VSOutput main(Vertex input)
 	output.texCoords = input.texCoords;
 	output.lightIndex = lightIndex;
 	output.material = s_materials[materialIndex];
-	output.distanceToLight = distanceToLight;
 	output.lightFalloff = lightFalloff;
 	output.lightLumen = lightLumen;
 	return output;

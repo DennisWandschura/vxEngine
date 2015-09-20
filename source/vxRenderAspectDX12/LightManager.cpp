@@ -335,7 +335,7 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 
 				for (auto &it : m_renderPasses)
 				{
-					it->setLightCount(visibleLightCount);
+					it->setVisibleLightCount(visibleLightCount);
 				}
 			}
 

@@ -34,6 +34,7 @@ class UploadManager;
 #include "RenderSettings.h"
 #include "PipelineState.h"
 #include <vxEngineLib/Graphics/CommandQueue.h>
+#include "RootSignature.h"
 
 namespace d3d
 {
@@ -50,7 +51,7 @@ protected:
 	static vx::uint2 s_resolution;
 	static const RenderSettings* s_settings;
 
-	d3d::Object<ID3D12RootSignature> m_rootSignature;
+	d3d::RootSignature m_rootSignature;
 	d3d::PipelineState m_pipelineState;
 
 	RenderPass();

@@ -42,5 +42,5 @@ float4 main(GSOutput input) : SV_TARGET
 	float3 finalColor = directColor.rgb + indirectColor.rgb;
 	finalColor = tonemap(finalColor);
 
-	return float4(voxelIndirectColor.rgb, 1.0f);
+	return float4(finalColor, 1.0f);
 }

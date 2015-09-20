@@ -32,9 +32,10 @@ class RenderLayerPerfOverlay : public Graphics::RenderLayer
 {
 	Graphics::TextRenderer m_textRenderer;
 	Graphics::Font m_font;
+	ID3D12Device* m_device;
 
 public:
-	RenderLayerPerfOverlay();
+	explicit RenderLayerPerfOverlay(ID3D12Device* device);
 	~RenderLayerPerfOverlay();
 
 	void createRenderPasses() override;

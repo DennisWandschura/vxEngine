@@ -27,6 +27,7 @@ SOFTWARE.
 #include "Segment.h"
 #include "CommandList.h"
 #include <vxEngineLib/Logfile.h>
+#include "ResourceDesc.h"
 
 namespace Graphics
 {
@@ -66,7 +67,7 @@ namespace Graphics
 
 	}
 
-	void TextRenderer::getRequiredMemory(u64* bufferSize, u64* textureSize)
+	void TextRenderer::getRequiredMemory(u64* bufferSize, u64* textureSize, ID3D12Device* device)
 	{
 		const auto verticesPerCharacter = 4u;
 		auto totalVertexCount = verticesPerCharacter * m_capacity;
@@ -75,6 +76,11 @@ namespace Graphics
 		auto indexCount = indicesPerCharacter * m_capacity;
 
 		auto vertexSizeInBytes = totalVertexCount * sizeof(TextVertex);
+
+		auto fontTexResDesc = d3d::ResourceDesc::getDescTexture2D(vx::uint2(4096, 4096), DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_NONE);
+		auto fontTexAllocInfo = device->GetResourceAllocationInfo(1, 1,&fontTexResDesc);
+
+		*textureSize += fontTexAllocInfo.SizeInBytes;
 	}
 
 	/*

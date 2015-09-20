@@ -64,9 +64,6 @@
     <Filter Include="Header Files\Layers">
       <UniqueIdentifier>{fb169311-186f-4248-b581-83108dde10dc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Objects">
-      <UniqueIdentifier>{997c810f-41dc-4cdd-8957-1ba7e8d3eca3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Objects">
       <UniqueIdentifier>{a7fb374b-4841-43d0-8cbb-5981e9a340ab}</UniqueIdentifier>
     </Filter>
@@ -84,6 +81,9 @@
     </Filter>
     <Filter Include="Shaders\voxel">
       <UniqueIdentifier>{42cc15f4-49a9-460d-8a28-3baed8539e37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\d3d">
+      <UniqueIdentifier>{997c810f-41dc-4cdd-8957-1ba7e8d3eca3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -226,49 +226,49 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BufferView.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="CommandList.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="CommandQueue.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="d3dObject.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="DescriptorHeap.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="Device.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="Heap.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="PipelineState.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="RenderLayerGame.h">
       <Filter>Header Files\Layers</Filter>
     </ClInclude>
     <ClInclude Include="ShaderManager.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="CommandAllocator.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="DrawIndexedIndirectCommand.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="ResourceBarrier.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="ResourceView.h">
-      <Filter>Header Files\Objects</Filter>
+      <Filter>Header Files\d3d</Filter>
     </ClInclude>
     <ClInclude Include="DownloadMananger.h">
       <Filter>Header Files</Filter>
@@ -301,6 +301,21 @@
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="RenderPassConeTrace.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderResourceViewDesc.h">
+      <Filter>Header Files\d3d</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceDesc.h">
+      <Filter>Header Files\d3d</Filter>
+    </ClInclude>
+    <ClInclude Include="RootSignature.h">
+      <Filter>Header Files\d3d</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassVoxelizeLight.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassBlurVoxel.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
   </ItemGroup>
@@ -446,6 +461,9 @@
     <ClCompile Include="RenderPassConeTrace.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
+    <ClCompile Include="RenderPassBlurVoxel.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -584,6 +602,15 @@
       <Filter>Shaders\voxel</Filter>
     </FxCompile>
     <FxCompile Include="ConeTracePS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelInjectPointLight.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelBlurPS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelBlurPass2PS.hlsl">
       <Filter>Shaders\voxel</Filter>
     </FxCompile>
   </ItemGroup>

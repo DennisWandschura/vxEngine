@@ -39,12 +39,12 @@ void main(
 	inout TriangleStream< GSOutput > output
 )
 {
-	GSOutput element;
-	element.lightIndex = input[0].lightIndex;
-
 	[unroll]
 	for (int i = 0; i < 6; ++i)
 	{
+		GSOutput element;
+
+		element.lightIndex = input[0].lightIndex;
 		element.slice = input[0].lightIndex * 6 + i;
 		element.index = i;
 		element.dirToLight = -lightDirections[i];

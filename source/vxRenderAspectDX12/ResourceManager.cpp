@@ -123,6 +123,10 @@ namespace d3d
 				//printf("Buffer %ws %p\n", id, (*ptr).get());
 			}
 		}
+		else
+		{
+			ptr = nullptr;
+		}
 
 		return ptr;
 	}
@@ -147,6 +151,10 @@ namespace d3d
 				//printf("Texture %ws %p\n", id, (*ptr).get());
 			}
 		}
+		else
+		{
+			ptr = nullptr;
+		}
 
 		return ptr;
 	}
@@ -166,9 +174,11 @@ namespace d3d
 				auto it = m_texturesRtDs.insert(std::move(sid), Resource(std::move(texture), desc.state));
 				ptr = (&*it);
 				ptr->SetName(id);
-
-				//printf("TextureRtDs %ws %p\n", id, (*ptr).get());
 			}
+		}
+		else
+		{
+			ptr = nullptr;
 		}
 
 		return ptr;

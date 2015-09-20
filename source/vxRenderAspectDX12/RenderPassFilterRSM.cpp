@@ -29,9 +29,8 @@ SOFTWARE.
 #include "GpuVoxel.h"
 
 RenderPassFilterRSM::RenderPassFilterRSM(d3d::CommandAllocator* allocator)
-	:RenderPass(),
-	m_allocator(allocator),
-	m_lightCount(0)
+	:RenderPassLight(),
+	m_allocator(allocator)
 {
 
 }
@@ -168,17 +167,7 @@ bool RenderPassFilterRSM::createRootSignature(ID3D12Device* device)
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init(1, rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-	ID3DBlob* blob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
-	auto hresult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &errorBlob);
-	if (hresult != 0)
-		return false;
-
-	hresult = device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(m_rootSignature.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;
+	return m_rootSignature.create(&rootSignatureDesc, device);
 }
 
 bool RenderPassFilterRSM::createPipelineState(ID3D12Device* device)
@@ -475,7 +464,7 @@ void RenderPassFilterRSM::submitCommands(Graphics::CommandQueue* queue)
 	const f32 clearColor[4] = {0, 0, 0, 0};
 	const f32 clearColor1[4] = { 1, 0, 0, 0 };
 
-	if (m_lightCount != 0)
+	if (m_visibleLightCount != 0)
 	{
 		D3D12_VIEWPORT viewport;
 		viewport.Height = (f32)resolution;
@@ -524,7 +513,7 @@ void RenderPassFilterRSM::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
 
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		m_commandList->DrawInstanced(m_lightCount, 1, 0, 0);
+		m_commandList->DrawInstanced(m_visibleLightCount, 1, 0, 0);
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureColor->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
@@ -564,7 +553,7 @@ void RenderPassFilterRSM::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
 
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		m_commandList->DrawInstanced(m_lightCount, 1, 0, 0);
+		m_commandList->DrawInstanced(m_visibleLightCount, 1, 0, 0);
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));

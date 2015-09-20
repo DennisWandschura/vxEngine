@@ -24,7 +24,7 @@ Texture2DArray<float4> g_color : register(t0);
 Texture2DArray<half4> g_normals : register(t1);
 Texture2DArray<float> g_depth : register(t2);
 
-StructuredBuffer<GpuShadowTransformReverse> g_transforms : register(t3);
+StructuredBuffer<GpuShadowTransformReverse> g_shadowTransforms : register(t3);
 
 // flip axis +-
 static const uint g_voxelAxis[6] = {1, 0, 3, 2, 5, 4};
@@ -41,15 +41,18 @@ bool isPointInGrid(int3 position)
 
 VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 {
-	int arrayIndex = lightIndex * 6 + cubeIndex;
+	int cubeAxis = cubeIndex;
+	int lightIdx = 0;
+
+	int arrayIndex = lightIdx * 6 + cubeAxis;
 	float depth = g_depth.Load(int4(vertexID, instanceID, arrayIndex, 0));
 
 	uint w, h, d;
 	g_depth.GetDimensions(w, h, d);
 	float2 texCoord = float2(vertexID, instanceID) / float2(w, h);
-	float2 screenPos = float2(texCoord.x, texCoord.y) * float2(0.5, -0.5) + float2(0.5, -0.5);
+	float2 screenPos = texCoord * float2(2, -2) - float2(1, -1);
 
-	float4x4 invPvMatrix = g_transforms[lightIndex].invPvMatrix[cubeIndex];
+	float4x4 invPvMatrix = g_shadowTransforms[lightIdx].invPvMatrix[cubeAxis];
 	float4 wsPosition = mul(invPvMatrix, float4(screenPos, depth, 1));
 
 	float3 offset = (wsPosition.xyz - g_voxel.gridCenter.xyz) * g_voxel.invGridCellSize;
@@ -58,15 +61,17 @@ VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 	float3 color = g_color.Load(int4(vertexID, instanceID, arrayIndex, 0)).rgb;
 
 	VSOutput output;
-	output.position = float4(0, 0, 0, 1);
-	output.gridPosition = gridPosition;
-	output.axis = g_voxelAxis[cubeIndex];
+	output.position = float4(screenPos, 0, 1);
+	
+	output.axis = g_voxelAxis[cubeAxis];
 	output.color = color;
 
 	if (!isPointInGrid(gridPosition))
 	{
 		output.position.xy = -2;
 	}
+
+	output.gridPosition = gridPosition + int3(0, 0, output.axis * g_voxel.dim);
 
 	return output;
 }

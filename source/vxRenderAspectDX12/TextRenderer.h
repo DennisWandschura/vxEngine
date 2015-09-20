@@ -25,6 +25,7 @@ SOFTWARE.
 */
 
 class Font;
+struct ID3D12Device;
 
 #include <vxLib/math/Vector.h>
 #include <vxLib/memory.h>
@@ -69,7 +70,7 @@ namespace Graphics
 		TextRenderer();
 		~TextRenderer();
 
-		void getRequiredMemory(u64* bufferSize, u64* textureSize);
+		void getRequiredMemory(u64* bufferSize, u64* textureSize, ID3D12Device* device);
 
 		bool initialize(vx::StackAllocator* scratchAllocator, const void* p);
 		void shutdown();

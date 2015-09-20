@@ -36,4 +36,15 @@ struct CreateResourceDesc
 	const D3D12_RESOURCE_DESC* resDesc;
 	const D3D12_CLEAR_VALUE* clearValue;
 	D3D12_RESOURCE_STATES state;
+
+	static CreateResourceDesc createDesc(u64 size, const D3D12_RESOURCE_DESC* resDesc, const D3D12_CLEAR_VALUE* clearValue, D3D12_RESOURCE_STATES state)
+	{
+		CreateResourceDesc desc;
+		desc.size = size;
+		desc.resDesc = resDesc;
+		desc.clearValue = clearValue;
+		desc.state = state;
+
+		return desc;
+	}
 };

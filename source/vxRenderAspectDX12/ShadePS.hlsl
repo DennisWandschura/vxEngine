@@ -22,11 +22,11 @@ cbuffer CameraStaticBuffer : register(b1)
 	GpuCameraStatic cameraStatic;
 };
 
-Texture2D g_albedoeSlice : register(t1);
+Texture2D<float4> g_albedoeSlice : register(t1);
 Texture2D<float> g_zBuffer : register(t2);
-Texture2D g_normalSlice : register(t3);
-Texture2D g_surfaceSlice : register(t4);
-//TextureCubeArray<float2> g_shadowTextureLinear : register(t5);
+Texture2D<half2> g_normalSlice : register(t3);
+Texture2D<half2> g_surfaceSlice : register(t4);
+TextureCubeArray<float2> g_shadowTextureLinear : register(t5);
 
 SamplerState g_sampler : register(s0);
 SamplerState g_samplerShadow : register(s1);
@@ -67,11 +67,10 @@ float ChebyshevUpperBound(float2 Moments, float t)
 
 float sampleShadow(in float3 L, float distance, float lightFalloff, uint lightIndex)
 {
-	//float cmp = distance / lightFalloff;
-	//float2 sampledDepth = g_shadowTextureLinear.Sample(g_sampler, float4(-L.x, -L.y, L.z, lightIndex)).rg;
+	float cmp = distance / lightFalloff;
+	float2 sampledDepth = g_shadowTextureLinear.Sample(g_sampler, float4(-L.x, -L.y, L.z, lightIndex)).rg;
 
-	//return ChebyshevUpperBound(sampledDepth, cmp);
-	return 1.0;
+	return ChebyshevUpperBound(sampledDepth, cmp);
 }
 
 float ggx(float alpha, float nDotH)

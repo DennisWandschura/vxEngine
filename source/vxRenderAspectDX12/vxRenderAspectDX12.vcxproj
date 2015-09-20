@@ -164,6 +164,7 @@
     <ClInclude Include="PipelineState.h" />
     <ClInclude Include="RenderLayerGame.h" />
     <ClInclude Include="RenderLayerPerfOverlay.h" />
+    <ClInclude Include="RenderPassBlurVoxel.h" />
     <ClInclude Include="RenderPassConeTrace.h" />
     <ClInclude Include="RenderPassCullLights.h" />
     <ClInclude Include="RenderPassDrawVoxel.h" />
@@ -197,6 +198,7 @@
     <ClInclude Include="RenderPassSSIL.h" />
     <ClInclude Include="RenderPassVisibleLights.h" />
     <ClInclude Include="RenderPassVoxelize.h" />
+    <ClInclude Include="RenderPassVoxelizeLight.h" />
     <ClInclude Include="RenderPassVoxelMip.h" />
     <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
     <ClInclude Include="RenderSettings.h" />
@@ -208,9 +210,12 @@
     <ClInclude Include="RenderPassZBuffer.h" />
     <ClInclude Include="ResourceBarrier.h" />
     <ClInclude Include="ResourceView.h" />
+    <ClInclude Include="RootSignature.h" />
     <ClInclude Include="ShaderManager.h" />
+    <ClInclude Include="ShaderResourceViewDesc.h" />
     <ClInclude Include="TaskUploadGeometry.h" />
     <ClInclude Include="TextRenderer.h" />
+    <ClInclude Include="ResourceDesc.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="UploadManager.h" />
     <ClInclude Include="Vertex.h" />
@@ -236,6 +241,7 @@
     <ClCompile Include="RenderLayerGame.cpp" />
     <ClCompile Include="RenderLayerPerfOverlay.cpp" />
     <ClCompile Include="RenderPassAo.cpp" />
+    <ClCompile Include="RenderPassBlurVoxel.cpp" />
     <ClCompile Include="RenderPassConeTrace.cpp" />
     <ClCompile Include="RenderPassCullLights.cpp" />
     <ClCompile Include="RenderPassDrawVoxel.cpp" />
@@ -493,6 +499,21 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="TextVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VoxelBlurPass2PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VoxelBlurPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VoxelInjectPointLight.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>

@@ -50,17 +50,7 @@ bool RenderPassVoxelMip::createRootSignature(ID3D12Device* device)
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
 	rootSignatureDesc.Init(3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-	ID3DBlob* blob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
-	auto hresult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &errorBlob);
-	if (hresult != 0)
-		return false;
-
-	hresult = device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(m_rootSignature.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;
+	return m_rootSignature.create(&rootSignatureDesc, device);
 }
 
 bool RenderPassVoxelMip::createPipelineState(ID3D12Device* device)
@@ -85,14 +75,14 @@ void RenderPassVoxelMip::createViews(ID3D12Device* device)
 	auto handle = m_uavHeap.getHandleCpu();
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UINT;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
 	srvDesc.Texture3D.MipLevels = 1;
 	srvDesc.Texture3D.ResourceMinLODClamp = 0;
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-	uavDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	uavDesc.Format = DXGI_FORMAT_R32_UINT;
 	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
 
 	u32 mipLevels = texDesc.MipLevels;

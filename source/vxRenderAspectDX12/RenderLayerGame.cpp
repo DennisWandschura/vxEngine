@@ -37,6 +37,7 @@
 #include "RenderPassOcclusion.h"
 #include "RenderPassConeTrace.h"
 #include "GpuVoxel.h"
+#include "RenderPassBlurVoxel.h"
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
@@ -155,19 +156,19 @@ void RenderLayerGame::createRenderPasses()
 	m_lightManager.setRenderPassCullLights(renderPassCullLights.get());
 	pushRenderPass(std::move(renderPassCullLights));
 
-	//auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
-	//m_lightManager.setRenderPassShadow(rnederPassShadow.get());
-	//pushRenderPass(std::move(rnederPassShadow));
+	auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
+	m_lightManager.addRenderPass(rnederPassShadow.get());
+	pushRenderPass(std::move(rnederPassShadow));
 
 	pushRenderPass(std::move(std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh)));
 
 	//auto renderPassFilterRSM = std::make_unique<RenderPassFilterRSM>(&m_commandAllocator);
-	//m_lightManager.setRenderPassFilterRSM(renderPassFilterRSM.get());
-//	pushRenderPass(std::move(renderPassFilterRSM));
+	//m_lightManager.addRenderPass(renderPassFilterRSM.get());
+	////pushRenderPass(std::move(renderPassFilterRSM));
 
-	/*auto renderPassInjectRSM = std::make_unique<RenderPassInjectRSM>(&m_commandAllocator);
-	m_lightManager.setRenderPassInjectRSM(renderPassInjectRSM.get());
-	pushRenderPass(std::move(renderPassInjectRSM));*/
+	//auto renderPassInjectRSM = std::make_unique<RenderPassInjectRSM>(&m_commandAllocator);
+	//m_lightManager.addRenderPass(renderPassInjectRSM.get());
+//	pushRenderPass(std::move(renderPassInjectRSM));
 
 	pushRenderPass(std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
@@ -181,7 +182,7 @@ void RenderLayerGame::createRenderPasses()
 	m_lightManager.addRenderPass(renderPassShading.get());
 	pushRenderPass(std::move(renderPassShading));
 
-	//pushRenderPass(std::make_unique<RenderPassDrawVoxel>(&m_commandAllocator));
+	pushRenderPass(std::make_unique<RenderPassBlurVoxel>(&m_commandAllocator));
 
 	pushRenderPass(std::make_unique<RenderPassSSIL>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
@@ -321,7 +322,7 @@ void RenderLayerGame::update()
 		m_lastVoxelCenter.z != newVoxelCenter.z)
 	{
 		m_uploadManager->pushUploadBuffer(voxelCenter, voxelBuffer->get(), offsetof(GpuVoxel, gridCenter), voxelBuffer->getOriginalState());
-		m_uploadManager->pushUploadBuffer(vx::float4a(m_lastVoxelCenter.x, m_lastVoxelCenter.y, m_lastVoxelCenter.z, 1), voxelBuffer->get(), offsetof(GpuVoxel, prevGridCenter), voxelBuffer->getOriginalState());
+		//m_uploadManager->pushUploadBuffer(vx::float4a(m_lastVoxelCenter.x, m_lastVoxelCenter.y, m_lastVoxelCenter.z, 1), voxelBuffer->get(), offsetof(GpuVoxel, prevGridCenter), voxelBuffer->getOriginalState());
 
 		auto voxelTextureColor = m_resourceManager->getTexture(L"voxelTextureColor");
 		auto voxelTextureColorPrevious = m_resourceManager->getTexture(L"voxelTextureColorPrevious");
