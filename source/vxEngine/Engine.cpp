@@ -26,7 +26,6 @@ SOFTWARE.
 #include <vxEngineLib/Locator.h>
 #include "developer.h"
 #include "EngineGlobals.h"
-#include "CpuProfiler.h"
 #include <vxEngineLib/MessageTypes.h>
 #include <vxEngineLib/debugPrint.h>
 #include <vxEngineLib/FileEntry.h>
