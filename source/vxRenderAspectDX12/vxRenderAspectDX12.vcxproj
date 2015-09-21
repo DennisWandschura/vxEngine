@@ -196,10 +196,12 @@
     <ClInclude Include="RenderPassShading.h" />
     <ClInclude Include="RenderPassShadow.h" />
     <ClInclude Include="RenderPassSSIL.h" />
+    <ClInclude Include="RenderPassText.h" />
     <ClInclude Include="RenderPassVisibleLights.h" />
     <ClInclude Include="RenderPassVoxelize.h" />
     <ClInclude Include="RenderPassVoxelizeLight.h" />
     <ClInclude Include="RenderPassVoxelMip.h" />
+    <ClInclude Include="RenderPassVoxelPropagate.h" />
     <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
     <ClInclude Include="RenderSettings.h" />
     <ClInclude Include="Resource.h" />
@@ -258,9 +260,11 @@
     <ClCompile Include="RenderPassShading.cpp" />
     <ClCompile Include="RenderPassShadow.cpp" />
     <ClCompile Include="RenderPassSSIL.cpp" />
+    <ClCompile Include="RenderPassText.cpp" />
     <ClCompile Include="RenderPassVisibleLights.cpp" />
     <ClCompile Include="RenderPassVoxelize.cpp" />
     <ClCompile Include="RenderPassVoxelMip.cpp" />
+    <ClCompile Include="RenderPassVoxelPropagate.cpp" />
     <ClCompile Include="RenderPassZBufferCreateMipmaps.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="RenderPassZBuffer.cpp" />
@@ -533,6 +537,11 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="VoxelMipVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VoxelPropagateVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>

@@ -26,24 +26,21 @@ SOFTWARE.
 namespace Graphics
 {
 	Font::Font()
-		:m_textureSlice(0),
-		m_textureDim(0),
+		:m_texture(nullptr),
 		m_atlas()
 	{
 
 	}
 
-	Font::Font(u32 textureSlice, u32 dim, FontAtlas &&fontAtlas)
-		: m_textureSlice(textureSlice),
-		m_textureDim(dim),
+	Font::Font(const Texture* texture, FontAtlas &&fontAtlas)
+		: m_texture(texture),
 		m_atlas(std::move(fontAtlas))
 	{
 
 	}
 
 	Font::Font(Font &&rhs)
-		: m_textureSlice(rhs.m_textureSlice),
-		m_textureDim(rhs.m_textureDim),
+		: m_texture(rhs.m_texture),
 		m_atlas(std::move(rhs.m_atlas))
 	{
 	}
@@ -56,8 +53,7 @@ namespace Graphics
 	{
 		if (this != &rhs)
 		{
-			std::swap(m_textureSlice, rhs.m_textureSlice);
-			std::swap(m_textureDim, rhs.m_textureDim);
+			std::swap(m_texture, rhs.m_texture);
 			m_atlas = std::move(rhs.m_atlas);
 		}
 		return *this;

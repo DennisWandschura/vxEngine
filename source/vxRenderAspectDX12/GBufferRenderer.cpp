@@ -137,13 +137,13 @@ void GBufferRenderer::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTextur
 
 bool GBufferRenderer::loadShaders(d3d::ShaderManager* shaderManager)
 {
-	if (!shaderManager->loadShader("MeshVertex.cso", L"../../lib/MeshVertex.cso", d3d::ShaderType::Vertex))
+	if (!shaderManager->loadShader(L"MeshVertex.cso"))
 		return false;
 
 	//if (!shaderManager->loadShader("DeepGBufferGs.cso", L"../../lib/DeepGBufferGs.cso", d3d::ShaderType::Geometry))
 	//	return false;
 
-	if (!shaderManager->loadShader("PsGBuffer.cso", L"../../lib/PsGBuffer.cso", d3d::ShaderType::Pixel))
+	if (!shaderManager->loadShader(L"PsGBuffer.cso"))
 		return false;
 
 	return true;
@@ -218,9 +218,9 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
 	inputDesc.inputLayout = { inputLayout, _countof(inputLayout) };
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("MeshVertex.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"MeshVertex.cso");
 	//inputDesc.shaderDesc.gs = s_shaderManager->getShader("DeepGBufferGs.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("PsGBuffer.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"PsGBuffer.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	inputDesc.rtvFormats = rtvFormats;
 	inputDesc.rtvCount = 4;

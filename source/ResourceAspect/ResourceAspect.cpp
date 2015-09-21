@@ -133,7 +133,7 @@ bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::st
 	if (!m_animationData.initialize(64, 0, 5 MBYTE, mainAllocator))
 		return false;
 
-	if (!m_textureData.initialize(128, 50 MBYTE, 20 MBYTE, mainAllocator))
+	if (!m_textureData.initialize(128, 100 MBYTE, 20 MBYTE, mainAllocator))
 		return false;
 
 	if (!m_audioData.initialize(128, 10 MBYTE, 1 MBYTE, mainAllocator))

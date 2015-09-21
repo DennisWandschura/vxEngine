@@ -27,7 +27,7 @@ bool RenderPassZBufferCreateMipmaps::createData(ID3D12Device* device)
 
 bool RenderPassZBufferCreateMipmaps::loadShaders(d3d::ShaderManager* shaderManager)
 {
-	if (!shaderManager->loadShader("SAO_minify.cso", L"../../lib/SAO_minify.cso", d3d::ShaderType::Vertex))
+	if (!shaderManager->loadShader(L"SAO_minify.cso"))
 		return false;
 
 	return true;
@@ -54,9 +54,9 @@ bool RenderPassZBufferCreateMipmaps::createPipelineState(ID3D12Device* device, d
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
 	inputDesc.depthEnabled = 0;
-	inputDesc.shaderDesc.vs = shaderManager->getShader("DrawQuadVs.cso");
-	inputDesc.shaderDesc.gs = shaderManager->getShader("DrawQuadGs.cso");
-	inputDesc.shaderDesc.ps = shaderManager->getShader("SAO_minify.cso");
+	inputDesc.shaderDesc.vs = shaderManager->getShader(L"DrawQuadVs.cso");
+	inputDesc.shaderDesc.gs = shaderManager->getShader(L"DrawQuadGs.cso");
+	inputDesc.shaderDesc.ps = shaderManager->getShader(L"SAO_minify.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvFormats = &rtvFormat;
 	inputDesc.rtvCount = 1;

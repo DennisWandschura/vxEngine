@@ -49,10 +49,10 @@ bool RenderPassConeTrace::createData(ID3D12Device* device)
 
 bool RenderPassConeTrace::loadShaders()
 {
-	if (!s_shaderManager->loadShader("ConeTraceVS.cso", L"../../lib/ConeTraceVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"ConeTraceVS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("ConeTracePS.cso", L"../../lib/ConeTracePS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"ConeTracePS.cso"))
 		return false;
 
 	return true;
@@ -86,8 +86,8 @@ bool RenderPassConeTrace::createPipelineState(ID3D12Device* device)
 	inputDesc.depthEnabled = 0;
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("ConeTraceVS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("ConeTracePS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"ConeTraceVS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"ConeTracePS.cso");
 	inputDesc.rtvCount = 1;
 	inputDesc.rtvFormats = &rtvFormat;
 

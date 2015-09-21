@@ -56,6 +56,8 @@ protected:
 
 	RenderPass();
 
+	bool loadShaders(const wchar_t* const* name, u32 count);
+
 public:
 	virtual ~RenderPass();
 

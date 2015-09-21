@@ -89,19 +89,19 @@ bool RenderPassAO::createData(ID3D12Device* device)
 
 bool RenderPassAO::loadShaders(d3d::ShaderManager* shaderManager)
 {
-	if (!shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", d3d::ShaderType::Vertex))
+	if (!shaderManager->loadShader(L"DrawQuadVs.cso"))
 		return false;
 
-	if (!shaderManager->loadShader("DrawQuadGs.cso", L"../../lib/DrawQuadGs.cso", d3d::ShaderType::Geometry))
+	if (!shaderManager->loadShader(L"DrawQuadGs.cso"))
 		return false;
 
-	if (!shaderManager->loadShader("SAO_aoPS.cso", L"../../lib/SAO_aoPS.cso", d3d::ShaderType::Pixel))
+	if (!shaderManager->loadShader(L"SAO_aoPS.cso"))
 		return false;
 
-	if (!shaderManager->loadShader("SAO_blurX.cso", L"../../lib/SAO_blurX.cso", d3d::ShaderType::Pixel))
+	if (!shaderManager->loadShader(L"SAO_blurX.cso"))
 		return false;
 
-	if (!shaderManager->loadShader("SAO_blurY.cso", L"../../lib/SAO_blurY.cso", d3d::ShaderType::Pixel))
+	if (!shaderManager->loadShader(L"SAO_blurY.cso"))
 		return false;
 
 	return true;
@@ -177,9 +177,9 @@ bool RenderPassAO::createPipelineState(ID3D12Device* device, d3d::ShaderManager*
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
 	inputDesc.depthEnabled = 0;
-	inputDesc.shaderDesc.vs = shaderManager->getShader("DrawQuadVs.cso");
-	inputDesc.shaderDesc.gs = shaderManager->getShader("DrawQuadGs.cso");
-	inputDesc.shaderDesc.ps = shaderManager->getShader("SAO_aoPS.cso");
+	inputDesc.shaderDesc.vs = shaderManager->getShader(L"DrawQuadVs.cso");
+	inputDesc.shaderDesc.gs = shaderManager->getShader(L"DrawQuadGs.cso");
+	inputDesc.shaderDesc.ps = shaderManager->getShader(L"SAO_aoPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvFormats = &rtvFormat;
 	inputDesc.rtvCount = 1;
@@ -188,7 +188,7 @@ bool RenderPassAO::createPipelineState(ID3D12Device* device, d3d::ShaderManager*
 	if (!d3d::PipelineState::create(psoDesc, &m_pipelineState, device))
 		return false;
 
-	auto psShader = shaderManager->getShader("SAO_blurX.cso");
+	auto psShader = shaderManager->getShader(L"SAO_blurX.cso");
 	psoDesc.PS = { reinterpret_cast<UINT8*>(psShader->GetBufferPointer()), psShader->GetBufferSize() };
 	psoDesc.pRootSignature = m_blurRootSignature[0].get();
 
@@ -196,7 +196,7 @@ bool RenderPassAO::createPipelineState(ID3D12Device* device, d3d::ShaderManager*
 	if (hresult != 0)
 		return false;
 
-	psShader = shaderManager->getShader("SAO_blurY.cso");
+	psShader = shaderManager->getShader(L"SAO_blurY.cso");
 	psoDesc.PS = { reinterpret_cast<UINT8*>(psShader->GetBufferPointer()), psShader->GetBufferSize() };
 	psoDesc.pRootSignature = m_blurRootSignature[1].get();
 

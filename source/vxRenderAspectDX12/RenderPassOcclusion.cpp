@@ -73,10 +73,10 @@ bool RenderPassOcclusion::createData(ID3D12Device* device)
 
 bool RenderPassOcclusion::loadShaders()
 {
-	if (!s_shaderManager->loadShader("ConeTraceOpacityVS.cso", L"../../lib/ConeTraceOpacityVS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"ConeTraceOpacityVS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("ConeTraceOpacityPS.cso", L"../../lib/ConeTraceOpacityPS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"ConeTraceOpacityPS.cso"))
 		return false;
 
 	return true;
@@ -121,8 +121,8 @@ bool RenderPassOcclusion::createPipelineState(ID3D12Device* device)
 	inputDesc.depthEnabled = 0;
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("ConeTraceOpacityVS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("ConeTraceOpacityPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"ConeTraceOpacityVS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"ConeTraceOpacityPS.cso");
 	inputDesc.rtvCount = 1;
 	inputDesc.rtvFormats = &rtvFormat;
 

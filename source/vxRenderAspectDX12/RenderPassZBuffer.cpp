@@ -58,13 +58,13 @@ bool RenderPassZBuffer::createData(ID3D12Device* device)
 
 bool RenderPassZBuffer::loadShaders(d3d::ShaderManager* shaderManager)
 {
-	if (!shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", d3d::ShaderType::Vertex))
+	if (!shaderManager->loadShader(L"DrawQuadVs.cso"))
 		return false;
 
-	if (!shaderManager->loadShader("DrawQuadGs.cso", L"../../lib/DrawQuadGs.cso", d3d::ShaderType::Geometry))
+	if (!shaderManager->loadShader(L"DrawQuadGs.cso"))
 		return false;
 
-	if (!shaderManager->loadShader("CreateZBufferPS.cso", L"../../lib/CreateZBufferPS.cso", d3d::ShaderType::Pixel))
+	if (!shaderManager->loadShader(L"CreateZBufferPS.cso"))
 		return false;
 
 	return true;
@@ -107,9 +107,9 @@ bool RenderPassZBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderMan
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
 	inputDesc.depthEnabled = 0;
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("DrawQuadVs.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("DrawQuadGs.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("CreateZBufferPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"DrawQuadVs.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"DrawQuadGs.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"CreateZBufferPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvFormats = rtvFormats;
 	inputDesc.rtvCount = 1;

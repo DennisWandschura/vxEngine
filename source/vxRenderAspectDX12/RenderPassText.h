@@ -24,38 +24,41 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct ID3D10Blob;
-
-#include <vxLib/types.h>
-#include <vxLib/Container/sorted_vector.h>
-#include <vxLib/StringID.h>
-
 namespace d3d
 {
-	enum class ShaderType : u32
-	{
-		Vertex,
-		Geometry,
-		Pixel
-	};
-
-	class ShaderManager
-	{
-		struct Entry;
-
-		vx::sorted_vector<vx::StringID, Entry> m_shaders;
-		wchar_t m_rootDir[16];
-
-	public:
-		ShaderManager();
-		~ShaderManager();
-
-		void initialize(const wchar_t(&rootDir)[16]);
-		void shutdown();
-
-		bool loadShader(const wchar_t* name);
-
-		const ID3D10Blob* getShader(const wchar_t* name) const;
-		ID3D10Blob* getShader(const wchar_t* name);
-	};
+	class CommandAllocator;
+	class Device;
 }
+
+#include "RenderPass.h"
+#include "CommandList.h"
+#include "DescriptorHeap.h"
+
+class RenderPassText : public RenderPass
+{
+	d3d::GraphicsCommandList m_commandList;
+	d3d::CommandAllocator* m_allocator;
+	d3d::DescriptorHeap m_rtvHeap;
+	d3d::DescriptorHeap m_srvHeap;
+	u32 m_indexCount;
+	ID3D12Resource* m_renderTargets[2];
+	d3d::Device* m_device;
+
+	bool createRootSignature(ID3D12Device* device);
+	bool createPipelineState(ID3D12Device* device);
+
+public:
+	RenderPassText(d3d::CommandAllocator* alloc, d3d::Device* device);
+	~RenderPassText();
+
+	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+
+	bool createData(ID3D12Device* device) override;
+
+	bool initialize(ID3D12Device* device, void* p) override;
+	void shutdown() override;
+
+	void submitCommands(Graphics::CommandQueue* queue) override;
+
+	void setIndexCount(u32 count) { m_indexCount = count; }
+};

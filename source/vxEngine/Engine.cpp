@@ -113,7 +113,9 @@ void Engine::update()
 
 	m_resourceAspect.update();
 
+	m_cpuProfiler.pushMarker("update audio()");
 	m_audioAspect->update(g_dt);
+	m_cpuProfiler.popMarker();
 
 	//printf("task manager begin\n");
 	//m_taskManager.update();
@@ -173,28 +175,33 @@ void Engine::mainLoop(Logfile* logfile)
 		frameTime = fminf(frameTime, g_dt);
 		accum += frameTime;
 
+		m_cpuProfiler.frame();
+
+		m_cpuProfiler.pushMarker("frame");
+
 		m_renderAspect->submitCommands();
 
 		m_taskManager.updateMainThread();
 
-		m_cpuProfiler.frame();
-
 		while (accum >= g_dt)
 		{
 			m_cpuProfiler.pushMarker("update()");
-
 			update();
 
 			m_renderAspect->update();
 
+			m_cpuProfiler.update(m_renderAspect);
 			m_renderAspect->updateProfiler(g_dt);
 
-			m_cpuProfiler.popMarker();
-
 			accum -= g_dt;
+			m_cpuProfiler.popMarker();
 		}
 
+		m_cpuProfiler.pushMarker("endFrame");
 		m_renderAspect->endFrame();
+		m_cpuProfiler.popMarker();
+
+		m_cpuProfiler.popMarker();
 	}
 }
 
@@ -315,7 +322,8 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 		return false;
 	}
 
-	m_cpuProfiler.initialize();
+	auto topLeftProfilerPosition = (g_engineConfig.m_resolution / vx::uint2(2)) - vx::uint2(250, 50);
+	m_cpuProfiler.initialize(topLeftProfilerPosition);
 
 	g_engineConfig.m_editor = false;
 

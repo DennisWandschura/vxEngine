@@ -1,5 +1,7 @@
 #include <vxEngineLib/CpuProfiler.h>
 #include <Windows.h>
+#include <vxEngineLib/Graphics/RenderAspectInterface.h>
+#include <vxEngineLib/CpuTimer.h>
 
 inline void	incrementCycle(s32* pval, size_t array_size)
 {
@@ -57,7 +59,7 @@ CpuProfiler::~CpuProfiler()
 
 }
 
-void CpuProfiler::initialize()
+void CpuProfiler::initialize(const vx::uint2 &position)
 {
 	if (s_frequency == 0)
 	{
@@ -68,6 +70,7 @@ void CpuProfiler::initialize()
 	m_entries = std::make_unique<Entry[]>(s_maxMarkersPerThread);
 
 	m_entriesByName.reserve(s_maxMarkersPerThread);
+	m_position = position;
 }
 
 void CpuProfiler::shutdown()
@@ -77,7 +80,7 @@ void CpuProfiler::shutdown()
 	m_entries.reset();
 }
 
-void CpuProfiler::update()
+void CpuProfiler::update(RenderAspectInterface* renderAspect)
 {
 	/*f32 textureSlice = m_pFont->getTextureEntry().getSlice();
 	auto textureSize = m_pFont->getTextureEntry().getTextureSize();
@@ -97,6 +100,30 @@ void CpuProfiler::update()
 
 	m_vertexCount = bufferIndex.x;
 	m_indexCount = bufferIndex.y;*/
+
+	RenderUpdateTextData data;
+
+	const f32 yOffset = 15.0f;
+	f32 xPos = m_position.x;;
+	f32 ypos = m_position.y;
+	for (u32 i = 0; i < m_entryCount; ++i)
+	{
+		auto &entry = m_entries[i];
+
+		auto time = f32(entry.time * 0.001f);
+
+		auto strSize = sprintf(data.text, "%s %.4f ms", entry.name, time);
+		data.text[strSize] = '\0';
+
+		data.position.x = xPos + entry.layer * yOffset;
+		data.position.y = ypos;
+		data.color = vx::float3(1);
+		data.strSize = strSize;
+
+		renderAspect->queueUpdate(RenderUpdateTaskType::UpdateText, (u8*)&data, sizeof(data));
+
+		ypos -= yOffset;
+	}
 }
 
 void CpuProfiler::frame()

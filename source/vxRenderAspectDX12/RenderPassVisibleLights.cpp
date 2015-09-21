@@ -29,7 +29,7 @@ bool RenderPassVisibleLights::createData(ID3D12Device* device)
 
 bool RenderPassVisibleLights::loadShaders()
 {
-	if (!s_shaderManager->loadShader("CopyLightsVS.cso", L"../../lib/CopyLightsVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"CopyLightsVS.cso"))
 		return false;
 
 	return true;
@@ -75,7 +75,7 @@ bool RenderPassVisibleLights::createPipelineState(ID3D12Device* device)
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
 	inputDesc.depthEnabled = 0;
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("CopyLightsVS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"CopyLightsVS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
 

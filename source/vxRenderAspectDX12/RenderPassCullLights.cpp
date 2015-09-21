@@ -55,16 +55,16 @@ bool RenderPassCullLights::createData(ID3D12Device* device)
 
 bool RenderPassCullLights::loadShaders()
 {
-	if (!s_shaderManager->loadShader("CullLightsVS.cso", L"../../lib/CullLightsVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"CullLightsVS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("CullLightsGS.cso", L"../../lib/CullLightsGS.cso", d3d::ShaderType::Geometry))
+	if (!s_shaderManager->loadShader(L"CullLightsGS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("CullLightsPS.cso", L"../../lib/CullLightsPS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"CullLightsPS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("ZeroLightsVS.cso", L"../../lib/ZeroLightsVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"ZeroLightsVS.cso"))
 		return false;
 
 	return true;
@@ -120,9 +120,9 @@ bool RenderPassCullLights::createPipelineState(ID3D12Device* device)
 {
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("CullLightsVS.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("CullLightsGS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("CullLightsPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"CullLightsVS.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"CullLightsGS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"CullLightsPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvCount = 0;
 	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
@@ -137,7 +137,7 @@ bool RenderPassCullLights::createPipelineState(ID3D12Device* device)
 
 bool RenderPassCullLights::createPipelineStateZero(ID3D12Device* device)
 {
-	auto vsShader = s_shaderManager->getShader("ZeroLightsVS.cso");
+	auto vsShader = s_shaderManager->getShader(L"ZeroLightsVS.cso");
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 	psoDesc.InputLayout = { nullptr, 0 };

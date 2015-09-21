@@ -27,15 +27,16 @@ SOFTWARE.
 
 namespace Graphics
 {
+	class Texture;
+
 	class Font
 	{
-		u32 m_textureSlice;
-		u32 m_textureDim;
+		const Texture* m_texture;
 		FontAtlas m_atlas;						// 32
 
 	public:
 		Font();
-		Font(u32 textureSlice, u32 dim, FontAtlas &&fontAtlas);
+		Font(const Texture* texture, FontAtlas &&fontAtlas);
 		Font(Font &&other);
 		Font(const Font&) = delete;
 		~Font();
@@ -45,7 +46,6 @@ namespace Graphics
 
 		const FontAtlasEntry* getAtlasEntry(u32 code) const;
 
-		u32 getTextureSlice() const { return m_textureSlice; }
-		u32 getTextureDim() const { return m_textureDim; }
+		const Texture* getTexture() const { return m_texture; }
 	};
 }

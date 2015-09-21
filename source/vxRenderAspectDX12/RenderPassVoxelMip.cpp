@@ -27,7 +27,7 @@ bool RenderPassVoxelMip::createData(ID3D12Device* device)
 
 bool RenderPassVoxelMip::loadShaders()
 {
-	if (!s_shaderManager->loadShader("VoxelMipVS.cso", L"../../lib/VoxelMipVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"VoxelMipVS.cso"))
 		return false;
 
 	//if (!s_shaderManager->loadShader("VoxelMipOpacityVS.cso", L"../../lib/VoxelMipOpacityVS.cso", d3d::ShaderType::Vertex))
@@ -58,7 +58,7 @@ bool RenderPassVoxelMip::createPipelineState(ID3D12Device* device)
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("VoxelMipVS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"VoxelMipVS.cso");
 	inputDesc.rtvCount = 0;
 	inputDesc.depthEnabled = 0;
 

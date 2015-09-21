@@ -1,7 +1,7 @@
 struct GSOutput
 {
 	float4 position : SV_POSITION;
-	float2 texCoords : TEXCOORDS0;
+	float2 texCoords : TEXCOORD0;
 	float3 color : COLOR0;
 };
 
@@ -11,7 +11,7 @@ static const float invGamma = 1.0 / gamma;
 
 Texture2D<float4> g_textTexture : register(t0);
 
-SamplerState g_textSampler;
+SamplerState g_textSampler : register(s0);
 
 float4 main(GSOutput input) : SV_TARGET
 {

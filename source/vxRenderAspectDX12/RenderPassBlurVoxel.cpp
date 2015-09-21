@@ -74,10 +74,10 @@ bool RenderPassBlurVoxel::createData(ID3D12Device* device)
 
 bool RenderPassBlurVoxel::loadShaders()
 {
-	if (!s_shaderManager->loadShader("VoxelBlurPS.cso", L"../../lib/VoxelBlurPS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"VoxelBlurPS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("VoxelBlurPass2PS.cso", L"../../lib/VoxelBlurPass2PS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"VoxelBlurPass2PS.cso"))
 		return false;
 
 	return true;
@@ -117,9 +117,9 @@ bool RenderPassBlurVoxel::createPipelineState(ID3D12Device* device)
 {
 	auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	d3d::PipelineStateDescInput inputDesc;
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("DrawQuadVs.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("DrawQuadGs.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("VoxelBlurPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"DrawQuadVs.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"DrawQuadGs.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"VoxelBlurPS.cso");
 	inputDesc.rtvCount = 1;
 	inputDesc.depthEnabled = 0;
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
@@ -135,9 +135,9 @@ bool RenderPassBlurVoxel::createPipelineStateBlur2(ID3D12Device* device)
 {
 	auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	d3d::PipelineStateDescInput inputDesc;
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("DrawQuadVs.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("DrawQuadGs.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("VoxelBlurPass2PS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"DrawQuadVs.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"DrawQuadGs.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"VoxelBlurPass2PS.cso");
 	inputDesc.rtvCount = 1;
 	inputDesc.depthEnabled = 0;
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;

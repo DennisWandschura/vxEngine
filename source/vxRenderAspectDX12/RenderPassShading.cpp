@@ -56,13 +56,13 @@ bool RenderPassShading::createTexture(ID3D12Device* device)
 
 bool RenderPassShading::loadShaders()
 {
-	if (!s_shaderManager->loadShader("ShadeVS.cso", L"../../lib/ShadeVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"ShadeVS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("ShadeGS.cso", L"../../lib/ShadeGS.cso", d3d::ShaderType::Geometry))
+	if (!s_shaderManager->loadShader(L"ShadeGS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("ShadePS.cso", L"../../lib/ShadePS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"ShadePS.cso"))
 		return false;
 
 	return true;
@@ -128,9 +128,9 @@ bool RenderPassShading::createPipelineState(ID3D12Device* device)
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
 	inputDesc.depthEnabled = 1;
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("ShadeVS.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("ShadeGS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("ShadePS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"ShadeVS.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"ShadeGS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"ShadePS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvFormats = &rtvFormat;
 	inputDesc.rtvCount = 1;

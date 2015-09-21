@@ -318,6 +318,12 @@
     <ClInclude Include="RenderPassBlurVoxel.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="RenderPassVoxelPropagate.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassText.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -462,6 +468,12 @@
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassBlurVoxel.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassVoxelPropagate.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassText.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
@@ -611,6 +623,9 @@
       <Filter>Shaders\voxel</Filter>
     </FxCompile>
     <FxCompile Include="VoxelBlurPass2PS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="VoxelPropagateVS.hlsl">
       <Filter>Shaders\voxel</Filter>
     </FxCompile>
   </ItemGroup>

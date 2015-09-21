@@ -111,13 +111,13 @@ bool RenderPassDrawVoxel::createData(ID3D12Device* device)
 
 bool RenderPassDrawVoxel::loadShaders()
 {
-	if (!s_shaderManager->loadShader("DrawVoxelVS.cso", L"../../lib/DrawVoxelVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"DrawVoxelVS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("DrawVoxelGS.cso", L"../../lib/DrawVoxelGS.cso", d3d::ShaderType::Geometry))
+	if (!s_shaderManager->loadShader(L"DrawVoxelGS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("DrawVoxelPS.cso", L"../../lib/DrawVoxelPS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"DrawVoxelPS.cso"))
 		return false;
 
 	return true;
@@ -149,9 +149,9 @@ bool RenderPassDrawVoxel::createPipelineState(ID3D12Device* device)
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.depthEnabled = 1;
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("DrawVoxelVS.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("DrawVoxelGS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("DrawVoxelPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"DrawVoxelVS.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"DrawVoxelGS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"DrawVoxelPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
 	inputDesc.rtvFormats = &rtvFormat;

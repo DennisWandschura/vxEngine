@@ -128,13 +128,13 @@ bool RenderPassFilterRSM::createData(ID3D12Device* device)
 
 bool RenderPassFilterRSM::loadShaders()
 {
-	if (!s_shaderManager->loadShader("ShadowMapFilterVS.cso", L"../../lib/ShadowMapFilterVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"ShadowMapFilterVS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("ShadowMapFilterGS.cso", L"../../lib/ShadowMapFilterGS.cso", d3d::ShaderType::Geometry))
+	if (!s_shaderManager->loadShader(L"ShadowMapFilterGS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("ShadowMapFilterPS.cso", L"../../lib/ShadowMapFilterPS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"ShadowMapFilterPS.cso"))
 		return false;
 
 	return true;
@@ -184,9 +184,9 @@ bool RenderPassFilterRSM::createPipelineState(ID3D12Device* device)
 	inputDesc.inputLayout.NumElements = 0;
 	inputDesc.depthEnabled = 0;
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("ShadowMapFilterVS.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("ShadowMapFilterGS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("ShadowMapFilterPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"ShadowMapFilterVS.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"ShadowMapFilterGS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"ShadowMapFilterPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvCount = 3;
 	inputDesc.rtvFormats = formats;

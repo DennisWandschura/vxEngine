@@ -138,13 +138,13 @@ bool RenderPassShadow::createData(ID3D12Device* device)
 
 bool RenderPassShadow::loadShaders()
 {
-	if (!s_shaderManager->loadShader("ShadowMapVS.cso", L"../../lib/ShadowMapVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"ShadowMapVS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("ShadowMapGS.cso", L"../../lib/ShadowMapGS.cso", d3d::ShaderType::Geometry))
+	if (!s_shaderManager->loadShader(L"ShadowMapGS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("ShadowMapPS.cso", L"../../lib/ShadowMapPS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"ShadowMapPS.cso"))
 		return false;
 
 	return true;
@@ -220,9 +220,9 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 	inputDesc.inputLayout.NumElements = _countof(inputLayout);
 	inputDesc.depthEnabled = 1;
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("ShadowMapVS.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("ShadowMapGS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("ShadowMapPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"ShadowMapVS.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"ShadowMapGS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"ShadowMapPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
 	inputDesc.rtvCount = 3;
@@ -390,11 +390,11 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	uavDesc.Texture3D.MipSlice = 0;
 	uavDesc.Texture3D.WSize = s_settings->m_lpvDim * 6;
 
-	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
+	auto voxelTextureColorTmp = s_resourceManager->getTexture(L"voxelTextureColorTmp");
 	srvHandle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, srvHandle);
+	device->CreateUnorderedAccessView(voxelTextureColorTmp->get(), nullptr, &uavDesc, srvHandle);
 
-	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, m_heapUav.getHandleCpu());
+	device->CreateUnorderedAccessView(voxelTextureColorTmp->get(), nullptr, &uavDesc, m_heapUav.getHandleCpu());
 
 	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
 	D3D12_CONSTANT_BUFFER_VIEW_DESC voxelBufferDesc;
@@ -437,13 +437,13 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 
 		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
-		auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
+		auto voxelTextureColorTmp = s_resourceManager->getTexture(L"voxelTextureColorTmp");
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColorTmp->get()));
 		auto gpuHandle = m_heapUav.getHandleGpu();
 		auto cpuHandle = m_heapUav.getHandleCpu();
-		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureColor->get(), clearValues, 0, nullptr);
+		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureColorTmp->get(), clearValues, 0, nullptr);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColorTmp->get()));
 
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
@@ -498,8 +498,7 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 			handleDsv.offset(1);
 		}
 
-		//auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColorTmp->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		auto hr = m_commandList->Close();

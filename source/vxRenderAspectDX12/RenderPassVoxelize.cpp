@@ -76,13 +76,13 @@ bool RenderPassVoxelize::createData(ID3D12Device* device)
 
 bool RenderPassVoxelize::loadShaders()
 {
-	if (!s_shaderManager->loadShader("VoxelizeVS.cso", L"../../lib/VoxelizeVS.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"VoxelizeVS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("VoxelizeGS.cso", L"../../lib/VoxelizeGS.cso", d3d::ShaderType::Geometry))
+	if (!s_shaderManager->loadShader(L"VoxelizeGS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("VoxelizePS.cso", L"../../lib/VoxelizePS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"VoxelizePS.cso"))
 		return false;
 
 	return true;
@@ -159,9 +159,9 @@ bool RenderPassVoxelize::createPipelineState(ID3D12Device* device)
 	inputDesc.inputLayout.pInputElementDescs = inputLayout;
 	inputDesc.inputLayout.NumElements = _countof(inputLayout);
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("VoxelizeVS.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("VoxelizeGS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("VoxelizePS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"VoxelizeVS.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"VoxelizeGS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"VoxelizePS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	inputDesc.rtvCount = 1;
 	inputDesc.rtvFormats = &format;

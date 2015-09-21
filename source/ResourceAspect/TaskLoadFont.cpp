@@ -49,7 +49,7 @@ TaskLoadFont::~TaskLoadFont()
 
 bool TaskLoadFont::loadFontData()
 {
-	managed_ptr<u8[]> fileData;
+	/*managed_ptr<u8[]> fileData;
 	u32 fileSize = 0;
 	if (!loadFromFile(&fileData, &fileSize))
 	{
@@ -58,11 +58,11 @@ bool TaskLoadFont::loadFontData()
 
 	// swap magic data with zero for string
 	u8 tmpMagic = fileData[fileSize];
-	fileData[fileSize] = '\0';
+	fileData[fileSize] = '\0';*/
 
 	Parser::Node root;
-	root.create((char*)fileData.get());
-	//root.createFromFile(m_fileNameWithPath.c_str());
+	//root.create((char*)fileData.get());
+	root.createFromFile(m_fileNameWithPath.c_str());
 
 	auto nodeMeta = root.get("meta");
 	auto nodeTexture = root.get("texture");
@@ -72,11 +72,11 @@ bool TaskLoadFont::loadFontData()
 
 	nodeTexture->as(&m_textureName);
 
-	fileData[fileSize] = tmpMagic;
+	/*fileData[fileSize] = tmpMagic;
 	std::unique_lock<std::mutex> lck;
 	m_fontManager->lockScratchAllocator(&lck);
 	fileData.clear();
-	lck.unlock();
+	lck.unlock();*/
 
 	auto metaSz = metaFile.size();
 	if (metaFile[metaSz - 1] == '\r')
@@ -86,12 +86,12 @@ bool TaskLoadFont::loadFontData()
 
 	std::string atlasPath = m_path + "meta/" + metaFile;
 	m_fileNameWithPath = atlasPath;
-	if (!loadFromFile(&fileData, &fileSize))
+	/*if (!loadFromFile(&fileData, &fileSize))
 	{
 		return false;
-	}
+	}*/
 
-	if (!m_fontAtlas.loadFromMemory((char*)fileData.get()))
+	if (!m_fontAtlas.loadFromFile(m_fileNameWithPath.c_str()))
 	{
 		return false;
 	}
@@ -107,7 +107,7 @@ void TaskLoadFont::requestLoadTexture()
 {
 	auto evt = Event::createEvent();
 	vx::Variant arg;
-	arg.u8 = 0;
+	arg.u8 = 1;
 
 	std::vector<Event> fileEvents;
 	fileEvents.push_back(evt);
@@ -127,6 +127,7 @@ TaskReturnType TaskLoadFont::runImpl()
 		{
 			VX_ASSERT(false);
 		}
+		m_fontManager->insertEntry(m_sid, std::move(m_filename), ptr, std::move(m_fontAtlas) );
 
 		return TaskReturnType::Success;
 	}

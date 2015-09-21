@@ -241,7 +241,7 @@ namespace Graphics
 		if (offset != 0)
 		{
 			auto indexCount = offset * 6;
-			auto vertexCount = offset * 6;
+			auto vertexCount = offset * 4;
 
 			glNamedBufferSubData(m_vboId, 0, sizeof(TextVertex) * vertexCount, m_vertices.get());
 

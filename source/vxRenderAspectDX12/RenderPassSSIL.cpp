@@ -79,13 +79,13 @@ bool RenderPassSSIL::createTexture(ID3D12Device* device)
 
 bool RenderPassSSIL::loadShaders()
 {
-	if (!s_shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", d3d::ShaderType::Vertex))
+	if (!s_shaderManager->loadShader(L"DrawQuadVs.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("DrawQuadGs.cso", L"../../lib/DrawQuadGs.cso", d3d::ShaderType::Geometry))
+	if (!s_shaderManager->loadShader(L"DrawQuadGs.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader("SsilPS.cso", L"../../lib/SsilPS.cso", d3d::ShaderType::Pixel))
+	if (!s_shaderManager->loadShader(L"SsilPS.cso"))
 		return false;
 
 	return true;
@@ -113,9 +113,9 @@ bool RenderPassSSIL::createPipelineState(ID3D12Device* device)
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
 	inputDesc.depthEnabled = 0;
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("DrawQuadVs.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("DrawQuadGs.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("SsilPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"DrawQuadVs.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"DrawQuadGs.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"SsilPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvFormats = &rtvFormat;
 	inputDesc.rtvCount = 1;

@@ -46,8 +46,8 @@ struct RenderUpdateDataTransforms
 
 struct RenderUpdateTextData
 {
-	char tex[48];
+	char text[48];
 	vx::float2 position;
 	vx::float3 color;
-	u32 size;
+	u32 strSize;
 };

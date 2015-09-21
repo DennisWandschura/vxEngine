@@ -57,13 +57,13 @@ bool RenderPassFinal::createData(ID3D12Device* device)
 
 bool RenderPassFinal::loadShaders(d3d::ShaderManager* shaderManager)
 {
-	if (!shaderManager->loadShader("DrawQuadVs.cso", L"../../lib/DrawQuadVs.cso", d3d::ShaderType::Vertex))
+	if (!shaderManager->loadShader(L"DrawQuadVs.cso"))
 		return false;
 
-	if (!shaderManager->loadShader("DrawQuadGs.cso", L"../../lib/DrawQuadGs.cso", d3d::ShaderType::Geometry))
+	if (!shaderManager->loadShader(L"DrawQuadGs.cso"))
 		return false;
 
-	if (!shaderManager->loadShader("FinalPS.cso", L"../../lib/FinalPS.cso", d3d::ShaderType::Pixel))
+	if (!shaderManager->loadShader(L"FinalPS.cso"))
 		return false;
 
 	return true;
@@ -105,9 +105,9 @@ bool RenderPassFinal::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
 	inputDesc.depthEnabled = 0;
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader("DrawQuadVs.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader("DrawQuadGs.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader("FinalPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"DrawQuadVs.cso");
+	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"DrawQuadGs.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"FinalPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvFormats = &rtvFormat;
 	inputDesc.rtvCount = 1;

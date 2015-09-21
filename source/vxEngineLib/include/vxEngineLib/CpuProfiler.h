@@ -1,6 +1,8 @@
 #pragma once
 
-#include <vxlib/types.h>
+class RenderAspectInterface;
+
+#include <vxlib/math/vector.h>
 #include <memory>
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
@@ -21,15 +23,16 @@ class CpuProfiler
 	int m_pushedMarkers;
 	int m_currentWriteId;
 	u32 m_entryCount;
+	vx::uint2 m_position;
 
 public:
 	CpuProfiler();
 	~CpuProfiler();
 
-	void initialize();
+	void initialize(const vx::uint2 &position);
 	void shutdown();
 
-	void update();
+	void update(RenderAspectInterface* renderAspect);
 
 	void frame();
 	void pushMarker(const char* id);
