@@ -351,7 +351,10 @@ void EditorEngine::editor_saveScene(const char* name)
 {
 	auto sceneCopy = new Editor::Scene();
 	m_pEditorScene->copy(sceneCopy);
-	m_resourceAspect.requestSaveFile(vx::FileEntry(name, vx::FileType::EditorScene), sceneCopy);
+	vx::Variant arg;
+	arg.ptr = sceneCopy;
+
+	m_resourceAspect.requestSaveFile(vx::FileEntry(name, vx::FileType::EditorScene), arg);
 }
 
 void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u32 typeAnimation)
@@ -1462,9 +1465,12 @@ void EditorEngine::setMeshPhysxType(u64 sid, u32 type)
 	auto dataAllocator = meshManager->lockDataAllocator(&lock);
 	if (m_physicsAspect.setMeshPhysxType(meshFile, physxType, dataAllocator))
 	{
+		vx::Variant arg;
+		arg.ptr = meshFile;
+
 		auto meshName = meshManager->getName(meshSid);
 		vx::FileEntry fileEntry(meshName, vx::FileType::Mesh);
-		m_resourceAspect.requestSaveFile(fileEntry, meshFile);
+		m_resourceAspect.requestSaveFile(fileEntry, arg);
 	}
 }
 

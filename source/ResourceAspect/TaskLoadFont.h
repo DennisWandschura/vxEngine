@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,30 +24,53 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
-
-namespace vx
+namespace Graphics
 {
-	enum class FileMessage : u16
-	{
-		// arg1 contains sid of filename, arg2 contains ptr to scene
-		Scene_Loaded,
-		EditorScene_Loaded,
-		// arg1 contains sid to file, arg2 contains ptr
-		Texture_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Material_Loaded,
-		// arg1 contains sid to file, arg2 userdata
-		Mesh_Loaded,
-		Audio_Loaded,
-		Animation_Loaded,
-		Font_Loaded,
-
-		Fbx_Loaded,
-
-		Scene_Existing,
-		Texture_Existing,
-		Material_Existing,
-		Mesh_Existing
-	};
+	class Font;
+	class Texture;
 }
+
+template<typename T>
+class ResourceManager;
+
+class ResourceAspect;
+
+#include "TaskLoadFile.h"
+#include <vxLib/StringID.h>
+#include <vxEngineLib/Graphics/FontAtlas.h>
+
+struct TaskLoadFontDesc
+{
+	ResourceManager<Graphics::Font>* m_fontManager;
+	ResourceManager<Graphics::Texture>* m_textureManager;
+	std::string m_fileNameWithPath;
+	std::string m_filename;
+	std::string m_path;
+	vx::StringID m_sid;
+	Event evt;
+	ResourceAspect* m_resourceAspect;
+};
+
+class TaskLoadFont : public TaskLoadFile
+{
+	std::string m_filename;
+	ResourceManager<Graphics::Font>* m_fontManager;
+	ResourceManager<Graphics::Texture>* m_textureManager;
+	vx::StringID m_sid;
+	std::string m_path;
+	Graphics::FontAtlas m_fontAtlas;
+	std::string m_textureName;
+	ResourceAspect* m_resourceAspect;
+	bool m_waitingForTexture;
+
+	bool loadFontData();
+	void requestLoadTexture();
+
+	TaskReturnType runImpl() override;
+
+public:
+	explicit TaskLoadFont(TaskLoadFontDesc &&desc);
+	~TaskLoadFont();
+
+	f32 getTimeMs() const override;
+};

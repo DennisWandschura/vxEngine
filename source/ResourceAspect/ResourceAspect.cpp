@@ -44,6 +44,8 @@ SOFTWARE.
 #include "TaskSaveMeshFile.h"
 #include "TaskLoadAudio.h"
 #include <vxEngineLib/AudioFile.h>
+#include <vxEngineLib/Graphics/Font.h>
+#include "TaskLoadFont.h"
 
 char ResourceAspect::s_textureFolder[32] = { "data/textures/" };
 char ResourceAspect::s_materialFolder[32] = { "data/materials/" };
@@ -52,13 +54,14 @@ char ResourceAspect::s_meshFolder[32] = { "data/mesh/" };
 char ResourceAspect::s_animationFolder[32] = { "data/animation/" };
 char ResourceAspect::s_assetFolder[32] = { "../../../assets/" };
 char ResourceAspect::s_audioFolder[32] = { "data/audio/" };
+char ResourceAspect::s_fontFolder[32] = { "data/fonts/" };
 
 struct ResourceAspect::FileRequest
 {
 	Event m_event;
 	vx::StringID m_sid;
 	vx::FileType m_type;
-	void* userData;
+	vx::Variant userData;
 	std::string m_filename;
 };
 
@@ -67,11 +70,11 @@ struct ResourceAspect::TaskLoadFileDesc
 	char(&fileNameWithPath)[64];
 	const char* fileName;
 	vx::StringID sid;
-	void* p;
+	vx::Variant arg;
 	vx::FileType type;
 
-	TaskLoadFileDesc(char(&fileNameWithPath_)[64], const char* filename_, const vx::StringID &sid_, void* ptr, vx::FileType type_)
-		:fileNameWithPath(fileNameWithPath_), fileName(filename_), sid(sid_), p(ptr), type(type_) {}
+	TaskLoadFileDesc(char(&fileNameWithPath_)[64], const char* filename_, const vx::StringID &sid_, vx::Variant v, vx::FileType type_)
+		:fileNameWithPath(fileNameWithPath_), fileName(filename_), sid(sid_), arg(v), type(type_) {}
 };
 
 ResourceAspect::ResourceAspect()
@@ -95,6 +98,7 @@ void ResourceAspect::setDirectories(const std::string &dataDir)
 	strcpy_s(s_animationFolder, (dataDir + "animation/").c_str());
 	strcpy_s(s_assetFolder, (dataDir + "../../assets/").c_str());
 	strcpy_s(s_audioFolder, (dataDir + "audio/").c_str());
+	strcpy_s(s_fontFolder, (dataDir + "fonts/").c_str());
 }
 
 bool ResourceAspect::loadFbxFactory()
@@ -135,6 +139,9 @@ bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::st
 	if (!m_audioData.initialize(128, 10 MBYTE, 1 MBYTE, mainAllocator))
 		return false;
 
+	if (!m_fontData.initialize(10, 1 MBYTE, 1 MBYTE, mainAllocator))
+		return false;
+
 	if (editor)
 	{
 		if (!loadFbxFactory())
@@ -164,6 +171,7 @@ void ResourceAspect::shutdown()
 		m_dllHandle = nullptr;
 	}
 
+	m_fontData.shutdown();
 	m_audioData.shutdown();
 	m_textureData.shutdown();
 	m_animationData.shutdown();
@@ -196,7 +204,7 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 		arg1.u64 = sid.value;
 
 		vx::Variant arg2;
-		arg2.ptr = userData;
+		arg2 = userData;
 
 		pushFileMessage(vx::FileMessage::Scene_Loaded, arg1, arg2);
 
@@ -208,7 +216,7 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 		arg1.u64 = sid.value;
 
 		vx::Variant arg2;
-		arg2.ptr = userData;
+		arg2 = userData;
 
 		pushFileMessage(vx::FileMessage::Mesh_Loaded, arg1, arg2);
 	} break;
@@ -218,7 +226,7 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 		arg1.u64 = sid.value;
 
 		vx::Variant arg2;
-		arg2.ptr = userData;
+		arg2 = userData;
 
 		pushFileMessage(vx::FileMessage::Material_Loaded, arg1, arg2);
 	} break;
@@ -228,7 +236,7 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 		arg1.u64 = sid.value;
 
 		vx::Variant arg2;
-		arg2.ptr = userData;
+		arg2 = userData;
 
 		pushFileMessage(vx::FileMessage::Fbx_Loaded, arg1, arg2);
 	} break;
@@ -238,7 +246,7 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 		arg1.u64 = sid.value;
 
 		vx::Variant arg2;
-		arg2.ptr = userData;
+		arg2 = userData;
 
 		pushFileMessage(vx::FileMessage::EditorScene_Loaded, arg1, arg2);
 
@@ -249,9 +257,19 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 		arg1.u64 = sid.value;
 
 		vx::Variant arg2;
-		arg2.ptr = userData;
+		arg2 = userData;
 
 		pushFileMessage(vx::FileMessage::Audio_Loaded, arg1, arg2);
+	}break;
+	case vx::FileType::Font:
+	{
+		vx::Variant arg1;
+		arg1.u64 = sid.value;
+
+		vx::Variant arg2;
+		arg2 = userData;
+
+		pushFileMessage(vx::FileMessage::Font_Loaded, arg1, arg2);
 	}break;
 	default:
 		break;
@@ -290,7 +308,7 @@ void ResourceAspect::update()
 	m_requests.swap(requests);
 }
 
-void ResourceAspect::pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, void* userData, std::string &&filename)
+void ResourceAspect::pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, vx::Variant userData, std::string &&filename)
 {
 	std::lock_guard<std::mutex> lock(m_requestMutex);
 
@@ -303,7 +321,7 @@ void ResourceAspect::pushFileRequest(vx::FileType fileType, const vx::StringID &
 	m_requests.push_back(request);
 }
 
-void ResourceAspect::pushTask(Task* task, vx::FileType type, const vx::StringID &sid, const Event &evt, void* p, std::string &&filename)
+void ResourceAspect::pushTask(Task* task, vx::FileType type, const vx::StringID &sid, const Event &evt, vx::Variant p, std::string &&filename)
 {
 	m_taskManager->pushTask(task);
 
@@ -319,12 +337,29 @@ void ResourceAspect::taskGetFileNameWithPath(const TaskLoadFileDesc &desc, const
 	}
 }
 
-void ResourceAspect::taskLoadAudio(const TaskLoadFileDesc &desc, const char* folder)
+void ResourceAspect::taskLoadFont(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
 {
 	auto filename = std::string(desc.fileName);
 	taskGetFileNameWithPath(desc, folder);
 
-	auto evt = Event::createEvent();
+	TaskLoadFontDesc loadDesc;
+	loadDesc.m_fontManager = &m_fontData;
+	loadDesc.m_textureManager = &m_textureData;
+	loadDesc.m_filename = filename;
+	loadDesc.evt = evt;
+	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
+	loadDesc.m_sid = desc.sid;
+	loadDesc.m_path = folder;
+
+	loadDesc.m_resourceAspect = this;
+	auto task = new TaskLoadFont(std::move(loadDesc));
+	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
+}
+
+void ResourceAspect::taskLoadAudio(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
+{
+	auto filename = std::string(desc.fileName);
+	taskGetFileNameWithPath(desc, folder);
 
 	TaskLoadAudioDesc loadDesc;
 	loadDesc.audioDataManager = &m_audioData ;
@@ -334,10 +369,10 @@ void ResourceAspect::taskLoadAudio(const TaskLoadFileDesc &desc, const char* fol
 	loadDesc.m_sid = desc.sid;
 
 	auto task = new TaskLoadAudio(std::move(loadDesc));
-	pushTask(task, desc.type, desc.sid, evt, desc.p, std::move(filename));
+	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
 }
 
-void ResourceAspect::taskLoadScene(const TaskLoadFileDesc &desc, const char* folder, bool editor)
+void ResourceAspect::taskLoadScene(const TaskLoadFileDesc &desc, const char* folder, bool editor, const Event &evt)
 {
 	auto filename = std::string(desc.fileName);
 	taskGetFileNameWithPath(desc, folder);
@@ -348,8 +383,7 @@ void ResourceAspect::taskLoadScene(const TaskLoadFileDesc &desc, const char* fol
 	directories.textureDir = s_textureFolder;
 	directories.animDir = s_animationFolder;
 
-	auto evt = Event::createEvent();
-	auto scene = desc.p;
+	auto scene = desc.arg.ptr;
 	TaskLoadSceneDesc loadDesc
 	{
 		std::string(desc.fileNameWithPath),
@@ -366,15 +400,13 @@ void ResourceAspect::taskLoadScene(const TaskLoadFileDesc &desc, const char* fol
 	};
 
 	auto task = new TaskLoadScene(std::move(loadDesc));
-	pushTask(task, desc.type, desc.sid, evt, desc.p, std::move(filename));
+	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
 }
 
-void ResourceAspect::taskLoadMesh(const TaskLoadFileDesc &desc, const char* folder)
+void ResourceAspect::taskLoadMesh(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
 {
 	auto filename = std::string(desc.fileName);
 	taskGetFileNameWithPath(desc, folder);
-
-	auto evt = Event::createEvent();
 
 	TaskLoadMeshDesc loadDesc;
 	loadDesc.evt = evt;
@@ -384,15 +416,13 @@ void ResourceAspect::taskLoadMesh(const TaskLoadFileDesc &desc, const char* fold
 	loadDesc.m_sid = desc.sid;
 
 	auto task = new TaskLoadMesh(std::move(loadDesc));
-	pushTask(task, desc.type, desc.sid, evt, desc.p, std::move(filename));
+	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
 }
 
-void ResourceAspect::taskLoadTexture(const TaskLoadFileDesc &desc, const char* folder)
+void ResourceAspect::taskLoadTexture(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
 {
 	auto filename = std::string(desc.fileName);
 	taskGetFileNameWithPath(desc, folder);
-
-	auto evt = Event::createEvent();
 
 	TaskLoadTextureDesc loadDesc;
 	loadDesc.evt = evt;
@@ -400,21 +430,17 @@ void ResourceAspect::taskLoadTexture(const TaskLoadFileDesc &desc, const char* f
 	loadDesc.m_filename = desc.fileName;
 	loadDesc.m_flipImage = true;
 	loadDesc.m_sid = desc.sid;
-	// need srgb flag
-	VX_ASSERT(false);
-	loadDesc.m_srgb = false;
+	loadDesc.m_srgb = desc.arg.u8;
 	loadDesc.m_textureManager = &m_textureData;
 
 	auto task = new TaskLoadTexture(std::move(loadDesc));
-	pushTask(task, desc.type, desc.sid, evt, desc.p, std::move(filename));
+	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
 }
 
-void ResourceAspect::taskLoadMaterial(const TaskLoadFileDesc &desc, const char* folder)
+void ResourceAspect::taskLoadMaterial(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
 {
 	auto filename = std::string(desc.fileName);
 	taskGetFileNameWithPath(desc, folder);
-
-	auto evt = Event::createEvent();
 
 	TaskLoadMaterialDesc loadDesc;
 	loadDesc.evt = evt;
@@ -428,17 +454,15 @@ void ResourceAspect::taskLoadMaterial(const TaskLoadFileDesc &desc, const char* 
 	loadDesc.m_textureManager = &m_textureData;
 
 	auto task = new TaskLoadMaterial(std::move(loadDesc));
-	pushTask(task, desc.type, desc.sid, evt, desc.p, std::move(filename));
+	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
 }
 
-void ResourceAspect::taskLoadFbx(const TaskLoadFileDesc &desc, const char* folder)
+void ResourceAspect::taskLoadFbx(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
 {
 	auto filename = std::string(desc.fileName);
 	taskGetFileNameWithPath(desc, folder);
 
-	PhsyxMeshType physxMeshType = (PhsyxMeshType)reinterpret_cast<u32>(desc.p);
-
-	auto evt = Event::createEvent();
+	PhsyxMeshType physxMeshType = (PhsyxMeshType)desc.arg.u32;
 
 	TaskLoadFbxDesc loadDesc;
 	loadDesc.m_animationFolder = s_animationFolder;
@@ -449,41 +473,45 @@ void ResourceAspect::taskLoadFbx(const TaskLoadFileDesc &desc, const char* folde
 	loadDesc.m_meshManager = &m_meshData;
 	loadDesc.m_physxMeshType = physxMeshType;
 	loadDesc.m_resourceAspect = this;
-	loadDesc.m_userData = desc.p;
+	loadDesc.m_userData = desc.arg.ptr;
 	loadDesc.m_fbxFactory = m_fbxFactory;
 
 	auto task = new TaskLoadFbx(std::move(loadDesc));
-	pushTask(task, desc.type, desc.sid, evt, desc.p, std::move(filename));
+	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
 }
 
-void ResourceAspect::taskSaveEditorScene(const TaskLoadFileDesc &desc, const char* folder)
+void ResourceAspect::taskSaveEditorScene(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
 {
 	auto filename = std::string(desc.fileName);
 	taskGetFileNameWithPath(desc, folder);
-	auto evt = Event::createEvent();
 
 	TaskSaveEditorSceneDesc loadDesc;
 	loadDesc.m_evt = evt;
 	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
-	loadDesc.m_scene = (Editor::Scene*)desc.p;
+	loadDesc.m_scene = (Editor::Scene*)desc.arg.ptr;
 
 	auto task = new TaskSaveEditorScene(std::move(loadDesc));
 	m_taskManager->pushTask(task);
 }
 
-void ResourceAspect::taskSaveMeshFile(const TaskLoadFileDesc &desc, const char* folder)
+void ResourceAspect::taskSaveMeshFile(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
 {
 	auto filename = std::string(desc.fileName);
 	taskGetFileNameWithPath(desc, folder);
-	auto evt = Event::createEvent();
 
 	auto str = std::string(desc.fileNameWithPath);
 
-	auto task = new TaskSaveMeshFile(std::move(str), (vx::MeshFile*)desc.p);
+	auto task = new TaskSaveMeshFile(std::move(str), (vx::MeshFile*)desc.arg.ptr);
 	m_taskManager->pushTask(task);
 }
 
 void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg)
+{
+	auto evt = Event::createEvent();
+	requestLoadFile(fileEntry, arg, evt);
+}
+
+void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant arg, const Event &evt)
 {
 	char fileNameWithPath[64];
 
@@ -496,7 +524,7 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant
 		fileNameWithPath,
 		fileName,
 		sid,
-		arg.ptr,
+		arg,
 		type
 	};
 
@@ -504,30 +532,29 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant
 	{
 	case vx::FileType::Scene:
 	{
-		taskLoadScene(desc, s_sceneFolder, false);
+		taskLoadScene(desc, s_sceneFolder, false, evt);
 	}break;
 	case vx::FileType::Invalid:
 		break;
 	case vx::FileType::Mesh:
 	{
-		taskLoadMesh(desc, s_meshFolder);
+		taskLoadMesh(desc, s_meshFolder, evt);
 	}break;
 	case vx::FileType::Texture:
 	{
-		VX_ASSERT(false);
-		//*folder = s_textureFolder;
+		taskLoadTexture(desc, s_textureFolder, evt);
 	}break;
 	case vx::FileType::Material:
 	{
-		taskLoadMaterial(desc, s_materialFolder);
+		taskLoadMaterial(desc, s_materialFolder, evt);
 	}break;
 	case vx::FileType::EditorScene:
 	{
-		taskLoadScene(desc, s_sceneFolder, true);
+		taskLoadScene(desc, s_sceneFolder, true, evt);
 	}break;
 	case vx::FileType::Fbx:
 	{
-		taskLoadFbx(desc, s_assetFolder);
+		taskLoadFbx(desc, s_assetFolder, evt);
 	}break;
 	case vx::FileType::Animation:
 	{
@@ -536,14 +563,18 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant
 	}break;
 	case vx::FileType::Audio:
 	{
-		taskLoadAudio(desc, s_audioFolder);
+		taskLoadAudio(desc, s_audioFolder, evt);
+	}break;
+	case vx::FileType::Font:
+	{
+		taskLoadFont(desc, s_fontFolder, evt);
 	}break;
 	default:
 		break;
 	}
 }
 
-void ResourceAspect::requestSaveFile(const vx::FileEntry &fileEntry, void* p)
+void ResourceAspect::requestSaveFile(const vx::FileEntry &fileEntry, vx::Variant arg)
 {
 	auto fileType = fileEntry.getType();
 	const char* fileName = fileEntry.getString();
@@ -555,19 +586,20 @@ void ResourceAspect::requestSaveFile(const vx::FileEntry &fileEntry, void* p)
 		fileNameWithPath,
 		fileName,
 		sid,
-		p,
+		arg,
 		fileType
 	};
 
+	auto evt = Event::createEvent();
 	switch (fileType)
 	{
 	case vx::FileType::EditorScene:
 	{
-		taskSaveEditorScene(desc, s_sceneFolder);
+		taskSaveEditorScene(desc, s_sceneFolder, evt);
 	}break;
 	case vx::FileType::Mesh:
 	{
-		taskSaveMeshFile(desc, s_meshFolder);
+		taskSaveMeshFile(desc, s_meshFolder, evt);
 	}break;
 	}
 }
@@ -610,4 +642,9 @@ const AudioFile* ResourceAspect::getAudioFile(const vx::StringID &sid) const
 ResourceManager<vx::MeshFile>* ResourceAspect::getMeshManager()
 {
 	return &m_meshData;
+}
+
+const Graphics::Font* ResourceAspect::getFontFile(const vx::StringID &sid) const
+{
+	return m_fontData.find(sid);
 }

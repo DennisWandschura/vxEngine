@@ -27,7 +27,7 @@ SOFTWARE.
 
 namespace vx
 {
-	enum class FileType : u8 { Invalid, Mesh, Texture, Material, Scene, EditorScene, Fbx, Animation, Audio };
+	enum class FileType : u8 { Invalid, Mesh, Texture, Material, Scene, EditorScene, Fbx, Animation, Audio, Font };
 
 	enum class FileStatus : u8
 	{

@@ -96,6 +96,9 @@
     <ClCompile Include="TaskLoadAudio.cpp">
       <Filter>Source Files\Tasks</Filter>
     </ClCompile>
+    <ClCompile Include="TaskLoadFont.cpp">
+      <Filter>Source Files\Tasks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h">
@@ -118,9 +121,6 @@
     </ClInclude>
     <ClInclude Include="TaskLoadScene.h">
       <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxResourceAspect\ResourceManager.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TaskLoadAnimation.h">
       <Filter>Header Files\Tasks</Filter>
@@ -160,6 +160,12 @@
     </ClInclude>
     <ClInclude Include="TaskLoadAudio.h">
       <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadFont.h">
+      <Filter>Header Files\Tasks</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxResourceAspect\ResourceManager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

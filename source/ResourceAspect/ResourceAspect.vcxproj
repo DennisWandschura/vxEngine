@@ -253,6 +253,7 @@
     <ClCompile Include="TaskLoadFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="TaskLoadFont.cpp" />
     <ClCompile Include="TaskLoadMaterial.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -294,6 +295,7 @@
     <ClInclude Include="TaskLoadAudio.h" />
     <ClInclude Include="TaskLoadFbx.h" />
     <ClInclude Include="TaskLoadFile.h" />
+    <ClInclude Include="TaskLoadFont.h" />
     <ClInclude Include="TaskLoadMaterial.h" />
     <ClInclude Include="TaskLoadMesh.h" />
     <ClInclude Include="TaskLoadScene.h" />
