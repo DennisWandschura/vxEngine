@@ -24,18 +24,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace Graphics
+{
+	class Font;
+}
+
+namespace d3d
+{
+	class ResourceManager;
+	class Device;
+}
+
+class RenderPass;
+class ResourceAspectInterface;
+class UploadManager;
+
 #include <vxEngineLib/Graphics/RenderLayer.h>
 #include "TextRenderer.h"
-#include <vxEngineLib/Graphics/Font.h>
+#include <vxLib/Container/sorted_vector.h>
+#include "CommandAllocator.h"
 
 class RenderLayerPerfOverlay : public Graphics::RenderLayer
 {
 	Graphics::TextRenderer m_textRenderer;
-	Graphics::Font m_font;
-	ID3D12Device* m_device;
+	const Graphics::Font* m_font;
+	UploadManager* m_uploadManager;
+	d3d::ResourceManager* m_resourceManager;
+	d3d::Device* m_device;
+	ResourceAspectInterface* m_resourceAspect;
+	d3d::CommandAllocator m_allocator;
+	vx::sorted_vector<vx::StringID, std::unique_ptr<RenderPass>> m_renderPasses;
 
 public:
-	explicit RenderLayerPerfOverlay(ID3D12Device* device);
+	RenderLayerPerfOverlay(d3d::Device* device, ResourceAspectInterface* resourceAspectInterface, UploadManager* uploadManager, d3d::ResourceManager* resourceManager);
 	~RenderLayerPerfOverlay();
 
 	void createRenderPasses() override;
@@ -52,4 +73,6 @@ public:
 	void submitCommandLists(Graphics::CommandQueue* queue) override;
 
 	u32 getCommandListCount() const override;
+
+	void handleMessage(const vx::Message &evt) override;
 };

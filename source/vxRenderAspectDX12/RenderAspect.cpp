@@ -29,6 +29,8 @@ SOFTWARE.
 #include <vxEngineLib/EngineConfig.h>
 #include <vxEngineLib/Logfile.h>
 #include <vxLib/ScopeGuard.h>
+#include "RenderLayerPerfOverlay.h"
+#include <vxEngineLib/ResourceAspectInterface.h>
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
@@ -118,6 +120,7 @@ void RenderAspect::uploadStaticCameraData()
 	projectionMatrixDouble.asFloat(&projMatrix);
 
 	GpuCameraStatic cameraStaticData;
+	cameraStaticData.orthoMatrix = vx::MatrixOrthographicRHDX(resolution.x, resolution.y, s_settings.m_nearZ, s_settings.m_farZ);
 	cameraStaticData.invProjMatrix = vx::MatrixInverse(projMatrix);
 	cameraStaticData.projInfo = projInfo;
 	cameraStaticData.zFar = s_settings.m_farZ;
@@ -152,9 +155,9 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	s_settings.m_shadowCastingLightCount = 10;
 	s_settings.m_textureDim = 1024;
 	s_settings.m_shadowDim = 512;
-	s_settings.m_lpvDim = 128;
-	s_settings.m_lpvGridSize = 48.f;
-	s_settings.m_lpvMip = 6;
+	s_settings.m_lpvDim = 32;
+	s_settings.m_lpvGridSize = 36.f;
+	s_settings.m_lpvMip = 3;
 
 	const u32 allocSize = 1 MBYTE;
 	auto allocPtr = desc.pAllocator->allocate(allocSize);
@@ -168,6 +171,10 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 		if (!m_debug.initializeDebugMode())
 			return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
+
+	wchar_t shaderRootDir[16];
+	swprintf(shaderRootDir, 16, L"../../lib/");
+	m_shaderManager.initialize(shaderRootDir);
 
 	D3D12_COMMAND_QUEUE_DESC cmdQueueDesc;
 	cmdQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
@@ -225,8 +232,11 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	renderLayerGameDesc.m_uploadManager = &m_uploadManager;
 	renderLayerGameDesc.m_downloadManager = &m_downloadManager;
 	renderLayerGameDesc.m_settings = &s_settings;
+	renderLayerGameDesc.m_cpuProfiler = m_cpuProfiler;
 	auto renderLayerGame = new RenderLayerGame(renderLayerGameDesc);
 	m_activeLayers.push_back(renderLayerGame);
+
+	m_activeLayers.push_back(new RenderLayerPerfOverlay(&m_device, m_resourceAspect, &m_uploadManager, &m_resourceManager));
 
 	RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager, &s_settings);
 
@@ -549,8 +559,6 @@ void RenderAspect::createSrvTextures(u32 srgbCount, u32 rgbCount)
 
 void RenderAspect::submitCommands()
 {
-	m_cpuProfiler->pushMarker("build command queue");
-
 	m_downloadManager.downloadToCpu();
 
 	m_copyManager.submitList(&m_graphicsCommandQueue);
@@ -562,7 +570,6 @@ void RenderAspect::submitCommands()
 		it->submitCommandLists(&m_graphicsCommandQueue);
 	}
 
-	m_cpuProfiler->popMarker();
 	m_graphicsCommandQueue.execute();
 }
 

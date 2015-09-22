@@ -24,22 +24,33 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class Font;
 struct ID3D12Device;
+class UploadManager;
+
+namespace d3d
+{
+	class ResourceManager;
+}
 
 #include <vxLib/math/Vector.h>
 #include <vxLib/memory.h>
 #include <vector>
 #include <vxLib/Allocator/StackAllocator.h>
 
+class RenderPassText;
+
 namespace Graphics
 {
+	class Font;
+
 	struct TextRendererDesc
 	{
-		const Font* font;
 		vx::StackAllocator* allocator;
+		ID3D12Device* device;
+		d3d::ResourceManager* resourceManager;
+		UploadManager* uploadManager;
+		RenderPassText* m_renderPassText;
 		u32 maxCharacters;
-		u32 textureIndex;
 	};
 
 	class TextRenderer
@@ -52,36 +63,33 @@ namespace Graphics
 		u32 m_cmdId;
 		Entry* m_entries;
 		std::unique_ptr<TextVertex[]> m_vertices;
+		RenderPassText* m_renderPassText;
 		u32 m_entryCount;
 		u32 m_size;
 		u32 m_capacity;
 		u32 m_texureIndex;
 		const Font* m_font;
 
-		void createVertexBuffer();
-		void createIndexBuffer();
-		void createVao();
-		void createCmdBuffer();
+		//void createCmdBuffer();
 
-		void updateVertexBuffer();
-		void writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, u32 textureSize, u32 textureSlice);
+		void updateVertexBuffer(UploadManager* uploadManager, d3d::ResourceManager* resourceManager);
+		void writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, u32 textureSize);
 
 	public:
 		TextRenderer();
 		~TextRenderer();
 
-		void getRequiredMemory(u64* bufferSize, u64* textureSize, ID3D12Device* device);
+		bool createData(ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, u32 maxCharacters);
+
+		void getRequiredMemory(u64* bufferSize, u64* textureSize, ID3D12Device* device, u32 maxCharacters);
 
 		bool initialize(vx::StackAllocator* scratchAllocator, const void* p);
 		void shutdown();
 
-		void pushEntry(const char(&text)[48], u32 size, const vx::float2 &topLeftPosition, const vx::float3 &color);
+		void pushEntry(const char(&text)[48], u32 strSize, const vx::float2 &topLeftPosition, const vx::float3 &color);
 
-		void update();
+		void setFont(const Font* font) { m_font = font; }
 
-		void getCommandList();
-
-		void clearData();
-		void bindBuffers();
+		void update(UploadManager* uploadManager, d3d::ResourceManager* resourceManager);
 	};
 }

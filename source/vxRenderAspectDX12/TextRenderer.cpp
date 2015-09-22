@@ -24,10 +24,15 @@ SOFTWARE.
 
 #include "TextRenderer.h"
 #include <vxLib/File/FileHandle.h>
-#include "Segment.h"
-#include "CommandList.h"
 #include <vxEngineLib/Logfile.h>
 #include "ResourceDesc.h"
+#include "d3d.h"
+#include <vxEngineLib/Graphics/Font.h>
+#include <vxEngineLib/Graphics/Texture.h>
+#include "UploadManager.h"
+#include "ResourceManager.h"
+#include "RenderPassText.h"
+#include "ResourceView.h"
 
 namespace Graphics
 {
@@ -42,17 +47,16 @@ namespace Graphics
 	struct TextRenderer::TextVertex
 	{
 		vx::float3 position;
-		vx::float3 uv;
+		vx::float2 uv;
 		vx::float4 color;
 	};
-
-
 
 	TextRenderer::TextRenderer()
 		:m_vboId(0),
 		m_cmdId(0),
 		m_entries(),
 		m_vertices(),
+		m_renderPassText(nullptr),
 		m_entryCount(0),
 		m_size(0),
 		m_capacity(0),
@@ -67,48 +71,94 @@ namespace Graphics
 
 	}
 
-	void TextRenderer::getRequiredMemory(u64* bufferSize, u64* textureSize, ID3D12Device* device)
+	void TextRenderer::getRequiredMemory(u64* bufferSize, u64* textureSize, ID3D12Device* device, u32 maxCharacters)
 	{
 		const auto verticesPerCharacter = 4u;
-		auto totalVertexCount = verticesPerCharacter * m_capacity;
+		auto totalVertexCount = verticesPerCharacter * maxCharacters;
 
 		const auto indicesPerCharacter = 6u;
-		auto indexCount = indicesPerCharacter * m_capacity;
+		auto indexCount = indicesPerCharacter * maxCharacters;
 
 		auto vertexSizeInBytes = totalVertexCount * sizeof(TextVertex);
+		auto indexSizeInBytes = indexCount * sizeof(u32);
 
-		auto fontTexResDesc = d3d::ResourceDesc::getDescTexture2D(vx::uint2(4096, 4096), DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_NONE);
+		auto fontTexResDesc = d3d::ResourceDesc::getDescTexture2D(vx::uint2(1024, 1024), DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, D3D12_RESOURCE_FLAG_NONE);
 		auto fontTexAllocInfo = device->GetResourceAllocationInfo(1, 1,&fontTexResDesc);
 
 		*textureSize += fontTexAllocInfo.SizeInBytes;
+		*bufferSize += d3d::getAlignedSize(vertexSizeInBytes, 64llu KBYTE) + d3d::getAlignedSize(indexSizeInBytes, 64llu KBYTE);
 	}
 
-	/*
-
-	void TextRenderer::createVertexBuffer()
+	bool TextRenderer::createData(ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, u32 maxCharacters)
 	{
+		auto fontTexResDesc = d3d::ResourceDesc::getDescTexture2D(vx::uint2(1024, 1024), DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, D3D12_RESOURCE_FLAG_NONE);
+		auto fontTexAllocInfo = device->GetResourceAllocationInfo(1, 1, &fontTexResDesc);
+
+		const auto verticesPerCharacter = 4u;
+		auto totalVertexCount = verticesPerCharacter * maxCharacters;
+
+		const auto indicesPerCharacter = 6u;
+		auto indexCount = indicesPerCharacter * maxCharacters;
+
+		auto vertexSizeInBytes = d3d::getAlignedSize(totalVertexCount * sizeof(TextVertex), 64llu KBYTE);
+		auto indexSizeInBytes = (indexCount * sizeof(u32), 64llu KBYTE);
+
+		CreateResourceDesc texDesc = CreateResourceDesc::createDesc(fontTexAllocInfo.SizeInBytes,&fontTexResDesc, nullptr, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		auto texture = resourceManager->createTexture(L"fontTexture", texDesc);
+		if (texture == nullptr)
+		{
+			return false;
+		}
+
+		auto vertexBuffer = resourceManager->createBuffer(L"textVertexBuffer", vertexSizeInBytes, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+		if (vertexBuffer == nullptr)
+		{
+			return false;
+		}
+
+		auto indexBuffer = resourceManager->createBuffer(L"textIndexBuffer", indexSizeInBytes, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+		if (vertexBuffer == nullptr)
+		{
+			return false;
+		}
+
+		m_vertices = std::make_unique<TextVertex[]>(totalVertexCount);
+
+		return true;
+	}
+
+	bool TextRenderer::initialize(vx::StackAllocator* scratchAllocator, const void* p)
+	{
+		auto desc = (TextRendererDesc*)p;
+		m_entries = (Entry*)desc->allocator->allocate(sizeof(Entry) * s_maxEntryCount, __alignof(Entry));
+		m_entryCount = 0;
+
+		m_capacity = desc->maxCharacters;
+
+		m_renderPassText = desc->m_renderPassText;
+
 		const auto verticesPerCharacter = 4u;
 		auto totalVertexCount = verticesPerCharacter * m_capacity;
-
-		vx::gl::BufferDescription desc{};
-		desc.bufferType = vx::gl::BufferType::Array_Buffer;
-		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
-		desc.immutable = 1;
-		desc.size = totalVertexCount * sizeof(TextVertex);
-
-		auto vboSid = s_objectManager->createBuffer("textVbo", desc);
-		auto vbo = s_objectManager->getBuffer(vboSid);
-
-		m_vboId = vbo->getId();
-
-		m_vertices = vx::make_unique<TextVertex[]>(totalVertexCount);
-	}
-
-	void TextRenderer::createIndexBuffer()
-	{
 		const auto indicesPerCharacter = 6u;
 		auto indexCount = indicesPerCharacter * m_capacity;
+		auto vertexSizeInBytes = d3d::getAlignedSize(totalVertexCount * sizeof(TextVertex), 64llu KBYTE);
+		auto indexSizeInBytes = (indexCount * sizeof(u32), 64llu KBYTE);
 
+		auto textVertexBuffer = desc->resourceManager->getBuffer(L"textVertexBuffer");
+		d3d::ResourceView vbv;
+		vbv.vbv.BufferLocation = textVertexBuffer->GetGPUVirtualAddress();
+		vbv.vbv.SizeInBytes = vertexSizeInBytes;
+		vbv.vbv.StrideInBytes = sizeof(TextVertex);
+		vbv.type = d3d::ResourceView::Type::VertexBufferView;
+		desc->resourceManager->insertResourceView("textVbv", vbv);
+
+		auto textIndexBuffer = desc->resourceManager->getBuffer(L"textIndexBuffer");
+		d3d::ResourceView textIbv;
+		textIbv.type = d3d::ResourceView::Type::IndexBufferView;
+		textIbv.ibv.BufferLocation = textIndexBuffer->GetGPUVirtualAddress();
+		textIbv.ibv.Format = DXGI_FORMAT_R32_UINT;
+		textIbv.ibv.SizeInBytes = indexSizeInBytes;
+		desc->resourceManager->insertResourceView("textIbv", textIbv);
 
 		auto incides = std::make_unique<u32[]>(indexCount);
 		for (u32 i = 0, j = 0; i < indexCount; i += 6, j += 4)
@@ -122,80 +172,7 @@ namespace Graphics
 			incides[i + 5] = j;
 		}
 
-		vx::gl::BufferDescription desc{};
-		desc.bufferType = vx::gl::BufferType::Element_Array_Buffer;
-		desc.flags = 0;
-		desc.immutable = 1;
-		desc.size = sizeof(u32) * indexCount;
-		desc.pData = incides.get();
-
-		auto iboSid = s_objectManager->createBuffer("textIbo", desc);
-	}
-
-	void TextRenderer::createVao()
-	{
-		auto vaoSid = s_objectManager->createVertexArray("textVao");
-		auto vao = s_objectManager->getVertexArray(vaoSid);
-
-		vao->enableArrayAttrib(0);
-		vao->enableArrayAttrib(1);
-		vao->enableArrayAttrib(2);
-
-		vao->arrayAttribFormatF(0, 3, 0, 0);
-		vao->arrayAttribFormatF(1, 3, 0, sizeof(vx::float3));
-		vao->arrayAttribFormatF(2, 4, 0, sizeof(vx::float3) * 2);
-
-		vao->arrayAttribBinding(0, 0);
-		vao->arrayAttribBinding(1, 0);
-		vao->arrayAttribBinding(2, 0);
-
-		auto vbo = s_objectManager->getBuffer("textVbo");
-		auto ibo = s_objectManager->getBuffer("textIbo");
-
-		vao->bindVertexBuffer(*vbo, 0, 0, sizeof(TextVertex));
-		vao->bindIndexBuffer(*ibo);
-	}
-
-	void TextRenderer::createCmdBuffer()
-	{
-		vx::gl::DrawElementsIndirectCommand cmd{};
-		cmd.instanceCount = 1;
-
-		vx::gl::BufferDescription desc{};
-		desc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
-		desc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
-		desc.immutable = 1;
-		desc.size = sizeof(vx::gl::DrawElementsIndirectCommand);
-		desc.pData = &cmd;
-
-		auto cmdSid = s_objectManager->createBuffer("textCmd", desc);
-		auto cmdBuffer = s_objectManager->getBuffer(cmdSid);
-
-		m_cmdId = cmdBuffer->getId();
-	}
-
-	bool TextRenderer::initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void* p)
-	{
-		auto desc = (TextRendererDesc*)p;
-
-		m_entries = (Entry*)desc->allocator->allocate(sizeof(Entry) * s_maxEntryCount, __alignof(Entry));
-		m_entryCount = 0;
-
-		std::string error;
-		if (!s_shaderManager->loadPipeline(vx::FileHandle("text.pipe"), "text.pipe", scratchAllocator, &error))
-		{
-			errorlog->append(error.c_str(), error.size());
-			error.clear();
-			return false;
-		}
-
-		m_font = desc->font;
-		m_capacity = desc->maxCharacters;
-
-		createVertexBuffer();
-		createIndexBuffer();
-		createVao();
-		createCmdBuffer();
+		desc->uploadManager->pushUploadBuffer((u8*)incides.get(), textIndexBuffer->get(), 0, sizeof(u32) * indexCount, D3D12_RESOURCE_STATE_INDEX_BUFFER);
 
 		return true;
 	}
@@ -204,7 +181,7 @@ namespace Graphics
 	{
 	}
 
-	void TextRenderer::pushEntry(const char(&text)[48], u32 size, const vx::float2 &topLeftPosition, const vx::float3 &color)
+	void TextRenderer::pushEntry(const char(&text)[48], u32 strSize, const vx::float2 &topLeftPosition, const vx::float3 &color)
 	{
 		VX_ASSERT(m_entryCount < s_maxEntryCount);
 
@@ -213,25 +190,25 @@ namespace Graphics
 		strncpy(entry.m_text, text, 48);
 		entry.m_position = topLeftPosition;
 		entry.m_color = vx::float4(color, 1.0f);
-		entry.m_size = size;
+		entry.m_size = strSize;
 
-		m_size += size;
+		m_size += strSize;
 	}
 
-	void TextRenderer::update()
+	void TextRenderer::update(UploadManager* uploadManager, d3d::ResourceManager* resourceManager)
 	{
-		if (m_size == 0)
+		if (m_size == 0 || m_font == nullptr)
 			return;
 
-		updateVertexBuffer();
+		updateVertexBuffer(uploadManager, resourceManager);
 	}
 
-	void TextRenderer::updateVertexBuffer()
+	void TextRenderer::updateVertexBuffer(UploadManager* uploadManager, d3d::ResourceManager* resourceManager)
 	{
 		u32 offset = 0;
 
-		f32 textureSlice = m_font->getTextureSlice();
-		auto textureSize = m_font->getTextureDim();
+		auto fontTexture = m_font->getTexture();
+		auto textureSize = fontTexture->getFace(0).getDimension().x;
 
 		vx::float4a invTextureSize;
 		invTextureSize.x = 1.0f / textureSize;
@@ -240,27 +217,27 @@ namespace Graphics
 
 		auto entryCount = m_entryCount;
 		auto entries = m_entries;
-		for (u32 i = 0;i < entryCount; ++i)
+		for (u32 i = 0; i < entryCount; ++i)
 		{
-			writeEntryToVertexBuffer(vInvTexSize, entries[i], &offset, textureSize, textureSlice);
+			writeEntryToVertexBuffer(vInvTexSize, entries[i], &offset, textureSize);
 		}
 
 		if (offset != 0)
 		{
 			auto indexCount = offset * 6;
-			auto vertexCount = offset * 6;
+			auto vertexCount = offset * 4;
 
-			glNamedBufferSubData(m_vboId, 0, sizeof(TextVertex) * vertexCount, m_vertices.get());
+			auto textVertexBuffer = resourceManager->getBuffer(L"textVertexBuffer");
+			uploadManager->pushUploadBuffer((u8*)m_vertices.get(), textVertexBuffer->get(), 0, sizeof(TextVertex) * vertexCount, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 
-			glNamedBufferSubData(m_cmdId, 0, sizeof(u32), &indexCount);
+			m_renderPassText->setIndexCount(indexCount);
 		}
 
 		m_size = 0;
-		//m_entries.clear();
 		m_entryCount = 0;
 	}
 
-	void TextRenderer::writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, u32 textureSize, u32 textureSlice)
+	void TextRenderer::writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, u32 textureSize)
 	{
 		auto entryText = entry.m_text;
 		auto entryTextSize = entry.m_size;
@@ -339,7 +316,6 @@ namespace Graphics
 
 					__m128 uv = vx::fma(texOffsets[k], vSourceSize, vSource);
 					_mm_storeu_ps(&vertices[index].uv.x, uv);
-					vertices[index].uv.z = textureSlice;
 
 					_mm_storeu_ps(&vertices[index].color.x, entryColor);
 				}
@@ -350,7 +326,7 @@ namespace Graphics
 		}
 	}
 
-	void TextRenderer::getCommandList(CommandList* cmdList)
+	/*void TextRenderer::getCommandList(CommandList* cmdList)
 	{
 		auto pipeline = s_shaderManager->getPipeline("text.pipe");
 		auto vao = s_objectManager->getVertexArray("textVao");
@@ -395,15 +371,5 @@ namespace Graphics
 		drawText.pushCommand(drawCmd);
 
 		cmdList->pushSegment(drawText, "drawText");
-	}
-
-	void TextRenderer::clearData()
-	{
-
-	}
-
-	void TextRenderer::bindBuffers()
-	{
-
 	}*/
 }
