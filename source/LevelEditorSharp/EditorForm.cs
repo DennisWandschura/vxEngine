@@ -54,11 +54,15 @@ namespace LevelEditor
         const uint s_typeAnimation = 5;
         const uint s_typeJoint = 6;
 
+        const uint s_maxAutosave = 4;
+
         static EditorForm s_form;
 
         public delegate void LoadedFileFun(UInt64 sid, UInt32 type);
+        public delegate void AutosaveFun();
 
         public LoadedFileFun loadFileDelegate;
+        public AutosaveFun autosaveDelegate;
         TreeNode m_meshNode;
         TreeNode m_materialNode;
         TreeNode m_meshInstanceNode;
@@ -68,6 +72,8 @@ namespace LevelEditor
         bool m_keyDownAlt;
         int m_mouseX;
         int m_mouseY;
+        uint m_currentAutosave;
+        bool m_loadedScene;
         bool m_isMouseDown;
         bool m_keyDownShift;
         MouseButtons m_lastClickedMouseButton;
@@ -116,6 +122,7 @@ namespace LevelEditor
             m_keys = new Dictionary<Keys, bool>();
 
             loadFileDelegate = new LoadedFileFun(loadedFile);
+            autosaveDelegate = new AutosaveFun(autosaveScene);
 
             m_keyDownAlt = false;
             m_isMouseDown = false;
@@ -124,7 +131,9 @@ namespace LevelEditor
             m_mouseX = 0;
             m_mouseY = 0;
             m_selectedMeshInstanceSid = 0;
-            m_selectedSpawn = 0;
+            m_selectedSpawn = 0xffffffff;
+            m_currentAutosave = 0;
+            m_loadedScene = false;
 
             m_fileBrowser = new FileBrowser(this);
             m_fileBrowser.Hide();
@@ -530,6 +539,7 @@ namespace LevelEditor
 
         void selectSpawn()
         {
+            m_selectedSpawn = 0xffffffff;
             uint id = 0;
             if (NativeMethods.selectSpawn(m_mouseX, m_mouseY, ref id))
             {
@@ -552,6 +562,7 @@ namespace LevelEditor
 
         void deselectSpawn()
         {
+            m_selectedSpawn = 0xffffffff;
             groupBoxSpawn.Hide();
         }
 
@@ -754,7 +765,7 @@ namespace LevelEditor
         public void insertJoint(uint index)
         {
             var name = "Joint" + index;
-           // var sid = NativeMethods.getSid(name);
+            // var sid = NativeMethods.getSid(name);
             var nodeEntry = new EditorNodeEntry(index, s_typeJoint, name);
             m_jointsNode.Nodes.Add(nodeEntry);
         }
@@ -1022,7 +1033,7 @@ namespace LevelEditor
                 {
                     onGetMeshPhysxType(entry.sid, entry.Text);
                 }
-                else if(entry.type == s_typeJoint)
+                else if (entry.type == s_typeJoint)
                 {
                     var index = entry.sid;
                     setSelectedJoint((uint)index);
@@ -1369,6 +1380,8 @@ namespace LevelEditor
                 m_currentSceneFileName = filename;
 
                 this.Text = "vxEditor: " + m_currentSceneFileName;
+
+                m_loadedScene = true;
             }
         }
 
@@ -1388,6 +1401,29 @@ namespace LevelEditor
                 m_currentSceneFileName = filename_with_ext;
                 this.Text = "vxEditor: " + m_currentSceneFileName;
             }
+        }
+
+        private void autosaveScene()
+        {
+            if (m_loadedScene)
+            {
+                string filename = System.IO.Path.GetFileNameWithoutExtension(m_currentSceneFileName);
+
+                var autosaveName = filename + "_" + m_currentAutosave + ".scene";
+                NativeMethods.saveScene(autosaveName);
+
+                m_currentAutosave = (m_currentAutosave + 1) % s_maxAutosave;
+            }
+        }
+
+        public void autoSave()
+        {
+            // var currentTime = DateTime.Now;
+
+            //var date = currentTime.Date;
+
+
+            s_form.Invoke(s_form.autosaveDelegate);
         }
 
         public EditorState getEditorState()
@@ -1676,13 +1712,23 @@ namespace LevelEditor
 
         void setSpawnPosition()
         {
-            if (m_editorState == EditorState.EditSpawns)
+            //if (m_editorState == EditorState.EditSpawns)
+            if (m_selectedSpawn != 0xffffffff)
             {
+                Float3 oldPosition;
+                oldPosition.x = oldPosition.y = oldPosition.z = 0;
+                NativeMethods.getSpawnPosition(m_selectedSpawn, ref oldPosition);
+
                 Float3 position;
                 position.x = (float)numericUpDownSpawnPosX.Value;
                 position.y = (float)numericUpDownSpawnPosY.Value;
                 position.z = (float)numericUpDownSpawnPosZ.Value;
-                NativeMethods.setSpawnPosition(m_selectedSpawn, ref position);
+
+                var action = new ActionSetSpawnPosition(m_selectedSpawn, position, oldPosition);
+                runAction(action);
+
+
+                // NativeMethods.setSpawnPosition(m_selectedSpawn, ref position);
             }
         }
 

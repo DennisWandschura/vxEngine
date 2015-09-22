@@ -153,6 +153,7 @@ namespace Converter
 				if (spawn.type != PlayerType::Human)
 				{
 					auto actorName = scene.getActorName(spawn.sid);
+					VX_ASSERT(actorName != nullptr);
 					strcpy(fileSpawns[i].actor, actorName);
 				}
 				else

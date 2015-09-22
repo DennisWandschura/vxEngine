@@ -131,6 +131,7 @@
     <Compile Include="ActionSetMeshInstanceMesh.cs" />
     <Compile Include="ActionSetMeshInstancePosition.cs" />
     <Compile Include="ActionSetMeshInstanceRotation.cs" />
+    <Compile Include="ActionSetSpawnPosition.cs" />
     <Compile Include="DecisionSelectedJoint.cs" />
     <Compile Include="DirectoryTreeNode.cs" />
     <Compile Include="FileBrowser.cs">

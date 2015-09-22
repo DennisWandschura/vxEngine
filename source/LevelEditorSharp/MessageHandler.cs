@@ -88,5 +88,18 @@ namespace LevelEditor
                 throw;
             }
         }
+
+        public void Application_Autosave(object sender, EventArgs e)
+        {
+            try
+            {
+                m_parent.autoSave();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+                throw;
+            }
+        }
     }
 }

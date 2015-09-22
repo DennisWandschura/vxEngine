@@ -40,6 +40,7 @@ namespace LevelEditor
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+
             EditorForm form;
             try
             {
@@ -54,6 +55,13 @@ namespace LevelEditor
 
             Application.AddMessageFilter(msgHandler);
             Application.Idle += new EventHandler(msgHandler.Application_Idle);
+
+            System.Timers.Timer autosaveTimer = new System.Timers.Timer();
+            autosaveTimer.AutoReset = true;
+            autosaveTimer.Interval = 1000  * 60 * 2;
+            autosaveTimer.Elapsed += new System.Timers.ElapsedEventHandler(msgHandler.Application_Autosave);
+
+            autosaveTimer.Enabled = true;
 
             Application.Run(form);
         }

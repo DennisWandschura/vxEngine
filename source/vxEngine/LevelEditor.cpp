@@ -155,7 +155,7 @@ namespace Editor
 
 		g_last = current;
 
-		g_pEditor->engine.editor_render();
+		g_pEditor->engine.update(frameTime);
 
 	}
 
@@ -173,7 +173,6 @@ namespace Editor
 
 	void saveScene(const char* name)
 	{
-		printf("%s\n", name);
 		g_pEditor->engine.editor_saveScene(name);
 	}
 

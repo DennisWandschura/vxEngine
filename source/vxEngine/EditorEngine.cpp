@@ -366,7 +366,7 @@ void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u
 	g_editorTypeAnimation = typeAnimation;
 }
 
-void EditorEngine::editor_render()
+void EditorEngine::update(f32 dt)
 {
 	m_msgManager.update();
 

@@ -1,6 +1,7 @@
 #include "TaskSaveEditorScene.h"
 #include <vxLib/File/File.h>
 #include <vxResourceAspect/SceneFactory.h>
+#include <vxLib/ScopeGuard.h>
 
 TaskSaveEditorScene::TaskSaveEditorScene(TaskSaveEditorSceneDesc &&desc)
 :Task(std::move(desc.m_evt)),
@@ -17,15 +18,16 @@ TaskSaveEditorScene::~TaskSaveEditorScene()
 
 TaskReturnType TaskSaveEditorScene::runImpl()
 {
-	vx::File f;
-	if (!f.create(m_fileNameWithPath.c_str(), vx::FileAccess::Write))
+	SCOPE_EXIT
+	{
+		SceneFactory::deleteScene(m_scene);
+	m_scene = nullptr;
+	};
+
+	if(!SceneFactory::saveToFile(*m_scene, m_fileNameWithPath.c_str()))
 	{
 		return TaskReturnType::Failure;
 	}
-
-	SceneFactory::saveToFile(*m_scene, &f);
-	SceneFactory::deleteScene(m_scene);
-	m_scene = nullptr;
 
 	return TaskReturnType::Success;
 }

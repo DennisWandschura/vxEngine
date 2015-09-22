@@ -76,7 +76,7 @@ public:
 
 	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
 
-	static void saveToFile(const Editor::Scene &scene, vx::File* f);
+	static bool saveToFile(const Editor::Scene &scene, const char* filenameWithPath);
 
 	static void deleteScene(Editor::Scene *scene);
 };

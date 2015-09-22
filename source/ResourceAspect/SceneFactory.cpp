@@ -14,6 +14,7 @@
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxResourceAspect/ConverterEditorSceneToSceneFile.h>
 #include <vxEngineLib/FileFactory.h>
+#include <vxLib/File/File.h>
 
 namespace SceneFactoryCpp
 {
@@ -379,7 +380,7 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDesc &desc, const 
 	return result;
 }
 
-void SceneFactory::saveToFile(const Editor::Scene &scene, vx::File* f)
+bool SceneFactory::saveToFile(const Editor::Scene &scene, const char* filenameWithPath)
 {
 	SceneFile sceneFile(SceneFile::getGlobalVersion());
 	convert(scene, &sceneFile);
@@ -410,7 +411,15 @@ void SceneFactory::saveToFile(const Editor::Scene &scene, vx::File* f)
 
 	loadedSceneFile.swap(sceneFile);
 
-	vx::FileFactory::saveToFile(f, &sceneFile);
+	vx::File f;
+	if (!f.create(filenameWithPath, vx::FileAccess::Write))
+	{
+		return false;
+	}
+
+	vx::FileFactory::saveToFile(&f, &sceneFile);
+
+	return true;
 }
 
 void SceneFactory::convert(const Editor::Scene &scene, SceneFile* sceneFile)
