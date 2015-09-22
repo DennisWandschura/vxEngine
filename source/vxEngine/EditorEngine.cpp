@@ -91,7 +91,7 @@ EditorEngine::~EditorEngine()
 
 bool EditorEngine::initializeImpl(const std::string &dataDir, bool flipTextures)
 {
-	m_memory = Memory(128 MBYTE, 64);
+	m_memory = Memory(g_totalMemory, 64);
 
 	m_allocator = vx::StackAllocator(m_memory.get(), m_memory.size());
 

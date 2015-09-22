@@ -207,7 +207,7 @@ void Engine::mainLoop(Logfile* logfile)
 
 bool Engine::initializeImpl(const std::string &dataDir)
 {
-	m_memory = Memory(200 MBYTE, 64);
+	m_memory = Memory(g_totalMemory, 64);
 
 	m_allocator = vx::StackAllocator(m_memory.get(), static_cast<u32>(m_memory.size()));
 
@@ -322,7 +322,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 		return false;
 	}
 
-	auto topLeftProfilerPosition = (g_engineConfig.m_resolution / vx::uint2(2)) - vx::uint2(250, 50);
+	auto topLeftProfilerPosition = (g_engineConfig.m_resolution / vx::uint2(2)) - vx::uint2(300, 50);
 	m_cpuProfiler.initialize(topLeftProfilerPosition);
 
 	g_engineConfig.m_editor = false;

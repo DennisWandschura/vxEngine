@@ -49,7 +49,6 @@ namespace Graphics
 		const Graphics::Font* font;
 		vx::StackAllocator* allocator;
 		u32 maxCharacters;
-		u32 textureIndex;
 	};
 
 	class TextRenderer : public Renderer
@@ -91,5 +90,7 @@ namespace Graphics
 
 		void clearData() override;
 		void bindBuffers() override;
+
+		void setFont(const Graphics::Font* font, u32 textureIndex) { m_font = font, m_texureIndex = textureIndex; }
 	};
 }

@@ -38,26 +38,21 @@ void main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 	int3 offset = g_offsets[g_axis];
 
 	float4 currentColor = g_srcTexture.Load(int4(currentVoxelPosition, 0));
-	float currentLuminance = getLuminance(currentColor.xyz);
-
-	const int3 offsets[6]=
-	{
-		int3(1, 0, 0),
-		int3(-1, 0, 0),
-		int3(0, 1, 0),
-		int3(0, -1, 0),
-		int3(0, 0, 1),
-		int3(0, 0, -1)
-	};
-
-	float weight = currentLuminance;
 	float4 color = currentColor;
 
+	float3 direction = g_offsets[g_axis];
+
+	//float weight = 1;
 	for (int i = 0; i < 6; ++i)
 	{
-		float4 sampleColor = g_srcTexture.Load(int4(currentVoxelPosition + offsets[i], 0));
+		int3 samplePosition = currentVoxelPosition + g_offsets[i];
+		//float3 l = normalize(float3(currentVoxelPosition) - float3(samplePosition));
+		//float nDotL = max(dot(direction, l), 0);
+
+		float4 sampleColor = g_srcTexture.Load(int4(samplePosition, 0));// *nDotL;
 
 		color += sampleColor;// *0.5;
+		//weight += nDotL;
 	}
 
 	color /= 7.0;

@@ -31,6 +31,7 @@ class CreateActorData;
 class CreateDynamicMeshData;
 class CopyManager;
 class DownloadManager;
+class CpuProfiler;
 
 namespace d3d
 {
@@ -68,6 +69,7 @@ struct RenderLayerGameDesc
 	ResourceAspectInterface* m_resourceAspect;
 	DownloadManager* m_downloadManager;
 	RenderSettings* m_settings;
+	CpuProfiler* m_cpuProfiler;
 };
 
 class RenderLayerGame : public Graphics::RenderLayer
@@ -81,6 +83,7 @@ class RenderLayerGame : public Graphics::RenderLayer
 	f32 m_gridCellSize;
 	f32 m_invGridCellSize;
 	vx::int3 m_lastVoxelCenter;
+	CpuProfiler* m_cpuProfiler;
 	DrawIndexedIndirectCommand m_drawCommandMesh;
 	d3d::Device* m_device;
 	UploadManager* m_uploadManager;

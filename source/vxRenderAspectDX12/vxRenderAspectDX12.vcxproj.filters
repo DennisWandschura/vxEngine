@@ -76,9 +76,6 @@
     <Filter Include="Shaders\ssil">
       <UniqueIdentifier>{25fa0de8-ee85-49e4-b4b0-ebf682f09c35}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\lpv">
-      <UniqueIdentifier>{781725a2-b25f-440c-a54e-1c0c0351fd1a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\voxel">
       <UniqueIdentifier>{42cc15f4-49a9-460d-8a28-3baed8539e37}</UniqueIdentifier>
     </Filter>
@@ -576,9 +573,6 @@
     </FxCompile>
     <FxCompile Include="ShadowMapFilterVS.hlsl">
       <Filter>Shaders\shadowmap</Filter>
-    </FxCompile>
-    <FxCompile Include="InjectVplVS.hlsl">
-      <Filter>Shaders\lpv</Filter>
     </FxCompile>
     <FxCompile Include="VoxelMipVS.hlsl">
       <Filter>Shaders\voxel</Filter>

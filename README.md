@@ -13,5 +13,8 @@ http://youtu.be/uuonpLlq7Go (Joints
 Engine with GL Renderer: (15.08.2015)
 http://youtu.be/yZ1lYs_7aOE
 
-Build 21082015:
+Build 2015.08.21:
 https://tinyurl.com/olgf3bn
+
+DX12 2015.09.22:
+https://youtu.be/_syPaWZtE3w

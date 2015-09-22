@@ -53,7 +53,6 @@ SOFTWARE.
 #include <vxEngineLib/Scene.h>
 #include "Frustum.h"
 #include <vxEngineLib/MeshInstance.h>
-#include <vxEngineLib/Graphics/TextureFactory.h>
 #include <vxEngineLib/Graphics/Texture.h>
 #include <vxEngineLib/Material.h>
 #include <vxGL/VertexArray.h>
@@ -62,6 +61,8 @@ SOFTWARE.
 #include <vxEngineLib/Logfile.h>
 #include <vxEngineLib/RendererMessage.h>
 #include <vxEngineLib/Graphics/Font.h>
+#include <vxEngineLib/ResourceAspectInterface.h>
+#include <vxEngineLib/FileEntry.h>
 
 struct PlaneSimd
 {
@@ -147,7 +148,7 @@ struct RenderAspect::ColdData
 	vx::gl::Texture m_ambientColorBlurTexture[2];
 	// contains index into texture array sorted by texture handle
 
-	Graphics::Font m_font;
+	vx::StringID m_fontSid;
 };
 
 RenderAspect::RenderAspect()
@@ -556,33 +557,16 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 }
 bool RenderAspect::initializeProfiler(Logfile* errorlog)
 {
-	u32 textureIndex = 0;
-	{
-		std::string dataDir = "../data/";
-		auto file = (dataDir + "textures/verdana.png");
-		auto sid = vx::make_sid("verdana.png");
+	auto fontEntry = vx::FileEntry("verdana.font", vx::FileType::Font);
+	vx::Variant arg;
+	arg.u64 = fontEntry.getSid().value;
+	m_resourceAspect->requestLoadFile(fontEntry, arg);
 
-		Graphics::Texture texture;
-		Graphics::TextureFactory::createPngFromFile(file.c_str(), true, true, &texture, &m_textureAllocator, &m_scratchAllocator);
-		auto texId = m_materialManager.setTextTexture(texture);
-		//auto b = m_materialManager.getTextureIndex(sid, texture, &textureIndex);
-		//VX_ASSERT(b);
-		//auto texId = m_materialManager.getTextureId(sid);
-
-		auto dim = texture.getFace(0).getDimension();
-
-		Graphics::FontAtlas fontAtlas;
-		if (!fontAtlas.loadFromFile((dataDir + "fonts/meta/VerdanaRegular.sdff").c_str()))
-			return false;
-
-		VX_ASSERT(dim.x == dim.y);
-		m_pColdData->m_font = Graphics::Font(textureIndex, dim.x, std::move(fontAtlas));
-	}
+	m_pColdData->m_fontSid = fontEntry.getSid();
 
 	Graphics::TextRendererDesc desc;
-	desc.font = &m_pColdData->m_font;
+	desc.font = nullptr;
 	desc.maxCharacters = 512;
-	desc.textureIndex = textureIndex;
 	desc.allocator = &m_allocator;
 
 	m_textRenderer = vx::make_unique<Graphics::TextRenderer>();
@@ -796,7 +780,7 @@ void RenderAspect::taskUpdateText(u8* p, u32* offset)
 {
 	auto data = (RenderUpdateTextData*)p;
 
-	m_textRenderer->pushEntry(data->tex, data->size, data->position, data->color);
+	m_textRenderer->pushEntry(data->text, data->strSize, data->position, data->color);
 
 	*offset += sizeof(RenderUpdateTextData);
 }
@@ -1333,6 +1317,22 @@ void RenderAspect::handleFileMessage(const vx::Message &evt)
 		{
 			m_shadowRenderer->setLights(lights, lightCount);
 		}
+	}break;
+	case vx::FileMessage::Font_Loaded:
+	{
+		if (evt.arg1.u64 == m_pColdData->m_fontSid.value)
+		{
+			auto sid = m_pColdData->m_fontSid;
+
+			auto font = m_resourceAspect->getFontFile(sid);
+			auto texture = font->getTexture();
+			auto texId = m_materialManager.setTextTexture(*texture);
+			//auto b = m_materialManager.getTextureIndex(sid, *texture, &textureIndex);
+
+			m_textRenderer->setFont(font, texId);
+		}
+		//auto texId = m_materialManager.setTextTexture(texture);
+		//auto b = m_materialManager.getTextureIndex(sid, texture, &textureIndex);
 	}break;
 	default:
 		break;

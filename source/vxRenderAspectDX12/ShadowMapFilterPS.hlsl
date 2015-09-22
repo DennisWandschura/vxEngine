@@ -69,7 +69,7 @@ half GetTexelLum(const in RSMTexel texel, const in float3 lightDir)
 
 RSMTexel getRsmTexel(in float3 dirToLight, in float2 texCoords, uint lightIndex, uint index, uint slice)
 {
-	/*uint w, h, d;
+	uint w, h, d;
 	g_srcRSMColor.GetDimensions(w, h, d);
 
 	float2 invDim = 1.0 / float2(w, h);
@@ -77,7 +77,7 @@ RSMTexel getRsmTexel(in float3 dirToLight, in float2 texCoords, uint lightIndex,
 	float4x4 invPvMatrix = g_transforms[lightIndex].invPvMatrix[index];
 
 	// choose the brightest texel
-	half3 vChosenGridCell = 0;
+	/*half3 vChosenGridCell = 0;
 	{
 		half fMaxLum = 0;
 		for (int i = 0; i < 2; i++)
@@ -125,30 +125,28 @@ RSMTexel getRsmTexel(in float3 dirToLight, in float2 texCoords, uint lightIndex,
 		cRes.normal /= nSamples;
 	}*/
 
-	uint w, h, d;
-	g_srcRSMColor.GetDimensions(w, h, d);
-
-	float2 invDim = 1.0 / float2(w, h);
-	RSMTexel cRes = (RSMTexel)0;
-
-	for (int i = 0; i < 2; i++)
+	RSMTexel brightest = (RSMTexel)0;
 	{
-		for (int j = 0; j < 2; j++)
+		half fMaxLum = 0;
+		for (int i = 0; i < 2; i++)
 		{
-			float2 vTexCoords = texCoords + float2(i, j) * invDim;
-			RSMTexel  texel = fetchRSM(vTexCoords, slice);
+			for (int j = 0; j < 2; j++)
+			{
+				half2 vTexCoords = texCoords + half2(i, j) * invDim;
+				RSMTexel texel = fetchRSM(vTexCoords, slice);
 
-			cRes.color += texel.color;
-			cRes.depth += texel.depth;
-			cRes.normal += texel.normal;
+				half fCurTexLum = GetTexelLum(texel, dirToLight);
+				if (fCurTexLum > fMaxLum)
+				{
+					brightest = texel;
+					//vChosenGridCell = GetGridCell(texCoords, texel.depth, invPvMatrix);
+					fMaxLum = fCurTexLum;
+				}
+			}
 		}
 	}
 
-	cRes.color /= 4;
-	cRes.depth /= 4;
-	cRes.normal /= 4;
-
-	return cRes;
+	return brightest;
 }
 
 PSOutput main(GSOutput input)

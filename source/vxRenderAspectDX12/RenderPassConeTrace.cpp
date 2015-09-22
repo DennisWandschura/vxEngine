@@ -190,7 +190,7 @@ bool RenderPassConeTrace::createSrv(ID3D12Device* device)
 	srvDescVoxel.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvDescVoxel.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDescVoxel.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-	srvDescVoxel.Texture3D.MipLevels = 4;
+	srvDescVoxel.Texture3D.MipLevels = s_settings->m_lpvMip;
 	srvDescVoxel.Texture3D.MostDetailedMip = 0;
 	srvDescVoxel.Texture3D.ResourceMinLODClamp = 0;
 

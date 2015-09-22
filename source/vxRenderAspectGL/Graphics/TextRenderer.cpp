@@ -37,6 +37,7 @@ SOFTWARE.
 #include <vxGL/Framebuffer.h>
 #include <vxGL/VertexArray.h>
 #include <vxEngineLib/Logfile.h>
+#include <vxEngineLib/graphics/Texture.h>
 
 namespace Graphics
 {
@@ -209,7 +210,7 @@ namespace Graphics
 
 	void TextRenderer::update()
 	{
-		if (m_size == 0)
+		if (m_size == 0 || m_font == nullptr)
 			return;
 
 		updateVertexBuffer();
@@ -219,8 +220,11 @@ namespace Graphics
 	{
 		u32 offset = 0;
 
-		f32 textureSlice = m_font->getTextureSlice();
-		auto textureSize = m_font->getTextureDim();
+		auto texture = m_font->getTexture();
+		auto dim = texture->getFace(0).getDimension();
+
+		f32 textureSlice = m_texureIndex;
+		auto textureSize = dim.x;
 
 		vx::float4a invTextureSize;
 		invTextureSize.x = 1.0f / textureSize;

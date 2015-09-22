@@ -311,9 +311,8 @@ void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
 
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-		//for (u32 lightIndex = 0; lightIndex < m_visibleLightCount; ++lightIndex)
+		for (u32 lightIndex = 0; lightIndex < m_visibleLightCount; ++lightIndex)
 		{
-			u32 lightIndex = 0;
 			for (u32 i = 0; i < 6; ++i)
 			{
 				//uint lightIndex;

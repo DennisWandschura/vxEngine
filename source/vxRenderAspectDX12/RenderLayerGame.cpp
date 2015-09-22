@@ -39,6 +39,7 @@
 #include "GpuVoxel.h"
 #include "RenderPassBlurVoxel.h"
 #include "RenderPassVoxelPropagate.h"
+#include <vxEngineLib/CpuProfiler.h>
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
@@ -110,6 +111,7 @@ RenderLayerGame::RenderLayerGame(const RenderLayerGameDesc &desc)
 	m_camera(desc.m_camera),
 	m_frustum(desc.m_frustum),
 	m_drawCommandMesh(),
+	m_cpuProfiler(desc.m_cpuProfiler),
 	m_device(desc.m_device),
 	m_uploadManager(desc.m_uploadManager),
 	m_msgManager(desc.m_msgManager),
@@ -131,6 +133,7 @@ RenderLayerGame::RenderLayerGame(RenderLayerGame &&rhs)
 	m_frustum(rhs.m_frustum),
 	m_lastVoxelCenter(0, 0, 0),
 	m_drawCommandMesh(std::move(m_drawCommandMesh)),
+	m_cpuProfiler(rhs.m_cpuProfiler),
 	m_device(rhs.m_device),
 	m_uploadManager(rhs.m_uploadManager),
 	m_msgManager(rhs.m_msgManager),
@@ -162,21 +165,22 @@ void RenderLayerGame::createRenderPasses()
 	pushRenderPass(std::move(rnederPassShadow));
 
 	pushRenderPass(std::move(std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh)));
+
+	/*auto renderPassFilterRSM = std::make_unique<RenderPassFilterRSM>(&m_commandAllocator);
+	m_lightManager.addRenderPass(renderPassFilterRSM.get());
+	pushRenderPass(std::move(renderPassFilterRSM));
+
+	auto renderPassInjectRSM = std::make_unique<RenderPassInjectRSM>(&m_commandAllocator);
+	m_lightManager.addRenderPass(renderPassInjectRSM.get());
+	pushRenderPass(std::move(renderPassInjectRSM));*/
+
 	pushRenderPass(std::move(std::make_unique<RenderPassVoxelPropagate>(&m_commandAllocator)));
-
-	//auto renderPassFilterRSM = std::make_unique<RenderPassFilterRSM>(&m_commandAllocator);
-	//m_lightManager.addRenderPass(renderPassFilterRSM.get());
-	////pushRenderPass(std::move(renderPassFilterRSM));
-
-	//auto renderPassInjectRSM = std::make_unique<RenderPassInjectRSM>(&m_commandAllocator);
-	//m_lightManager.addRenderPass(renderPassInjectRSM.get());
-//	pushRenderPass(std::move(renderPassInjectRSM));
 
 	pushRenderPass(std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
 	pushRenderPass(std::make_unique<RenderPassAO>(&m_commandAllocator));
 
-	pushRenderPass(std::make_unique<RenderPassVoxelMip>(&m_commandAllocator));
+	//pushRenderPass(std::make_unique<RenderPassVoxelMip>(&m_commandAllocator));
 
 	pushRenderPass(std::make_unique<RenderPassConeTrace>(&m_commandAllocator));
 
@@ -299,6 +303,8 @@ void RenderLayerGame::shudown()
 
 void RenderLayerGame::update()
 {
+	m_cpuProfiler->pushMarker("RenderLayerGame::update");
+
 	auto camPos = m_camera->getPosition();
 	auto camRot = m_camera->getRotation();
 	__m128 cameraPosition = _mm256_cvtpd_ps(camPos);
@@ -332,6 +338,8 @@ void RenderLayerGame::update()
 
 		//m_lastVoxelCenter = newVoxelCenter;
 	}
+
+	m_cpuProfiler->popMarker();
 }
 
 void RenderLayerGame::submitCommandLists(Graphics::CommandQueue* queue)

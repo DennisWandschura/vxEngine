@@ -99,7 +99,7 @@ float4 coneTrace(in float3 direction, in uint3 voxelPosition, in uint3 voxelDim,
 		float sampleDiameter = max(minDiameter, coneRatio * traveledDist);
 		sampleDiameter = minDiameter;
 		float sampleLOD = log2(sampleDiameter * minVoxelDiameterInv);
-		sampleLOD = clamp(sampleLOD, 0.0, 5.0);
+		sampleLOD = clamp(sampleLOD, 0.0, 0.0);
 
 		int mipLevel = sampleLOD;
 
