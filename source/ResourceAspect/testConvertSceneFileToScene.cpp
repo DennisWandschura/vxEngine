@@ -122,39 +122,6 @@ bool testLights(const Converter::SceneFile &sceneFile, const Scene &scene)
 	return result;
 }
 
-bool testActors(const Converter::SceneFile &sceneFile, const Scene &scene)
-{
-	printf("testActors start\n");
-
-	auto fileActors = sceneFile.getActors();
-	auto fileActorCount = sceneFile.getActorCount();
-	auto &sceneActors = scene.getActors();
-
-	bool result = Comparer::compare(sceneActors, fileActors, fileActorCount, [](const Actor &lhs, const ActorFile &rhs)
-	{
-		if (vx::FileHandle(rhs.m_material).m_sid != lhs.m_material)
-		{
-			printf("wrong material sid\n");
-			return false;
-		}
-
-		if (vx::FileHandle(rhs.m_mesh).m_sid != lhs.m_mesh)
-		{
-			printf("wrong mesh sid\n");
-			return false;
-		}
-
-		return true;
-	});
-
-	if (result)
-	{
-		printf("testActors success\n");
-	}
-
-	return result;
-}
-
 bool testConvertSceneFileToScene
 (
 	const ResourceManager<vx::MeshFile>* meshManager,
@@ -174,12 +141,6 @@ bool testConvertSceneFileToScene
 	Converter::SceneFile testSceneFile(std::move(sceneFile));
 
 	if (!testLights(testSceneFile, scene))
-	{
-		printf("testActors failure\n");
-		return false;
-	}
-
-	if (!testActors(testSceneFile, scene))
 	{
 		printf("testActors failure\n");
 		return false;

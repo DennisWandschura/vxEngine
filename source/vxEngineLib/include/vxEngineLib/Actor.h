@@ -30,20 +30,6 @@ enum class PlayerType : u32
 	Human, AI
 };
 
-struct ActorFile
-{
-	char m_mesh[32];
-	char m_material[32];
-	char m_name[32];
-
-	ActorFile()
-	{
-		m_mesh[0] = '\0';
-		m_material[0] = '\0';
-		m_name[0] = '\0';
-	}
-};
-
 // describes an AI in game character
 struct Actor
 {

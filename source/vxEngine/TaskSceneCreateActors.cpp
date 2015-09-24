@@ -36,15 +36,18 @@ SOFTWARE.
 #include <vxEngineLib/Locator.h>
 #include "PhysicsDefines.h"
 #include <vxEngineLib/RendererMessage.h>
+#include <vxEngineLib/ResourceAspectInterface.h>
 
 thread_local f32 TaskSceneCreateActors::s_time{0.0f};
 thread_local u64 TaskSceneCreateActors::s_counter{0};
 
-TaskSceneCreateActors::TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene, RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect)
+TaskSceneCreateActors::TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene,
+	RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect, ResourceAspectInterface* resourceAspect)
 	:Task(evt, std::move(events)),
 	m_scene(scene),
 	m_renderAspect(renderAspect),
-	m_physicsAspect(physicsAspect)
+	m_physicsAspect(physicsAspect),
+	m_resourceAspect(resourceAspect)
 {
 
 }
@@ -66,8 +69,6 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 	for (u32 i = 0; i < spawnCount; ++i)
 	{
 		auto &it = spawns[i];
-		auto &actors = m_scene->getActors();
-		auto itActor = actors.find(it.sid);
 
 		vx::Transform transform;
 		transform.m_qRotation = vx::float4(0, 0, 0, 1);
@@ -78,8 +79,11 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 		f32 height = g_heightStanding;
 		if (it.type != PlayerType::Human)
 		{
-			sidMesh = itActor->m_mesh;
-			sidMaterial = itActor->m_material;
+			auto actor = m_resourceAspect->getActor(it.sid);
+			VX_ASSERT(actor != nullptr);
+
+			sidMesh = actor->m_mesh;
+			sidMaterial = actor->m_material;
 			height = 2.0f;
 		}
 

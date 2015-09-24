@@ -62,6 +62,7 @@ class ResourceAspect : public ResourceAspectInterface
 	static char s_assetFolder[32];
 	static char s_audioFolder[32];
 	static char s_fontFolder[32];
+	static char s_actorFolder[32];
 
 	struct FileRequest;
 	struct TaskLoadFileDesc;
@@ -69,12 +70,13 @@ class ResourceAspect : public ResourceAspectInterface
 	std::mutex m_requestMutex;
 	std::vector<FileRequest> m_requests;
 
-	ResourceManager<vx::MeshFile> m_meshData;
-	ResourceManager<Material> m_materialData;
-	ResourceManager<vx::Animation> m_animationData;
-	ResourceManager<Graphics::Texture> m_textureData;
-	ResourceManager<AudioFile> m_audioData;
-	ResourceManager<Graphics::Font> m_fontData;
+	ResourceManager<vx::MeshFile> m_meshResManager;
+	ResourceManager<Material> m_materialResManager;
+	ResourceManager<vx::Animation> m_animationResManager;
+	ResourceManager<Graphics::Texture> m_textureResManager;
+	ResourceManager<AudioFile> m_audioResManager;
+	ResourceManager<Graphics::Font> m_fontResManager;
+	ResourceManager<Actor> m_actorResManager;
 	vx::TaskManager* m_taskManager;
 	vx::MessageManager* m_msgManager;
 	physx::PxCooking* m_cooking;
@@ -92,6 +94,7 @@ class ResourceAspect : public ResourceAspectInterface
 	void pushFileRequest(vx::FileType fileType, const vx::StringID &sid, const Event &evt, vx::Variant userData, std::string &&filename);
 
 	void taskGetFileNameWithPath(const TaskLoadFileDesc &desc, const char* folder);
+	void taskLoadActor(const TaskLoadFileDesc &desc, const char* folder, const Event &evt);
 	void taskLoadFont(const TaskLoadFileDesc &desc, const char* folder, const Event &evt);
 	void taskLoadAudio(const TaskLoadFileDesc &desc, const char* folder, const Event &evt);
 	void taskLoadScene(const TaskLoadFileDesc &desc, const char* folder, bool editor, const Event &evt);
@@ -101,6 +104,7 @@ class ResourceAspect : public ResourceAspectInterface
 	void taskLoadFbx(const TaskLoadFileDesc &desc, const char* folder, const Event &evt);
 	void taskSaveEditorScene(const TaskLoadFileDesc &desc, const char* folder, const Event &evt);
 	void taskSaveMeshFile(const TaskLoadFileDesc &desc, const char* folder, const Event &evt);
+	void taskSaveActor(const TaskLoadFileDesc &desc, const char* folder, const Event &evt);
 	void pushTask(Task* task, vx::FileType type, const vx::StringID &sid, const Event &evt, vx::Variant p, std::string &&filename);
 
 public:
@@ -124,6 +128,11 @@ public:
 	const vx::Animation* getAnimation(const vx::StringID &sid) const override;
 	const AudioFile* getAudioFile(const vx::StringID &sid) const override;
 	const Graphics::Font* getFontFile(const vx::StringID &sid) const override;
+	const Actor* getActor(const vx::StringID &sid) const override;
 
 	ResourceManager<vx::MeshFile>* getMeshManager();
+	ResourceManager<Material>* getMaterialManager();
+	const ResourceManager<Actor>* getActorManager() const { return &m_actorResManager; }
+
+	Actor* addActor(const vx::StringID &sid, std::string &&name, Actor &actor);
 };

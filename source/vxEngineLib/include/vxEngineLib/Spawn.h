@@ -33,6 +33,12 @@ struct Spawn
 {
 	static u32 s_id;
 
+	PlayerType type;
+	vx::float3 position;
+	// actor id, not used for human
+	vx::StringID sid;
+	u32 id;
+
 	Spawn() 
 		:type(),
 		position(),
@@ -79,12 +85,6 @@ struct Spawn
 		}
 		return *this;
 	}
-
-	PlayerType type;
-	vx::float3 position;
-	// actor id, not used for human
-	vx::StringID sid;
-	u32 id;
 };
 
 struct SpawnFile

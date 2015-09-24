@@ -46,6 +46,9 @@ SOFTWARE.
 #include <vxEngineLib/AudioFile.h>
 #include <vxEngineLib/Graphics/Font.h>
 #include "TaskLoadFont.h"
+#include <vxEngineLib/Actor.h>
+#include "TaskLoadActor.h"
+#include "TaskSaveActorFile.h"
 
 char ResourceAspect::s_textureFolder[32] = { "data/textures/" };
 char ResourceAspect::s_materialFolder[32] = { "data/materials/" };
@@ -55,6 +58,7 @@ char ResourceAspect::s_animationFolder[32] = { "data/animation/" };
 char ResourceAspect::s_assetFolder[32] = { "../../../assets/" };
 char ResourceAspect::s_audioFolder[32] = { "data/audio/" };
 char ResourceAspect::s_fontFolder[32] = { "data/fonts/" };
+char ResourceAspect::s_actorFolder[32] = { "data/actors/" };
 
 struct ResourceAspect::FileRequest
 {
@@ -99,6 +103,7 @@ void ResourceAspect::setDirectories(const std::string &dataDir)
 	strcpy_s(s_assetFolder, (dataDir + "../../assets/").c_str());
 	strcpy_s(s_audioFolder, (dataDir + "audio/").c_str());
 	strcpy_s(s_fontFolder, (dataDir + "fonts/").c_str());
+	strcpy_s(s_actorFolder, (dataDir + "actors/").c_str());
 }
 
 bool ResourceAspect::loadFbxFactory()
@@ -124,22 +129,25 @@ bool ResourceAspect::loadFbxFactory()
 
 bool ResourceAspect::initialize(vx::StackAllocator *mainAllocator, const std::string &dataDir, physx::PxCooking* cooking, vx::TaskManager* taskManager, vx::MessageManager* msgManager, bool flipTextures, bool editor)
 {
-	if (!m_meshData.initialize(255, 10 MBYTE, 5 MBYTE, mainAllocator))
+	if (!m_meshResManager.initialize(255, 10 MBYTE, 5 MBYTE, mainAllocator))
 		return false;
 
-	if (!m_materialData.initialize(255, 0, 5 MBYTE, mainAllocator))
+	if (!m_materialResManager.initialize(255, 0, 5 MBYTE, mainAllocator))
 		return false;
 
-	if (!m_animationData.initialize(64, 0, 5 MBYTE, mainAllocator))
+	if (!m_animationResManager.initialize(64, 0, 5 MBYTE, mainAllocator))
 		return false;
 
-	if (!m_textureData.initialize(128, 100 MBYTE, 20 MBYTE, mainAllocator))
+	if (!m_textureResManager.initialize(128, 100 MBYTE, 20 MBYTE, mainAllocator))
 		return false;
 
-	if (!m_audioData.initialize(128, 10 MBYTE, 1 MBYTE, mainAllocator))
+	if (!m_audioResManager.initialize(128, 10 MBYTE, 1 MBYTE, mainAllocator))
 		return false;
 
-	if (!m_fontData.initialize(10, 1 MBYTE, 1 MBYTE, mainAllocator))
+	if (!m_fontResManager.initialize(10, 1 MBYTE, 1 MBYTE, mainAllocator))
+		return false;
+
+	if (!m_actorResManager.initialize(10, 0 MBYTE, 1 MBYTE, mainAllocator))
 		return false;
 
 	if (editor)
@@ -171,12 +179,13 @@ void ResourceAspect::shutdown()
 		m_dllHandle = nullptr;
 	}
 
-	m_fontData.shutdown();
-	m_audioData.shutdown();
-	m_textureData.shutdown();
-	m_animationData.shutdown();
-	m_materialData.shutdown();
-	m_meshData.shutdown();
+	m_actorResManager.shutdown();
+	m_fontResManager.shutdown();
+	m_audioResManager.shutdown();
+	m_textureResManager.shutdown();
+	m_animationResManager.shutdown();
+	m_materialResManager.shutdown();
+	m_meshResManager.shutdown();
 }
 
 void ResourceAspect::pushFileMessage(vx::FileMessage type, vx::Variant arg1, vx::Variant arg2)
@@ -208,7 +217,7 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 
 		pushFileMessage(vx::FileMessage::Scene_Loaded, arg1, arg2);
 
-		//ResourceAspectCpp::saveMeshesToTxt(m_meshData);
+		//ResourceAspectCpp::saveMeshesToTxt(m_meshResManager);
 	}break;
 	case vx::FileType::Mesh:
 	{
@@ -271,6 +280,16 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 
 		pushFileMessage(vx::FileMessage::Font_Loaded, arg1, arg2);
 	}break;
+	case vx::FileType::Actor:
+	{
+		vx::Variant arg1;
+		arg1.u64 = sid.value;
+
+		vx::Variant arg2;
+		arg2 = userData;
+
+		pushFileMessage(vx::FileMessage::Actor_Loaded, arg1, arg2);
+	}break;
 	default:
 		break;
 	}
@@ -278,10 +297,10 @@ void ResourceAspect::sendFileMessage(const FileRequest &request)
 
 void ResourceAspect::update()
 {
-	m_meshData.update();
-	m_materialData.update();
-	m_animationData.update();
-	m_textureData.update();
+	m_meshResManager.update();
+	m_materialResManager.update();
+	m_animationResManager.update();
+	m_textureResManager.update();
 
 	std::lock_guard<std::mutex> lock(m_requestMutex);
 
@@ -343,8 +362,8 @@ void ResourceAspect::taskLoadFont(const TaskLoadFileDesc &desc, const char* fold
 	taskGetFileNameWithPath(desc, folder);
 
 	TaskLoadFontDesc loadDesc;
-	loadDesc.m_fontManager = &m_fontData;
-	loadDesc.m_textureManager = &m_textureData;
+	loadDesc.m_fontManager = &m_fontResManager;
+	loadDesc.m_textureManager = &m_textureResManager;
 	loadDesc.m_filename = filename;
 	loadDesc.evt = evt;
 	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
@@ -356,13 +375,30 @@ void ResourceAspect::taskLoadFont(const TaskLoadFileDesc &desc, const char* fold
 	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
 }
 
+void ResourceAspect::taskLoadActor(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
+{
+	auto filename = std::string(desc.fileName);
+	taskGetFileNameWithPath(desc, folder);
+
+	TaskLoadActorDesc loadDesc;
+	loadDesc.m_actorResManager = &m_actorResManager;
+	loadDesc.m_fileName = filename;
+	loadDesc.evt = evt;
+	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
+	loadDesc.m_sid = desc.sid;
+
+	loadDesc.m_resourceAspect = this;
+	auto task = new TaskLoadActor(std::move(loadDesc));
+	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
+}
+
 void ResourceAspect::taskLoadAudio(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
 {
 	auto filename = std::string(desc.fileName);
 	taskGetFileNameWithPath(desc, folder);
 
 	TaskLoadAudioDesc loadDesc;
-	loadDesc.audioDataManager = &m_audioData ;
+	loadDesc.audioDataManager = &m_audioResManager ;
 	loadDesc.m_fileName = filename;
 	loadDesc.evt = evt;
 	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
@@ -386,11 +422,13 @@ void ResourceAspect::taskLoadScene(const TaskLoadFileDesc &desc, const char* fol
 	auto scene = desc.arg.ptr;
 	TaskLoadSceneDesc loadDesc
 	{
+		this,
 		std::string(desc.fileNameWithPath),
-		&m_meshData,
-		&m_materialData,
-		&m_animationData,
-		&m_textureData,
+		&m_meshResManager,
+		&m_materialResManager,
+		&m_animationResManager,
+		&m_textureResManager,
+		&m_actorResManager,
 		scene,
 		m_taskManager,
 		evt,
@@ -412,7 +450,7 @@ void ResourceAspect::taskLoadMesh(const TaskLoadFileDesc &desc, const char* fold
 	loadDesc.evt = evt;
 	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
 	loadDesc.m_filename = desc.fileName;
-	loadDesc.m_meshManager = &m_meshData;
+	loadDesc.m_meshManager = &m_meshResManager;
 	loadDesc.m_sid = desc.sid;
 
 	auto task = new TaskLoadMesh(std::move(loadDesc));
@@ -428,10 +466,10 @@ void ResourceAspect::taskLoadTexture(const TaskLoadFileDesc &desc, const char* f
 	loadDesc.evt = evt;
 	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
 	loadDesc.m_filename = desc.fileName;
-	loadDesc.m_flipImage = true;
+	loadDesc.m_flipImage = 1;
 	loadDesc.m_sid = desc.sid;
 	loadDesc.m_srgb = desc.arg.u8;
-	loadDesc.m_textureManager = &m_textureData;
+	loadDesc.m_textureManager = &m_textureResManager;
 
 	auto task = new TaskLoadTexture(std::move(loadDesc));
 	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
@@ -447,11 +485,11 @@ void ResourceAspect::taskLoadMaterial(const TaskLoadFileDesc &desc, const char* 
 	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
 	loadDesc.m_filename = desc.fileName;
 	loadDesc.m_flipImage = true;
-	loadDesc.m_materialManager = &m_materialData;
+	loadDesc.m_materialManager = &m_materialResManager;
 	loadDesc.m_sid = desc.sid;
 	loadDesc.m_taskManager = m_taskManager;
 	loadDesc.m_textureFolder = s_textureFolder;
-	loadDesc.m_textureManager = &m_textureData;
+	loadDesc.m_textureManager = &m_textureResManager;
 
 	auto task = new TaskLoadMaterial(std::move(loadDesc));
 	pushTask(task, desc.type, desc.sid, evt, desc.arg, std::move(filename));
@@ -470,7 +508,7 @@ void ResourceAspect::taskLoadFbx(const TaskLoadFileDesc &desc, const char* folde
 	loadDesc.m_event = evt;
 	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
 	loadDesc.m_meshFolder = s_meshFolder;
-	loadDesc.m_meshManager = &m_meshData;
+	loadDesc.m_meshManager = &m_meshResManager;
 	loadDesc.m_physxMeshType = physxMeshType;
 	loadDesc.m_resourceAspect = this;
 	loadDesc.m_userData = desc.arg.ptr;
@@ -502,6 +540,17 @@ void ResourceAspect::taskSaveMeshFile(const TaskLoadFileDesc &desc, const char* 
 	auto str = std::string(desc.fileNameWithPath);
 
 	auto task = new TaskSaveMeshFile(std::move(str), (vx::MeshFile*)desc.arg.ptr);
+	m_taskManager->pushTask(task);
+}
+
+void ResourceAspect::taskSaveActor(const TaskLoadFileDesc &desc, const char* folder, const Event &evt)
+{
+	auto filename = std::string(desc.fileName);
+	taskGetFileNameWithPath(desc, folder);
+
+	auto str = std::string(desc.fileNameWithPath);
+
+	auto task = new TaskSaveActorFile(std::move(str), (const ActorFile*)desc.arg.ptr);
 	m_taskManager->pushTask(task);
 }
 
@@ -569,6 +618,10 @@ void ResourceAspect::requestLoadFile(const vx::FileEntry &fileEntry, vx::Variant
 	{
 		taskLoadFont(desc, s_fontFolder, evt);
 	}break;
+	case vx::FileType::Actor:
+	{
+		taskLoadActor(desc, s_actorFolder, evt);
+	}break;
 	default:
 		break;
 	}
@@ -601,50 +654,69 @@ void ResourceAspect::requestSaveFile(const vx::FileEntry &fileEntry, vx::Variant
 	{
 		taskSaveMeshFile(desc, s_meshFolder, evt);
 	}break;
+	case vx::FileType::Actor:
+	{
+		taskSaveActor(desc, s_actorFolder, evt);
+	}break;
 	}
 }
 
 const Graphics::Texture* ResourceAspect::getTexture(const vx::StringID &sid) const
 {
-	return m_textureData.find(sid);
+	return m_textureResManager.find(sid);
 }
 
 const Material* ResourceAspect::getMaterial(const vx::StringID &sid) const
 {
-	return m_materialData.find(sid);
+	return m_materialResManager.find(sid);
 }
 
 Material* ResourceAspect::getMaterial(const vx::StringID &sid)
 {
-	return m_materialData.find(sid);
+	return m_materialResManager.find(sid);
 }
 
 const vx::MeshFile* ResourceAspect::getMesh(const vx::StringID &sid) const
 {
-	return m_meshData.find(sid);
+	return m_meshResManager.find(sid);
 }
 
 vx::MeshFile* ResourceAspect::getMesh(const vx::StringID &sid)
 {
-	return m_meshData.find(sid);
+	return m_meshResManager.find(sid);
 }
 
 const vx::Animation* ResourceAspect::getAnimation(const vx::StringID &sid) const
 {
-	return m_animationData.find(sid);
+	return m_animationResManager.find(sid);
 }
 
 const AudioFile* ResourceAspect::getAudioFile(const vx::StringID &sid) const
 {
-	return m_audioData.find(sid);
+	return m_audioResManager.find(sid);
 }
 
 ResourceManager<vx::MeshFile>* ResourceAspect::getMeshManager()
 {
-	return &m_meshData;
+	return &m_meshResManager;
+}
+
+ResourceManager<Material>* ResourceAspect::getMaterialManager()
+{
+	return &m_materialResManager;
 }
 
 const Graphics::Font* ResourceAspect::getFontFile(const vx::StringID &sid) const
 {
-	return m_fontData.find(sid);
+	return m_fontResManager.find(sid);
+}
+
+const Actor* ResourceAspect::getActor(const vx::StringID &sid) const
+{
+	return m_actorResManager.find(sid);
+}
+
+Actor* ResourceAspect::addActor(const vx::StringID &sid, std::string &&name, Actor &actor)
+{
+	return m_actorResManager.insertEntry(sid,std::move(name), actor);
 }

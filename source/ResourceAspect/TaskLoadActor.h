@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 The MIT License (MIT)
 
@@ -23,22 +24,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class SceneFile;
+struct Actor;
+class ResourceAspect;
 
-namespace Editor
+template<typename T>
+class ResourceManager;
+
+#include "TaskLoadFile.h"
+#include <vxLib/StringID.h>
+
+struct TaskLoadActorDesc
 {
-	class Scene;
-}
+	std::string m_fileNameWithPath;
+	std::string m_fileName;
+	vx::StringID m_sid;
+	ResourceManager<Actor>* m_actorResManager;
+	ResourceAspect* m_resourceAspect;
+	Event evt;
+};
 
-namespace Converter
+class TaskLoadActor : public TaskLoadFile
 {
-	class SceneFile;
+	std::string m_fileName;
+	vx::StringID m_sid;
+	ResourceManager<Actor>* m_actorResManager;
+	ResourceAspect* m_resourceAspect;
 
-	class EditorSceneToSceneFile
-	{
-		static void copyLights(const Editor::Scene &scene, SceneFile* sceneFile);
+	TaskReturnType runImpl() override;
 
-	public:
-		static void convert(const Editor::Scene &scene, ::SceneFile* sceneFile);
-	};
-}
+public:
+	explicit TaskLoadActor(TaskLoadActorDesc &&desc);
+	~TaskLoadActor();
+
+	f32 getTimeMs() const override { return 0.0f; };
+};

@@ -132,6 +132,18 @@
     <Compile Include="ActionSetMeshInstancePosition.cs" />
     <Compile Include="ActionSetMeshInstanceRotation.cs" />
     <Compile Include="ActionSetSpawnPosition.cs" />
+    <Compile Include="ActorInfoControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ActorInfoControl.Designer.cs">
+      <DependentUpon>ActorInfoControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CreateActorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CreateActorForm.Designer.cs">
+      <DependentUpon>CreateActorForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="DecisionSelectedJoint.cs" />
     <Compile Include="DirectoryTreeNode.cs" />
     <Compile Include="FileBrowser.cs">
@@ -188,6 +200,12 @@
     <Compile Include="Transition.cs" />
     <Compile Include="TargetState.cs" />
     <Compile Include="TransitionBase.cs" />
+    <EmbeddedResource Include="ActorInfoControl.resx">
+      <DependentUpon>ActorInfoControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CreateActorForm.resx">
+      <DependentUpon>CreateActorForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FileBrowser.resx">
       <DependentUpon>FileBrowser.cs</DependentUpon>
     </EmbeddedResource>

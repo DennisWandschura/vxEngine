@@ -43,6 +43,7 @@ class Scene;
 class SceneFile;
 class Material;
 class MeshInstanceFileV8;
+struct Actor;
 
 template<typename T>
 class ResourceManager;
@@ -58,6 +59,7 @@ namespace Factory
 		ResourceManager<vx::MeshFile>* meshManager;
 		ResourceManager<Material>* materialManager;
 		ResourceManager<vx::Animation>* animationManager;
+		const ResourceManager<Actor>* actorResManager;
 		vx::sorted_vector<vx::StringID, vx::FileEntry>* missingFiles;
 	};
 }

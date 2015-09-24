@@ -38,37 +38,6 @@ SOFTWARE.
 
 namespace Converter
 {
-	void EditorSceneToSceneFile::convertActors(const Editor::Scene &scene, SceneFile* sceneFile)
-	{
-		auto &sceneActors = scene.m_actors;
-		auto actorCount = sceneActors.size();
-		auto keys = sceneActors.keys();
-		auto actors = sceneActors.data();
-
-		if (actorCount != 0)
-		{
-			auto fileActors = vx::make_unique<ActorFile[]>(actorCount);
-			for (u32 i = 0; i < actorCount; ++i)
-			{
-				auto sidActor = keys[i];
-				auto &it = actors[i];
-
-				vx::StringID sidMaterial = it.m_material;
-				vx::StringID sidMesh = it.m_mesh;
-
-				auto actorNameIt = scene.m_actorNames.find(sidActor);
-				auto meshNameIt = scene.m_meshNames.find(sidMesh);
-				auto materialNameIt = scene.m_materialNames.find(sidMaterial);
-
-				strncpy(fileActors[i].m_material, materialNameIt->c_str(), 32);
-				strncpy(fileActors[i].m_mesh, meshNameIt->c_str(), 32);
-				strncpy(fileActors[i].m_name, actorNameIt->c_str(), 32);
-			}
-
-			sceneFile->setActors(std::move(fileActors), actorCount);
-		}
-	}
-
 	void EditorSceneToSceneFile::copyLights(const Editor::Scene &scene, SceneFile* sceneFile)
 	{
 		auto lightCount = scene.m_lightCount;
@@ -88,7 +57,6 @@ namespace Converter
 	{
 		SceneFile converterSceneFile(std::move(*sceneFile));
 
-		convertActors(scene, &converterSceneFile);
 		copyLights(scene, &converterSceneFile);
 
 		converterSceneFile.setNavMesh(scene.m_navMesh);

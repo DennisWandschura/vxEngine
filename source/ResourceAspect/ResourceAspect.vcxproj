@@ -243,6 +243,7 @@
     <ClCompile Include="SceneFactory.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="TaskLoadActor.cpp" />
     <ClCompile Include="TaskLoadAnimation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -266,6 +267,7 @@
     <ClCompile Include="TaskLoadTexture.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="TaskSaveActorFile.cpp" />
     <ClCompile Include="TaskSaveEditorScene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -291,6 +293,7 @@
     <ClInclude Include="include\vxResourceAspect\ResourceAspect.h" />
     <ClInclude Include="include\vxResourceAspect\ResourceManager.h" />
     <ClInclude Include="include\vxResourceAspect\SceneFactory.h" />
+    <ClInclude Include="TaskLoadActor.h" />
     <ClInclude Include="TaskLoadAnimation.h" />
     <ClInclude Include="TaskLoadAudio.h" />
     <ClInclude Include="TaskLoadFbx.h" />
@@ -300,6 +303,7 @@
     <ClInclude Include="TaskLoadMesh.h" />
     <ClInclude Include="TaskLoadScene.h" />
     <ClInclude Include="TaskLoadTexture.h" />
+    <ClInclude Include="TaskSaveActorFile.h" />
     <ClInclude Include="TaskSaveEditorScene.h" />
     <ClInclude Include="TaskSaveMeshFile.h" />
     <ClInclude Include="testConvertSceneFileToScene.h" />

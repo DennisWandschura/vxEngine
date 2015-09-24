@@ -6,7 +6,6 @@
 #include <vxLib/File/FileHandle.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
-#include <vxEngineLib/Actor.h>
 #include <vxEngineLib/Light.h>
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/Spawn.h>
@@ -32,16 +31,13 @@ namespace Converter
 		vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
 		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 		vx::sorted_vector<vx::StringID, vx::Animation*>* sceneAnimations;
-		vx::sorted_vector<vx::StringID, Actor>* sceneActors;
 		vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 		Spawn* sceneSpawns;
 		const SpawnFile* spawnsSrc;
-		const ActorFile* actorsSrc;
 		u32* vertexCount;
 		u32* indexCount;
 		u32 instanceCount;
 		u32 spawnCount;
-		u32 actorCount;
 	};
 
 	struct CreateSceneMeshInstancesDesc
@@ -57,17 +53,6 @@ namespace Converter
 		vx::sorted_vector<vx::StringID, vx::Animation*>* sceneAnimations;
 		vx::sorted_vector<vx::StringID, std::string>* sceneMeshInstanceNames;
 		u32 instanceCount;
-	};
-
-	struct CreateSceneActorsDesc
-	{
-		const ResourceManager<vx::MeshFile>* meshData;
-		const ResourceManager<Material>* materialData;
-		vx::sorted_vector<vx::StringID, Actor>* sceneActors;
-		vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
-		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
-		const ActorFile* actorsSrc;
-		u32 actorCount;
 	};
 
 	struct InstanceInserter
@@ -177,41 +162,6 @@ namespace Converter
 		return true;
 	}
 
-	bool createSceneActorsNew(const CreateSceneActorsDesc &desc)
-	{
-		if (desc.actorCount != 0)
-		{
-			desc.sceneActors->reserve(desc.actorCount);
-			for (auto i = 0u; i < desc.actorCount; ++i)
-			{
-				auto &actor = desc.actorsSrc[i];
-
-				auto sidMesh = vx::FileHandle(actor.m_mesh);
-				auto itMesh = desc.meshData->find(sidMesh.m_sid);
-
-				auto sidMaterial = vx::FileHandle(actor.m_material);
-				auto itMaterial = desc.materialData->find(sidMaterial.m_sid);
-
-				if (itMesh == nullptr || itMaterial == nullptr)
-				{
-					return false;
-				}
-
-				desc.sceneMeshes->insert(sidMesh.m_sid, itMesh);
-				desc.sceneMaterials->insert(sidMaterial.m_sid, itMaterial);
-
-				auto sidName = vx::FileHandle(actor.m_name).m_sid;
-
-				Actor a;
-				a.m_mesh = sidMesh.m_sid;
-				a.m_material = sidMaterial.m_sid;
-				desc.sceneActors->insert(sidName, a);
-			}
-		}
-
-		return true;
-	}
-
 	bool createSceneSharedNew(const CreateSceneShared &desc)
 	{
 		CreateSceneMeshInstancesDesc createMeshInstancesDesc;
@@ -229,20 +179,6 @@ namespace Converter
 		if (!createSceneMeshInstances(createMeshInstancesDesc))
 		{
 			printf("SceneFile::createSceneShared::createSceneMeshInstances error\n");
-			return false;
-		}
-
-		CreateSceneActorsDesc createActorDesc;
-		createActorDesc.sceneActors = desc.sceneActors;
-		createActorDesc.sceneMaterials = desc.sceneMaterials;
-		createActorDesc.sceneMeshes = desc.sceneMeshes;
-		createActorDesc.materialData = desc.materialData;
-		createActorDesc.meshData = desc.meshData;
-		createActorDesc.actorCount = desc.actorCount;
-		createActorDesc.actorsSrc = desc.actorsSrc;
-		if (!createSceneActorsNew(createActorDesc))
-		{
-			printf("SceneFile::createSceneShared::createSceneActors error\n");
 			return false;
 		}
 
@@ -275,7 +211,6 @@ namespace Converter
 		vx::sorted_vector<vx::StringID, vx::Animation*> sceneAnimations;
 
 		vx::sorted_vector<vx::StringID, const vx::MeshFile*> sceneMeshes;
-		vx::sorted_vector<vx::StringID, Actor> sceneActors;
 
 		auto instanceCount = converterSceneFile.getMeshInstanceCount();
 		vx::sorted_vector<vx::StringID, std::string> sceneMeshInstanceNames;
@@ -284,9 +219,6 @@ namespace Converter
 
 		auto spawnCount = converterSceneFile.getSpawnCount();
 		auto sceneSpawns = vx::make_unique<Spawn[]>(spawnCount);
-
-		auto actorCount = converterSceneFile.getActorCount();
-		auto actorsSrc = converterSceneFile.getActors();
 
 		u32 vertexCount = 0;
 		u32 indexCount = 0;
@@ -297,7 +229,6 @@ namespace Converter
 		sharedDesc.sceneMaterials = &sceneMaterials;
 		sharedDesc.sceneAnimations = &sceneAnimations;
 		sharedDesc.sceneMeshes = &sceneMeshes;
-		sharedDesc.sceneActors = &sceneActors;
 		sharedDesc.sceneSpawns = sceneSpawns.get();
 		sharedDesc.materialData = desc.materialData;
 		sharedDesc.meshData = desc.meshData;
@@ -309,8 +240,6 @@ namespace Converter
 		sharedDesc.meshInstancesFile = converterSceneFile.getMeshInstances();
 		sharedDesc.spawnsSrc = converterSceneFile.getSpawns();
 		sharedDesc.spawnCount = spawnCount;
-		sharedDesc.actorCount = actorCount;
-		sharedDesc.actorsSrc = actorsSrc;
 		if (!createSceneSharedNew(sharedDesc))
 		{
 			printf("SceneFile::createScene error\n");
@@ -347,23 +276,12 @@ namespace Converter
 			meshNames.insert(sid, it);
 		}
 
-		vx::sorted_vector<vx::StringID, std::string> actorNames;
-		actorNames.reserve(actorCount);
-		for (u32 i = 0; i < actorCount; ++i)
-		{
-			auto &actorFile = actorsSrc[i];
-
-			auto sid = vx::FileHandle(actorFile.m_name).m_sid;
-			actorNames.insert(sid, actorFile.m_name);
-		}
-
 		auto lightCount = converterSceneFile.getLightCount();
 		auto lights = converterSceneFile.getLights();
 
 		auto &fileNavMesh = converterSceneFile.getNavMesh();
 
 		Editor::SceneParams sceneParams;
-		sceneParams.m_baseParams.m_actors = std::move(sceneActors);
 		sceneParams.m_baseParams.m_indexCount = indexCount;
 		sceneParams.m_baseParams.m_lightCount = lightCount;
 		sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);
@@ -401,7 +319,6 @@ namespace Converter
 
 		sceneParams.m_materialNames = std::move(materialNames);
 		sceneParams.m_meshNames = std::move(meshNames);
-		sceneParams.m_actorNames = std::move(actorNames);
 
 		auto jointCount = converterSceneFile.getJointCount();
 		auto srcJoints = converterSceneFile.getJoints();

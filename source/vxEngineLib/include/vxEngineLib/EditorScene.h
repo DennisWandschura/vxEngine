@@ -51,7 +51,6 @@ namespace Editor
 		std::vector<Waypoint> m_waypoints;
 		vx::sorted_vector<vx::StringID, std::string> m_materialNames;
 		vx::sorted_vector<vx::StringID, std::string> m_meshNames;
-		vx::sorted_vector<vx::StringID, std::string> m_actorNames;
 		vx::sorted_vector<vx::StringID, std::string> m_meshInstanceNames;
 
 		~SceneParams();

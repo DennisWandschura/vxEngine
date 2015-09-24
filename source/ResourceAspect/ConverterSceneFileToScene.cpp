@@ -51,16 +51,6 @@ namespace Converter
 		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
 	};
 
-	struct SceneFileToScene::CreateSceneActorsDesc
-	{
-		const SceneFile *sceneFile;
-		const ResourceManager<vx::MeshFile>* meshManager;
-		const ResourceManager<Material>* materialManager;
-		vx::sorted_vector<vx::StringID, Actor>* sceneActors;
-		vx::sorted_vector<vx::StringID, const vx::MeshFile*>* sceneMeshes;
-		vx::sorted_vector<vx::StringID, Material*>* sceneMaterials;
-	};
-
 	bool SceneFileToScene::createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc)
 	{
 		auto meshInstanceCount = desc.sceneFile->getMeshInstanceCount();
@@ -108,43 +98,6 @@ namespace Converter
 		return true;
 	}
 
-	bool SceneFileToScene::createSceneActors(const CreateSceneActorsDesc &desc)
-	{
-		auto actorCount = desc.sceneFile->getActorCount();
-		auto actors = desc.sceneFile->getActors();
-		if (actorCount != 0)
-		{
-			desc.sceneActors->reserve(actorCount);
-			for (auto i = 0u; i < actorCount; ++i)
-			{
-				auto &actor = actors[i];
-
-				auto sidMesh = vx::make_sid(actor.m_mesh);
-				auto meshRef = desc.meshManager->find(sidMesh);
-
-				auto sidMaterial = vx::make_sid(actor.m_material);
-				auto materialRef = desc.materialManager->find(sidMaterial);
-
-				if (meshRef == nullptr || materialRef == nullptr)
-				{
-					return false;
-				}
-
-				desc.sceneMeshes->insert(sidMesh, meshRef);
-				desc.sceneMaterials->insert(sidMaterial, materialRef);
-
-				auto sidName = vx::make_sid(actor.m_name);
-
-				Actor a;
-				a.m_mesh = sidMesh;
-				a.m_material = sidMaterial;
-				desc.sceneActors->insert(sidName, a);
-			}
-		}
-
-		return true;
-	}
-
 	bool SceneFileToScene::convert
 		(
 			const ResourceManager<vx::MeshFile>* meshManager,
@@ -172,18 +125,6 @@ namespace Converter
 		desc.materialManager = materialManager;
 
 		if (!createSceneMeshInstances(desc))
-			return 0;
-
-		vx::sorted_vector<vx::StringID, Actor> sceneActors;
-
-		CreateSceneActorsDesc createSceneActorsDesc;
-		createSceneActorsDesc.sceneActors = &sceneActors;
-		createSceneActorsDesc.sceneFile = &converterSceneFile;
-		createSceneActorsDesc.sceneMaterials = &sceneMaterials;
-		createSceneActorsDesc.sceneMeshes = &sceneMeshes;
-		createSceneActorsDesc.meshManager = meshManager;
-		createSceneActorsDesc.materialManager = materialManager;
-		if (!createSceneActors(createSceneActorsDesc))
 			return 0;
 
 		auto spawnCount = converterSceneFile.getSpawnCount();
@@ -240,7 +181,6 @@ namespace Converter
 		}
 
 		SceneParams sceneParams;
-		sceneParams.m_baseParams.m_actors = std::move(sceneActors);
 		sceneParams.m_baseParams.m_indexCount = indexCount;
 		sceneParams.m_baseParams.m_lightCount = lightCount;
 		sceneParams.m_baseParams.m_materials = std::move(sceneMaterials);

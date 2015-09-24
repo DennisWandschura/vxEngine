@@ -59,12 +59,6 @@ namespace Converter
 			m_spawnCount = count;
 		}
 
-		void setActors(std::unique_ptr<ActorFile[]> &&actors, u32 count)
-		{
-			m_pActors = std::move(actors);
-			m_actorCount = count;
-		}
-
 		void setWaypoints(std::unique_ptr<Waypoint[]> &&waypoints, u32 count)
 		{
 			m_waypoints = std::move(waypoints);
@@ -90,9 +84,6 @@ namespace Converter
 
 		u32 getSpawnCount() const { return m_spawnCount; }
 		const SpawnFile* getSpawns() const { return m_pSpawns.get(); }
-
-		u32 getActorCount() const { return m_actorCount; }
-		const ActorFile* getActors() const { return m_pActors.get(); }
 
 		u32 getWaypointCount() const { return m_waypointCount; }
 		const Waypoint* getWaypoints() const { return m_waypoints.get(); }

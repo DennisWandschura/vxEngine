@@ -23,8 +23,8 @@ struct TaskLoadTextureDesc
 	Event evt;
 	vx::StringID m_sid;
 	ResourceManager<Graphics::Texture>* m_textureManager;
-	bool m_flipImage;
-	bool m_srgb;
+	u8 m_flipImage;
+	u8 m_srgb;
 };
 
 class TaskLoadTexture : public TaskLoadFile
@@ -32,8 +32,8 @@ class TaskLoadTexture : public TaskLoadFile
 	ResourceManager<Graphics::Texture>* m_textureManager;
 	std::string m_filename;
 	vx::StringID m_sid;
-	bool m_flipImage;
-	bool m_srgb;
+	u8 m_flipImage;
+	u8 m_srgb;
 
 	TaskReturnType runImpl() override;
 

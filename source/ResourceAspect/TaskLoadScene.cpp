@@ -31,6 +31,8 @@ SOFTWARE.
 #include <vxEngineLib/TaskManager.h>
 #include "TaskLoadAnimation.h"
 #include "TaskLoadMaterial.h"
+#include "TaskLoadActor.h"
+#include <vxResourceAspect/ResourceAspect.h>
 
 namespace TaskLoadSceneCpp
 {
@@ -39,6 +41,7 @@ namespace TaskLoadSceneCpp
 
 TaskLoadScene::TaskLoadScene(TaskLoadSceneDesc &&rhs)
 	:Task(std::move(rhs.m_evt)),
+	m_resourceAspect(rhs.m_resourceAspect),
 	m_filenameWithPath(std::move(rhs.m_filenameWithPath)),
 	m_meshManager(rhs.m_meshManager),
 	m_materialManager(rhs.m_materialManager),
@@ -136,26 +139,10 @@ void TaskLoadScene::createTaskLoadMaterial(const vx::FileEntry &it, std::vector<
 
 void TaskLoadScene::createTaskLoadAnimation(const vx::FileEntry &it, std::vector<Event>* events)
 {
-	auto fileName = it.getString();
-
-	char fileNameWithPath[64];
-	auto returnCode = sprintf_s(fileNameWithPath, "%s%s", m_directories.animDir, fileName);
-	if (returnCode == -1)
-	{
-		VX_ASSERT(false);
-	}
-
 	auto evt = Event::createEvent();
-
-	TaskLoadAnimationDesc desc;
-	desc.m_fileNameWithPath = std::string(fileNameWithPath);
-	desc.m_filename = fileName;
-	desc.m_animationManager = m_animationManager;
-	desc.m_sid = it.getSid();
-	desc.evt = evt;
-
-	auto task = new TaskLoadAnimation(std::move(desc));
-	m_taskManager->pushTask(task);
+	vx::Variant arg;
+	arg.u64 = it.getSid().value;
+	m_resourceAspect->requestLoadFile(it, arg, evt);
 	events->push_back(evt);
 }
 
@@ -181,6 +168,7 @@ TaskReturnType TaskLoadScene::runImpl()
 	factoryDesc.meshManager = m_meshManager;
 	factoryDesc.materialManager = m_materialManager;
 	factoryDesc.animationManager = m_animationManager;
+	factoryDesc.actorResManager = m_actorResManager;
 	factoryDesc.missingFiles = &missingFiles;
 
 	bool created = false;
@@ -200,8 +188,15 @@ TaskReturnType TaskLoadScene::runImpl()
 
 		for (auto &it : missingFiles)
 		{
+			auto evt = Event::createEvent();
+			vx::Variant arg;
+			arg.u64 = it.getSid().value;
+			m_resourceAspect->requestLoadFile(it, arg, evt);
+
+			fileEvents.push_back(evt);
+
 			//printf("missing files %u\n", missingFiles.size());
-			auto type = it.getType();
+			/*auto type = it.getType();
 			switch (type)
 			{
 			case vx::FileType::Mesh:
@@ -216,10 +211,14 @@ TaskReturnType TaskLoadScene::runImpl()
 			{
 				createTaskLoadAnimation(it, &fileEvents);
 			}break;
+			case vx::FileType::Actor:
+			{
+
+			}break;
 			default:
 				VX_ASSERT(false);
 				break;
-			}
+			}*/
 		}
 
 		//setTimeoutTime(1000.0f);

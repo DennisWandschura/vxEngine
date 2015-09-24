@@ -62,6 +62,8 @@ namespace LevelEditor
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addJointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.removeJointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createMeshInstanceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createLightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -107,8 +109,7 @@ namespace LevelEditor
             this.numericUpDownSpawnPosX = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosZ = new System.Windows.Forms.NumericUpDown();
-            this.removeJointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addJointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.createActorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).BeginInit();
@@ -222,11 +223,28 @@ namespace LevelEditor
             this.redoToolStripMenuItem.Text = "Redo";
             this.redoToolStripMenuItem.Click += new System.EventHandler(this.redoToolStripMenuItem_Click);
             // 
+            // addJointToolStripMenuItem
+            // 
+            this.addJointToolStripMenuItem.Name = "addJointToolStripMenuItem";
+            this.addJointToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.addJointToolStripMenuItem.Text = "Add Joint";
+            this.addJointToolStripMenuItem.Visible = false;
+            this.addJointToolStripMenuItem.Click += new System.EventHandler(this.addJointToolStripMenuItem_Click);
+            // 
+            // removeJointToolStripMenuItem
+            // 
+            this.removeJointToolStripMenuItem.Name = "removeJointToolStripMenuItem";
+            this.removeJointToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.removeJointToolStripMenuItem.Text = "Remove Joint";
+            this.removeJointToolStripMenuItem.Visible = false;
+            this.removeJointToolStripMenuItem.Click += new System.EventHandler(this.removeJointToolStripMenuItem_Click);
+            // 
             // createToolStripMenuItem
             // 
             this.createToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.createMeshInstanceToolStripMenuItem,
-            this.createLightToolStripMenuItem});
+            this.createLightToolStripMenuItem,
+            this.createActorToolStripMenuItem});
             this.createToolStripMenuItem.Name = "createToolStripMenuItem";
             this.createToolStripMenuItem.Size = new System.Drawing.Size(53, 20);
             this.createToolStripMenuItem.Text = "Create";
@@ -260,7 +278,7 @@ namespace LevelEditor
             this.itemShotNavmesh.CheckOnClick = true;
             this.itemShotNavmesh.CheckState = System.Windows.Forms.CheckState.Checked;
             this.itemShotNavmesh.Name = "itemShotNavmesh";
-            this.itemShotNavmesh.Size = new System.Drawing.Size(150, 22);
+            this.itemShotNavmesh.Size = new System.Drawing.Size(152, 22);
             this.itemShotNavmesh.Text = "Navmesh";
             this.itemShotNavmesh.Click += new System.EventHandler(this.itemShotNavmesh_Click);
             // 
@@ -270,7 +288,7 @@ namespace LevelEditor
             this.itemInfluenceMap.CheckOnClick = true;
             this.itemInfluenceMap.CheckState = System.Windows.Forms.CheckState.Checked;
             this.itemInfluenceMap.Name = "itemInfluenceMap";
-            this.itemInfluenceMap.Size = new System.Drawing.Size(150, 22);
+            this.itemInfluenceMap.Size = new System.Drawing.Size(152, 22);
             this.itemInfluenceMap.Text = "Influence Map";
             this.itemInfluenceMap.Click += new System.EventHandler(this.itemInfluenceMap_Click);
             // 
@@ -767,21 +785,12 @@ namespace LevelEditor
             this.numericUpDownSpawnPosZ.TabIndex = 14;
             this.numericUpDownSpawnPosZ.ValueChanged += new System.EventHandler(this.numericUpDownSpawnPosZ_ValueChanged);
             // 
-            // removeJointToolStripMenuItem
+            // createActorToolStripMenuItem
             // 
-            this.removeJointToolStripMenuItem.Name = "removeJointToolStripMenuItem";
-            this.removeJointToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.removeJointToolStripMenuItem.Text = "Remove Joint";
-            this.removeJointToolStripMenuItem.Visible = false;
-            this.removeJointToolStripMenuItem.Click += new System.EventHandler(this.removeJointToolStripMenuItem_Click);
-            // 
-            // addJointToolStripMenuItem
-            // 
-            this.addJointToolStripMenuItem.Name = "addJointToolStripMenuItem";
-            this.addJointToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.addJointToolStripMenuItem.Text = "Add Joint";
-            this.addJointToolStripMenuItem.Visible = false;
-            this.addJointToolStripMenuItem.Click += new System.EventHandler(this.addJointToolStripMenuItem_Click);
+            this.createActorToolStripMenuItem.Name = "createActorToolStripMenuItem";
+            this.createActorToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.createActorToolStripMenuItem.Text = "Create Actor";
+            this.createActorToolStripMenuItem.Click += new System.EventHandler(this.createActorToolStripMenuItem_Click);
             // 
             // EditorForm
             // 
@@ -900,6 +909,7 @@ namespace LevelEditor
         private System.Windows.Forms.ToolStripButton toolStripButtonCreateJoint;
         private System.Windows.Forms.ToolStripMenuItem removeJointToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addJointToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem createActorToolStripMenuItem;
     }
 }
 

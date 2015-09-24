@@ -67,6 +67,7 @@ namespace EntityAspectCpp
 
 struct EntityAspect::ColdData
 {
+	ResourceAspectInterface* m_resourceAspect{nullptr};
 	const Scene* m_pCurrentScene{ nullptr };
 };
 
@@ -81,7 +82,7 @@ EntityAspect::~EntityAspect()
 
 }
 
-bool EntityAspect::initialize(vx::StackAllocator* pAllocator, vx::TaskManager* taskManager, vx::AllocationProfiler* allocManager)
+bool EntityAspect::initialize(vx::StackAllocator* pAllocator, vx::TaskManager* taskManager, vx::AllocationProfiler* allocManager, ResourceAspectInterface* resourceAspect)
 {
 	m_coldData = vx::make_unique<ColdData>();
 
@@ -99,6 +100,7 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator, vx::TaskManager* t
 	m_playerController.initialize(pAllocator);
 
 	m_taskManager = taskManager;
+	m_coldData->m_resourceAspect = resourceAspect;
 
 	return true;
 }
@@ -307,7 +309,7 @@ void EntityAspect::handleFileEvent(const vx::Message &evt)
 		std::vector<Event> events;
 		events.push_back(fetchEvt);
 
-		m_taskManager->pushTask(new TaskSceneCreateActors(evtBlock, std::move(events),scene, renderAspect, physicsAspect));
+		m_taskManager->pushTask(new TaskSceneCreateActors(evtBlock, std::move(events),scene, renderAspect, physicsAspect, m_coldData->m_resourceAspect));
 		m_taskManager->pushTask(new TaskSceneCreateStaticMeshes(scene, renderAspect));
 
 

@@ -27,6 +27,7 @@ SOFTWARE.
 class Scene;
 class RenderAspectInterface;
 class PhysicsAspect;
+class ResourceAspectInterface;
 
 #include <vxEngineLib/Task.h>
 
@@ -38,11 +39,12 @@ class TaskSceneCreateActors : public Task
 	const Scene* m_scene;
 	RenderAspectInterface* m_renderAspect;
 	PhysicsAspect* m_physicsAspect;
+	ResourceAspectInterface* m_resourceAspect;
 
 	TaskReturnType runImpl() override;
 
 public:
-	TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene, RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect);
+	TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene, RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect, ResourceAspectInterface* resourceAspect);
 	~TaskSceneCreateActors();
 
 	f32 getTimeMs() const override;

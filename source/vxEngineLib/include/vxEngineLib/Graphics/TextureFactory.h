@@ -40,10 +40,10 @@ namespace Graphics
 	class TextureFactory
 	{
 	public:
-		static bool createDDSFromFile(const char* ddsFile, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
-		static bool createPngFromFile(const char* pngFile, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
+		static bool createDDSFromFile(const char* ddsFile, u8 flipImage, u8 srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
+		static bool createPngFromFile(const char* pngFile, u8 flipImage, u8 srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator);
 
-		static bool createDDSFromMemory(const u8* ddsData, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator);
-		static bool createPngFromMemory(const u8* pngData, u32 size, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator);
+		static bool createDDSFromMemory(const u8* ddsData, u8 flipImage, u8 srgb, Texture* texture, ArrayAllocator* textureAllocator);
+		static bool createPngFromMemory(const u8* pngData, u32 size, u8 flipImage, u8 srgb, Texture* texture, ArrayAllocator* textureAllocator);
 	};
 }

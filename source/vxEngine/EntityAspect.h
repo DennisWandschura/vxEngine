@@ -41,6 +41,7 @@ class Scene;
 class CreateActorData;
 class MeshInstance;
 class CreateDynamicMeshData;
+class ResourceAspectInterface;
 
 #include <vxEngineLib/MessageListener.h>
 #include "PlayerController.h"
@@ -90,7 +91,7 @@ public:
 
 	//////////////////
 
-	bool initialize(vx::StackAllocator* pAllocator, vx::TaskManager* taskManager, vx::AllocationProfiler* allocManager);
+	bool initialize(vx::StackAllocator* pAllocator, vx::TaskManager* taskManager, vx::AllocationProfiler* allocManager, ResourceAspectInterface* resourceAspect);
 	void shutdown();
 
 	void builEntityQuadTree();

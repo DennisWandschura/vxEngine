@@ -28,7 +28,6 @@ class MeshInstance;
 
 struct Light;
 struct Spawn;
-struct Actor;
 class SceneFile;
 struct Waypoint;
 struct Joint;
@@ -53,7 +52,6 @@ struct SceneBaseParams
 	std::vector<Light> m_lights;
 	vx::sorted_vector<vx::StringID, Material*> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
-	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
 	std::vector<Waypoint> m_waypoints;
 	vx::sorted_vector<vx::StringID, vx::Animation*> m_animations;
@@ -76,7 +74,6 @@ protected:
 	vx::sorted_vector<vx::StringID, Material*> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
-	vx::sorted_vector<vx::StringID, Actor> m_actors;
 	std::vector<Waypoint> m_waypoints;
 	vx::sorted_vector<vx::StringID, vx::Animation*> m_animations;
 	std::vector<Joint> m_joints;
@@ -123,8 +120,6 @@ public:
 
 	const Spawn* getSpawns() const;
 	u32 getSpawnCount() const;
-
-	const vx::sorted_vector<vx::StringID, Actor>& getActors() const;
 
 	vx::Animation** getAnimations() const;
 	u32 getAnimationCount() const;

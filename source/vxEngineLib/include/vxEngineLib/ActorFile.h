@@ -23,22 +23,28 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class SceneFile;
+#include <vxEngineLib/Serializable.h>
 
-namespace Editor
+class ActorFile : public vx::Serializable
 {
-	class Scene;
-}
+	char m_mesh[32];
+	char m_material[32];
 
-namespace Converter
-{
-	class SceneFile;
+public:
+	explicit ActorFile(u32 version);
+	~ActorFile();
 
-	class EditorSceneToSceneFile
-	{
-		static void copyLights(const Editor::Scene &scene, SceneFile* sceneFile);
+	void saveToFile(vx::File* f) const override;
 
-	public:
-		static void convert(const Editor::Scene &scene, ::SceneFile* sceneFile);
-	};
-}
+	const u8* loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator) override;
+
+	u64 getCrc() const override;
+
+	void setMesh(const char(&mesh)[32]);
+	void setMaterial(const char(&material)[32]);
+
+	const char* getMesh() { return m_mesh; }
+	const char* getMaterial() { return m_material; }
+
+	static u32 getGlobalVersion() { return 0; }
+};

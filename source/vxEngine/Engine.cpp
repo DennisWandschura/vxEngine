@@ -369,10 +369,10 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 	}
 
 #if _VX_MEM_PROFILE
-	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, &m_allocManager))
+	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, &m_allocManager, &m_resourceAspect))
 		return false;
 #else
-	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, nullptr))
+	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, nullptr, &m_resourceAspect))
 	{
 		logfile->append("error initializing entity aspect\n");
 		return false;

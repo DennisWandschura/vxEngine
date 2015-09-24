@@ -34,6 +34,18 @@
     <Filter Include="Header Files\tests">
       <UniqueIdentifier>{610781cd-c9b9-4d3c-9bce-869b15249725}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Tasks\Load">
+      <UniqueIdentifier>{65f49cc5-5b7e-469e-94e5-b7ae84393a4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tasks\Save">
+      <UniqueIdentifier>{b42371b5-3cf9-4255-beaa-a928476e87e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Tasks\Load">
+      <UniqueIdentifier>{814923cc-4fc6-4d6d-a26d-731ee08e3178}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Tasks\Save">
+      <UniqueIdentifier>{68393401-dde8-471e-b595-4156ac8859c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MaterialFactory.cpp">
@@ -51,30 +63,6 @@
     <ClCompile Include="ResourceAspect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TaskLoadMesh.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskLoadScene.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskLoadFile.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskLoadAnimation.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskLoadMaterial.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskLoadTexture.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskLoadFbx.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskSaveEditorScene.cpp">
-      <Filter>Source Files\Tasks</Filter>
-    </ClCompile>
     <ClCompile Include="SceneFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,14 +78,44 @@
     <ClCompile Include="testConvertSceneFileToScene.cpp">
       <Filter>Source Files\tests</Filter>
     </ClCompile>
+    <ClCompile Include="TaskSaveActorFile.cpp">
+      <Filter>Source Files\Tasks\Save</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskSaveEditorScene.cpp">
+      <Filter>Source Files\Tasks\Save</Filter>
+    </ClCompile>
     <ClCompile Include="TaskSaveMeshFile.cpp">
-      <Filter>Source Files\Tasks</Filter>
+      <Filter>Source Files\Tasks\Save</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadActor.cpp">
+      <Filter>Source Files\Tasks\Load</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadAnimation.cpp">
+      <Filter>Source Files\Tasks\Load</Filter>
     </ClCompile>
     <ClCompile Include="TaskLoadAudio.cpp">
-      <Filter>Source Files\Tasks</Filter>
+      <Filter>Source Files\Tasks\Load</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadFbx.cpp">
+      <Filter>Source Files\Tasks\Load</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadFile.cpp">
+      <Filter>Source Files\Tasks\Load</Filter>
     </ClCompile>
     <ClCompile Include="TaskLoadFont.cpp">
-      <Filter>Source Files\Tasks</Filter>
+      <Filter>Source Files\Tasks\Load</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadMaterial.cpp">
+      <Filter>Source Files\Tasks\Load</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadMesh.cpp">
+      <Filter>Source Files\Tasks\Load</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadScene.cpp">
+      <Filter>Source Files\Tasks\Load</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskLoadTexture.cpp">
+      <Filter>Source Files\Tasks\Load</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -116,30 +134,6 @@
     <ClInclude Include="include\vxResourceAspect\MaterialFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TaskLoadMesh.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskLoadScene.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskLoadAnimation.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskLoadFile.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskLoadMaterial.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskLoadTexture.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskLoadFbx.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskSaveEditorScene.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxResourceAspect\ConverterEditorSceneToSceneFile.h">
       <Filter>Header Files\Converter</Filter>
     </ClInclude>
@@ -155,17 +149,47 @@
     <ClInclude Include="testConvertSceneFileToScene.h">
       <Filter>Header Files\tests</Filter>
     </ClInclude>
-    <ClInclude Include="TaskSaveMeshFile.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskLoadAudio.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskLoadFont.h">
-      <Filter>Header Files\Tasks</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxResourceAspect\ResourceManager.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadActor.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadAnimation.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadAudio.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadFbx.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadFile.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadFont.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadMaterial.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadMesh.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadScene.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskLoadTexture.h">
+      <Filter>Header Files\Tasks\Load</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskSaveMeshFile.h">
+      <Filter>Header Files\Tasks\Save</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskSaveEditorScene.h">
+      <Filter>Header Files\Tasks\Save</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskSaveActorFile.h">
+      <Filter>Header Files\Tasks\Save</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

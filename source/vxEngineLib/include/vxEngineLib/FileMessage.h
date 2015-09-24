@@ -41,6 +41,7 @@ namespace vx
 		Audio_Loaded,
 		Animation_Loaded,
 		Font_Loaded,
+		Actor_Loaded,
 
 		Fbx_Loaded,
 

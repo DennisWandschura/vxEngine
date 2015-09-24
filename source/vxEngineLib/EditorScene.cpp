@@ -91,8 +91,7 @@ namespace Editor
 		m_selectableWaypoints(),
 		m_selectableJoints(),
 		m_materialNames(std::move(params.m_materialNames)),
-		m_meshNames(std::move(params.m_meshNames)),
-		m_actorNames(std::move(params.m_actorNames))
+		m_meshNames(std::move(params.m_meshNames))
 	{
 		buildSelectableLights();
 

@@ -2,6 +2,7 @@
 
 class Material;
 class AudioFile;
+struct Actor;
 
 namespace Graphics
 {
@@ -39,4 +40,5 @@ public:
 	virtual const vx::Animation* getAnimation(const vx::StringID &sid) const = 0;
 	virtual const AudioFile* getAudioFile(const vx::StringID &sid) const = 0;
 	virtual const Graphics::Font* getFontFile(const vx::StringID &sid) const = 0;
+	virtual const Actor* getActor(const vx::StringID &sid) const = 0;
 };

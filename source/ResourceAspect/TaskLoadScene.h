@@ -25,6 +25,8 @@ SOFTWARE.
 */
 
 class Material;
+struct Actor;
+class ResourceAspect;
 
 namespace vx
 {
@@ -56,11 +58,13 @@ struct TaskLoadSceneDirectories
 
 struct TaskLoadSceneDesc
 {
+	ResourceAspect* m_resourceAspect;
 	std::string m_filenameWithPath;
 	ResourceManager<vx::MeshFile>* m_meshManager;
 	ResourceManager<Material>* m_materialManager;
 	ResourceManager<vx::Animation>* m_animationManager;
 	ResourceManager<Graphics::Texture>* m_textureManager;
+	const ResourceManager<Actor>* m_actorResManager;
 	void* m_scene;
 	vx::TaskManager* m_taskManager;
 	Event m_evt;
@@ -71,11 +75,13 @@ struct TaskLoadSceneDesc
 
 class TaskLoadScene : public Task
 {
+	ResourceAspect* m_resourceAspect;
 	std::string m_filenameWithPath;
 	ResourceManager<vx::MeshFile>* m_meshManager;
 	ResourceManager<Material>* m_materialManager;
 	ResourceManager<vx::Animation>* m_animationManager;
 	ResourceManager<Graphics::Texture>* m_textureManager;
+	const ResourceManager<Actor>* m_actorResManager;
 	void* m_scene;
 	vx::StackAllocator m_scratchAllocator;
 	vx::TaskManager* m_taskManager;

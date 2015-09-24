@@ -89,9 +89,10 @@ namespace Editor
 		p->~T();
 	}
 
-	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx, u32 typeAnimation)
+	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, 
+		u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx, u32 typeAnimation, u32 typeActor)
 	{
-		EditorEngine::editor_setTypes(typeMesh, typeMaterial, typeScene, typeFbx, typeAnimation);
+		EditorEngine::editor_setTypes(typeMesh, typeMaterial, typeScene, typeFbx, typeAnimation, typeActor);
 
 		g_pMemory = ::operator new(sizeof(Editor));
 		if (!g_pMemory)
@@ -648,6 +649,24 @@ namespace Editor
 	void setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax)
 	{
 		g_pEditor->engine.setJointLimit(index, enabled, limitMin, limitMax);
+	}
+
+	u64 createActor(const char* name, u64 meshSid, u64 materialSid)
+	{
+		return g_pEditor->engine.createActor(name, meshSid, materialSid);
+	}
+
+	BSTR getActorName(u64 sid)
+	{
+		auto str = g_pEditor->engine.getActorName(sid);
+		if (str)
+		{
+			return ANSItoBSTR(str);
+		}
+		else
+		{
+			return ::SysAllocString(L"unkownActor");
+		}
 	}
 }
 #endif

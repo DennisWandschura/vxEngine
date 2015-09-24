@@ -53,6 +53,7 @@ namespace LevelEditor
         const uint s_typeFbx = 4;
         const uint s_typeAnimation = 5;
         const uint s_typeJoint = 6;
+        const uint s_typeActor = 7;
 
         const uint s_maxAutosave = 4;
 
@@ -69,6 +70,7 @@ namespace LevelEditor
         TreeNode m_waypointsNode;
         TreeNode m_animationsNode;
         TreeNode m_jointsNode;
+        TreeNode m_actorsNode;
         bool m_keyDownAlt;
         int m_mouseX;
         int m_mouseY;
@@ -86,6 +88,8 @@ namespace LevelEditor
         MeshInfoControl m_meshInfoControl;
         MeshInstanceDataControl m_meshInstanceDataControl;
         JointDataControl m_jointDataControl;
+        ActorInfoControl m_actorDataControl;
+        CreateActorForm m_createActorForm;
 
         Dictionary<ulong, string> m_requestedFiles;
         Dictionary<ulong, EditorNodeEntry> m_sortedMeshInstanceNodes;
@@ -103,6 +107,7 @@ namespace LevelEditor
             m_meshInfoControl = new MeshInfoControl(this);
             m_meshInstanceDataControl = new MeshInstanceDataControl(this);
             m_jointDataControl = new JointDataControl(this);
+            m_actorDataControl = new ActorInfoControl(this);
 
             m_meshNode = treeView_entities.Nodes.Add("Meshes");
             m_materialNode = treeView_entities.Nodes.Add("Materials");
@@ -110,6 +115,7 @@ namespace LevelEditor
             m_waypointsNode = treeView_entities.Nodes.Add("Waypoints");
             m_animationsNode = treeView_entities.Nodes.Add("Animations");
             m_jointsNode = treeView_entities.Nodes.Add("Joints");
+            m_actorsNode = treeView_entities.Nodes.Add("Actors");
 
             treeView_entities.Nodes.Add("Lights");
             m_currentSceneFileName = "untitled.scene";
@@ -139,13 +145,17 @@ namespace LevelEditor
             m_fileBrowser.Hide();
             m_fileBrowser.Owner = this;
 
+            m_createActorForm = new CreateActorForm(this);
+            m_createActorForm.Hide();
+            m_createActorForm.Owner = this;
+
             m_actionListHead = new ActionList(null, null);
 
             createStateMachine();
 
             Panel tmp = new Panel();
 
-            if (!NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx, s_typeAnimation))
+            if (!NativeMethods.initializeEditor(panel_render.Handle, tmp.Handle, (uint)panel_render.Width, (uint)panel_render.Height, s_typeMesh, s_typeMaterial, s_typeScene, s_typeFbx, s_typeAnimation, s_typeActor))
             {
                 throw new Exception();
             }
@@ -188,6 +198,10 @@ namespace LevelEditor
             m_meshInfoControl.Parent = this;
             m_meshInfoControl.Hide();
             m_meshInfoControl.Location = p;
+
+            m_actorDataControl.Parent = this;
+            m_actorDataControl.Hide();
+            m_actorDataControl.Location = p;
         }
 
         ~EditorForm()
@@ -603,6 +617,8 @@ namespace LevelEditor
             m_meshNode.Nodes.Clear();
 
             m_meshInstanceDataControl.clearMeshEntries();
+            m_actorDataControl.clearMeshEntries();
+            m_createActorForm.clearMeshEntries();
 
             var meshCount = NativeMethods.getMeshCount();
             for (uint i = 0; i < meshCount; ++i)
@@ -623,6 +639,8 @@ namespace LevelEditor
             m_sortedMeshes.Add(meshEntry.sid, entry);
 
             m_meshInstanceDataControl.addMeshEntry(entry);
+            m_actorDataControl.addMeshEntry(entry);
+            m_createActorForm.addMeshEntry(entry);
         }
 
         void addMesh(ulong sid, string name)
@@ -695,11 +713,21 @@ namespace LevelEditor
             }
         }
 
+        public void addActor(ulong sid)
+        {
+            var actorName = NativeMethods.getActorName(sid);
+
+            EditorNodeEntry entry = new EditorNodeEntry(sid, s_typeActor, actorName);
+            m_actorsNode.Nodes.Add(entry);
+        }
+
         void addSceneMaterials()
         {
             m_meshInstanceDataControl.clearMaterialEntries();
             m_sortedMaterials.Clear();
             m_materialNode.Nodes.Clear();
+            m_actorDataControl.clearMaterialEntries();
+            m_createActorForm.clearMaterialEntries();
 
             var count = NativeMethods.getMaterialCount();
             for (uint i = 0; i < count; ++i)
@@ -720,6 +748,8 @@ namespace LevelEditor
             m_sortedMaterials.Add(nodeEntry.sid, entry);
 
             m_meshInstanceDataControl.addMaterialEntry(entry);
+            m_actorDataControl.addMaterialEntry(entry);
+            m_createActorForm.addMaterialEntry(entry);
         }
 
         void addMaterial(ulong sid, string name)
@@ -798,6 +828,10 @@ namespace LevelEditor
                 {
                     addAnimation(sid, str);
                 }
+                else if(type == s_typeActor)
+                {
+                    addActor(sid);
+                }
                 else
                 {
                     Console.Write("loaded unknown file type\n");
@@ -873,6 +907,16 @@ namespace LevelEditor
                 m_requestedFiles.Add(sid, filename);
 
                 NativeMethods.loadFile(filename, s_typeAnimation, EditorForm.loadFileCallback);
+            }
+            else if(extension == ".actor")
+            {
+                m_requestedFiles.Add(sid, filename);
+
+                NativeMethods.loadFile(filename, s_typeActor, EditorForm.loadFileCallback);
+            }
+            else
+            {
+
             }
         }
 
@@ -1784,6 +1828,11 @@ namespace LevelEditor
         private void addJointToolStripMenuItem_Click(object sender, EventArgs e)
         {
             createJoint();
+        }
+
+        private void createActorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            m_createActorForm.ShowDialog();
         }
     }
 }

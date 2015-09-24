@@ -48,7 +48,6 @@ SceneBase::SceneBase()
 	m_materials(),
 	m_meshes(),
 	m_pSpawns(),
-	m_actors(),
 	m_waypoints(),
 	m_animations(),
 	m_joints(),
@@ -64,7 +63,6 @@ SceneBase::SceneBase(SceneBase &&rhs)
 	m_materials(std::move(rhs.m_materials)),
 	m_meshes(std::move(rhs.m_meshes)),
 	m_pSpawns(std::move(rhs.m_pSpawns)),
-	m_actors(std::move(rhs.m_actors)),
 	m_waypoints(std::move(rhs.m_waypoints)),
 	m_animations(std::move(rhs.m_animations)),
 	m_joints(std::move(rhs.m_joints)),
@@ -82,7 +80,6 @@ SceneBase::SceneBase(SceneBaseParams &params)
 	m_materials(std::move(params.m_materials)),
 	m_meshes(std::move(params.m_meshes)),
 	m_pSpawns(std::move(params.m_pSpawns)),
-	m_actors(std::move(params.m_actors)),
 	m_waypoints(std::move(params.m_waypoints)),
 	m_animations(std::move(params.m_animations)),
 	m_joints(std::move(params.m_joints)),
@@ -103,7 +100,6 @@ SceneBase& SceneBase::operator = (SceneBase &&rhs)
 		m_materials = std::move(rhs.m_materials);
 		m_meshes = std::move(rhs.m_meshes);
 		m_pSpawns = std::move(rhs.m_pSpawns);
-		m_actors = std::move(rhs.m_actors);
 		m_waypoints = std::move(rhs.m_waypoints);
 		m_animations = std::move(rhs.m_animations);
 		m_joints = std::move(rhs.m_joints);
@@ -131,7 +127,6 @@ void SceneBase::reset()
 
 	m_materials.clear();
 	m_meshes.clear();
-	m_actors.clear();
 	m_navMesh.reset();
 	m_animations.clear();
 	m_lightCount = 0;
@@ -147,7 +142,6 @@ void SceneBase::copy(SceneBase *dst) const
 
 	copySortedVector(&dst->m_materials, m_materials);
 	copySortedVector(&dst->m_meshes, m_meshes);
-	copySortedVector(&dst->m_actors, m_actors);
 
 	dst->m_pSpawns = m_pSpawns;
 
@@ -222,11 +216,6 @@ const Spawn* SceneBase::getSpawns() const
 u32 SceneBase::getSpawnCount() const
 {
 	return m_spawnCount;
-}
-
-const vx::sorted_vector<vx::StringID, Actor>& SceneBase::getActors() const
-{
-	return m_actors;
 }
 
 vx::Animation** SceneBase::getAnimations() const

@@ -15,6 +15,7 @@
 #include <vxResourceAspect/ConverterEditorSceneToSceneFile.h>
 #include <vxEngineLib/FileFactory.h>
 #include <vxLib/File/File.h>
+#include <vxEngineLib/Spawn.h>
 
 namespace SceneFactoryCpp
 {
@@ -27,13 +28,13 @@ namespace SceneFactoryCpp
 		const MeshInstanceFileV8* getMeshInstances() const { return m_pMeshInstances.get(); }
 		u32 getMeshInstanceCount() const { return m_meshInstanceCount; }
 
-		u32 getActorCount() const { return m_actorCount; }
-		const ActorFile* getActors() const { return m_pActors.get(); }
-
 		void swap(SceneFile &rhs)
 		{
 			SceneFile::swap(rhs);
 		}
+
+		const SpawnFile* getSpawns() const { return m_pSpawns.get(); }
+		u32 getSpawnCount() const { return m_spawnCount; }
 	};
 
 	bool checkMeshInstanceMesh(const vx::FileEntry &meshFileEntry, const vx::sorted_array<vx::StringID, vx::MeshFile*>* sortedMeshes, std::vector<vx::FileEntry>* missingFiles)
@@ -109,29 +110,30 @@ namespace SceneFactoryCpp
 			const ResourceManager<vx::MeshFile>* meshManager,
 			const ResourceManager<Material>* materialManager,
 			const ResourceManager<vx::Animation>* animationManager,
-			const MeshInstanceFileV8* instances,
-			u32 count,
+			const SceneFileLoad* sceneFile,
 			vx::sorted_vector<vx::StringID, vx::FileEntry>* missingFiles
 			)
 	{
+		auto count = sceneFile->getMeshInstanceCount();
+		auto instances = sceneFile->getMeshInstances();
 
 		bool result = true;
 		for (u32 i = 0; i < count; ++i)
 		{
 			auto &instance = instances[i];
-			auto meshFile = instances[i].getMeshFile();
+			auto meshFile = instance.getMeshFile();
 			auto meshFileEntry = vx::FileEntry(meshFile, vx::FileType::Mesh);
 
 			// check for mesh
 			checkResource(meshManager, meshFileEntry, missingFiles, &result);
 
 			// check for material
-			auto materialFile = instances[i].getMaterialFile();
+			auto materialFile = instance.getMaterialFile();
 			auto materialFileEntry = vx::FileEntry(materialFile, vx::FileType::Material);
 
 			checkResource(materialManager, materialFileEntry, missingFiles, &result);
 
-			auto animationName = instances[i].getAnimation();
+			auto animationName = instance.getAnimation();
 			if (animationName[0] != '\0')
 			{
 				auto animationFileEntry = vx::FileEntry(animationName, vx::FileType::Animation);
@@ -143,51 +145,55 @@ namespace SceneFactoryCpp
 		return result;
 	}
 
+	bool checkActors(const SceneFileLoad* sceneFile, 
+		const ResourceManager<Actor>* actorResManager,
+		vx::sorted_vector<vx::StringID, vx::FileEntry>* missingFiles)
+	{
+		auto count = sceneFile->getSpawnCount();
+		auto spawns = sceneFile->getSpawns();
+
+		bool result = true;
+		for (u32 i = 0; i < count; ++i)
+		{
+			auto &spawn = spawns[i];
+			if (spawn.type != PlayerType::Human)
+			{
+				auto sid = vx::make_sid(spawn.actor);
+				auto actor = actorResManager->find(sid);
+
+				if (actor == nullptr)
+				{
+					missingFiles->insert(sid, vx::FileEntry(spawn.actor, vx::FileType::Actor));
+					result = false;
+				}
+
+			}
+		}
+
+		return result;
+	}
+
 	struct CheckAssetsDesc
 	{
 		const ResourceManager<vx::MeshFile>* meshManager;
 		const ResourceManager<Material>* materialManager;
 		const ResourceManager<vx::Animation>* animationManager;
-		const MeshInstanceFileV8* meshInstances;
-		u32 instanceCount;
+		const ResourceManager<Actor>* actorResManager;
+		const SceneFileLoad* sceneFile;
 		vx::sorted_vector<vx::StringID, vx::FileEntry>* missingFiles;
-		const ActorFile* actorFiles;
-		u32 actorCount;
 	};
-
-	bool checkActors(const CheckAssetsDesc &desc)
-	{
-		bool result = true;
-
-		for (u32 i = 0; i < desc.actorCount; ++i)
-		{
-			auto &actorFile = desc.actorFiles[i];
-
-			auto entryMesh = vx::FileEntry(actorFile.m_mesh, vx::FileType::Mesh);
-			auto entryMaterial = vx::FileEntry(actorFile.m_material, vx::FileType::Material);
-			//	auto meshSid = vx::make_sid(actorFile.m_mesh);
-			//auto materialSid = vx::make_sid(actorFile.m_material);
-
-			// check for mesh
-			checkResource(desc.meshManager, entryMesh, desc.missingFiles, &result);
-			checkResource(desc.materialManager, entryMaterial, desc.missingFiles, &result);
-		}
-
-		return result;
-	}
 
 	bool checkIfAssetsAreLoaded(const CheckAssetsDesc &desc)
 	{
 		//printf("checking mesh instances\n");
 		bool result = true;
 
-		if (!checkMeshInstances(desc.meshManager, desc.materialManager, desc.animationManager, desc.meshInstances, desc.instanceCount, desc.missingFiles))
+		if (!checkMeshInstances(desc.meshManager, desc.materialManager, desc.animationManager, desc.sceneFile, desc.missingFiles))
 		{
 			result = false;
-			//printf("missing instance assets\n");
 		}
 
-		if (!checkActors(desc))
+		if (!checkActors(desc.sceneFile, desc.actorResManager, desc.missingFiles))
 		{
 			result = false;
 		}
@@ -204,11 +210,9 @@ namespace SceneFactoryCpp
 			desc.meshManager,
 			desc.materialManager,
 			desc.animationManager,
-			loadedSceneFile.getMeshInstances(),
-			loadedSceneFile.getMeshInstanceCount(),
+			desc.actorResManager,
+			&loadedSceneFile,
 			desc.missingFiles,
-			loadedSceneFile.getActors(),
-			loadedSceneFile.getActorCount()
 		};
 
 		auto result = SceneFactoryCpp::checkIfAssetsAreLoaded(checkDesc);
@@ -275,37 +279,6 @@ bool SceneFactory::checkIfAssetsAreLoaded(const LoadSceneFileDescription &desc)
 	if (!result)
 	{
 		//printf("missing instance assets\n");
-	}
-
-	auto pActors = desc.pSceneFile->getActors();
-	auto actorCount = desc.pSceneFile->getActorCount();
-
-	//printf("checking actors: %u\n", actorCount);
-	for (u32 i = 0; i < actorCount; ++i)
-	{
-		auto &actor = pActors[i];
-
-		auto meshSid = vx::make_sid(actor.m_mesh);
-		auto materialSid = vx::make_sid(actor.m_material);
-
-		// check for mesh
-		auto itMesh = desc.sortedMeshes->find(meshSid);
-		if (itMesh == desc.sortedMeshes->end())
-		{
-			// request load
-			desc.pMissingFiles->push_back(vx::FileEntry(actor.m_mesh, vx::FileType::Mesh));
-
-			result = false;
-		}
-
-		auto itMaterial = desc.sortedMaterials->find(materialSid);
-		if (itMaterial == desc.sortedMaterials->end())
-		{
-			// request load
-			desc.pMissingFiles->push_back(vx::FileEntry(actor.m_material, vx::FileType::Material));
-
-			result = false;
-		}
 	}
 
 	return result;

@@ -53,10 +53,8 @@ namespace Converter
 	class SceneFileToScene
 	{
 		struct CreateSceneMeshInstancesDesc;
-		struct CreateSceneActorsDesc;
 
 		static bool createSceneMeshInstances(const CreateSceneMeshInstancesDesc &desc);
-		static bool createSceneActors(const CreateSceneActorsDesc &desc);
 
 	public:
 		static bool convert(const ResourceManager<vx::MeshFile>* meshManager, const ResourceManager<Material>* materialManager, ::SceneFile* sceneFile, Scene* scene);

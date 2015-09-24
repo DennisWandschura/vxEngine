@@ -42,6 +42,7 @@ namespace LevelEditor
             comboBoxFileTypes.Items.Add(new ItemFileExtension("Mesh File", ".mesh", setDataFunctionDefault));
             comboBoxFileTypes.Items.Add(new ItemFileExtension("FBX File", ".fbx", setDataFbx));
             comboBoxFileTypes.Items.Add(new ItemFileExtension("Material File", ".material", setDataFunctionDefault));
+            comboBoxFileTypes.Items.Add(new ItemFileExtension("Actor File", ".actor", setDataFunctionDefault));
             comboBoxFileTypes.SelectedIndex = 0;
 
             comboBoxMeshPhysxType.Items.Add("Triangle Mesh");

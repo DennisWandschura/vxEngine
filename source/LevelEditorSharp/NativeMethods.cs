@@ -69,7 +69,7 @@ namespace LevelEditor
 
         // bool initialize(intptr_t hwndPanel, intptr_t hwndTmp, unsigned int panelSizeX, unsigned int panelSizeY);
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern bool initializeEditor(IntPtr hwndPanel, IntPtr hwndTmp, uint panelSizeX, uint panelSizeY, uint typeMesh, uint typeMaterial, uint typeScene, uint typeFbx, uint typeAnim);
+        public unsafe static extern bool initializeEditor(IntPtr hwndPanel, IntPtr hwndTmp, uint panelSizeX, uint panelSizeY, uint typeMesh, uint typeMaterial, uint typeScene, uint typeFbx, uint typeAnim, uint typeActor);
 
         // void shutdown();
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
@@ -345,5 +345,12 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void setJointLimit(uint index, uint enabled, float limitMin, float limitMax);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong createActor(string name, ulong meshSid, ulong materialSid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.BStr)]
+        public unsafe static extern string getActorName(ulong sid);
     }
 }

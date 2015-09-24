@@ -44,6 +44,7 @@ SOFTWARE.
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/Joint.h>
 #include <vxEngineLib/FileEntry.h>
+#include <vxEngineLib/ActorFile.h>
 
 #include <Dbghelp.h>
 
@@ -52,6 +53,7 @@ u32 g_editorTypeMaterial{ 0xffffffff };
 u32 g_editorTypeScene{ 0xffffffff };
 u32 g_editorTypeFbx{ 0xffffffff };
 u32 g_editorTypeAnimation{ 0xffffffff };
+u32 g_editorTypeActor{ 0xffffffff };
 
 namespace EditorEngineCpp
 {
@@ -336,6 +338,15 @@ void EditorEngine::handleFileEvent(const vx::Message &evt)
 			//	m_pEditorScene->addAnimation(sid, std::move(std::string(str)));
 		}
 	}break;
+	case vx::FileMessage::Actor_Loaded:
+	{
+		auto sid = vx::StringID(evt.arg1.u64);
+		auto pStr = reinterpret_cast<std::string*>(evt.arg2.ptr);
+
+		call_editorCallback(sid);
+		delete(pStr);
+
+	}break;
 	default:
 	{
 	}break;
@@ -357,13 +368,14 @@ void EditorEngine::editor_saveScene(const char* name)
 	m_resourceAspect.requestSaveFile(vx::FileEntry(name, vx::FileType::EditorScene), arg);
 }
 
-void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u32 typeAnimation)
+void EditorEngine::editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u32 typeAnimation, u32 typeActor)
 {
 	g_editorTypeMesh = mesh;
 	g_editorTypeMaterial = material;
 	g_editorTypeScene = scene;
 	g_editorTypeFbx = fbx;
 	g_editorTypeAnimation = typeAnimation;
+	g_editorTypeActor = typeActor;
 }
 
 void EditorEngine::update(f32 dt)
@@ -421,6 +433,11 @@ void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadF
 	else if (type == g_editorTypeAnimation)
 	{
 		fileEntry = vx::FileEntry(filename, vx::FileType::Animation);
+		arg.ptr = new std::string(filename);
+	}
+	else if (type == g_editorTypeActor)
+	{
+		fileEntry = vx::FileEntry(filename, vx::FileType::Actor);
 		arg.ptr = new std::string(filename);
 	}
 	else
@@ -1669,4 +1686,45 @@ void EditorEngine::setJointRotation1(u32 index, const vx::float3 &q)
 void EditorEngine::setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax)
 {
 	m_pEditorScene->setJointLimit(index, enabled, limitMin, limitMax);
+}
+
+u64 EditorEngine::createActor(const char* name, u64 meshSid, u64 materialSid)
+{
+	vx::FileEntry fileEntry(name, vx::FileType::Actor);
+
+	auto actorFile = new ActorFile(ActorFile::getGlobalVersion());
+
+	auto materialName = m_resourceAspect.getMaterialManager()->getName(vx::StringID(materialSid));
+	auto meshName = m_resourceAspect.getMeshManager()->getName(vx::StringID(meshSid));
+
+	const u32 bufferSize = 31;
+	auto meshSize = strlen(meshName);
+	auto materialSize = strlen(materialName);
+
+	VX_ASSERT(bufferSize >= meshSize && bufferSize >= materialSize);
+
+	char buffer[bufferSize + 1];
+	memset(buffer, 0, sizeof(buffer));
+	memcpy(buffer, meshName, meshSize);
+	actorFile->setMesh(buffer);
+
+	memset(buffer, 0, sizeof(buffer));
+	memcpy(buffer, materialName, materialSize);
+	actorFile->setMaterial(buffer);
+
+	vx::Variant arg;
+	arg.ptr = actorFile;
+	m_resourceAspect.requestSaveFile(fileEntry, arg);
+
+	Actor actor;
+	actor.m_mesh = meshSid;
+	actor.m_material = materialSid;
+	m_resourceAspect.addActor(fileEntry.getSid(), std::string(name), actor);
+
+	return fileEntry.getSid().value;
+}
+
+const char* EditorEngine::getActorName(u64 sid) const
+{
+	return m_resourceAspect.getActorManager()->getName(vx::StringID(sid));
 }

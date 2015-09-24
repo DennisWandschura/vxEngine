@@ -32,7 +32,8 @@ SOFTWARE.
 
 namespace Editor
 {
-	extern "C" DLL_EXPORT bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx, u32 typeAnimation);
+	extern "C" DLL_EXPORT bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, 
+		u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx, u32 typeAnimation, u32 typeActor);
 	extern "C" DLL_EXPORT void shutdownEditor();
 
 	extern "C" DLL_EXPORT void frame();
@@ -147,5 +148,8 @@ namespace Editor
 	extern "C" DLL_EXPORT void setJointRotation0(u32 index, const vx::float3 &p);
 	extern "C" DLL_EXPORT void setJointRotation1(u32 index, const vx::float3 &p);
 	extern "C" DLL_EXPORT void setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax);
+
+	extern "C" DLL_EXPORT u64 createActor(const char* name, u64 meshSid, u64 materialSid);
+	extern "C" DLL_EXPORT BSTR getActorName(u64 sid);
 }
 #endif

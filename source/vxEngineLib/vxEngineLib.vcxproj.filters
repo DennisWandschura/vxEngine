@@ -240,9 +240,6 @@
     <ClInclude Include="include\vxEngineLib\AudioAspectInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ConverterSceneFileV8.h">
-      <Filter>Header Files\Converter</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\Graphics\EditorRenderAspectInterface.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -304,6 +301,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\CpuProfiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterSceneFileV9.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\ActorFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -425,9 +428,6 @@
     <ClCompile Include="MeshInstanceFileV8.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConverterSceneFileV8.cpp">
-      <Filter>Source Files\Converter</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\RenderAspectInterface.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
@@ -444,6 +444,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CpuProfiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterSceneFileV9.cpp">
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="ActorFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

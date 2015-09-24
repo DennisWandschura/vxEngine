@@ -340,7 +340,7 @@ namespace Graphics
 		}
 	}
 
-	bool TextureFactory::createDDSFromFile(const char* ddsFile, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
+	bool TextureFactory::createDDSFromFile(const char* ddsFile, u8 flipImage, u8 srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
 	{
 		vx::File inFile;
 		if (!inFile.open(ddsFile, vx::FileAccess::Read))
@@ -362,7 +362,7 @@ namespace Graphics
 		return result;
 	}
 
-	bool TextureFactory::createDDSFromMemory(const u8* ddsData, bool flipImage, bool srgb, Texture* texture, ArrayAllocator* textureAllocator)
+	bool TextureFactory::createDDSFromMemory(const u8* ddsData, u8 flipImage, u8 srgb, Texture* texture, ArrayAllocator* textureAllocator)
 	{
 		u32 magic;
 		ddsData = vx::read(magic, ddsData);
@@ -625,7 +625,7 @@ namespace Graphics
 		}
 	}
 
-	bool TextureFactory::createPngFromFile(const char* pngFile, bool flip, bool srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
+	bool TextureFactory::createPngFromFile(const char* pngFile, u8 flip, u8 srgb, Texture* texture, ArrayAllocator* textureAllocator, vx::StackAllocator* scratchAllocator)
 	{
 		vx::File inFile;
 		if (!inFile.open(pngFile, vx::FileAccess::Read))
@@ -649,7 +649,7 @@ namespace Graphics
 		return result;
 	}
 
-	bool TextureFactory::createPngFromMemory(const u8* pngData, u32 size, bool flip, bool srgb, Texture* texture, ArrayAllocator* textureAllocator)
+	bool TextureFactory::createPngFromMemory(const u8* pngData, u32 size, u8 flip, u8 srgb, Texture* texture, ArrayAllocator* textureAllocator)
 	{
 		s32 x, y, comp;
 		auto data = stbi_load_from_memory(pngData, size, &x, &y, &comp, 0);

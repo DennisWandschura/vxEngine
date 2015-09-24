@@ -296,9 +296,10 @@
   <ItemGroup>
     <ClInclude Include="ConverterMeshFileV0.h" />
     <ClInclude Include="ConverterMeshFileV1.h" />
-    <ClInclude Include="ConverterSceneFileV8.h" />
+    <ClInclude Include="ConverterSceneFileV9.h" />
     <ClInclude Include="include\vxEngineLib\AABB.h" />
     <ClInclude Include="include\vxEngineLib\Actor.h" />
+    <ClInclude Include="include\vxEngineLib\ActorFile.h" />
     <ClInclude Include="include\vxEngineLib\Animation.h" />
     <ClInclude Include="include\vxEngineLib\AnimationFile.h" />
     <ClInclude Include="include\vxEngineLib\ArrayAllocator.h" />
@@ -392,6 +393,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ActorFile.cpp" />
     <ClCompile Include="Animation.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -414,7 +416,7 @@
     <ClCompile Include="ConverterMeshFileV1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="ConverterSceneFileV8.cpp">
+    <ClCompile Include="ConverterSceneFileV9.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Editor|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

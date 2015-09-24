@@ -107,7 +107,7 @@ public:
 	bool initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resolution, AbortSignalHandlerFun signalHandlerFn, Editor::Scene* pScene, Logfile* logfile);
 	void shutdownEditor();
 
-	static void editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u32 animation);
+	static void editor_setTypes(u32 mesh, u32 material, u32 scene, u32 fbx, u32 animation, u32 typeActor);
 
 	void editor_saveScene(const char* name);
 
@@ -227,4 +227,7 @@ public:
 	void setJointRotation0(u32 index, const vx::float3 &q);
 	void setJointRotation1(u32 index, const vx::float3 &q);
 	void setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax);
+
+	u64 createActor(const char* name, u64 meshSid, u64 materialSid);
+	const char* getActorName(u64 sid) const;
 };
