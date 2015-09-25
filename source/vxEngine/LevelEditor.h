@@ -116,6 +116,10 @@ namespace Editor
 	extern "C" DLL_EXPORT u32 getSpawnType(u32 id);
 	extern "C" DLL_EXPORT void setSpawnPosition(u32 id, const vx::float3 &position);
 	extern "C" DLL_EXPORT void setSpawnType(u32 id, u32 type);
+	extern "C" DLL_EXPORT void setSpawnActor(u32 id, u64 actorSid);
+	extern "C" DLL_EXPORT u32 getSpawnCount();
+	extern "C" DLL_EXPORT u32 getSpawnId(u32 index);
+	extern "C" DLL_EXPORT u64 getSpawnActor(u32 id);
 
 	extern "C" DLL_EXPORT u32 getMeshCount();
 	extern "C" DLL_EXPORT BSTR getMeshName(u32 i);

@@ -14,6 +14,7 @@
 #include <vxEngineLib/Animation.h>
 #include <vxEngineLib/Joint.h>
 #include "ConverterSceneFile.h"
+#include <vxEngineLib/Actor.h>
 
 #include <vxResourceAspect/ResourceManager.h>
 #include <vxResourceAspect/ResourceAspect.h>
@@ -184,9 +185,15 @@ namespace Converter
 
 		for (auto i = 0u; i < desc.spawnCount; ++i)
 		{
-			desc.sceneSpawns[i].type = desc.spawnsSrc[i].type;
+			auto type = desc.spawnsSrc[i].type;
+			desc.sceneSpawns[i].type = type;
 			desc.sceneSpawns[i].position = desc.spawnsSrc[i].position;
-			desc.sceneSpawns[i].sid = vx::FileHandle(desc.spawnsSrc[i].actor).m_sid;
+
+			desc.sceneSpawns[i].actorSid = 0;
+			if (type != PlayerType::Human)
+			{
+				desc.sceneSpawns[i].actorSid = vx::FileHandle(desc.spawnsSrc[i].actor).m_sid;
+			}
 		}
 
 		*desc.vertexCount = 0;
@@ -297,7 +304,7 @@ namespace Converter
 		}
 
 		sceneParams.m_baseParams.m_pSpawns.reserve(spawnCount);
-		for (u32 i = 0; i < lightCount; ++i)
+		for (u32 i = 0; i < spawnCount; ++i)
 		{
 			sceneParams.m_baseParams.m_pSpawns.insert(std::move(sceneSpawns[i].id), std::move(sceneSpawns[i]));
 		}

@@ -1305,6 +1305,22 @@ u32 EditorEngine::getSpawnType(u32 id) const
 	return result;
 }
 
+void EditorEngine::setSpawnActor(u32 id, u64 actorSid)
+{
+	m_pEditorScene->setSpawnActor(id, vx::StringID(actorSid));
+}
+
+u32 EditorEngine::getSpawnCount()
+{
+	return m_pEditorScene->getSpawnCount();
+}
+
+u32 EditorEngine::getSpawnId(u32 index)
+{
+	auto spawns = m_pEditorScene->getSpawns();
+	return spawns[index].id;
+}
+
 void EditorEngine::setSpawnPosition(u32 id, const vx::float3 &position)
 {
 	auto spawns = m_pEditorScene->getSpawns();
@@ -1316,6 +1332,12 @@ void EditorEngine::setSpawnPosition(u32 id, const vx::float3 &position)
 void EditorEngine::setSpawnType(u32 id, u32 type)
 {
 	m_pEditorScene->setSpawnType(id, type);
+}
+
+u64 EditorEngine::getSpawnActor(u32 id)
+{
+	auto spawn = m_pEditorScene->getSpawn(id);
+	return spawn->actorSid.value;
 }
 
 u32 EditorEngine::getMeshCount() const

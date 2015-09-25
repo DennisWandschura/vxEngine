@@ -125,5 +125,6 @@ TaskReturnType TaskLoadMaterial::runImpl()
 		return TaskReturnType::Failure;
 	}
 
+	printf("TaskLoadMaterial: %s %llu\n", m_filename.c_str(), m_sid.value);
 	return TaskReturnType::Success;
 }

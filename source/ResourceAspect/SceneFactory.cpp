@@ -353,10 +353,10 @@ bool SceneFactory::createFromMemory(const Factory::CreateSceneDesc &desc, const 
 	return result;
 }
 
-bool SceneFactory::saveToFile(const Editor::Scene &scene, const char* filenameWithPath)
+bool SceneFactory::saveToFile(const Editor::Scene &scene, const char* filenameWithPath, const ResourceManager<Actor>* actorResManager)
 {
 	SceneFile sceneFile(SceneFile::getGlobalVersion());
-	convert(scene, &sceneFile);
+	convert(scene, &sceneFile, actorResManager);
 
 	auto sceneInstanceCount = scene.getMeshInstanceCount();
 	auto sceneInstances = scene.getMeshInstancesEditor();
@@ -395,9 +395,9 @@ bool SceneFactory::saveToFile(const Editor::Scene &scene, const char* filenameWi
 	return true;
 }
 
-void SceneFactory::convert(const Editor::Scene &scene, SceneFile* sceneFile)
+void SceneFactory::convert(const Editor::Scene &scene, SceneFile* sceneFile, const ResourceManager<Actor>* actorResManager)
 {
-	Converter::EditorSceneToSceneFile::convert(scene, sceneFile);
+	Converter::EditorSceneToSceneFile::convert(scene, sceneFile, actorResManager);
 }
 
 void SceneFactory::deleteScene(Editor::Scene *scene)

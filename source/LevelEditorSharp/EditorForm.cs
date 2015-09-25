@@ -96,6 +96,7 @@ namespace LevelEditor
         Dictionary<ulong, EditorEntry> m_sortedMeshes;
         Dictionary<ulong, EditorEntry> m_sortedMaterials;
         Dictionary<ulong, EditorEntry> m_sortedAnimations;
+        Dictionary<ulong, EditorEntry> m_sortedActors;
         Dictionary<Keys, bool> m_keys;
         ActionList m_actionListHead;
         uint m_selectedSpawn;
@@ -125,6 +126,7 @@ namespace LevelEditor
             m_sortedMeshes = new Dictionary<ulong, EditorEntry>();
             m_sortedMaterials = new Dictionary<ulong, EditorEntry>();
             m_sortedAnimations = new Dictionary<ulong, EditorEntry>();
+            m_sortedActors = new Dictionary<ulong, EditorEntry>();
             m_keys = new Dictionary<Keys, bool>();
 
             loadFileDelegate = new LoadedFileFun(loadedFile);
@@ -563,6 +565,15 @@ namespace LevelEditor
                 NativeMethods.getSpawnPosition(id, ref position);
                 var spawnType = NativeMethods.getSpawnType(id);
 
+                if(spawnType == 0)
+                {
+                    comboBoxActor.Visible = false;
+                }
+                else
+                {
+                    comboBoxActor.Visible = true;
+                }
+
                 numericUpDownSpawnPosX.Value = (decimal)position.x;
                 numericUpDownSpawnPosY.Value = (decimal)position.y;
                 numericUpDownSpawnPosZ.Value = (decimal)position.z;
@@ -570,6 +581,16 @@ namespace LevelEditor
                 numericUpDownSpawnType.Value = (decimal)spawnType;
 
                 m_selectedSpawn = id;
+
+                var actorSid = NativeMethods.getSpawnActor(id);
+                if (actorSid != 0)
+                {
+                    EditorEntry entry;
+                    if (m_sortedActors.TryGetValue(actorSid, out entry))
+                    {
+                        comboBoxActor.SelectedItem = entry;
+                    }
+                }
 
                 groupBoxSpawn.Show();
             }
@@ -714,12 +735,41 @@ namespace LevelEditor
             }
         }
 
+        void addSceneActors()
+        {
+            m_actorsNode.Nodes.Clear();
+            m_sortedActors.Clear();
+
+            var spawnCount = NativeMethods.getSpawnCount();
+            for(uint i = 0; i < spawnCount; ++i)
+            {
+                var id = NativeMethods.getSpawnId(i);
+                var actorSid = NativeMethods.getSpawnActor(id);
+                if(actorSid != 0)
+                {
+                    var actorName = NativeMethods.getActorName(actorSid);
+                    insertActor(actorSid, actorName);
+                }
+            }
+        }
+
         public void addActor(ulong sid)
         {
             var actorName = NativeMethods.getActorName(sid);
 
-            EditorNodeEntry entry = new EditorNodeEntry(sid, s_typeActor, actorName);
-            m_actorsNode.Nodes.Add(entry);
+            EditorEntry entry;
+            if (!m_sortedActors.TryGetValue(sid, out entry))
+            {
+                insertActor(sid, actorName);
+            }
+        }
+
+        void insertActor(ulong sid, string actorName)
+        {
+            var entry = new EditorEntry(actorName, sid);
+
+            m_sortedActors.Add(sid, entry);
+            comboBoxActor.Items.Add(entry);
         }
 
         void addSceneMaterials()
@@ -824,6 +874,7 @@ namespace LevelEditor
                     addSceneMeshInstances();
                     addSceneAnimations();
                     addSceneJoints();
+                    addSceneActors();
                 }
                 else if (type == s_typeAnimation)
                 {
@@ -1834,6 +1885,16 @@ namespace LevelEditor
         private void createActorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             m_createActorForm.ShowDialog();
+        }
+
+        private void comboBoxActor_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (m_selectedSpawn != 0xffffffff)
+            {
+                var entry = (EditorEntry)comboBoxActor.SelectedItem;
+
+                NativeMethods.setSpawnActor(m_selectedSpawn, entry.m_sid);
+            }
         }
     }
 }

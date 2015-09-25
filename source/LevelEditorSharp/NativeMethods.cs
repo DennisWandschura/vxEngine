@@ -256,6 +256,18 @@ namespace LevelEditor
         public unsafe static extern void setSpawnType(uint id, uint type);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setSpawnActor(uint id, ulong actorSid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern uint getSpawnCount();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern uint getSpawnId(uint index);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern ulong getSpawnActor(uint id);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern uint getMeshCount();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]

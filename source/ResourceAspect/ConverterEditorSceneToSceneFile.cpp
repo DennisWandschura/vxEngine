@@ -35,6 +35,7 @@ SOFTWARE.
 #include <vxEngineLib/SceneFile.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/Joint.h>
+#include <vxResourceAspect/ResourceManager.h>
 
 namespace Converter
 {
@@ -53,7 +54,7 @@ namespace Converter
 		}
 	}
 
-	void EditorSceneToSceneFile::convert(const Editor::Scene &scene, ::SceneFile* sceneFile)
+	void EditorSceneToSceneFile::convert(const Editor::Scene &scene, ::SceneFile* sceneFile, const ResourceManager<Actor>* actorResManager)
 	{
 		SceneFile converterSceneFile(std::move(*sceneFile));
 
@@ -120,7 +121,7 @@ namespace Converter
 
 				if (spawn.type != PlayerType::Human)
 				{
-					auto actorName = scene.getActorName(spawn.sid);
+					auto actorName = actorResManager->getName(spawn.actorSid);
 					VX_ASSERT(actorName != nullptr);
 					strcpy(fileSpawns[i].actor, actorName);
 				}

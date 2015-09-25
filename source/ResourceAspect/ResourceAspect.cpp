@@ -527,6 +527,7 @@ void ResourceAspect::taskSaveEditorScene(const TaskLoadFileDesc &desc, const cha
 	loadDesc.m_evt = evt;
 	loadDesc.m_fileNameWithPath = std::string(desc.fileNameWithPath);
 	loadDesc.m_scene = (Editor::Scene*)desc.arg.ptr;
+	loadDesc.m_actorResManager = &m_actorResManager;
 
 	auto task = new TaskSaveEditorScene(std::move(loadDesc));
 	m_taskManager->pushTask(task);

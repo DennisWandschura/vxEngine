@@ -79,7 +79,7 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 		f32 height = g_heightStanding;
 		if (it.type != PlayerType::Human)
 		{
-			auto actor = m_resourceAspect->getActor(it.sid);
+			auto actor = m_resourceAspect->getActor(it.actorSid);
 			VX_ASSERT(actor != nullptr);
 
 			sidMesh = actor->m_mesh;
@@ -87,7 +87,7 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 			height = 2.0f;
 		}
 
-		CreateActorData* data = new CreateActorData(transform, it.sid, sidMesh, sidMaterial, height, i, it.type);
+		CreateActorData* data = new CreateActorData(transform, it.actorSid, sidMesh, sidMaterial, height, i, it.type);
 
 		if (it.type != PlayerType::Human)
 		{

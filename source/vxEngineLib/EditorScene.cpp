@@ -77,7 +77,6 @@ namespace Editor
 		m_selectableJoints(),
 		m_materialNames(),
 		m_meshNames(),
-		m_actorNames(),
 		m_animationNames(),
 		m_spawnHumanId(EditorSceneCpp::g_invalidId)
 	{
@@ -117,7 +116,6 @@ namespace Editor
 			m_selectableJoints.swap(rhs.m_selectableJoints);
 			std::swap(m_materialNames, rhs.m_materialNames);
 			std::swap(m_meshNames, rhs.m_meshNames);
-			std::swap(m_actorNames, rhs.m_actorNames);
 		}
 
 		return *this;
@@ -234,7 +232,6 @@ namespace Editor
 		m_selectableJoints.clear();
 		m_materialNames.clear();
 		m_meshNames.clear();
-		m_actorNames.clear();
 		m_animationNames.clear();
 	}
 
@@ -248,7 +245,6 @@ namespace Editor
 		dst->m_selectableWaypoints = m_selectableWaypoints;
 		copySortedVector(&dst->m_materialNames, m_materialNames);
 		copySortedVector(&dst->m_meshNames, m_meshNames);
-		copySortedVector(&dst->m_actorNames, m_actorNames);
 		copySortedVector(&dst->m_animationNames, m_animationNames);
 	}
 
@@ -404,15 +400,6 @@ namespace Editor
 	{
 		auto it = m_meshNames.find(sid);
 		if (it == m_meshNames.end())
-			return nullptr;
-
-		return it->c_str();
-	}
-
-	const char* Scene::getActorName(const vx::StringID &sid) const
-	{
-		auto it = m_actorNames.find(sid);
-		if (it == m_actorNames.end())
 			return nullptr;
 
 		return it->c_str();
@@ -623,6 +610,22 @@ namespace Editor
 		if (it != m_pSpawns.end())
 			result = &*it;
 		return result;
+	}
+
+	Spawn* Scene::getSpawn(u32 id)
+	{
+		Spawn* result = nullptr;
+
+		auto it = m_pSpawns.find(id);
+		if (it != m_pSpawns.end())
+			result = &*it;
+		return result;
+	}
+
+	void Scene::setSpawnActor(u32 id, const vx::StringID &sid)
+	{
+		auto ptr = getSpawn(id);
+		ptr->actorSid = sid;
 	}
 
 	void Scene::setSpawnPosition(u32 id, const vx::float3 &position)

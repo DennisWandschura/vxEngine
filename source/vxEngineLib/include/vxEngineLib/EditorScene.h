@@ -85,7 +85,6 @@ namespace Editor
 
 		vx::sorted_vector<vx::StringID, std::string> m_materialNames;
 		vx::sorted_vector<vx::StringID, std::string> m_meshNames;
-		vx::sorted_vector<vx::StringID, std::string> m_actorNames;
 		vx::sorted_vector<vx::StringID, std::string> m_animationNames;
 		u32 m_spawnHumanId;
 
@@ -135,7 +134,6 @@ namespace Editor
 		const char* getMeshInstanceName(const vx::StringID &sid) const;
 		const char* getMaterialName(const vx::StringID &sid) const;
 		const char* getMeshName(const vx::StringID &sid) const;
-		const char* getActorName(const vx::StringID &sid) const;
 		const char* getAnimationName(const vx::StringID &sid) const;
 
 		u32 getAnimationCount() const;
@@ -150,6 +148,8 @@ namespace Editor
 		u32 getSpawnId(const Ray &ray) const;
 		u32 getSpawnHumanId() const;
 		const Spawn* getSpawn(u32 id) const;
+		Spawn* getSpawn(u32 id);
+		void setSpawnActor(u32 id, const vx::StringID &sid);
 
 		void setSpawnPosition(u32 id, const vx::float3 &position);
 		void setSpawnType(u32 id, u32 type);

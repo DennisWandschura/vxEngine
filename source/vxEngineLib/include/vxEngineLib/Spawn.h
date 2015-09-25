@@ -36,20 +36,20 @@ struct Spawn
 	PlayerType type;
 	vx::float3 position;
 	// actor id, not used for human
-	vx::StringID sid;
+	vx::StringID actorSid;
 	u32 id;
 
 	Spawn() 
 		:type(),
 		position(),
-		sid(),
+		actorSid(),
 		id(s_id++)
 	{}
 
 	Spawn(const Spawn &rhs)
 		:type(rhs.type),
 		position(rhs.position),
-		sid(rhs.sid),
+		actorSid(rhs.actorSid),
 		id(rhs.id)
 	{
 	}
@@ -57,7 +57,7 @@ struct Spawn
 	Spawn(Spawn &&rhs)
 		:type(rhs.type),
 		position(rhs.position),
-		sid(rhs.sid),
+		actorSid(rhs.actorSid),
 		id(rhs.id)
 	{
 	}
@@ -68,7 +68,7 @@ struct Spawn
 		{
 			type = rhs.type;
 			position = rhs.position;
-			sid = rhs.sid;
+			actorSid = rhs.actorSid;
 			id = rhs.id;
 		}
 		return *this;
@@ -80,7 +80,7 @@ struct Spawn
 		{
 			std::swap(type, rhs.type);
 			std::swap(position, rhs.position);
-			std::swap(sid ,rhs.sid);
+			std::swap(actorSid,rhs.actorSid);
 			std::swap(id,rhs.id);
 		}
 		return *this;

@@ -76,9 +76,9 @@ public:
 	static bool createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Scene *pScene);
 	static bool createFromMemory(const Factory::CreateSceneDesc &desc, const u8* ptr, u32 fileSize, vx::StackAllocator* scratchAllocator, Editor::Scene *pScene);
 
-	static void convert(const Editor::Scene &scene, SceneFile* sceneFile);
+	static void convert(const Editor::Scene &scene, SceneFile* sceneFile, const ResourceManager<Actor>* actorResManager);
 
-	static bool saveToFile(const Editor::Scene &scene, const char* filenameWithPath);
+	static bool saveToFile(const Editor::Scene &scene, const char* filenameWithPath, const ResourceManager<Actor>* actorResManager);
 
 	static void deleteScene(Editor::Scene *scene);
 };

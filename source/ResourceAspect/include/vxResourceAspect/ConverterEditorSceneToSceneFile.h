@@ -23,7 +23,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+template<class T>
+class ResourceManager;
+
 class SceneFile;
+struct Actor;
 
 namespace Editor
 {
@@ -39,6 +43,6 @@ namespace Converter
 		static void copyLights(const Editor::Scene &scene, SceneFile* sceneFile);
 
 	public:
-		static void convert(const Editor::Scene &scene, ::SceneFile* sceneFile);
+		static void convert(const Editor::Scene &scene, ::SceneFile* sceneFile, const ResourceManager<Actor>* actorResManager);
 	};
 }

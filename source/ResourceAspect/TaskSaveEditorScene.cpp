@@ -6,7 +6,8 @@
 TaskSaveEditorScene::TaskSaveEditorScene(TaskSaveEditorSceneDesc &&desc)
 :Task(std::move(desc.m_evt)),
 m_fileNameWithPath(std::move(desc.m_fileNameWithPath)),
-m_scene(desc.m_scene)
+m_scene(desc.m_scene),
+m_actorResManager(desc.m_actorResManager)
 {
 
 }
@@ -24,7 +25,7 @@ TaskReturnType TaskSaveEditorScene::runImpl()
 	m_scene = nullptr;
 	};
 
-	if(!SceneFactory::saveToFile(*m_scene, m_fileNameWithPath.c_str()))
+	if(!SceneFactory::saveToFile(*m_scene, m_fileNameWithPath.c_str(), m_actorResManager))
 	{
 		return TaskReturnType::Failure;
 	}

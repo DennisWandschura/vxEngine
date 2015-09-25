@@ -29,6 +29,11 @@ namespace Editor
 	class Scene;
 }
 
+template<class T>
+class ResourceManager;
+
+struct Actor;
+
 #include <vxEngineLib/Task.h>
 #include <string>
 
@@ -37,12 +42,14 @@ struct TaskSaveEditorSceneDesc
 	Event m_evt;
 	std::string m_fileNameWithPath;
 	Editor::Scene* m_scene;
+	const ResourceManager<Actor>* m_actorResManager;
 };
 
 class TaskSaveEditorScene : public Task
 {
 	std::string m_fileNameWithPath;
 	Editor::Scene* m_scene;
+	const ResourceManager<Actor>* m_actorResManager;
 
 	TaskReturnType runImpl() override;
 

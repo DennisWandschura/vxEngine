@@ -485,6 +485,26 @@ namespace Editor
 		return g_pEditor->engine.setSpawnType(id, type);
 	}
 
+	void setSpawnActor(u32 id, u64 actorSid)
+	{
+		g_pEditor->engine.setSpawnActor(id, actorSid);
+	}
+
+	u32 getSpawnCount()
+	{
+		return g_pEditor->engine.getSpawnCount();
+	}
+
+	u32 getSpawnId(u32 index)
+	{
+		return g_pEditor->engine.getSpawnId(index);
+	}
+
+	u64 getSpawnActor(u32 id)
+	{
+		return g_pEditor->engine.getSpawnActor(id);
+	}
+
 	u32 getMeshCount()
 	{
 		return g_pEditor->engine.getMeshCount();

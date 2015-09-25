@@ -136,7 +136,7 @@ namespace Converter
 			Spawn spawn;
 			spawn.type = spawns[i].type;
 			spawn.position = spawns[i].position;
-			spawn.sid = vx::FileHandle(spawns[i].actor).m_sid;
+			spawn.actorSid = vx::FileHandle(spawns[i].actor).m_sid;
 
 			sceneSpawns.insert(std::move(spawn.id), std::move(spawn));
 		}

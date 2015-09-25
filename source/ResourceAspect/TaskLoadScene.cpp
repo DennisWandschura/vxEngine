@@ -47,6 +47,7 @@ TaskLoadScene::TaskLoadScene(TaskLoadSceneDesc &&rhs)
 	m_materialManager(rhs.m_materialManager),
 	m_animationManager(rhs.m_animationManager),
 	m_textureManager(rhs.m_textureManager),
+	m_actorResManager(rhs.m_actorResManager),
 	m_scene(rhs.m_scene),
 	m_scratchAllocator((u8*)_aligned_malloc(TaskLoadSceneCpp::g_allocSize, 16), TaskLoadSceneCpp::g_allocSize),
 	m_taskManager(rhs.m_taskManager),
@@ -190,7 +191,8 @@ TaskReturnType TaskLoadScene::runImpl()
 		{
 			auto evt = Event::createEvent();
 			vx::Variant arg;
-			arg.u64 = it.getSid().value;
+			//arg.u64 = it.getSid().value;
+			arg.ptr = new std::string(it.getString());
 			m_resourceAspect->requestLoadFile(it, arg, evt);
 
 			fileEvents.push_back(evt);

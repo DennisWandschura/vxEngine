@@ -191,6 +191,10 @@ public:
 	bool selectSpawn(s32 mouseX, s32 mouseY, u32* id);
 	void getSpawnPosition(u32 id, vx::float3* position) const;
 	u32 getSpawnType(u32 id) const;
+	void setSpawnActor(u32 id, u64 actorSid);
+	u32 getSpawnCount();
+	u32 getSpawnId(u32 index);
+	u64 getSpawnActor(u32 id);
 
 	void setSpawnPosition(u32 id, const vx::float3 &position);
 	void setSpawnType(u32 id, u32 type);
