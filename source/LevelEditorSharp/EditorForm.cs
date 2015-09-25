@@ -506,6 +506,7 @@ namespace LevelEditor
         void hideSpawnGui()
         {
             toolStripButtonCreateSpawn.Visible = false;
+            deselectSpawn();
         }
 
         void showJointGui()
