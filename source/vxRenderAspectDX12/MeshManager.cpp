@@ -290,7 +290,8 @@ const MeshManager::MeshEntry* MeshManager::tryAddMesh(const vx::StringID &meshSi
 	return meshEntry;
 }
 
-bool MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect, d3d::ResourceManager* resourceManager, UploadManager* uploadMgr, D3D12_DRAW_INDEXED_ARGUMENTS* outCmd)
+bool MeshManager::addMeshInstance(const MeshInstance &meshInstance, u16 materialIndex, const ResourceAspectInterface* resourceAspect,
+	d3d::ResourceManager* resourceManager, UploadManager* uploadMgr, D3D12_DRAW_INDEXED_ARGUMENTS* outCmd)
 {
 	if (m_instanceCount >= m_instanceCapacity)
 		return false;

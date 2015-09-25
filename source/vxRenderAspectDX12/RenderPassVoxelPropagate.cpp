@@ -148,18 +148,10 @@ void RenderPassVoxelPropagate::submitCommands(Graphics::CommandQueue* queue)
 	gpuHandle.offset(2);
 	auto gpuHandle1 = gpuHandle;
 
-	m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle0);
-
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	for (u32 i = 0; i < 3; ++i)
 	{
-		for (u32 axis = 0; axis < 6; ++axis)
-		{
-			m_commandList->SetGraphicsRoot32BitConstant(1, axis, 0);
-			m_commandList->DrawInstanced(dim, dim* dim, 0, 0);
-		}
-
 		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle1);
 		for (u32 axis = 0; axis < 6; ++axis)
 		{

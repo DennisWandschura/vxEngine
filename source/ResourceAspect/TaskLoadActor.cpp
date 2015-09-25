@@ -33,7 +33,7 @@ TaskLoadActor::TaskLoadActor(TaskLoadActorDesc &&desc)
 	m_fileName(std::move(desc.m_fileName)),
 	m_sid(desc.m_sid),
 	m_actorResManager(desc.m_actorResManager),
-	m_resourceAspect(nullptr)
+	m_resourceAspect(desc.m_resourceAspect)
 {
 
 }
@@ -65,11 +65,49 @@ TaskReturnType TaskLoadActor::runImpl()
 	vx::FileHandle handleMesh(actorFile.getMesh());
 	vx::FileHandle handleMaterial(actorFile.getMaterial());
 
-	Actor actor;
-	actor.m_material = handleMaterial.m_sid;
-	actor.m_mesh = handleMesh.m_sid;
+	auto result = TaskReturnType::Success;
+	auto material = m_resourceAspect->getMaterial(handleMaterial.m_sid);
 
-	m_actorResManager->insertEntry(m_sid, std::move(m_fileName), std::move(actor));
+	std::vector<Event> events;
+	if (material == nullptr)
+	{
+		auto evt = Event::createEvent();
 
-	return TaskReturnType::Success;
+		vx::Variant arg;
+		arg.u64 = 0;
+		m_resourceAspect->requestLoadFile(vx::FileEntry(handleMaterial.m_string, vx::FileType::Material), arg, evt);
+
+		events.push_back(evt);
+
+		result = TaskReturnType::Retry;
+	}
+
+	auto mesh = m_resourceAspect->getMesh(handleMesh.m_sid);
+	if (mesh == nullptr)
+	{
+		auto evt = Event::createEvent();
+
+		vx::Variant arg;
+		arg.u64 = 0;
+		m_resourceAspect->requestLoadFile(vx::FileEntry(handleMesh.m_string, vx::FileType::Mesh), arg, evt);
+
+		events.push_back(evt);
+
+		result = TaskReturnType::Retry;
+	}
+
+	if (!events.empty())
+	{
+		setEventList(&events);
+	}
+	else
+	{
+		Actor actor;
+		actor.m_material = handleMaterial.m_sid;
+		actor.m_mesh = handleMesh.m_sid;
+
+		m_actorResManager->insertEntry(m_sid, std::move(m_fileName), std::move(actor));
+	}
+
+	return result;
 }

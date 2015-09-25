@@ -17,7 +17,7 @@
 #include <vxEngineLib/MessageManager.h>
 #include <vxEngineLib/GpuFunctions.h>
 #include <vxEngineLib/MeshFile.h>
-#include "GBufferRenderer.h"
+#include "RenderPassGBuffer.h"
 #include "RenderPassShadow.h"
 #include "RenderPassZBuffer.h"
 #include "RenderPassZBufferCreateMipmaps.h"
@@ -37,7 +37,6 @@
 #include "RenderPassOcclusion.h"
 #include "RenderPassConeTrace.h"
 #include "GpuVoxel.h"
-#include "RenderPassBlurVoxel.h"
 #include "RenderPassVoxelPropagate.h"
 #include <vxEngineLib/CpuProfiler.h>
 
@@ -154,17 +153,59 @@ RenderLayerGame::~RenderLayerGame()
 
 void RenderLayerGame::createRenderPasses()
 {
-	pushRenderPass(std::make_unique<GBufferRenderer>(&m_commandAllocator, &m_drawCommandMesh));
+	insertRenderPass(vx::make_sid("RenderPassGBuffer"), std::make_unique<RenderPassGBuffer>(&m_commandAllocator, &m_drawCommandMesh));
+	insertRenderPass(vx::make_sid("RenderPassCullLights"), std::make_unique<RenderPassCullLights>(&m_commandAllocator, m_downloadManager));
+	insertRenderPass(vx::make_sid("RenderPassShadow"), std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh));
+	insertRenderPass(vx::make_sid("RenderPassVoxelize"), std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh));
+	insertRenderPass(vx::make_sid("RenderPassInjectRSM"), std::make_unique<RenderPassInjectRSM>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassVoxelPropagate"), std::make_unique<RenderPassVoxelPropagate>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassZBuffer"), std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassZBufferCreateMipmaps"), std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassAO"), std::make_unique<RenderPassAO>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassConeTrace"), std::make_unique<RenderPassConeTrace>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassShading"), std::move(std::make_unique<RenderPassShading>(&m_commandAllocator)));
+	insertRenderPass(vx::make_sid("RenderPassSSIL"), std::make_unique<RenderPassSSIL>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassFinal"), std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
+	insertRenderPass(vx::make_sid("RenderPassFilterRSM"), std::make_unique<RenderPassFilterRSM>(&m_commandAllocator));
 
-	auto renderPassCullLights = std::make_unique<RenderPassCullLights>(&m_commandAllocator, m_downloadManager);
-	m_lightManager.setRenderPassCullLights(renderPassCullLights.get());
-	pushRenderPass(std::move(renderPassCullLights));
+	//m_lightManager.setRenderPassCullLights(renderPassCullLights.get());
+	//pushRenderPass(std::move(renderPassCullLights));
 
-	auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
-	m_lightManager.addRenderPass(rnederPassShadow.get());
-	pushRenderPass(std::move(rnederPassShadow));
+	//auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
+	//m_lightManager.addRenderPass(rnederPassShadow.get());
+	//pushRenderPass(std::move(rnederPassShadow));
 
-	pushRenderPass(std::move(std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh)));
+	//pushRenderPass(std::move(std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh)));
+
+	RenderStage stage0;
+	stage0.pushRenderPass(findRenderPass("RenderPassGBuffer"));
+	stage0.pushRenderPass(findRenderPass("RenderPassCullLights"));
+	stage0.pushRenderPass(findRenderPass("RenderPassShadow"));
+	stage0.pushRenderPass(findRenderPass("RenderPassVoxelize"));
+	stage0.pushRenderPass(findRenderPass("RenderPassFilterRSM"));
+	stage0.pushRenderPass(findRenderPass("RenderPassInjectRSM"));
+
+	RenderStage stage1;
+	stage0.pushRenderPass(findRenderPass("RenderPassVoxelPropagate"));
+
+	RenderStage stage2;
+	stage2.pushRenderPass(findRenderPass("RenderPassZBuffer"));
+	stage2.pushRenderPass(findRenderPass("RenderPassZBufferCreateMipmaps"));
+	stage2.pushRenderPass(findRenderPass("RenderPassAO"));
+	stage2.pushRenderPass(findRenderPass("RenderPassConeTrace"));
+	stage2.pushRenderPass(findRenderPass("RenderPassShading"));
+	stage2.pushRenderPass(findRenderPass("RenderPassSSIL"));
+	stage2.pushRenderPass(findRenderPass("RenderPassFinal"));
+
+	m_renderStages.push_back(stage0);
+	m_renderStages.push_back(stage1);
+	m_renderStages.push_back(stage2);
+
+	m_lightManager.setRenderPassCullLights((RenderPassCullLights*)findRenderPass("RenderPassCullLights"));
+	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassShadow"));
+	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassFilterRSM"));
+	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassInjectRSM"));
+	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassShading"));
 
 	/*auto renderPassFilterRSM = std::make_unique<RenderPassFilterRSM>(&m_commandAllocator);
 	m_lightManager.addRenderPass(renderPassFilterRSM.get());
@@ -174,15 +215,15 @@ void RenderLayerGame::createRenderPasses()
 	m_lightManager.addRenderPass(renderPassInjectRSM.get());
 	pushRenderPass(std::move(renderPassInjectRSM));*/
 
-	pushRenderPass(std::move(std::make_unique<RenderPassVoxelPropagate>(&m_commandAllocator)));
+	//pushRenderPass(std::move(std::make_unique<RenderPassVoxelPropagate>(&m_commandAllocator)));
 
-	pushRenderPass(std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
-	pushRenderPass(std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
-	pushRenderPass(std::make_unique<RenderPassAO>(&m_commandAllocator));
+	//pushRenderPass(std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
+	//pushRenderPass(std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
+	//pushRenderPass(std::make_unique<RenderPassAO>(&m_commandAllocator));
 
 	//pushRenderPass(std::make_unique<RenderPassVoxelMip>(&m_commandAllocator));
 
-	pushRenderPass(std::make_unique<RenderPassConeTrace>(&m_commandAllocator));
+	/*pushRenderPass(std::make_unique<RenderPassConeTrace>(&m_commandAllocator));
 
 	auto renderPassShading = std::make_unique<RenderPassShading>(&m_commandAllocator);
 	m_lightManager.addRenderPass(renderPassShading.get());
@@ -191,7 +232,7 @@ void RenderLayerGame::createRenderPasses()
 	pushRenderPass(std::make_unique<RenderPassBlurVoxel>(&m_commandAllocator));
 
 	pushRenderPass(std::make_unique<RenderPassSSIL>(&m_commandAllocator));
-	pushRenderPass(std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
+	pushRenderPass(std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));*/
 }
 
 void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs)
@@ -347,9 +388,13 @@ void RenderLayerGame::submitCommandLists(Graphics::CommandQueue* queue)
 	auto hr = m_commandAllocator->Reset();
 	VX_ASSERT(hr == 0);
 
-	for (auto &it : m_renderPasses)
+	/*for (auto &it : m_renderPasses)
 	{
 		it->submitCommands(queue);
+	}*/
+	for (auto &it : m_renderStages)
+	{
+		it.execute(queue);
 	}
 }
 
@@ -358,9 +403,20 @@ u32 RenderLayerGame::getCommandListCount() const
 	return m_renderPasses.size();
 }
 
-void RenderLayerGame::pushRenderPass(std::unique_ptr<RenderPass> &&renderPass)
+void RenderLayerGame::insertRenderPass(vx::StringID &&sid, std::unique_ptr<RenderPass> &&renderPass)
 {
-	m_renderPasses.push_back(std::move(renderPass));
+	m_renderPasses.insert(std::move(sid), std::move(renderPass));
+}
+
+void RenderLayerGame::insertRenderPass(const char* id, std::unique_ptr<RenderPass> &&renderPass)
+{
+	insertRenderPass(std::move(vx::make_sid(id)), std::move(renderPass));
+}
+
+RenderPass* RenderLayerGame::findRenderPass(const char* id)
+{
+	auto it = m_renderPasses.find(vx::make_sid(id));
+	return (it == m_renderPasses.end()) ? nullptr : it->get();
 }
 
 void RenderLayerGame::handleMessage(const vx::Message &msg)
@@ -529,7 +585,12 @@ void RenderLayerGame::createActorGpuIndex(CreateActorData* data)
 	auto materialOffset = sizeof(u32) * materialIndex;
 	m_uploadManager->pushUploadBuffer((u8*)&materialSlices, materialBuffer->get(), materialOffset, sizeof(u32), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-	//auto cmdOffset = sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * cmd.StartInstanceLocation;
+	m_drawCommandMesh.uploadDrawCommand(cmd.StartInstanceLocation, cmd, m_uploadManager);
+
+	auto instanceCount = m_meshManager.getInstanceCount();
+	m_drawCommandMesh.setCount(instanceCount, m_uploadManager);
+
+	m_meshManager.updateResourceViews(m_resourceManager);
 }
 
 void RenderLayerGame::updateTransform(const vx::Transform &meshTransform, u32 index)

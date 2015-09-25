@@ -34,5 +34,7 @@ namespace Graphics
 		virtual ~CommandQueue() {}
 
 		virtual void pushCommandList(CommandList* p) = 0;
+
+		virtual void execute() = 0;
 	};
 }

@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "GBufferRenderer.h"
+#include "RenderPassGBuffer.h"
 #include <d3d12.h>
 #include "d3dx12.h"
 #include "ShaderManager.h"
@@ -32,14 +32,14 @@ SOFTWARE.
 #include "DrawIndexedIndirectCommand.h"
 #include "CommandAllocator.h"
 
-struct GBufferRenderer::ColdData
+struct RenderPassGBuffer::ColdData
 {
 	enum TextureIndex { Diffuse, Normal, Velocity, Depth, ZBuffer0, Surface, TextureCount };
 
 	D3D12_RESOURCE_DESC resDescs[TextureCount];
 };
 
-GBufferRenderer::GBufferRenderer(d3d::CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd)
+RenderPassGBuffer::RenderPassGBuffer(d3d::CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc),
 	m_drawCmd(drawCmd),
@@ -48,12 +48,12 @@ GBufferRenderer::GBufferRenderer(d3d::CommandAllocator* cmdAlloc, DrawIndexedInd
 	createTextureDescriptions();
 }
 
-GBufferRenderer::~GBufferRenderer()
+RenderPassGBuffer::~RenderPassGBuffer()
 {
 
 }
 
-void GBufferRenderer::createTextureDescriptions()
+void RenderPassGBuffer::createTextureDescriptions()
 {
 	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	m_coldData->resDescs[ColdData::TextureIndex::Diffuse].Alignment = 64 KBYTE;
@@ -128,14 +128,14 @@ void GBufferRenderer::createTextureDescriptions()
 	m_coldData->resDescs[ColdData::TextureIndex::Surface].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 }
 
-void GBufferRenderer::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassGBuffer::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
 	auto allocInfo = device->GetResourceAllocationInfo(1, ColdData::TextureCount, m_coldData->resDescs);
 
 	*heapSizeRtDs += allocInfo.SizeInBytes;
 }
 
-bool GBufferRenderer::loadShaders(d3d::ShaderManager* shaderManager)
+bool RenderPassGBuffer::loadShaders(d3d::ShaderManager* shaderManager)
 {
 	if (!shaderManager->loadShader(L"MeshVertex.cso"))
 		return false;
@@ -149,12 +149,12 @@ bool GBufferRenderer::loadShaders(d3d::ShaderManager* shaderManager)
 	return true;
 }
 
-bool GBufferRenderer::createData(ID3D12Device* device)
+bool RenderPassGBuffer::createData(ID3D12Device* device)
 {
 	return createTextures(s_resourceManager, s_resolution, device);
 }
 
-bool GBufferRenderer::createRootSignature(ID3D12Device* device)
+bool RenderPassGBuffer::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangesVS[2];
 	rangesVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
@@ -189,7 +189,7 @@ bool GBufferRenderer::createRootSignature(ID3D12Device* device)
 	return m_rootSignature.create(&rootSignatureDesc, device);
 }
 
-bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
+bool RenderPassGBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager)
 {
 	/*
 	float3 position : POSITION0;
@@ -230,7 +230,7 @@ bool GBufferRenderer::createPipelineState(ID3D12Device* device, d3d::ShaderManag
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
 
-bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, const vx::uint2 &resolution, ID3D12Device* device)
+bool RenderPassGBuffer::createTextures(d3d::ResourceManager* resourceManager, const vx::uint2 &resolution, ID3D12Device* device)
 {
 	D3D12_CLEAR_VALUE clearValues[ColdData::TextureCount];
 	// diffuse
@@ -305,7 +305,7 @@ bool GBufferRenderer::createTextures(d3d::ResourceManager* resourceManager, cons
 	return true;
 }
 
-bool GBufferRenderer::createDescriptorHeap(ID3D12Device* device)
+bool RenderPassGBuffer::createDescriptorHeap(ID3D12Device* device)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};
 	desc.NodeMask = 1;
@@ -330,7 +330,7 @@ bool GBufferRenderer::createDescriptorHeap(ID3D12Device* device)
 	return true;
 }
 
-void GBufferRenderer::createBufferViews(d3d::ResourceManager* resourceManager, ID3D12Device* device)
+void RenderPassGBuffer::createBufferViews(d3d::ResourceManager* resourceManager, ID3D12Device* device)
 {
 	auto cameraBufferViewDesc = resourceManager->getConstantBufferView("cameraBufferView");
 	auto transformBufferViewDesc = resourceManager->getShaderResourceView("transformBufferView");
@@ -378,7 +378,7 @@ void GBufferRenderer::createBufferViews(d3d::ResourceManager* resourceManager, I
 	device->CreateShaderResourceView(rgbTexture->get(), rgbTextureViewDesc, handle);
 }
 
-bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
+bool RenderPassGBuffer::initialize(ID3D12Device* device, void* p)
 {
 
 	if (!loadShaders(s_shaderManager))
@@ -439,7 +439,7 @@ bool GBufferRenderer::initialize(ID3D12Device* device, void* p)
 	return true;
 }
 
-void GBufferRenderer::shutdown()
+void RenderPassGBuffer::shutdown()
 {
 	m_cmdAlloc = nullptr;
 	m_commandList.destroy();
@@ -453,7 +453,7 @@ void GBufferRenderer::shutdown()
 	m_drawCmd = nullptr;
 }
 
-void GBufferRenderer::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassGBuffer::submitCommands(Graphics::CommandQueue* queue)
 {
 	auto drawCount = m_drawCmd->getCount();
 	if (drawCount != 0)

@@ -45,7 +45,7 @@ class CreateActorData
 	f32 m_height;
 	u16 m_spawnIndex;
 	u16 m_gpuIndex;
-	u8 m_flags;
+	u8 m_refCount;
 	PlayerType m_type;
 
 public:
@@ -58,7 +58,7 @@ public:
 		m_height(height),
 		m_spawnIndex(spawnIndex),
 		m_gpuIndex(0),
-		m_flags(0),
+		m_refCount(0),
 		m_type(type)
 	{
 	}
@@ -70,7 +70,8 @@ public:
 		VX_ASSERT(controller);
 		m_controller = controller;
 
-		m_flags |= flag;
+		//m_flags |= flag;
+		++m_refCount;
 	}
 
 	void setGpu(u16 gpuIndex)
@@ -79,7 +80,8 @@ public:
 
 		m_gpuIndex = gpuIndex;
 
-		m_flags |= flag;
+		//m_flags |= flag;
+		++m_refCount;
 	}
 
 	f32 getHeight() const { return m_height; }
@@ -88,14 +90,22 @@ public:
 	{
 		if (m_type == PlayerType::AI)
 		{
-			const auto flag = 1 << 0 | 1 << 1;
-			return ((m_flags & flag) == flag);
+			return (m_refCount == 2);
 		}
 		else
 		{
-			const auto flag = 1 << 0;
-			return ((m_flags & flag) == flag);
+			return (m_refCount == 1);
 		}
+	}
+
+	u32 getRefCount() const 
+	{
+		return m_refCount;
+	}
+
+	void decrement()
+	{
+		--m_refCount;
 	}
 
 	const vx::Transform& getTransform() const

@@ -211,6 +211,8 @@ void EntityAspect::updateEntityActor(f32 dt)
 
 		RenderUpdateDataTransforms* renderUpdateData = (RenderUpdateDataTransforms*)dataPtr;
 		renderUpdateData->count = count;
+		renderUpdateData->transforms = pTransforms;
+		renderUpdateData->indices = indices;
 
 		Locator::getRenderAspect()->queueUpdate(RenderUpdateTaskType::UpdateDynamicTransforms, dataPtr, totalSizeInBytes);
 	}
@@ -371,7 +373,12 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 			{
 				createActorEntity(*data);
 			}
-			delete(data);
+			data->decrement();
+
+			if (data->getRefCount() == 0)
+			{
+				delete(data);
+			}
 		}
 	}break;
 	case IngameMessage::Physx_AddedActor:
@@ -388,7 +395,12 @@ void EntityAspect::handleIngameMessage(const vx::Message &evt)
 			{
 				createActorEntity(*data);
 			}
-			delete(data);
+			data->decrement();
+
+			if (data->getRefCount() == 0)
+			{
+				delete(data);
+			}
 		}
 
 	}break;

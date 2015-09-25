@@ -55,6 +55,7 @@ namespace vx
 #include "CommandAllocator.h"
 #include "DrawIndexedIndirectCommand.h"
 #include "Frustum.h"
+#include "RenderStage.h"
 
 struct RenderLayerGameDesc
 {
@@ -74,7 +75,7 @@ struct RenderLayerGameDesc
 
 class RenderLayerGame : public Graphics::RenderLayer
 {
-	std::vector<std::unique_ptr<RenderPass>> m_renderPasses;
+	std::vector<RenderStage> m_renderStages;
 	CopyManager* m_copyManager;
 	d3d::CommandAllocator m_commandAllocator;
 	LightManager m_lightManager;
@@ -94,6 +95,7 @@ class RenderLayerGame : public Graphics::RenderLayer
 	MeshManager m_meshManager;
 	DownloadManager* m_downloadManager;
 	RenderSettings* m_settings;
+	vx::sorted_vector<vx::StringID, std::unique_ptr<RenderPass>> m_renderPasses;
 
 	void createGpuObjects();
 
@@ -113,6 +115,11 @@ class RenderLayerGame : public Graphics::RenderLayer
 	void taskUpdateDynamicTransforms(const u8* p, u32* offset);
 
 	void copyTransform(u32 index);
+
+	void insertRenderPass(vx::StringID &&sid, std::unique_ptr<RenderPass> &&renderPass);
+	void insertRenderPass(const char* id, std::unique_ptr<RenderPass> &&renderPass);
+
+	RenderPass* findRenderPass(const char* id);
 
 public:
 	explicit RenderLayerGame(const RenderLayerGameDesc &desc);
@@ -136,8 +143,6 @@ public:
 	void submitCommandLists(Graphics::CommandQueue* queue) override;
 
 	u32 getCommandListCount() const override;
-
-	void pushRenderPass(std::unique_ptr<RenderPass> &&renderPass);
 
 	void handleMessage(const vx::Message &evt) override;
 };

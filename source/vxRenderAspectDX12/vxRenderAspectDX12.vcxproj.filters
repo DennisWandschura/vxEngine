@@ -168,9 +168,6 @@
     <ClInclude Include="CreateResourceDesc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GBufferRenderer.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -321,6 +318,12 @@
     <ClInclude Include="RenderPassText.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="RenderStage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassGBuffer.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -354,9 +357,6 @@
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassZBuffer.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="GBufferRenderer.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPass.cpp">
@@ -471,6 +471,9 @@
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassText.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassGBuffer.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>

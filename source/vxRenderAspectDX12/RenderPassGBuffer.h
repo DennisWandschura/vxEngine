@@ -40,7 +40,7 @@ class DrawIndexedIndirectCommand;
 #include <memory>
 #include "CommandList.h"
 
-class GBufferRenderer : public RenderPass
+class RenderPassGBuffer : public RenderPass
 {
 	struct ColdData;
 
@@ -63,8 +63,8 @@ class GBufferRenderer : public RenderPass
 	void createBufferViews(d3d::ResourceManager* resourceManager, ID3D12Device* device);
 
 public:
-	GBufferRenderer(d3d::CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd);
-	~GBufferRenderer();
+	RenderPassGBuffer(d3d::CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd);
+	~RenderPassGBuffer();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
 

@@ -167,9 +167,9 @@ StructuredBuffer<GpuShadowTransformReverse> g_transforms : register(t3);
 	uavDesc.Texture3D.FirstWSlice = 0;
 	uavDesc.Texture3D.WSize = s_settings->m_lpvDim * 6;
 
-	auto voxelTextureColorTmp = s_resourceManager->getTexture(L"voxelTextureColorTmp");
+	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 	handle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureColorTmp->get(), nullptr, &uavDesc, handle);
+	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, handle);
 
 	return true;
 }
@@ -199,10 +199,10 @@ bool RenderPassInjectRSM::createUavClear(ID3D12Device* device)
 
 	auto handle = m_uavClearHeap.getHandleCpu();
 
-	auto voxelTextureColorTmp = s_resourceManager->getTexture(L"voxelTextureColorTmp");
+	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 
 	uavDesc.Texture3D.WSize = s_settings->m_lpvDim * 6;
-	device->CreateUnorderedAccessView(voxelTextureColorTmp->get(), nullptr, &uavDesc, handle);
+	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, handle);
 
 	return true;
 }
@@ -265,7 +265,7 @@ void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
 	{
 		u32 textureDim = s_settings->m_shadowDim / 4;
 
-		auto voxelTextureColorTmp = s_resourceManager->getTexture(L"voxelTextureColorTmp");
+		auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 		auto shadowReverseTransformBuffer = s_resourceManager->getBuffer(L"shadowReverseTransformBuffer");
 
 		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
@@ -273,9 +273,9 @@ void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
 		auto clearHandleGpu = m_uavClearHeap.getHandleGpu();
 		auto clearHandleCpu = m_uavClearHeap.getHandleCpu();
 
-		m_commandList->ClearUnorderedAccessViewUint(clearHandleGpu, clearHandleCpu, voxelTextureColorTmp->get(), clearValues, 0, nullptr);
+		m_commandList->ClearUnorderedAccessViewUint(clearHandleGpu, clearHandleCpu, voxelTextureColor->get(), clearValues, 0, nullptr);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColorTmp->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		ID3D12DescriptorHeap* heaps[1] = 
@@ -328,7 +328,7 @@ void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
 		}
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColorTmp->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 
 		m_commandList->Close();
 		queue->pushCommandList(&m_commandList);

@@ -179,7 +179,7 @@
     <ClInclude Include="Device.h" />
     <ClInclude Include="dllExport.h" />
     <ClInclude Include="Freelist.h" />
-    <ClInclude Include="GBufferRenderer.h" />
+    <ClInclude Include="RenderPassGBuffer.h" />
     <ClInclude Include="GpuLight.h" />
     <ClInclude Include="GpuMath.h" />
     <ClInclude Include="GpuTransform.h" />
@@ -204,6 +204,7 @@
     <ClInclude Include="RenderPassVoxelPropagate.h" />
     <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
     <ClInclude Include="RenderSettings.h" />
+    <ClInclude Include="RenderStage.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Quaternion.h" />
@@ -249,7 +250,7 @@
     <ClCompile Include="RenderPassDrawVoxel.cpp" />
     <ClCompile Include="RenderPassFilterRSM.cpp" />
     <ClCompile Include="RenderPassFinal.cpp" />
-    <ClCompile Include="GBufferRenderer.cpp" />
+    <ClCompile Include="RenderPassGBuffer.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="MaterialManager.cpp" />
     <ClCompile Include="MeshManager.cpp" />
