@@ -22,6 +22,7 @@ class CpuProfiler
 	vx::sorted_vector<vx::StringID, u32> m_entriesByName;
 	int m_pushedMarkers;
 	int m_currentWriteId;
+	u32 m_lastEntryCount;
 	u32 m_entryCount;
 	vx::uint2 m_position;
 
@@ -34,7 +35,10 @@ public:
 
 	void update(RenderAspectInterface* renderAspect);
 
+	void updateCpuUsage();
+
 	void frame();
+
 	void pushMarker(const char* id);
 	void popMarker();
 };

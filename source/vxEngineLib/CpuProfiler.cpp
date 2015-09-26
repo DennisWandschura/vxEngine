@@ -49,6 +49,7 @@ CpuProfiler::CpuProfiler()
 	m_entriesByName(),
 	m_pushedMarkers(0),
 	m_currentWriteId(0),
+	m_lastEntryCount(0),
 	m_entryCount(0)
 {
 
@@ -82,30 +83,23 @@ void CpuProfiler::shutdown()
 
 void CpuProfiler::update(RenderAspectInterface* renderAspect)
 {
-	/*f32 textureSlice = m_pFont->getTextureEntry().getSlice();
-	auto textureSize = m_pFont->getTextureEntry().getTextureSize();
-	vx::float4a invTextureSize;
-	invTextureSize.x = 1.0f / textureSize.x;
-	invTextureSize.y = 1.0f / textureSize.y;
-
-	//vx::float2(1.0f / textureSize.x, 1.0f / textureSize.y);
-	auto vInvTexSize = _mm_shuffle_ps(invTextureSize.v, invTextureSize.v, _MM_SHUFFLE(1, 0, 1, 0));
-
-	vx::uint2 bufferIndex = { 0, 0 };
-	vx::float2 position = m_position;
-	vx::lock_guard<vx::mutex> lock(m_mutex);
-	writeGpuMarkers(textureSlice, textureSize, vInvTexSize, &bufferIndex, &position);
-
-	//glNamedBufferSubData(m_vbo.getId(), 0, sizeof(Vertex) * bufferIndex.x, m_pVertices.get());
-
-	m_vertexCount = bufferIndex.x;
-	m_indexCount = bufferIndex.y;*/
-
 	RenderUpdateTextData data;
 
 	const f32 yOffset = 15.0f;
-	f32 xPos = m_position.x;;
+	f32 xPos = m_position.x;
 	f32 ypos = m_position.y;
+
+	auto strSize = sprintf(data.text, "CPU:");
+	data.text[strSize] = '\0';
+
+	data.position.x = xPos;
+	data.position.y = ypos;
+	data.color = vx::float3(1, 0, 1);
+	data.strSize = strSize;
+	renderAspect->queueUpdate(RenderUpdateTaskType::UpdateText, (u8*)&data, sizeof(data));
+
+	ypos -= yOffset;
+
 	for (u32 i = 0; i < m_entryCount; ++i)
 	{
 		auto &entry = m_entries[i];
@@ -117,13 +111,42 @@ void CpuProfiler::update(RenderAspectInterface* renderAspect)
 
 		data.position.x = xPos + entry.layer * yOffset;
 		data.position.y = ypos;
-		data.color = vx::float3(1);
+		data.color = vx::float3(1, 0, 1);
 		data.strSize = strSize;
 
 		renderAspect->queueUpdate(RenderUpdateTaskType::UpdateText, (u8*)&data, sizeof(data));
 
 		ypos -= yOffset;
 	}
+
+	if (m_lastEntryCount != m_entryCount)
+	{
+		m_lastEntryCount = m_entryCount;
+		m_entriesByName.clear();
+		m_entryCount = 0;
+	}
+}
+
+void CpuProfiler::updateCpuUsage()
+{
+	/*u64 creationTime, exitTime, kernelTime, userTime;
+	auto hr = GetThreadTimes(m_threadHandle, (FILETIME*)&creationTime, (FILETIME*)&exitTime, (FILETIME*)&kernelTime, (FILETIME*)&userTime);
+
+	u64 threadTime = kernelTime + userTime;
+
+	FILETIME systemIdle;
+	u64 systemKernel, systemUser;
+	GetSystemTimes(&systemIdle, (FILETIME*)&systemKernel, (FILETIME*)&systemUser);
+	u64 systemTime = systemKernel + systemUser;
+
+	u64 diffThread = threadTime - m_lastTime;
+	u64 diffSystem = systemTime - m_lastSystem;
+
+	auto cpuUsage = (100.0 * diffThread) / diffSystem;
+	//printf("%f\n", cpuUsage);
+
+	m_lastTime = threadTime;
+	m_lastSystem = systemTime;*/
 }
 
 void CpuProfiler::frame()
@@ -149,14 +172,16 @@ void CpuProfiler::frame()
 				m_entries[m_entryCount] = entry;
 
 				it = m_entriesByName.insert(sid, m_entryCount);
-
 				++m_entryCount;
 			}
 
 			auto &entry = m_entries[*it];
+			strncpy(entry.name, marker.name, s_maxCharacters);
 			entry.layer = marker.layer;
 			entry.time = (marker.end - marker.start) * 1000000 / s_frequency;
 			entry.maxTime = std::max(entry.maxTime, entry.time);
+
+			marker.end = 0;
 		}
 	}
 }
