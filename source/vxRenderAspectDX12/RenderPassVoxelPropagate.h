@@ -32,5 +32,6 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
+	void buildCommands() override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 };

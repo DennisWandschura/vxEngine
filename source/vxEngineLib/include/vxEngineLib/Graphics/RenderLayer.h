@@ -52,6 +52,7 @@ namespace Graphics
 
 		virtual void queueUpdate(const RenderUpdateTaskType type, const u8* data, u32 dataSize) = 0;
 
+		virtual void buildCommandLists() = 0;
 		virtual void submitCommandLists(Graphics::CommandQueue* queue) = 0;
 
 		virtual u32 getCommandListCount() const = 0;

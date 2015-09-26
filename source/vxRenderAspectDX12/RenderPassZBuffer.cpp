@@ -192,11 +192,11 @@ void RenderPassZBuffer::shutdown()
 	m_descriptorHeap.destroy();
 }
 
-void RenderPassZBuffer::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassZBuffer::buildCommands()
 {
 	auto gbufferDepthTexture = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
-	const f32 clearColor[4] = {1.0f, 0.0f, 0, 0};
+	const f32 clearColor[4] = { 1.0f, 0.0f, 0, 0 };
 
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
@@ -240,6 +240,9 @@ void RenderPassZBuffer::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 	m_commandList->Close();
+}
 
+void RenderPassZBuffer::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

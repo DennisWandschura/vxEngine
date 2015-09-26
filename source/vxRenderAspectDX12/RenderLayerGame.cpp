@@ -383,19 +383,27 @@ void RenderLayerGame::update()
 	m_cpuProfiler->popMarker();
 }
 
+void RenderLayerGame::buildCommandLists()
+{
+	auto hr = m_commandAllocator.reset();
+	VX_ASSERT(hr == 0);
+	for (auto &it : m_renderStages)
+	{
+		it.buildCommands();
+	}
+}
+
 void RenderLayerGame::submitCommandLists(Graphics::CommandQueue* queue)
 {
-	auto hr = m_commandAllocator->Reset();
-	VX_ASSERT(hr == 0);
-
 	/*for (auto &it : m_renderPasses)
 	{
 		it->submitCommands(queue);
 	}*/
 	for (auto &it : m_renderStages)
 	{
-		it.execute(queue);
+		it.submitCommands(queue);
 	}
+	queue->execute();
 }
 
 u32 RenderLayerGame::getCommandListCount() const

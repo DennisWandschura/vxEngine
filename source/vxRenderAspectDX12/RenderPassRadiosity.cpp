@@ -334,9 +334,9 @@ void RenderPassRadiosity::shutdown()
 	m_commandList.destroy();
 }
 
-void RenderPassRadiosity::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassRadiosity::buildCommands()
 {
-	const f32 clearcolor[4] = {0, 0, 0, 0};
+	const f32 clearcolor[4] = { 0, 0, 0, 0 };
 	auto bounce0 = s_resourceManager->getTextureRtDs(L"bounce0");
 	auto bounce1 = s_resourceManager->getTextureRtDs(L"bounce1");
 
@@ -429,6 +429,9 @@ void RenderPassRadiosity::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce0->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
 
 	m_commandList->Close();
+}
 
+void RenderPassRadiosity::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

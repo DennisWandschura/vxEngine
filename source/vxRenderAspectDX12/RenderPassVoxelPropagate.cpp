@@ -132,14 +132,14 @@ void RenderPassVoxelPropagate::shutdown()
 
 }
 
-void RenderPassVoxelPropagate::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassVoxelPropagate::buildCommands()
 {
 	auto dim = s_settings->m_lpvDim;
 
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 	auto srvHeap = m_srvHeap.get();
-	m_commandList->SetDescriptorHeaps(1,&srvHeap);
+	m_commandList->SetDescriptorHeaps(1, &srvHeap);
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
 	auto gpuHandle = m_srvHeap.getHandleGpu();
@@ -168,6 +168,9 @@ void RenderPassVoxelPropagate::submitCommands(Graphics::CommandQueue* queue)
 	}
 
 	m_commandList->Close();
+}
 
+void RenderPassVoxelPropagate::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

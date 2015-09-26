@@ -42,6 +42,7 @@ class RenderPassVoxelize : public RenderPass
 	d3d::DescriptorHeap m_descriptorHeapClear;
 	d3d::DescriptorHeap m_rtvHeap;
 	DrawIndexedIndirectCommand* m_drawCommand;
+	u32 m_buildList;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
@@ -60,5 +61,6 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
+	void buildCommands() override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 };

@@ -77,5 +77,6 @@ public:
 	virtual bool initialize(ID3D12Device* device, void* p) = 0;
 	virtual void shutdown() = 0;
 
+	virtual void buildCommands() = 0;
 	virtual void submitCommands(Graphics::CommandQueue* queue) = 0;
 };

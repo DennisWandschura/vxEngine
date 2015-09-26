@@ -100,8 +100,9 @@ void CopyManager::pushCopyTexture(ID3D12Resource* src, u32 srcStateBefore, ID3D1
 	m_entries.push_back(entry);
 }
 
-void CopyManager::submitList(Graphics::CommandQueue* queue)
+void CopyManager::buildCommandList()
 {
+	m_allocator.reset();
 	m_commandListCopy->Reset(m_allocator.get(), nullptr);
 
 	for (auto &it : m_entries)
@@ -125,7 +126,7 @@ void CopyManager::submitList(Graphics::CommandQueue* queue)
 
 			auto locationSrc = CD3DX12_TEXTURE_COPY_LOCATION(it.src, 0);
 			auto locationDst = CD3DX12_TEXTURE_COPY_LOCATION(it.dst, 0);
-			m_commandListCopy->CopyTextureRegion(&locationDst, 0, 0, 0,&locationSrc, nullptr);
+			m_commandListCopy->CopyTextureRegion(&locationDst, 0, 0, 0, &locationSrc, nullptr);
 
 			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.dstStateBefore));
 			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.src, D3D12_RESOURCE_STATE_COPY_SOURCE, (D3D12_RESOURCE_STATES)it.srcStateBefore));
@@ -137,6 +138,9 @@ void CopyManager::submitList(Graphics::CommandQueue* queue)
 
 	m_commandListCopy->Close();
 	m_entries.clear();
+}
 
+void CopyManager::submitList(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandListCopy);
 }

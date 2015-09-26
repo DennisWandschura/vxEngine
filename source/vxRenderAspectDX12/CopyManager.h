@@ -47,5 +47,6 @@ public:
 	void pushCopyBuffer(ID3D12Resource* src, u64 srcOffset, u32 srcStateBefore, u64 size, ID3D12Resource* dst, u64 dstOffset, u32 dstStateBefore);
 	void pushCopyTexture(ID3D12Resource* src, u32 srcStateBefore, ID3D12Resource* dst, u32 dstStateBefore);
 
+	void buildCommandList();
 	void submitList(Graphics::CommandQueue* queue);
 };

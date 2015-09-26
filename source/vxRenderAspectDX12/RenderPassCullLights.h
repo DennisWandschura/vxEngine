@@ -45,6 +45,7 @@ class RenderPassCullLights : public RenderPass
 	d3d::Object<ID3D12PipelineState> m_pipelineStateZeroLights;
 	d3d::Object<ID3D12RootSignature> m_rootSignatureZeroLights;
 	u32 m_lightCount;
+	u32 m_buildList;
 	Event m_checkEvent;
 	Event m_downloadEvent;
 	DownloadManager* m_downloadManager;
@@ -69,6 +70,7 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
+	void buildCommands() override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 
 	void setLightCount(u32 count) { m_lightCount = count; }

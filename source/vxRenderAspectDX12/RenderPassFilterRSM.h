@@ -40,6 +40,7 @@ class RenderPassFilterRSM : public RenderPassLight
 	d3d::DescriptorHeap m_srvHeap;
 	d3d::DescriptorHeap m_srvHeapPass2;
 	d3d::DescriptorHeap m_rtvHeap;
+	u32 m_buildList;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
@@ -60,6 +61,7 @@ public:
 	bool initialize(ID3D12Device* device, void* p)override;
 	void shutdown() override;
 
+	void buildCommands() override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 
 	void setLightCount(u32 lightCount) { m_lightCount = lightCount; }

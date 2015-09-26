@@ -99,8 +99,10 @@ public:
 
 	virtual void updateProfiler(f32 dt) = 0;
 
+	virtual void buildCommands() = 0;
 	virtual void submitCommands() = 0;
-	virtual void endFrame() = 0;
+	virtual void swapBuffers() = 0;
+	virtual void wait() = 0;
 
 	virtual void handleMessage(const vx::Message &evt) override = 0;
 

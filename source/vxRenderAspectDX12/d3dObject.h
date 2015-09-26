@@ -73,7 +73,9 @@ namespace d3d
 
 		void swap(Object &other)
 		{
-			std::swap(m_object, other.m_object);
+			auto tmp = m_object;
+			m_object = other.m_object;
+			other.m_object = tmp;
 		}
 
 		T* operator->() { return m_object; }

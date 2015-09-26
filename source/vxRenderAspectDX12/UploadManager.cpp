@@ -117,11 +117,8 @@ bool UploadManager::initialize(ID3D12Device* device)
 	if (!m_heap.createResourceBuffer(desc))
 		return false;
 
-	auto hresult = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_commandAllocator.getAddressOf()));
-	if (hresult != 0)
+	if (!m_commandAllocator.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
 		return false;
-
-	m_commandAllocator->SetName(L"UploadManagerCommandAllocator");
 
 	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr))
 		return false;
@@ -366,11 +363,11 @@ void UploadManager::processTasks()
 	m_tasksBack.clear();
 }
 
-void UploadManager::submitCommandList(d3d::CommandQueue* queue)
+void UploadManager::buildCommandList()
 {
 	processQueue();
 
-	auto hr = m_commandAllocator->Reset();
+	auto hr = m_commandAllocator.reset();
 	if (hr != 0)
 	{
 		puts("errror");
@@ -392,6 +389,9 @@ void UploadManager::submitCommandList(d3d::CommandQueue* queue)
 	}
 
 	m_size = 0;
+}
 
+void UploadManager::submitCommandList(d3d::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

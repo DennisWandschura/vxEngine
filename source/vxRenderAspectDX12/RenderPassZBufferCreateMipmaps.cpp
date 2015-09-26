@@ -218,7 +218,7 @@ void RenderPassZBufferCreateMipmaps::createMipMaps(ID3D12Resource* texture, d3d:
 	}
 }
 
-void RenderPassZBufferCreateMipmaps::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassZBufferCreateMipmaps::buildCommands()
 {
 	auto zBuffer0 = s_resourceManager->getTextureRtDs(L"zBuffer0");
 
@@ -238,6 +238,9 @@ void RenderPassZBufferCreateMipmaps::submitCommands(Graphics::CommandQueue* queu
 	createMipMaps(zBuffer0->get(), &rtvHandleCpu, &srvHandleGpu);
 
 	auto hr = m_commandList->Close();
-	
+}
+
+void RenderPassZBufferCreateMipmaps::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

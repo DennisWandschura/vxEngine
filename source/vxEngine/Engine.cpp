@@ -103,13 +103,16 @@ Engine::~Engine()
 
 void Engine::update()
 {
-	//printf("physx simulate\n");
 	m_physicsAspect.update(g_dt);
 
 	// process events
+	m_cpuProfiler.pushMarker("update msg");
 	m_msgManager.update();
+	m_cpuProfiler.popMarker();
 
+	m_cpuProfiler.pushMarker("update action");
 	m_actionManager.update();
+	m_cpuProfiler.popMarker();
 
 	m_resourceAspect.update();
 
@@ -117,25 +120,16 @@ void Engine::update()
 	m_audioAspect->update(g_dt);
 	m_cpuProfiler.popMarker();
 
-	//printf("task manager begin\n");
-	//m_taskManager.update();
-	//m_taskManager.wait();
-	//printf("task manager end\n");
-
 	// update aspects in order
-	//printf("physx fetch\n");
+	m_cpuProfiler.pushMarker("physx wait");
 	m_physicsAspect.fetch();
+	m_cpuProfiler.popMarker();
 
 	m_systemAspect.update(g_dt);
 
 	m_entityAspect.update(g_dt, &m_actionManager);
 
-	//CpuProfiler::popMarker();
-
-	//CpuProfiler::pushMarker("physx");
-	//CpuProfiler::popMarker();
-
-	getThreadInfo();
+	//getThreadInfo();
 }
 
 void Engine::getThreadInfo()
@@ -179,7 +173,13 @@ void Engine::mainLoop(Logfile* logfile)
 
 		m_cpuProfiler.pushMarker("frame");
 
+		m_cpuProfiler.pushMarker("build commands");
+		m_renderAspect->buildCommands();
+		m_cpuProfiler.popMarker();
+
+		m_cpuProfiler.pushMarker("submit commands");
 		m_renderAspect->submitCommands();
+		m_cpuProfiler.popMarker();
 
 		m_taskManager.updateMainThread();
 
@@ -188,7 +188,9 @@ void Engine::mainLoop(Logfile* logfile)
 			m_cpuProfiler.pushMarker("update()");
 			update();
 
+			m_cpuProfiler.pushMarker("update renderer");
 			m_renderAspect->update();
+			m_cpuProfiler.popMarker();
 
 			m_cpuProfiler.update(m_renderAspect);
 			m_renderAspect->updateProfiler(g_dt);
@@ -197,8 +199,12 @@ void Engine::mainLoop(Logfile* logfile)
 			m_cpuProfiler.popMarker();
 		}
 
-		m_cpuProfiler.pushMarker("endFrame");
-		m_renderAspect->endFrame();
+		m_cpuProfiler.pushMarker("swap buffers");
+		m_renderAspect->swapBuffers();
+		m_cpuProfiler.popMarker();
+
+		m_cpuProfiler.pushMarker("gpu wait");
+		m_renderAspect->wait();
 		m_cpuProfiler.popMarker();
 
 		m_cpuProfiler.popMarker();
@@ -322,7 +328,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 		return false;
 	}
 
-	auto topLeftProfilerPosition = (g_engineConfig.m_resolution / vx::uint2(2)) - vx::uint2(300, 50);
+	auto topLeftProfilerPosition = (g_engineConfig.m_resolution / vx::uint2(2)) - vx::uint2(300, 30);
 	m_cpuProfiler.initialize(topLeftProfilerPosition);
 
 	g_engineConfig.m_editor = false;

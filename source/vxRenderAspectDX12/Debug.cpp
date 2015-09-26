@@ -126,14 +126,14 @@ namespace d3d
 
 				hresult = m_infoQueue->GetMessage(i, msg, &msgSize);
 
+				printf("%s\n", msg->pDescription);
+
 				if (msg->Severity == D3D12_MESSAGE_SEVERITY_ERROR)
 				{
 					m_errorLog->append(msg->pDescription, msg->DescriptionByteLength - 1);
 					m_errorLog->append('\n');
 					VX_ASSERT(false);
 				}
-
-				printf("%s\n", msg->pDescription);
 
 				m_scratchAllocator.clear(marker);
 			}

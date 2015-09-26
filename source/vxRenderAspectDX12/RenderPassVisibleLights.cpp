@@ -8,7 +8,9 @@
 RenderPassVisibleLights::RenderPassVisibleLights(d3d::CommandAllocator* allocator)
 	:RenderPass(),
 	m_allocator(allocator),
-	m_commandList()
+	m_commandList(),
+	m_lightCount(0),
+	m_buildList(0)
 {
 
 }
@@ -151,7 +153,7 @@ void RenderPassVisibleLights::shutdown()
 	m_allocator = nullptr;
 }
 
-void RenderPassVisibleLights::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassVisibleLights::buildCommands()
 {
 	if (m_lightCount != 0)
 	{
@@ -198,7 +200,15 @@ void RenderPassVisibleLights::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		m_commandList->Close();
+		m_buildList = 1;
+	}
+}
 
+void RenderPassVisibleLights::submitCommands(Graphics::CommandQueue* queue)
+{
+	if (m_buildList != 0)
+	{
 		queue->pushCommandList(&m_commandList);
+		m_buildList = 0;
 	}
 }

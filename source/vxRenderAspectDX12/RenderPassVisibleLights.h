@@ -39,6 +39,7 @@ class RenderPassVisibleLights : public RenderPass
 	d3d::GraphicsCommandList m_commandList;
 	d3d::DescriptorHeap m_descriptorHeap;
 	u32 m_lightCount;
+	u32 m_buildList;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
@@ -57,5 +58,6 @@ public:
 
 	void submitCommands(Graphics::CommandQueue* queue) override;
 
+	void buildCommands() override;
 	void setLightCount(u32 count) { m_lightCount = count; }
 };

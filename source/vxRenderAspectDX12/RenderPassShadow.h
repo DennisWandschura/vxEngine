@@ -40,6 +40,7 @@ class RenderPassShadow : public RenderPassLight
 	d3d::GraphicsCommandList m_commandList;
 	d3d::CommandAllocator* m_cmdAlloc;
 	DrawIndexedIndirectCommand* m_drawCmd;
+	u32 m_buildList;
 	d3d::DescriptorHeap m_heapDsv;
 	d3d::DescriptorHeap m_heapRtv;
 	d3d::DescriptorHeap m_heapSrv;
@@ -62,5 +63,6 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
+	void buildCommands() override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 };

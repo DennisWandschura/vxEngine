@@ -234,7 +234,7 @@ void RenderPassConeTrace::shutdown()
 
 }
 
-void RenderPassConeTrace::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassConeTrace::buildCommands()
 {
 	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
@@ -282,6 +282,9 @@ void RenderPassConeTrace::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureColor->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 
 	m_commandList->Close();
+}
 
+void RenderPassConeTrace::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

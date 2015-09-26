@@ -32,7 +32,9 @@ SOFTWARE.
 RenderPassCullLights::RenderPassCullLights(d3d::CommandAllocator* allocator, DownloadManager* downloadManager)
 	:m_allocator(allocator),
 	m_downloadManager(downloadManager),
-	m_cpuDst(nullptr)
+	m_cpuDst(nullptr),
+	m_buildList(0),
+	m_lightCount(0)
 {
 
 }
@@ -259,7 +261,7 @@ void RenderPassCullLights::shutdown()
 
 }
 
-void RenderPassCullLights::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassCullLights::buildCommands()
 {
 	// visiblity test lights in frustum
 
@@ -324,14 +326,22 @@ void RenderPassCullLights::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(visibleLightIndicesBuffer->get()));
 
 		m_commandList->Close();
-
-		queue->pushCommandList(&m_commandList);
+		m_buildList = 1;
 
 		auto dlSize = sizeof(u32) * m_lightCount;
 		m_downloadManager->pushDownloadBuffer(m_cpuDst, dlSize, visibleLightIndicesBuffer, 0, m_downloadEvent);
 
 		m_downloadEvent.setStatus(EventStatus::Running);
 		m_checkEvent.setStatus(EventStatus::Complete);
+	}
+}
+
+void RenderPassCullLights::submitCommands(Graphics::CommandQueue* queue)
+{
+	if (m_buildList != 0)
+	{
+		queue->pushCommandList(&m_commandList);
+		m_buildList = 0;
 	}
 }
 

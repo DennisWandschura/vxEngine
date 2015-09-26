@@ -270,7 +270,7 @@ void RenderPassOcclusion::shutdown()
 
 }
 
-void RenderPassOcclusion::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassOcclusion::buildCommands()
 {
 	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
 
@@ -321,6 +321,9 @@ void RenderPassOcclusion::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelOcclusion->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));*/
 
 	m_commandList->Close();
+}
 
+void RenderPassOcclusion::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

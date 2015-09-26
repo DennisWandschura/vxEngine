@@ -230,7 +230,7 @@ void RenderPassSSIL::shutdown()
 
 }
 
-void RenderPassSSIL::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassSSIL::buildCommands()
 {
 	D3D12_VIEWPORT viewport;
 	viewport.Height = (f32)s_resolution.y;
@@ -279,6 +279,11 @@ void RenderPassSSIL::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	auto hr = m_commandList->Close();
+}
+
+void RenderPassSSIL::submitCommands(Graphics::CommandQueue* queue)
+{
+	
 
 	queue->pushCommandList(&m_commandList);
 

@@ -37,6 +37,7 @@ class RenderPassInjectRSM : public RenderPassLight
 {
 	d3d::CommandAllocator* m_allocator;
 	d3d::GraphicsCommandList m_commandList;
+	u32 m_buildList;
 	d3d::DescriptorHeap m_srvHeap;
 	d3d::DescriptorHeap m_uavClearHeap;
 	d3d::DescriptorHeap m_rtvHeap;;
@@ -60,6 +61,7 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
+	void buildCommands() override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 
 	void setLightCount(u32 lightCount) { m_lightCount = lightCount; }

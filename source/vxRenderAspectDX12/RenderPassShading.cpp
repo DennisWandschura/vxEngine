@@ -11,7 +11,8 @@
 RenderPassShading::RenderPassShading(d3d::CommandAllocator* cmdAlloc)
 	:RenderPassLight(),
 	m_commandList(),
-	m_cmdAlloc(cmdAlloc)
+	m_cmdAlloc(cmdAlloc),
+	m_buildList(0)
 {
 
 }
@@ -288,7 +289,7 @@ void RenderPassShading::shutdown()
 
 }
 
-void RenderPassShading::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassShading::buildCommands()
 {
 	if (m_visibleLightCount != 0)
 	{
@@ -344,7 +345,7 @@ void RenderPassShading::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		
+
 		m_commandList->DrawInstanced(m_visibleLightCount, 1, 0, 0);
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
@@ -356,7 +357,15 @@ void RenderPassShading::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
 		auto hr = m_commandList->Close();
+		m_buildList = 1;
+	}
+}
 
+void RenderPassShading::submitCommands(Graphics::CommandQueue* queue)
+{
+	if (m_buildList != 0)
+	{
 		queue->pushCommandList(&m_commandList);
+		m_buildList = 0;
 	}
 }

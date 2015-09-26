@@ -222,7 +222,7 @@ void RenderPassFinal::shutdown()
 	m_descriptorHeapSrv.destroy();
 }
 
-void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassFinal::buildCommands()
 {
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto directLightTexture = s_resourceManager->getTextureRtDs(L"directLightTexture");
@@ -268,7 +268,7 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
-	ID3D12DescriptorHeap* heaps[]=
+	ID3D12DescriptorHeap* heaps[] =
 	{
 		m_descriptorHeapSrv.get()
 	};
@@ -292,6 +292,9 @@ void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
 
 	hresult = m_commandList->Close();
 	VX_ASSERT(hresult == 0);
+}
 
+void RenderPassFinal::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

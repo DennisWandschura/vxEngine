@@ -100,8 +100,10 @@ public:
 
 	void updateProfiler(f32 dt) override;
 
+	void buildCommands() override;
 	void submitCommands() override;
-	void endFrame() override;
+	void swapBuffers() override;
+	void wait() override;
 
 	void handleMessage(const vx::Message &msg) override;
 

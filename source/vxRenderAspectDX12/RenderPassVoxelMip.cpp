@@ -144,7 +144,7 @@ void RenderPassVoxelMip::shutdown()
 
 }
 
-void RenderPassVoxelMip::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassVoxelMip::buildCommands()
 {
 	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 
@@ -158,7 +158,7 @@ void RenderPassVoxelMip::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
 	auto gpuHandle = m_uavHeap.getHandleGpu();
-	
+
 
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
@@ -193,6 +193,9 @@ void RenderPassVoxelMip::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 
 	m_commandList->Close();
+}
 
+void RenderPassVoxelMip::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

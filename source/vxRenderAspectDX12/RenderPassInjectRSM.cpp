@@ -9,7 +9,8 @@
 RenderPassInjectRSM::RenderPassInjectRSM(d3d::CommandAllocator* allocator)
 	:RenderPassLight(),
 	m_allocator(allocator),
-	m_commandList()
+	m_commandList(),
+	m_buildList(0)
 {
 
 }
@@ -258,9 +259,9 @@ void RenderPassInjectRSM::shutdown()
 
 }
 
-void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassInjectRSM::buildCommands()
 {
-	const u32 clearValues[4] = {0, 0, 0,0};
+	const u32 clearValues[4] = { 0, 0, 0,0 };
 	if (m_visibleLightCount != 0)
 	{
 		u32 textureDim = s_settings->m_shadowDim / 4;
@@ -278,7 +279,7 @@ void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
-		ID3D12DescriptorHeap* heaps[1] = 
+		ID3D12DescriptorHeap* heaps[1] =
 		{
 			m_srvHeap.get()
 		};
@@ -302,7 +303,7 @@ void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
 
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHanlde = m_rtvHeap.getHandleCpu();
 		m_commandList->OMSetRenderTargets(1, &rtvHanlde, 0, nullptr);
-		
+
 		m_commandList->SetDescriptorHeaps(1, heaps);
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
@@ -331,6 +332,15 @@ void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 
 		m_commandList->Close();
+		m_buildList = 1;
+	}
+}
+
+void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
+{
+	if (m_buildList != 0)
+	{
 		queue->pushCommandList(&m_commandList);
+		m_buildList = 0;
 	}
 }

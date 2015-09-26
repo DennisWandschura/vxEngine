@@ -140,6 +140,7 @@ public:
 
 	void queueUpdate(const RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
 
+	void buildCommandLists() override;
 	void submitCommandLists(Graphics::CommandQueue* queue) override;
 
 	u32 getCommandListCount() const override;

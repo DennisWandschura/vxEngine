@@ -233,13 +233,13 @@ void RenderPassBlurVoxel::blurPass(ID3D12Resource* resource, const D3D12_CPU_DES
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(resource, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 }
 
-void RenderPassBlurVoxel::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassBlurVoxel::buildCommands()
 {
 	auto voxelIndirect = s_resourceManager->getTextureRtDs(L"voxelIndirect");
 	auto voxelBlurTmp = s_resourceManager->getTextureRtDs(L"voxelBlurTmp");
 	auto voxelBlur = s_resourceManager->getTextureRtDs(L"voxelBlur");
 
-	const f32 clearColor[4] = {0, 0, 0, 0};
+	const f32 clearColor[4] = { 0, 0, 0, 0 };
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 	auto resolution = s_resolution;
@@ -312,5 +312,9 @@ void RenderPassBlurVoxel::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBlurTmp->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));*/
 
 	m_commandList->Close();
+}
+
+void RenderPassBlurVoxel::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

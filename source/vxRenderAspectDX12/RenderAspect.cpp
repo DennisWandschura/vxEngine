@@ -557,29 +557,41 @@ void RenderAspect::createSrvTextures(u32 srgbCount, u32 rgbCount)
 	m_resourceManager.insertShaderResourceView("rgbTextureView", srvDesc);
 }
 
-void RenderAspect::submitCommands()
+void RenderAspect::buildCommands()
 {
 	m_downloadManager.downloadToCpu();
 
+	m_copyManager.buildCommandList();
+	m_downloadManager.buildCommandList();
+	m_uploadManager.buildCommandList();
+
+	for (auto &it : m_activeLayers)
+	{
+		it->buildCommandLists();
+	}
+}
+
+void RenderAspect::submitCommands()
+{
 	m_copyManager.submitList(&m_graphicsCommandQueue);
 	m_downloadManager.submitCommandList(&m_graphicsCommandQueue);
 	m_uploadManager.submitCommandList(&m_graphicsCommandQueue);
+	m_graphicsCommandQueue.execute();
 
 	for (auto &it : m_activeLayers)
 	{
 		it->submitCommandLists(&m_graphicsCommandQueue);
 	}
-
-	m_graphicsCommandQueue.execute();
 }
 
-void RenderAspect::endFrame()
+void RenderAspect::swapBuffers()
 {
-	m_device.swapBuffer();
-	m_graphicsCommandQueue.wait();
+	m_device.present();
+}
 
-	//m_lastBuffer = m_currentBuffer;
-//	m_currentBuffer = m_device.getCurrentBackBufferIndex();
+void RenderAspect::wait()
+{
+	m_graphicsCommandQueue.wait();
 }
 
 void RenderAspect::handleMessage(const vx::Message &msg)

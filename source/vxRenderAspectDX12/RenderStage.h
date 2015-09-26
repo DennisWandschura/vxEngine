@@ -16,12 +16,25 @@ public:
 		m_renderPasses.push_back(rp);
 	}
 
-	void execute(Graphics::CommandQueue* queue)
+	void buildCommands()
+	{
+		for (auto &it : m_renderPasses)
+		{
+			it->buildCommands();
+		}
+	}
+
+	void submitCommands(Graphics::CommandQueue* queue)
 	{
 		for (auto &it : m_renderPasses)
 		{
 			it->submitCommands(queue);
 		}
+	}
+
+	void submitAndExecuteCommands(Graphics::CommandQueue* queue)
+	{
+		submitCommands(queue);
 		queue->execute();
 	}
 };

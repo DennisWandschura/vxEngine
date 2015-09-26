@@ -136,12 +136,22 @@ void RenderLayerPerfOverlay::queueUpdate(const RenderUpdateTaskType type, const 
 	}
 }
 
+void RenderLayerPerfOverlay::buildCommandLists()
+{
+	m_allocator.reset();
+	for (auto &it : m_renderPasses)
+	{
+		it->buildCommands();
+	}
+}
+
 void RenderLayerPerfOverlay::submitCommandLists(Graphics::CommandQueue* queue)
 {
 	for (auto &it : m_renderPasses)
 	{
 		it->submitCommands(queue);
 	}
+	queue->execute();
 }
 
 u32 RenderLayerPerfOverlay::getCommandListCount() const

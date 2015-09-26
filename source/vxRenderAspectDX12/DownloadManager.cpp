@@ -20,7 +20,8 @@ struct DownloadManager::DownloadEntry
 };
 
 DownloadManager::DownloadManager()
-	:m_entries(),
+	:m_buildCommandList(0),
+	m_entries(),
 	m_capacity(0),
 	m_size(0)
 {
@@ -97,9 +98,40 @@ void DownloadManager::pushDownloadBuffer(u8* cpuDst, u32 size, d3d::Resource* sr
 	}
 }
 
-void DownloadManager::submitCommandList(Graphics::CommandQueue* queue)
+void DownloadManager::buildCommandList()
 {
 	if (!m_copyEntries.empty())
+	{
+		m_allocator.reset();
+		m_commandList->Reset(m_allocator.get(), nullptr);
+		for (auto &it : m_copyEntries)
+		{
+			auto src = it.src->get();
+			auto stateBefore = it.src->getOriginalState();
+
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(src, stateBefore, D3D12_RESOURCE_STATE_COPY_SOURCE));
+
+			m_commandList->CopyBufferRegion(m_bufferDownload.get(), it.dstOffset, src, it.srcOffset, it.size);
+
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(src, D3D12_RESOURCE_STATE_COPY_SOURCE, stateBefore));
+
+			DownloadEntry downloadEntry;
+			downloadEntry.cpuDst = it.cpuDst;
+			downloadEntry.evt = it.evt;
+			downloadEntry.size = it.size;
+			downloadEntry.srcOffset = it.srcOffset;
+			m_entries.push_back(downloadEntry);
+		}
+		m_commandList->Close();
+		m_copyEntries.clear();
+
+		m_buildCommandList = 1;
+	}
+}
+
+void DownloadManager::submitCommandList(Graphics::CommandQueue* queue)
+{
+	/*if (!m_copyEntries.empty())
 	{
 		m_commandList->Reset(m_allocator.get(), nullptr);
 		for (auto &it : m_copyEntries)
@@ -124,6 +156,12 @@ void DownloadManager::submitCommandList(Graphics::CommandQueue* queue)
 		m_copyEntries.clear();
 
 		queue->pushCommandList(&m_commandList);
+	}*/
+
+	if (m_buildCommandList != 0)
+	{
+		queue->pushCommandList(&m_commandList);
+		m_buildCommandList = 1;
 	}
 }
 

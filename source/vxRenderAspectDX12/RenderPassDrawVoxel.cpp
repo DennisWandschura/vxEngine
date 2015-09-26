@@ -266,7 +266,7 @@ void RenderPassDrawVoxel::shutdown()
 
 }
 
-void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassDrawVoxel::buildCommands()
 {
 	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
 	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
@@ -298,7 +298,7 @@ void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
 	m_commandList->OMSetRenderTargets(1, &rtvHandle, 0, &dsvHandle);
 
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0 , nullptr);
+	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 	//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
@@ -318,6 +318,9 @@ void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
 	//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	m_commandList->Close();
+}
 
+void RenderPassDrawVoxel::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

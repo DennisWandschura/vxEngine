@@ -43,6 +43,7 @@ RenderPassGBuffer::RenderPassGBuffer(d3d::CommandAllocator* cmdAlloc, DrawIndexe
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc),
 	m_drawCmd(drawCmd),
+	m_buildList(0),
 	m_coldData(new ColdData())
 {
 	createTextureDescriptions();
@@ -453,7 +454,7 @@ void RenderPassGBuffer::shutdown()
 	m_drawCmd = nullptr;
 }
 
-void RenderPassGBuffer::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassGBuffer::buildCommands()
 {
 	auto drawCount = m_drawCmd->getCount();
 	if (drawCount != 0)
@@ -476,7 +477,7 @@ void RenderPassGBuffer::submitCommands(Graphics::CommandQueue* queue)
 		barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_DEPTH_WRITE, 1);
 		m_commandList->ResourceBarrier(2, barriers);*/
 
-	//	const f32 clearColor[] = { 1.0f, 0.0f, 0.0f, 1 };
+		//	const f32 clearColor[] = { 1.0f, 0.0f, 0.0f, 1 };
 		const f32 clearColor0[] = { 0.0f, 0.0f, 0.0f, 0 };
 
 		auto handleCpu = m_descriptorHeapRt.getHandleCpu();
@@ -530,7 +531,7 @@ void RenderPassGBuffer::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 		m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
 		m_commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
-		
+
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
 		vertexBufferViews[0] = s_resourceManager->getResourceView("meshVertexBufferView")->vbv;
 		vertexBufferViews[1] = s_resourceManager->getResourceView("meshDrawIdBufferView")->vbv;
@@ -543,8 +544,16 @@ void RenderPassGBuffer::submitCommands(Graphics::CommandQueue* queue)
 		m_drawCmd->draw(m_commandList.get());
 
 		hresult = m_commandList->Close();
+		m_buildList = 1;
 		VX_ASSERT(hresult == 0);
+	}
+}
 
+void RenderPassGBuffer::submitCommands(Graphics::CommandQueue* queue)
+{
+	if (m_buildList != 0)
+	{
 		queue->pushCommandList(&m_commandList);
+		m_buildList = 0;
 	}
 }

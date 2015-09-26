@@ -66,7 +66,8 @@ namespace RenderPassShadowCpp
 RenderPassShadow::RenderPassShadow(d3d::CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd)
 	:RenderPassLight(),
 	m_cmdAlloc(alloc),
-	m_drawCmd(drawCmd)
+	m_drawCmd(drawCmd),
+	m_buildList(0)
 {
 
 }
@@ -412,7 +413,7 @@ void RenderPassShadow::shutdown()
 
 }
 
-void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassShadow::buildCommands()
 {
 	const f32 clearcolor[] = { 1.0f, 0, 0, 0 };
 	const f32 clearcolor0[] = { 0.0f, 0, 0, 0 };
@@ -502,7 +503,15 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		auto hr = m_commandList->Close();
+		m_buildList = 1;
+	}
+}
 
-		queue->pushCommandList(& m_commandList);
+void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
+{
+	if (m_buildList != 0)
+	{
+		queue->pushCommandList(&m_commandList);
+		m_buildList = 0;
 	}
 }

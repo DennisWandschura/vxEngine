@@ -9,7 +9,8 @@
 
 RenderPassVoxelize::RenderPassVoxelize(d3d::CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCommand)
 	:m_cmdAlloc(cmdAlloc),
-	m_drawCommand(drawCommand)
+	m_drawCommand(drawCommand),
+	m_buildList(0)
 {
 
 }
@@ -295,7 +296,7 @@ void RenderPassVoxelize::shutdown()
 
 }
 
-void RenderPassVoxelize::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassVoxelize::buildCommands()
 {
 	const u32 clearValues[4] = { 0, 0, 0, 0 };
 
@@ -330,8 +331,8 @@ void RenderPassVoxelize::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
 
- 		D3D12_CPU_DESCRIPTOR_HANDLE rthvHandle = m_rtvHeap.getHandleCpu();
-		m_commandList->OMSetRenderTargets(1,&rthvHandle, 0, nullptr);
+		D3D12_CPU_DESCRIPTOR_HANDLE rthvHandle = m_rtvHeap.getHandleCpu();
+		m_commandList->OMSetRenderTargets(1, &rthvHandle, 0, nullptr);
 
 		auto heap = m_descriptorHeap.get();
 		m_commandList->SetDescriptorHeaps(1, &heap);
@@ -354,7 +355,15 @@ void RenderPassVoxelize::submitCommands(Graphics::CommandQueue* queue)
 		m_drawCommand->draw(m_commandList.get());
 
 		m_commandList->Close();
+		m_buildList = 1;
+	}
+}
 
+void RenderPassVoxelize::submitCommands(Graphics::CommandQueue* queue)
+{
+	if (m_buildList != 0)
+	{
 		queue->pushCommandList(&m_commandList);
+		m_buildList = 0;
 	}
 }

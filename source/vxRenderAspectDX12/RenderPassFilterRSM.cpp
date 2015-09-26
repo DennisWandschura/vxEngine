@@ -30,7 +30,8 @@ SOFTWARE.
 
 RenderPassFilterRSM::RenderPassFilterRSM(d3d::CommandAllocator* allocator)
 	:RenderPassLight(),
-	m_allocator(allocator)
+	m_allocator(allocator),
+	m_buildList(0)
 {
 
 }
@@ -458,10 +459,10 @@ void RenderPassFilterRSM::shutdown()
 
 }
 
-void RenderPassFilterRSM::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassFilterRSM::buildCommands()
 {
 	const u32 resolution = 256;
-	const f32 clearColor[4] = {0, 0, 0, 0};
+	const f32 clearColor[4] = { 0, 0, 0, 0 };
 	const f32 clearColor1[4] = { 1, 0, 0, 0 };
 
 	if (m_visibleLightCount != 0)
@@ -561,7 +562,15 @@ void RenderPassFilterRSM::submitCommands(Graphics::CommandQueue* queue)
 		////////////////
 
 		m_commandList->Close();
+		m_buildList = 1;
+	}
+}
 
+void RenderPassFilterRSM::submitCommands(Graphics::CommandQueue* queue)
+{
+	if (m_buildList != 0)
+	{
 		queue->pushCommandList(&m_commandList);
+		m_buildList = 0;
 	}
 }

@@ -43,6 +43,7 @@ class DownloadManager
 
 	d3d::CommandAllocator m_allocator;
 	d3d::GraphicsCommandList m_commandList;
+	u32 m_buildCommandList;
 	d3d::Resource m_bufferDownload;
 	std::vector<CopyEntry> m_copyEntries;
 	std::vector<DownloadEntry> m_entries;
@@ -61,6 +62,7 @@ public:
 
 	void pushDownloadBuffer(u8* dst, u32 size, d3d::Resource* cpySrc, u32 cpyOffset, const Event &evt);
 
+	void buildCommandList();
 	void submitCommandList(Graphics::CommandQueue* queue);
 
 	void downloadToCpu();

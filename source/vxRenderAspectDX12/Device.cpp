@@ -158,7 +158,7 @@ namespace d3d
 		m_device.destroy();
 	}
 
-	void Device::swapBuffer()
+	void Device::present()
 	{
 		DXGI_PRESENT_PARAMETERS params;
 		params.DirtyRectsCount = 0;

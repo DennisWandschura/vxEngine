@@ -389,9 +389,10 @@ void EditorEngine::update(f32 dt)
 
 	m_renderAspect->update();
 
+	m_renderAspect->buildCommands();
 	m_renderAspect->submitCommands();
 
-	m_renderAspect->endFrame();
+	m_renderAspect->wait();
 }
 
 void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f, vx::Variant userArg)

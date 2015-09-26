@@ -35,6 +35,7 @@ RenderPassText::RenderPassText(d3d::CommandAllocator* alloc, d3d::Device* device
 	:m_commandList(),
 	m_allocator(alloc),
 	m_indexCount(0),
+	m_buildList(0),
 	m_device(device)
 {
 
@@ -218,9 +219,8 @@ void RenderPassText::shutdown()
 
 }
 
-void RenderPassText::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassText::buildCommands()
 {
-	//const f32 clearColor[4] = {1, 0, 0,0};
 	if (m_indexCount != 0)
 	{
 		auto textVbv = s_resourceManager->getResourceView("textVbv");
@@ -272,7 +272,15 @@ void RenderPassText::submitCommands(Graphics::CommandQueue* queue)
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[currentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
 		m_commandList->Close();
+		m_buildList = 1;
+	}
+}
 
+void RenderPassText::submitCommands(Graphics::CommandQueue* queue)
+{
+	if (m_buildList != 0)
+	{
 		queue->pushCommandList(&m_commandList);
+		m_buildList = 0;
 	}
 }

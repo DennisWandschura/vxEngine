@@ -41,6 +41,7 @@ class RenderPassText : public RenderPass
 	d3d::DescriptorHeap m_rtvHeap;
 	d3d::DescriptorHeap m_srvHeap;
 	u32 m_indexCount;
+	u32 m_buildList;
 	ID3D12Resource* m_renderTargets[2];
 	d3d::Device* m_device;
 
@@ -58,6 +59,7 @@ public:
 	bool initialize(ID3D12Device* device, void* p) override;
 	void shutdown() override;
 
+	void buildCommands() override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 
 	void setIndexCount(u32 count) { m_indexCount = count; }

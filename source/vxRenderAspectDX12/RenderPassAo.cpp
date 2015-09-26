@@ -386,7 +386,7 @@ void RenderPassAO::shutdown()
 
 }
 
-void RenderPassAO::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassAO::buildCommands()
 {
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
@@ -472,6 +472,9 @@ void RenderPassAO::submitCommands(Graphics::CommandQueue* queue)
 	}
 
 	m_commandList->Close();
+}
 
+void RenderPassAO::submitCommands(Graphics::CommandQueue* queue)
+{
 	queue->pushCommandList(&m_commandList);
 }

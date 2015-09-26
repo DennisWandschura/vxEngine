@@ -42,6 +42,7 @@ namespace d3d
 #include <vxLib/math/Vector.h>
 #include <mutex>
 #include "CommandList.h"
+#include "CommandAllocator.h"
 
 struct UploadTaskTexture
 {
@@ -91,7 +92,7 @@ class UploadManager
 	std::vector<QueuedUploadTask> m_queue;
 	u32 m_capacity;
 	u32 m_size;
-	d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
+	d3d::CommandAllocator m_commandAllocator;
 	d3d::GraphicsCommandList m_commandList;
 	d3d::Object<ID3D12Resource> m_uploadBuffer;
 	d3d::Heap m_heap;
@@ -127,5 +128,6 @@ public:
 	void pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state, const Event &evt);
 	void pushUploadTexture(const UploadTaskTextureDesc &desc);
 
+	void buildCommandList();
 	void submitCommandList(d3d::CommandQueue* queue);
 };
