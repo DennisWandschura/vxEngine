@@ -34,7 +34,7 @@ SOFTWARE.
 
 struct RenderPassGBuffer::ColdData
 {
-	enum TextureIndex { Diffuse, Normal, Velocity, Depth, ZBuffer0, Surface, TextureCount };
+	enum TextureIndex { Diffuse, Normal, Velocity, Depth, ZBuffer, Surface, TextureCount };
 
 	D3D12_RESOURCE_DESC resDescs[TextureCount];
 };
@@ -98,23 +98,23 @@ void RenderPassGBuffer::createTextureDescriptions()
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Height = s_resolution.y;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].DepthOrArraySize = 1;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].MipLevels = 1;
-	m_coldData->resDescs[ColdData::TextureIndex::Depth].Format = DXGI_FORMAT_R32_TYPELESS;
+	m_coldData->resDescs[ColdData::TextureIndex::Depth].Format = DXGI_FORMAT_R32G8X24_TYPELESS;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].SampleDesc.Count = 1;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].SampleDesc.Quality = 0;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	m_coldData->resDescs[ColdData::TextureIndex::Depth].Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Alignment = 64 KBYTE;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Width = s_resolution.x;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Height = s_resolution.y;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].DepthOrArraySize = 1;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].MipLevels = 6;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Format = DXGI_FORMAT_R32_FLOAT;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].SampleDesc.Count = 1;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].SampleDesc.Quality = 0;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer0].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Alignment = 64 KBYTE;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Width = s_resolution.x;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Height = s_resolution.y;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].DepthOrArraySize = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].MipLevels = 6;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Format = DXGI_FORMAT_R32_FLOAT;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].SampleDesc.Count = 1;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].SampleDesc.Quality = 0;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	m_coldData->resDescs[ColdData::TextureIndex::ZBuffer].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 	m_coldData->resDescs[ColdData::TextureIndex::Surface].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	m_coldData->resDescs[ColdData::TextureIndex::Surface].Alignment = 64 KBYTE;
@@ -225,7 +225,7 @@ bool RenderPassGBuffer::createPipelineState(ID3D12Device* device, d3d::ShaderMan
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	inputDesc.rtvFormats = rtvFormats;
 	inputDesc.rtvCount = 4;
-	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
 
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
@@ -255,16 +255,16 @@ bool RenderPassGBuffer::createTextures(d3d::ResourceManager* resourceManager, co
 	clearValues[ColdData::Velocity].Format = DXGI_FORMAT_R16G16_FLOAT;
 
 	// detph
-	clearValues[ColdData::Depth].Format = DXGI_FORMAT_D32_FLOAT;
+	clearValues[ColdData::Depth].Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 	clearValues[ColdData::Depth].DepthStencil.Depth = 1.0f;
 	clearValues[ColdData::Depth].DepthStencil.Stencil = 0;
 
 	// zbuffer
-	clearValues[ColdData::ZBuffer0].Color[0] = 1.0f;
-	clearValues[ColdData::ZBuffer0].Color[1] = 0.0f;
-	clearValues[ColdData::ZBuffer0].Color[2] = 0.0f;
-	clearValues[ColdData::ZBuffer0].Color[3] = 0.0f;
-	clearValues[ColdData::ZBuffer0].Format = DXGI_FORMAT_R32_FLOAT;
+	clearValues[ColdData::ZBuffer].Color[0] = 1.0f;
+	clearValues[ColdData::ZBuffer].Color[1] = 0.0f;
+	clearValues[ColdData::ZBuffer].Color[2] = 0.0f;
+	clearValues[ColdData::ZBuffer].Color[3] = 0.0f;
+	clearValues[ColdData::ZBuffer].Format = DXGI_FORMAT_R32_FLOAT;
 
 	// surface
 	clearValues[ColdData::Surface].Color[0] = 0.0f;
@@ -278,7 +278,7 @@ bool RenderPassGBuffer::createTextures(d3d::ResourceManager* resourceManager, co
 	names[ColdData::Normal] = L"gbufferNormal";
 	names[ColdData::Velocity] = L"gbufferVelocity";
 	names[ColdData::Depth] = L"gbufferDepth";
-	names[ColdData::ZBuffer0] = L"zBuffer0";
+	names[ColdData::ZBuffer] = L"zBuffer";
 	names[ColdData::Surface] = L"gbufferSurface";
 
 	D3D12_RESOURCE_STATES states[ColdData::TextureCount];
@@ -286,7 +286,7 @@ bool RenderPassGBuffer::createTextures(d3d::ResourceManager* resourceManager, co
 	states[ColdData::Normal] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::Velocity] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::Depth] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-	states[ColdData::ZBuffer0] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	states[ColdData::ZBuffer] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::Surface] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 	CreateResourceDesc desc;
@@ -404,14 +404,11 @@ bool RenderPassGBuffer::initialize(ID3D12Device* device, void* p)
 	auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc;
-	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 	depthViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	depthViewDesc.Flags = D3D12_DSV_FLAG_NONE;
 	depthViewDesc.Texture2D.MipSlice = 0;
 	auto dsHandle = m_descriptorHeapDs.getHandleCpu();
-	device->CreateDepthStencilView(gbufferDepth->get(), &depthViewDesc, dsHandle);
-
-	dsHandle.offset(1);
 	device->CreateDepthStencilView(gbufferDepth->get(), &depthViewDesc, dsHandle);
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
@@ -494,8 +491,8 @@ void RenderPassGBuffer::buildCommands()
 		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandles[1];
 		dsvHandles[0] = dsvHandle;
 
-		dsvHandle.offset(1);
-		auto dsvHandleClear = dsvHandle;
+		//dsvHandle.offset(1);
+		//auto dsvHandleClear = dsvHandle;
 
 		ID3D12DescriptorHeap* heaps[]
 		{
@@ -525,7 +522,7 @@ void RenderPassGBuffer::buildCommands()
 		m_commandList->ClearRenderTargetView(rtvHandles[2], clearColor0, 0, nullptr);
 		m_commandList->ClearRenderTargetView(rtvHandles[3], clearColor0, 0, nullptr);
 
-		m_commandList->ClearDepthStencilView(dsvHandleClear, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		m_commandList->ClearDepthStencilView(dsvHandles[0], D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		m_commandList->SetDescriptorHeaps(1, heaps);
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());

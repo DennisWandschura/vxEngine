@@ -139,7 +139,7 @@ bool RenderPassSSIL::createSrv(ID3D12Device* device)
 	auto handle = m_heapSrv.getHandleCpu();
 	device->CreateConstantBufferView(cameraStaticBufferView, handle);
 
-	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescZBuffer;
 	srvDescZBuffer.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDescZBuffer.Format = DXGI_FORMAT_R32_FLOAT;
@@ -248,7 +248,7 @@ void RenderPassSSIL::buildCommands()
 
 	auto directLightTexture = s_resourceManager->getTextureRtDs(L"directLightTexture");
 	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
-	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
 	const f32 clearColor[4] = { 0, 0, 0, 0 };
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
@@ -256,7 +256,7 @@ void RenderPassSSIL::buildCommands()
 	m_commandList->RSSetViewports(1, &viewport);
 	m_commandList->RSSetScissorRects(1, &rectScissor);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
@@ -276,7 +276,6 @@ void RenderPassSSIL::buildCommands()
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
 	auto hr = m_commandList->Close();
 }
@@ -290,8 +289,9 @@ void RenderPassSSIL::submitCommands(Graphics::CommandQueue* queue)
 	/*if (m_lightCount != 0)
 	{
 		auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
-		auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
-		auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
+		auto 
+		= s_resourceManager->getTextureRtDs(L"gbufferDepth");
+		auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 		//auto lightBuffer = s_resourceManager->getBuffer(L"lightBuffer");
 		auto gbufferSurface = s_resourceManager->getTextureRtDs(L"gbufferSurface");
 		auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");

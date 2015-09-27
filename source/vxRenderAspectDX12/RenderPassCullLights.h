@@ -41,9 +41,7 @@ class RenderPassCullLights : public RenderPass
 	d3d::GraphicsCommandList m_commandList;
 	d3d::CommandAllocator* m_allocator;
 	d3d::DescriptorHeap m_rvHeap;
-	d3d::Object<ID3D12DescriptorHeap> m_dsvHeap;
-	d3d::Object<ID3D12PipelineState> m_pipelineStateZeroLights;
-	d3d::Object<ID3D12RootSignature> m_rootSignatureZeroLights;
+	d3d::DescriptorHeap m_uavClearHeap;
 	u32 m_lightCount;
 	u32 m_buildList;
 	Event m_checkEvent;
@@ -53,11 +51,8 @@ class RenderPassCullLights : public RenderPass
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
-	bool createRootSignatureZero(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device);
-	bool createPipelineStateZero(ID3D12Device* device);
 	bool createViews(ID3D12Device* device);
-	bool createRtvDsv(ID3D12Device* device);
 
 public:
 	RenderPassCullLights(d3d::CommandAllocator* allocator, DownloadManager* downloadManager);

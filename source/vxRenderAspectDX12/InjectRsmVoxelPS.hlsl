@@ -10,13 +10,10 @@ struct VSOutput
 
 RWTexture3D<uint> g_voxelTextureDiffuse : register(u1);
 
-float4 main(VSOutput input) : SV_TARGET0
+void main(VSOutput input)
 {
 	float luminance = getLuminance(input.color);
 	uint packedColor = packR8G8B8A8(float4(input.color, luminance));
 	uint oldValue;
-	//InterlockedMax(g_voxelTextureDiffuse[(uint3)input.gridPosition], packedColor, oldValue);
-	g_voxelTextureDiffuse[(uint3)input.gridPosition] = packedColor;
-
-	return float4(input.color, 1);
+	InterlockedMax(g_voxelTextureDiffuse[(uint3)input.gridPosition], packedColor, oldValue);
 }

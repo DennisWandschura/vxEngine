@@ -10,10 +10,8 @@ struct VSOutput
 
 StructuredBuffer<GpuLight> g_lights : register(t0);
 
-VSOutput main(uint vertexID : SV_VertexID)
+VSOutput main(uint lightIndex : SV_VertexID)
 {
-	uint lightIndex = vertexID;
-
 	float3 lightPosition = g_lights[lightIndex].position.xyz;
 	float lightFalloff = g_lights[lightIndex].falloff;
 	float lightLumen = g_lights[lightIndex].lumen;

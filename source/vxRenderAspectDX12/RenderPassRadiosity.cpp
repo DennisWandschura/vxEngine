@@ -206,7 +206,7 @@ Texture2DArray g_normalTexture : register(t2); 2
   Texture2DArray albedoBuffer : register(t2); 6
   */
 
-	auto zBuffer0 = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 	auto bounce1 = s_resourceManager->getTextureRtDs(L"bounce1");
 	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
 	auto saoBuffer = s_resourceManager->getBuffer(L"saoBuffer");
@@ -229,7 +229,7 @@ Texture2DArray g_normalTexture : register(t2); 2
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 
 	auto handle = m_srvHeap.getHandleCpu();
-	device->CreateShaderResourceView(zBuffer0->get(), &srvDesc, handle);
+	device->CreateShaderResourceView(zBuffer->get(), &srvDesc, handle);
 
 	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvDesc.Texture2D.MipLevels = 1;
@@ -373,7 +373,7 @@ void RenderPassRadiosity::buildCommands()
 	barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(bounce1, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0);
 	m_commandList->ResourceBarrier(2, barriers);*/
 
-	auto zBuffer0 = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
 
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
@@ -390,8 +390,8 @@ void RenderPassRadiosity::buildCommands()
 	m_commandList->OMSetRenderTargets(1, &d3dRtvHandle, 0, nullptr);
 	m_commandList->ClearRenderTargetView(rtvHandle, clearcolor, 0, nullptr);
 
+	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce1->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer0->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -400,7 +400,6 @@ void RenderPassRadiosity::buildCommands()
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer0->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bounce1->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
 
 	////////////////////////////////////////

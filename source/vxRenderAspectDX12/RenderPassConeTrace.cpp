@@ -168,7 +168,7 @@ bool RenderPassConeTrace::createSrv(ID3D12Device* device)
 	srvDescZBuffer.Texture2D.PlaneSlice = 0;
 	srvDescZBuffer.Texture2D.ResourceMinLODClamp = 0;
 	handle.offset(1);
-	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 	device->CreateShaderResourceView(zBuffer->get(), &srvDescZBuffer, handle);
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescNormal;
@@ -238,6 +238,7 @@ void RenderPassConeTrace::buildCommands()
 {
 	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
 	const f32 clearColor[4] = { 0, 0, 0, 0 };
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
@@ -261,6 +262,7 @@ void RenderPassConeTrace::buildCommands()
 	m_commandList->RSSetViewports(1, &viewport);
 	m_commandList->RSSetScissorRects(1, &rectScissor);
 
+	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureColor->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 

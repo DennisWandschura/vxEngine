@@ -72,11 +72,14 @@ namespace d3d
 			return m_res.getAddressOf();
 		}
 
-		D3D12_RESOURCE_BARRIER barrierTransition(D3D12_RESOURCE_STATES newState, u32 subResource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
+		void barrierTransition(ID3D12GraphicsCommandList* commandList, D3D12_RESOURCE_STATES newState, u32 subResource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES)
 		{
-			auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_res.get(), m_currentState, newState, subResource);
-			m_currentState = newState;
-			return barrier;
+			if (m_currentState != newState)
+			{
+				auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_res.get(), m_currentState, newState, subResource);
+				m_currentState = newState;
+				commandList->ResourceBarrier(1, &barrier);
+			}
 		}
 	};
 }

@@ -28,6 +28,7 @@ SOFTWARE.
 #include "GpuLight.h"
 #include "CommandAllocator.h"
 #include "DownloadMananger.h"
+#include "ResourceDesc.h"
 
 RenderPassCullLights::RenderPassCullLights(d3d::CommandAllocator* allocator, DownloadManager* downloadManager)
 	:m_allocator(allocator),
@@ -46,7 +47,6 @@ RenderPassCullLights::~RenderPassCullLights()
 
 void RenderPassCullLights::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
 {
-
 }
 
 bool RenderPassCullLights::createData(ID3D12Device* device)
@@ -57,16 +57,7 @@ bool RenderPassCullLights::createData(ID3D12Device* device)
 
 bool RenderPassCullLights::loadShaders()
 {
-	if (!s_shaderManager->loadShader(L"CullLightsVS.cso"))
-		return false;
-
-	if (!s_shaderManager->loadShader(L"CullLightsGS.cso"))
-		return false;
-
-	if (!s_shaderManager->loadShader(L"CullLightsPS.cso"))
-		return false;
-
-	if (!s_shaderManager->loadShader(L"ZeroLightsVS.cso"))
+	if (!s_shaderManager->loadShader(L"CullLightsNewVS.cso"))
 		return false;
 
 	return true;
@@ -74,92 +65,33 @@ bool RenderPassCullLights::loadShaders()
 
 bool RenderPassCullLights::createRootSignature(ID3D12Device* device)
 {
-	CD3DX12_DESCRIPTOR_RANGE rangeVS[1];
-	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 1);
+	CD3DX12_DESCRIPTOR_RANGE rangeVS[3];
+	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0, 0);
+	rangeVS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 2, 0, 0, 2);
+	rangeVS[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, 4);
 
-	CD3DX12_DESCRIPTOR_RANGE rangeGS[1];
-	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 2);
-
-	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
-	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, 0);
-
-	CD3DX12_ROOT_PARAMETER rootParameters[3];
-	rootParameters[0].InitAsDescriptorTable(1, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
-	rootParameters[1].InitAsDescriptorTable(1, rangeGS, D3D12_SHADER_VISIBILITY_GEOMETRY);
-	rootParameters[2].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
+	CD3DX12_ROOT_PARAMETER rootParameters[2];
+	rootParameters[0].InitAsDescriptorTable(3, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
+	rootParameters[1].InitAsConstants(1, 2, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.Init(3, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	rootSignatureDesc.Init(2, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	return m_rootSignature.create(&rootSignatureDesc, device);
-}
-
-bool RenderPassCullLights::createRootSignatureZero(ID3D12Device* device)
-{
-	CD3DX12_DESCRIPTOR_RANGE rangeVS[1];
-	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, 0);
-
-	CD3DX12_ROOT_PARAMETER rootParameters[1];
-	rootParameters[0].InitAsDescriptorTable(1, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
-
-	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.Init(1, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-	ID3DBlob* blob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
-	auto hresult = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &blob, &errorBlob);
-	if (hresult != 0)
-		return false;
-
-	hresult = device->CreateRootSignature(0, blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(m_rootSignatureZeroLights.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;
 }
 
 bool RenderPassCullLights::createPipelineState(ID3D12Device* device)
 {
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"CullLightsVS.cso");
-	inputDesc.shaderDesc.gs = s_shaderManager->getShader(L"CullLightsGS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"CullLightsPS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"CullLightsNewVS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvCount = 0;
-	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
-	inputDesc.depthEnabled = 1;
+	inputDesc.depthEnabled = 0;
+
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
 
-	desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
-	desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
-
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
-}
-
-bool RenderPassCullLights::createPipelineStateZero(ID3D12Device* device)
-{
-	auto vsShader = s_shaderManager->getShader(L"ZeroLightsVS.cso");
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-	psoDesc.InputLayout = { nullptr, 0 };
-	psoDesc.pRootSignature = m_rootSignatureZeroLights.get();
-	psoDesc.VS = { reinterpret_cast<UINT8*>(vsShader->GetBufferPointer()), vsShader->GetBufferSize() };
-	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	psoDesc.RasterizerState.FrontCounterClockwise = 1;
-	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	psoDesc.DepthStencilState.DepthEnable = 0;
-	psoDesc.SampleMask = UINT_MAX;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-	psoDesc.NumRenderTargets = 0;
-	psoDesc.SampleDesc.Count = 1;
-
-	auto hresult = device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(m_pipelineStateZeroLights.getAddressOf()));
-	if (hresult != 0)
-		return false;
-
-	return true;
 }
 
 bool RenderPassCullLights::createViews(ID3D12Device* device)
@@ -167,14 +99,50 @@ bool RenderPassCullLights::createViews(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 3;
+	desc.NumDescriptors = 5;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_rvHeap.create(desc, device))
 		return false;
 
-	
-	auto visibleLightIndicesBuffer = s_resourceManager->getBuffer(L"visibleLightIndicesBuffer");
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	desc.NumDescriptors = 1;
+	if (!m_uavClearHeap.create(desc, device))
+		return false;
+	/*
+	Texture2D<float> g_zBuffer : register(t0);
+	StructuredBuffer<GpuLight> g_lights : register(t1);
 
+	cbuffer CameraBuffer : register(b0)
+	cbuffer CameraStaticBuffer : register(b1)
+
+	RWStructuredBuffer<uint> g_visibleLights : register(u0);
+	*/
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC zbufferDesc;
+	zbufferDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	zbufferDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING ;
+	zbufferDesc.Texture2D.MipLevels = 1;
+	zbufferDesc.Texture2D.MostDetailedMip = 0;
+	zbufferDesc.Texture2D.PlaneSlice = 0;
+	zbufferDesc.Texture2D.ResourceMinLODClamp = 0;
+	zbufferDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+
+	auto handle = m_rvHeap.getHandleCpu();
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
+	device->CreateShaderResourceView(zBuffer->get(), &zbufferDesc, handle);
+
+	auto lightBuffer = s_resourceManager->getBuffer(L"lightBuffer");
+	auto lightBufferView = s_resourceManager->getShaderResourceView("lightBufferView");
+	handle.offset(1);
+	device->CreateShaderResourceView(lightBuffer->get(), lightBufferView, handle);
+
+	auto cameraBufferView = s_resourceManager->getConstantBufferView("cameraBufferView");
+	handle.offset(1);
+	device->CreateConstantBufferView(cameraBufferView, handle);
+
+	auto cameraStaticBufferView = s_resourceManager->getConstantBufferView("cameraStaticBufferView");
+	handle.offset(1);
+	device->CreateConstantBufferView(cameraStaticBufferView, handle);
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -184,45 +152,11 @@ bool RenderPassCullLights::createViews(ID3D12Device* device)
 	uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 	uavDesc.Buffer.NumElements = s_settings->m_gpuLightCount;
 	uavDesc.Buffer.StructureByteStride = sizeof(u32);
-
-	auto handle = m_rvHeap.getHandleCpu();
+	auto visibleLightIndicesBuffer = s_resourceManager->getBuffer(L"visibleLightIndicesBuffer");
+	handle.offset(1);
 	device->CreateUnorderedAccessView(visibleLightIndicesBuffer->get(), nullptr, &uavDesc, handle);
 
-	auto lightBuffer = s_resourceManager->getBuffer(L"lightBuffer");
-	auto lightBufferView = s_resourceManager->getShaderResourceView("lightBufferView");
-
-	handle.offset(1);
-	device->CreateShaderResourceView(lightBuffer->get(), lightBufferView, handle);
-	// srv
-
-	auto cameraBufferView = s_resourceManager->getConstantBufferView("cameraBufferView");
-	handle.offset(1);
-	// cbv
-	device->CreateConstantBufferView(cameraBufferView, handle);
-
-	return true;
-}
-
-bool RenderPassCullLights::createRtvDsv(ID3D12Device* device)
-{
-	auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
-
-	D3D12_DESCRIPTOR_HEAP_DESC desc;
-	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	desc.NodeMask = 1;
-	desc.NumDescriptors = 1;
-	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	if (device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(m_dsvHeap.getAddressOf())) != 0)
-		return false;
-
-	D3D12_DEPTH_STENCIL_VIEW_DESC depthViewDesc;
-	depthViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	depthViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-	depthViewDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
-	depthViewDesc.Texture2DArray.ArraySize = 1;
-	depthViewDesc.Texture2DArray.FirstArraySlice = 0;
-	depthViewDesc.Texture2DArray.MipSlice = 0;
-	device->CreateDepthStencilView(gbufferDepth->get(), &depthViewDesc, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
+	device->CreateUnorderedAccessView(visibleLightIndicesBuffer->get(), nullptr, &uavDesc, m_uavClearHeap.getHandleCpu());
 
 	return true;
 }
@@ -235,19 +169,10 @@ bool RenderPassCullLights::initialize(ID3D12Device* device, void* p)
 	if (!createRootSignature(device))
 		return false;
 
-	if(!createRootSignatureZero(device))
-		return false;
-
 	if (!createPipelineState(device))
 		return false;
 
-	if (!createPipelineStateZero(device))
-		return false;
-
 	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator->get(), m_pipelineState.get()))
-		return false;
-
-	if (!createRtvDsv(device))
 		return false;
 
 	if (!createViews(device))
@@ -269,14 +194,14 @@ void RenderPassCullLights::buildCommands()
 
 	// sort results by distance
 
+	const f32 clearColor[4] = {0, 0, 0, 0};
 	if (m_checkEvent.getStatus() == EventStatus::Running)
 	{
 		auto visibleLightIndicesBuffer = s_resourceManager->getBuffer(L"visibleLightIndicesBuffer");
-		auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
 		// zero result buffer
 
-		m_commandList->Reset(m_allocator->get(), m_pipelineStateZeroLights.get());
+		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
 
 		D3D12_VIEWPORT viewport;
 		viewport.Height = (f32)s_resolution.y;
@@ -297,32 +222,24 @@ void RenderPassCullLights::buildCommands()
 
 		auto heap = m_rvHeap.get();
 		m_commandList->SetDescriptorHeaps(1, &heap);
-		m_commandList->SetGraphicsRootSignature(m_rootSignatureZeroLights.get());
 
-		m_commandList->SetGraphicsRootDescriptorTable(0, heap->GetGPUDescriptorHandleForHeapStart());
+		auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
+		m_commandList->ClearUnorderedAccessViewUint(m_uavClearHeap->GetGPUDescriptorHandleForHeapStart(), m_uavClearHeap->GetCPUDescriptorHandleForHeapStart(), visibleLightIndicesBuffer->get(), (u32*)clearColor, 0, 0);
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(visibleLightIndicesBuffer->get()));
-
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		m_commandList->DrawInstanced(m_lightCount, 1, 0, 0);
-
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(visibleLightIndicesBuffer->get()));
+		zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 		// visiblity test lights in frustum
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ));
+
 		m_commandList->SetPipelineState(m_pipelineState.get());
 
-		auto dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
-		m_commandList->OMSetRenderTargets(0, nullptr, 0, &dsvHandle);
+		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 		m_commandList->SetGraphicsRootDescriptorTable(0, heap->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(1, heap->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(2, heap->GetGPUDescriptorHandleForHeapStart());
+		m_commandList->SetGraphicsRoot32BitConstant(1, m_lightCount, 0);
+		m_commandList->DrawInstanced(s_resolution.x, s_resolution.y, 0, 0);
 
-		m_commandList->DrawInstanced(m_lightCount, 1, 0, 0);
-
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(visibleLightIndicesBuffer->get()));
 
 		m_commandList->Close();

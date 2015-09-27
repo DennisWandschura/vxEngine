@@ -34,11 +34,11 @@ float4 main(GSOutput input) : SV_TARGET
 	float3 albedo = g_albedoTexture.Sample(g_sampler, input.texCoords).rgb;
 
 	float indirectWeight = indirectColor.a;
-	float3 voxelIndirectColor = g_voxelIndirect.Sample(g_sampler, input.texCoords).rgb;
+	float3 voxelIndirect = g_voxelIndirect.Sample(g_sampler, input.texCoords).rgb;
 
-	indirectColor.rgb = (voxelIndirectColor + indirectColor.rgb) * albedo / g_PI * sao;
+	indirectColor.rgb = ( indirectColor.rgb) * albedo / g_PI * sao;
 	float3 finalColor = directColor.rgb + indirectColor.rgb;
 	finalColor = tonemap(finalColor);
 
-	return float4(albedo.rgb, 1.0f);
+	return float4(voxelIndirect.rgb, 1.0f);
 }

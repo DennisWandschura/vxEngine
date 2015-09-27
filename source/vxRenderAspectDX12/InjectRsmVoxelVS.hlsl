@@ -16,8 +16,8 @@ cbuffer VoxelBuffer : register(b0)
 
 cbuffer RootBuffer : register(b1)
 {
-	uint lightIndex;
-	uint cubeIndex;
+	uint g_lightIndex;
+	uint g_cubeIndex;
 };
 
 Texture2DArray<float4> g_color : register(t0);
@@ -27,7 +27,7 @@ Texture2DArray<float> g_depth : register(t2);
 StructuredBuffer<GpuShadowTransformReverse> g_shadowTransforms : register(t3);
 
 // flip axis +-
-static const uint g_voxelAxis[6] = {1, 0, 3, 2, 5, 4};
+static const uint g_voxelAxis[6] = {1, 0, 3, 2, 4, 5};
 
 bool isPointInGrid(int3 position)
 {
@@ -41,10 +41,7 @@ bool isPointInGrid(int3 position)
 
 VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 {
-	int cubeAxis = cubeIndex;
-	int lightIdx = 0;
-
-	int arrayIndex = lightIdx * 6 + cubeAxis;
+	int arrayIndex = g_lightIndex * 6 + g_cubeIndex;
 	float depth = g_depth.Load(int4(vertexID, instanceID, arrayIndex, 0));
 
 	uint w, h, d;
@@ -52,7 +49,7 @@ VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 	float2 texCoord = float2(vertexID, instanceID) / float2(w, h);
 	float2 screenPos = texCoord * float2(2, -2) - float2(1, -1);
 
-	float4x4 invPvMatrix = g_shadowTransforms[lightIdx].invPvMatrix[cubeAxis];
+	float4x4 invPvMatrix = g_shadowTransforms[g_lightIndex].invPvMatrix[g_cubeIndex];
 	float4 wsPosition = mul(invPvMatrix, float4(screenPos, depth, 1));
 
 	float3 offset = (wsPosition.xyz - g_voxel.gridCenter.xyz) * g_voxel.invGridCellSize;
@@ -63,7 +60,7 @@ VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 	VSOutput output;
 	output.position = float4(screenPos, 0, 1);
 	
-	output.axis = g_voxelAxis[cubeAxis];
+	output.axis = g_voxelAxis[g_cubeIndex];
 	output.color = color;
 
 	if (!isPointInGrid(gridPosition))
@@ -71,7 +68,9 @@ VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 		output.position.xy = -2;
 	}
 
-	output.gridPosition = gridPosition + int3(0, 0, output.axis * g_voxel.dim);
+	int3 wOffset = int3(0, 0, g_voxelAxis[g_cubeIndex] * g_voxel.dim);
+
+	output.gridPosition = gridPosition + wOffset;
 
 	return output;
 }

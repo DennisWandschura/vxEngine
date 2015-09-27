@@ -61,7 +61,7 @@ StructuredBuffer<GpuShadowTransformReverse> g_transforms : register(t3);*/
 
 bool RenderPassInjectRSM::createPipelineState(ID3D12Device* device)
 {
-	auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.inputLayout.pInputElementDescs = nullptr;
@@ -71,8 +71,8 @@ bool RenderPassInjectRSM::createPipelineState(ID3D12Device* device)
 	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"InjectRsmVoxelVS.cso");
 	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"InjectRsmVoxelPS.cso");
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
-	inputDesc.rtvCount = 1;
-	inputDesc.rtvFormats = &rtvFormat;
+	inputDesc.rtvCount = 0;
+	//inputDesc.rtvFormats = &rtvFormat;
 
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
 
@@ -139,27 +139,32 @@ StructuredBuffer<GpuShadowTransformReverse> g_transforms : register(t3);
 	srvDesc.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
 	srvDesc.Texture2DArray.FirstArraySlice = 0;
 	srvDesc.Texture2DArray.MipLevels = 1;
-	srvDesc.Texture2DArray.MostDetailedMip = 1;
+	srvDesc.Texture2DArray.MostDetailedMip = 0;
 	srvDesc.Texture2DArray.PlaneSlice = 0;
 	srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
 
-	auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
+	auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"shadowTextureColor");
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	handle.offset(1);
 	device->CreateShaderResourceView(rsmFilteredColor->get(), &srvDesc, handle);
 
-	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
+	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
 	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
 	handle.offset(1);
 	device->CreateShaderResourceView(rsmFilteredNormal->get(), &srvDesc, handle);
 
-	auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
+	auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"shadowTextureDepth");
 	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 
 	handle.offset(1);
 	device->CreateShaderResourceView(rsmFilteredDepth->get(), &srvDesc, handle);
+
+	auto shadowReverseTransformBufferView = s_resourceManager->getShaderResourceView("shadowReverseTransformBufferView");
+	auto shadowReverseTransformBuffer = s_resourceManager->getBuffer(L"shadowReverseTransformBuffer");
+	handle.offset(1);
+	device->CreateShaderResourceView(shadowReverseTransformBuffer->get(), shadowReverseTransformBufferView, handle);
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
@@ -264,17 +269,17 @@ void RenderPassInjectRSM::buildCommands()
 	const u32 clearValues[4] = { 0, 0, 0,0 };
 	if (m_visibleLightCount != 0)
 	{
-		u32 textureDim = s_settings->m_shadowDim / 4;
+		u32 textureDim = s_settings->m_shadowDim;
 
 		auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 		auto shadowReverseTransformBuffer = s_resourceManager->getBuffer(L"shadowReverseTransformBuffer");
 
 		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
 
-		auto clearHandleGpu = m_uavClearHeap.getHandleGpu();
-		auto clearHandleCpu = m_uavClearHeap.getHandleCpu();
+		//auto clearHandleGpu = m_uavClearHeap.getHandleGpu();
+		//auto clearHandleCpu = m_uavClearHeap.getHandleCpu();
 
-		m_commandList->ClearUnorderedAccessViewUint(clearHandleGpu, clearHandleCpu, voxelTextureColor->get(), clearValues, 0, nullptr);
+		//m_commandList->ClearUnorderedAccessViewUint(clearHandleGpu, clearHandleCpu, voxelTextureColor->get(), clearValues, 0, nullptr);
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
@@ -301,8 +306,8 @@ void RenderPassInjectRSM::buildCommands()
 		m_commandList->RSSetScissorRects(1, &rectScissor);
 		m_commandList->RSSetViewports(1, &viewport);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHanlde = m_rtvHeap.getHandleCpu();
-		m_commandList->OMSetRenderTargets(1, &rtvHanlde, 0, nullptr);
+		//D3D12_CPU_DESCRIPTOR_HANDLE rtvHanlde = m_rtvHeap.getHandleCpu();
+		//m_commandList->OMSetRenderTargets(1, &rtvHanlde, 0, nullptr);
 
 		m_commandList->SetDescriptorHeaps(1, heaps);
 		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -311,6 +316,10 @@ void RenderPassInjectRSM::buildCommands()
 		m_commandList->SetGraphicsRootDescriptorTable(2, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
 
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+		//auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"shadowTextureColor");
+	//	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
+		//auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"shadowTextureDepth");
 
 		for (u32 lightIndex = 0; lightIndex < m_visibleLightCount; ++lightIndex)
 		{

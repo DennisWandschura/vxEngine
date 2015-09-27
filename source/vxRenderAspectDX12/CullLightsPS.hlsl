@@ -4,7 +4,7 @@ struct GSOutput
 	uint lightIndex : BLENDINDICES0;
 };
 
-RWStructuredBuffer<uint> g_visibleLights : register(u0);
+RWStructuredBuffer<uint> g_visibleLights : register(u1);
 
 void main(GSOutput input)
 {	

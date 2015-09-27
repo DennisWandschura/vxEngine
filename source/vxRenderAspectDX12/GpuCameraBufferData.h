@@ -6,6 +6,7 @@ struct GpuCameraBufferData
 	float4x4 pvMatrixPrev;
 	float4x4 viewMatrix;
 	float4x4 invViewMatrix;
+	float4 position;
 };
 
 struct GpuCameraStatic

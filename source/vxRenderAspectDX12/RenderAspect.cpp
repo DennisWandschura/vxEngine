@@ -334,6 +334,7 @@ void RenderAspect::updateCamera(const RenderUpdateCameraData &data)
 	pvMatrix.asFloat(&bufferData.pvMatrix);
 	pvMatrixPrev.asFloat(&bufferData.pvMatrixPrev);
 	bufferData.invViewMatrix = vx::MatrixInverse(bufferData.viewMatrix);
+	bufferData.position = _mm256_cvtpd_ps(data.position);
 
 	/*f32 zNear = 0.1;
 	f32 zFar = 100.0;

@@ -292,7 +292,7 @@ bool RenderPassAO::createRtv(ID3D12Device* device)
 
 bool RenderPassAO::createSrv(ID3D12Device* device)
 {
-	auto zBuffer0 = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
 	auto saoBuffer = s_resourceManager->getBuffer(L"saoBuffer");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
@@ -316,7 +316,7 @@ bool RenderPassAO::createSrv(ID3D12Device* device)
 	srvDesc.Texture2D.PlaneSlice = 0;
 	srvDesc.Texture2D.ResourceMinLODClamp = 0;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	device->CreateShaderResourceView(zBuffer0->get(), &srvDesc, handle);
+	device->CreateShaderResourceView(zBuffer->get(), &srvDesc, handle);
 
 	srvDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
@@ -391,6 +391,7 @@ void RenderPassAO::buildCommands()
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
 	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
 	const f32 clearColor[] = { 1, 1, 1, 1 };
 	//u32 width = m_resolution.x - COMPUTE_GUARD_BAND;
@@ -417,6 +418,8 @@ void RenderPassAO::buildCommands()
 	rectScissor.bottom = resolution.y;
 
 	auto hr = m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+
+	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
 

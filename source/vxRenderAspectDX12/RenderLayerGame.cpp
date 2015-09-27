@@ -34,7 +34,6 @@
 #include "RenderPassDrawVoxel.h"
 #include "RenderPassVoxelize.h"
 #include "RenderPassVoxelMip.h"
-#include "RenderPassOcclusion.h"
 #include "RenderPassConeTrace.h"
 #include "GpuVoxel.h"
 #include "RenderPassVoxelPropagate.h"
@@ -156,7 +155,7 @@ void RenderLayerGame::createRenderPasses()
 	insertRenderPass(vx::make_sid("RenderPassGBuffer"), std::make_unique<RenderPassGBuffer>(&m_commandAllocator, &m_drawCommandMesh));
 	insertRenderPass(vx::make_sid("RenderPassCullLights"), std::make_unique<RenderPassCullLights>(&m_commandAllocator, m_downloadManager));
 	insertRenderPass(vx::make_sid("RenderPassShadow"), std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh));
-	insertRenderPass(vx::make_sid("RenderPassVoxelize"), std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh));
+	//insertRenderPass(vx::make_sid("RenderPassVoxelize"), std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh));
 	insertRenderPass(vx::make_sid("RenderPassInjectRSM"), std::make_unique<RenderPassInjectRSM>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassVoxelPropagate"), std::make_unique<RenderPassVoxelPropagate>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassZBuffer"), std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
@@ -166,23 +165,13 @@ void RenderLayerGame::createRenderPasses()
 	insertRenderPass(vx::make_sid("RenderPassShading"), std::move(std::make_unique<RenderPassShading>(&m_commandAllocator)));
 	insertRenderPass(vx::make_sid("RenderPassSSIL"), std::make_unique<RenderPassSSIL>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassFinal"), std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
-	insertRenderPass(vx::make_sid("RenderPassFilterRSM"), std::make_unique<RenderPassFilterRSM>(&m_commandAllocator));
-
-	//m_lightManager.setRenderPassCullLights(renderPassCullLights.get());
-	//pushRenderPass(std::move(renderPassCullLights));
-
-	//auto rnederPassShadow = std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh);
-	//m_lightManager.addRenderPass(rnederPassShadow.get());
-	//pushRenderPass(std::move(rnederPassShadow));
-
-	//pushRenderPass(std::move(std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh)));
 
 	RenderStage stage0;
 	stage0.pushRenderPass(findRenderPass("RenderPassGBuffer"));
 	stage0.pushRenderPass(findRenderPass("RenderPassCullLights"));
 	stage0.pushRenderPass(findRenderPass("RenderPassShadow"));
-	stage0.pushRenderPass(findRenderPass("RenderPassVoxelize"));
-	stage0.pushRenderPass(findRenderPass("RenderPassFilterRSM"));
+	//stage0.pushRenderPass(findRenderPass("RenderPassVoxelize"));
+	//stage0.pushRenderPass(findRenderPass("RenderPassFilterRSM"));
 	stage0.pushRenderPass(findRenderPass("RenderPassInjectRSM"));
 
 	RenderStage stage1;
@@ -203,7 +192,7 @@ void RenderLayerGame::createRenderPasses()
 
 	m_lightManager.setRenderPassCullLights((RenderPassCullLights*)findRenderPass("RenderPassCullLights"));
 	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassShadow"));
-	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassFilterRSM"));
+	//m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassFilterRSM"));
 	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassInjectRSM"));
 	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassShading"));
 

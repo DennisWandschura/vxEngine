@@ -391,11 +391,11 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	uavDesc.Texture3D.MipSlice = 0;
 	uavDesc.Texture3D.WSize = s_settings->m_lpvDim * 6;
 
-	auto voxelTextureColorTmp = s_resourceManager->getTexture(L"voxelTextureColorTmp");
+	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 	srvHandle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureColorTmp->get(), nullptr, &uavDesc, srvHandle);
+	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, srvHandle);
 
-	device->CreateUnorderedAccessView(voxelTextureColorTmp->get(), nullptr, &uavDesc, m_heapUav.getHandleCpu());
+	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, m_heapUav.getHandleCpu());
 
 	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
 	D3D12_CONSTANT_BUFFER_VIEW_DESC voxelBufferDesc;
@@ -438,13 +438,13 @@ void RenderPassShadow::buildCommands()
 
 		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
-		auto voxelTextureColorTmp = s_resourceManager->getTexture(L"voxelTextureColorTmp");
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColorTmp->get()));
+		auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		auto gpuHandle = m_heapUav.getHandleGpu();
 		auto cpuHandle = m_heapUav.getHandleCpu();
-		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureColorTmp->get(), clearValues, 0, nullptr);
+		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureColor->get(), clearValues, 0, nullptr);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColorTmp->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
@@ -499,7 +499,7 @@ void RenderPassShadow::buildCommands()
 			handleDsv.offset(1);
 		}
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColorTmp->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		auto hr = m_commandList->Close();

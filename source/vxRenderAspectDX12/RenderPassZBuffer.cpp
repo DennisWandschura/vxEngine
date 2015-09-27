@@ -122,8 +122,8 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 {
 	auto cbufferDesc = resourceManager->getConstantBufferView("cameraStaticBufferView");
 	auto gbufferDepthTexture = resourceManager->getTextureRtDs(L"gbufferDepth");
-	auto zBufferTexture0 = resourceManager->getTextureRtDs(L"zBuffer0");
-	auto zBufferDesc = zBufferTexture0->GetDesc();
+	auto zBuffer = resourceManager->getTextureRtDs(L"zBuffer");
+	auto zBufferDesc = zBuffer->GetDesc();
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -132,7 +132,7 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC depthDesc;
-	depthDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	depthDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
 	depthDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	depthDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	depthDesc.Texture2D.MipLevels = 1;
@@ -161,7 +161,7 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	rtvDesc.Texture2D.MipSlice = 0;
 	rtvDesc.Texture2D.PlaneSlice = 0;
-	device->CreateRenderTargetView(zBufferTexture0->get(), &rtvDesc, handleRtv);
+	device->CreateRenderTargetView(zBuffer->get(), &rtvDesc, handleRtv);
 
 	if(!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
 		return false;
@@ -195,6 +195,7 @@ void RenderPassZBuffer::shutdown()
 void RenderPassZBuffer::buildCommands()
 {
 	auto gbufferDepthTexture = s_resourceManager->getTextureRtDs(L"gbufferDepth");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
 	const f32 clearColor[4] = { 1.0f, 0.0f, 0, 0 };
 
@@ -217,6 +218,7 @@ void RenderPassZBuffer::buildCommands()
 	m_commandList->RSSetViewports(1, &viewport);
 	m_commandList->RSSetScissorRects(1, &rectScissor);
 
+	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();

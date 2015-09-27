@@ -135,9 +135,10 @@ bool RenderPassShading::createPipelineState(ID3D12Device* device)
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rtvFormats = &rtvFormat;
 	inputDesc.rtvCount = 1;
-	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT;
+	inputDesc.dsvFormat = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 	auto desc = d3d::PipelineState::getDefaultDescription(inputDesc);
 
+	desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 	desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
 	desc.BlendState.RenderTarget[0].BlendEnable = 1;
 	desc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
@@ -191,7 +192,7 @@ bool RenderPassShading::createSrv(ID3D12Device* device)
 
 	auto srvDescZBuffer = d3d::ShaderResourceViewDesc::getDescTexture2D(DXGI_FORMAT_R32_FLOAT);
 	srvDescZBuffer.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
+	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 	handle.offset(1);
 	device->CreateShaderResourceView(zBuffer->get(), &srvDescZBuffer, handle);
 
@@ -251,7 +252,7 @@ bool RenderPassShading::createRtv(ID3D12Device* device)
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
-	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 	dsvDesc.Texture2DArray.ArraySize = 1;
 	dsvDesc.Texture2DArray.FirstArraySlice = 0;
@@ -295,7 +296,7 @@ void RenderPassShading::buildCommands()
 	{
 		auto albedoSlice = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
 		auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
-		auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer0");
+		auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 		auto gbufferSurface = s_resourceManager->getTextureRtDs(L"gbufferSurface");
 		auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
 		//auto shadowTextureLinear = s_resourceManager->getTextureRtDs(L"shadowTextureLinear");
@@ -325,7 +326,7 @@ void RenderPassShading::buildCommands()
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(albedoSlice->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_DEPTH_READ));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferSurface->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureLinear->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
@@ -352,7 +353,6 @@ void RenderPassShading::buildCommands()
 		//m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureLinear->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferSurface->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(albedoSlice->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 

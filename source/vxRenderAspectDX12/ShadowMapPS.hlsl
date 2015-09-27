@@ -83,7 +83,7 @@ PSOut main(GSOutput input)
 	output.albedoColor = shadedColor;
 	output.normals = half4(input.normal, 1);
 
-	float3 offset = (input.wsPosition - g_voxel.gridCenter.xyz) * g_voxel.invGridCellSize;
+	/*float3 offset = (input.wsPosition - g_voxel.gridCenter.xyz) * g_voxel.invGridCellSize;
 	int3 coords = int3(offset)+g_voxel.halfDim;
 
 	bool inGrid = true;
@@ -99,7 +99,7 @@ PSOut main(GSOutput input)
 
 		uint oldValue;
 		InterlockedMax(g_voxelTextureDiffuse[coords + wOffset], packledColor, oldValue);
-	}
+	}*/
 	
 	return output;
 }

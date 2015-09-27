@@ -114,6 +114,8 @@ void LightManager::createSrvLights(u32 maxCount, d3d::ResourceManager* resourceM
 	srvDesc.Buffer.StructureByteStride = sizeof(GpuLight);
 
 	resourceManager->insertShaderResourceView("lightBufferView", srvDesc);
+
+
 }
 
 void LightManager::createSrvShadowCastingLights(u32 maxCount, d3d::ResourceManager* resourceManager)
@@ -131,6 +133,9 @@ void LightManager::createSrvShadowCastingLights(u32 maxCount, d3d::ResourceManag
 
 	srvDesc.Buffer.StructureByteStride = sizeof(GpuShadowTransform);
 	resourceManager->insertShaderResourceView("shadowTransformBufferView", srvDesc);
+
+	srvDesc.Buffer.StructureByteStride = sizeof(GpuShadowTransformReverse);
+	resourceManager->insertShaderResourceView("shadowReverseTransformBufferView", srvDesc);
 }
 
 bool LightManager::initialize(const RenderSettings &settings, vx::StackAllocator* allocator, u32 maxSceneLightCount, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
@@ -282,6 +287,7 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 			auto visibleReverseTransforms = (GpuShadowTransformReverse*)m_scratchAllocator.allocate(sizeof(GpuShadowTransformReverse) * m_resultBufferCount, __alignof(GpuShadowTransformReverse));
 			for (u32 i = 0; i < m_resultBufferCount; ++i)
 			{
+				//const u32 visibleMask =(1 << 1);
 				auto visible = m_visibleLightsResult[i];
 				if (visible != 0)
 				{
@@ -341,6 +347,8 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 
 			m_scratchAllocator.clear(marker);
 
+			printf("visible lights: %u/%u\n", visibleLightCount, m_resultBufferCount);
+
 			m_resultBufferCount = 0;
 			m_downloadEvent.setStatus(EventStatus::Queued);
 		}
@@ -383,6 +391,7 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 
 		m_checkLightsEvent.setStatus(EventStatus::Running);
 
+		memset(m_visibleLightsResult, 0, sizeof(u32) * lightsInFrustumCount);
 		m_renderPassCullLights->setLightCount(lightsInFrustumCount);
 
 		m_resultBufferCount = lightsInFrustumCount;

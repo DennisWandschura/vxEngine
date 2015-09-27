@@ -16,7 +16,7 @@ cbuffer CameraStaticBuffer : register(b0)
 	GpuCameraStatic cameraStatic;
 };
 
-Texture2D<float> g_depthSlice : register(t0);
+Texture2D<float2> g_depthSlice : register(t0);
 SamplerState g_sampler : register(s0);
 
 PSOutput main(GSOutput input)

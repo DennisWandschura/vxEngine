@@ -149,7 +149,7 @@ float4 main(VSOutput input) : SV_TARGET
 	float coneRatio = 1.0;
 	const int sum = 12;
 	float sumWeight = 0.0;
-	for (int i = 0; i < sum; ++i)
+	/*for (int i = 0; i < sum; ++i)
 	{
 		float3 direction = quaternionRotation(input.wsNormal, qRotations_high[i]);
 		float weight = dot(direction, input.wsNormal);
@@ -158,7 +158,32 @@ float4 main(VSOutput input) : SV_TARGET
 		sumWeight += weight;
 	}
 
-	accum /= sumWeight;
+	accum /= sumWeight;*/
 
-	return float4(accum.rgb, 1.0);
+	int3 voxelPosition = input.voxelPosition;
+
+	float3 direction = input.wsNormal;
+	uint3 axis = getAxis(-direction);
+	uint3 wOffset = axis * g_voxel.dim;
+
+	uint3 posX = voxelPosition + uint3(0, 0, wOffset.x);
+	uint3 posY = voxelPosition + uint3(0, 0, wOffset.y);
+	uint3 posZ = voxelPosition + uint3(0, 0, wOffset.z);
+
+	//float3 texCoordX = float3(posX) / float3(voxelDim);
+	//float3 texCoordY = float3(posY) / float3(voxelDim);
+	//float3 texCoordZ = float3(posZ) / float3(voxelDim);
+
+	float3 sampleWeights = abs(direction);
+	float invWeight = 1.0 / (sampleWeights.x + sampleWeights.y + sampleWeights.z);
+	sampleWeights *= invWeight;
+	sampleWeights = 1.0;
+
+	float4 color0 = g_voxelColor.Load(int4(int3(posX), 0));
+	float4 color1 = g_voxelColor.Load(int4(int3(posY), 0));
+	float4 color2 = g_voxelColor.Load(int4(int3(posZ), 0));
+	float4 sampleColor = color0 * sampleWeights.x + color1 * sampleWeights.y + color2 * sampleWeights.z;
+	sampleColor = clamp(sampleColor, 0, 1);
+
+	return float4(sampleColor.rgb, 1.0);
 }
