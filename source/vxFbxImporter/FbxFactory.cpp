@@ -422,7 +422,9 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 			}
 		}
 
-		/*for (u32 i = 0; i < controlPointCount; ++i)
+		std::vector<vx::float3> points;
+		points.reserve(controlPointCount);
+		for (u32 i = 0; i < controlPointCount; ++i)
 		{
 			auto &it = fbxVertices[i];
 			points.push_back(vx::float3(it[0], it[1], it[2]));
@@ -479,7 +481,7 @@ bool FbxFactory::loadFile(const char *fbxFile, const std::string &saveDir, const
 		}
 
 		vertexCount = newVertices.size();
-		meshVertices.swap(newVertices);*/
+		meshVertices.swap(newVertices);
 
 		u32 verticesSizeInBytes = sizeof(vx::MeshVertex) * vertexCount;
 		u32 indexSizeInBytes = sizeof(u32) * indexCount;
