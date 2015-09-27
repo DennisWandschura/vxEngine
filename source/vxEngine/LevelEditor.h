@@ -103,6 +103,15 @@ namespace Editor
 	extern "C" DLL_EXPORT f32 getSelectLightLumen();
 	extern "C" DLL_EXPORT void setSelectLightLumen(f32 lumen);
 
+	extern "C" DLL_EXPORT u32 getLightCount();
+	extern "C" DLL_EXPORT u32 getSelectedLightIndex();
+	extern "C" DLL_EXPORT f32 getLightLumen(u32 index);
+	extern "C" DLL_EXPORT void setLightLumen(u32 index, f32 lumen);
+	extern "C" DLL_EXPORT f32 getLightFalloff(u32 index);
+	extern "C" DLL_EXPORT void setLightFalloff(u32 index, f32 falloff);
+	extern "C" DLL_EXPORT void getLightPosition(u32 index, vx::float3* position);
+	extern "C" DLL_EXPORT void setLightPosition(u32 index, const vx::float3* position);
+
 	extern "C" DLL_EXPORT void showNavmesh(bool b);
 	extern "C" DLL_EXPORT void showInfluenceMap(bool b);
 

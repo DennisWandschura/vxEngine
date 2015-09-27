@@ -155,6 +155,7 @@ namespace Editor
 		void setSpawnType(u32 id, u32 type);
 
 		Light* getLight(const Ray &ray);
+		Light* getLight(u32 i);
 
 		void updateLightPositions();
 

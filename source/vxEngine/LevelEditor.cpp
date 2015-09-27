@@ -430,6 +430,46 @@ namespace Editor
 		g_pEditor->engine.setSelectLightFalloff(falloff);
 	}
 
+	u32 getLightCount()
+	{
+
+	}
+
+	u32 getSelectedLightIndex()
+	{
+
+	}
+
+	f32 getLightLumen(u32 index)
+	{
+
+	}
+
+	void setLightLumen(u32 index, f32 lumen)
+	{
+
+	}
+
+	f32 getLightFalloff(u32 index)
+	{
+
+	}
+
+	void setLightFalloff(u32 index, f32 falloff)
+	{
+
+	}
+
+	 void getLightPosition(u32 index, vx::float3* position)
+	 {
+
+	 }
+
+	void setLightPosition(u32 index, const vx::float3* position)
+	{
+
+	}
+
 	void showNavmesh(bool b)
 	{
 		g_pEditor->engine.showNavmesh(b);

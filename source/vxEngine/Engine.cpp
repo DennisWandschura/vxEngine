@@ -199,12 +199,12 @@ void Engine::mainLoop(Logfile* logfile)
 			m_cpuProfiler.popMarker();
 		}
 
-		m_cpuProfiler.pushMarker("swap buffers");
-		m_renderAspect->swapBuffers();
-		m_cpuProfiler.popMarker();
-
 		m_cpuProfiler.pushMarker("gpu wait");
 		m_renderAspect->wait();
+		m_cpuProfiler.popMarker();
+
+		m_cpuProfiler.pushMarker("swap buffers");
+		m_renderAspect->swapBuffers();
 		m_cpuProfiler.popMarker();
 
 		m_cpuProfiler.popMarker();

@@ -391,8 +391,8 @@ void EditorEngine::update(f32 dt)
 
 	m_renderAspect->buildCommands();
 	m_renderAspect->submitCommands();
-
 	m_renderAspect->wait();
+	m_renderAspect->swapBuffers();
 }
 
 void EditorEngine::editor_loadFile(const char *filename, u32 type, Editor::LoadFileCallback f, vx::Variant userArg)
@@ -1194,6 +1194,55 @@ void EditorEngine::setSelectLightFalloff(f32 falloff)
 
 		m_renderAspect->updateLightBuffer(lights, lightCount);
 	}
+}
+
+u32 EditorEngine::getLightCount()
+{
+	return m_pEditorScene->getLightCount();
+}
+
+u32 EditorEngine::getSelectedLightIndex()
+{
+	auto lights = m_pEditorScene->getLights();
+	Light* ptr = (Light*)m_selected.m_item;
+
+	return (ptr - lights);
+}
+
+f32 EditorEngine::getLightLumen(u32 index)
+{
+	auto light = m_pEditorScene->getLight(index);
+	return light->m_lumen;
+}
+
+void EditorEngine::setLightLumen(u32 index, f32 lumen)
+{
+	auto light = m_pEditorScene->getLight(index);
+	light->m_lumen = lumen;
+}
+
+f32 EditorEngine::getLightFalloff(u32 index)
+{
+	auto light = m_pEditorScene->getLight(index);
+	return light->m_falloff;
+}
+
+void EditorEngine::setLightFalloff(u32 index, f32 falloff)
+{
+	auto light = m_pEditorScene->getLight(index);
+	light->m_falloff = falloff;
+}
+
+void EditorEngine::getLightPosition(u32 index, vx::float3* position)
+{
+	auto light = m_pEditorScene->getLight(index);
+	*position = light->m_position;
+}
+
+void EditorEngine::setLightPosition(u32 index, const vx::float3* position)
+{
+	auto light = m_pEditorScene->getLight(index);
+	light->m_position = *position;
 }
 
 SelectedType EditorEngine::getSelectedItemType() const

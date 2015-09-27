@@ -681,6 +681,11 @@ namespace Editor
 		return result;
 	}
 
+	Light* Scene::getLight(u32 i)
+	{
+		return &m_lights[i];
+	}
+
 	void Scene::updateLightPositions()
 	{
 		for (u32 i = 0; i < m_lightCount; ++i)
