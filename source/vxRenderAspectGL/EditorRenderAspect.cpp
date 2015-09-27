@@ -799,6 +799,11 @@ namespace Editor
 
 	}
 
+	void RenderAspect::buildCommands()
+	{
+
+	}
+
 	void RenderAspect::submitCommands()
 	{
 		vx::gl::StateManager::bindFrameBuffer(0);
@@ -841,10 +846,14 @@ namespace Editor
 		}*/
 	}
 
-	void RenderAspect::endFrame()
+	void RenderAspect::swapBuffers()
+	{
+		m_renderContext.swapBuffers();
+	}
+
+	void RenderAspect::wait()
 	{
 		glFinish();
-		m_renderContext.swapBuffers();
 	}
 
 	void RenderAspect::handleMessage(const vx::Message &evt)

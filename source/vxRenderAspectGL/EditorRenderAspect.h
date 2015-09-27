@@ -101,8 +101,10 @@ namespace Editor
 
 		void updateProfiler(f32 dt);
 
-		void submitCommands();
-		void endFrame();
+		void buildCommands() override;
+		void submitCommands() override;
+		void swapBuffers() override;
+		void wait() override;
 
 		void handleMessage(const vx::Message &evt) override;
 

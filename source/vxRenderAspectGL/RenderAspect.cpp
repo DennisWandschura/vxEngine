@@ -928,6 +928,10 @@ void RenderAspect::taskAddDynamicMeshInstance(u8* p, u32* offset)
 	*offset += sizeof(std::size_t);
 }
 
+void RenderAspect::buildCommands()
+{
+}
+
 void RenderAspect::submitCommands()
 {
 	m_gpuProfiler->frame();
@@ -1044,10 +1048,15 @@ void RenderAspect::submitCommands()
 	m_gpuProfiler->popGpuMarker();
 }
 
-void RenderAspect::endFrame()
+void RenderAspect::wait()
 {
 	auto result = glClientWaitSync((GLsync)m_fence, 0, 0);
 	m_gpuProfiler->popGpuMarker();
+}
+
+void RenderAspect::swapBuffers()
+{
+
 	//glFinish();
 	m_gpuProfiler->pushGpuMarker("swap buffer");
 
