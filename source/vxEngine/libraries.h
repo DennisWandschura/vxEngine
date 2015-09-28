@@ -37,15 +37,6 @@ SOFTWARE.
 #pragma comment(lib, "vxEngineLib_d.lib")
 #pragma comment(lib, "vxResourceAspect_d.lib")
 
-#ifdef _VX_NOAUDIO
-#else
-/*#pragma comment(lib, "libvorbis_static_d.lib")
-#pragma comment(lib, "libvorbisfile_static_d.lib")
-#pragma comment(lib, "libogg_static_d.lib")
-#pragma comment(lib, "OpenAL32.lib")
-#pragma comment(lib, "vxAudioAspect_d.lib")*/
-#endif
-
 #elif defined(_RELEASE_STATIC_BUILD)
 #if _VX_MEM_PROFILE
 #pragma comment(lib, "vxLibMEMPROFILE_s.lib")
@@ -55,18 +46,9 @@ SOFTWARE.
 #pragma comment(lib, "vxEngineLib.lib")
 #pragma comment(lib, "vxResourceAspect.lib")
 
-#ifdef _VX_NOAUDIO
-#else
-#pragma comment(lib, "libvorbis_static.lib")
-#pragma comment(lib, "libvorbisfile_static.lib")
-#pragma comment(lib, "libogg_static.lib")
-#pragma comment(lib, "OpenAL32.lib")
-#pragma comment(lib, "vxAudioAspect.lib")
-#endif
-
 #ifdef _PHYSX_CHECKED
 #pragma comment(lib, "PhysX3ExtensionsCHECKED.lib")
-//#pragma comment(lib, "PhysXVisualDebuggerSDKCHECKED.lib")
+#pragma comment(lib, "PhysXVisualDebuggerSDKCHECKED.lib")
 #else
 #endif
 
