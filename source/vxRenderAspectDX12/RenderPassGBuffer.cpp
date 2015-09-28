@@ -31,6 +31,7 @@ SOFTWARE.
 #include "ResourceView.h"
 #include "DrawIndexedIndirectCommand.h"
 #include "CommandAllocator.h"
+#include "GpuProfiler.h"
 
 struct RenderPassGBuffer::ColdData
 {
@@ -513,6 +514,8 @@ void RenderPassGBuffer::buildCommands()
 		rectScissor.right = s_resolution.x;
 		rectScissor.bottom = s_resolution.y;
 
+		s_gpuProfiler->queryBegin("gbuffer", &m_commandList);
+
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
 
@@ -539,6 +542,8 @@ void RenderPassGBuffer::buildCommands()
 		m_commandList->IASetIndexBuffer(&indexBufferView);
 
 		m_drawCmd->draw(m_commandList.get());
+
+		s_gpuProfiler->queryEnd(&m_commandList);
 
 		hresult = m_commandList->Close();
 		m_buildList = 1;

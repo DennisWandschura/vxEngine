@@ -175,7 +175,7 @@ void RenderLayerGame::createRenderPasses()
 	stage0.pushRenderPass(findRenderPass("RenderPassInjectRSM"));
 
 	RenderStage stage1;
-	stage0.pushRenderPass(findRenderPass("RenderPassVoxelPropagate"));
+	stage1.pushRenderPass(findRenderPass("RenderPassVoxelPropagate"));
 
 	RenderStage stage2;
 	stage2.pushRenderPass(findRenderPass("RenderPassZBuffer"));

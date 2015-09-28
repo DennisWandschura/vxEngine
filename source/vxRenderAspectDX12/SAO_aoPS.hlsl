@@ -38,7 +38,7 @@ This need not match the real far plane*/
 #define FAR_PLANE_Z (300.0)
 
 // Total number of direct samples to take at each pixel
-#define NUM_SAMPLES (14)
+#define NUM_SAMPLES (9)
 
 // This is the number of turns around the circle that the spiral pattern makes.  This should be prime to prevent
 // taps from lining up.  This particular choice was tuned for NUM_SAMPLES == 9

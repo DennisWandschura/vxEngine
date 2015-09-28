@@ -2,6 +2,7 @@
 #include "ShaderManager.h"
 #include "ResourceManager.h"
 #include "CommandAllocator.h"
+#include "GpuProfiler.h"
 
 RenderPassVoxelPropagate::RenderPassVoxelPropagate(d3d::CommandAllocator* cmdAlloc)
 	:m_commandList(),
@@ -138,6 +139,8 @@ void RenderPassVoxelPropagate::buildCommands()
 
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
+	s_gpuProfiler->queryBegin("propagate", &m_commandList);
+
 	auto srvHeap = m_srvHeap.get();
 	m_commandList->SetDescriptorHeaps(1, &srvHeap);
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -166,6 +169,8 @@ void RenderPassVoxelPropagate::buildCommands()
 			m_commandList->DrawInstanced(dim, dim* dim, 0, 0);
 		}
 	}
+
+	s_gpuProfiler->queryEnd(&m_commandList);
 
 	m_commandList->Close();
 }

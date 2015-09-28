@@ -6,6 +6,7 @@
 #include <vxLib/math/matrix.h>
 #include "UploadManager.h"
 #include "CommandAllocator.h"
+#include "GpuProfiler.h"
 
 RenderPassAO::RenderPassAO(d3d::CommandAllocator* cmdAlloc)
 	:RenderPass(),
@@ -419,6 +420,8 @@ void RenderPassAO::buildCommands()
 
 	auto hr = m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
+	s_gpuProfiler->queryBegin("sao", &m_commandList);
+
 	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
@@ -438,6 +441,9 @@ void RenderPassAO::buildCommands()
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
+	s_gpuProfiler->queryEnd(&m_commandList);
+
+	s_gpuProfiler->queryBegin("sao blur", &m_commandList);
 	{
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
@@ -473,6 +479,8 @@ void RenderPassAO::buildCommands()
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoBlurXTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	}
+
+	s_gpuProfiler->queryEnd(&m_commandList);
 
 	m_commandList->Close();
 }

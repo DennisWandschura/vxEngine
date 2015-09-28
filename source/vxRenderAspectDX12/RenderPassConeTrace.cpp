@@ -4,6 +4,7 @@
 #include "ResourceManager.h"
 #include "GpuVoxel.h"
 #include "ResourceDesc.h"
+#include "GpuProfiler.h"
 
 RenderPassConeTrace::RenderPassConeTrace(d3d::CommandAllocator* cmdAlloc)
 	:m_commandList(),
@@ -243,6 +244,8 @@ void RenderPassConeTrace::buildCommands()
 	const f32 clearColor[4] = { 0, 0, 0, 0 };
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
+	s_gpuProfiler->queryBegin("render lpv", &m_commandList);
+
 	auto resolution = s_resolution;
 
 	D3D12_VIEWPORT viewport;
@@ -282,6 +285,8 @@ void RenderPassConeTrace::buildCommands()
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureColor->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
+
+	s_gpuProfiler->queryEnd(&m_commandList);
 
 	m_commandList->Close();
 }

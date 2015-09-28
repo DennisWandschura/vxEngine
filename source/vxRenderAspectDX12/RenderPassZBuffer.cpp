@@ -29,6 +29,7 @@ SOFTWARE.
 #include "ResourceManager.h"
 #include "CommandAllocator.h"
 #include "GpuCameraBufferData.h"
+#include "GpuProfiler.h"
 
 const u32 g_zBufferMaxMipLevel = 5u;
 
@@ -201,6 +202,8 @@ void RenderPassZBuffer::buildCommands()
 
 	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
+	s_gpuProfiler->queryBegin("zbuffer", &m_commandList);
+
 	D3D12_VIEWPORT viewport;
 	viewport.Height = (f32)s_resolution.y;
 	viewport.Width = (f32)s_resolution.x;
@@ -240,6 +243,8 @@ void RenderPassZBuffer::buildCommands()
 	m_commandList->DrawInstanced(1, 1, 0, 0);
 
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+
+	s_gpuProfiler->queryEnd(&m_commandList);
 
 	m_commandList->Close();
 }

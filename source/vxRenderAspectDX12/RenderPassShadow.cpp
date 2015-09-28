@@ -32,6 +32,7 @@ SOFTWARE.
 #include "ResourceView.h"
 #include "CommandAllocator.h"
 #include "GpuVoxel.h"
+#include "GpuProfiler.h"
 
 namespace RenderPassShadowCpp
 {
@@ -438,6 +439,8 @@ void RenderPassShadow::buildCommands()
 
 		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
+		s_gpuProfiler->queryBegin("rsm", &m_commandList);
+
 		auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		auto gpuHandle = m_heapUav.getHandleGpu();
@@ -501,6 +504,8 @@ void RenderPassShadow::buildCommands()
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+
+		s_gpuProfiler->queryEnd(&m_commandList);
 
 		auto hr = m_commandList->Close();
 		m_buildList = 1;

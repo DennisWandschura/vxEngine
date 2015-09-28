@@ -7,6 +7,7 @@ d3d::ResourceManager* RenderPass::s_resourceManager{nullptr};
 UploadManager* RenderPass::s_uploadManager{ nullptr };
 vx::uint2 RenderPass::s_resolution{0, 0};
 const RenderSettings* RenderPass::s_settings{ nullptr };
+GpuProfiler* RenderPass::s_gpuProfiler{nullptr};
 
 RenderPass::RenderPass() :m_rootSignature(), m_pipelineState() {}
 

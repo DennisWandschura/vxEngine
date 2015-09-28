@@ -70,6 +70,8 @@ void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &
 
 	m_materialManager.getRequiredMemory(dimSrgb, dimRgb, bufferHeapSize, textureHeapSize, rtDsHeapSize, device);
 
+	m_gpuProfiler.getRequiredMemory(256, bufferHeapSize);
+
 	*bufferHeapSize += cbufferSize + transformBufferSize + materialBufferSize + transformBufferSize;
 }
 
@@ -186,6 +188,8 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 		errorlog->append("error initializing device\n");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
+	m_device->SetStablePowerState(1);
+
 	auto device = m_device.getDevice();
 
 	if (debugMode)
@@ -238,7 +242,7 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 
 	m_activeLayers.push_back(new RenderLayerPerfOverlay(&m_device, m_resourceAspect, &m_uploadManager, &m_resourceManager));
 
-	RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager, &s_settings);
+	RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager, &s_settings, &m_gpuProfiler);
 
 	for (auto &it : m_activeLayers)
 	{
@@ -255,6 +259,14 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 
 	if (!createConstantBuffers())
 		return RenderAspectInitializeError::ERROR_CONTEXT;
+
+	auto halResolution = (desc.settings->m_resolution / vx::uint2(2));
+	vx::float2 gpuProfilerPosition = vx::float2(-static_cast<f32>(halResolution.x), halResolution.y);
+	gpuProfilerPosition += vx::float2(10, -20);
+	if (!m_gpuProfiler.initialize(256, &m_resourceManager, device, m_graphicsCommandQueue.get(), gpuProfilerPosition))
+	{
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
 
 	createCbvCamera();
 	createSrvTextures(textureDimSrgb.z, textureDimRgb.z);
@@ -458,6 +470,8 @@ void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 
 void RenderAspect::update()
 {
+	m_gpuProfiler.update(this);
+
 	for (auto &it : m_activeLayers)
 	{
 		it->update();
@@ -562,6 +576,8 @@ void RenderAspect::buildCommands()
 {
 	m_downloadManager.downloadToCpu();
 
+	m_gpuProfiler.frame(&m_resourceManager);
+
 	m_copyManager.buildCommandList();
 	m_downloadManager.buildCommandList();
 	m_uploadManager.buildCommandList();
@@ -574,6 +590,8 @@ void RenderAspect::buildCommands()
 
 void RenderAspect::submitCommands()
 {
+	m_gpuProfiler.submitCommandList(&m_graphicsCommandQueue);
+
 	m_copyManager.submitList(&m_graphicsCommandQueue);
 	m_downloadManager.submitCommandList(&m_graphicsCommandQueue);
 	m_uploadManager.submitCommandList(&m_graphicsCommandQueue);

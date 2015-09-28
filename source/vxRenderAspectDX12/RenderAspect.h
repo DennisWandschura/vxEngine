@@ -46,6 +46,7 @@ namespace vx
 #include <vxLib/Graphics/Camera.h>
 #include "DownloadMananger.h"
 #include <vxEngineLib/CpuProfiler.h>
+#include "GpuProfiler.h"
 
 class RenderAspect : public RenderAspectInterface
 {
@@ -54,6 +55,7 @@ class RenderAspect : public RenderAspectInterface
 	d3d::CommandQueue m_graphicsCommandQueue;
 	d3d::Device m_device;
 	std::vector<Graphics::RenderLayer*> m_activeLayers;
+	GpuProfiler m_gpuProfiler;
 	CopyManager m_copyManager;
 	d3d::ResourceManager m_resourceManager;
 	vx::Camera m_camera;

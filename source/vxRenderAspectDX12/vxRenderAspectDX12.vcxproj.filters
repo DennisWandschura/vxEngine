@@ -73,14 +73,14 @@
     <Filter Include="Shaders\shading">
       <UniqueIdentifier>{4485ffa2-6b42-4005-a754-ea11f94d8c76}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\ssil">
-      <UniqueIdentifier>{25fa0de8-ee85-49e4-b4b0-ebf682f09c35}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\voxel">
       <UniqueIdentifier>{42cc15f4-49a9-460d-8a28-3baed8539e37}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\d3d">
       <UniqueIdentifier>{997c810f-41dc-4cdd-8957-1ba7e8d3eca3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\ssgi">
+      <UniqueIdentifier>{25fa0de8-ee85-49e4-b4b0-ebf682f09c35}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -557,7 +557,7 @@
       <Filter>Shaders\shading</Filter>
     </FxCompile>
     <FxCompile Include="SsilPS.hlsl">
-      <Filter>Shaders\ssil</Filter>
+      <Filter>Shaders\ssgi</Filter>
     </FxCompile>
     <FxCompile Include="ShadowMapFilterGS.hlsl">
       <Filter>Shaders\shadowmap</Filter>

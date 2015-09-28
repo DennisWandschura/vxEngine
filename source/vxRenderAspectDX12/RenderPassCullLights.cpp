@@ -29,6 +29,7 @@ SOFTWARE.
 #include "CommandAllocator.h"
 #include "DownloadMananger.h"
 #include "ResourceDesc.h"
+#include "GpuProfiler.h"
 
 RenderPassCullLights::RenderPassCullLights(d3d::CommandAllocator* allocator, DownloadManager* downloadManager)
 	:m_allocator(allocator),
@@ -203,6 +204,8 @@ void RenderPassCullLights::buildCommands()
 
 		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
 
+		//s_gpuProfiler->queryBegin("cull lights", &m_commandList);
+
 		D3D12_VIEWPORT viewport;
 		viewport.Height = (f32)s_resolution.y;
 		viewport.Width = (f32)s_resolution.x;
@@ -242,6 +245,7 @@ void RenderPassCullLights::buildCommands()
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(visibleLightIndicesBuffer->get()));
 
+		//s_gpuProfiler->queryEnd(&m_commandList);
 		m_commandList->Close();
 		m_buildList = 1;
 

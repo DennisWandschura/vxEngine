@@ -25,6 +25,8 @@ SOFTWARE.
 */
 
 struct ID3D12QueryHeap;
+struct ID3D12CommandQueue;
+class RenderAspect;
 
 namespace d3d
 {
@@ -33,15 +35,48 @@ namespace d3d
 	class Resource;
 }
 
+namespace Graphics
+{
+	class CommandQueue;
+}
+
+#include <vxLib/math/Vector.h>
 #include "d3d.h"
+#include <memory>
+#include <vxEngineLib/Event.h>
+#include "CommandAllocator.h"
+#include "CommandList.h"
+#include "Heap.h"
+#include <vxLib/Container/sorted_vector.h>
+#include <vxLib/StringID.h>
 
 class GpuProfiler
 {
-	d3d::Resource* m_buffer;
+	struct Entry;
+
+	struct Text;
+
+	struct FrameData
+	{
+		std::unique_ptr<Text[]> m_entries;
+		std::unique_ptr<u64[]> m_times;
+		u32 m_count;
+	};
+
+	d3d::CommandAllocator m_allocator;
+	d3d::GraphicsCommandList m_commandList;
+	FrameData m_data[3];
+	std::unique_ptr<Entry[]> m_entries;
+	u32 m_entryCount;
+	vx::sorted_vector<vx::StringID, u32> m_sortedEntries;
+	d3d::Object<ID3D12Resource> m_dlBuffer;
+	u64 m_frequency;
+	vx::float2 m_position;
 	d3d::Object<ID3D12QueryHeap> m_queryHeap;
 	s64 m_currentFrame;
-	u32 m_count[3];
 	u32 m_countPerFrame;
+	u32 m_buildCommands;
+	d3d::Heap m_dlHeap;
 
 public:
 	GpuProfiler();
@@ -49,10 +84,14 @@ public:
 
 	void getRequiredMemory(u32 maxQueries, u64* bufferHeapSize);
 
-	bool initialize(u32 maxQueries, d3d::ResourceManager* resourceManager, ID3D12Device* device);
+	bool initialize(u32 maxQueries, d3d::ResourceManager* resourceManager, ID3D12Device* device, ID3D12CommandQueue* cmdQueue, const vx::float2 &position);
 	void shutdown();
 
-	void frame(d3d::GraphicsCommandList* cmdList);
+	void frame(d3d::ResourceManager* resourceManager);
+	void submitCommandList(Graphics::CommandQueue* queue);
 
-	void query(d3d::GraphicsCommandList* cmdList);
+	void queryBegin(const char* text, d3d::GraphicsCommandList* cmdList);
+	void queryEnd(d3d::GraphicsCommandList* cmdList);
+
+	void update(RenderAspect* renderAspect);
 };

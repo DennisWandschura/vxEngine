@@ -27,6 +27,7 @@ SOFTWARE.
 #include "ResourceManager.h"
 #include "Device.h"
 #include "CommandAllocator.h"
+#include "GpuProfiler.h"
 
 RenderPassFinal::RenderPassFinal(d3d::CommandAllocator* cmdAlloc, d3d::Device* device)
 	:RenderPass(),
@@ -256,6 +257,8 @@ void RenderPassFinal::buildCommands()
 	auto hresult = m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 	VX_ASSERT(hresult == 0);
 
+	s_gpuProfiler->queryBegin("final", &m_commandList);
+
 	m_commandList->RSSetViewports(1, &viewport);
 	m_commandList->RSSetScissorRects(1, &rectScissor);
 
@@ -289,6 +292,8 @@ void RenderPassFinal::buildCommands()
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(indirectLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+	s_gpuProfiler->queryEnd(&m_commandList);
 
 	hresult = m_commandList->Close();
 	VX_ASSERT(hresult == 0);

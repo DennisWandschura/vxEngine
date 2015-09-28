@@ -7,6 +7,7 @@
 #include "CommandAllocator.h"
 #include "ResourceDesc.h"
 #include "ShaderResourceViewDesc.h"
+#include "GpuProfiler.h"
 
 RenderPassShading::RenderPassShading(d3d::CommandAllocator* cmdAlloc)
 	:RenderPassLight(),
@@ -305,6 +306,8 @@ void RenderPassShading::buildCommands()
 		const f32 clearColor[4] = { 0, 0, 0, 0 };
 		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
+		s_gpuProfiler->queryBegin("shade", &m_commandList);
+
 		auto resolution = s_resolution;
 
 		D3D12_VIEWPORT viewport;
@@ -355,6 +358,8 @@ void RenderPassShading::buildCommands()
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferSurface->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(albedoSlice->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepth->get(), D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+
+		s_gpuProfiler->queryEnd(&m_commandList);
 
 		auto hr = m_commandList->Close();
 		m_buildList = 1;

@@ -28,6 +28,7 @@ struct ID3D12RootSignature;
 struct ID3D12PipelineState;
 struct ID3D12Device;
 class UploadManager;
+class GpuProfiler;
 
 #include "d3d.h"
 #include <vxLib/math/Vector.h>
@@ -50,6 +51,7 @@ protected:
 	static UploadManager* s_uploadManager;
 	static vx::uint2 s_resolution;
 	static const RenderSettings* s_settings;
+	static GpuProfiler* s_gpuProfiler;
 
 	d3d::RootSignature m_rootSignature;
 	d3d::PipelineState m_pipelineState;
@@ -61,13 +63,14 @@ protected:
 public:
 	virtual ~RenderPass();
 
-	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, const RenderSettings* settings)
+	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, const RenderSettings* settings, GpuProfiler* gpuProfiler)
 	{
 		s_shaderManager = shaderManager;
 		s_resourceManager = resourceManager;
 		s_uploadManager = uploadManager;
 		s_resolution = settings->m_resolution;
 		s_settings = settings;
+		s_gpuProfiler = gpuProfiler;
 	}
 
 	virtual void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) = 0;

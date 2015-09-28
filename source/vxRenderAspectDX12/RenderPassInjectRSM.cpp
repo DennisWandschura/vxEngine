@@ -5,6 +5,7 @@
 #include "ResourceManager.h"
 #include "GpuVoxel.h"
 #include "ResourceDesc.h"
+#include "GpuProfiler.h"
 
 RenderPassInjectRSM::RenderPassInjectRSM(d3d::CommandAllocator* allocator)
 	:RenderPassLight(),
@@ -276,6 +277,8 @@ void RenderPassInjectRSM::buildCommands()
 
 		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
 
+		s_gpuProfiler->queryBegin("inject rsm", &m_commandList);
+
 		//auto clearHandleGpu = m_uavClearHeap.getHandleGpu();
 		//auto clearHandleCpu = m_uavClearHeap.getHandleCpu();
 
@@ -339,6 +342,8 @@ void RenderPassInjectRSM::buildCommands()
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
+
+		s_gpuProfiler->queryEnd(&m_commandList);
 
 		m_commandList->Close();
 		m_buildList = 1;
