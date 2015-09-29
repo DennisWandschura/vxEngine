@@ -26,7 +26,6 @@ SOFTWARE.
 class SmallObjAllocator;
 
 #include <vxLib/types.h>
-#include <new>
 
 class SmallObject
 {

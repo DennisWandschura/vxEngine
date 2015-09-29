@@ -23,11 +23,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+#include <vxlib/math/vector.h>
+#include <vxenginelib/SmallObject.h>
 
-namespace vx
+namespace Audio
 {
-	enum class AudioMessage : u16
+	struct PlaySoundData : public ::SmallObject
+	{
+		vx::StringID m_sid;
+		vx::float3 m_position;
+	};
+
+	enum class Message : u16
 	{
 		PlaySound
 	};

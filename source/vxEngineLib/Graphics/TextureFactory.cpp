@@ -28,7 +28,7 @@ SOFTWARE.
 #include <vxEngineLib/Graphics/Texture.h>
 #include <vxLib/Allocator/StackAllocator.h>
 #include <vxLib/stb_image.h>
-#include <vxEngineLib/memcpy.h>
+#include <vxLib/string.h>
 #include <vxEngineLib/ArrayAllocator.h>
 #include <algorithm>
 
