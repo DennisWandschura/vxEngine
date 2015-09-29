@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include <vxEngineLib/Animation.h>
 #include <vxLib/File/File.h>
-#include <vxEngineLib/memcpy.h>
+#include <vxLib/string.h>
 
 namespace vx
 {

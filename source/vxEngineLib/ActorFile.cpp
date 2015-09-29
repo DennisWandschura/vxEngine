@@ -1,6 +1,6 @@
 #include <vxEngineLib/ActorFile.h>
 #include <vxLib/File/File.h>
-#include <vxEngineLib/memcpy.h>
+#include <vxLib/string.h>
 #include <vxLib/util/CityHash.h>
 
 ActorFile::ActorFile(u32 version)

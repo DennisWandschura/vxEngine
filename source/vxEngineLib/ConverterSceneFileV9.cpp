@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 #include "ConverterSceneFileV9.h"
-#include <vxEngineLib/memcpy.h>
+#include <vxLib/string.h>
 #include <vxEngineLib/SceneFile.h>
 #include <vxEngineLib/MeshInstanceFile.h>
 #include <vxEngineLib/Light.h>

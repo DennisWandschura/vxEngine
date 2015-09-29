@@ -320,6 +320,7 @@
     <ClInclude Include="include\vxEngineLib\EngineConfig.h" />
     <ClInclude Include="include\vxEngineLib\Event.h" />
     <ClInclude Include="include\vxEngineLib\FileEntry.h" />
+    <ClInclude Include="include\vxEngineLib\Freelist.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\CommandList.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\CommandQueue.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\dds.h" />
@@ -348,7 +349,6 @@
     <ClInclude Include="include\vxEngineLib\Locator.h" />
     <ClInclude Include="include\vxEngineLib\managed_ptr.h" />
     <ClInclude Include="include\vxEngineLib\Material.h" />
-    <ClInclude Include="include\vxEngineLib\memcpy.h" />
     <ClInclude Include="include\vxEngineLib\memory.h" />
     <ClInclude Include="include\vxEngineLib\MeshFile.h" />
     <ClInclude Include="include\vxEngineLib\MeshInstance.h" />

@@ -23,6 +23,7 @@ SOFTWARE.
 */
 #include <vxEngineLib/SmallObject.h>
 #include <vxEngineLib/SmallObjAllocator.h>
+#include <new>
 
 SmallObjAllocator* SmallObject::s_pAllocator{ nullptr };
 

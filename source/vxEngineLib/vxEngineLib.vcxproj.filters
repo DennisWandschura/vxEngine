@@ -111,9 +111,6 @@
     <ClInclude Include="include\vxEngineLib\Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\memcpy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -307,6 +304,9 @@
       <Filter>Header Files\Converter</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\ActorFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Freelist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

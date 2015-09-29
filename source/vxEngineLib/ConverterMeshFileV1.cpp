@@ -1,7 +1,7 @@
 #include "ConverterMeshFileV1.h"
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/ArrayAllocator.h>
-#include <vxEngineLib/memcpy.h>
+#include <vxLib/string.h>
 #include <memory>
 #include <vxLib/util/CityHash.h>
 

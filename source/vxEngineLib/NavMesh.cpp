@@ -26,7 +26,7 @@ SOFTWARE.
 #include <vxLib/File/File.h>
 #include <vxLib/algorithm.h>
 #include <vxEngineLib/copy.h>
-#include <vxEngineLib/memcpy.h>
+#include <vxLib/string.h>
 
 NavMesh::NavMesh()
 	:m_navMeshTriangles(),

@@ -25,7 +25,7 @@ SOFTWARE.
 #include <vxEngineLib/AnimationFile.h>
 #include <vxLib/util/CityHash.h>
 #include <vxLib/File/File.h>
-#include <vxEngineLib/memcpy.h>
+#include <vxLib/string.h>
 
 namespace vx
 {
