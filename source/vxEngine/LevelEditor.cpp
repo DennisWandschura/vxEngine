@@ -89,7 +89,7 @@ namespace Editor
 		p->~T();
 	}
 
-	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY, 
+	bool initializeEditor(intptr_t hwndPanel, intptr_t hwndTmp, u32 panelSizeX, u32 panelSizeY,
 		u32 typeMesh, u32 typeMaterial, u32 typeScene, u32 typeFbx, u32 typeAnimation, u32 typeActor)
 	{
 		EditorEngine::editor_setTypes(typeMesh, typeMaterial, typeScene, typeFbx, typeAnimation, typeActor);
@@ -167,7 +167,7 @@ namespace Editor
 
 	u64 getSid(const char *str)
 	{
-		auto tmp =vx::FileHandle(str);
+		auto tmp = vx::FileHandle(str);
 
 		return tmp.m_sid.value;
 	}
@@ -432,42 +432,42 @@ namespace Editor
 
 	u32 getLightCount()
 	{
-
+		return g_pEditor->engine.getLightCount();
 	}
 
 	u32 getSelectedLightIndex()
 	{
-
+		return g_pEditor->engine.getSelectedLightIndex();
 	}
 
 	f32 getLightLumen(u32 index)
 	{
-
+		return g_pEditor->engine.getLightLumen(index);
 	}
 
 	void setLightLumen(u32 index, f32 lumen)
 	{
-
+		g_pEditor->engine.setLightLumen(index, lumen);
 	}
 
 	f32 getLightFalloff(u32 index)
 	{
-
+		return g_pEditor->engine.getLightFalloff(index);
 	}
 
 	void setLightFalloff(u32 index, f32 falloff)
 	{
-
+		g_pEditor->engine.setLightFalloff(index, falloff);
 	}
 
-	 void getLightPosition(u32 index, vx::float3* position)
-	 {
-
-	 }
+	void getLightPosition(u32 index, vx::float3* position)
+	{
+		g_pEditor->engine.getLightPosition(index, position);
+	}
 
 	void setLightPosition(u32 index, const vx::float3* position)
 	{
-
+		g_pEditor->engine.setLightPosition(index, position);
 	}
 
 	void showNavmesh(bool b)

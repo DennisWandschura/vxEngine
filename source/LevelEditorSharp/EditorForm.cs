@@ -71,6 +71,7 @@ namespace LevelEditor
         TreeNode m_animationsNode;
         TreeNode m_jointsNode;
         TreeNode m_actorsNode;
+        TreeNode m_lightsNode;
         bool m_keyDownAlt;
         int m_mouseX;
         int m_mouseY;
@@ -117,8 +118,8 @@ namespace LevelEditor
             m_animationsNode = treeView_entities.Nodes.Add("Animations");
             m_jointsNode = treeView_entities.Nodes.Add("Joints");
             m_actorsNode = treeView_entities.Nodes.Add("Actors");
+            m_lightsNode = treeView_entities.Nodes.Add("Lights");
 
-            treeView_entities.Nodes.Add("Lights");
             m_currentSceneFileName = "untitled.scene";
 
             m_requestedFiles = new Dictionary<ulong, string>();
@@ -753,6 +754,17 @@ namespace LevelEditor
             }
         }
 
+        void addSceneLights()
+        {
+            m_lightsNode.Nodes.Clear();
+
+            var count = NativeMethods.getLightCount();
+            for (uint i = 0; i < count; ++i)
+            {
+                m_lightsNode.Nodes.Add("Light" + i);
+            }
+        }
+
         public void addActor(ulong sid)
         {
             var actorName = NativeMethods.getActorName(sid);
@@ -875,6 +887,7 @@ namespace LevelEditor
                     addSceneAnimations();
                     addSceneJoints();
                     addSceneActors();
+                    addSceneLights();
                 }
                 else if (type == s_typeAnimation)
                 {
