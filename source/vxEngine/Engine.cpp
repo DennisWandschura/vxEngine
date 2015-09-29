@@ -117,7 +117,7 @@ void Engine::update()
 	m_resourceAspect.update();
 
 	m_cpuProfiler.pushMarker("update audio()");
-	m_audioAspect->update(g_dt);
+	m_audioAspect->update(g_dt, m_entityAspect.getPlayerPosition());
 	m_cpuProfiler.popMarker();
 
 	// update aspects in order

@@ -63,7 +63,7 @@ struct EntityActor
 	physx::PxController* m_controller;
 	u16 m_gpuIndex;
 	u8 m_actorComponentIndex;
-	vx::float2 m_orientation;// { vx::VX_PIDIV2, 0 };
+	vx::float2 m_orientation;
 	vx::float4 m_velocity;
 
 	void update(f32 dt, PhysicsAspect* physicsAspect, vx::TransformGpu* transforms, u32* indices, u32 index);

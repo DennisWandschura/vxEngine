@@ -25,7 +25,7 @@ SOFTWARE.
 #include "TaskLoadAudio.h"
 #include <vxResourceAspect/ResourceManager.h>
 #include <vxEngineLib/AudioFile.h>
-#include <vxEngineLib/memcpy.h>
+#include <vxLib/string.h>
 #include <Audioclient.h>
 
 namespace TaskLoadAudioCpp

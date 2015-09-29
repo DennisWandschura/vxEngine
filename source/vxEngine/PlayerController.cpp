@@ -31,13 +31,7 @@ SOFTWARE.
 #include "ActionPlaySound.h"
 #include "Transition.h"
 #include "ConditionPlayerMoving.h"
-
-//#include <vxLib/math/Vector.h>
-//#include <vxLib/RawInput.h>
-//#include <vxLib/Graphics/Camera.h>
-//#include "input/Keys.h"
-//#include "EntityAspect.h"
-//#include "PhysicsDefines.h"
+#include "Entity.h"
 
 PlayerController::PlayerController()
 	:m_actionUse(nullptr)
@@ -61,7 +55,7 @@ void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, Rende
 	m_actions.push_back(vx::make_unique<ActionPlayerMove>(playerEntity, 0.1f, 0.5f));
 	m_actions.push_back(vx::make_unique<ActionUpdateGpuTransform>(playerEntity, renderAspect));
 	m_actions.push_back(vx::make_unique<ActionPlayerUse>(playerEntity, components));
-	m_actions.push_back(vx::make_unique<ActionPlaySound>(vx::make_sid("step1.wav"), messageManager, 0.28f));
+	m_actions.push_back(vx::make_unique<ActionPlaySound>(vx::make_sid("step1.wav"), messageManager, 0.28f, &playerEntity->m_position));
 
 	auto &actionLookAround = m_actions[0];
 	auto &actionMoveStanding = m_actions[1];

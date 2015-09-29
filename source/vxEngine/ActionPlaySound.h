@@ -29,6 +29,7 @@ namespace vx
 	class MessageManager;
 }
 
+#include <vxLib/math/Vector.h>
 #include "Action.h"
 #include <vxLib/StringID.h>
 #include <vxEngineLib/CpuTimer.h>
@@ -36,13 +37,14 @@ namespace vx
 class ActionPlaySound : public Action
 {
 	vx::StringID m_sid;
+	const vx::float3* m_position;
 	vx::MessageManager* m_msgManager;
 	CpuTimer m_timer;
 	f32 m_elapsedTime;
 	f32 m_time;
 
 public:
-	ActionPlaySound(const vx::StringID &sid, vx::MessageManager* msgManager, f32 time);
+	ActionPlaySound(const vx::StringID &sid, vx::MessageManager* msgManager, f32 time, const vx::float3* position);
 	~ActionPlaySound();
 
 	void run() override;

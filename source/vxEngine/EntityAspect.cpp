@@ -102,6 +102,8 @@ bool EntityAspect::initialize(vx::StackAllocator* pAllocator, vx::TaskManager* t
 	m_taskManager = taskManager;
 	m_coldData->m_resourceAspect = resourceAspect;
 
+	m_entityHumanData.m_position = vx::float3(0);
+
 	return true;
 }
 
@@ -445,4 +447,9 @@ void EntityAspect::onPressedActionKey()
 void EntityAspect::onReleasedActionKey()
 {
 	m_playerController.onReleasedActionKey();
+}
+
+const vx::float3& EntityAspect::getPlayerPosition() const
+{
+	return m_entityHumanData.m_position;
 }

@@ -28,8 +28,9 @@ SOFTWARE.
 #include <vxEngineLib/AudioMessage.h>
 #include <vxEngineLib/MessageTypes.h>
 
-ActionPlaySound::ActionPlaySound(const vx::StringID &sid, vx::MessageManager* msgManager, f32 time)
+ActionPlaySound::ActionPlaySound(const vx::StringID &sid, vx::MessageManager* msgManager, f32 time, const vx::float3* position)
 	:m_sid(sid),
+	m_position(position),
 	m_msgManager(msgManager),
 	m_timer(),
 	m_elapsedTime(0),
@@ -48,15 +49,18 @@ void ActionPlaySound::run()
 	auto elapsedTime = m_timer.getTimeSeconds();
 	m_timer.reset();
 
-
 	m_elapsedTime += elapsedTime;
 	auto diff = m_time - m_elapsedTime;
 
 	if (diff <= 0.0f)
 	{
+		Audio::PlaySoundData* data = new Audio::PlaySoundData();
+		data->m_sid = m_sid;
+		data->m_position = *m_position;
+
 		vx::Message msg;
-		msg.arg1.u64 = m_sid.value;
-		msg.code = (u32)vx::AudioMessage::PlaySound;
+		msg.arg1.ptr = data;
+		msg.code = (u32)Audio::Message::PlaySound;
 		msg.type = vx::MessageType::Audio;
 		m_msgManager->addMessage(msg);
 

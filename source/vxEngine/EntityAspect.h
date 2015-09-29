@@ -107,4 +107,6 @@ public:
 	void onPressedActionKey();
 
 	void onReleasedActionKey();
+
+	const vx::float3& getPlayerPosition() const;
 };
