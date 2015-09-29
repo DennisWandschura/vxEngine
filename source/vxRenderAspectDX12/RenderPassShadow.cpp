@@ -78,7 +78,7 @@ RenderPassShadow::~RenderPassShadow()
 
 }
 
-void RenderPassShadow::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassShadow::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	D3D12_RESOURCE_DESC resDescHigh[RenderPassShadowCpp::TextureCount];
 	RenderPassShadowCpp::getDescription(resDescHigh, s_settings->m_shadowDim, s_settings->m_shadowCastingLightCount);
@@ -86,6 +86,7 @@ void RenderPassShadow::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTextu
 	auto infoHigh = device->GetResourceAllocationInfo(1, RenderPassShadowCpp::TextureCount, resDescHigh);
 
 	*heapSizeRtDs += infoHigh.SizeInBytes;
+	*rtDsCount += RenderPassShadowCpp::TextureCount;
 }
 
 bool RenderPassShadow::createData(ID3D12Device* device)
@@ -171,15 +172,14 @@ bool RenderPassShadow::createRootSignature(ID3D12Device* device)
 	CD3DX12_DESCRIPTOR_RANGE rangeGS[1];
 	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0, 4);
 
-	CD3DX12_DESCRIPTOR_RANGE rangePS[3];
+	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 4, 0, 5);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 3, 0, 6);
-	rangePS[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 2, 0, 7);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 2, 0, 6);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[4];
 	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
 	rootParameters[1].InitAsDescriptorTable(1, rangeGS, D3D12_SHADER_VISIBILITY_GEOMETRY);
-	rootParameters[2].InitAsDescriptorTable(3, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[2].InitAsDescriptorTable(2, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[3].InitAsConstants(1, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -335,12 +335,6 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_heapSrv.create(desc, device))
 		return false;
-
-	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	desc.NumDescriptors = 1;
-	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	if (!m_heapUav.create(desc, device))
-		return false;
 	
 
 	/*
@@ -384,20 +378,6 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	srvHandle.offset(1);
 	device->CreateShaderResourceView(srgbTexture->get(), srgbTextureViewDesc, srvHandle);
 
-
-	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-	uavDesc.Format = DXGI_FORMAT_R32_UINT;
-	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
-	uavDesc.Texture3D.FirstWSlice = 0;
-	uavDesc.Texture3D.MipSlice = 0;
-	uavDesc.Texture3D.WSize = s_settings->m_lpvDim * 6;
-
-	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
-	srvHandle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, srvHandle);
-
-	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, m_heapUav.getHandleCpu());
-
 	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
 	D3D12_CONSTANT_BUFFER_VIEW_DESC voxelBufferDesc;
 	voxelBufferDesc.BufferLocation = voxelBuffer->GetGPUVirtualAddress();
@@ -440,14 +420,6 @@ void RenderPassShadow::buildCommands()
 		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
 
 		s_gpuProfiler->queryBegin("rsm", &m_commandList);
-
-		auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
-		auto gpuHandle = m_heapUav.getHandleGpu();
-		auto cpuHandle = m_heapUav.getHandleCpu();
-		m_commandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, voxelTextureColor->get(), clearValues, 0, nullptr);
-
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 
 		m_commandList->RSSetViewports(1, &viewPort);
 		m_commandList->RSSetScissorRects(1, &rectScissor);
@@ -502,7 +474,6 @@ void RenderPassShadow::buildCommands()
 			handleDsv.offset(1);
 		}
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 		s_gpuProfiler->queryEnd(&m_commandList);

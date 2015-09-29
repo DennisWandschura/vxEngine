@@ -9,6 +9,7 @@
 #include "GpuVoxel.h"
 #include "RenderPassCullLights.h"
 #include "RenderPassLight.h"
+#include "RenderAspect.h"
 
 enum FrustumPlane { FrustumPlaneNear, FrustumPlaneLeft, FrustumPlaneRight };
 
@@ -57,6 +58,7 @@ LightManager::LightManager()
 	:m_sceneLights(nullptr),
 	m_sceneShadowTransforms(nullptr),
 	m_gpuLights(nullptr),
+	m_visibleLightCount(0),
 	m_sceneLightCount(0),
 	m_maxSceneLightCount(0),
 	m_maxShadowCastingLights(0),
@@ -88,7 +90,7 @@ LightManager::~LightManager()
 	m_gpuLights = nullptr;
 }
 
-void LightManager::getRequiredMemory(u64* heapSizeBuffere, u32 maxSceneLightCount, u32 maxShadowCastingLights)
+void LightManager::getRequiredMemory(u64* heapSizeBuffere, u32* bufferCount, u32 maxSceneLightCount, u32 maxShadowCastingLights)
 {
 	const auto lightBufferSize = d3d::getAlignedSize(sizeof(GpuLight) * maxSceneLightCount, 64llu KBYTE);
 	const auto visibleLightsBufferSize = d3d::getAlignedSize(sizeof(u32) * maxSceneLightCount, 64llu KBYTE);
@@ -100,6 +102,7 @@ void LightManager::getRequiredMemory(u64* heapSizeBuffere, u32 maxSceneLightCoun
 	const auto voxelBufferSize = d3d::getAlignedSize(sizeof(GpuVoxel), 64llu KBYTE);
 
 	*heapSizeBuffere += shadowTransformBufferSize + lightBufferSize + visibleLightsBufferSize + shadowCastingLightsBufferSize + shadowReverseTransformBufferSize + voxelBufferSize;
+	*bufferCount += 6;
 }
 
 void LightManager::createSrvLights(u32 maxCount, d3d::ResourceManager* resourceManager)
@@ -114,8 +117,6 @@ void LightManager::createSrvLights(u32 maxCount, d3d::ResourceManager* resourceM
 	srvDesc.Buffer.StructureByteStride = sizeof(GpuLight);
 
 	resourceManager->insertShaderResourceView("lightBufferView", srvDesc);
-
-
 }
 
 void LightManager::createSrvShadowCastingLights(u32 maxCount, d3d::ResourceManager* resourceManager)
@@ -254,7 +255,7 @@ bool LightManager::loadSceneLights(const Light* lights, u32 count, ID3D12Device*
 	return true;
 }
 
-void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
+void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, RenderAspect* renderAspect)
 {
 	struct Pair
 	{
@@ -347,7 +348,8 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 
 			m_scratchAllocator.clear(marker);
 
-			printf("visible lights: %u/%u\n", visibleLightCount, m_resultBufferCount);
+			m_visibleLightCount = visibleLightCount;
+			//printf("visible lights: %u/%u\n", visibleLightCount, m_resultBufferCount);
 
 			m_resultBufferCount = 0;
 			m_downloadEvent.setStatus(EventStatus::Queued);
@@ -397,6 +399,12 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 		m_resultBufferCount = lightsInFrustumCount;
 		m_scratchAllocator.clear(marker);
 	}
+
+	RenderUpdateTextData taskData;
+	taskData.color = vx::float3(1, 1, 1);
+	taskData.position = vx::float2(1, 1);
+	taskData.strSize = snprintf(taskData.text, sizeof(taskData.text), "visible lights: %u", m_visibleLightCount);
+	renderAspect->queueUpdate(RenderUpdateTaskType::UpdateText, (u8*)&taskData, sizeof(taskData));
 }
 
 void LightManager::addStaticMeshInstance(const D3D12_DRAW_INDEXED_ARGUMENTS &cmd, const AABB &bounds, UploadManager* uploadManager)

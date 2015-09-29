@@ -62,14 +62,14 @@ void RenderLayerPerfOverlay::createRenderPasses()
 	m_renderPasses.insert(vx::make_sid("RenderPassText"), std::unique_ptr<RenderPass>(new RenderPassText(&m_allocator, m_device)));
 }
 
-void RenderLayerPerfOverlay::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs)
+void RenderLayerPerfOverlay::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount)
 {
 	auto device = m_device->getDevice();
-	m_textRenderer.getRequiredMemory(heapSizeBuffer, heapSizeTexture, device, RenderLayerPerfOverlayCpp::g_maxCharacters);
+	m_textRenderer.getRequiredMemory(heapSizeBuffer, bufferCount, heapSizeTexture, textureCount, device, RenderLayerPerfOverlayCpp::g_maxCharacters);
 
 	for (auto &it : m_renderPasses)
 	{
-		it->getRequiredMemory(heapSizeBuffer, heapSizeTexture, heapSizeRtDs, device);
+		it->getRequiredMemory(heapSizeBuffer, bufferCount, heapSizeTexture, textureCount, heapSizeRtDs, rtDsCount, device);
 	}
 }
 

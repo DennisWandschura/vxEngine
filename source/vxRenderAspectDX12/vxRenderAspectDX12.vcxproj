@@ -165,7 +165,7 @@
     <ClInclude Include="RenderLayerGame.h" />
     <ClInclude Include="RenderLayerPerfOverlay.h" />
     <ClInclude Include="RenderPassBlurVoxel.h" />
-    <ClInclude Include="RenderPassConeTrace.h" />
+    <ClInclude Include="RenderPassRenderLpv.h" />
     <ClInclude Include="RenderPassCullLights.h" />
     <ClInclude Include="RenderPassDrawVoxel.h" />
     <ClInclude Include="RenderPassFinal.h" />
@@ -178,7 +178,6 @@
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="dllExport.h" />
-    <ClInclude Include="Freelist.h" />
     <ClInclude Include="RenderPassGBuffer.h" />
     <ClInclude Include="GpuLight.h" />
     <ClInclude Include="GpuMath.h" />
@@ -244,7 +243,7 @@
     <ClCompile Include="RenderLayerPerfOverlay.cpp" />
     <ClCompile Include="RenderPassAo.cpp" />
     <ClCompile Include="RenderPassBlurVoxel.cpp" />
-    <ClCompile Include="RenderPassConeTrace.cpp" />
+    <ClCompile Include="RenderPassRenderLpv.cpp" />
     <ClCompile Include="RenderPassCullLights.cpp" />
     <ClCompile Include="RenderPassDrawVoxel.cpp" />
     <ClCompile Include="RenderPassFilterRSM.cpp" />
@@ -274,22 +273,12 @@
     <ClCompile Include="UploadManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="ConeTracePS.hlsl">
+    <FxCompile Include="RenderLpvPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="ConeTraceVS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="ConeTraceOpacityPS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="ConeTraceOpacityVS.hlsl">
+    <FxCompile Include="RenderLpvVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>

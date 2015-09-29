@@ -50,11 +50,11 @@ MaterialManager::~MaterialManager()
 
 }
 
-void MaterialManager::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void MaterialManager::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* heapSizeTexture, u32* textureCount, ID3D12Device* device)
 {
-	m_texturesSrgba.getRequiredMemory(dimSrgb, DXGI_FORMAT_BC7_UNORM_SRGB, heapSizeTexture, device);
+	m_texturesSrgba.getRequiredMemory(dimSrgb, DXGI_FORMAT_BC7_UNORM_SRGB, heapSizeTexture, textureCount, device);
 
-	m_texturesRgba.getRequiredMemory(dimRgb, DXGI_FORMAT_BC7_UNORM, heapSizeTexture, device);
+	m_texturesRgba.getRequiredMemory(dimRgb, DXGI_FORMAT_BC7_UNORM, heapSizeTexture, textureCount, device);
 }
 
 bool MaterialManager::initialize(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, vx::StackAllocator* allocator, d3d::ResourceManager* resourceManager, ID3D12Device* device)

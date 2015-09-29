@@ -71,7 +71,7 @@ namespace Graphics
 
 	}
 
-	void TextRenderer::getRequiredMemory(u64* bufferSize, u64* textureSize, ID3D12Device* device, u32 maxCharacters)
+	void TextRenderer::getRequiredMemory(u64* bufferSize, u32* bufferCount, u64* textureSize, u32*textureCount, ID3D12Device* device, u32 maxCharacters)
 	{
 		const auto verticesPerCharacter = 4u;
 		auto totalVertexCount = verticesPerCharacter * maxCharacters;
@@ -87,6 +87,9 @@ namespace Graphics
 
 		*textureSize += fontTexAllocInfo.SizeInBytes;
 		*bufferSize += d3d::getAlignedSize(vertexSizeInBytes, 64llu KBYTE) + d3d::getAlignedSize(indexSizeInBytes, 64llu KBYTE);
+
+		*bufferCount += 2;
+		*textureCount += 1;
 	}
 
 	bool TextRenderer::createData(ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, u32 maxCharacters)

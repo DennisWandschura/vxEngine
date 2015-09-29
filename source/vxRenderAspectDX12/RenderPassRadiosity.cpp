@@ -17,7 +17,7 @@ RenderPassRadiosity::~RenderPassRadiosity()
 
 }
 
-void RenderPassRadiosity::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassRadiosity::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	D3D12_RESOURCE_DESC resDesc[2];
 	resDesc[0].Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -37,6 +37,7 @@ void RenderPassRadiosity::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTe
 
 	auto info =  device->GetResourceAllocationInfo(1, 2, resDesc);
 	*heapSizeRtDs += info.SizeInBytes;
+	*rtDsCount += 2;
 }
 
 bool RenderPassRadiosity::createData(ID3D12Device* device)

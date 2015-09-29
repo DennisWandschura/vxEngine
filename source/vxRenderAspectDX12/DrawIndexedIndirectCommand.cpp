@@ -29,13 +29,14 @@ DrawIndexedIndirectCommand::~DrawIndexedIndirectCommand()
 
 }
 
-void DrawIndexedIndirectCommand::getRequiredMemory(u32 maxCount, u64* bufferHeapSize)
+void DrawIndexedIndirectCommand::getRequiredMemory(u32 maxCount, u64* bufferHeapSize, u32* bufferCount)
 {
 	auto cmdSize = d3d::getAlignedSize(sizeof(D3D12_DRAW_INDEXED_ARGUMENTS) * maxCount, 256llu);
 
 	auto bufferSize = d3d::getAlignedSize(cmdSize + 256llu, 64llu KBYTE);
 
 	*bufferHeapSize += bufferSize;
+	*bufferCount += 1;
 }
 
 bool DrawIndexedIndirectCommand::createSignature(ID3D12Device* device)

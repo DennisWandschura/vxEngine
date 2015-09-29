@@ -44,7 +44,6 @@ class RenderPassShadow : public RenderPassLight
 	d3d::DescriptorHeap m_heapDsv;
 	d3d::DescriptorHeap m_heapRtv;
 	d3d::DescriptorHeap m_heapSrv;
-	d3d::DescriptorHeap m_heapUav;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
@@ -56,7 +55,7 @@ public:
 	RenderPassShadow(d3d::CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd);
 	~RenderPassShadow();
 
-	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 

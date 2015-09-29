@@ -57,7 +57,7 @@ public:
 	MaterialManager();
 	~MaterialManager();
 
-	void getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device);
+	void getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* heapSizeTexture, u32* textureCount, ID3D12Device* device);
 
 	bool initialize(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, vx::StackAllocator* allocator, d3d::ResourceManager* resourceManager, ID3D12Device* device);
 	void shutdown();

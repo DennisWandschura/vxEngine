@@ -130,11 +130,12 @@ void RenderPassGBuffer::createTextureDescriptions()
 	m_coldData->resDescs[ColdData::TextureIndex::Surface].Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 }
 
-void RenderPassGBuffer::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassGBuffer::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	auto allocInfo = device->GetResourceAllocationInfo(1, ColdData::TextureCount, m_coldData->resDescs);
 
 	*heapSizeRtDs += allocInfo.SizeInBytes;
+	*rtDsCount += ColdData::TextureCount;
 }
 
 bool RenderPassGBuffer::loadShaders(d3d::ShaderManager* shaderManager)

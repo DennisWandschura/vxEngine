@@ -82,7 +82,7 @@ public:
 	GpuProfiler();
 	~GpuProfiler();
 
-	void getRequiredMemory(u32 maxQueries, u64* bufferHeapSize);
+	void getRequiredMemory(u32 maxQueries, u64* bufferHeapSize, u32* bufferCount);
 
 	bool initialize(u32 maxQueries, d3d::ResourceManager* resourceManager, ID3D12Device* device, ID3D12CommandQueue* cmdQueue, const vx::float2 &position);
 	void shutdown();

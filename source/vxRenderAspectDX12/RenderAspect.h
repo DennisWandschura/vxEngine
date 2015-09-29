@@ -71,7 +71,7 @@ class RenderAspect : public RenderAspectInterface
 	vx::MessageManager* m_msgManager;
 	d3d::ShaderManager m_shaderManager;
 
-	void getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u64* textureHeapSize, u64* rtDsHeapSize);
+	void getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u32* bufferCount, u64* textureHeapSize, u32* textureCount, u64* rtDsHeapSize, u32* rtDsCount);
 
 	bool createConstantBuffers();
 	void uploadStaticCameraData();

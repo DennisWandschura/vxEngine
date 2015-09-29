@@ -24,12 +24,13 @@ RenderPassShading::~RenderPassShading()
 }
 
 
-void RenderPassShading::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassShading::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	d3d::ResourceDesc resDesc = d3d::ResourceDesc::getDescTexture2D(s_resolution, DXGI_FORMAT_R16G16B16A16_FLOAT, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	auto alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	*heapSizeRtDs += alloc.SizeInBytes;
+	*rtDsCount += 1;
 }
 
 bool RenderPassShading::createData(ID3D12Device* device)

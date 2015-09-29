@@ -81,7 +81,7 @@ namespace Graphics
 
 		bool createData(ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, u32 maxCharacters);
 
-		void getRequiredMemory(u64* bufferSize, u64* textureSize, ID3D12Device* device, u32 maxCharacters);
+		void getRequiredMemory(u64* bufferSize, u32* bufferCount, u64* textureSize, u32*textureCount, ID3D12Device* device, u32 maxCharacters);
 
 		bool initialize(vx::StackAllocator* scratchAllocator, const void* p);
 		void shutdown();

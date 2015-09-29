@@ -20,7 +20,7 @@ RenderPassVoxelize::~RenderPassVoxelize()
 
 }
 
-void RenderPassVoxelize::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassVoxelize::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	auto resolution = s_settings->m_lpvDim * 4;
 
@@ -40,6 +40,7 @@ void RenderPassVoxelize::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTex
 	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	*heapSizeRtDs += allocInfo.SizeInBytes;
+	*rtDsCount += 1;
 }
 
 bool RenderPassVoxelize::createData(ID3D12Device* device)

@@ -18,7 +18,7 @@ RenderPassSSIL::~RenderPassSSIL()
 }
 
 
-void RenderPassSSIL::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassSSIL::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	D3D12_RESOURCE_DESC resDesc;
 	resDesc.Alignment = 64 KBYTE;
@@ -36,6 +36,7 @@ void RenderPassSSIL::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture
 	auto alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	*heapSizeRtDs += alloc.SizeInBytes;
+	*rtDsCount += 1;
 }
 
 bool RenderPassSSIL::createData(ID3D12Device* device)

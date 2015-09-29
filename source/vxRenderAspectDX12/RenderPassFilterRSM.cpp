@@ -41,14 +41,13 @@ RenderPassFilterRSM::~RenderPassFilterRSM()
 
 }
 
-void RenderPassFilterRSM::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassFilterRSM::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
-	const u32 textureCount = 10;
-	const u32 resolution0 = 256;
+	const u32 resolution0 = s_settings->m_shadowDim;
 
 	D3D12_RESOURCE_DESC resDesc;
 	resDesc.Alignment = 64 KBYTE;
-	resDesc.DepthOrArraySize = textureCount * 6;
+	resDesc.DepthOrArraySize = s_settings->m_shadowCastingLightCount * 6;
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	resDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 	resDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -68,6 +67,7 @@ void RenderPassFilterRSM::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTe
 	auto allocDepth = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	*heapSizeRtDs += allocColor0.SizeInBytes + allocNormal0.SizeInBytes + allocDepth.SizeInBytes;
+	*rtDsCount += 3;
 }
 
 bool RenderPassFilterRSM::createData(ID3D12Device* device)

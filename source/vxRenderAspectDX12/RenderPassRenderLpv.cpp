@@ -1,38 +1,64 @@
-#include "RenderPassConeTrace.h"
+/*
+The MIT License (MIT)
+
+Copyright (c) 2015 Dennis Wandschura
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+#include "RenderPassRenderLpv.h"
 #include "CommandAllocator.h"
 #include "ShaderManager.h"
 #include "ResourceManager.h"
 #include "GpuVoxel.h"
 #include "ResourceDesc.h"
 #include "GpuProfiler.h"
+#include <vxLib/string.h>
 
-RenderPassConeTrace::RenderPassConeTrace(d3d::CommandAllocator* cmdAlloc)
+RenderPassRenderLpv::RenderPassRenderLpv(d3d::CommandAllocator* cmdAlloc)
 	:m_commandList(),
 	m_cmdAlloc(cmdAlloc)
 {
 
 }
 
-RenderPassConeTrace::~RenderPassConeTrace()
+RenderPassRenderLpv::~RenderPassRenderLpv()
 {
 
 }
 
-
-void RenderPassConeTrace::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassRenderLpv::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	d3d::ResourceDesc resDesc = d3d::ResourceDesc::getDescTexture2D(s_resolution, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	auto alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	*heapSizeRtDs += alloc.SizeInBytes;
+	*rtDsCount += 1;
 }
 
-bool RenderPassConeTrace::createData(ID3D12Device* device)
+bool RenderPassRenderLpv::createData(ID3D12Device* device)
 {
 	d3d::ResourceDesc resDesc = d3d::ResourceDesc::getDescTexture2D(s_resolution, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	auto alloc = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
-	D3D12_CLEAR_VALUE clearValue{};
+	D3D12_CLEAR_VALUE clearValue;
+	vx::setZero(&clearValue);
 	clearValue.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	CreateResourceDesc desc;
@@ -48,18 +74,18 @@ bool RenderPassConeTrace::createData(ID3D12Device* device)
 	return true;
 }
 
-bool RenderPassConeTrace::loadShaders()
+bool RenderPassRenderLpv::loadShaders()
 {
-	if (!s_shaderManager->loadShader(L"ConeTraceVS.cso"))
+	if (!s_shaderManager->loadShader(L"RenderLpvVS.cso"))
 		return false;
 
-	if (!s_shaderManager->loadShader(L"ConeTracePS.cso"))
+	if (!s_shaderManager->loadShader(L"RenderLpvPS.cso"))
 		return false;
 
 	return true;
 }
 
-bool RenderPassConeTrace::createRootSignature(ID3D12Device* device)
+bool RenderPassRenderLpv::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangeVS[2];
 	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 3, 0, 0, 0);
@@ -67,7 +93,7 @@ bool RenderPassConeTrace::createRootSignature(ID3D12Device* device)
 
 	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, 0);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 2, 0, 5);
+	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 0, 5);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[2];
 	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
@@ -79,7 +105,7 @@ bool RenderPassConeTrace::createRootSignature(ID3D12Device* device)
 	return m_rootSignature.create(&rootSignatureDesc, device);
 }
 
-bool RenderPassConeTrace::createPipelineState(ID3D12Device* device)
+bool RenderPassRenderLpv::createPipelineState(ID3D12Device* device)
 {
 	auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -87,8 +113,8 @@ bool RenderPassConeTrace::createPipelineState(ID3D12Device* device)
 	inputDesc.depthEnabled = 0;
 	inputDesc.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
 	inputDesc.rootSignature = m_rootSignature.get();
-	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"ConeTraceVS.cso");
-	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"ConeTracePS.cso");
+	inputDesc.shaderDesc.vs = s_shaderManager->getShader(L"RenderLpvVS.cso");
+	inputDesc.shaderDesc.ps = s_shaderManager->getShader(L"RenderLpvPS.cso");
 	inputDesc.rtvCount = 1;
 	inputDesc.rtvFormats = &rtvFormat;
 
@@ -97,7 +123,7 @@ bool RenderPassConeTrace::createPipelineState(ID3D12Device* device)
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
 
-bool RenderPassConeTrace::createRtv(ID3D12Device* device)
+bool RenderPassRenderLpv::createRtv(ID3D12Device* device)
 {
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
@@ -122,7 +148,7 @@ bool RenderPassConeTrace::createRtv(ID3D12Device* device)
 	return true;
 }
 
-bool RenderPassConeTrace::createSrv(ID3D12Device* device)
+bool RenderPassRenderLpv::createSrv(ID3D12Device* device)
 {
 	/*
 	cbuffer VoxelBuffer : register(b0)
@@ -191,7 +217,7 @@ bool RenderPassConeTrace::createSrv(ID3D12Device* device)
 	srvDescVoxel.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvDescVoxel.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDescVoxel.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-	srvDescVoxel.Texture3D.MipLevels = s_settings->m_lpvMip;
+	srvDescVoxel.Texture3D.MipLevels = 1;
 	srvDescVoxel.Texture3D.MostDetailedMip = 0;
 	srvDescVoxel.Texture3D.ResourceMinLODClamp = 0;
 
@@ -199,15 +225,10 @@ bool RenderPassConeTrace::createSrv(ID3D12Device* device)
 	handle.offset(1);
 	device->CreateShaderResourceView(voxelTextureColor->get(), &srvDescVoxel, handle);
 
-	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
-	handle.offset(1);
-	srvDescVoxel.Texture3D.MipLevels = 1;
-	device->CreateShaderResourceView(voxelTextureColor->get(), &srvDescVoxel, handle);
-
 	return true;
 }
 
-bool RenderPassConeTrace::initialize(ID3D12Device* device, void* p)
+bool RenderPassRenderLpv::initialize(ID3D12Device* device, void* p)
 {
 	if (!loadShaders())
 		return false;
@@ -230,12 +251,12 @@ bool RenderPassConeTrace::initialize(ID3D12Device* device, void* p)
 	return true;
 }
 
-void RenderPassConeTrace::shutdown()
+void RenderPassRenderLpv::shutdown()
 {
 
 }
 
-void RenderPassConeTrace::buildCommands()
+void RenderPassRenderLpv::buildCommands()
 {
 	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 	auto voxelTextureOpacity = s_resourceManager->getTexture(L"voxelTextureOpacity");
@@ -267,7 +288,6 @@ void RenderPassConeTrace::buildCommands()
 
 	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureColor->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap.getHandleCpu();
 
@@ -283,7 +303,6 @@ void RenderPassConeTrace::buildCommands()
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 	m_commandList->DrawInstanced(resolution.x / 4, resolution.y / 4, 0, 0);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureOpacity->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(voxelTextureColor->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 
 	s_gpuProfiler->queryEnd(&m_commandList);
@@ -291,7 +310,7 @@ void RenderPassConeTrace::buildCommands()
 	m_commandList->Close();
 }
 
-void RenderPassConeTrace::submitCommands(Graphics::CommandQueue* queue)
+void RenderPassRenderLpv::submitCommands(Graphics::CommandQueue* queue)
 {
 	queue->pushCommandList(&m_commandList);
 }

@@ -34,7 +34,7 @@
 #include "RenderPassDrawVoxel.h"
 #include "RenderPassVoxelize.h"
 #include "RenderPassVoxelMip.h"
-#include "RenderPassConeTrace.h"
+#include "RenderPassRenderLpv.h"
 #include "GpuVoxel.h"
 #include "RenderPassVoxelPropagate.h"
 #include <vxEngineLib/CpuProfiler.h>
@@ -46,43 +46,7 @@ const u32 g_maxMeshInstances{ 128 };
 
 namespace RenderLayerGameCpp
 {
-	D3D12_RESOURCE_DESC getResDescVoxelOpacity(u32 dim)
-	{
-		D3D12_RESOURCE_DESC desc;
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
-		desc.Alignment = 64 KBYTE;
-		desc.Width = dim;
-		desc.Height = dim;
-		desc.DepthOrArraySize = dim;
-		desc.MipLevels = 4;
-		desc.Format = DXGI_FORMAT_R32_UINT;
-		desc.SampleDesc.Count = 1;
-		desc.SampleDesc.Quality = 0;
-		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-
-		return desc;
-	}
-
-	D3D12_RESOURCE_DESC getResDescVoxelColor(u32 dim, u32 mipLevels)
-	{
-		D3D12_RESOURCE_DESC desc;
-		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
-		desc.Alignment = 64 KBYTE;
-		desc.Width = dim;
-		desc.Height = dim;
-		desc.DepthOrArraySize = dim * 6;
-		desc.MipLevels = mipLevels;
-		desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
-		desc.SampleDesc.Count = 1;
-		desc.SampleDesc.Quality = 0;
-		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-
-		return desc;
-	}
-
-	D3D12_RESOURCE_DESC getResDescVoxelColorTemp(u32 dim)
+	D3D12_RESOURCE_DESC getResDescVoxelTexture(u32 dim)
 	{
 		D3D12_RESOURCE_DESC desc;
 		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
@@ -92,6 +56,24 @@ namespace RenderLayerGameCpp
 		desc.DepthOrArraySize = dim * 6;
 		desc.MipLevels = 1;
 		desc.Format = DXGI_FORMAT_R8G8B8A8_TYPELESS;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+		desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+		return desc;
+	}
+
+	D3D12_RESOURCE_DESC getResDescLpvTexture(u32 dim)
+	{
+		D3D12_RESOURCE_DESC desc;
+		desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+		desc.Alignment = 64 KBYTE;
+		desc.Width = dim;
+		desc.Height = dim;
+		desc.DepthOrArraySize = dim;
+		desc.MipLevels = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
 		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -109,6 +91,7 @@ RenderLayerGame::RenderLayerGame(const RenderLayerGameDesc &desc)
 	m_camera(desc.m_camera),
 	m_frustum(desc.m_frustum),
 	m_drawCommandMesh(),
+	m_renderAspect(desc.m_renderAspect),
 	m_cpuProfiler(desc.m_cpuProfiler),
 	m_device(desc.m_device),
 	m_uploadManager(desc.m_uploadManager),
@@ -131,6 +114,7 @@ RenderLayerGame::RenderLayerGame(RenderLayerGame &&rhs)
 	m_frustum(rhs.m_frustum),
 	m_lastVoxelCenter(0, 0, 0),
 	m_drawCommandMesh(std::move(m_drawCommandMesh)),
+	m_renderAspect(rhs.m_renderAspect),
 	m_cpuProfiler(rhs.m_cpuProfiler),
 	m_device(rhs.m_device),
 	m_uploadManager(rhs.m_uploadManager),
@@ -161,7 +145,7 @@ void RenderLayerGame::createRenderPasses()
 	insertRenderPass(vx::make_sid("RenderPassZBuffer"), std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassZBufferCreateMipmaps"), std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassAO"), std::make_unique<RenderPassAO>(&m_commandAllocator));
-	insertRenderPass(vx::make_sid("RenderPassConeTrace"), std::make_unique<RenderPassConeTrace>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassRenderLpv"), std::make_unique<RenderPassRenderLpv>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassShading"), std::move(std::make_unique<RenderPassShading>(&m_commandAllocator)));
 	insertRenderPass(vx::make_sid("RenderPassSSIL"), std::make_unique<RenderPassSSIL>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassFinal"), std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
@@ -181,7 +165,7 @@ void RenderLayerGame::createRenderPasses()
 	stage2.pushRenderPass(findRenderPass("RenderPassZBuffer"));
 	stage2.pushRenderPass(findRenderPass("RenderPassZBufferCreateMipmaps"));
 	stage2.pushRenderPass(findRenderPass("RenderPassAO"));
-	stage2.pushRenderPass(findRenderPass("RenderPassConeTrace"));
+	stage2.pushRenderPass(findRenderPass("RenderPassRenderLpv"));
 	stage2.pushRenderPass(findRenderPass("RenderPassShading"));
 	stage2.pushRenderPass(findRenderPass("RenderPassSSIL"));
 	stage2.pushRenderPass(findRenderPass("RenderPassFinal"));
@@ -212,7 +196,7 @@ void RenderLayerGame::createRenderPasses()
 
 	//pushRenderPass(std::make_unique<RenderPassVoxelMip>(&m_commandAllocator));
 
-	/*pushRenderPass(std::make_unique<RenderPassConeTrace>(&m_commandAllocator));
+	/*pushRenderPass(std::make_unique<RenderPassRenderLpv>(&m_commandAllocator));
 
 	auto renderPassShading = std::make_unique<RenderPassShading>(&m_commandAllocator);
 	m_lightManager.addRenderPass(renderPassShading.get());
@@ -224,53 +208,55 @@ void RenderLayerGame::createRenderPasses()
 	pushRenderPass(std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));*/
 }
 
-void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs)
+void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount)
 {
-	m_lightManager.getRequiredMemory(heapSizeBuffer, m_settings->m_gpuLightCount, m_settings->m_shadowCastingLightCount);
+	m_lightManager.getRequiredMemory(heapSizeBuffer, bufferCount, m_settings->m_gpuLightCount, m_settings->m_shadowCastingLightCount);
 
-	m_drawCommandMesh.getRequiredMemory(g_maxMeshInstances, heapSizeBuffer);
+	m_drawCommandMesh.getRequiredMemory(g_maxMeshInstances, heapSizeBuffer, bufferCount);
 
 	auto device = m_device->getDevice();
 	for (auto &it : m_renderPasses)
 	{
-		it->getRequiredMemory(heapSizeBuffer, heapSizeTexture, heapSizeRtDs, device);
+		it->getRequiredMemory(heapSizeBuffer, bufferCount, heapSizeTexture,textureCount, heapSizeRtDs, rtDsCount, device);
 	}
 
-	auto resDescVoxelOpacity = RenderLayerGameCpp::getResDescVoxelOpacity(m_settings->m_lpvDim);
-	auto resDescVoxelColor = RenderLayerGameCpp::getResDescVoxelColor(m_settings->m_lpvDim, m_settings->m_lpvMip);
-	auto voxelOpacityInfo = m_device->getDevice()->GetResourceAllocationInfo(1,1, &resDescVoxelOpacity);
+	auto resDescVoxelColor = RenderLayerGameCpp::getResDescVoxelTexture(m_settings->m_lpvDim);
 	auto voxelColorInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColor);
 
-	auto resDescVoxelColorLast = RenderLayerGameCpp::getResDescVoxelColorTemp(m_settings->m_lpvDim);
-	auto allocInfoVoxelColorLast = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColorLast);
+	auto resDescLpvTexture = RenderLayerGameCpp::getResDescLpvTexture(m_settings->m_lpvDim);
+	auto allocInfoLvpTexture = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescLpvTexture);
 
-	*heapSizeTexture += voxelOpacityInfo.SizeInBytes + voxelColorInfo.SizeInBytes + allocInfoVoxelColorLast.SizeInBytes;
+	*heapSizeTexture += voxelColorInfo.SizeInBytes * 3 + allocInfoLvpTexture.SizeInBytes * 3;
+	*textureCount += 6;
 }
 
 void RenderLayerGame::createGpuObjects()
 {
-	auto resDescVoxelOpacity = RenderLayerGameCpp::getResDescVoxelOpacity(m_settings->m_lpvDim);
-	auto resDescVoxelColor = RenderLayerGameCpp::getResDescVoxelColor(m_settings->m_lpvDim, m_settings->m_lpvMip);
-	auto voxelOpacityInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelOpacity);
-	auto voxelColorInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColor);
-
 	CreateResourceDesc lpvDesc;
 	lpvDesc.clearValue = nullptr;
-	lpvDesc.resDesc = &resDescVoxelOpacity;
-	lpvDesc.size = voxelOpacityInfo.SizeInBytes;
 	lpvDesc.state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
-	m_resourceManager->createTexture(L"voxelTextureOpacity", lpvDesc);
+	{
+		auto resDescVoxelTexture = RenderLayerGameCpp::getResDescVoxelTexture(m_settings->m_lpvDim);
+		auto voxelColorInfo = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelTexture);
+		lpvDesc.resDesc = &resDescVoxelTexture;
+		lpvDesc.size = voxelColorInfo.SizeInBytes;
 
-	lpvDesc.resDesc = &resDescVoxelColor;
-	lpvDesc.size = voxelColorInfo.SizeInBytes;
-	m_resourceManager->createTexture(L"voxelTextureColor", lpvDesc);
+		m_resourceManager->createTexture(L"voxelTextureColor", lpvDesc);
+		m_resourceManager->createTexture(L"voxelTextureColorTmp", lpvDesc);
+		m_resourceManager->createTexture(L"voxelTextureNormals", lpvDesc);
+	}
 
-	auto resDescVoxelColorLast = RenderLayerGameCpp::getResDescVoxelColorTemp(m_settings->m_lpvDim);
-	auto allocInfoVoxelColorLast = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescVoxelColorLast);
-	lpvDesc.resDesc = &resDescVoxelColorLast;
-	lpvDesc.size = allocInfoVoxelColorLast.SizeInBytes;
-	m_resourceManager->createTexture(L"voxelTextureColorTmp", lpvDesc);
+	{
+		auto resDescLpvTexture = RenderLayerGameCpp::getResDescLpvTexture(m_settings->m_lpvDim);
+		auto allocInfoLvpTexture = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescLpvTexture);
+
+		lpvDesc.resDesc = &resDescLpvTexture;
+		lpvDesc.size = allocInfoLvpTexture.SizeInBytes;
+		m_resourceManager->createTexture(L"lpvTextureRed", lpvDesc);
+		m_resourceManager->createTexture(L"lpvTextureGreen", lpvDesc);
+		m_resourceManager->createTexture(L"lpvTextureBlue", lpvDesc);
+	}
 }
 
 bool RenderLayerGame::initialize(vx::StackAllocator* allocator)
@@ -343,7 +329,7 @@ void RenderLayerGame::update()
 	__m128 cameraDirection = { 0, 0, -1, 0 };
 	cameraDirection = vx::quaternionRotation(cameraDirection, cameraRotation);
 
-	m_lightManager.update(cameraPosition, cameraDirection, *m_frustum, m_resourceManager, m_uploadManager);
+	m_lightManager.update(cameraPosition, cameraDirection, *m_frustum, m_resourceManager, m_uploadManager, m_renderAspect);
 
 	auto voxelBuffer = m_resourceManager->getBuffer(L"voxelBuffer");
 

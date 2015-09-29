@@ -40,7 +40,6 @@ class RenderPassInjectRSM : public RenderPassLight
 	u32 m_buildList;
 	d3d::DescriptorHeap m_srvHeap;
 	d3d::DescriptorHeap m_uavClearHeap;
-	d3d::DescriptorHeap m_rtvHeap;;
 
 	bool loadShaders();
 	bool createRootSignature(ID3D12Device* device);
@@ -54,7 +53,7 @@ public:
 	explicit RenderPassInjectRSM(d3d::CommandAllocator* allocator);
 	~RenderPassInjectRSM();
 
-	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 

@@ -15,7 +15,7 @@ RenderPassVoxelMip::~RenderPassVoxelMip()
 
 }
 
-void RenderPassVoxelMip::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassVoxelMip::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 
 }
@@ -29,9 +29,6 @@ bool RenderPassVoxelMip::loadShaders()
 {
 	if (!s_shaderManager->loadShader(L"VoxelMipVS.cso"))
 		return false;
-
-	//if (!s_shaderManager->loadShader("VoxelMipOpacityVS.cso", L"../../lib/VoxelMipOpacityVS.cso", d3d::ShaderType::Vertex))
-	//	return false;
 
 	return true;
 }

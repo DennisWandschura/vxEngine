@@ -52,7 +52,7 @@ public:
 	explicit RenderPassZBufferCreateMipmaps(d3d::CommandAllocator* cmdAlloc);
 	~RenderPassZBufferCreateMipmaps();
 
-	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 

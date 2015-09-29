@@ -45,7 +45,7 @@ namespace Graphics
 }
 
 #include <vxLib/math/Vector.h>
-#include "Freelist.h"
+#include <vxEngineLib/Freelist.h>
 #include "d3d.h"
 #include <vxLib/StringID.h>
 #include <vxLib/Container/sorted_array.h>
@@ -77,7 +77,7 @@ public:
 	TextureManager& operator=(const TextureManager&) = delete;
 	TextureManager& operator=(TextureManager &&rhs);
 
-	void getRequiredMemory(const vx::uint3 &textureDim, u32 dxgiFormat, u64* heapSizeTexture, ID3D12Device* device);
+	void getRequiredMemory(const vx::uint3 &textureDim, u32 dxgiFormat, u64* heapSizeTexture, u32* textureCount, ID3D12Device* device);
 
 	bool initialize(vx::StackAllocator* allocator, const wchar_t* textureId, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::ResourceManager* resourceManager, ID3D12Device* device);
 	void shutdown();

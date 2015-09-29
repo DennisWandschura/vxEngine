@@ -33,7 +33,7 @@ namespace d3d
 #include "DescriptorHeap.h"
 #include "CommandList.h"
 
-class RenderPassConeTrace : public RenderPass
+class RenderPassRenderLpv : public RenderPass
 {
 	d3d::GraphicsCommandList m_commandList;
 	d3d::CommandAllocator* m_cmdAlloc;
@@ -47,10 +47,10 @@ class RenderPassConeTrace : public RenderPass
 	bool createSrv(ID3D12Device* device);
 
 public:
-	explicit RenderPassConeTrace(d3d::CommandAllocator* cmdAlloc);
-	~RenderPassConeTrace();
+	explicit RenderPassRenderLpv(d3d::CommandAllocator* cmdAlloc);
+	~RenderPassRenderLpv();
 
-	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device) override;
+	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 

@@ -34,6 +34,7 @@ class Logfile;
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
 #include "Resource.h"
+#include <vxEngineLib/Freelist.h>
 
 namespace d3d
 {
@@ -43,9 +44,22 @@ namespace d3d
 
 	class ResourceManager
 	{
-		vx::sorted_vector<vx::StringID, Resource> m_buffers;
-		vx::sorted_vector<vx::StringID, Resource> m_textures;
-		vx::sorted_vector<vx::StringID, Resource> m_texturesRtDs;
+		vx::sorted_vector<vx::StringID, u32> m_sortedBuffers;
+		vx::sorted_vector<vx::StringID, u32> m_sortedTextures;
+		vx::sorted_vector<vx::StringID, u32> m_sortedTexturesRtDs;
+
+		std::unique_ptr<Resource[]> m_buffers;
+		std::unique_ptr<Resource[]> m_textures;
+		std::unique_ptr<Resource[]> m_texturesRtDs;
+
+		std::unique_ptr<u32[]> m_bufferIndices;
+		Freelist m_freelistBuffer;
+
+		std::unique_ptr<u32[]> m_textureIndices;
+		Freelist m_freelistTextures;
+
+		std::unique_ptr<u32[]> m_rtDvIndices;
+		Freelist m_freelistRtDv;
 
 		vx::sorted_vector<vx::StringID, D3D12_CONSTANT_BUFFER_VIEW_DESC> m_cbufferViews;
 		vx::sorted_vector<vx::StringID, D3D12_SHADER_RESOURCE_VIEW_DESC> m_srViews;
@@ -62,7 +76,7 @@ namespace d3d
 		ResourceManager();
 		~ResourceManager();
 
-		bool initializeHeaps(u64 heapSizeBuffer, u64 heapSizeTexture, u64 heapSizeRtvDsv, ID3D12Device* device, Logfile* logfile);
+		bool initializeHeaps(u64 heapSizeBuffer, u32 bufferCount, u64 heapSizeTexture, u32 textureCount, u64 heapSizeRtDs, u32 rtDsCount, ID3D12Device* device, Logfile* logfile);
 		void shutdown();
 
 		Resource* createBuffer(const wchar_t* id, u64 size, u32 state, u32 flags = 0);

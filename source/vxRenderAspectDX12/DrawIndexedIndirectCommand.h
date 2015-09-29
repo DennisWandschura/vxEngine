@@ -52,7 +52,7 @@ public:
 	DrawIndexedIndirectCommand(DrawIndexedIndirectCommand &&rhs);
 	~DrawIndexedIndirectCommand();
 
-	void getRequiredMemory(u32 maxCount, u64* bufferHeapSize);
+	void getRequiredMemory(u32 maxCount, u64* bufferHeapSize, u32* bufferCount);
 
 	bool create(const wchar_t* id, u32 maxCount, d3d::ResourceManager* resourceManager, ID3D12Device* device);
 	void destroy();

@@ -46,12 +46,13 @@ RenderPassText::~RenderPassText()
 
 }
 
-void RenderPassText::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassText::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	auto resDesc = d3d::ResourceDesc::getDescTexture2D(s_resolution, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	*heapSizeRtDs += allocInfo.SizeInBytes;
+	*rtDsCount += 1;
 }
 
 bool RenderPassText::createData(ID3D12Device* device)

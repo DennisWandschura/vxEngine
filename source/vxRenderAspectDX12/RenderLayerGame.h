@@ -71,6 +71,7 @@ struct RenderLayerGameDesc
 	DownloadManager* m_downloadManager;
 	RenderSettings* m_settings;
 	CpuProfiler* m_cpuProfiler;
+	RenderAspect* m_renderAspect;
 };
 
 class RenderLayerGame : public Graphics::RenderLayer
@@ -84,6 +85,7 @@ class RenderLayerGame : public Graphics::RenderLayer
 	f32 m_gridCellSize;
 	f32 m_invGridCellSize;
 	vx::int3 m_lastVoxelCenter;
+	RenderAspect* m_renderAspect;
 	CpuProfiler* m_cpuProfiler;
 	DrawIndexedIndirectCommand m_drawCommandMesh;
 	d3d::Device* m_device;
@@ -131,7 +133,7 @@ public:
 
 	void createRenderPasses() override;
 
-	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs) override;
+	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount) override;
 
 	bool initialize(vx::StackAllocator* allocator) override;
 	void shudown() override;

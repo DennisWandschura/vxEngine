@@ -55,12 +55,12 @@ RenderAspect::~RenderAspect()
 {
 }
 
-void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u64* textureHeapSize, u64* rtDsHeapSize)
+void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u32* bufferCount, u64* textureHeapSize, u32* textureCount, u64* rtDsHeapSize, u32* rtDsCount)
 {
 	auto device = m_device.getDevice();
 	for (auto &it : m_activeLayers)
 	{
-		it->getRequiredMemory(bufferHeapSize, textureHeapSize, rtDsHeapSize);
+		it->getRequiredMemory(bufferHeapSize, bufferCount, textureHeapSize, textureCount, rtDsHeapSize, rtDsCount);
 	}
 
 	const u32 cbufferSize = 64u KBYTE;
@@ -68,11 +68,12 @@ void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &
 	const auto transformBufferSize = d3d::AlignedSizeType<vx::TransformGpu, g_maxMeshInstances, 64 KBYTE>::size;
 	const auto materialBufferSize = d3d::AlignedSizeType<u32, g_maxMeshInstances, 64 KBYTE>::size;
 
-	m_materialManager.getRequiredMemory(dimSrgb, dimRgb, bufferHeapSize, textureHeapSize, rtDsHeapSize, device);
+	m_materialManager.getRequiredMemory(dimSrgb, dimRgb, textureHeapSize, textureCount, device);
 
-	m_gpuProfiler.getRequiredMemory(256, bufferHeapSize);
+	m_gpuProfiler.getRequiredMemory(256, bufferHeapSize, bufferCount);
 
 	*bufferHeapSize += cbufferSize + transformBufferSize + materialBufferSize + transformBufferSize;
+	*bufferCount += 4;
 }
 
 bool RenderAspect::createConstantBuffers()
@@ -237,6 +238,7 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	renderLayerGameDesc.m_downloadManager = &m_downloadManager;
 	renderLayerGameDesc.m_settings = &s_settings;
 	renderLayerGameDesc.m_cpuProfiler = m_cpuProfiler;
+	renderLayerGameDesc.m_renderAspect = this;
 	auto renderLayerGame = new RenderLayerGame(renderLayerGameDesc);
 	m_activeLayers.push_back(renderLayerGame);
 
@@ -249,9 +251,10 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 		it->createRenderPasses();
 	}
 
-	getRequiredMemory(textureDimSrgb, textureDimRgb, &bufferHeapSize, &textureHeapSize, &rtDsHeapSize);
+	u32 bufferCount = 0, textureCount = 0, rtDsCount = 0;
+	getRequiredMemory(textureDimSrgb, textureDimRgb, &bufferHeapSize,&bufferCount, &textureHeapSize, &textureCount, &rtDsHeapSize, &rtDsCount);
 
-	if(!m_resourceManager.initializeHeaps(bufferHeapSize, textureHeapSize, rtDsHeapSize, device, errorlog))
+	if(!m_resourceManager.initializeHeaps(bufferHeapSize, bufferCount, textureHeapSize, textureCount, rtDsHeapSize, rtDsCount, device, errorlog))
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 
 	if (!m_materialManager.initialize(textureDimSrgb, textureDimRgb, &m_allocator, &m_resourceManager, device))
@@ -470,14 +473,14 @@ void RenderAspect::queueUpdateCamera(const RenderUpdateCameraData &data)
 
 void RenderAspect::update()
 {
-	m_gpuProfiler.update(this);
-
 	for (auto &it : m_activeLayers)
 	{
 		it->update();
 	}
 
 	m_debug.printDebugMessages();
+
+	m_gpuProfiler.update(this);
 
 	/*auto camPos = m_camera.getPosition();
 	auto camRot = m_camera.getRotation();

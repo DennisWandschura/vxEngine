@@ -35,12 +35,13 @@ GpuProfiler::~GpuProfiler()
 
 }
 
-void GpuProfiler::getRequiredMemory(u32 maxQueries, u64* bufferHeapSize)
+void GpuProfiler::getRequiredMemory(u32 maxQueries, u64* bufferHeapSize, u32* bufferCount)
 {
 	auto sizeInBytes = d3d::getAlignedSize(maxQueries * sizeof(u64), 256llu) * 3 * 2;
 	sizeInBytes = d3d::getAlignedSize(sizeInBytes, 64llu KBYTE);
 
 	*bufferHeapSize += sizeInBytes;
+	*bufferCount += 1;
 }
 
 bool GpuProfiler::initialize(u32 maxQueries, d3d::ResourceManager* resourceManager, ID3D12Device* device, ID3D12CommandQueue* cmdQueue, const vx::float2 &position)
@@ -271,7 +272,9 @@ void GpuProfiler::update(RenderAspect* renderAspect)
 		++entryIndex;
 	}*/
 
-	auto pushUpdateText = [](vx::float2* position, const char* text, RenderAspect* renderAspect)
+	const f32 yOffset = 15.f;
+
+	auto pushUpdateText = [&yOffset](vx::float2* position, const char* text, RenderAspect* renderAspect)
 	{
 		RenderUpdateTextData updateData;
 		updateData.position = *position;
@@ -279,10 +282,10 @@ void GpuProfiler::update(RenderAspect* renderAspect)
 		updateData.color = vx::float3(0, 1, 1);
 		renderAspect->queueUpdate(RenderUpdateTaskType::UpdateText, (u8*)&updateData, sizeof(updateData));
 
-		position->y -= 20.0f;
+		position->y -= yOffset;
 	};
 
-	auto pushUpdateTextTime = [](vx::float2* position, const char* text, f64 timeMs, RenderAspect* renderAspect)
+	auto pushUpdateTextTime = [&yOffset](vx::float2* position, const char* text, f64 timeMs, RenderAspect* renderAspect)
 	{
 		RenderUpdateTextData updateData;
 		updateData.position = *position;
@@ -290,7 +293,7 @@ void GpuProfiler::update(RenderAspect* renderAspect)
 		updateData.color = vx::float3(0, 1, 1);
 		renderAspect->queueUpdate(RenderUpdateTaskType::UpdateText, (u8*)&updateData, sizeof(updateData));
 
-		position->y -= 20.0f;
+		position->y -= yOffset;
 	};
 
 	if (m_entryCount != 0)
@@ -329,27 +332,11 @@ void GpuProfiler::update(RenderAspect* renderAspect)
 			totalTime += timeInMs;
 			waitingTime += timeBetweenInMs;
 
-			position.y -= 20;
+			position.y -= yOffset;
 		}
 
+		pushUpdateText(&position, "--------------------", renderAspect);
 		pushUpdateTextTime(&position, "Total:", totalTime, renderAspect);
 		pushUpdateTextTime(&position, "Waiting:", waitingTime, renderAspect);
 	}
-
-	/*auto frequency = m_frequency;
-	for (u32 i = 0; i < m_entryCount; ++i)
-	{
-		auto &entry = m_entries[i];
-
-		auto ticks = (entry.endTime - entry.startTime) * 1000;
-		auto timeInMs = f64(ticks) / f64(frequency);
-
-		RenderUpdateTextData updateData;
-		updateData.position = position;
-		updateData.strSize = sprintf(updateData.text, "%s %.4f ms", entry.text, timeInMs);
-		updateData.color = vx::float3(0, 1, 1);
-		renderAspect->queueUpdate(RenderUpdateTaskType::UpdateText, (u8*)&updateData, sizeof(updateData));
-
-		position.y -= 20;
-	}*/
 }

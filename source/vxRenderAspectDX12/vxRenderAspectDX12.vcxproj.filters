@@ -114,9 +114,6 @@
     <ClInclude Include="MaterialManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Freelist.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="TextureManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -291,9 +288,6 @@
     <ClInclude Include="RenderPassLight.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPassConeTrace.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderResourceViewDesc.h">
       <Filter>Header Files\d3d</Filter>
     </ClInclude>
@@ -319,6 +313,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RenderPassGBuffer.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPassRenderLpv.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
   </ItemGroup>
@@ -455,9 +452,6 @@
     <ClCompile Include="RenderPassVoxelMip.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPassConeTrace.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPassBlurVoxel.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
@@ -468,6 +462,9 @@
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassGBuffer.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPassRenderLpv.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
@@ -586,20 +583,8 @@
     <FxCompile Include="VoxelMipOpacityVS.hlsl">
       <Filter>Shaders\voxel</Filter>
     </FxCompile>
-    <FxCompile Include="ConeTraceOpacityVS.hlsl">
-      <Filter>Shaders\voxel</Filter>
-    </FxCompile>
-    <FxCompile Include="ConeTraceOpacityPS.hlsl">
-      <Filter>Shaders\voxel</Filter>
-    </FxCompile>
     <FxCompile Include="CreateMipVS.hlsl">
       <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="ConeTraceVS.hlsl">
-      <Filter>Shaders\voxel</Filter>
-    </FxCompile>
-    <FxCompile Include="ConeTracePS.hlsl">
-      <Filter>Shaders\voxel</Filter>
     </FxCompile>
     <FxCompile Include="VoxelInjectPointLight.hlsl">
       <Filter>Shaders\voxel</Filter>
@@ -636,6 +621,12 @@
     </FxCompile>
     <FxCompile Include="CullLightsNewVS.hlsl">
       <Filter>Shaders\cull lights</Filter>
+    </FxCompile>
+    <FxCompile Include="RenderLpvVS.hlsl">
+      <Filter>Shaders\voxel</Filter>
+    </FxCompile>
+    <FxCompile Include="RenderLpvPS.hlsl">
+      <Filter>Shaders\voxel</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

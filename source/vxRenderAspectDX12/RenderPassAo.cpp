@@ -20,7 +20,7 @@ RenderPassAO::~RenderPassAO()
 
 }
 
-void RenderPassAO::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassAO::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	D3D12_RESOURCE_DESC resDesc;
 	resDesc.Alignment = 64 KBYTE;
@@ -38,7 +38,10 @@ void RenderPassAO::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, 
 	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	*heapSizeBuffer += d3d::AlignedSizeType<GpuSaoBuffer, 1, 64 KBYTE>::size;
+	*bufferCount += 1;
+
 	*heapSizeRtDs += allocInfo.SizeInBytes * 2;
+	*rtDsCount += 2;
 }
 
 bool RenderPassAO::createData(ID3D12Device* device)

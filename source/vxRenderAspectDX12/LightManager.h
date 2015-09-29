@@ -34,6 +34,7 @@ struct AABB;
 struct RenderSettings;
 class RenderPassLight;
 class RenderPassCullLights;
+class RenderAspect;
 
 namespace d3d
 {
@@ -54,6 +55,7 @@ class LightManager
 	GpuLight* m_gpuLights;
 	GpuShadowTransform* m_gpuShadowTransforms;
 	GpuShadowTransformReverse* m_gpuShadowReverseTransforms;
+	u32 m_visibleLightCount;
 	u32 m_sceneLightCount;
 	u32 m_maxSceneLightCount;
 	u32 m_maxShadowCastingLights;
@@ -74,13 +76,13 @@ public:
 	LightManager(LightManager &&rhs);
 	~LightManager();
 
-	void getRequiredMemory(u64* heapSizeBuffere, u32 maxSceneLightCount, u32 maxShadowCastingLights);
+	void getRequiredMemory(u64* heapSizeBuffere, u32* bufferCount, u32 maxSceneLightCount, u32 maxShadowCastingLights);
 
 	bool initialize(const RenderSettings &settings, vx::StackAllocator* allocator, u32 maxSceneLightCount, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 
 	bool loadSceneLights(const Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 
-	void __vectorcall update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
+	void __vectorcall update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, RenderAspect* renderAspect);
 
 	void addStaticMeshInstance(const D3D12_DRAW_INDEXED_ARGUMENTS &cmd, const AABB &bounds, UploadManager* uploadManager);
 

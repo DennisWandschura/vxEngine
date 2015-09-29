@@ -61,7 +61,7 @@ TextureManager::~TextureManager()
 	m_entries = nullptr;
 }
 
-void TextureManager::getRequiredMemory(const vx::uint3 &textureDim, u32 dxgiFormat, u64* heapSizeTexture, ID3D12Device* device)
+void TextureManager::getRequiredMemory(const vx::uint3 &textureDim, u32 dxgiFormat, u64* heapSizeTexture, u32* textureCount, ID3D12Device* device)
 {
 	D3D12_RESOURCE_DESC resDesc;
 	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -79,6 +79,7 @@ void TextureManager::getRequiredMemory(const vx::uint3 &textureDim, u32 dxgiForm
 	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
 
 	*heapSizeTexture += allocInfo.SizeInBytes;
+	*textureCount += 1;
 }
 
 bool TextureManager::createTextureBuffer(const wchar_t* id, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::ResourceManager* resourceManager, ID3D12Device* device)

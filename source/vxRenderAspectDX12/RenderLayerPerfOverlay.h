@@ -61,7 +61,7 @@ public:
 
 	void createRenderPasses() override;
 
-	void getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs) override;
+	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount) override;
 
 	bool initialize(vx::StackAllocator* allocator) override;
 	void shudown() override;

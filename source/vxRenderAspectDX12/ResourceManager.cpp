@@ -6,19 +6,6 @@
 
 namespace d3d
 {
-	namespace ResourceManagerCpp
-	{
-		template<typename T>
-		void destroyResourceArray(T* src)
-		{
-			for (auto &it : *src)
-			{
-				it.destroy();
-			}
-			src->clear();
-		}
-	}
-
 	ResourceManager::ResourceManager()
 		:m_buffers(),
 		m_textures(),
@@ -69,10 +56,25 @@ namespace d3d
 		return true;
 	}
 
-	bool ResourceManager::initializeHeaps(u64 heapSizeBuffer, u64 heapSizeTexture, u64 heapSizeRtDs, ID3D12Device* device, Logfile* logfile)
+	bool ResourceManager::initializeHeaps(u64 heapSizeBuffer, u32 bufferCount, u64 heapSizeTexture, u32 textureCount, u64 heapSizeRtDs, u32 rtDsCount, ID3D12Device* device, Logfile* logfile)
 	{
 		if (!createHeaps(heapSizeBuffer, heapSizeTexture, heapSizeRtDs, device))
 			return false;
+
+		m_buffers = std::make_unique<Resource[]>(bufferCount);
+		m_bufferIndices = std::make_unique<u32[]>(bufferCount);
+		m_freelistBuffer.create((u8*)m_bufferIndices.get(), bufferCount, sizeof(u32));
+		m_sortedBuffers.reserve(bufferCount);
+
+		m_textures = std::make_unique<Resource[]>(textureCount);
+		m_textureIndices = std::make_unique<u32[]>(textureCount);
+		m_freelistTextures.create((u8*)m_textureIndices.get(), textureCount, sizeof(u32));
+		m_sortedTextures.reserve(textureCount);
+
+		m_texturesRtDs = std::make_unique<Resource[]>(rtDsCount);
+		m_rtDvIndices = std::make_unique<u32[]>(rtDsCount);
+		m_freelistRtDv.create((u8*)m_rtDvIndices.get(), rtDsCount, sizeof(u32));
+		m_sortedTexturesRtDs.reserve(rtDsCount);
 
 		m_logfile = logfile;
 
@@ -81,9 +83,23 @@ namespace d3d
 
 	void ResourceManager::shutdown()
 	{
-		ResourceManagerCpp::destroyResourceArray(&m_buffers);
-		ResourceManagerCpp::destroyResourceArray(&m_textures);
-		ResourceManagerCpp::destroyResourceArray(&m_texturesRtDs);
+		for (auto &it : m_sortedBuffers)
+		{
+			m_buffers[it].destroy();
+		}
+		m_sortedBuffers.clear();
+
+		for (auto &it : m_sortedTextures)
+		{
+			m_textures[it].destroy();
+		}
+		m_sortedTextures.clear();
+
+		for (auto &it : m_sortedTexturesRtDs)
+		{
+			m_texturesRtDs[it].destroy();
+		}
+		m_sortedTexturesRtDs.clear();
 
 		m_bufferHeap.destroy();
 		m_textureHeap.destroy();
@@ -104,23 +120,27 @@ namespace d3d
 
 			if (m_bufferHeap.createResourceBuffer(resDesc))
 			{
-				auto sid = vx::make_sid(id);
-				auto it = m_buffers.insert(std::move(sid), Resource(std::move(buffer), resDesc.state));
-				ptr = (&*it);
+				auto ptrFreelist = (u32*)m_freelistBuffer.insertEntry((u8*)m_bufferIndices.get(), sizeof(u32));
+				u32 index = ptrFreelist - m_bufferIndices.get();
 
-				ptr->SetName(id);
+				auto sid = vx::make_sid(id);
+				auto resource = Resource(std::move(buffer), resDesc.state);
+				resource->SetName(id);
+
+				m_sortedBuffers.insert(sid, index);
+
+				m_buffers[index] = std::move(resource);
+				ptr = &m_buffers[index];
 
 				char buffer[64];
-				auto sz = sprintf(buffer, "Buffer %ws %p\n", id, (*ptr).get());
+				auto sz = snprintf(buffer, 64, "Buffer %ws %p\n", id, (*ptr).get());
 				if (sz < 64)
 				{
 					m_logfile->append(buffer, sz);
 				}
 				else
 				{
-					puts("");
 				}
-				//printf("Buffer %ws %p\n", id, (*ptr).get());
 			}
 		}
 		else
@@ -142,13 +162,17 @@ namespace d3d
 			resDesc.resource = texture.getAddressOf();
 			if (m_textureHeap.createResource(resDesc))
 			{
+				auto ptrFreelist = (u32*)m_freelistTextures.insertEntry((u8*)m_textureIndices.get(), sizeof(u32));
+				u32 index = ptrFreelist - m_textureIndices.get();
+
+				auto resource = Resource(std::move(texture), desc.state);
+				resource->SetName(id);
+
+				m_textures[index] = std::move(resource);
+				ptr = &m_textures[index];
+
 				auto sid = vx::make_sid(id);
-
-				auto it = m_textures.insert(std::move(sid), Resource(std::move(texture), desc.state));
-				ptr = &(*it);
-				ptr->SetName(id);
-
-				//printf("Texture %ws %p\n", id, (*ptr).get());
+				m_sortedTextures.insert(std::move(sid), index);
 			}
 		}
 		else
@@ -170,10 +194,17 @@ namespace d3d
 			resDesc.resource = texture.getAddressOf();
 			if (m_rtDsHeap.createResource(resDesc))
 			{
+				auto ptrFreelist = (u32*)m_freelistRtDv.insertEntry((u8*)m_rtDvIndices.get(), sizeof(u32));
+				u32 index = ptrFreelist - m_rtDvIndices.get();
+
+				auto resource = Resource(std::move(texture), desc.state);
+				resource->SetName(id);
+
+				m_texturesRtDs[index] = std::move(resource);
+				ptr = &m_texturesRtDs[index];
+
 				auto sid = vx::make_sid(id);
-				auto it = m_texturesRtDs.insert(std::move(sid), Resource(std::move(texture), desc.state));
-				ptr = (&*it);
-				ptr->SetName(id);
+				m_sortedTexturesRtDs.insert(sid, index);
 			}
 		}
 		else
@@ -210,9 +241,9 @@ namespace d3d
 
 	Resource* ResourceManager::getBuffer(const vx::StringID &sid)
 	{
-		auto it = m_buffers.find(sid);
+		auto it = m_sortedBuffers.find(sid);
 
-		return (it != m_buffers.end()) ? &(*it) : nullptr;
+		return (it != m_sortedBuffers.end()) ? &m_buffers[*it] : nullptr;
 	}
 
 	Resource* ResourceManager::getTexture(const wchar_t* id)
@@ -223,9 +254,9 @@ namespace d3d
 
 	Resource* ResourceManager::getTexture(const vx::StringID &sid)
 	{
-		auto it = m_textures.find(sid);
+		auto it = m_sortedTextures.find(sid);
 
-		return (it != m_textures.end()) ? &(*it) : nullptr;
+		return (it != m_sortedTextures.end()) ? &m_textures[*it] : nullptr;
 	}
 
 	Resource* ResourceManager::getTextureRtDs(const wchar_t* id)
@@ -236,9 +267,9 @@ namespace d3d
 
 	Resource* ResourceManager::getTextureRtDs(const vx::StringID &sid)
 	{
-		auto it = m_texturesRtDs.find(sid);
+		auto it = m_sortedTexturesRtDs.find(sid);
 
-		return (it != m_texturesRtDs.end()) ? &(*it) : nullptr;
+		return (it != m_sortedTexturesRtDs.end()) ? &m_texturesRtDs[*it] : nullptr;
 	}
 
 	const ResourceView* ResourceManager::getResourceView(const char* id) const

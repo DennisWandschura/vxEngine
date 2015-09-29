@@ -25,8 +25,6 @@ struct PSOut
 Texture2DArray g_srgb : register(t4);
 SamplerState g_sampler : register(s0);
 
-RWTexture3D<uint> g_voxelTextureDiffuse : register(u3);
-
 cbuffer VoxelBuffer : register(b2)
 {
 	GpuVoxel g_voxel;

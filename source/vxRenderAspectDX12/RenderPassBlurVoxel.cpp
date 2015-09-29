@@ -43,12 +43,13 @@ RenderPassBlurVoxel::~RenderPassBlurVoxel()
 
 }
 
-void RenderPassBlurVoxel::getRequiredMemory(u64* heapSizeBuffer, u64* heapSizeTexture, u64* heapSizeRtDs, ID3D12Device* device)
+void RenderPassBlurVoxel::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device)
 {
 	auto blurTargetDesc = d3d::ResourceDesc::getDescTexture2D(s_resolution, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	auto blurAllocInfo = device->GetResourceAllocationInfo(1, 1,&blurTargetDesc);
 
 	*heapSizeRtDs += blurAllocInfo.SizeInBytes * 2;
+	*rtDsCount += 2;
 }
 
 bool RenderPassBlurVoxel::createData(ID3D12Device* device)
