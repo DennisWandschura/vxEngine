@@ -32,12 +32,12 @@
 #include "RenderPassFilterRSM.h"
 #include "RenderPassInjectRSM.h"
 #include "RenderPassDrawVoxel.h"
-#include "RenderPassVoxelize.h"
 #include "RenderPassVoxelMip.h"
 #include "RenderPassRenderLpv.h"
 #include "GpuVoxel.h"
 #include "RenderPassVoxelPropagate.h"
 #include <vxEngineLib/CpuProfiler.h>
+#include "RenderPassCreateVpl.h"
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
@@ -73,7 +73,7 @@ namespace RenderLayerGameCpp
 		desc.Height = dim;
 		desc.DepthOrArraySize = dim;
 		desc.MipLevels = 1;
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
 		desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -139,7 +139,6 @@ void RenderLayerGame::createRenderPasses()
 	insertRenderPass(vx::make_sid("RenderPassGBuffer"), std::make_unique<RenderPassGBuffer>(&m_commandAllocator, &m_drawCommandMesh));
 	insertRenderPass(vx::make_sid("RenderPassCullLights"), std::make_unique<RenderPassCullLights>(&m_commandAllocator, m_downloadManager));
 	insertRenderPass(vx::make_sid("RenderPassShadow"), std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh));
-	//insertRenderPass(vx::make_sid("RenderPassVoxelize"), std::make_unique<RenderPassVoxelize>(&m_commandAllocator, &m_drawCommandMesh));
 	insertRenderPass(vx::make_sid("RenderPassInjectRSM"), std::make_unique<RenderPassInjectRSM>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassVoxelPropagate"), std::make_unique<RenderPassVoxelPropagate>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassZBuffer"), std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
@@ -149,16 +148,17 @@ void RenderLayerGame::createRenderPasses()
 	insertRenderPass(vx::make_sid("RenderPassShading"), std::move(std::make_unique<RenderPassShading>(&m_commandAllocator)));
 	insertRenderPass(vx::make_sid("RenderPassSSIL"), std::make_unique<RenderPassSSIL>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassFinal"), std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
+	insertRenderPass(vx::make_sid("RenderPassCreateVpl"), std::make_unique<RenderPassCreateVpl>(&m_commandAllocator));
 
 	RenderStage stage0;
 	stage0.pushRenderPass(findRenderPass("RenderPassGBuffer"));
 	stage0.pushRenderPass(findRenderPass("RenderPassCullLights"));
 	stage0.pushRenderPass(findRenderPass("RenderPassShadow"));
-	//stage0.pushRenderPass(findRenderPass("RenderPassVoxelize"));
 	//stage0.pushRenderPass(findRenderPass("RenderPassFilterRSM"));
 	stage0.pushRenderPass(findRenderPass("RenderPassInjectRSM"));
 
 	RenderStage stage1;
+	stage1.pushRenderPass(findRenderPass("RenderPassCreateVpl"));
 	stage1.pushRenderPass(findRenderPass("RenderPassVoxelPropagate"));
 
 	RenderStage stage2;
@@ -226,8 +226,8 @@ void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u
 	auto resDescLpvTexture = RenderLayerGameCpp::getResDescLpvTexture(m_settings->m_lpvDim);
 	auto allocInfoLvpTexture = m_device->getDevice()->GetResourceAllocationInfo(1, 1, &resDescLpvTexture);
 
-	*heapSizeTexture += voxelColorInfo.SizeInBytes * 3 + allocInfoLvpTexture.SizeInBytes * 3;
-	*textureCount += 6;
+	*heapSizeTexture += voxelColorInfo.SizeInBytes * 2 + allocInfoLvpTexture.SizeInBytes * 3 * 2;
+	*textureCount += 8;
 }
 
 void RenderLayerGame::createGpuObjects()
@@ -243,7 +243,6 @@ void RenderLayerGame::createGpuObjects()
 		lpvDesc.size = voxelColorInfo.SizeInBytes;
 
 		m_resourceManager->createTexture(L"voxelTextureColor", lpvDesc);
-		m_resourceManager->createTexture(L"voxelTextureColorTmp", lpvDesc);
 		m_resourceManager->createTexture(L"voxelTextureNormals", lpvDesc);
 	}
 
@@ -256,6 +255,10 @@ void RenderLayerGame::createGpuObjects()
 		m_resourceManager->createTexture(L"lpvTextureRed", lpvDesc);
 		m_resourceManager->createTexture(L"lpvTextureGreen", lpvDesc);
 		m_resourceManager->createTexture(L"lpvTextureBlue", lpvDesc);
+
+		m_resourceManager->createTexture(L"lpvTextureRedTmp", lpvDesc);
+		m_resourceManager->createTexture(L"lpvTextureGreenTmp", lpvDesc);
+		m_resourceManager->createTexture(L"lpvTextureBlueTmp", lpvDesc);
 	}
 }
 

@@ -59,21 +59,27 @@ VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 	float2 texCoord = float2(texelCoord) / float2(w, h);
 	float2 screenPos = texCoord * float2(2, -2) - float2(1, -1);
 
+	float3 normal = g_normals.Load(int4(texelCoord, arrayIndex, 0)).rgb;
+
 	float4x4 invPvMatrix = g_shadowTransforms[g_lightIndex].invPvMatrix[g_cubeIndex];
 	float4 wsPosition = mul(invPvMatrix, float4(screenPos, depth, 1));
 
+	// shift gridposition by half cell size
+	//wsPosition.xyz += g_voxel.gridCellSize * 0.5 * normal;
+
 	float3 offset = (wsPosition.xyz - g_voxel.gridCenter.xyz) * g_voxel.invGridCellSize;
-	int3 gridPosition = int3(offset)+g_voxel.halfDim;
+	int3 gridPosition = int3(offset) + g_voxel.halfDim;
 
 	float3 color = g_color.Load(int4(texelCoord, arrayIndex, 0)).rgb;
-	float3 normal = g_normals.Load(int4(texelCoord, arrayIndex, 0)).rgb;
 
 	VSOutput output;
 	output.position = float4(screenPos, 0, 1);
 	
 	output.axis = g_voxelAxis[g_cubeIndex];
 	output.color = color;
-	output.normal = float4(normal, dot(g_swizzleVector[g_cubeIndex / 2], abs(normal)));
+
+	float tmp = abs(dot(g_swizzleVector[g_cubeIndex / 2], normal));
+	output.normal = float4(normal, tmp);
 
 	if (!isPointInGrid(gridPosition))
 	{

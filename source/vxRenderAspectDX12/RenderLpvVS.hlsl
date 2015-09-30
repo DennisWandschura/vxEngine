@@ -6,7 +6,7 @@ struct VSOutput
 {
 	float4 pos : SV_POSITION;
 	uint2 texelPos : POSITION0;
-	int3 voxelPosition : POSITION1;
+	float3 fVoxelPosition : POSITION1;
 	float3 wsPosition : POSITION2;
 	float3 wsNormal : NORMAL0;
 };
@@ -71,17 +71,17 @@ VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 	vsNormal = normalize(vsNormal);
 	float3 wsNormal = mul(g_camera.invViewMatrix, float4(vsNormal, 0)).xyz;
 
-	float3 offset = floor(wsPosition * g_voxel.invGridCellSize);
-	float3 center = g_voxel.gridCenter.xyz* g_voxel.invGridCellSize;
-	int3 voxelPosition = int3(offset - center) + g_voxel.halfDim;
+	float3 offset = (wsPosition.xyz - g_voxel.gridCenter.xyz) * g_voxel.invGridCellSize;
+	float3 fVoxelPosition = offset + g_voxel.halfDim;
+	int3 voxelPosition = int3(offset) + g_voxel.halfDim;
 
 	float2 screenPos = texCoord * float2(2, -2) - float2(1, -1);
 
 	VSOutput output;
 	output.pos = float4(screenPos, 0, 1);
 	output.texelPos = texelPos;
-	output.voxelPosition = voxelPosition;
 	output.wsPosition = wsPosition;
+	output.fVoxelPosition = fVoxelPosition;
 	output.wsNormal = wsNormal;
 
 	if (!isPointInGrid(voxelPosition))

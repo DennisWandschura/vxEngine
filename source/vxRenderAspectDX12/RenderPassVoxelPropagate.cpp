@@ -38,15 +38,14 @@ bool RenderPassVoxelPropagate::loadShaders()
 bool RenderPassVoxelPropagate::createRootSignature(ID3D12Device* device)
 {
 	CD3DX12_DESCRIPTOR_RANGE rangeVS[2];
-	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, 0);
-	rangeVS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0, 1);
+	rangeVS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0, 0);
+	rangeVS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 3, 0, 0, 3);
 
-	CD3DX12_ROOT_PARAMETER rootParameters[2];
+	CD3DX12_ROOT_PARAMETER rootParameters[1];
 	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
-	rootParameters[1].InitAsConstants(1, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.Init(2, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	rootSignatureDesc.Init(1, rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	return m_rootSignature.create(&rootSignatureDesc, device);
 }
@@ -69,41 +68,76 @@ bool RenderPassVoxelPropagate::createDescriptorHeap(ID3D12Device* device)
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.NodeMask = 1;
-	desc.NumDescriptors = 4;
+	desc.NumDescriptors = 6 * 2;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	return m_srvHeap.create(desc, device);
 }
 
 void RenderPassVoxelPropagate::createViews(ID3D12Device* device)
 {
-	auto voxelTextureColorTmp = s_resourceManager->getTexture(L"voxelTextureColorTmp");
-	auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
+	auto lpvTextureRed = s_resourceManager->getTexture(L"lpvTextureRed");
+	auto lpvTextureGreen = s_resourceManager->getTexture(L"lpvTextureGreen");
+	auto lpvTextureBlue = s_resourceManager->getTexture(L"lpvTextureBlue");
+
+	auto lpvTextureRedTmp = s_resourceManager->getTexture(L"lpvTextureRedTmp");
+	auto lpvTextureGreenTmp = s_resourceManager->getTexture(L"lpvTextureGreenTmp");
+	auto lpvTextureBlueTmp = s_resourceManager->getTexture(L"lpvTextureBlueTmp");
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvDesc.Texture3D.MipLevels = 1;
 	srvDesc.Texture3D.MostDetailedMip = 0;
 	srvDesc.Texture3D.ResourceMinLODClamp = 0;
 
-	auto handle = m_srvHeap.getHandleCpu();
-	device->CreateShaderResourceView(voxelTextureColorTmp->get(), &srvDesc, handle);
-
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-	uavDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	uavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
 	uavDesc.Texture3D.FirstWSlice = 0;
 	uavDesc.Texture3D.MipSlice = 0;
-	uavDesc.Texture3D.WSize = s_settings->m_lpvDim * 6;
-	handle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureColor->get(), nullptr, &uavDesc, handle);
+	uavDesc.Texture3D.WSize = s_settings->m_lpvDim;
 
-	handle.offset(1);
-	device->CreateShaderResourceView(voxelTextureColor->get(), &srvDesc, handle);
+	auto handle = m_srvHeap.getHandleCpu();
+	{
+		device->CreateShaderResourceView(lpvTextureRed->get(), &srvDesc, handle);
 
-	handle.offset(1);
-	device->CreateUnorderedAccessView(voxelTextureColorTmp->get(), nullptr, &uavDesc, handle);
+		handle.offset(1);
+		device->CreateShaderResourceView(lpvTextureGreen->get(), &srvDesc, handle);
+
+		handle.offset(1);
+		device->CreateShaderResourceView(lpvTextureBlue->get(), &srvDesc, handle);
+
+		handle.offset(1);
+		device->CreateUnorderedAccessView(lpvTextureRedTmp->get(), nullptr, &uavDesc, handle);
+
+		handle.offset(1);
+		device->CreateUnorderedAccessView(lpvTextureGreenTmp->get(), nullptr, &uavDesc, handle);
+
+		handle.offset(1);
+		device->CreateUnorderedAccessView(lpvTextureBlueTmp->get(), nullptr, &uavDesc, handle);
+	}
+
+	{
+		handle.offset(1);
+		device->CreateShaderResourceView(lpvTextureRedTmp->get(), &srvDesc, handle);
+
+		handle.offset(1);
+		device->CreateShaderResourceView(lpvTextureGreenTmp->get(), &srvDesc, handle);
+
+		handle.offset(1);
+		device->CreateShaderResourceView(lpvTextureBlueTmp->get(), &srvDesc, handle);
+
+		handle.offset(1);
+		device->CreateUnorderedAccessView(lpvTextureRed->get(), nullptr, &uavDesc, handle);
+
+		handle.offset(1);
+		device->CreateUnorderedAccessView(lpvTextureGreen->get(), nullptr, &uavDesc, handle);
+
+		handle.offset(1);
+		device->CreateUnorderedAccessView(lpvTextureBlue->get(), nullptr, &uavDesc, handle);
+	}
+	
 }
 
 bool RenderPassVoxelPropagate::initialize(ID3D12Device* device, void* p)
@@ -130,7 +164,6 @@ bool RenderPassVoxelPropagate::initialize(ID3D12Device* device, void* p)
 
 void RenderPassVoxelPropagate::shutdown()
 {
-
 }
 
 void RenderPassVoxelPropagate::buildCommands()
@@ -148,26 +181,50 @@ void RenderPassVoxelPropagate::buildCommands()
 	auto gpuHandle = m_srvHeap.getHandleGpu();
 
 	auto gpuHandle0 = gpuHandle;
-	gpuHandle.offset(2);
+	gpuHandle.offset(6);
 	auto gpuHandle1 = gpuHandle;
+
+	auto lpvTextureRed = s_resourceManager->getTexture(L"lpvTextureRed");
+	auto lpvTextureGreen = s_resourceManager->getTexture(L"lpvTextureGreen");
+	auto lpvTextureBlue = s_resourceManager->getTexture(L"lpvTextureBlue");
+
+	auto lpvTextureRedTmp = s_resourceManager->getTexture(L"lpvTextureRedTmp");
+	auto lpvTextureGreenTmp = s_resourceManager->getTexture(L"lpvTextureGreenTmp");
+	auto lpvTextureBlueTmp = s_resourceManager->getTexture(L"lpvTextureBlueTmp");
 
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	for (u32 i = 0; i < 3; ++i)
 	{
-		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle1);
-		for (u32 axis = 0; axis < 6; ++axis)
-		{
-			m_commandList->SetGraphicsRoot32BitConstant(1, axis, 0);
-			m_commandList->DrawInstanced(dim, dim* dim, 0, 0);
-		}
+		lpvTextureRed->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureGreen->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureBlue->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+		lpvTextureRedTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureGreenTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureBlueTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle0);
-		for (u32 axis = 0; axis < 6; ++axis)
-		{
-			m_commandList->SetGraphicsRoot32BitConstant(1, axis, 0);
-			m_commandList->DrawInstanced(dim, dim* dim, 0, 0);
-		}
+		m_commandList->DrawInstanced(dim, dim* dim, 0, 0);
+
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureRedTmp->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureGreenTmp->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureBlueTmp->get()));
+
+		lpvTextureRed->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureGreen->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureBlue->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+		lpvTextureRedTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureGreenTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureBlueTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle1);
+		m_commandList->DrawInstanced(dim, dim* dim, 0, 0);
+
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureRed->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureGreen->get()));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureBlue->get()));
 	}
 
 	s_gpuProfiler->queryEnd(&m_commandList);

@@ -157,6 +157,7 @@
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GpuLpv.h" />
     <ClInclude Include="GpuProfiler.h" />
+    <ClInclude Include="GpuSH.h" />
     <ClInclude Include="GpuShading.h" />
     <ClInclude Include="GpuShadowTransform.h" />
     <ClInclude Include="GpuVoxel.h" />
@@ -165,6 +166,7 @@
     <ClInclude Include="RenderLayerGame.h" />
     <ClInclude Include="RenderLayerPerfOverlay.h" />
     <ClInclude Include="RenderPassBlurVoxel.h" />
+    <ClInclude Include="RenderPassCreateVpl.h" />
     <ClInclude Include="RenderPassRenderLpv.h" />
     <ClInclude Include="RenderPassCullLights.h" />
     <ClInclude Include="RenderPassDrawVoxel.h" />
@@ -243,6 +245,7 @@
     <ClCompile Include="RenderLayerPerfOverlay.cpp" />
     <ClCompile Include="RenderPassAo.cpp" />
     <ClCompile Include="RenderPassBlurVoxel.cpp" />
+    <ClCompile Include="RenderPassCreateVpl.cpp" />
     <ClCompile Include="RenderPassRenderLpv.cpp" />
     <ClCompile Include="RenderPassCullLights.cpp" />
     <ClCompile Include="RenderPassDrawVoxel.cpp" />
@@ -273,6 +276,11 @@
     <ClCompile Include="UploadManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="CreateVplVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="RenderLpvPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -528,42 +536,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="VoxelizeGS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
-    </FxCompile>
-    <FxCompile Include="VoxelizePS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="VoxelizeVS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="VoxelMipOpacityVS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
     <FxCompile Include="VoxelMipVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="VoxelPropagateVS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="VoxelRenderLightGS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Geometry</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
-    </FxCompile>
-    <FxCompile Include="VoxelRenderLightVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>

@@ -5,6 +5,8 @@
 #define UINT10_MAX 2047
 
 static const float g_PI = 3.141592654;
+static const float g_2PI = 6.283185307;
+static const float g_4PI = 12.5663706143;
 static const float3 g_luminanceVector = float3(0.2126, 0.7152, 0.0722);
 
 float3 quaternionRotation(in float3 v, in float4 q)

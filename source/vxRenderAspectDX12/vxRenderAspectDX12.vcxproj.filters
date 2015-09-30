@@ -82,6 +82,9 @@
     <Filter Include="Shaders\ssgi">
       <UniqueIdentifier>{25fa0de8-ee85-49e4-b4b0-ebf682f09c35}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\vpl">
+      <UniqueIdentifier>{83001473-4b61-4b5b-909b-efed4ce44d52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -318,6 +321,12 @@
     <ClInclude Include="RenderPassRenderLpv.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="RenderPassCreateVpl.h">
+      <Filter>Header Files\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSH.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
@@ -467,6 +476,9 @@
     <ClCompile Include="RenderPassRenderLpv.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
+    <ClCompile Include="RenderPassCreateVpl.cpp">
+      <Filter>Source Files\RenderPass</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PsGBuffer.hlsl">
@@ -571,18 +583,6 @@
     <FxCompile Include="InjectRsmVoxelVS.hlsl">
       <Filter>Shaders\voxel</Filter>
     </FxCompile>
-    <FxCompile Include="VoxelizeVS.hlsl">
-      <Filter>Shaders\voxel</Filter>
-    </FxCompile>
-    <FxCompile Include="VoxelizeGS.hlsl">
-      <Filter>Shaders\voxel</Filter>
-    </FxCompile>
-    <FxCompile Include="VoxelizePS.hlsl">
-      <Filter>Shaders\voxel</Filter>
-    </FxCompile>
-    <FxCompile Include="VoxelMipOpacityVS.hlsl">
-      <Filter>Shaders\voxel</Filter>
-    </FxCompile>
     <FxCompile Include="CreateMipVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -613,20 +613,17 @@
     <FxCompile Include="CullLightsBackVS.hlsl">
       <Filter>Shaders\cull lights</Filter>
     </FxCompile>
-    <FxCompile Include="VoxelRenderLightVS.hlsl">
-      <Filter>Shaders\voxel</Filter>
-    </FxCompile>
-    <FxCompile Include="VoxelRenderLightGS.hlsl">
-      <Filter>Shaders\voxel</Filter>
-    </FxCompile>
     <FxCompile Include="CullLightsNewVS.hlsl">
       <Filter>Shaders\cull lights</Filter>
     </FxCompile>
-    <FxCompile Include="RenderLpvVS.hlsl">
-      <Filter>Shaders\voxel</Filter>
+    <FxCompile Include="CreateVplVS.hlsl">
+      <Filter>Shaders\vpl</Filter>
     </FxCompile>
     <FxCompile Include="RenderLpvPS.hlsl">
-      <Filter>Shaders\voxel</Filter>
+      <Filter>Shaders\vpl</Filter>
+    </FxCompile>
+    <FxCompile Include="RenderLpvVS.hlsl">
+      <Filter>Shaders\vpl</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

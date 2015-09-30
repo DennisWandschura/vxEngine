@@ -12,6 +12,16 @@ struct VSOutput
 RWTexture3D<uint> g_voxelTextureDiffuse : register(u1);
 RWTexture3D<uint> g_voxelTextureNormals : register(u2);
 
+static const float3 g_directions[6] = 
+{
+	float3(1, 0, 0),
+	float3(-1, 0, 0),
+	float3(0, 1, 0),
+	float3(0, -1, 0),
+	float3(0, 0, 1),
+	float3(0, 0, -1)
+};
+
 void main(VSOutput input)
 {
 	float luminance = getLuminance(input.color);
@@ -19,6 +29,6 @@ void main(VSOutput input)
 	uint oldValue;
 	InterlockedMax(g_voxelTextureDiffuse[(uint3)input.gridPosition], packedColor, oldValue);
 
-	uint packedNormal = packR8G8B8A8(input.normal * 0.5 + 0.5);
+	uint packedNormal = packR8G8B8A8(input.normal);
 	InterlockedMax(g_voxelTextureNormals[(uint3)input.gridPosition], packedNormal, oldValue);
 }

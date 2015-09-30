@@ -183,7 +183,7 @@ bool RenderPassFinal::initialize(ID3D12Device* device, void* p)
 	device->CreateShaderResourceView(albedoSlice->get(), &srvDesc, handle);
 
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvDesc.Texture2D.MipLevels = 1;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.PlaneSlice = 0;
