@@ -42,7 +42,7 @@ class PhysicsAspect;
 
 struct EntityHuman
 {
-	enum class State : u32 {Walking = 0};
+	enum class State : u32 {Walking = 0, Jumping = 1, Falling = 2};
 
 	vx::float4 m_qRotation;
 	vx::float3 m_position;
