@@ -92,7 +92,7 @@ namespace Audio
 		}
 	}
 
-	void Renderer::startPlay()
+	void Renderer::start()
 	{
 		BYTE *pData = nullptr;
 		auto hr = m_renderClient->GetBuffer(m_bufferFrames, &pData);
@@ -133,6 +133,6 @@ namespace Audio
 
 	void Renderer::stop()
 	{
-		auto hr = m_audioClient->Stop();
+		m_audioClient->Stop();
 	}
 }

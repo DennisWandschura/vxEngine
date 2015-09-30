@@ -73,7 +73,7 @@ namespace Audio
 		virtual u32 readBuffer(u8* buffer, u32 frameCount, f32 intensity) = 0;
 		virtual void update() = 0;
 
-		void startPlay();
+		void start();
 		void play(f32 dt, const vx::float3 &listenerPosition);
 		void stop();
 

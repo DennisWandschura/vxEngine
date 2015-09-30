@@ -253,7 +253,7 @@ namespace Audio
 		auto renderer = &m_entries[index];
 		renderer->initialize(entry->file, entry->format, position);
 
-		renderer->startPlay();
+		renderer->start();
 		m_activeEntries[0].push_back(std::move(renderer));
 	}
 
