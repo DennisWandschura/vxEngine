@@ -32,6 +32,7 @@ SOFTWARE.
 #include "Transition.h"
 #include "ConditionPlayerMoving.h"
 #include "Entity.h"
+#include "ConditionPlayerFalling.h"
 
 PlayerController::PlayerController()
 	:m_actionUse(nullptr)
@@ -61,15 +62,17 @@ void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, Rende
 	auto &actionMoveStanding = m_actions[1];
 	auto &actionUpdateGpuTransform = m_actions[2];
 	auto &actionUse = m_actions[3];
-	auto &actionPlaySound = m_actions[4];
+	auto &actionPlaySoundStep = m_actions[4];
 
 	m_actionUse = (ActionPlayerUse*)actionUse.get();
 
 	m_states.push_back(State());
 	m_states.push_back(State());
+	m_states.push_back(State());
 
 	auto stateStanding = &m_states[0];
 	auto stateMoving = &m_states[1];
+	auto stateFalling = &m_states[2];
 
 	stateStanding->addAction(actionLookAround.get());
 	stateStanding->addAction(actionMoveStanding.get());
@@ -85,11 +88,22 @@ void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, Rende
 	stateMoving->addAction(actionMoveStanding.get());
 	stateMoving->addAction(actionUpdateGpuTransform.get());
 	stateMoving->addAction(actionUse.get());
-	stateMoving->addAction(actionPlaySound.get());
+	stateMoving->addAction(actionPlaySoundStep.get());
 
 	auto conditionStopMoving = new ConditionPlayerNotMoving(playerEntity);
 	auto transitionMovingToStanding = new Transition(conditionStopMoving, stateStanding);
 	stateMoving->addTransition(transitionMovingToStanding);
+
+	// state falling
+	{
+		stateFalling->addAction(actionUpdateGpuTransform.get());
+		stateFalling->addExitAction(actionPlaySoundStep.get());
+		auto transitionMovingToFalling = new Transition(new ConditionPlayerFalling(playerEntity), stateFalling);
+		auto transitionFallingToMoving = new Transition(new ConditionPlayerNotFalling(playerEntity), stateMoving);
+
+		stateFalling->addTransition(transitionFallingToMoving);
+		stateMoving->addTransition(transitionMovingToFalling);
+	}
 
 	m_stateMachine.setInitialState(stateStanding);
 }

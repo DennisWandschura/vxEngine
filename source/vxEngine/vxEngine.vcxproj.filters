@@ -345,6 +345,9 @@
     <ClInclude Include="ConditionPlayerMoving.h">
       <Filter>Header Files\AI\Conditions</Filter>
     </ClInclude>
+    <ClInclude Include="ConditionPlayerFalling.h">
+      <Filter>Header Files\AI\Conditions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -492,6 +495,9 @@
       <Filter>Source Files\Actions</Filter>
     </ClCompile>
     <ClCompile Include="ConditionPlayerMoving.cpp">
+      <Filter>Source Files\AI\Conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionPlayerFalling.cpp">
       <Filter>Source Files\AI\Conditions</Filter>
     </ClCompile>
   </ItemGroup>

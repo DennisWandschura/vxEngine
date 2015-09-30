@@ -17,7 +17,6 @@ void EntityHuman::update(f32 dt)
 	qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
 	vx::storeFloat4(&m_qRotation, qRotation);
 
-	//__m128 vVelocity = { p->velocity.x, 0, p->velocity.z, 0.0f };
 	__m128 vVelocity = vx::loadFloat4(m_velocity);
 
 	vVelocity = _mm_and_ps(vVelocity, velocityMask);
@@ -28,6 +27,10 @@ void EntityHuman::update(f32 dt)
 	auto footPosition = m_controller->getFootPosition();
 	auto position = m_controller->getPosition();
 
+	auto diff = footPosition.y - m_footPositionY;
+	s32 isFalling = (diff <= -0.3f);
+	m_state ^= (-isFalling ^ m_state) & (1 << (s32)EntityHuman::State::Falling);
+
 	m_position.x = position.x;
 	m_position.y = position.y;
 	m_position.z = position.z;
@@ -36,7 +39,6 @@ void EntityHuman::update(f32 dt)
 
 void EntityActor::update(f32 dt, PhysicsAspect* physicsAspect, vx::TransformGpu* transforms, u32* indices, u32 index)
 {
-	//auto physicsAspect = Locator::getPhysicsAspect();
 	const vx::ivec4 velocityMask = { (s32)0xffffffff, 0, (s32)0xffffffff, 0 };
 	const __m128 vGravity = { 0, g_gravity * dt, 0, 0 };
 
@@ -44,7 +46,6 @@ void EntityActor::update(f32 dt, PhysicsAspect* physicsAspect, vx::TransformGpu*
 	qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
 	vx::storeFloat4(&m_qRotation, qRotation);
 
-	//__m128 vVelocity = { p->velocity.x, 0, p->velocity.z, 0.0f };
 	__m128 vVelocity = vx::loadFloat4(m_velocity);
 
 	vVelocity = _mm_and_ps(vVelocity, velocityMask);
