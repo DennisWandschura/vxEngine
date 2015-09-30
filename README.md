@@ -8,13 +8,7 @@ The AI should be able to react to its surroundings (previously open doors are cl
 
 Level Editor:
 http://youtu.be/SDmoqkRqPEs (Object placement)
-http://youtu.be/uuonpLlq7Go (Joints
+http://youtu.be/uuonpLlq7Go (Joints)
 
-Engine with GL Renderer: (15.08.2015)
-http://youtu.be/yZ1lYs_7aOE
-
-Build 2015.08.21:
-https://tinyurl.com/olgf3bn
-
-DX12 2015.09.22:
-https://youtu.be/_syPaWZtE3w
+DX12 2015.09.30:
+https://youtu.be/kf5NqAG85xY
