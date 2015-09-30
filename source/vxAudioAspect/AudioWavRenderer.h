@@ -30,13 +30,6 @@ SOFTWARE.
 
 namespace Audio
 {
-	struct WavRendererDesc
-	{
-		RendererDesc rendererDesc;
-		WavFile m_wavFile;
-		WavFormat m_format;
-	};
-
 	class WavRenderer : public Renderer
 	{
 		WavFile m_wavFile;
@@ -46,13 +39,15 @@ namespace Audio
 		WavRenderer();
 		WavRenderer(const WavRenderer &rhs) = delete;
 		WavRenderer(WavRenderer &&rhs);
-		explicit WavRenderer(WavRendererDesc &&desc);
+		explicit WavRenderer(RendererDesc &&desc);
 		~WavRenderer();
 
 		WavRenderer& operator=(const WavRenderer&) = delete;
 		WavRenderer& operator=(WavRenderer &&rhs);
 
-		u32 readBuffer(u8* buffer, u32 frameCount) override;
+		void initialize(const WavFile &wavFile, const WavFormat &format, const vx::float3 &position);
+
+		u32 readBuffer(u8* buffer, u32 frameCount, f32 intensity) override;
 
 		void update() override
 		{

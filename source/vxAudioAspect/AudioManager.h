@@ -30,12 +30,14 @@ class AudioFile;
 struct IAudioSessionManager2;
 struct IAudioSessionControl;
 
-#include <vxLib/types.h>
+#include <vxLib/math/Vector.h>
 #include "AudioWavRenderer.h"
 #include <vxLib/Container/sorted_vector.h>
 #include <vxLib/StringID.h>
 #include <vector>
 #include <guiddef.h>
+#include <vxEngineLib/Freelist.h>
+#include <memory>
 
 namespace Audio
 {
@@ -43,14 +45,17 @@ namespace Audio
 	{
 		struct Entry;
 
-		std::vector<Audio::WavRenderer> m_activeEntries;
-		std::vector<Audio::WavRenderer> m_activeEntries1;
-		vx::sorted_vector<vx::StringID, Entry> m_inactiveEntries;
-
+		std::vector<Audio::WavRenderer*> m_activeEntries[2];
+		std::vector<Audio::WavRenderer*> m_cleanup;
+		vx::sorted_vector<vx::StringID, Entry> m_loadedEntries;
+		vx::float3 m_playerPosition;
+		Freelist m_freelist;
+		std::unique_ptr<Audio::WavRenderer[]> m_entries;
 		IMMDevice* m_device;
 		IAudioSessionManager2* m_sessionManager;
 		IAudioSessionControl* m_sessionControl;
 		GUID m_sessionGUID;
+		std::unique_ptr<u32[]> m_entryIndices;
 
 	public:
 		AudioManager();
@@ -59,11 +64,11 @@ namespace Audio
 		bool initialize();
 		void shutdown();
 
-		void update(f32 dt);
+		void update(f32 dt, const vx::float3 &playerPosition);
 
 		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
 
-		void playSound(const vx::StringID &sid);
+		void playSound(const vx::StringID &sid, const vx::float3 &position);
 
 		void setMasterVolume(f32 volume);
 	};

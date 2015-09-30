@@ -27,7 +27,7 @@ SOFTWARE.
 struct IAudioRenderClient;
 struct IAudioClient;
 
-#include <vxLib/types.h>
+#include <vxLib/math/Vector.h>
 
 namespace Audio
 {
@@ -43,6 +43,8 @@ namespace Audio
 
 	class Renderer
 	{
+		typedef u32(*LoadDataFunction)(void*, u32, u32, u8*, u32, f32);
+
 		IAudioRenderClient* m_renderClient;
 		IAudioClient* m_audioClient;
 		f32 m_waitTime;
@@ -50,11 +52,13 @@ namespace Audio
 		u32 m_bufferFrames;
 
 	protected:
+		vx::float3 m_position;
+		LoadDataFunction m_fp;
 		u16 m_dstChannels;
 		u16 m_dstBytes;
 
 	public:
-		Renderer() :m_renderClient(nullptr), m_audioClient(nullptr), m_waitTime(0), m_accum(0), m_bufferFrames(0), m_dstChannels(0), m_dstBytes(0) {}
+		Renderer() :m_renderClient(nullptr), m_audioClient(nullptr), m_fp(nullptr), m_waitTime(0), m_accum(0), m_bufferFrames(0), m_dstChannels(0), m_dstBytes(0) {}
 		explicit Renderer(RendererDesc &&desc);
 		Renderer(const Renderer &rhs) = delete;
 		Renderer(Renderer &&rhs);
@@ -64,11 +68,14 @@ namespace Audio
 		Renderer& operator=(const Renderer &rhs) = delete;
 		Renderer& operator=(Renderer &&rhs);
 
-		virtual u32 readBuffer(u8* buffer, u32 frameCount) = 0;
+		void destroy();
+
+		virtual u32 readBuffer(u8* buffer, u32 frameCount, f32 intensity) = 0;
 		virtual void update() = 0;
 
 		void startPlay();
-		void play(f32 dt);
+		void play(f32 dt, const vx::float3 &listenerPosition);
+		void stop();
 
 		virtual u32 eof() const = 0;
 	};

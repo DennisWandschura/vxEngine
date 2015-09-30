@@ -67,9 +67,9 @@ namespace vx
 		m_audioManager.shutdown();
 	}
 
-	void AudioAspect::update(f32 dt)
+	void AudioAspect::update(f32 dt, const vx::float3 &playerPosition)
 	{
-		m_audioManager.update(dt);
+		m_audioManager.update(dt, playerPosition);
 	}
 
 	void AudioAspect::onFileMessage(const Message &msg)
@@ -86,13 +86,15 @@ namespace vx
 
 	void AudioAspect::onAudioMessage(const Message &msg)
 	{
-		auto type = (vx::AudioMessage)msg.code;
+		auto type = (Audio::Message)msg.code;
 		switch (type)
 		{
-		case vx::AudioMessage::PlaySound:
+		case Audio::Message::PlaySound:
 		{
-			auto sid = vx::StringID(msg.arg1.u64);
-			m_audioManager.playSound(sid);
+			Audio::PlaySoundData* data = (Audio::PlaySoundData*)msg.arg1.ptr;
+			m_audioManager.playSound(data->m_sid, data->m_position);
+
+			delete(data);
 		}break;
 		default:
 			break;

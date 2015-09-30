@@ -3,6 +3,27 @@
 
 namespace Audio
 {
+	namespace WavRendererCpp
+	{
+		u32 loadDataFloat(void* p, u32 frameCount, u32 srcChannels, u8* data, u32 dstChannels, f32 intensity)
+		{
+			WavFile* ptr = (WavFile*)p;
+			return ptr->loadDataFloat(frameCount, srcChannels, data, dstChannels, intensity);
+		}
+
+		u32 loadDataShort(void* p, u32 frameCount, u32 srcChannels, u8* data, u32 dstChannels, f32 intensity)
+		{
+			WavFile* ptr = (WavFile*)p;
+			return ptr->loadDataShort(frameCount, srcChannels, data, dstChannels, intensity);
+		}
+
+		u32 loadDataShortToFloat(void* p, u32 frameCount, u32 srcChannels, u8* data, u32 dstChannels, f32 intensity)
+		{
+			WavFile* ptr = (WavFile*)p;
+			return ptr->loadDataShortToFloat(frameCount, srcChannels, data, dstChannels, intensity);
+		}
+	}
+
 	WavRenderer::WavRenderer()
 		:Renderer(),
 		m_wavFile(),
@@ -18,10 +39,10 @@ namespace Audio
 	{
 	}
 
-	WavRenderer::WavRenderer(WavRendererDesc &&desc)
-		:Renderer(std::move(desc.rendererDesc)),
-		m_wavFile(std::move(desc.m_wavFile)),
-		m_format(desc.m_format)
+	WavRenderer::WavRenderer(RendererDesc &&desc)
+		:Renderer(std::move(desc)),
+		m_wavFile(),
+		m_format()
 	{
 
 	}
@@ -42,27 +63,33 @@ namespace Audio
 		return *this;
 	}
 
-	u32 WavRenderer::readBuffer(u8* buffer, u32 frameCount)
+	void WavRenderer::initialize(const WavFile &wavFile, const WavFormat &format, const vx::float3 &position)
 	{
-		u32 readFrames = 0;
+		m_wavFile = wavFile;
+		m_format = format;
+		m_position = position;
+
 		auto bytesPerSample = m_format.m_bytesPerSample;
 		if (bytesPerSample == 2)
 		{
 			if (m_dstBytes == 2)
 			{
-				readFrames = m_wavFile.loadDataShort(frameCount, m_format.m_channels, (s16*)buffer, m_dstChannels);
+				m_fp = WavRendererCpp::loadDataShort;
 			}
 			else if (m_dstBytes == 4)
 			{
-				readFrames = m_wavFile.loadDataShortToFloat(frameCount, m_format.m_channels, (float*)buffer, m_dstChannels);
+				m_fp = WavRendererCpp::loadDataShortToFloat;
 			}
 		}
 		else if (bytesPerSample == 4)
 		{
-			readFrames = m_wavFile.loadDataFloat(frameCount, m_format.m_channels, (float*)buffer, m_dstChannels);
+			m_fp = WavRendererCpp::loadDataFloat;
 		}
+	}
 
-		return readFrames;
+	u32 WavRenderer::readBuffer(u8* buffer, u32 frameCount, f32 intensity)
+	{
+		return m_fp(&m_wavFile, frameCount, m_format.m_channels, buffer, m_dstChannels, intensity);
 	}
 
 	u32 WavRenderer::eof() const

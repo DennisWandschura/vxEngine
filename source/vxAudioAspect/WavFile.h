@@ -42,11 +42,11 @@ public:
 	WavFile& operator=(const WavFile &rhs);
 	WavFile& operator=(WavFile &&rhs);
 
-	u32 loadDataFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u32 dstChannels);
+	u32 loadDataFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u32 dstChannels, f32 intensity);
 
-	u32 loadDataShort(u32 bufferFrameCount, u32 srcChannels, s16* pData, u32 dstChannels);
+	u32 loadDataShort(u32 bufferFrameCount, u32 srcChannels, u8* pData, u32 dstChannels, f32 intensity);
 
-	u32 loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u16 dstChannels);
+	u32 loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u16 dstChannels, f32 intensity);
 
 	u32 eof() const
 	{

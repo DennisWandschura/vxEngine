@@ -31,6 +31,7 @@ namespace Audio
 	Renderer::Renderer(RendererDesc &&desc)
 		:m_renderClient(desc.audioRenderClient),
 		m_audioClient(desc.audioClient),
+		m_position(0, 0, 0),
 		m_waitTime(desc.waitTime), 
 		m_accum(0), 
 		m_bufferFrames(desc.bufferFrames), 
@@ -44,6 +45,7 @@ namespace Audio
 	Renderer::Renderer(Renderer &&rhs)
 		:m_renderClient(rhs.m_renderClient),
 		m_audioClient(rhs.m_audioClient),
+		m_position(rhs.m_position),
 		m_waitTime(rhs.m_waitTime),
 		m_accum(rhs.m_accum),
 		m_bufferFrames(rhs.m_bufferFrames),
@@ -55,6 +57,27 @@ namespace Audio
 	}
 
 	Renderer::~Renderer()
+	{
+		destroy();
+	}
+
+	Renderer& Renderer::operator=(Renderer &&rhs)
+	{
+		if (this != &rhs)
+		{
+			std::swap(m_renderClient, rhs.m_renderClient);
+			std::swap(m_audioClient, rhs.m_audioClient);
+			std::swap(m_position, rhs.m_position);
+			std::swap(m_waitTime, rhs.m_waitTime);
+			std::swap(m_accum, rhs.m_accum);
+			std::swap(m_bufferFrames, rhs.m_bufferFrames);
+			std::swap(m_dstChannels, rhs.m_dstChannels);
+			std::swap(m_dstBytes, rhs.m_dstBytes);
+		}
+		return *this;
+	}
+
+	void Renderer::destroy()
 	{
 		if (m_renderClient)
 		{
@@ -69,39 +92,29 @@ namespace Audio
 		}
 	}
 
-	Renderer& Renderer::operator=(Renderer &&rhs)
-	{
-		if (this != &rhs)
-		{
-			std::swap(m_renderClient, rhs.m_renderClient);
-			std::swap(m_audioClient, rhs.m_audioClient);
-			std::swap(m_waitTime, rhs.m_waitTime);
-			std::swap(m_accum, rhs.m_accum);
-			std::swap(m_bufferFrames, rhs.m_bufferFrames);
-			std::swap(m_dstChannels, rhs.m_dstChannels);
-			std::swap(m_dstBytes, rhs.m_dstBytes);
-		}
-		return *this;
-	}
-
 	void Renderer::startPlay()
 	{
 		BYTE *pData = nullptr;
 		auto hr = m_renderClient->GetBuffer(m_bufferFrames, &pData);
+		if (hr == 0)
+		{
+			auto read_count = readBuffer(pData, m_bufferFrames, 1.0f);
 
-		auto read_count = readBuffer(pData, m_bufferFrames);
-
-		hr = m_renderClient->ReleaseBuffer((UINT32)read_count, 0);
+			hr = m_renderClient->ReleaseBuffer((UINT32)read_count, 0);
+		}
 
 		hr = m_audioClient->Start();
 	}
 
-	void Renderer::play(f32 dt)
+	void Renderer::play(f32 dt, const vx::float3 &listenerPosition)
 	{
 		m_accum += dt;
 
 		if (m_accum >= m_waitTime)
 		{
+			auto distance = vx::length3(listenerPosition - m_position);
+			auto intensity = 1.0f / (1.0f + distance * distance);
+
 			u32 numFramesPadding = 0;
 			auto hr = m_audioClient->GetCurrentPadding(&numFramesPadding);
 
@@ -110,11 +123,16 @@ namespace Audio
 			u8* data = nullptr;
 			hr = m_renderClient->GetBuffer(numAvailableFrames, &data);
 
-			auto read_count = readBuffer(data, numAvailableFrames);
+			auto read_count = readBuffer(data, numAvailableFrames, intensity);
 
 			hr = m_renderClient->ReleaseBuffer((UINT32)read_count, 0);
 
 			m_accum -= m_waitTime;
 		}
+	}
+
+	void Renderer::stop()
+	{
+		auto hr = m_audioClient->Stop();
 	}
 }

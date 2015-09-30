@@ -32,29 +32,44 @@ namespace WavFileCpp
 	struct ConvertData;
 
 	template<typename T>
-	struct ConvertData<T, T>
+	struct ConvertData<T, T>;
+
+	template<>
+	struct ConvertData<s16, s16>
 	{
-		void operator()(T* dst, const T* src)
+		void operator()(s16* dst, const s16* src, f32 intensity)
 		{
-			*dst = *src;
+			const float cvt = 1.0f / 0x7fff;
+			float tmp = (*src) * cvt * intensity;
+
+			*dst = static_cast<s16>(tmp * 0x7fff);
+		}
+	};
+
+	template<>
+	struct ConvertData<f32, f32>
+	{
+		void operator()(f32* dst, const f32* src, f32 intensity)
+		{
+			*dst = (*src) * intensity;
 		}
 	};
 
 	template<>
 	struct ConvertData<s16, float>
 	{
-		void operator()(float* dst, const s16* src)
+		void operator()(float* dst, const s16* src, f32 intensity)
 		{
 			const float cvt = 1.0f / 0x7fff;
 
 			float tmp = *src;
 
-			*dst = tmp * cvt;
+			*dst = (tmp * cvt) * intensity;
 		}
 	};
 
 	template<typename SRC_TYPE, typename DST_TYPE>
-	u32 writeData(const u8* buffer, u32* head, u32 srcChannels, u32 dataSize, DST_TYPE* dst, u32 frameCount, u32 dstChannels)
+	u32 writeData(const u8* buffer, u32* head, u32 srcChannels, u32 dataSize, DST_TYPE* dst, u32 frameCount, u32 dstChannels, f32 intensity)
 	{
 		const u32 srcChannelSize = srcChannels * sizeof(SRC_TYPE);
 		u32 sizeInBytes = frameCount * srcChannelSize;
@@ -75,7 +90,7 @@ namespace WavFileCpp
 		{
 			for (u32 chn = 0; chn < srcChannels; ++chn)
 			{
-				ConvertData<SRC_TYPE, DST_TYPE>()(dst++, src++);
+				ConvertData<SRC_TYPE, DST_TYPE>()(dst++, src++, intensity);
 			}
 
 			memset(dst, 0, remainingDstSize);
@@ -146,17 +161,17 @@ WavFile& WavFile::operator=(WavFile &&rhs)
 	return *this;
 }
 
-u32 WavFile::loadDataFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u32 dstChannels)
+u32 WavFile::loadDataFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u32 dstChannels, f32 intensity)
 {
-	return WavFileCpp::writeData<float, float>(m_data, &m_head, srcChannels, m_dataSize, pData, bufferFrameCount, dstChannels);
+	return WavFileCpp::writeData<float, float>(m_data, &m_head, srcChannels, m_dataSize, (f32*)pData, bufferFrameCount, dstChannels, intensity);
 }
 
-u32 WavFile::loadDataShort(u32 bufferFrameCount, u32 srcChannels, s16* pData, u32 dstChannels)
+u32 WavFile::loadDataShort(u32 bufferFrameCount, u32 srcChannels, u8* pData, u32 dstChannels, f32 intensity)
 {
-	return WavFileCpp::writeData<s16, s16>(m_data, &m_head, srcChannels, m_dataSize, pData, bufferFrameCount, dstChannels);
+	return WavFileCpp::writeData<s16, s16>(m_data, &m_head, srcChannels, m_dataSize, (s16*)pData, bufferFrameCount, dstChannels, intensity);
 }
 
-u32 WavFile::loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, float* pData, u16 dstChannels)
+u32 WavFile::loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u16 dstChannels, f32 intensity)
 {
-	return WavFileCpp::writeData<s16, float>(m_data, &m_head, srcChannels, m_dataSize, pData, bufferFrameCount, dstChannels);
+	return WavFileCpp::writeData<s16, float>(m_data, &m_head, srcChannels, m_dataSize, (f32*)pData, bufferFrameCount, dstChannels, intensity);
 }

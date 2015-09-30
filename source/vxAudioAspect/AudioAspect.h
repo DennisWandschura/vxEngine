@@ -47,7 +47,7 @@ namespace vx
 
 		void handleMessage(const Message &msg) override;
 
-		void update(f32 dt) override;
+		void update(f32 dt, const vx::float3 &playerPosition) override;
 
 		void setMasterVolume(f32 volume) override;
 	};
