@@ -234,9 +234,6 @@
     <ClInclude Include="ActionPlayerMove.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
-    <ClInclude Include="ActionUpdateGpuTransform.h">
-      <Filter>Header Files\Actions</Filter>
-    </ClInclude>
     <ClInclude Include="Action.h">
       <Filter>Header Files\Actions</Filter>
     </ClInclude>
@@ -415,9 +412,6 @@
     </ClCompile>
     <ClCompile Include="PlayerController.cpp">
       <Filter>Source Files\Entity</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionUpdateGpuTransform.cpp">
-      <Filter>Source Files\Actions</Filter>
     </ClCompile>
     <ClCompile Include="ActionPlayerLookAround.cpp">
       <Filter>Source Files\Actions</Filter>

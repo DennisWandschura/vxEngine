@@ -7,7 +7,7 @@
 #include <vxEngineLib/GpuFunctions.h>
 #include <PxRigidDynamic.h>
 
-void EntityHuman::update(f32 dt)
+void EntityHuman::update(f32 dt, RenderAspectInterface* renderAspect)
 {
 	auto physicsAspect = Locator::getPhysicsAspect();
 	const vx::ivec4 velocityMask = { (s32)0xffffffff, 0, (s32)0xffffffff, 0 };
@@ -35,6 +35,12 @@ void EntityHuman::update(f32 dt)
 	m_position.y = position.y;
 	m_position.z = position.z;
 	m_footPositionY = footPosition.y;
+
+	RenderUpdateCameraData data;
+	data.position = { position.x, position.y, position.z, 1.0 };
+	data.quaternionRotation = { qRotation.m128_f32[0], qRotation.m128_f32[1], qRotation.m128_f32[2], qRotation.m128_f32[3] };
+
+	renderAspect->queueUpdateCamera(data);
 }
 
 void EntityActor::update(f32 dt, PhysicsAspect* physicsAspect, vx::TransformGpu* transforms, u32* indices, u32 index)

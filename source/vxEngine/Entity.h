@@ -52,7 +52,7 @@ struct EntityHuman
 	vx::float4 m_velocity;
 	u32 m_state;
 
-	void update(f32 dt);
+	void update(f32 dt, RenderAspectInterface* renderAspect);
 };
 
 struct EntityActor

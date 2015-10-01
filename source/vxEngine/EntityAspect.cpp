@@ -260,11 +260,11 @@ void EntityAspect::updateEntityDynamic(f32 dt)
 	}
 }
 
-void EntityAspect::update(f32 dt, ActionManager* actionManager)
+void EntityAspect::update(f32 dt, ActionManager* actionManager, RenderAspectInterface* renderAspect)
 {
 	if (m_entityHuman)
 	{
-		m_entityHuman->update(dt);
+		m_entityHuman->update(dt, renderAspect);
 	}
 
 	updateEntityActor(dt);

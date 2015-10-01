@@ -248,7 +248,6 @@
     <ClInclude Include="ActionPlaySound.h" />
     <ClInclude Include="ActionPrintText.h" />
     <ClInclude Include="ActionSetFollowPath.h" />
-    <ClInclude Include="ActionUpdateGpuTransform.h" />
     <ClInclude Include="ActionUseEntity.h" />
     <ClInclude Include="ActorAspect.h" />
     <ClInclude Include="ai\Squad.h" />
@@ -353,9 +352,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ActionSetFollowPath.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="ActionUpdateGpuTransform.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="ActorAspect.cpp">

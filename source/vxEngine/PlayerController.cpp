@@ -25,7 +25,6 @@ SOFTWARE.
 #include "State.h"
 #include "ActionPlayerLookAround.h"
 #include "ActionPlayerMove.h"
-#include "ActionUpdateGpuTransform.h"
 #include <vxLib/memory.h>
 #include "ActionPlayerUse.h"
 #include "ActionPlaySound.h"
@@ -54,15 +53,13 @@ void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, Rende
 {
 	m_actions.push_back(vx::make_unique<ActionPlayerLookAround>(playerEntity, dt));
 	m_actions.push_back(vx::make_unique<ActionPlayerMove>(playerEntity, 0.1f, 0.5f));
-	m_actions.push_back(vx::make_unique<ActionUpdateGpuTransform>(playerEntity, renderAspect));
 	m_actions.push_back(vx::make_unique<ActionPlayerUse>(playerEntity, components));
 	m_actions.push_back(vx::make_unique<ActionPlaySound>(vx::make_sid("step1.wav"), messageManager, 0.28f, &playerEntity->m_position));
 
 	auto &actionLookAround = m_actions[0];
 	auto &actionMoveStanding = m_actions[1];
-	auto &actionUpdateGpuTransform = m_actions[2];
-	auto &actionUse = m_actions[3];
-	auto &actionPlaySoundStep = m_actions[4];
+	auto &actionUse = m_actions[2];
+	auto &actionPlaySoundStep = m_actions[3];
 
 	m_actionUse = (ActionPlayerUse*)actionUse.get();
 
@@ -74,29 +71,32 @@ void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, Rende
 	auto stateMoving = &m_states[1];
 	auto stateFalling = &m_states[2];
 
-	stateStanding->addAction(actionLookAround.get());
-	stateStanding->addAction(actionMoveStanding.get());
-	stateStanding->addAction(actionUpdateGpuTransform.get());
-	stateStanding->addAction(actionUse.get());
+	// state standing
+	{
+		stateStanding->addAction(actionLookAround.get());
+		stateStanding->addAction(actionMoveStanding.get());
+		stateStanding->addAction(actionUse.get());
 
-	auto conditionMoving = new ConditionPlayerMoving(playerEntity);
-	auto transitionStandingToMoving = new Transition(conditionMoving, stateMoving);
+		auto conditionMoving = new ConditionPlayerMoving(playerEntity);
+		auto transitionStandingToMoving = new Transition(conditionMoving, stateMoving);
 
-	stateStanding->addTransition(transitionStandingToMoving);
+		stateStanding->addTransition(transitionStandingToMoving);
+	}
 
-	stateMoving->addAction(actionLookAround.get());
-	stateMoving->addAction(actionMoveStanding.get());
-	stateMoving->addAction(actionUpdateGpuTransform.get());
-	stateMoving->addAction(actionUse.get());
-	stateMoving->addAction(actionPlaySoundStep.get());
+	// state moving
+	{
+		stateMoving->addAction(actionLookAround.get());
+		stateMoving->addAction(actionMoveStanding.get());
+		stateMoving->addAction(actionUse.get());
+		stateMoving->addAction(actionPlaySoundStep.get());
 
-	auto conditionStopMoving = new ConditionPlayerNotMoving(playerEntity);
-	auto transitionMovingToStanding = new Transition(conditionStopMoving, stateStanding);
-	stateMoving->addTransition(transitionMovingToStanding);
+		auto conditionStopMoving = new ConditionPlayerNotMoving(playerEntity);
+		auto transitionMovingToStanding = new Transition(conditionStopMoving, stateStanding);
+		stateMoving->addTransition(transitionMovingToStanding);
+	}
 
 	// state falling
 	{
-		stateFalling->addAction(actionUpdateGpuTransform.get());
 		stateFalling->addExitAction(actionPlaySoundStep.get());
 		auto transitionMovingToFalling = new Transition(new ConditionPlayerFalling(playerEntity), stateFalling);
 		auto transitionFallingToMoving = new Transition(new ConditionPlayerNotFalling(playerEntity), stateMoving);

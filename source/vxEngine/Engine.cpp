@@ -127,7 +127,7 @@ void Engine::update()
 
 	m_systemAspect.update(g_dt);
 
-	m_entityAspect.update(g_dt, &m_actionManager);
+	m_entityAspect.update(g_dt, &m_actionManager, m_renderAspect);
 
 	//getThreadInfo();
 }

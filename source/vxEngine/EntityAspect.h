@@ -98,7 +98,7 @@ public:
 
 	//////////////////
 
-	void update(f32 dt, ActionManager* actionManager);
+	void update(f32 dt, ActionManager* actionManager, RenderAspectInterface* renderAspect);
 
 	//////////////////
 
