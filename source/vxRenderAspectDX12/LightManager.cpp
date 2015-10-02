@@ -1,6 +1,6 @@
 #include "LightManager.h"
 #include "GpuLight.h"
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include "Frustum.h"
 #include "GpuShadowTransform.h"
 #include "ResourceManager.h"
@@ -232,7 +232,7 @@ bool LightManager::initialize(const RenderSettings &settings, vx::StackAllocator
 	return true;
 }
 
-bool LightManager::loadSceneLights(const Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
+bool LightManager::loadSceneLights(const Graphics::Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
 {
 	VX_ASSERT(count <= m_maxSceneLightCount);
 

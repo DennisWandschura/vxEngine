@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include <vxEngineLib/SceneBase.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/copy.h>
@@ -32,6 +32,7 @@ SOFTWARE.
 #include <vxEngineLib/Animation.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/Joint.h>
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 
 SceneBaseParams::SceneBaseParams()
 {
@@ -52,9 +53,13 @@ SceneBase::SceneBase()
 	m_animations(),
 	m_joints(),
 	m_navMesh(),
+	m_lightCount(0),
+	m_vertexCount(0),
 	m_indexCount(0),
 	m_spawnCount(0),
-	m_waypointCount(0)
+	m_waypointCount(0),
+	m_lightGeometryProxyCount(0),
+	m_lightGeometryProxies(0)
 {
 }
 
@@ -158,7 +163,7 @@ void SceneBase::copy(SceneBase *dst) const
 	dst->m_waypointCount = m_waypointCount;
 }
 
-const Light* SceneBase::getLights() const
+const Graphics::Light* SceneBase::getLights() const
 {
 	return m_lights.data();
 }
@@ -256,4 +261,19 @@ const Joint* SceneBase::getJoints() const
 u32 SceneBase::getJointCount() const
 {
 	return static_cast<u32>(m_joints.size());
+}
+
+const Graphics::LightGeometryProxy* SceneBase::getLightGeometryProxies() const
+{
+	return m_lightGeometryProxies.get();
+}
+
+u32 SceneBase::getLightGeometryProxyCount() const
+{
+	return m_lightGeometryProxyCount;
+}
+
+void SceneBase::getLightGeometryProxyBounds(u32 index, const AABB &bounds)
+{
+	m_lightGeometryProxies[index].m_bounds = bounds;
 }

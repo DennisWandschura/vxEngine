@@ -340,6 +340,7 @@
     <ClInclude Include="TexturePool.h" />
     <ClInclude Include="Vertex.h" />
     <None Include="..\..\game\data\shaders\blurpassNew.pipe" />
+    <None Include="..\..\game\data\shaders\editorDrawLightGeometryProxy.pipe" />
     <None Include="..\..\game\data\shaders\include\buffers.glsl" />
     <None Include="..\..\game\data\shaders\include\quaternion.glsl" />
     <None Include="..\..\game\data\shaders\include\UniformCameraBuffer.h" />
@@ -402,6 +403,9 @@
     <None Include="..\..\game\data\shaders\programs\editor.frag" />
     <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.frag" />
     <None Include="..\..\game\data\shaders\programs\editorDrawInfluenceCell.vert" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawLightGeometryProxy.frag" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawLightGeometryProxy.geom" />
+    <None Include="..\..\game\data\shaders\programs\editorDrawLightGeometryProxy.vert" />
     <None Include="..\..\game\data\shaders\programs\editorDrawLights.frag" />
     <None Include="..\..\game\data\shaders\programs\editorDrawLights.geom" />
     <None Include="..\..\game\data\shaders\programs\editorDrawLights.vert" />

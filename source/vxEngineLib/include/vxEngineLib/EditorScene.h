@@ -78,7 +78,7 @@ namespace Editor
 		};
 
 		vx::sorted_vector<vx::StringID, MeshInstance> m_meshInstances;
-		std::vector<SelectableWrapper<Light>> m_selectableLights;
+		std::vector<SelectableWrapper<Graphics::Light>> m_selectableLights;
 		std::vector<std::pair<AABB, u32>> m_selectableSpawns;
 		std::vector<SelectableWrapper<Waypoint>> m_selectableWaypoints;
 		std::vector<SelectableWrapperIndex> m_selectableJoints;
@@ -113,7 +113,7 @@ namespace Editor
 		void removeUnusedMaterials();
 		void removeUnusedMeshes();
 
-		Light* addLight(const Light &light);
+		Graphics::Light* addLight(const Graphics::Light &light);
 		// returns 1 on insert, 0 if already present
 		u8 addMesh(vx::StringID sid, const char* name, const vx::MeshFile* mesh);
 		// returns 1 on insert, 0 if already present
@@ -154,8 +154,8 @@ namespace Editor
 		void setSpawnPosition(u32 id, const vx::float3 &position);
 		void setSpawnType(u32 id, u32 type);
 
-		Light* getLight(const Ray &ray);
-		Light* getLight(u32 i);
+		Graphics::Light* getLight(const Ray &ray);
+		Graphics::Light* getLight(u32 i);
 
 		void updateLightPositions();
 
@@ -169,5 +169,8 @@ namespace Editor
 		void setJointRotation0(u32 index, const vx::float4 &q);
 		void setJointRotation1(u32 index, const vx::float4 &q);
 		void setJointLimit(u32 index, u32 enabled, f32 limitMin, f32 limitMax);
+
+		void addLightGeometryProxy(const AABB &bounds);
+		void setLightGeometryProxyBounds(u32 index, const AABB &bounds);
 	};
 }

@@ -29,7 +29,7 @@ SOFTWARE.
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/Ray.h>
 #include <vxEngineLib/EditorScene.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxEngineLib/NavMeshGraph.h>
 #include <vxEngineLib/EngineConfig.h>
 #include <vxEngineLib/debugPrint.h>
@@ -45,7 +45,7 @@ SOFTWARE.
 #include <vxEngineLib/Joint.h>
 #include <vxEngineLib/FileEntry.h>
 #include <vxEngineLib/ActorFile.h>
-
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 #include <Dbghelp.h>
 
 u32 g_editorTypeMesh{ 0xffffffff };
@@ -317,6 +317,7 @@ void EditorEngine::handleFileEvent(const vx::Message &evt)
 		m_renderAspect->updateWaypoints(m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 		m_renderAspect->updateJoints(m_pEditorScene->getJoints(), m_pEditorScene->getJointCount(), sortedInstances);
 		m_renderAspect->updateSpawns(m_pEditorScene->getSpawns(), m_pEditorScene->getSpawnCount());
+		m_renderAspect->updateLightGeometryProxies(m_pEditorScene->getLightGeometryProxies(), m_pEditorScene->getLightGeometryProxyCount());
 	}break;
 	case vx::FileMessage::Animation_Loaded:
 	{
@@ -1053,43 +1054,50 @@ bool EditorEngine::getSelectedNavMeshVertexPosition(vx::float3* p) const
 	return result;
 }
 
-void EditorEngine::createLight()
+u32 EditorEngine::createLight()
 {
-	if (m_pEditorScene)
-	{
-		Light light;
+		Graphics::Light light;
 		light.m_position = vx::float3(0);
 		light.m_falloff = 5.0f;
 		light.m_lumen = 100.0f;
 
+		auto index = m_pEditorScene->getLightCount();
+
 		m_selected.m_item = m_pEditorScene->addLight(light);
 		m_selected.m_type = SelectedType::Light;
 
-		auto lightCount = m_pEditorScene->getLightCount();
+		auto lightCount = index+1;
 		auto lights = m_pEditorScene->getLights();
 
 		m_renderAspect->updateLightBuffer(lights, lightCount);
-	}
+
+		return index;
 }
 
-bool EditorEngine::selectLight(s32 mouseX, s32 mouseY)
+bool EditorEngine::getLightIndex(s32 mouseX, s32 mouseY, u32* index)
 {
 	bool result = false;
 	if (m_pEditorScene)
 	{
 		auto ray = getRay(mouseX, mouseY);
-		auto selectedLight = m_pEditorScene->getLight(ray);
+		auto light = m_pEditorScene->getLight(ray);
 
-		if (selectedLight)
+		if (light)
 		{
-			m_selected.m_type = SelectedType::Light;
-			m_selected.m_item = selectedLight;
+			auto lights = m_pEditorScene->getLights();
+			*index = light - lights;
 		}
 
-		result = (selectedLight != nullptr);
+		result = (light != nullptr);
 	}
 
 	return result;
+}
+
+void EditorEngine::selectLight(u32 index)
+{
+	m_selected.m_type = SelectedType::Light;
+	m_selected.m_item = m_pEditorScene->getLight(index);
 }
 
 void EditorEngine::deselectLight()
@@ -1103,110 +1111,9 @@ void EditorEngine::deselectLight()
 	}
 }
 
-void EditorEngine::getSelectLightPosition(vx::float3* position) const
-{
-	if (m_pEditorScene &&
-		m_selected.m_type == SelectedType::Light &&
-		m_selected.m_item)
-	{
-		Light* ptr = (Light*)m_selected.m_item;
-		*position = ptr->m_position;
-	}
-}
-
-void EditorEngine::setSelectLightPosition(const vx::float3 &position)
-{
-	if (m_pEditorScene &&
-		m_selected.m_type == SelectedType::Light &&
-		m_selected.m_item)
-	{
-		Light* ptr = (Light*)m_selected.m_item;
-		ptr->m_position = position;
-
-		m_pEditorScene->updateLightPositions();
-
-		auto lightCount = m_pEditorScene->getLightCount();
-		auto lights = m_pEditorScene->getLights();
-
-		m_renderAspect->updateLightBuffer(lights, lightCount);
-	}
-}
-
-float EditorEngine::getSelectLightFalloff() const
-{
-	f32 falloff = 0.0f;
-	if (m_pEditorScene &&
-		m_selected.m_type == SelectedType::Light &&
-		m_selected.m_item)
-	{
-		Light* ptr = (Light*)m_selected.m_item;
-		falloff = ptr->m_falloff;
-	}
-	return falloff;
-}
-
-f32 EditorEngine::getSelectLightLumen() const
-{
-	f32 value = 0.0f;
-
-	if (m_pEditorScene &&
-		m_selected.m_type == SelectedType::Light &&
-		m_selected.m_item)
-	{
-		Light* ptr = (Light*)m_selected.m_item;
-		value = ptr->m_lumen;
-	}
-
-	return value;
-}
-
-void EditorEngine::setSelectLightLumen(f32 lumen)
-{
-	if (m_pEditorScene &&
-		m_selected.m_type == SelectedType::Light &&
-		m_selected.m_item)
-	{
-		Light* ptr = (Light*)m_selected.m_item;
-		ptr->m_lumen = lumen;
-
-		m_pEditorScene->updateLightPositions();
-
-		auto lightCount = m_pEditorScene->getLightCount();
-		auto lights = m_pEditorScene->getLights();
-
-		m_renderAspect->updateLightBuffer(lights, lightCount);
-	}
-}
-
-void EditorEngine::setSelectLightFalloff(f32 falloff)
-{
-	if (m_pEditorScene &&
-		m_selected.m_type == SelectedType::Light &&
-		m_selected.m_item)
-	{
-		Light* ptr = (Light*)m_selected.m_item;
-		ptr->m_falloff = falloff;
-
-		m_pEditorScene->updateLightPositions();
-
-		auto lightCount = m_pEditorScene->getLightCount();
-		auto lights = m_pEditorScene->getLights();
-
-		m_renderAspect->updateLightBuffer(lights, lightCount);
-	}
-}
-
 u32 EditorEngine::getLightCount()
 {
 	return m_pEditorScene->getLightCount();
-}
-
-u32 EditorEngine::getSelectedLightIndex()
-{
-	auto lights = m_pEditorScene->getLights();
-	Light* ptr = (Light*)m_selected.m_item;
-
-	return (ptr - lights);
 }
 
 f32 EditorEngine::getLightLumen(u32 index)
@@ -1799,4 +1706,42 @@ u64 EditorEngine::createActor(const char* name, u64 meshSid, u64 materialSid)
 const char* EditorEngine::getActorName(u64 sid) const
 {
 	return m_resourceAspect.getActorManager()->getName(vx::StringID(sid));
+}
+
+u32 EditorEngine::getLightGeometryProxyCount() const
+{
+	return m_pEditorScene->getLightGeometryProxyCount();
+}
+
+void EditorEngine::createLightGeometryProxy(const vx::float3 &center, const vx::float3 &halfDim)
+{
+	AABB bounds;
+	bounds.min = center - halfDim;
+	bounds.max = center + halfDim;
+
+	m_pEditorScene->addLightGeometryProxy(bounds);
+
+	m_renderAspect->updateLightGeometryProxies(m_pEditorScene->getLightGeometryProxies(), m_pEditorScene->getLightGeometryProxyCount());
+}
+
+void EditorEngine::setLightGeometryProxyBounds(u32 index, const vx::float3 &center, const vx::float3 &halfDim)
+{
+	AABB bounds;
+	bounds.min = center - halfDim;
+	bounds.max = center + halfDim;
+	m_pEditorScene->setLightGeometryProxyBounds(index, bounds);
+
+	m_renderAspect->updateLightGeometryProxies(m_pEditorScene->getLightGeometryProxies(), m_pEditorScene->getLightGeometryProxyCount());
+}
+
+void EditorEngine::getLightGeometryProxyBounds(u32 index, vx::float3* center, vx::float3* halfDimOut)
+{
+	auto ptr = m_pEditorScene->getLightGeometryProxies();
+
+	auto bounds = ptr[index].m_bounds;
+
+	auto halfDim = (bounds.max - bounds.min) * 0.5f;
+
+	*center = bounds.min + halfDim;
+	*halfDimOut = halfDim;
 }

@@ -26,7 +26,6 @@ SOFTWARE.
 
 class InfluenceMap;
 class NavMeshGraph;
-struct Light;
 struct Waypoint;
 struct Spawn;
 class Material;
@@ -40,6 +39,12 @@ namespace vx
 {
 	class Camera;
 	struct StringID;
+}
+
+namespace Graphics
+{
+	struct Light;
+	struct LightGeometryProxy;
 }
 
 #include <vxEngineLib/Graphics/RenderAspectInterface.h>
@@ -69,10 +74,11 @@ namespace Editor
 		virtual void updateNavMeshBuffer(const NavMesh &navMesh) = 0;
 		virtual void updateInfluenceCellBuffer(const InfluenceMap &influenceMap) = 0;
 		virtual void updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph) = 0;
-		virtual void updateLightBuffer(const Light* lights, u32 count) = 0;
+		virtual void updateLightBuffer(const Graphics::Light* lights, u32 count) = 0;
 		virtual void updateWaypoints(const Waypoint* w, u32 count) = 0;
 		virtual void updateSpawns(const Spawn* spawns, u32 count) = 0;
 		virtual void updateJoints(const Joint* joints, u32 count, const vx::sorted_vector<vx::StringID, Editor::MeshInstance> &meshinstances) = 0;
+		virtual void updateLightGeometryProxies(const Graphics::LightGeometryProxy* proxies, u32 count) = 0;
 
 		virtual void getViewMatrix(vx::mat4* viewMatrix) const = 0;
 		virtual void getCameraPosition(vx::float4a* position) const = 0;

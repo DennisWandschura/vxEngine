@@ -93,18 +93,11 @@ namespace Editor
 
 	extern "C" DLL_EXPORT bool setMeshInstanceName(u64 instanceSid, const char* newName);
 
-	extern "C" DLL_EXPORT void createLight();
-	extern "C" DLL_EXPORT bool selectLight(s32 x, s32 y);
+	extern "C" DLL_EXPORT u32 createLight();
+	extern "C" DLL_EXPORT bool getLightIndex(s32 x, s32 y, u32* index);
 	extern "C" DLL_EXPORT void deselectLight();
-	extern "C" DLL_EXPORT void getSelectLightPosition(vx::float3* position);
-	extern "C" DLL_EXPORT void setSelectLightPosition(const vx::float3 &position);
-	extern "C" DLL_EXPORT f32 getSelectLightFalloff();
-	extern "C" DLL_EXPORT void setSelectLightFalloff(f32 falloff);
-	extern "C" DLL_EXPORT f32 getSelectLightLumen();
-	extern "C" DLL_EXPORT void setSelectLightLumen(f32 lumen);
-
+	extern "C" DLL_EXPORT void selectLight(u32 index);
 	extern "C" DLL_EXPORT u32 getLightCount();
-	extern "C" DLL_EXPORT u32 getSelectedLightIndex();
 	extern "C" DLL_EXPORT f32 getLightLumen(u32 index);
 	extern "C" DLL_EXPORT void setLightLumen(u32 index, f32 lumen);
 	extern "C" DLL_EXPORT f32 getLightFalloff(u32 index);
@@ -164,5 +157,10 @@ namespace Editor
 
 	extern "C" DLL_EXPORT u64 createActor(const char* name, u64 meshSid, u64 materialSid);
 	extern "C" DLL_EXPORT BSTR getActorName(u64 sid);
+
+	extern "C" DLL_EXPORT u32 getLightGeometryProxyCount();
+	extern "C" DLL_EXPORT void createLightGeometryProxy(const vx::float3 &center, const vx::float3 &halfDim);
+	extern "C" DLL_EXPORT void setLightGeometryProxyBounds(u32 index, const vx::float3 &center, const vx::float3 &halfDim);
+	extern "C" DLL_EXPORT void getLightGeometryProxyBounds(u32 index, vx::float3* center, vx::float3* halfDim);
 }
 #endif

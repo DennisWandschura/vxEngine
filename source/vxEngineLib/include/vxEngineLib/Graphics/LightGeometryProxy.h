@@ -24,46 +24,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace vx
-{
-	class Camera;
-}
-
-namespace Gpu
-{
-	struct LightData;
-};
-
-#include "Renderer.h"
-#include <vxLib/memory.h>
+#include <vxenginelib/aabb.h>
 
 namespace Graphics
 {
-	struct Light;
-
-	class LightRenderer : public Renderer
+	struct LightGeometryProxy
 	{
-		std::unique_ptr<Gpu::LightData[]> m_lights;
-		std::unique_ptr<Gpu::LightData[]> m_activeLights;
-		std::unique_ptr<std::pair<f32, u32>[]> m_lightDistances;
+		AABB m_bounds;
 		u32 m_lightCount;
-		u32 m_maxActiveLights;
-		u32 m_activeLightCount;
-
-	public:
-		LightRenderer();
-		~LightRenderer();
-
-		bool initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void* p);
-		void shutdown();
-
-		void getCommandList(CommandList* cmdList);
-
-		void clearData();
-		void bindBuffers();
-
-		void setLights(const Light* lights, u32 count);
-
-		void cullLights(const vx::Camera &camera);
+		u32 m_padding;
+		u16* m_lightIndices;
 	};
 }

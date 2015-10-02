@@ -25,11 +25,14 @@ SOFTWARE.
 
 #include <vxLib/math/Vector.h>
 
-struct Light
+namespace Graphics
 {
-	vx::float3 m_position;
-	vx::float3 m_direction;
-	f32 m_falloff;
-	f32 m_lumen;
-	u32 m_staticMeshCount;
-};
+	struct Light
+	{
+		vx::float3 m_position;
+		vx::float3 m_direction;
+		f32 m_falloff;
+		f32 m_lumen;
+		u32 m_staticMeshCount;
+	};
+}

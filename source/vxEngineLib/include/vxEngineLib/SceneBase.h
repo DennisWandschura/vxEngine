@@ -26,7 +26,6 @@ SOFTWARE.
 class Material;
 class MeshInstance;
 
-struct Light;
 struct Spawn;
 class SceneFile;
 struct Waypoint;
@@ -41,6 +40,12 @@ namespace vx
 	class MeshFile;
 }
 
+namespace Graphics
+{
+	struct LightGeometryProxy;
+	struct Light;
+}
+
 #include <vxLib/Container/sorted_vector.h>
 #include <memory>
 #include "NavMesh.h"
@@ -49,7 +54,7 @@ namespace vx
 
 struct SceneBaseParams
 {
-	std::vector<Light> m_lights;
+	std::vector<Graphics::Light> m_lights;
 	vx::sorted_vector<vx::StringID, Material*> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
@@ -70,7 +75,7 @@ struct SceneBaseParams
 class SceneBase
 {
 protected:
-	std::vector<Light> m_lights;
+	std::vector<Graphics::Light> m_lights;
 	vx::sorted_vector<vx::StringID, Material*> m_materials;
 	vx::sorted_vector<vx::StringID, const vx::MeshFile*> m_meshes;
 	vx::sorted_vector<u32, Spawn> m_pSpawns;
@@ -78,11 +83,13 @@ protected:
 	vx::sorted_vector<vx::StringID, vx::Animation*> m_animations;
 	std::vector<Joint> m_joints;
 	NavMesh m_navMesh;
-	u32 m_lightCount{ 0 };
-	u32 m_vertexCount{ 0 };
+	u32 m_lightCount;
+	u32 m_vertexCount;
 	u32 m_indexCount;
 	u32 m_spawnCount;
 	u32 m_waypointCount;
+	u32 m_lightGeometryProxyCount;
+	std::unique_ptr<Graphics::LightGeometryProxy[]> m_lightGeometryProxies;
 
 	SceneBase();
 	SceneBase(const SceneBase &rhs) = delete;
@@ -105,7 +112,7 @@ public:
 	virtual const MeshInstance* getMeshInstances() const = 0;
 	virtual u32 getMeshInstanceCount() const = 0;
 
-	const Light* getLights() const;
+	const Graphics::Light* getLights() const;
 	u32 getLightCount() const;
 
 	Material** getMaterials() const;
@@ -132,4 +139,9 @@ public:
 
 	const Joint* getJoints() const;
 	u32 getJointCount() const;
+
+	const Graphics::LightGeometryProxy* getLightGeometryProxies() const;
+	u32 getLightGeometryProxyCount() const;
+
+	void getLightGeometryProxyBounds(u32 index, const AABB &bounds);
 };

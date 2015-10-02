@@ -24,7 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct Light;
 struct ShadowTransform;
 class Frustum;
 
@@ -46,6 +45,7 @@ namespace vx
 
 namespace Graphics
 {
+	struct Light;
 	class Segment;
 
 	class ShadowRenderer : public Renderer

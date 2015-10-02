@@ -26,7 +26,7 @@ SOFTWARE.
 #include <vxResourceAspect/ConverterSceneFileToScene.h>
 #include <vxEngineLib/Actor.h>
 #include <vxLib/file/FileHandle.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include "ConverterSceneFile.h"
 #include <vxEngineLib/MeshInstanceFile.h>
 #include <vxEngineLib/Joint.h>
@@ -103,9 +103,9 @@ bool testLights(const Converter::SceneFile &sceneFile, const Scene &scene)
 	auto sceneLightCount = scene.getLightCount();
 	auto sceneLights = scene.getLights();
 
-	bool result = Comparer::compare(fileLights, fileLightCount, sceneLights, sceneLightCount, [](const Light &lhs, const Light &rhs)
+	bool result = Comparer::compare(fileLights, fileLightCount, sceneLights, sceneLightCount, [](const Graphics::Light &lhs, const Graphics::Light &rhs)
 	{
-		auto result = (memcmp(&lhs, &rhs, sizeof(Light)) == 0);
+		auto result = (memcmp(&lhs, &rhs, sizeof(Graphics::Light)) == 0);
 		if (!result)
 		{
 			printf("lights not equal\n");

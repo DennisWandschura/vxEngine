@@ -1050,7 +1050,7 @@ void RenderAspect::submitCommands()
 
 void RenderAspect::wait()
 {
-	auto result = glClientWaitSync((GLsync)m_fence, 0, 0);
+	glClientWaitSync((GLsync)m_fence, 0, 0);
 	m_gpuProfiler->popGpuMarker();
 }
 
@@ -1150,7 +1150,7 @@ void RenderAspect::blurAmbientColor()
 {
 	vx::gl::StateManager::setViewport(0, 0, m_resolution.x / 4, m_resolution.y / 4);
 
-	auto emptyVao = m_objectManager.getVertexArray("emptyVao");
+	//auto emptyVao = m_objectManager.getVertexArray("emptyVao");
 	auto pPipeline = m_shaderManager.getPipeline("blurpassNew.pipe");
 
 	/*vx::gl::StateManager::bindPipeline(pPipeline->getId());
@@ -1355,8 +1355,8 @@ void RenderAspect::getProjectionMatrix(vx::mat4* m) const
 
 u16 RenderAspect::addActorToBuffer(const vx::StringID &actorSid, const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material)
 {
-	vx::gl::DrawElementsIndirectCommand drawCmd;
-	u32 cmdIndex = 0;
+	//vx::gl::DrawElementsIndirectCommand drawCmd;
+//	u32 cmdIndex = 0;
 
 	u32 materialIndex = 0;
 	m_materialManager.getMaterialIndex(material, m_resourceAspect, &materialIndex);

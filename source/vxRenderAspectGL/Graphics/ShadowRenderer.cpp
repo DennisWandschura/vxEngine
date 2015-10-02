@@ -39,7 +39,7 @@ SOFTWARE.
 #include "Commands/DepthRangeCommand.h"
 #include <vxEngineLib/EngineConfig.h>
 #include <vxLib/File/FileHandle.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxLib/Graphics/Camera.h>
 #include <vxGL/Texture.h>
 #include <vxGL/Framebuffer.h>

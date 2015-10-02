@@ -23,7 +23,7 @@ SOFTWARE.
 */
 #include "LevelEditor.h"
 #include "EditorEngine.h"
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxEngineLib/Transform.h>
 #include <vxEngineLib/EditorScene.h>
 #include <vxLib/File/FileHandle.h>
@@ -385,14 +385,19 @@ namespace Editor
 		g_pEditor->engine.removeMeshInstance(sid);
 	}
 
-	void createLight()
+	u32 createLight()
 	{
-		g_pEditor->engine.createLight();
+		return g_pEditor->engine.createLight();
 	}
 
-	bool selectLight(s32 x, s32 y)
+	bool getLightIndex(s32 x, s32 y, u32* index)
 	{
-		return g_pEditor->engine.selectLight(x, y);
+		return g_pEditor->engine.getLightIndex(x, y, index);
+	}
+
+	void selectLight(u32 index)
+	{
+		g_pEditor->engine.selectLight(index);
 	}
 
 	void deselectLight()
@@ -400,44 +405,9 @@ namespace Editor
 		g_pEditor->engine.deselectLight();
 	}
 
-	void getSelectLightPosition(vx::float3* position)
-	{
-		g_pEditor->engine.getSelectLightPosition(position);
-	}
-
-	void setSelectLightPosition(const vx::float3 &position)
-	{
-		g_pEditor->engine.setSelectLightPosition(position);
-	}
-
-	f32 getSelectLightFalloff()
-	{
-		return g_pEditor->engine.getSelectLightFalloff();
-	}
-
-	void setSelectLightLumen(f32 lumen)
-	{
-		g_pEditor->engine.setSelectLightLumen(lumen);
-	}
-
-	f32 getSelectLightLumen()
-	{
-		return g_pEditor->engine.getSelectLightLumen();
-	}
-
-	void setSelectLightFalloff(f32 falloff)
-	{
-		g_pEditor->engine.setSelectLightFalloff(falloff);
-	}
-
 	u32 getLightCount()
 	{
 		return g_pEditor->engine.getLightCount();
-	}
-
-	u32 getSelectedLightIndex()
-	{
-		return g_pEditor->engine.getSelectedLightIndex();
 	}
 
 	f32 getLightLumen(u32 index)
@@ -727,6 +697,26 @@ namespace Editor
 		{
 			return ::SysAllocString(L"unkownActor");
 		}
+	}
+
+	u32 getLightGeometryProxyCount()
+	{
+		return g_pEditor->engine.getLightGeometryProxyCount();
+	}
+
+	void createLightGeometryProxy(const vx::float3 &center, const vx::float3 &halfDim)
+	{
+		g_pEditor->engine.createLightGeometryProxy(center, halfDim);
+	}
+
+	void setLightGeometryProxyBounds(u32 index, const vx::float3 &center, const vx::float3 &halfDim)
+	{
+		g_pEditor->engine.setLightGeometryProxyBounds(index, center, halfDim);
+	}
+
+	void getLightGeometryProxyBounds(u32 index, vx::float3* center, vx::float3* halfDim)
+	{
+		g_pEditor->engine.getLightGeometryProxyBounds(index, center, halfDim);
 	}
 }
 #endif

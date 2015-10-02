@@ -47,7 +47,7 @@ namespace Converter
 			m_meshInstanceCount = count;
 		}
 
-		void setLights(std::unique_ptr<Light[]> &&lights, u32 count)
+		void setLights(std::unique_ptr<Graphics::Light[]> &&lights, u32 count)
 		{
 			m_pLights = std::move(lights);
 			m_lightCount = count;
@@ -80,7 +80,7 @@ namespace Converter
 		u32 getMeshInstanceCount() const { return m_meshInstanceCount; }
 
 		u32 getLightCount() const { return m_lightCount; }
-		const Light* getLights() const { return m_pLights.get(); }
+		const Graphics::Light* getLights() const { return m_pLights.get(); }
 
 		u32 getSpawnCount() const { return m_spawnCount; }
 		const SpawnFile* getSpawns() const { return m_pSpawns.get(); }

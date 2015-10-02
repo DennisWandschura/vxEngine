@@ -6,7 +6,7 @@
 #include <vxLib/File/FileHandle.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/MeshInstanceFile.h>

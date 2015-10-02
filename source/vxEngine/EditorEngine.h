@@ -167,18 +167,11 @@ public:
 	void setMeshInstanceAnimation(u64 instanceSid, u64 animSid);
 	u64 getMeshInstanceAnimation(u64 instanceSid);
 
-	void createLight();
-	bool selectLight(s32 mouseX, s32 mouseY);
+	u32 createLight();
+	bool getLightIndex(s32 mouseX, s32 mouseY, u32* index);
+	void selectLight(u32 index);
 	void deselectLight();
-	void getSelectLightPosition(vx::float3* position) const;
-	void setSelectLightPosition(const vx::float3 &position);
-	f32 getSelectLightFalloff() const;
-	void setSelectLightFalloff(f32 falloff);
-	f32 getSelectLightLumen() const;
-	void setSelectLightLumen(f32 lumen);
-
 	u32 getLightCount();
-	u32 getSelectedLightIndex();
 	f32 getLightLumen(u32 index);
 	void setLightLumen(u32 index, f32 lumen);
 	f32 getLightFalloff(u32 index);
@@ -243,4 +236,9 @@ public:
 
 	u64 createActor(const char* name, u64 meshSid, u64 materialSid);
 	const char* getActorName(u64 sid) const;
+
+	u32 getLightGeometryProxyCount() const;
+	void createLightGeometryProxy(const vx::float3 &center, const vx::float3 &halfDim);
+	void setLightGeometryProxyBounds(u32 index, const vx::float3 &center, const vx::float3 &halfDim);
+	void getLightGeometryProxyBounds(u32 index, vx::float3* center, vx::float3* halfDim);
 };

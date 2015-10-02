@@ -29,7 +29,7 @@ SOFTWARE.
 #include <vxEngineLib/MeshInstanceFile.h>
 #include <vxEngineLib/NavMesh.h>
 #include <vxEngineLib/Actor.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/SceneFile.h>
@@ -44,7 +44,7 @@ namespace Converter
 		auto lightCount = scene.m_lightCount;
 		if (lightCount != 0)
 		{
-			auto lights = vx::make_unique<Light[]>(scene.m_lightCount);
+			auto lights = vx::make_unique<Graphics::Light[]>(scene.m_lightCount);
 			for (u32 i = 0; i < scene.m_lightCount; ++i)
 			{
 				lights[i] = scene.m_lights[i];

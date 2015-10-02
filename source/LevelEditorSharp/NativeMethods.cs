@@ -211,37 +211,19 @@ namespace LevelEditor
         public unsafe static extern void showInfluenceMap(bool b);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void createLight();
+        public unsafe static extern uint createLight();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern bool selectLight(int x, int y);
+        public unsafe static extern bool getLightIndex(int x, int y, out uint index);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void selectLight(uint index);
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void deselectLight();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void getSelectLightPosition(ref Float3 position);
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void setSelectLightPosition(ref Float3 position);
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern float getSelectLightFalloff();
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void setSelectLightFalloff(float falloff);
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern float getSelectLightLumen();
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern void setSelectLightLumen(float lumen);
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern uint getLightCount();
-
-        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
-        public unsafe static extern uint getSelectedLightIndex();
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern float getLightLumen(uint index);
@@ -388,5 +370,17 @@ namespace LevelEditor
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.BStr)]
         public unsafe static extern string getActorName(ulong sid);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern uint getLightGeometryProxyCount();
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void createLightGeometryProxy(ref Float3 center, ref Float3 halfDim);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void setLightGeometryProxyBounds(uint index, ref Float3 center, ref Float3 halfDim);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void getLightGeometryProxyBounds(uint index, out Float3 center, out Float3 halfDim);
     }
 }

@@ -24,7 +24,6 @@ SOFTWARE.
 */
 
 class MeshInstanceFileV8;
-struct Light;
 struct SpawnFile;
 struct ActorFile;
 struct Actor;
@@ -47,6 +46,7 @@ namespace Editor
 namespace Converter
 {
 	class SceneFileV9;
+	class SceneFileV10;
 	class SceneFileToEditorScene;
 	class EditorSceneToSceneFile;
 	class SceneFileToScene;
@@ -60,6 +60,12 @@ namespace vx
 	class MeshFile;
 	class File;
 	struct Animation;
+}
+
+namespace Graphics
+{
+	struct LightGeometryProxy;
+	struct Light;
 }
 
 #include <vxEngineLib/NavMesh.h>
@@ -79,19 +85,22 @@ struct CreateSceneDescription
 class SceneFile : public vx::Serializable
 {
 	friend Converter::SceneFileV9;
+	friend Converter::SceneFileV10;
 
 protected:
 	std::unique_ptr<MeshInstanceFileV8[]> m_pMeshInstances;
-	std::unique_ptr<Light[]> m_pLights;
+	std::unique_ptr<Graphics::Light[]> m_pLights;
 	std::unique_ptr<SpawnFile[]> m_pSpawns;
 	std::unique_ptr<Waypoint[]> m_waypoints;
 	std::unique_ptr<Joint[]> m_joints;
+	std::unique_ptr<Graphics::LightGeometryProxy[]> m_lightGeometryProxies;
 	NavMesh m_navMesh;
 	u32 m_meshInstanceCount;
 	u32 m_lightCount;
 	u32 m_spawnCount;
 	u32 m_waypointCount;
 	u32 m_jointCount;
+	u32 m_lightGeometryProxyCount;
 
 public:
 	explicit SceneFile(u32 version);

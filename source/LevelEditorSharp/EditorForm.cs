@@ -54,6 +54,8 @@ namespace LevelEditor
         const uint s_typeAnimation = 5;
         const uint s_typeJoint = 6;
         const uint s_typeActor = 7;
+        const uint s_typeLight = 8;
+        const uint s_typeLightGeometryProxy = 9;
 
         const uint s_maxAutosave = 4;
 
@@ -72,6 +74,7 @@ namespace LevelEditor
         TreeNode m_jointsNode;
         TreeNode m_actorsNode;
         TreeNode m_lightsNode;
+        TreeNode m_lightGeometryProxyNodes;
         bool m_keyDownAlt;
         int m_mouseX;
         int m_mouseY;
@@ -101,6 +104,7 @@ namespace LevelEditor
         Dictionary<Keys, bool> m_keys;
         ActionList m_actionListHead;
         uint m_selectedSpawn;
+        uint m_selectedLightIndex;
 
         public EditorForm()
         {
@@ -119,6 +123,7 @@ namespace LevelEditor
             m_jointsNode = treeView_entities.Nodes.Add("Joints");
             m_actorsNode = treeView_entities.Nodes.Add("Actors");
             m_lightsNode = treeView_entities.Nodes.Add("Lights");
+            m_lightGeometryProxyNodes = treeView_entities.Nodes.Add("Light Geometry Proxy");
 
             m_currentSceneFileName = "untitled.scene";
 
@@ -141,6 +146,7 @@ namespace LevelEditor
             m_mouseY = 0;
             m_selectedMeshInstanceSid = 0;
             m_selectedSpawn = 0xffffffff;
+            m_selectedLightIndex = 0xffffffff;
             m_currentAutosave = 0;
             m_loadedScene = false;
 
@@ -494,11 +500,13 @@ namespace LevelEditor
         void showLightGui()
         {
             toolStripButtonCreateLight.Visible = true;
+            toolStripButtonCreateLightGeometryProxy.Visible = true;
 
         }
         void hideLightGui()
         {
             toolStripButtonCreateLight.Visible = false;
+            toolStripButtonCreateLightGeometryProxy.Visible = false;
         }
 
         void showSpawnGui()
@@ -526,13 +534,14 @@ namespace LevelEditor
             addJointToolStripMenuItem.Visible = false;
         }
 
-        void getLightData()
+        void getLightData(uint index)
         {
             Float3 position;
             position.x = position.y = position.z = 0;
-            NativeMethods.getSelectLightPosition(ref position);
-            var falloff = NativeMethods.getSelectLightFalloff();
-            var lumen = NativeMethods.getSelectLightLumen();
+            NativeMethods.getLightPosition(index, ref position);
+
+            var falloff = NativeMethods.getLightFalloff(index);
+            var lumen = NativeMethods.getLightLumen(index);
 
             setNumericUpDownLightPosition(position);
             numericUpDownLightFalloff.Value = (decimal)falloff;
@@ -543,14 +552,20 @@ namespace LevelEditor
 
         public void selectLight()
         {
-            if (NativeMethods.selectLight(m_mouseX, m_mouseY))
+            m_selectedLightIndex = 0xffffffff;
+            uint lightIndex;
+            if (NativeMethods.getLightIndex(m_mouseX, m_mouseY, out lightIndex))
             {
-                getLightData();
+                NativeMethods.selectLight(lightIndex);
+                getLightData(lightIndex);
+
+                m_selectedLightIndex = lightIndex;
             }
         }
 
         public void deselectLight()
         {
+            m_selectedLightIndex = 0xffffffff;
             NativeMethods.deselectLight();
             groupBoxLight.Hide();
         }
@@ -610,7 +625,7 @@ namespace LevelEditor
             numericUpDownLightZ.Value = (decimal)position.z;
         }
 
-        void setSelectedLightPosition()
+        void setLightPosition(uint index)
         {
             Float3 position;
             position.x = position.y = position.z = 0;
@@ -618,7 +633,7 @@ namespace LevelEditor
             position.x = (float)numericUpDownLightX.Value;
             position.y = (float)numericUpDownLightY.Value;
             position.z = (float)numericUpDownLightZ.Value;
-            NativeMethods.setSelectLightPosition(ref position);
+            NativeMethods.setLightPosition(index, ref position);
         }
 
         public IntPtr getDisplayPanelHandle()
@@ -672,6 +687,24 @@ namespace LevelEditor
             if (!m_sortedMeshes.TryGetValue(sid, out entry))
             {
                 insertMesh(sid, name);
+            }
+        }
+
+        void insertLightGeometryProxy(uint index)
+        {
+            var entry = new EditorNodeEntry(index, s_typeLightGeometryProxy, "Proxy" + index);
+
+            m_lightGeometryProxyNodes.Nodes.Add(entry);
+        }
+
+        void addSceneLightGeometryProxies()
+        {
+            m_lightGeometryProxyNodes.Nodes.Clear();
+
+            var count = NativeMethods.getLightGeometryProxyCount();
+            for (uint i = 0; i < count; ++i)
+            {
+                insertLightGeometryProxy(i);
             }
         }
 
@@ -761,7 +794,8 @@ namespace LevelEditor
             var count = NativeMethods.getLightCount();
             for (uint i = 0; i < count; ++i)
             {
-                m_lightsNode.Nodes.Add("Light" + i);
+                var nodeEntry = new EditorNodeEntry(i, s_typeLight, "Light" + i);
+                m_lightsNode.Nodes.Add(nodeEntry);
             }
         }
 
@@ -779,9 +813,11 @@ namespace LevelEditor
         void insertActor(ulong sid, string actorName)
         {
             var entry = new EditorEntry(actorName, sid);
+            var nodeEntry = new EditorNodeEntry(sid, s_typeActor, actorName);
 
             m_sortedActors.Add(sid, entry);
             comboBoxActor.Items.Add(entry);
+            m_actorsNode.Nodes.Add(nodeEntry);
         }
 
         void addSceneMaterials()
@@ -888,6 +924,7 @@ namespace LevelEditor
                     addSceneJoints();
                     addSceneActors();
                     addSceneLights();
+                    addSceneLightGeometryProxies();
                 }
                 else if (type == s_typeAnimation)
                 {
@@ -1147,6 +1184,15 @@ namespace LevelEditor
                     var index = entry.sid;
                     setSelectedJoint((uint)index);
                     //m_jointDataControl.Show();
+                }
+                else if(entry.type == s_typeLight)
+                {
+                    comboBox_selectEditorMode.SelectedItem = s_textEditLights;
+
+                    uint index = (uint)entry.sid;
+                    m_selectedLightIndex = index;
+                    NativeMethods.selectLight(index);
+                    getLightData(index);
                 }
             }
             catch
@@ -1454,16 +1500,6 @@ namespace LevelEditor
             m_keyDownAlt = e.Alt;
         }
 
-        private void toolStripButton1_Click(object sender, EventArgs e)
-        {
-            m_editorState = EditorState.EditNavMesh;
-        }
-
-        private void toolStripButton2_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void importAssetToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //openFileDialog_importAsset.ShowDialog();
@@ -1567,6 +1603,8 @@ namespace LevelEditor
             {
                 m_editorState = EditorState.EditJoints;
             }
+
+            updateStateMachine();
         }
 
         public MouseButtons getLastClickedMouseButton()
@@ -1662,23 +1700,28 @@ namespace LevelEditor
 
         private void numericUpDownLightX_ValueChanged(object sender, EventArgs e)
         {
-            setSelectedLightPosition();
+            setLightPosition(m_selectedLightIndex);
         }
 
         private void numericUpDownLightY_ValueChanged(object sender, EventArgs e)
         {
-            setSelectedLightPosition();
+            setLightPosition(m_selectedLightIndex);
         }
 
         private void numericUpDownLightZ_ValueChanged(object sender, EventArgs e)
         {
-            setSelectedLightPosition();
+            setLightPosition(m_selectedLightIndex);
         }
 
         private void toolStripButtonCreateLight_Click(object sender, EventArgs e)
         {
-            NativeMethods.createLight();
-            getLightData();
+            var index = NativeMethods.createLight();
+            getLightData(index);
+
+            var i = NativeMethods.getLightCount();
+
+            var nodeEntry = new EditorNodeEntry(i, s_typeLight, "Light" + i);
+            m_lightsNode.Nodes.Add(nodeEntry);
         }
 
         public void setMeshInstanceMaterial(ulong materialSid)
@@ -1801,13 +1844,13 @@ namespace LevelEditor
         private void numericUpDownLightFalloff_ValueChanged(object sender, EventArgs e)
         {
             float value = (float)numericUpDownLightFalloff.Value;
-            NativeMethods.setSelectLightFalloff(value);
+            NativeMethods.setLightFalloff(m_selectedLightIndex, value);
         }
 
         private void numericUpDownLightLumen_ValueChanged(object sender, EventArgs e)
         {
             float value = (float)numericUpDownLightLumen.Value;
-            NativeMethods.setSelectLightLumen(value);
+            NativeMethods.setLightLumen(m_selectedLightIndex, value);
         }
 
         private void numericUpDownSpawnType_ValueChanged(object sender, EventArgs e)
@@ -1821,7 +1864,6 @@ namespace LevelEditor
 
         void setSpawnPosition()
         {
-            //if (m_editorState == EditorState.EditSpawns)
             if (m_selectedSpawn != 0xffffffff)
             {
                 Float3 oldPosition;
@@ -1908,6 +1950,20 @@ namespace LevelEditor
 
                 NativeMethods.setSpawnActor(m_selectedSpawn, entry.m_sid);
             }
+        }
+
+        private void toolStripButtonCreateLightProxyGeometry_Click(object sender, EventArgs e)
+        {
+            Float3 center;
+            center.x = center.y = center.z = 0;
+
+            Float3 halfDim;
+            halfDim.x = halfDim.y = halfDim.z = 5;
+
+            var index = NativeMethods.getLightGeometryProxyCount();
+            NativeMethods.createLightGeometryProxy(ref center, ref halfDim);
+
+            insertLightGeometryProxy(index);
         }
     }
 }

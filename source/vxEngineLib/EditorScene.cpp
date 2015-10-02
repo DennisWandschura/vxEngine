@@ -25,13 +25,14 @@ SOFTWARE.
 #include <vxEngineLib/EditorMeshInstance.h>
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/Actor.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/copy.h>
 #include <vxEngineLib/Reference.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/Joint.h>
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 
 namespace EditorSceneCpp
 {
@@ -133,7 +134,7 @@ namespace Editor
 			bounds.max = light.m_position + vx::float3(0.1f);
 			bounds.min = light.m_position - vx::float3(0.1f);
 
-			SelectableWrapper<Light> selectLight;
+			SelectableWrapper<Graphics::Light> selectLight;
 			selectLight.m_bounds = bounds;
 			selectLight.m_ptr = &light;
 
@@ -286,10 +287,10 @@ namespace Editor
 		newMeshes.swap(m_meshes);
 	}
 
-	Light* Scene::addLight(const Light &light)
+	Graphics::Light* Scene::addLight(const Graphics::Light &light)
 	{
 		m_lights.push_back(light);
-		++m_lightCount;
+		auto index = m_lightCount++;
 
 		buildSelectableLights();
 
@@ -664,9 +665,9 @@ namespace Editor
 		return m_spawnHumanId;
 	}
 
-	Light* Scene::getLight(const Ray &ray)
+	Graphics::Light* Scene::getLight(const Ray &ray)
 	{
-		Light* result = nullptr;
+		Graphics::Light* result = nullptr;
 
 		f32 a, b;
 		for (auto &it : m_selectableLights)
@@ -681,7 +682,7 @@ namespace Editor
 		return result;
 	}
 
-	Light* Scene::getLight(u32 i)
+	Graphics::Light* Scene::getLight(u32 i)
 	{
 		return &m_lights[i];
 	}
@@ -794,5 +795,22 @@ namespace Editor
 			joint.limit.x = limitMin;
 			joint.limit.y = limitMax;
 		}
+	}
+
+	void Scene::addLightGeometryProxy(const AABB &bounds)
+	{
+		auto index = m_lightGeometryProxyCount++;
+		auto newProxies = std::make_unique<Graphics::LightGeometryProxy[]>(m_lightGeometryProxyCount);
+		std::copy(m_lightGeometryProxies.get(), m_lightGeometryProxies.get() + index, newProxies.get());
+
+		newProxies[index].m_bounds = bounds;
+		newProxies[index].m_lightCount = 0;
+
+		m_lightGeometryProxies.swap(newProxies);
+	}
+
+	void Scene::setLightGeometryProxyBounds(u32 index, const AABB &bounds)
+	{
+		m_lightGeometryProxies[index].m_bounds = bounds;
 	}
 }

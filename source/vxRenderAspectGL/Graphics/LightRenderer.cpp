@@ -23,8 +23,8 @@ SOFTWARE.
 */
 
 #include "LightRenderer.h"
-#include <vxEngineLib/Light.h>
-#include <vxEngineLib/memcpy.h>
+#include <vxEngineLib/Graphics/Light.h>
+#include <vxlib/string.h>
 #include <vxEngineLib/EngineConfig.h>
 #include <vxLib/Graphics/Camera.h>
 #include "../gl/ObjectManager.h"

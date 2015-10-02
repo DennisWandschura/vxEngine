@@ -125,14 +125,15 @@ namespace Editor
 		void moveCamera(f32 dirX, f32 dirY, f32 dirZ);
 		void VX_CALLCONV rotateCamera(const __m128 rotation);
 
-		void updateNavMeshBuffer(const NavMesh &navMesh, u32(&selectedVertex)[3], u8 selectedCount);
-		void updateNavMeshBuffer(const NavMesh &navMesh);
-		void updateInfluenceCellBuffer(const InfluenceMap &influenceMap);
-		void updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph);
-		void updateLightBuffer(const Light* lights, u32 count);
-		void updateWaypoints(const Waypoint* w, u32 count);
-		void updateSpawns(const Spawn* spawns, u32 count);
-		void updateJoints(const Joint* joints, u32 count, const vx::sorted_vector<vx::StringID, MeshInstance> &meshinstances);
+		void updateNavMeshBuffer(const NavMesh &navMesh, u32(&selectedVertex)[3], u8 selectedCount) override;
+		void updateNavMeshBuffer(const NavMesh &navMesh) override;
+		void updateInfluenceCellBuffer(const InfluenceMap &influenceMap) override;
+		void updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph) override;
+		void updateLightBuffer(const Graphics::Light* lights, u32 count) override;
+		void updateWaypoints(const Waypoint* w, u32 count) override;
+		void updateSpawns(const Spawn* spawns, u32 count) override;
+		void updateJoints(const Joint* joints, u32 count, const vx::sorted_vector<vx::StringID, MeshInstance> &meshinstances) override;
+		void updateLightGeometryProxies(const Graphics::LightGeometryProxy* proxies, u32 count) override;
 
 		void getViewMatrix(vx::mat4* viewMatrix) const override;
 		void getCameraPosition(vx::float4a* position) const override;

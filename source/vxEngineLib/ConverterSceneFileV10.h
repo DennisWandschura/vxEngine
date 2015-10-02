@@ -26,44 +26,20 @@ SOFTWARE.
 
 namespace vx
 {
-	class Camera;
+	class Allocator;
 }
 
-namespace Gpu
+class SceneFile;
+
+#include <vxLib/types.h>
+
+namespace Converter
 {
-	struct LightData;
-};
-
-#include "Renderer.h"
-#include <vxLib/memory.h>
-
-namespace Graphics
-{
-	struct Light;
-
-	class LightRenderer : public Renderer
+	class SceneFileV10
 	{
-		std::unique_ptr<Gpu::LightData[]> m_lights;
-		std::unique_ptr<Gpu::LightData[]> m_activeLights;
-		std::unique_ptr<std::pair<f32, u32>[]> m_lightDistances;
-		u32 m_lightCount;
-		u32 m_maxActiveLights;
-		u32 m_activeLightCount;
-
 	public:
-		LightRenderer();
-		~LightRenderer();
+		static const u8* loadFromMemory(const u8 *ptr, const u8* last, vx::Allocator* allocator, SceneFile* sceneFile);
 
-		bool initialize(vx::StackAllocator* scratchAllocator, Logfile* errorlog, const void* p);
-		void shutdown();
-
-		void getCommandList(CommandList* cmdList);
-
-		void clearData();
-		void bindBuffers();
-
-		void setLights(const Light* lights, u32 count);
-
-		void cullLights(const vx::Camera &camera);
+		static u64 getCrc(const SceneFile &sceneFile);
 	};
 }

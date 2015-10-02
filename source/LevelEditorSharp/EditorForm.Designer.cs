@@ -80,6 +80,7 @@ namespace LevelEditor
             this.toolStripButtonCreateMeshInstance = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCreateSpawn = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonCreateJoint = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonCreateLightGeometryProxy = new System.Windows.Forms.ToolStripButton();
             this.openFileDialog1_loadScene = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog_scene = new System.Windows.Forms.SaveFileDialog();
             this.numericUpDownNavmeshPositionZ = new System.Windows.Forms.NumericUpDown();
@@ -102,16 +103,16 @@ namespace LevelEditor
             this.numericUpDownLightLumen = new System.Windows.Forms.NumericUpDown();
             this.treeViewActionList = new System.Windows.Forms.TreeView();
             this.groupBoxSpawn = new System.Windows.Forms.GroupBox();
+            this.comboBoxActor = new System.Windows.Forms.ComboBox();
             this.flowLayoutPanel13 = new System.Windows.Forms.FlowLayoutPanel();
             this.label12 = new System.Windows.Forms.Label();
             this.numericUpDownSpawnType = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
             this.flowLayoutPanel12 = new System.Windows.Forms.FlowLayoutPanel();
             this.label11 = new System.Windows.Forms.Label();
             this.numericUpDownSpawnPosX = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosZ = new System.Windows.Forms.NumericUpDown();
-            this.comboBoxActor = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).BeginInit();
@@ -333,7 +334,8 @@ namespace LevelEditor
             this.toolStripButtonCreateLight,
             this.toolStripButtonCreateMeshInstance,
             this.toolStripButtonCreateSpawn,
-            this.toolStripButtonCreateJoint});
+            this.toolStripButtonCreateJoint,
+            this.toolStripButtonCreateLightGeometryProxy});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(2544, 25);
@@ -391,6 +393,17 @@ namespace LevelEditor
             this.toolStripButtonCreateJoint.Text = "Create Joint";
             this.toolStripButtonCreateJoint.Visible = false;
             this.toolStripButtonCreateJoint.Click += new System.EventHandler(this.toolStripButtonCreateJoint_Click);
+            // 
+            // toolStripButtonCreateLightGeometryProxy
+            // 
+            this.toolStripButtonCreateLightGeometryProxy.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonCreateLightGeometryProxy.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonCreateLightGeometryProxy.Image")));
+            this.toolStripButtonCreateLightGeometryProxy.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonCreateLightGeometryProxy.Name = "toolStripButtonCreateLightGeometryProxy";
+            this.toolStripButtonCreateLightGeometryProxy.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonCreateLightGeometryProxy.Text = "Create Light Geometry Proxy";
+            this.toolStripButtonCreateLightGeometryProxy.Visible = false;
+            this.toolStripButtonCreateLightGeometryProxy.Click += new System.EventHandler(this.toolStripButtonCreateLightProxyGeometry_Click);
             // 
             // openFileDialog1_loadScene
             // 
@@ -682,6 +695,16 @@ namespace LevelEditor
             this.groupBoxSpawn.TabStop = false;
             this.groupBoxSpawn.Text = "Spawn";
             // 
+            // comboBoxActor
+            // 
+            this.comboBoxActor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxActor.FormattingEnabled = true;
+            this.comboBoxActor.Location = new System.Drawing.Point(130, 102);
+            this.comboBoxActor.Name = "comboBoxActor";
+            this.comboBoxActor.Size = new System.Drawing.Size(121, 21);
+            this.comboBoxActor.TabIndex = 19;
+            this.comboBoxActor.SelectedIndexChanged += new System.EventHandler(this.comboBoxActor_SelectedIndexChanged);
+            // 
             // flowLayoutPanel13
             // 
             this.flowLayoutPanel13.Controls.Add(this.label12);
@@ -715,6 +738,18 @@ namespace LevelEditor
             this.numericUpDownSpawnType.Size = new System.Drawing.Size(100, 20);
             this.numericUpDownSpawnType.TabIndex = 12;
             this.numericUpDownSpawnType.ValueChanged += new System.EventHandler(this.numericUpDownSpawnType_ValueChanged);
+            // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(89, 110);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(35, 13);
+            this.label1.TabIndex = 17;
+            this.label1.Text = "Actor:";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // flowLayoutPanel12
             // 
@@ -795,28 +830,6 @@ namespace LevelEditor
             this.numericUpDownSpawnPosZ.Size = new System.Drawing.Size(100, 20);
             this.numericUpDownSpawnPosZ.TabIndex = 14;
             this.numericUpDownSpawnPosZ.ValueChanged += new System.EventHandler(this.numericUpDownSpawnPosZ_ValueChanged);
-            // 
-            // comboBoxActor
-            // 
-            this.comboBoxActor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxActor.FormattingEnabled = true;
-            this.comboBoxActor.Location = new System.Drawing.Point(130, 102);
-            this.comboBoxActor.Name = "comboBoxActor";
-            this.comboBoxActor.Size = new System.Drawing.Size(121, 21);
-            this.comboBoxActor.TabIndex = 19;
-            this.comboBoxActor.SelectedIndexChanged += new System.EventHandler(this.comboBoxActor_SelectedIndexChanged);
-            // 
-            // label1
-            // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(89, 110);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(35, 13);
-            this.label1.TabIndex = 17;
-            this.label1.Text = "Actor:";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // EditorForm
             // 
@@ -939,6 +952,7 @@ namespace LevelEditor
         private System.Windows.Forms.ToolStripMenuItem createActorToolStripMenuItem;
         private System.Windows.Forms.ComboBox comboBoxActor;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ToolStripButton toolStripButtonCreateLightGeometryProxy;
     }
 }
 

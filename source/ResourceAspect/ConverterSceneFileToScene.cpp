@@ -30,7 +30,7 @@ SOFTWARE.
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/MeshFile.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxEngineLib/Waypoint.h>
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/MeshInstanceFile.h>
@@ -155,7 +155,7 @@ namespace Converter
 
 		auto lightCount = converterSceneFile.getLightCount();
 		auto lights = converterSceneFile.getLights();
-		auto pLights = std::vector<Light>();
+		auto pLights = std::vector<Graphics::Light>();
 		pLights.reserve(lightCount);
 		for (u32 i = 0; i < lightCount; ++i)
 		{

@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "ConverterSceneFileV9.h"
+#include "ConverterSceneFileV10.h"
 #include <vxLib/string.h>
 #include <vxEngineLib/SceneFile.h>
 #include <vxEngineLib/MeshInstanceFile.h>
@@ -31,16 +31,18 @@ SOFTWARE.
 #include <vxEngineLib/Actor.h>
 #include <vxEngineLib/Joint.h>
 #include <vxEngineLib/Waypoint.h>
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 
 namespace Converter
 {
-	const u8* SceneFileV9::loadFromMemory(const u8 *ptr, const u8* last, vx::Allocator* allocator, SceneFile* sceneFile)
+	const u8* SceneFileV10::loadFromMemory(const u8 *ptr, const u8* last, vx::Allocator* allocator, SceneFile* sceneFile)
 	{
 		ptr = vx::read(sceneFile->m_meshInstanceCount, ptr);
 		ptr = vx::read(sceneFile->m_lightCount, ptr);
 		ptr = vx::read(sceneFile->m_spawnCount, ptr);
 		ptr = vx::read(sceneFile->m_waypointCount, ptr);
 		ptr = vx::read(sceneFile->m_jointCount, ptr);
+		ptr = vx::read(sceneFile->m_lightGeometryProxyCount, ptr);
 
 		sceneFile->m_pLights = vx::make_unique<Graphics::Light[]>(sceneFile->m_lightCount);
 		sceneFile->m_pSpawns = vx::make_unique<SpawnFile[]>(sceneFile->m_spawnCount);
@@ -67,6 +69,12 @@ namespace Converter
 			ptr = vx::read(sceneFile->m_joints.get(), ptr, sceneFile->m_jointCount);
 		}
 
+		if (sceneFile->m_lightGeometryProxyCount != 0)
+		{
+			sceneFile->m_lightGeometryProxies = vx::make_unique<Graphics::LightGeometryProxy[]>(sceneFile->m_lightGeometryProxyCount);
+			ptr = vx::read(sceneFile->m_lightGeometryProxies.get(), ptr, sceneFile->m_lightGeometryProxyCount);
+		}
+
 		VX_ASSERT(ptr < last);
 
 		ptr = sceneFile->m_navMesh.load(ptr);
@@ -76,7 +84,7 @@ namespace Converter
 		return ptr;
 	}
 
-	u64 SceneFileV9::getCrc(const SceneFile &sceneFile)
+	u64 SceneFileV10::getCrc(const SceneFile &sceneFile)
 	{
 		auto navVertexCount = sceneFile.m_navMesh.getVertexCount();
 		auto navIndexCount = sceneFile.m_navMesh.getTriangleCount() * 3;
@@ -89,8 +97,9 @@ namespace Converter
 		auto lightSize = sizeof(Graphics::Light) * sceneFile.m_lightCount;
 		auto spawnSize = sizeof(SpawnFile) * sceneFile.m_spawnCount;
 		auto jointSize = sizeof(Joint) * sceneFile.m_jointCount;
+		auto lightGeomProxySize = sizeof(Graphics::LightGeometryProxy) * sceneFile.m_lightGeometryProxyCount;
 
-		auto totalSize = meshInstanceSize + lightSize + spawnSize + navMeshSize + jointSize;
+		auto totalSize = meshInstanceSize + lightSize + spawnSize + navMeshSize + jointSize + lightGeomProxySize;
 		auto ptr = vx::make_unique<u8[]>(totalSize);
 		auto current = ptr.get();
 
@@ -100,6 +109,7 @@ namespace Converter
 		current = vx::write(current, sceneFile.m_navMesh.getVertices(), navVertexCount);
 		current = vx::write(current, sceneFile.m_navMesh.getTriangleIndices(), navIndexCount);
 		current = vx::write(current, sceneFile.m_joints.get(), sceneFile.m_jointCount);
+		current = vx::write(current, sceneFile.m_lightGeometryProxies.get(), sceneFile.m_lightGeometryProxyCount);
 
 		auto last = ptr.get() + totalSize;
 		VX_ASSERT(current == last);

@@ -30,7 +30,7 @@ SOFTWARE.
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/MeshFile.h>
 #include <vxEngineLib/EditorScene.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxEngineLib/Scene.h>
 #include <vxEngineLib/Waypoint.h>
 #include <vxLib/util/CityHash.h>
@@ -40,6 +40,8 @@ SOFTWARE.
 #include <vxEngineLib/Animation.h>
 #include <vxEngineLib/Joint.h>
 #include "ConverterSceneFileV9.h"
+#include "ConverterSceneFileV10.h"
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 
 SceneFile::SceneFile(u32 version)
 	:Serializable(version),
@@ -101,14 +103,18 @@ const u8* SceneFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allo
 	auto version = getVersion();
 	auto last = ptr + size;
 
-	const u8* result = nullptr;
-	if (version == 9)
+	const u8* result = ptr;
+	switch (version)
 	{
+	case 9:
 		result = Converter::SceneFileV9::loadFromMemory(ptr, last, allocator, this);
-	}
-	else
-	{
+		break;
+	case 10:
+		result = Converter::SceneFileV10::loadFromMemory(ptr, last, allocator, this);
+		break;
+	default:
 		VX_ASSERT(false);
+		break;
 	}
 
 	return result;
@@ -140,6 +146,9 @@ u64 SceneFile::getCrc(u32 version) const
 	case 9:
 		crc = Converter::SceneFileV9::getCrc(*this);
 		break;
+	case 10:
+		crc = Converter::SceneFileV10::getCrc(*this);
+		break;
 	default:
 		VX_ASSERT(false);
 		break;
@@ -157,5 +166,5 @@ u64 SceneFile::getCrc() const
 
 u32 SceneFile::getGlobalVersion()
 {
-	return 9;
+	return 10;
 }

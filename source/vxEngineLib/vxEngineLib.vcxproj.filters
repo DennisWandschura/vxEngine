@@ -31,11 +31,11 @@
     <Filter Include="Header Files\Messages">
       <UniqueIdentifier>{7d74c6ee-0b23-42f6-9bc2-12454cab5000}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\File">
+      <UniqueIdentifier>{5c4c7735-afe7-4203-9eff-2f785b1e6143}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\vxEngineLib\SceneFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\Serializable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -61,9 +61,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\Animation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\AnimationFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\ArrayAllocator.h">
@@ -99,9 +96,6 @@
     <ClInclude Include="include\vxEngineLib\InfluenceMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\Light.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\Locator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -114,13 +108,7 @@
     <ClInclude Include="include\vxEngineLib\memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\MeshFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\MeshInstance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vxEngineLib\MeshInstanceFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\vxEngineLib\mutex.h">
@@ -303,11 +291,32 @@
     <ClInclude Include="ConverterSceneFileV9.h">
       <Filter>Header Files\Converter</Filter>
     </ClInclude>
-    <ClInclude Include="include\vxEngineLib\ActorFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\vxEngineLib\Freelist.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Graphics\LightGeometryProxy.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\AnimationFile.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\ActorFile.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\MeshInstanceFile.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\SceneFile.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\MeshFile.h">
+      <Filter>Header Files\File</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterSceneFileV10.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vxEngineLib\Graphics\Light.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -451,6 +460,9 @@
     </ClCompile>
     <ClCompile Include="ActorFile.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterSceneFileV10.cpp">
+      <Filter>Source Files\Converter</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

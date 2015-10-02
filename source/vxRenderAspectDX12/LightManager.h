@@ -26,7 +26,6 @@ SOFTWARE.
 
 struct GpuShadowTransformReverse;
 struct GpuLight;
-struct Light;
 class Frustum;
 struct GpuShadowTransform;
 struct D3D12_DRAW_INDEXED_ARGUMENTS;
@@ -35,6 +34,11 @@ struct RenderSettings;
 class RenderPassLight;
 class RenderPassCullLights;
 class RenderAspect;
+
+namespace Graphics
+{
+	struct Light;
+}
 
 namespace d3d
 {
@@ -80,7 +84,7 @@ public:
 
 	bool initialize(const RenderSettings &settings, vx::StackAllocator* allocator, u32 maxSceneLightCount, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 
-	bool loadSceneLights(const Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
+	bool loadSceneLights(const Graphics::Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 
 	void __vectorcall update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, RenderAspect* renderAspect);
 

@@ -43,7 +43,7 @@ SOFTWARE.
 #include <EditorLightBuffer.h>
 #include "gl/BufferBindingManager.h"
 #include <UniformCameraBufferStatic.h>
-#include <vxEngineLib/Light.h>
+#include <vxEngineLib/Graphics/Light.h>
 #include <vxGL/Debug.h>
 #include <vxLib/ScopeGuard.h>
 #include <vxGL/VertexArray.h>
@@ -56,6 +56,7 @@ SOFTWARE.
 #include <vxEngineLib/Joint.h>
 #include <vxEngineLib/ArrayAllocator.h>
 #include <vxEngineLib/RendererMessage.h>
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 
 struct InfluenceCellVertex
 {
@@ -94,6 +95,12 @@ namespace Editor
 	{
 		vx::float3 position;
 		vx::float3 color;
+	};
+
+	struct LightGeometryProxyData
+	{
+		vx::float4 vmin;
+		vx::float4 vmax;
 	};
 
 	struct RenderAspect::ColdData
@@ -251,6 +258,7 @@ namespace Editor
 		m_shaderManager.loadPipeline(vx::FileHandle("editorSelectedMesh.pipe"), "editorSelectedMesh.pipe", &m_allocator, &error);
 		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawVoxelGrid.pipe"), "editorDrawVoxelGrid.pipe", &m_allocator, &error);
 		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawJoints.pipe"), "editorDrawJoints.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawLightGeometryProxy.pipe"), "editorDrawLightGeometryProxy.pipe", &m_allocator, &error);
 
 		Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, renderDesc.settings, nullptr);
 
@@ -432,7 +440,7 @@ namespace Editor
 			desc.flags = vx::gl::BufferStorageFlags::Write;
 			desc.immutable = 1;
 			desc.pData = nullptr;
-			desc.size = sizeof(JointData) * 255;
+			desc.size = sizeof(JointData) * 256;
 
 			m_objectManager.createBuffer("editorJointBuffer", desc);
 
@@ -443,6 +451,27 @@ namespace Editor
 			desc.pData = &cmd;
 			desc.size = sizeof(cmd);
 			m_objectManager.createBuffer("editorJointCmdBuffer", desc);
+		}
+
+		{
+			vx::gl::BufferDescription bufferDesc;
+			bufferDesc.bufferType = vx::gl::BufferType::Uniform_Buffer;
+			bufferDesc.flags = vx::gl::BufferStorageFlags::Write;
+			bufferDesc.immutable = 1;
+			bufferDesc.pData = nullptr;
+			bufferDesc.size = sizeof(LightGeometryProxyData) * 256;
+
+			m_objectManager.createBuffer("editorLightGeometryProxyBuffer", bufferDesc);
+
+			vx::gl::DrawArraysIndirectCommand cmd{};
+			cmd.instanceCount = 1;
+			cmd.count = 0;
+
+			bufferDesc.bufferType = vx::gl::BufferType::Draw_Indirect_Buffer;
+			bufferDesc.pData = &cmd;
+			bufferDesc.size = sizeof(cmd);
+			bufferDesc.flags = vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
+			m_objectManager.createBuffer("editorLightGeometryProxyCmdBuffer", bufferDesc);
 		}
 
 		m_commandList.initialize();
@@ -477,7 +506,7 @@ namespace Editor
 		auto materialBlockBuffer = m_objectManager.getBuffer("materialBlockBuffer");
 		auto editorVoxelDataBuffer = m_objectManager.getBuffer("editorVoxelDataBuffer");
 		auto editorJointBuffer = m_objectManager.getBuffer("editorJointBuffer");
-		//auto pTextureBuffer = m_objectManager.getBuffer("TextureBuffer");
+		auto editorLightGeometryProxyBuffer = m_objectManager.getBuffer("editorLightGeometryProxyBuffer");
 
 		gl::BufferBindingManager::bindBaseUniform(0, m_cameraBuffer.getId());
 		gl::BufferBindingManager::bindBaseUniform(2, pCameraBufferStatic->getId());
@@ -486,6 +515,7 @@ namespace Editor
 
 		gl::BufferBindingManager::bindBaseUniform(8, editorTextureBuffer->getId());
 		gl::BufferBindingManager::bindBaseUniform(9, editorJointBuffer->getId());
+		gl::BufferBindingManager::bindBaseUniform(10, editorLightGeometryProxyBuffer->getId());
 
 		gl::BufferBindingManager::bindBaseShaderStorage(0, transformBuffer->getId());
 		gl::BufferBindingManager::bindBaseShaderStorage(1, materialBlockBuffer->getId());
@@ -1157,7 +1187,7 @@ namespace Editor
 		}
 	}
 
-	void RenderAspect::updateLightBuffer(const Light* lights, u32 count)
+	void RenderAspect::updateLightBuffer(const Graphics::Light* lights, u32 count)
 	{
 		if (count == 0)
 			return;
@@ -1260,6 +1290,32 @@ namespace Editor
 			vx::storeFloat4(&mappedBuffer[i].p0, p0);
 			vx::storeFloat4(&mappedBuffer[i].p1, p1);
 
+		}
+	}
+
+	void RenderAspect::updateLightGeometryProxies(const Graphics::LightGeometryProxy* proxies, u32 count)
+	{
+		if (count != 0)
+		{
+			auto editorLightGeometryProxyBuffer = m_objectManager.getBuffer("editorLightGeometryProxyBuffer");
+
+			auto gpuPtr = editorLightGeometryProxyBuffer->map<LightGeometryProxyData>(vx::gl::Map::Write_Only);
+			for (u32 i = 0; i < count; ++i)
+			{
+				auto &proxy = proxies[i];
+				gpuPtr[i].vmin = vx::float4(proxy.m_bounds.min, 0);
+				gpuPtr[i].vmax = vx::float4(proxy.m_bounds.max, 0);
+			}
+			gpuPtr.unmap();
+
+			vx::gl::DrawArraysIndirectCommand cmd;
+			memset(&cmd,0, sizeof(cmd));
+
+			cmd.instanceCount = 1;
+			cmd.count = count;
+
+			auto editorLightGeometryProxyCmdBuffer = m_objectManager.getBuffer("editorLightGeometryProxyCmdBuffer");
+			editorLightGeometryProxyCmdBuffer->subData(0, sizeof(cmd), &cmd);
 		}
 	}
 

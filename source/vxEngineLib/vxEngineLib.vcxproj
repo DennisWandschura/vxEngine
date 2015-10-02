@@ -296,6 +296,7 @@
   <ItemGroup>
     <ClInclude Include="ConverterMeshFileV0.h" />
     <ClInclude Include="ConverterMeshFileV1.h" />
+    <ClInclude Include="ConverterSceneFileV10.h" />
     <ClInclude Include="ConverterSceneFileV9.h" />
     <ClInclude Include="include\vxEngineLib\AABB.h" />
     <ClInclude Include="include\vxEngineLib\Actor.h" />
@@ -327,6 +328,8 @@
     <ClInclude Include="include\vxEngineLib\Graphics\EditorRenderAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\Font.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\FontAtlas.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\Light.h" />
+    <ClInclude Include="include\vxEngineLib\Graphics\LightGeometryProxy.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\RenderLayer.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\RenderAspectInterface.h" />
     <ClInclude Include="include\vxEngineLib\Graphics\RendererSettings.h" />
@@ -345,7 +348,6 @@
     <ClInclude Include="include\vxEngineLib\GpuFunctions.h" />
     <ClInclude Include="include\vxEngineLib\InfluenceMap.h" />
     <ClInclude Include="include\vxEngineLib\Joint.h" />
-    <ClInclude Include="include\vxEngineLib\Light.h" />
     <ClInclude Include="include\vxEngineLib\Locator.h" />
     <ClInclude Include="include\vxEngineLib\managed_ptr.h" />
     <ClInclude Include="include\vxEngineLib\Material.h" />
@@ -420,6 +422,7 @@
     <ClCompile Include="ConverterMeshFileV1.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ConverterSceneFileV10.cpp" />
     <ClCompile Include="ConverterSceneFileV9.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Editor|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
