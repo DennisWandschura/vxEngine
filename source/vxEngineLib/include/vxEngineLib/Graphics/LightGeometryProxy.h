@@ -33,6 +33,10 @@ namespace Graphics
 		AABB m_bounds;
 		u32 m_lightCount;
 		u32 m_padding;
-		u16* m_lightIndices;
+		u16 m_lightIndices[10];
+
+		LightGeometryProxy()
+			:m_bounds(), m_lightCount(0), m_padding(0), m_lightIndices()
+		{}
 	};
 }

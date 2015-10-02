@@ -76,6 +76,12 @@ namespace Converter
 			navMesh.copy(&m_navMesh);
 		}
 
+		void setLightGeometryProxies(std::unique_ptr<Graphics::LightGeometryProxy[]> &&proxies, u32 count)
+		{
+			m_lightGeometryProxies = std::move(proxies);
+			m_lightGeometryProxyCount = count;
+		}
+
 		const MeshInstanceFileV8* getMeshInstances() const { return m_pMeshInstances.get(); }
 		u32 getMeshInstanceCount() const { return m_meshInstanceCount; }
 
@@ -93,5 +99,8 @@ namespace Converter
 
 		const NavMesh& getNavMesh() const { return m_navMesh; }
 		NavMesh& getNavMesh() { return m_navMesh; }
+
+		u32 getLightGeometryProxyCount() const { return m_lightGeometryProxyCount; }
+		const Graphics::LightGeometryProxy* getLightGeometryProxies() const { return m_lightGeometryProxies.get(); }
 	};
 }

@@ -78,6 +78,7 @@ EditorEngine::EditorEngine()
 	m_physicsAspect(),
 	m_renderAspect(),
 	m_resourceAspect(),
+	m_navmeshGraph(),
 	m_previousSceneLoaded(false)
 {
 }
@@ -250,11 +251,10 @@ void EditorEngine::buildNavGraph()
 
 	m_influenceMap.initialize(navMesh, m_pEditorScene->getWaypoints(), m_pEditorScene->getWaypointCount());
 
-	NavMeshGraph graph;
-	graph.initialize(navMesh);
+	m_navmeshGraph.initialize(navMesh);
 
 	m_renderAspect->updateInfluenceCellBuffer(m_influenceMap);
-	m_renderAspect->updateNavMeshGraphNodesBuffer(graph);
+	m_renderAspect->updateNavMeshGraphNodesBuffer(m_navmeshGraph);
 }
 
 void EditorEngine::handleMessage(const vx::Message &evt)
@@ -1164,12 +1164,19 @@ Editor::Scene* EditorEngine::getEditorScene() const
 
 void EditorEngine::showNavmesh(bool b)
 {
-	//m_renderAspect->showNavmesh(b);
+	if (m_pEditorScene)
+	{
+		auto &navMesh = m_pEditorScene->getNavMesh();
+		m_renderAspect->showNavMesh(b, navMesh, m_navmeshGraph);
+	}
 }
 
 void EditorEngine::showInfluenceMap(bool b)
 {
-	//m_renderAspect->showInfluenceMap(b);
+	if (m_pEditorScene)
+	{
+		m_renderAspect->showInfluenceMap(b, m_influenceMap);
+	}
 }
 
 bool EditorEngine::addWaypoint(s32 mouseX, s32 mouseY, vx::float3* position)

@@ -106,6 +106,8 @@ namespace Editor
 	struct RenderAspect::ColdData
 	{
 		vx::gl::Texture m_texture;
+		u32 m_navmeshConnectionIndexCount;
+		u32 m_influenceMapIndexCount;
 	};
 
 	RenderAspect::RenderAspect()
@@ -165,6 +167,8 @@ namespace Editor
 		m_scratchAllocator = vx::StackAllocator(scratchMemory, scratchMemorySize);
 
 		m_coldData = vx::make_unique<ColdData>();
+		m_coldData->m_navmeshConnectionIndexCount = 0;
+		m_coldData->m_influenceMapIndexCount = 0;
 
 		vx::gl::StateManager::disable(vx::gl::Capabilities::Framebuffer_sRGB);
 		vx::gl::StateManager::enable(vx::gl::Capabilities::Texture_Cube_Map_Seamless);
@@ -1013,6 +1017,68 @@ namespace Editor
 		m_camera.setRotation(ro);
 	}
 
+	void RenderAspect::showInfluenceMap(bool b, const InfluenceMap &influenceMap)
+	{
+		auto cmdBuffer = m_objectManager.getBuffer("drawInfluenceCellNewCmd");
+		auto mappedCmd = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+		if (b)
+		{
+			mappedCmd->count = m_coldData->m_influenceMapIndexCount;
+		}
+		else
+		{
+			
+			mappedCmd->count = 0;
+		}
+	}
+
+	void RenderAspect::showNavMesh(bool b, const NavMesh &navMesh, const NavMeshGraph &navMeshGraph)
+	{
+		if (b)
+		{
+			updateNavMeshIndexBuffer(navMesh);
+
+			auto editorDrawNavmeshConnectionCmd = m_objectManager.getBuffer("editorDrawNavmeshConnectionCmd");
+			auto mappedEditorDrawNavmeshConnectionCmd = editorDrawNavmeshConnectionCmd->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+			mappedEditorDrawNavmeshConnectionCmd->count = m_coldData->m_navmeshConnectionIndexCount;
+			mappedEditorDrawNavmeshConnectionCmd.unmap();
+
+			auto navmeshVertexCount = navMesh.getVertexCount();
+			auto navMeshVertexCmdBuffer = m_objectManager.getBuffer("navMeshVertexCmdBuffer");
+			auto mappedNavMeshVertexCmdBuffer = navMeshVertexCmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+			mappedNavMeshVertexCmdBuffer->count = navmeshVertexCount;
+			mappedNavMeshVertexCmdBuffer.unmap();
+
+			auto nodeCount = navMeshGraph.getNodeCount();
+			auto graphNodesCmdBuffer = m_objectManager.getBuffer("graphNodesCmdBuffer");
+			auto mappedGraphNodesCmdBuffer = graphNodesCmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+			mappedGraphNodesCmdBuffer->count = nodeCount;
+			mappedGraphNodesCmdBuffer.unmap();
+		}
+		else
+		{
+			auto navmeshCmdBuffer = m_objectManager.getBuffer("navmeshCmdBuffer");
+			auto mappedNavmeshCmdBuffer = navmeshCmdBuffer->map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);
+			mappedNavmeshCmdBuffer->count = 0;
+			mappedNavmeshCmdBuffer.unmap();
+
+			auto editorDrawNavmeshConnectionCmd = m_objectManager.getBuffer("editorDrawNavmeshConnectionCmd");
+			auto mappedCmd = editorDrawNavmeshConnectionCmd->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+			mappedCmd->count = 0;
+			mappedCmd.unmap();
+
+			auto navMeshVertexCmdBuffer = m_objectManager.getBuffer("navMeshVertexCmdBuffer");
+			auto mappedNavMeshVertexCmdBuffer = navMeshVertexCmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+			mappedNavMeshVertexCmdBuffer->count = 0;
+			mappedNavMeshVertexCmdBuffer.unmap();
+
+			auto graphNodesCmdBuffer = m_objectManager.getBuffer("graphNodesCmdBuffer");
+			auto mappedGraphNodesCmdBuffer = graphNodesCmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
+			mappedGraphNodesCmdBuffer->count = 0;
+			mappedGraphNodesCmdBuffer.unmap();
+		}
+	}
+
 	void RenderAspect::uploadToNavMeshVertexBuffer(const VertexPositionColor* vertices, u32 count)
 	{
 		auto navMeshVertexVbo = m_objectManager.getBuffer("navMeshVertexVbo");
@@ -1131,6 +1197,8 @@ namespace Editor
 		auto cmdBuffer = m_objectManager.getBuffer("drawInfluenceCellNewCmd");
 		auto mappedCmd = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 		mappedCmd->count = vertexOffset;
+
+		m_coldData->m_influenceMapIndexCount = vertexOffset;
 	}
 
 	void RenderAspect::updateNavMeshGraphNodesBuffer(const NavMeshGraph &navMeshGraph)
@@ -1164,7 +1232,7 @@ namespace Editor
 
 			u32 index = 0;
 			auto vbo = m_objectManager.getBuffer("editorDrawNavmeshConnectionVbo");
-			auto cmd = m_objectManager.getBuffer("editorDrawNavmeshConnectionCmd");
+			
 
 			auto mappedVbo = vbo->map<vx::float3>(vx::gl::Map::Write_Only);
 
@@ -1182,8 +1250,11 @@ namespace Editor
 				}
 			}
 
+			auto cmd = m_objectManager.getBuffer("editorDrawNavmeshConnectionCmd");
 			auto mappedCmd = cmd->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 			mappedCmd->count = index;
+
+			m_coldData->m_navmeshConnectionIndexCount = index;
 		}
 	}
 
@@ -1350,7 +1421,6 @@ namespace Editor
 			updateNavMeshIndexBuffer(indices, triangleCount);
 
 			auto navMeshIndexCount = triangleCount * 3;
-			//m_pEditorColdData->m_navMeshIndexCount = navMeshIndexCount;
 
 			auto navmeshCmdBuffer = m_objectManager.getBuffer("navmeshCmdBuffer");
 			auto mappedCmdBuffer = navmeshCmdBuffer->map<vx::gl::DrawElementsIndirectCommand>(vx::gl::Map::Write_Only);

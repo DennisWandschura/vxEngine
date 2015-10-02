@@ -52,14 +52,14 @@ SceneBase::SceneBase()
 	m_waypoints(),
 	m_animations(),
 	m_joints(),
+	m_lightGeometryProxies(),
 	m_navMesh(),
 	m_lightCount(0),
 	m_vertexCount(0),
 	m_indexCount(0),
 	m_spawnCount(0),
 	m_waypointCount(0),
-	m_lightGeometryProxyCount(0),
-	m_lightGeometryProxies(0)
+	m_lightGeometryProxyCount(0)
 {
 }
 
@@ -71,12 +71,14 @@ SceneBase::SceneBase(SceneBase &&rhs)
 	m_waypoints(std::move(rhs.m_waypoints)),
 	m_animations(std::move(rhs.m_animations)),
 	m_joints(std::move(rhs.m_joints)),
+	m_lightGeometryProxies(std::move(rhs.m_lightGeometryProxies)),
 	m_navMesh(std::move(rhs.m_navMesh)),
 	m_lightCount(rhs.m_lightCount),
 	m_vertexCount(rhs.m_vertexCount),
 	m_indexCount(rhs.m_indexCount),
 	m_spawnCount(rhs.m_spawnCount),
-	m_waypointCount(rhs.m_waypointCount)
+	m_waypointCount(rhs.m_waypointCount),
+	m_lightGeometryProxyCount(rhs.m_lightGeometryProxyCount)
 {
 }
 
@@ -88,12 +90,14 @@ SceneBase::SceneBase(SceneBaseParams &params)
 	m_waypoints(std::move(params.m_waypoints)),
 	m_animations(std::move(params.m_animations)),
 	m_joints(std::move(params.m_joints)),
+	m_lightGeometryProxies(std::move(params.m_lightGeometryProxies)),
 	m_navMesh(std::move(params.m_navMesh)),
 	m_lightCount(params.m_lightCount),
 	m_vertexCount(params.m_vertexCount),
 	m_indexCount(params.m_indexCount),
 	m_spawnCount(params.m_spawnCount),
-	m_waypointCount(params.m_waypointCount)
+	m_waypointCount(params.m_waypointCount),
+	m_lightGeometryProxyCount(params.m_lightGeometryProxyCount)
 {
 }
 
@@ -108,12 +112,14 @@ SceneBase& SceneBase::operator = (SceneBase &&rhs)
 		m_waypoints = std::move(rhs.m_waypoints);
 		m_animations = std::move(rhs.m_animations);
 		m_joints = std::move(rhs.m_joints);
+		m_lightGeometryProxies.swap(rhs.m_lightGeometryProxies);
 		std::swap(m_navMesh, rhs.m_navMesh);
 		m_lightCount = rhs.m_lightCount;
 		m_vertexCount = rhs.m_vertexCount;
 		m_indexCount = rhs.m_indexCount;
 		m_spawnCount = rhs.m_spawnCount;
 		m_waypointCount = rhs.m_waypointCount;
+		m_lightGeometryProxyCount = rhs.m_lightGeometryProxyCount;
 	}
 
 	return *this;
@@ -138,7 +144,8 @@ void SceneBase::reset()
 	m_vertexCount = 0;
 	m_indexCount = 0;
 	m_spawnCount = 0;
-	m_waypointCount=0;
+	m_waypointCount = 0;
+	m_lightGeometryProxyCount = 0;
 }
 
 void SceneBase::copy(SceneBase *dst) const
@@ -153,6 +160,9 @@ void SceneBase::copy(SceneBase *dst) const
 	dst->m_waypoints = m_waypoints;
 	dst->m_animations = m_animations;
 	dst->m_joints = m_joints;
+	
+	dst->m_lightGeometryProxies = std::make_unique<Graphics::LightGeometryProxy[]>(m_lightGeometryProxyCount);
+	std::copy(m_lightGeometryProxies.get(), m_lightGeometryProxies.get() + m_lightGeometryProxyCount, dst->m_lightGeometryProxies.get());
 
 	m_navMesh.copy(&dst->m_navMesh);
 
@@ -161,6 +171,7 @@ void SceneBase::copy(SceneBase *dst) const
 	dst->m_indexCount = m_indexCount;
 	dst->m_spawnCount = m_spawnCount;
 	dst->m_waypointCount = m_waypointCount;
+	dst->m_lightGeometryProxyCount = m_lightGeometryProxyCount;
 }
 
 const Graphics::Light* SceneBase::getLights() const

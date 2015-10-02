@@ -82,6 +82,9 @@ namespace Editor
 
 		virtual void getViewMatrix(vx::mat4* viewMatrix) const = 0;
 		virtual void getCameraPosition(vx::float4a* position) const = 0;
+
+		virtual void showInfluenceMap(bool b, const InfluenceMap &influenceMap) = 0;
+		virtual void showNavMesh(bool b, const NavMesh &navMesh, const NavMeshGraph &navMeshGraph) = 0;
 	};
 }
 

@@ -39,6 +39,7 @@ namespace Editor
 #include <vxEngineLib/InfluenceMap.h>
 #include <vxEngineLib/Graphics/EditorRenderAspectInterface.h>
 #include <vxEngineLib/TaskManager.h>
+#include <vxEngineLib/NavMeshGraph.h>
 
 enum class SelectedType{ None, MeshInstance, NavMeshVertex, Light };
 
@@ -65,6 +66,7 @@ class EditorEngine : public vx::MessageListener
 	Editor::RenderAspectInterface* m_renderAspect;
 	Editor::Scene* m_pEditorScene{ nullptr };
 	InfluenceMap m_influenceMap;
+	NavMeshGraph m_navmeshGraph;
 	vx::TaskManager m_taskManager;
 	vx::mutex m_editorMutex;
 	ResourceAspect m_resourceAspect;

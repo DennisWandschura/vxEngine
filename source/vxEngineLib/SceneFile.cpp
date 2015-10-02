@@ -50,12 +50,14 @@ SceneFile::SceneFile(u32 version)
 	m_pSpawns(),
 	m_waypoints(),
 	m_joints(),
+	m_lightGeometryProxies(),
 	m_navMesh(),
 	m_meshInstanceCount(0),
 	m_lightCount(0),
 	m_spawnCount(0),
 	m_waypointCount(0),
-	m_jointCount(0)
+	m_jointCount(0),
+	m_lightGeometryProxyCount(0)
 {
 }
 
@@ -65,13 +67,15 @@ SceneFile::SceneFile(SceneFile &&rhs)
 	m_pLights(std::move(rhs.m_pLights)),
 	m_pSpawns(std::move(rhs.m_pSpawns)),
 	m_waypoints(std::move(rhs.m_waypoints)),
+	m_lightGeometryProxies(std::move(rhs.m_lightGeometryProxies)),
 	m_joints(std::move(rhs.m_joints)),
 	m_navMesh(std::move(rhs.m_navMesh)),
 	m_meshInstanceCount(rhs.m_meshInstanceCount),
 	m_lightCount(rhs.m_lightCount),
 	m_spawnCount(rhs.m_spawnCount),
 	m_waypointCount(rhs.m_waypointCount),
-	m_jointCount(rhs.m_jointCount)
+	m_jointCount(rhs.m_jointCount),
+	m_lightGeometryProxyCount(rhs.m_lightGeometryProxyCount)
 {
 
 }
@@ -89,12 +93,14 @@ void SceneFile::swap(SceneFile &other)
 		std::swap(m_pSpawns, other.m_pSpawns);
 		std::swap(m_waypoints, other.m_waypoints);
 		std::swap(m_joints, other.m_joints);
+		m_lightGeometryProxies.swap(other.m_lightGeometryProxies);
 		m_navMesh.swap(other.m_navMesh);
 		std::swap(m_meshInstanceCount, other.m_meshInstanceCount);
 		std::swap(m_lightCount, other.m_lightCount);
 		std::swap(m_spawnCount, other.m_spawnCount);
 		std::swap(m_waypointCount, other.m_waypointCount);
 		std::swap(m_jointCount, other.m_jointCount);
+		std::swap(m_lightGeometryProxyCount, other.m_lightGeometryProxyCount);
 	}
 }
 
@@ -127,12 +133,14 @@ void SceneFile::saveToFile(vx::File *file) const
 	file->write(m_spawnCount);
 	file->write(m_waypointCount);
 	file->write(m_jointCount);
+	file->write(m_lightGeometryProxyCount);
 
 	file->write(m_pMeshInstances.get(), m_meshInstanceCount);
 	file->write(m_pLights.get(), m_lightCount);
 	file->write(m_pSpawns.get(), m_spawnCount);
 	file->write(m_waypoints.get(), m_waypointCount);
 	file->write(m_joints.get(), m_jointCount);
+	file->write(m_lightGeometryProxies.get(), m_lightGeometryProxyCount);
 
 	m_navMesh.saveToFile(file);
 }

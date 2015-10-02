@@ -15,6 +15,7 @@
 #include <vxEngineLib/Joint.h>
 #include "ConverterSceneFile.h"
 #include <vxEngineLib/Actor.h>
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 
 #include <vxResourceAspect/ResourceManager.h>
 #include <vxResourceAspect/ResourceAspect.h>
@@ -336,6 +337,19 @@ namespace Converter
 			joints.push_back(srcJoints[i]);
 		}
 		sceneParams.m_baseParams.m_joints = std::move(joints);
+
+		auto lightGeometryProxyCount = converterSceneFile.getLightGeometryProxyCount();
+		if (lightGeometryProxyCount != 0)
+		{
+			auto ptr = std::make_unique<Graphics::LightGeometryProxy[]>(lightGeometryProxyCount);
+			auto proxies = converterSceneFile.getLightGeometryProxies();
+			for (u32 i = 0; i < lightGeometryProxyCount; ++i)
+			{
+				ptr[i] = proxies[i];
+			}
+			sceneParams.m_baseParams.m_lightGeometryProxies = std::move(ptr);
+		}
+		sceneParams.m_baseParams.m_lightGeometryProxyCount = lightGeometryProxyCount;
 
 		*desc.pScene = Editor::Scene(std::move(sceneParams));
 		desc.pScene->sortMeshInstances();

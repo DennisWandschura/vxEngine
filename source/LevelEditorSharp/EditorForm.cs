@@ -2013,5 +2013,10 @@ namespace LevelEditor
 
             insertLightGeometryProxy(index);
         }
+
+        private void lightsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

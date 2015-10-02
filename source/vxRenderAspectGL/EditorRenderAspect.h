@@ -139,5 +139,8 @@ namespace Editor
 		void getCameraPosition(vx::float4a* position) const override;
 
 		void getProjectionMatrix(vx::mat4* m) const override;
+
+		void showInfluenceMap(bool b, const InfluenceMap &influenceMap) override;
+		void showNavMesh(bool b, const NavMesh &navMesh, const NavMeshGraph &navMeshGraph) override;
 	};
 }

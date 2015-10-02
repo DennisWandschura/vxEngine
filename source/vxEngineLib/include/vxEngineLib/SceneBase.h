@@ -61,12 +61,14 @@ struct SceneBaseParams
 	std::vector<Waypoint> m_waypoints;
 	vx::sorted_vector<vx::StringID, vx::Animation*> m_animations;
 	std::vector<Joint> m_joints;
+	std::unique_ptr<Graphics::LightGeometryProxy[]> m_lightGeometryProxies;
 	NavMesh m_navMesh;
 	u32 m_lightCount;
 	u32 m_vertexCount;
 	u32 m_indexCount;
 	u32 m_spawnCount;
 	u32 m_waypointCount;
+	u32 m_lightGeometryProxyCount;
 
 	SceneBaseParams();
 	~SceneBaseParams();
@@ -82,6 +84,7 @@ protected:
 	std::vector<Waypoint> m_waypoints;
 	vx::sorted_vector<vx::StringID, vx::Animation*> m_animations;
 	std::vector<Joint> m_joints;
+	std::unique_ptr<Graphics::LightGeometryProxy[]> m_lightGeometryProxies;
 	NavMesh m_navMesh;
 	u32 m_lightCount;
 	u32 m_vertexCount;
@@ -89,7 +92,6 @@ protected:
 	u32 m_spawnCount;
 	u32 m_waypointCount;
 	u32 m_lightGeometryProxyCount;
-	std::unique_ptr<Graphics::LightGeometryProxy[]> m_lightGeometryProxies;
 
 	SceneBase();
 	SceneBase(const SceneBase &rhs) = delete;

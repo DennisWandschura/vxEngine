@@ -38,6 +38,7 @@ SOFTWARE.
 #include <vxLib/File/FileHandle.h>
 #include <vxEngineLib/Joint.h>
 #include <vxResourceAspect/ResourceManager.h>
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 
 namespace Converter
 {
@@ -180,6 +181,18 @@ namespace Converter
 			sceneJoints.push_back(joints[i]);
 		}
 
+		auto lightGeometryProxyCount = converterSceneFile.getLightGeometryProxyCount();
+		std::unique_ptr<Graphics::LightGeometryProxy[]> lightGeometryProxies;
+		if (lightGeometryProxyCount != 0)
+		{
+			lightGeometryProxies = std::make_unique<Graphics::LightGeometryProxy[]>(lightGeometryProxyCount);
+			auto proxies = converterSceneFile.getLightGeometryProxies();
+			for (u32 i = 0; i < lightGeometryProxyCount; ++i)
+			{
+				lightGeometryProxies[i] = proxies[i];
+			}
+		}
+
 		SceneParams sceneParams;
 		sceneParams.m_baseParams.m_indexCount = indexCount;
 		sceneParams.m_baseParams.m_lightCount = lightCount;
@@ -195,6 +208,8 @@ namespace Converter
 		sceneParams.m_baseParams.m_waypointCount = waypointCount;
 		sceneParams.m_baseParams.m_waypoints = std::move(sceneWaypoints);
 		sceneParams.m_baseParams.m_joints = std::move(sceneJoints);
+		sceneParams.m_baseParams.m_lightGeometryProxies = std::move(lightGeometryProxies);
+		sceneParams.m_baseParams.m_lightGeometryProxyCount = lightGeometryProxyCount;
 
 		*scene = Scene(sceneParams);
 		scene->sortMeshInstances();

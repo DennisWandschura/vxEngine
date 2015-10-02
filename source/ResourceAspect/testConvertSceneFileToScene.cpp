@@ -32,6 +32,7 @@ SOFTWARE.
 #include <vxEngineLib/Joint.h>
 #include <vxEngineLib/Spawn.h>
 #include <vxEngineLib/Waypoint.h>
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 
 struct Comparer
 {

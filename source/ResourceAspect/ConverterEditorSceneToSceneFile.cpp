@@ -36,6 +36,7 @@ SOFTWARE.
 #include <vxEngineLib/Material.h>
 #include <vxEngineLib/Joint.h>
 #include <vxResourceAspect/ResourceManager.h>
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
 
 namespace Converter
 {
@@ -159,6 +160,17 @@ namespace Converter
 			}
 
 			converterSceneFile.setJoints(std::move(joints), static_cast<u32>(jointCount));
+		}
+
+		auto proxyCount = scene.getLightGeometryProxyCount();
+		if (proxyCount != 0)
+		{
+			auto proxies = std::make_unique<Graphics::LightGeometryProxy[]>(proxyCount);
+			for (u32 i = 0; i < proxyCount; ++i)
+			{
+				proxies[i] = scene.m_lightGeometryProxies[i];
+			}
+			converterSceneFile.setLightGeometryProxies(std::move(proxies), proxyCount);
 		}
 
 		converterSceneFile.swap(*sceneFile);
