@@ -179,6 +179,12 @@
     <Compile Include="JointDataControl.Designer.cs">
       <DependentUpon>JointDataControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="LightGeometryProxyControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="LightGeometryProxyControl.Designer.cs">
+      <DependentUpon>LightGeometryProxyControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="MeshInstanceDataControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -214,6 +220,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="JointDataControl.resx">
       <DependentUpon>JointDataControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LightGeometryProxyControl.resx">
+      <DependentUpon>LightGeometryProxyControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MeshInstanceDataControl.resx">
       <DependentUpon>MeshInstanceDataControl.cs</DependentUpon>

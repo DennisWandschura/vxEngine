@@ -346,7 +346,7 @@ namespace LevelEditor
             // 
             this.comboBox_selectEditorMode.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox_selectEditorMode.Name = "comboBox_selectEditorMode";
-            this.comboBox_selectEditorMode.Size = new System.Drawing.Size(121, 25);
+            this.comboBox_selectEditorMode.Size = new System.Drawing.Size(150, 25);
             this.comboBox_selectEditorMode.SelectedIndexChanged += new System.EventHandler(this.comboBox_selectEditorMode_SelectedIndexChanged);
             this.comboBox_selectEditorMode.Click += new System.EventHandler(this.comboBox_selectEditorMode_Click);
             // 
@@ -848,11 +848,9 @@ namespace LevelEditor
             this.Name = "EditorForm";
             this.Text = "vxEditor";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.Form1_KeyPress);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyUp);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseMove);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.toolStrip1.ResumeLayout(false);

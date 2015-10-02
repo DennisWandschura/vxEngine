@@ -81,6 +81,7 @@ namespace LevelEditor
             try
             {
                NativeMethods.frame();
+                m_parent.frame();
             }
             catch (Exception ex)
             {

@@ -33,7 +33,7 @@ using System.Windows.Forms;
 
 namespace LevelEditor
 {
-    public enum EditorState { EditMesh, EditNavMesh, EditLights, EditSpawns, EditWaypoints, EditJoints };
+    public enum EditorState { EditMesh, EditNavMesh, EditLights, EditSpawns, EditWaypoints, EditJoints, EditLightGeometryProxy };
 
     public partial class EditorForm : Form
     {
@@ -43,6 +43,7 @@ namespace LevelEditor
         const string s_textEditSpawns = "Edit Spawns";
         const string s_textEditWaypoints = "Edit Waypoints";
         const string s_textEditJoints = "Edit Joints";
+        const string s_textEditLightGeometryProxies = "Edit Light Geometry Proxies";
         const int s_groupBoxEditPositionX = 2000;
         const int s_groupBoxEditPositionY = 680;
 
@@ -94,6 +95,7 @@ namespace LevelEditor
         JointDataControl m_jointDataControl;
         ActorInfoControl m_actorDataControl;
         CreateActorForm m_createActorForm;
+        LightGeometryProxyControl m_lightGeometryProxyControl;
 
         Dictionary<ulong, string> m_requestedFiles;
         Dictionary<ulong, EditorNodeEntry> m_sortedMeshInstanceNodes;
@@ -181,6 +183,7 @@ namespace LevelEditor
             comboBox_selectEditorMode.Items.Add(s_textEditSpawns);
             comboBox_selectEditorMode.Items.Add(s_textEditWaypoints);
             comboBox_selectEditorMode.Items.Add(s_textEditJoints);
+            comboBox_selectEditorMode.Items.Add(s_textEditLightGeometryProxies);
             comboBox_selectEditorMode.SelectedIndex = 0;
 
             Point p = new Point();
@@ -211,6 +214,11 @@ namespace LevelEditor
             m_actorDataControl.Parent = this;
             m_actorDataControl.Hide();
             m_actorDataControl.Location = p;
+
+            m_lightGeometryProxyControl = new LightGeometryProxyControl(this);
+            m_lightGeometryProxyControl.Parent = this;
+            m_lightGeometryProxyControl.Hide();
+            m_lightGeometryProxyControl.Location = p;
         }
 
         ~EditorForm()
@@ -425,6 +433,19 @@ namespace LevelEditor
             return state;
         }
 
+        State createStateEditLightGeometryProxy()
+        {
+            State state = new State();
+
+            ActionCallFunction actionShowGui = new ActionCallFunction(showLightGeometryProxyGui);
+            ActionCallFunction actionHideGui = new ActionCallFunction(hideLightGeometryProxyGui);
+
+            state.addEntryAction(actionShowGui);
+            state.addExitAction(actionHideGui);
+
+            return state;
+        }
+
         void createStateMachine()
         {
             m_selectItemStateMachine = new StateMachine();
@@ -435,6 +456,7 @@ namespace LevelEditor
             ConditionEditorState conditionEditorStateEditWaypoints = new ConditionEditorState(this, EditorState.EditWaypoints);
             ConditionEditorState conditionEditorStateEditSpawns = new ConditionEditorState(this, EditorState.EditSpawns);
             ConditionEditorState conditionEditorStateEditJoints = new ConditionEditorState(this, EditorState.EditJoints);
+            ConditionEditorState conditionEditorStateEditLightGeometryProxy = new ConditionEditorState(this, EditorState.EditLightGeometryProxy);
 
             var stateEditNavMesh = createStateEditNavMesh();
             var stateEditMesh = createStateEditMesh();
@@ -442,6 +464,7 @@ namespace LevelEditor
             var stateEditWaypoints = createStateEditWaypoints();
             var stateEditSpawns = createStateEditSpawns();
             var stateEditJoints = createStateEditJoints();
+            var stateEditLightGeometryProxy = createStateEditLightGeometryProxy();
 
             Transition transitionEditMesh = new Transition(conditionEditorStateEditMesh, stateEditMesh, "transitionEditMesh");
             Transition transitionEditNavMesh = new Transition(conditionEditorStateEditNavMesh, stateEditNavMesh, "transitionEditNavMesh");
@@ -449,42 +472,56 @@ namespace LevelEditor
             Transition transitionEditWaypoints = new Transition(conditionEditorStateEditWaypoints, stateEditWaypoints, "transitionEditWaypoints");
             Transition transitionEditSpawns = new Transition(conditionEditorStateEditSpawns, stateEditSpawns, "transitionEditSpawns");
             Transition transitionEditJoints = new Transition(conditionEditorStateEditJoints, stateEditJoints, "transitionEditJoints");
+            Transition transitionEditLightGeometryProxy = new Transition(conditionEditorStateEditLightGeometryProxy, stateEditLightGeometryProxy, "transitionEditLightGeometryProxy");
 
             stateEditNavMesh.addTransition(transitionEditMesh);
             stateEditNavMesh.addTransition(transitionEditLights);
             stateEditNavMesh.addTransition(transitionEditWaypoints);
             stateEditNavMesh.addTransition(transitionEditSpawns);
             stateEditNavMesh.addTransition(transitionEditJoints);
+            stateEditNavMesh.addTransition(transitionEditLightGeometryProxy);
 
             stateEditMesh.addTransition(transitionEditNavMesh);
             stateEditMesh.addTransition(transitionEditLights);
             stateEditMesh.addTransition(transitionEditWaypoints);
             stateEditMesh.addTransition(transitionEditSpawns);
             stateEditMesh.addTransition(transitionEditJoints);
+            stateEditMesh.addTransition(transitionEditLightGeometryProxy);
 
             stateEditLights.addTransition(transitionEditNavMesh);
             stateEditLights.addTransition(transitionEditMesh);
             stateEditLights.addTransition(transitionEditWaypoints);
             stateEditLights.addTransition(transitionEditSpawns);
             stateEditLights.addTransition(transitionEditJoints);
+            stateEditMesh.addTransition(transitionEditLightGeometryProxy);
 
             stateEditWaypoints.addTransition(transitionEditMesh);
             stateEditWaypoints.addTransition(transitionEditNavMesh);
             stateEditWaypoints.addTransition(transitionEditLights);
             stateEditWaypoints.addTransition(transitionEditSpawns);
             stateEditWaypoints.addTransition(transitionEditJoints);
+            stateEditWaypoints.addTransition(transitionEditLightGeometryProxy);
 
             stateEditSpawns.addTransition(transitionEditMesh);
             stateEditSpawns.addTransition(transitionEditNavMesh);
             stateEditSpawns.addTransition(transitionEditLights);
             stateEditSpawns.addTransition(transitionEditWaypoints);
             stateEditSpawns.addTransition(transitionEditJoints);
+            stateEditSpawns.addTransition(transitionEditLightGeometryProxy);
 
             stateEditJoints.addTransition(transitionEditNavMesh);
             stateEditJoints.addTransition(transitionEditMesh);
             stateEditJoints.addTransition(transitionEditLights);
             stateEditJoints.addTransition(transitionEditWaypoints);
             stateEditJoints.addTransition(transitionEditSpawns);
+            stateEditJoints.addTransition(transitionEditLightGeometryProxy);
+
+            stateEditLightGeometryProxy.addTransition(transitionEditNavMesh);
+            stateEditLightGeometryProxy.addTransition(transitionEditMesh);
+            stateEditLightGeometryProxy.addTransition(transitionEditLights);
+            stateEditLightGeometryProxy.addTransition(transitionEditWaypoints);
+            stateEditLightGeometryProxy.addTransition(transitionEditSpawns);
+            stateEditLightGeometryProxy.addTransition(transitionEditJoints);
 
             State emptyState = new State();
             emptyState.addTransition(transitionEditMesh);
@@ -493,6 +530,7 @@ namespace LevelEditor
             emptyState.addTransition(transitionEditWaypoints);
             emptyState.addTransition(transitionEditSpawns);
             emptyState.addTransition(transitionEditJoints);
+            emptyState.addTransition(transitionEditLightGeometryProxy);
 
             m_selectItemStateMachine.setCurrentState(emptyState);
         }
@@ -500,13 +538,11 @@ namespace LevelEditor
         void showLightGui()
         {
             toolStripButtonCreateLight.Visible = true;
-            toolStripButtonCreateLightGeometryProxy.Visible = true;
 
         }
         void hideLightGui()
         {
             toolStripButtonCreateLight.Visible = false;
-            toolStripButtonCreateLightGeometryProxy.Visible = false;
         }
 
         void showSpawnGui()
@@ -534,6 +570,22 @@ namespace LevelEditor
             addJointToolStripMenuItem.Visible = false;
         }
 
+        void showLightGeometryProxyGui()
+        {
+            toolStripButtonCreateLightGeometryProxy.Visible = true;
+        }
+
+        void hideLightGeometryProxyGui()
+        {
+            m_lightGeometryProxyControl.Visible = false;
+            toolStripButtonCreateLightGeometryProxy.Visible = false;
+        }
+
+        public void frame()
+        {
+            updateStateMachine();
+        }
+
         void getLightData(uint index)
         {
             Float3 position;
@@ -556,10 +608,9 @@ namespace LevelEditor
             uint lightIndex;
             if (NativeMethods.getLightIndex(m_mouseX, m_mouseY, out lightIndex))
             {
+                m_selectedLightIndex = lightIndex;
                 NativeMethods.selectLight(lightIndex);
                 getLightData(lightIndex);
-
-                m_selectedLightIndex = lightIndex;
             }
         }
 
@@ -1194,16 +1245,20 @@ namespace LevelEditor
                     NativeMethods.selectLight(index);
                     getLightData(index);
                 }
+                else if (entry.type == s_typeLightGeometryProxy)
+                {
+                    comboBox_selectEditorMode.SelectedItem = s_textEditLightGeometryProxies;
+
+                    uint index = (uint)entry.sid;
+                    m_lightGeometryProxyControl.setSelectedIndex(index);
+                    m_lightGeometryProxyControl.getData();
+                    m_lightGeometryProxyControl.Show();
+                }
             }
             catch
             {
                 m_meshInstanceDataControl.Hide();
             }
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
         }
 
         private void saveSceneToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1221,10 +1276,6 @@ namespace LevelEditor
             {
                 MessageBox.Show(ex.ToString());
             }
-        }
-
-        private void loadSceneToolStripMenuItem_Click(object sender, EventArgs e)
-        {
         }
 
         private void panel_render_MouseEnter(object sender, EventArgs e)
@@ -1403,7 +1454,7 @@ namespace LevelEditor
 
         private void panel_render_MouseUp(object sender, MouseEventArgs e)
         {
-            updateStateMachine();
+           // updateStateMachine();
             m_isMouseDown = false;
         }
 
@@ -1479,7 +1530,7 @@ namespace LevelEditor
 
             m_keyDownAlt = e.Alt;
 
-            updateStateMachine();
+            //updateStateMachine();
 
             m_keys[Keys.C] = false;
         }
@@ -1603,8 +1654,10 @@ namespace LevelEditor
             {
                 m_editorState = EditorState.EditJoints;
             }
-
-            updateStateMachine();
+            else if(selectedString == s_textEditLightGeometryProxies)
+            {
+                m_editorState = EditorState.EditLightGeometryProxy;
+            }
         }
 
         public MouseButtons getLastClickedMouseButton()
@@ -1834,11 +1887,6 @@ namespace LevelEditor
         private void treeViewActionList_AfterSelect(object sender, TreeViewEventArgs e)
         {
 
-        }
-
-        private void Form1_MouseMove(object sender, MouseEventArgs e)
-        {
-            updateStateMachine();
         }
 
         private void numericUpDownLightFalloff_ValueChanged(object sender, EventArgs e)
