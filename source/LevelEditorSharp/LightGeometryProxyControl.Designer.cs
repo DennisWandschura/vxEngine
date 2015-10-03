@@ -36,6 +36,8 @@
             this.numericUpDownHalfdimZ = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownHalfdimY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownHalfdimX = new System.Windows.Forms.NumericUpDown();
+            this.label3 = new System.Windows.Forms.Label();
+            this.labelLightCount = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownCenterX)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownCenterY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownCenterZ)).BeginInit();
@@ -56,7 +58,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(13, 158);
+            this.label2.Location = new System.Drawing.Point(13, 82);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(42, 13);
             this.label2.TabIndex = 1;
@@ -122,7 +124,7 @@
             // numericUpDownHalfdimZ
             // 
             this.numericUpDownHalfdimZ.DecimalPlaces = 4;
-            this.numericUpDownHalfdimZ.Location = new System.Drawing.Point(313, 158);
+            this.numericUpDownHalfdimZ.Location = new System.Drawing.Point(313, 82);
             this.numericUpDownHalfdimZ.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -141,7 +143,7 @@
             // numericUpDownHalfdimY
             // 
             this.numericUpDownHalfdimY.DecimalPlaces = 4;
-            this.numericUpDownHalfdimY.Location = new System.Drawing.Point(187, 158);
+            this.numericUpDownHalfdimY.Location = new System.Drawing.Point(187, 82);
             this.numericUpDownHalfdimY.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -160,7 +162,7 @@
             // numericUpDownHalfdimX
             // 
             this.numericUpDownHalfdimX.DecimalPlaces = 4;
-            this.numericUpDownHalfdimX.Location = new System.Drawing.Point(61, 158);
+            this.numericUpDownHalfdimX.Location = new System.Drawing.Point(61, 82);
             this.numericUpDownHalfdimX.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -176,10 +178,30 @@
             this.numericUpDownHalfdimX.TabIndex = 10;
             this.numericUpDownHalfdimX.ValueChanged += new System.EventHandler(this.numericUpDownHalfdimX_ValueChanged);
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(13, 140);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(61, 13);
+            this.label3.TabIndex = 13;
+            this.label3.Text = "LightCount:";
+            // 
+            // labelLightCount
+            // 
+            this.labelLightCount.AutoSize = true;
+            this.labelLightCount.Location = new System.Drawing.Point(80, 140);
+            this.labelLightCount.Name = "labelLightCount";
+            this.labelLightCount.Size = new System.Drawing.Size(13, 13);
+            this.labelLightCount.TabIndex = 14;
+            this.labelLightCount.Text = "0";
+            // 
             // LightGeometryProxyControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.labelLightCount);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.numericUpDownHalfdimZ);
             this.Controls.Add(this.numericUpDownHalfdimY);
             this.Controls.Add(this.numericUpDownHalfdimX);
@@ -211,5 +233,7 @@
         private System.Windows.Forms.NumericUpDown numericUpDownHalfdimZ;
         private System.Windows.Forms.NumericUpDown numericUpDownHalfdimY;
         private System.Windows.Forms.NumericUpDown numericUpDownHalfdimX;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label labelLightCount;
     }
 }

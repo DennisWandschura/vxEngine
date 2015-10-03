@@ -718,5 +718,15 @@ namespace Editor
 	{
 		g_pEditor->engine.getLightGeometryProxyBounds(index, center, halfDim);
 	}
+
+	u32 getLightGeometryProxyLightCount(u32 index)
+	{
+		return g_pEditor->engine.getLightGeometryProxyLightCount(index);
+	}
+
+	void testLightGeometryProxies()
+	{
+		g_pEditor->engine.testLightGeometryProxies();
+	}
 }
 #endif

@@ -142,5 +142,7 @@ namespace Editor
 
 		void showInfluenceMap(bool b, const InfluenceMap &influenceMap) override;
 		void showNavMesh(bool b, const NavMesh &navMesh, const NavMeshGraph &navMeshGraph) override;
+
+		void testLightGeometryProxies(const TestLightGeometryProxiesDesc &desc) override;
 	};
 }

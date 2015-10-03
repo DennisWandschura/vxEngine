@@ -29,6 +29,18 @@ struct Plane
 {
 	vx::float3 n;
 	f32 d;
+
+	static Plane create(const vx::float3 &a, const vx::float3 &b, const vx::float3 &c)
+	{
+		auto tmp0 = b - a;
+		auto tmp1 = c- a;
+
+		Plane result;
+		result.n = vx::normalize3(vx::cross(tmp0, tmp1));
+		result.d = vx::dot3(result.n, a);
+
+		return result;
+	}
 };
 
 struct PlaneSIMD

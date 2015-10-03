@@ -34,9 +34,11 @@ namespace LevelEditor
             Float3 halfDim;
 
             NativeMethods.getLightGeometryProxyBounds(m_selectedIndex, out center, out halfDim);
+            var lightCount = NativeMethods.getLightGeometryProxyLightCount(m_selectedIndex);
 
             setControlCenter(center);
             setControlHalfdim(halfDim);
+            labelLightCount.Text = lightCount.ToString();
         }
 
         void setBounds()

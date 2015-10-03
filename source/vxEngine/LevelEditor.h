@@ -162,5 +162,7 @@ namespace Editor
 	extern "C" DLL_EXPORT void createLightGeometryProxy(const vx::float3 &center, const vx::float3 &halfDim);
 	extern "C" DLL_EXPORT void setLightGeometryProxyBounds(u32 index, const vx::float3 &center, const vx::float3 &halfDim);
 	extern "C" DLL_EXPORT void getLightGeometryProxyBounds(u32 index, vx::float3* center, vx::float3* halfDim);
+	extern "C" DLL_EXPORT u32 getLightGeometryProxyLightCount(u32 index);
+	extern "C" DLL_EXPORT void testLightGeometryProxies();
 }
 #endif

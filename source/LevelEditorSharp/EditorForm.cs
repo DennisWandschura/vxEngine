@@ -573,12 +573,14 @@ namespace LevelEditor
         void showLightGeometryProxyGui()
         {
             toolStripButtonCreateLightGeometryProxy.Visible = true;
+            toolStripButtonTestProxies.Visible = true;
         }
 
         void hideLightGeometryProxyGui()
         {
             m_lightGeometryProxyControl.Visible = false;
             toolStripButtonCreateLightGeometryProxy.Visible = false;
+            toolStripButtonTestProxies.Visible = false;
         }
 
         public void frame()
@@ -2017,6 +2019,11 @@ namespace LevelEditor
         private void lightsToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void toolStripButtonTestProxies_Click(object sender, EventArgs e)
+        {
+            NativeMethods.testLightGeometryProxies();
         }
     }
 }

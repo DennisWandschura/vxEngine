@@ -143,6 +143,7 @@ public:
 	u32 getJointCount() const;
 
 	const Graphics::LightGeometryProxy* getLightGeometryProxies() const;
+	Graphics::LightGeometryProxy* SceneBase::getLightGeometryProxies() { return m_lightGeometryProxies.get(); }
 	u32 getLightGeometryProxyCount() const;
 
 	void getLightGeometryProxyBounds(u32 index, const AABB &bounds);

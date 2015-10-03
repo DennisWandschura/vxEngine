@@ -57,12 +57,298 @@ SOFTWARE.
 #include <vxEngineLib/ArrayAllocator.h>
 #include <vxEngineLib/RendererMessage.h>
 #include <vxEngineLib/Graphics/LightGeometryProxy.h>
+#include <vxEngineLib/Plane.h>
+#include <vxGL/Framebuffer.h>
 
 struct InfluenceCellVertex
 {
 	vx::float3 position;
 	u32 count;
 };
+
+namespace EditorRenderAspectCpp
+{
+	template<typename T, typename Cmp>
+	typename std::vector<T>::const_iterator sortedInsert(std::vector<T>* vec, const T &value, Cmp cmp)
+	{
+		auto endKeys = vec->end();
+
+		auto it = std::lower_bound(vec->begin(), vec->end(), value, cmp);
+
+		auto index = it - vec->begin();
+		if (it == vec->end() || cmp(value, *it))
+		{
+			auto _Off = it - vec->begin();
+
+			vec->emplace_back(value);
+
+			std::rotate(vec->begin() + _Off, vec->end() - 1, vec->end());
+		}
+
+		return vec->begin() + index;
+	}
+
+	template<typename T, typename Cmp>
+	typename std::vector<T>::const_iterator vectorFind(const std::vector<T> &vec, const T &value, Cmp cmp)
+	{
+		auto it = std::lower_bound(vec.begin(), vec.end(), value, cmp);
+		auto index = it - vec.begin();
+
+		auto result = vec.begin() + index;
+		if (it != vec.end() && cmp(value, *it))
+			result = vec.end();
+
+		return result;
+	}
+
+	auto createPlanes = [](const vx::float3 &vmin, const vx::float3 &vmax, Plane* planes)
+	{
+		vx::float3 nbl = vx::float3(vmin.x, vmin.y, vmax.z);
+		vx::float3 nbr = vx::float3(vmax.x, vmin.y, vmax.z);
+
+		vx::float3 ntl = vx::float3(vmin.x, vmax.y, vmax.z);
+		vx::float3 ntr = vx::float3(vmax.x, vmax.y, vmax.z);
+
+		vx::float3 fbl = vx::float3(vmin.x, vmin.y, vmin.z);
+		vx::float3 fbr = vx::float3(vmax.x, vmin.y, vmin.z);
+
+		vx::float3 ftl = vx::float3(vmin.x, vmax.y, vmin.z);
+		vx::float3 ftr = vx::float3(vmax.x, vmax.y, vmin.z);
+
+		// x+, x-, y+, y-, z+, z-
+		planes[0] = Plane::create(nbl, fbl, ftl);
+		planes[1] = Plane::create(fbr, nbr, ntr);
+		planes[2] = Plane::create(nbl, nbr, fbr);
+		planes[3] = Plane::create(ftl, ftr, ntr);
+
+		planes[4] = Plane::create(fbl, fbr, ftr);
+		planes[5] = Plane::create(nbr, nbl, ntl);
+	};
+
+	auto intersectAABBPlane = [](const AABB &bounds, const Plane &plane)
+	{
+		auto c = (bounds.max + bounds.min) * 0.5f;
+		auto e = bounds.max - c;
+
+		auto r = e.x * abs(plane.n.x) + e.y * abs(plane.n.y) + e.z * abs(plane.n.z);
+		auto s = vx::dot3(plane.n, c) - plane.d;
+
+		if ((fabsf(s) + 0.0001f) <= r)
+		{
+			return true;
+		}
+		return false;
+	};
+
+	void generateProxyGeometry(const Graphics::LightGeometryProxy* proxies, u32 proxyCount, std::vector<AABB>* geometry, std::vector<s32>* masks, std::vector<std::pair<u32, u32>>* tmp)
+	{
+		auto testBounds = [&](const AABB &bounds, const Plane(&planes)[6], std::vector<AABB>* outNewBounds, std::vector<s32>* masks, AABB* intersectionBounds, s32* intersectionMask, const std::pair<u32, u32> &pair, std::vector<std::pair<u32, u32>>* tmp)
+		{
+			const Plane* intersectingPlanes[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+			bool intersect = false;
+			for (u32 k = 0; k < 6; ++k)
+			{
+				if (intersectAABBPlane(bounds, planes[k]))
+				{
+					intersectingPlanes[k] = &planes[k];
+					intersect = true;
+				}
+			}
+
+			for (u32 k = 0; k < 6; ++k)
+			{
+				auto intersectingPlane = intersectingPlanes[k];
+				if (intersectingPlane)
+				{
+					vx::float3 p = intersectingPlane->n * intersectingPlane->d;
+
+					if (p.x != 0.0f)
+					{
+						s32 mask = 0;
+						AABB newBounds = bounds;
+						if (intersectingPlane->n.x < 0.0f)
+						{
+							mask |= 1 << 0;
+							newBounds.min.x = p.x;
+
+							intersectionBounds->max.x = p.x;
+							*intersectionMask |= 1 << 1;
+						}
+						else
+						{
+							mask |= 1 << 1;
+							newBounds.max.x = p.x;
+
+							intersectionBounds->min.x = p.x;
+							*intersectionMask |= 1 << 0;
+						}
+						outNewBounds->push_back(newBounds);
+						masks->push_back(mask);
+						tmp->push_back(pair);
+					}
+
+					if (p.y != 0.0f)
+					{
+						s32 mask = 0;
+						AABB newBounds = bounds;
+						if (intersectingPlane->n.y < 0.0f)
+						{
+							mask |= 1 << 2;
+							newBounds.min.y = p.y;
+
+							intersectionBounds->max.y = p.y;
+							*intersectionMask |= 1 << 3;
+						}
+						else
+						{
+							mask |= 1 << 3;
+							newBounds.max.y = p.y;
+
+							intersectionBounds->min.y = p.y;
+							*intersectionMask |= 1 << 2;
+						}
+						outNewBounds->push_back(newBounds);
+						masks->push_back(mask);
+						tmp->push_back(pair);
+					}
+
+					if (p.z != 0.0f)
+					{
+						s32 mask = 0;
+						AABB newBounds = bounds;
+						if (intersectingPlane->n.z < 0.0f)
+						{
+							mask |= 1 << 5;
+							newBounds.min.z = p.z;
+
+							intersectionBounds->max.z = p.z;
+							*intersectionMask |= 1 << 4;
+						}
+						else
+						{
+							mask |= 1 << 4;
+							newBounds.max.z = p.z;
+
+							intersectionBounds->min.z = p.z;
+							*intersectionMask |= 1 << 5;
+						}
+						outNewBounds->push_back(newBounds);
+						masks->push_back(mask);
+						tmp->push_back(pair);
+					}
+				}
+			}
+
+			return intersect;
+		};
+
+		auto CmpPair = [](const std::pair<u32, u32> &lhs, const std::pair<u32, u32> &rhs)
+		{
+			if (lhs.first < rhs.first)
+				return true;
+			else if (lhs.first == rhs.first)
+			{
+				return lhs.second < rhs.second;
+			}
+
+			return false;
+		};
+
+		if (proxyCount != 0)
+		{
+			std::vector<std::pair<u32, u32>> pairsToTest;
+			for (u32 i = 0; i < proxyCount; ++i)
+			{
+				for (u32 j = 0; j < proxyCount; ++j)
+				{
+					if (i != j)
+					{
+						auto pair = std::make_pair(std::min(i, j), std::max(i, j));
+
+						auto it = EditorRenderAspectCpp::vectorFind(pairsToTest, pair, CmpPair);
+						if (it == pairsToTest.end())
+						{
+							EditorRenderAspectCpp::sortedInsert(&pairsToTest, pair, CmpPair);
+						}
+					}
+				}
+			}
+
+			std::vector<u32> overlappingIndices;
+			std::vector<u32> remainingIndices;
+			for (auto &it : pairsToTest)
+			{
+				auto i0 = it.first;
+				auto i1 = it.second;
+
+				auto &bounds0 = proxies[i0].m_bounds;
+				auto &bounds1 = proxies[i1].m_bounds;
+
+				if (bounds0.intersects(bounds1))
+				{
+					Plane planes0[6];
+					createPlanes(bounds0.min, bounds0.max, planes0);
+
+					Plane planes1[6];
+					createPlanes(bounds1.min, bounds1.max, planes1);
+
+					AABB intersectionBounds = bounds0;
+					s32 intersectionMask = 0;
+					testBounds(bounds0, planes1, geometry, masks, &intersectionBounds, &intersectionMask, it, tmp);
+
+					testBounds(bounds1, planes0, geometry, masks, &intersectionBounds, &intersectionMask, it, tmp);
+
+					geometry->push_back(intersectionBounds);
+					masks->push_back(intersectionMask);
+					tmp->push_back(it);
+
+					auto iter = EditorRenderAspectCpp::vectorFind(overlappingIndices, i0, std::less<u32>());
+					if (iter == overlappingIndices.end())
+					{
+						EditorRenderAspectCpp::sortedInsert(&overlappingIndices, i0, std::less<u32>());
+					}
+
+					iter = EditorRenderAspectCpp::vectorFind(overlappingIndices, i1, std::less<u32>());
+					if (iter == overlappingIndices.end())
+					{
+						EditorRenderAspectCpp::sortedInsert(&overlappingIndices, i1, std::less<u32>());
+					}
+				}
+				else
+				{
+					auto iter0 = EditorRenderAspectCpp::vectorFind(overlappingIndices, i0, std::less<u32>());
+					auto iter1 = EditorRenderAspectCpp::vectorFind(overlappingIndices, i1, std::less<u32>());
+
+					auto iter = EditorRenderAspectCpp::vectorFind(remainingIndices, i0, std::less<u32>());
+					if (iter == remainingIndices.end() && iter0 == overlappingIndices.end())
+					{
+						EditorRenderAspectCpp::sortedInsert(&remainingIndices, i0, std::less<u32>());
+					}
+
+					iter = EditorRenderAspectCpp::vectorFind(remainingIndices, i1, std::less<u32>());
+					if (iter == remainingIndices.end() && iter1 == overlappingIndices.end())
+					{
+						EditorRenderAspectCpp::sortedInsert(&remainingIndices, i1, std::less<u32>());
+					}
+					remainingIndices;
+				}
+			}
+
+			for (auto &it : remainingIndices)
+			{
+				auto iter = EditorRenderAspectCpp::vectorFind(overlappingIndices, it, std::less<u32>());
+				if (iter == overlappingIndices.end())
+				{
+					auto &bounds = proxies[it].m_bounds;
+					geometry->push_back(bounds);
+					masks->push_back(0);
+
+					tmp->push_back(std::make_pair(it, it));
+				}
+			}
+		}
+	}
+}
 
 namespace Editor
 {
@@ -263,6 +549,8 @@ namespace Editor
 		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawVoxelGrid.pipe"), "editorDrawVoxelGrid.pipe", &m_allocator, &error);
 		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawJoints.pipe"), "editorDrawJoints.pipe", &m_allocator, &error);
 		m_shaderManager.loadPipeline(vx::FileHandle("editorDrawLightGeometryProxy.pipe"), "editorDrawLightGeometryProxy.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorTestLightGeometryProxy.pipe"), "editorTestLightGeometryProxy.pipe", &m_allocator, &error);
+		m_shaderManager.loadPipeline(vx::FileHandle("editorTestLightGeometryProxy0.pipe"), "editorTestLightGeometryProxy0.pipe", &m_allocator, &error);
 
 		Graphics::Renderer::provide(&m_shaderManager, &m_objectManager, renderDesc.settings, nullptr);
 
@@ -558,7 +846,7 @@ namespace Editor
 			return false;
 		}
 
-		if (!Graphics::TextureFactory::createDDSFromFile("../../data/textures/editor/spawnPoint.dds", true, true , &ddsFileSpawn, &tmpAllocator, &m_scratchAllocator))
+		if (!Graphics::TextureFactory::createDDSFromFile("../../data/textures/editor/spawnPoint.dds", true, true, &ddsFileSpawn, &tmpAllocator, &m_scratchAllocator))
 		{
 			puts("could not create texture spawnPoint.dds");
 			return false;
@@ -1027,7 +1315,7 @@ namespace Editor
 		}
 		else
 		{
-			
+
 			mappedCmd->count = 0;
 		}
 	}
@@ -1232,7 +1520,7 @@ namespace Editor
 
 			u32 index = 0;
 			auto vbo = m_objectManager.getBuffer("editorDrawNavmeshConnectionVbo");
-			
+
 
 			auto mappedVbo = vbo->map<vx::float3>(vx::gl::Map::Write_Only);
 
@@ -1323,7 +1611,7 @@ namespace Editor
 		auto mappedCmdBuffer = cmdBuffer->map<vx::gl::DrawArraysIndirectCommand>(vx::gl::Map::Write_Only);
 		mappedCmdBuffer->count = count;
 		mappedCmdBuffer.unmap();
-		
+
 		auto editorJointBuffer = m_objectManager.getBuffer("editorJointBuffer");
 		auto mappedBuffer = editorJointBuffer->map<JointData>(vx::gl::Map::Write_Only);
 		for (u32 i = 0; i < count; ++i)
@@ -1380,7 +1668,7 @@ namespace Editor
 			gpuPtr.unmap();
 
 			vx::gl::DrawArraysIndirectCommand cmd;
-			memset(&cmd,0, sizeof(cmd));
+			memset(&cmd, 0, sizeof(cmd));
 
 			cmd.instanceCount = 1;
 			cmd.count = count;
@@ -1478,5 +1766,295 @@ namespace Editor
 
 	void RenderAspect::handleRendererMessage(const vx::Message &msg)
 	{
+	}
+
+	void RenderAspect::testLightGeometryProxies(const TestLightGeometryProxiesDesc &desc)
+	{
+		auto getShadowTransform = [](const Gpu::LightData &light, ShadowTransform* shadowTransform)
+		{
+			auto n = 0.1f;
+			auto f = light.falloff;
+
+			auto lightPos = light.position;
+			auto projectionMatrix = vx::MatrixPerspectiveFovRHDX(vx::degToRad(90.0f), 1.0f, n, f);
+
+			const __m128 upDirs[6] =
+			{
+				{ 0, -1, 0, 0 },
+				{ 0, -1, 0, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, -1, 0 },
+				{ 0, -1, 0, 0 },
+				{ 0, -1, 0, 0 }
+			};
+
+			const __m128 dirs[6] =
+			{
+				{ 1, 0, 0, 0 },
+				{ -1, 0, 0, 0 },
+				{ 0, 1, 0, 0 },
+				{ 0, -1, 0, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, -1, 0 }
+			};
+
+			__m128 vf = { f, f, f, 0 };
+			__m128 pmax = { f, f, f, 1 };
+			__m128 pmin = { -f, -f, -f, 1 };
+			//auto pmax = _mm_add_ps(lightPos, vf);
+			//auto pmin = _mm_sub_ps(lightPos, vf);
+
+			auto p0 = vx::Vector4Transform(projectionMatrix, pmax);
+			auto p1 = vx::Vector4Transform(projectionMatrix, pmin);
+
+			auto dx = p0.m128_f32[0] - p1.m128_f32[0];
+			auto dy = p0.m128_f32[1] - p1.m128_f32[1];
+
+			auto sx = 2.0f / (dx);
+			auto sy = 2.0f / dy;
+
+			auto ox = -(sx * (p0.m128_f32[0] + p1.m128_f32[0])) / 2.0f;
+			auto oy = -(sy * (p0.m128_f32[1] + p1.m128_f32[1])) / 2.0f;
+
+			shadowTransform->scaleMatrix.c[0] = { sx, 0, 0, 0 };
+			shadowTransform->scaleMatrix.c[1] = { 0, sy, 0, 0 };
+			shadowTransform->scaleMatrix.c[2] = { 0, 0, 1, 0 };
+			shadowTransform->scaleMatrix.c[3] = { ox, oy, 0, 1 };
+			shadowTransform->projectionMatrix = projectionMatrix;
+			for (u32 i = 0; i < 6; ++i)
+			{
+				auto viewMatrix = vx::MatrixLookToRH(lightPos, dirs[i], upDirs[i]);
+				shadowTransform->viewMatrix[i] = viewMatrix;
+				shadowTransform->pvMatrix[i] = projectionMatrix * viewMatrix;
+			}
+		};
+
+		struct ResultData
+		{
+			std::vector<u32> lightIndices;
+		};
+
+		auto proxyCount = desc.proxyCount;
+		if (proxyCount != 0)
+		{
+			std::vector<ResultData> resultData;
+			resultData.reserve(proxyCount);
+			for (u32 i = 0; i < proxyCount; ++i)
+			{
+				resultData.push_back(ResultData());
+			}
+
+			auto proxies = desc.proxies;
+			std::vector<AABB> geometry;
+			std::vector<s32> masks;
+			std::vector<std::pair<u32, u32>> pairs;
+
+			EditorRenderAspectCpp::generateProxyGeometry(desc.proxies, desc.proxyCount, &geometry, &masks, &pairs);
+
+			auto lightCount = desc.lightCount;
+			auto lights = desc.lights;
+
+			std::vector<ShadowTransform> shadowTransforms;
+			shadowTransforms.reserve(lightCount);
+			for (u32 i = 0; i < lightCount; ++i)
+			{
+				auto &light = lights[i];
+
+				Gpu::LightData data;
+				data.position = vx::loadFloat3(light.m_position);
+				data.falloff = light.m_falloff;
+				data.lumen = light.m_lumen;
+
+				ShadowTransform transform;
+				transform.position = data.position;
+				transform.falloff_lumen.x = data.falloff;
+				transform.falloff_lumen.y = data.lumen;
+
+				getShadowTransform(data, &transform);
+
+				shadowTransforms.push_back(transform);
+			}
+
+			auto geometryCount = geometry.size();
+
+			std::vector<u32> lightResultData;
+			lightResultData.reserve(geometryCount);
+			for (u32 i = 0; i < geometryCount; ++i)
+			{
+				lightResultData.push_back(0);
+			}
+
+			// UNIFORM(ShadowTransformBufferBlock, 5)
+			vx::gl::Buffer shadowTransformBuffer;
+			{
+				vx::gl::BufferDescription bufferDesc;
+				bufferDesc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+				bufferDesc.immutable = 1;
+				bufferDesc.size = sizeof(ShadowTransform) * lightCount;
+				bufferDesc.flags = 0;
+				bufferDesc.pData = shadowTransforms.data();
+				shadowTransformBuffer.create(bufferDesc);
+			}
+			// layout(binding = 5, shared) buffer 
+			vx::gl::Buffer geometryBuffer;
+			{
+				vx::gl::BufferDescription bufferDesc;
+				bufferDesc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+				bufferDesc.immutable = 1;
+				bufferDesc.size = sizeof(LightGeometryProxyData) * geometryCount;
+				bufferDesc.flags = vx::gl::BufferStorageFlags::Write;
+				bufferDesc.pData = nullptr;
+				geometryBuffer.create(bufferDesc);
+			}
+			// layout(binding = 6, shared) buffer ResultBufferBlock
+			vx::gl::Buffer resultBuffer;
+			{
+				vx::gl::BufferDescription bufferDesc;
+				bufferDesc.bufferType = vx::gl::BufferType::Shader_Storage_Buffer;
+				bufferDesc.immutable = 1;
+				bufferDesc.size = sizeof(u32) * geometryCount;
+				bufferDesc.flags = vx::gl::BufferStorageFlags::Read | vx::gl::BufferStorageFlags::Write | vx::gl::BufferStorageFlags::Dynamic_Storage;
+				bufferDesc.pData = nullptr;
+				resultBuffer.create(bufferDesc);
+			}
+
+			auto gpuPtr = geometryBuffer.map<LightGeometryProxyData>(vx::gl::Map::Write_Only);
+			for (u32 i = 0; i < geometryCount; ++i)
+			{
+				s32 mask = masks[i];
+
+				f32 ftmp = 0.0f;
+				s32* ptr = (s32*)&ftmp;
+				*ptr = mask;
+
+				gpuPtr[i].vmin = vx::float4(geometry[i].min, ftmp);
+				gpuPtr[i].vmax = vx::float4(geometry[i].max, 1);
+			}
+			gpuPtr.unmap();
+
+			vx::gl::Texture depthTexture;
+			vx::gl::Framebuffer fb;
+			{
+				vx::gl::TextureDescription texDesc;
+				texDesc.format = vx::gl::TextureFormat::DEPTH32F;
+				texDesc.miplevels = 1;
+				texDesc.size = vx::ushort3(1024, 1024, 1);
+				texDesc.sparse = 0;
+				texDesc.type = vx::gl::TextureType::Texture_Cubemap;
+				depthTexture.create(texDesc);
+
+				fb.create();
+				fb.attachTexture(vx::gl::Attachment::Depth, depthTexture, 0);
+			}
+
+			glBindBufferBase(GL_UNIFORM_BUFFER, 5, shadowTransformBuffer.getId());
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, geometryBuffer.getId());
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, resultBuffer.getId());
+
+			auto pipeline = m_shaderManager.getPipeline("editorTestLightGeometryProxy.pipe");
+			auto pipeline0 = m_shaderManager.getPipeline("editorTestLightGeometryProxy0.pipe");
+			auto emptyVao = m_objectManager.getVertexArray("emptyVao");
+
+			fb.bind();
+			emptyVao->bind();
+			
+			vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Clamp);
+			vx::gl::StateManager::enable(vx::gl::Capabilities::Depth_Test);
+			vx::gl::StateManager::disable(vx::gl::Capabilities::Blend);
+
+			vx::gl::StateManager::setViewport(0, 0, 1024, 1024);
+
+			glClearDepth(1.0f);
+			for (u32 lightIndex = 0; lightIndex < lightCount; ++lightIndex)
+			{
+				auto ptrResults = resultBuffer.map<u32>(vx::gl::Map::Write_Only);
+				for (u32 j = 0; j < geometryCount; ++j)
+				{
+					ptrResults[j] = 0;
+				}
+				ptrResults.unmap();
+
+				glClear(GL_DEPTH_BUFFER_BIT);
+
+				pipeline0->bind();
+				glProgramUniform1ui(pipeline0->getGeometryShader(), 0, lightIndex);
+				glCullFace(GL_FRONT);
+				glDrawArrays(GL_POINTS, 0, geometryCount);
+
+				pipeline->bind();
+				glProgramUniform1ui(pipeline->getGeometryShader(), 0, lightIndex);
+
+				glCullFace(GL_BACK);
+				glDrawArrays(GL_POINTS, 0, geometryCount);
+
+				ptrResults = resultBuffer.map<u32>(vx::gl::Map::Read_Only);
+				for (u32 j = 0; j < geometryCount; ++j)
+				{
+					lightResultData[j] = ptrResults[j];
+				}
+				ptrResults.unmap();
+
+				auto &light = lights[lightIndex];
+				//printf("\nLight %u, %f %f %f\n", lightIndex, light.m_position.x, light.m_position.y, light.m_position.z);
+
+				std::vector<u32> proxyResultData;
+				proxyResultData.reserve(proxyCount);
+				for (u32 j = 0; j < proxyCount; ++j)
+				{
+					proxyResultData.push_back(0);
+				}
+
+				for (u32 k = 0; k < geometryCount; ++k)
+				{
+					auto &aabb = geometry[k];
+					auto mask = masks[k];
+					auto result = lightResultData[k];
+					auto proxyPair = pairs[k];
+
+					if (result != 0)
+					{
+						auto &proxy0 = proxies[proxyPair.first];
+						auto &proxy1 = proxies[proxyPair.second];
+
+						if (proxy0.m_bounds.intersects(light.m_position, light.m_falloff))
+						{
+							proxyResultData[proxyPair.first] = 1;
+						}
+
+						if (proxy1.m_bounds.intersects(light.m_position, light.m_falloff))
+						{
+							proxyResultData[proxyPair.second] = 1;
+						}
+					}
+				}
+
+				for (u32 j = 0; j < proxyCount; ++j)
+				{
+					if (proxyResultData[j] != 0)
+					{
+						resultData[j].lightIndices.push_back(lightIndex);
+					}
+				}
+			}
+
+			for (u32 i = 0; i < proxyCount; ++i)
+			{
+				auto &data = resultData[i];
+				auto proxyLightCount = data.lightIndices.size();
+				if (proxyLightCount >= 10)
+				{
+					VX_ASSERT(false);
+				}
+
+				for (u32 idx = 0; idx < proxyLightCount; ++idx)
+				{
+					proxies[i].m_lightIndices[idx] = data.lightIndices[idx];
+				}
+				proxies[i].m_lightCount = proxyLightCount;
+			}
+
+			vx::gl::StateManager::setViewport(0, 0, m_resolution.x, m_resolution.y);
+			glCullFace(GL_BACK);
+		}
 	}
 }

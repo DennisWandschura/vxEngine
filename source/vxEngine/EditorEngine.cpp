@@ -1126,6 +1126,8 @@ void EditorEngine::setLightLumen(u32 index, f32 lumen)
 {
 	auto light = m_pEditorScene->getLight(index);
 	light->m_lumen = lumen;
+
+	//m_renderAspect->updateLightBuffer(m_pEditorScene->getLights(), m_pEditorScene->getLightCount());
 }
 
 f32 EditorEngine::getLightFalloff(u32 index)
@@ -1138,6 +1140,8 @@ void EditorEngine::setLightFalloff(u32 index, f32 falloff)
 {
 	auto light = m_pEditorScene->getLight(index);
 	light->m_falloff = falloff;
+
+	//m_renderAspect->updateLightBuffer(m_pEditorScene->getLights(), m_pEditorScene->getLightCount());
 }
 
 void EditorEngine::getLightPosition(u32 index, vx::float3* position)
@@ -1150,6 +1154,8 @@ void EditorEngine::setLightPosition(u32 index, const vx::float3* position)
 {
 	auto light = m_pEditorScene->getLight(index);
 	light->m_position = *position;
+
+	m_renderAspect->updateLightBuffer(m_pEditorScene->getLights(), m_pEditorScene->getLightCount());
 }
 
 SelectedType EditorEngine::getSelectedItemType() const
@@ -1741,7 +1747,7 @@ void EditorEngine::setLightGeometryProxyBounds(u32 index, const vx::float3 &cent
 	m_renderAspect->updateLightGeometryProxies(m_pEditorScene->getLightGeometryProxies(), m_pEditorScene->getLightGeometryProxyCount());
 }
 
-void EditorEngine::getLightGeometryProxyBounds(u32 index, vx::float3* center, vx::float3* halfDimOut)
+void EditorEngine::getLightGeometryProxyBounds(u32 index, vx::float3* center, vx::float3* halfDimOut) const
 {
 	auto ptr = m_pEditorScene->getLightGeometryProxies();
 
@@ -1751,4 +1757,22 @@ void EditorEngine::getLightGeometryProxyBounds(u32 index, vx::float3* center, vx
 
 	*center = bounds.min + halfDim;
 	*halfDimOut = halfDim;
+}
+
+u32 EditorEngine::getLightGeometryProxyLightCount(u32 index) const
+{
+	auto ptr = m_pEditorScene->getLightGeometryProxies();
+
+	return ptr[index].m_lightCount;
+}
+
+void EditorEngine::testLightGeometryProxies()
+{
+	Editor::TestLightGeometryProxiesDesc desc;
+	desc.lightCount = m_pEditorScene->getLightCount();
+	desc.lights = m_pEditorScene->getLights();
+	desc.proxies = m_pEditorScene->getLightGeometryProxies();
+	desc.proxyCount = m_pEditorScene->getLightGeometryProxyCount();
+
+	m_renderAspect->testLightGeometryProxies(desc);
 }

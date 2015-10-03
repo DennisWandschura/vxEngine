@@ -242,5 +242,7 @@ public:
 	u32 getLightGeometryProxyCount() const;
 	void createLightGeometryProxy(const vx::float3 &center, const vx::float3 &halfDim);
 	void setLightGeometryProxyBounds(u32 index, const vx::float3 &center, const vx::float3 &halfDim);
-	void getLightGeometryProxyBounds(u32 index, vx::float3* center, vx::float3* halfDim);
+	void getLightGeometryProxyBounds(u32 index, vx::float3* center, vx::float3* halfDim) const;
+	u32 getLightGeometryProxyLightCount(u32 index) const;
+	void testLightGeometryProxies();
 };

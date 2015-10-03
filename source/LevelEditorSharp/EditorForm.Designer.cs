@@ -71,6 +71,7 @@ namespace LevelEditor
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.itemShotNavmesh = new System.Windows.Forms.ToolStripMenuItem();
             this.itemInfluenceMap = new System.Windows.Forms.ToolStripMenuItem();
+            this.lightsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel_render = new System.Windows.Forms.Panel();
             this.openFileDialog_importAsset = new System.Windows.Forms.OpenFileDialog();
             this.treeView_entities = new System.Windows.Forms.TreeView();
@@ -113,7 +114,7 @@ namespace LevelEditor
             this.numericUpDownSpawnPosX = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosY = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownSpawnPosZ = new System.Windows.Forms.NumericUpDown();
-            this.lightsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripButtonTestProxies = new System.Windows.Forms.ToolStripButton();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownNavmeshPositionZ)).BeginInit();
@@ -290,7 +291,7 @@ namespace LevelEditor
             this.itemShotNavmesh.CheckOnClick = true;
             this.itemShotNavmesh.CheckState = System.Windows.Forms.CheckState.Checked;
             this.itemShotNavmesh.Name = "itemShotNavmesh";
-            this.itemShotNavmesh.Size = new System.Drawing.Size(152, 22);
+            this.itemShotNavmesh.Size = new System.Drawing.Size(150, 22);
             this.itemShotNavmesh.Text = "Navmesh";
             this.itemShotNavmesh.Click += new System.EventHandler(this.itemShotNavmesh_Click);
             // 
@@ -300,9 +301,18 @@ namespace LevelEditor
             this.itemInfluenceMap.CheckOnClick = true;
             this.itemInfluenceMap.CheckState = System.Windows.Forms.CheckState.Checked;
             this.itemInfluenceMap.Name = "itemInfluenceMap";
-            this.itemInfluenceMap.Size = new System.Drawing.Size(152, 22);
+            this.itemInfluenceMap.Size = new System.Drawing.Size(150, 22);
             this.itemInfluenceMap.Text = "Influence Map";
             this.itemInfluenceMap.Click += new System.EventHandler(this.itemInfluenceMap_Click);
+            // 
+            // lightsToolStripMenuItem
+            // 
+            this.lightsToolStripMenuItem.Checked = true;
+            this.lightsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.lightsToolStripMenuItem.Name = "lightsToolStripMenuItem";
+            this.lightsToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.lightsToolStripMenuItem.Text = "Lights";
+            this.lightsToolStripMenuItem.Click += new System.EventHandler(this.lightsToolStripMenuItem_Click);
             // 
             // panel_render
             // 
@@ -337,7 +347,8 @@ namespace LevelEditor
             this.toolStripButtonCreateMeshInstance,
             this.toolStripButtonCreateSpawn,
             this.toolStripButtonCreateJoint,
-            this.toolStripButtonCreateLightGeometryProxy});
+            this.toolStripButtonCreateLightGeometryProxy,
+            this.toolStripButtonTestProxies});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(2544, 25);
@@ -833,14 +844,16 @@ namespace LevelEditor
             this.numericUpDownSpawnPosZ.TabIndex = 14;
             this.numericUpDownSpawnPosZ.ValueChanged += new System.EventHandler(this.numericUpDownSpawnPosZ_ValueChanged);
             // 
-            // lightsToolStripMenuItem
+            // toolStripButtonTestProxies
             // 
-            this.lightsToolStripMenuItem.Checked = true;
-            this.lightsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.lightsToolStripMenuItem.Name = "lightsToolStripMenuItem";
-            this.lightsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.lightsToolStripMenuItem.Text = "Lights";
-            this.lightsToolStripMenuItem.Click += new System.EventHandler(this.lightsToolStripMenuItem_Click);
+            this.toolStripButtonTestProxies.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripButtonTestProxies.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonTestProxies.Image")));
+            this.toolStripButtonTestProxies.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonTestProxies.Name = "toolStripButtonTestProxies";
+            this.toolStripButtonTestProxies.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonTestProxies.Text = "Test Proxies";
+            this.toolStripButtonTestProxies.Visible = false;
+            this.toolStripButtonTestProxies.Click += new System.EventHandler(this.toolStripButtonTestProxies_Click);
             // 
             // EditorForm
             // 
@@ -963,6 +976,7 @@ namespace LevelEditor
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ToolStripButton toolStripButtonCreateLightGeometryProxy;
         private System.Windows.Forms.ToolStripMenuItem lightsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripButton toolStripButtonTestProxies;
     }
 }
 

@@ -54,6 +54,14 @@ namespace Editor
 {
 	class MeshInstance;
 
+	struct TestLightGeometryProxiesDesc
+	{
+		Graphics::LightGeometryProxy* proxies;
+		u32 proxyCount;
+		const Graphics::Light* lights;
+		u32 lightCount;
+	};
+
 	class RenderAspectInterface : public ::RenderAspectInterface
 	{
 	public:
@@ -85,6 +93,8 @@ namespace Editor
 
 		virtual void showInfluenceMap(bool b, const InfluenceMap &influenceMap) = 0;
 		virtual void showNavMesh(bool b, const NavMesh &navMesh, const NavMeshGraph &navMeshGraph) = 0;
+
+		virtual void testLightGeometryProxies(const TestLightGeometryProxiesDesc &desc) = 0;
 	};
 }
 

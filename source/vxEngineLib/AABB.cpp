@@ -173,7 +173,7 @@ bool AABB::intersects(const Ray &ray, f32* hitt0, f32* hitt1) const
 	return true;
 }
 
-bool AABB::intersects(const Triangle &triangle)
+bool AABB::intersects(const Triangle &triangle) const
 {
 	auto c = (min + max) * 0.5f;
 	auto e = (max - min) * 0.5f;
@@ -279,7 +279,7 @@ bool AABB::intersects(const Triangle &triangle)
 	return intersects(p);
 }
 
-bool AABB::intersects(const Plane &plane)
+bool AABB::intersects(const Plane &plane) const
 {
 	auto c = (max + min) * 0.5f;
 	auto e = max - c;

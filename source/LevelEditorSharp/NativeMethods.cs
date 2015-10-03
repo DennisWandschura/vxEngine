@@ -382,5 +382,11 @@ namespace LevelEditor
 
         [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
         public unsafe static extern void getLightGeometryProxyBounds(uint index, out Float3 center, out Float3 halfDim);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern uint getLightGeometryProxyLightCount(uint index);
+
+        [DllImport(m_libPath + m_dllName, CallingConvention = CallingConvention.Cdecl)]
+        public unsafe static extern void testLightGeometryProxies();
     }
 }

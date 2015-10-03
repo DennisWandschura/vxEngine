@@ -63,8 +63,27 @@ struct AABB
 	bool contains(const vx::float3 &p) const;
 	bool contains(const __m128 &p) const;
 	bool intersects(const Ray &ray, f32* hitt0, f32* hitt1) const;
-	bool intersects(const Triangle &triangle);
-	bool intersects(const Plane &plane);
+	bool intersects(const Triangle &triangle) const;
+	bool intersects(const Plane &plane) const;
+
+	bool intersects(const AABB &other) const
+	{
+		if (max.x < other.min.x || min.x > other.max.x) return false;
+		if (max.y < other.min.y || min.y > other.max.y) return false;
+		if (max.z < other.min.z || min.z > other.max.z) return false;
+
+		return true;
+	}
+
+	bool intersects(const vx::float3 &c, f32 r) const
+	{
+		auto dmin = this->min - vx::min(c, this->min);
+		auto dmax = vx::max(c, this->max) - this->max;
+
+		f32 sqDist = vx::dot3(dmin, dmin) + vx::dot3(dmax, dmax);
+
+		return sqDist <= (r * r);
+	}
 
 	vx::float3& operator[](u32 i);
 
