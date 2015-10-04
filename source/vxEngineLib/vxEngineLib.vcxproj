@@ -301,6 +301,7 @@
     <ClInclude Include="include\vxEngineLib\AABB.h" />
     <ClInclude Include="include\vxEngineLib\Actor.h" />
     <ClInclude Include="include\vxEngineLib\ActorFile.h" />
+    <ClInclude Include="include\vxEngineLib\algorithm.h" />
     <ClInclude Include="include\vxEngineLib\Animation.h" />
     <ClInclude Include="include\vxEngineLib\AnimationFile.h" />
     <ClInclude Include="include\vxEngineLib\ArrayAllocator.h" />

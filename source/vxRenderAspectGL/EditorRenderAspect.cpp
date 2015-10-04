@@ -59,6 +59,7 @@ SOFTWARE.
 #include <vxEngineLib/Graphics/LightGeometryProxy.h>
 #include <vxEngineLib/Plane.h>
 #include <vxGL/Framebuffer.h>
+#include <vxEngineLib/algorithm.h>
 
 struct InfluenceCellVertex
 {
@@ -68,39 +69,6 @@ struct InfluenceCellVertex
 
 namespace EditorRenderAspectCpp
 {
-	template<typename T, typename Cmp>
-	typename std::vector<T>::const_iterator sortedInsert(std::vector<T>* vec, const T &value, Cmp cmp)
-	{
-		auto endKeys = vec->end();
-
-		auto it = std::lower_bound(vec->begin(), vec->end(), value, cmp);
-
-		auto index = it - vec->begin();
-		if (it == vec->end() || cmp(value, *it))
-		{
-			auto _Off = it - vec->begin();
-
-			vec->emplace_back(value);
-
-			std::rotate(vec->begin() + _Off, vec->end() - 1, vec->end());
-		}
-
-		return vec->begin() + index;
-	}
-
-	template<typename T, typename Cmp>
-	typename std::vector<T>::const_iterator vectorFind(const std::vector<T> &vec, const T &value, Cmp cmp)
-	{
-		auto it = std::lower_bound(vec.begin(), vec.end(), value, cmp);
-		auto index = it - vec.begin();
-
-		auto result = vec.begin() + index;
-		if (it != vec.end() && cmp(value, *it))
-			result = vec.end();
-
-		return result;
-	}
-
 	auto createPlanes = [](const vx::float3 &vmin, const vx::float3 &vmax, Plane* planes)
 	{
 		vx::float3 nbl = vx::float3(vmin.x, vmin.y, vmax.z);
@@ -265,10 +233,10 @@ namespace EditorRenderAspectCpp
 					{
 						auto pair = std::make_pair(std::min(i, j), std::max(i, j));
 
-						auto it = EditorRenderAspectCpp::vectorFind(pairsToTest, pair, CmpPair);
+						auto it = vx::vector_find(pairsToTest, pair, CmpPair);
 						if (it == pairsToTest.end())
 						{
-							EditorRenderAspectCpp::sortedInsert(&pairsToTest, pair, CmpPair);
+							vx::vector_sortedInsert(&pairsToTest, pair, CmpPair);
 						}
 					}
 				}
@@ -302,33 +270,33 @@ namespace EditorRenderAspectCpp
 					masks->push_back(intersectionMask);
 					tmp->push_back(it);
 
-					auto iter = EditorRenderAspectCpp::vectorFind(overlappingIndices, i0, std::less<u32>());
+					auto iter = vx::vector_find(overlappingIndices, i0, std::less<u32>());
 					if (iter == overlappingIndices.end())
 					{
-						EditorRenderAspectCpp::sortedInsert(&overlappingIndices, i0, std::less<u32>());
+						vx::vector_sortedInsert(&overlappingIndices, i0, std::less<u32>());
 					}
 
-					iter = EditorRenderAspectCpp::vectorFind(overlappingIndices, i1, std::less<u32>());
+					iter = vx::vector_find(overlappingIndices, i1, std::less<u32>());
 					if (iter == overlappingIndices.end())
 					{
-						EditorRenderAspectCpp::sortedInsert(&overlappingIndices, i1, std::less<u32>());
+						vx::vector_sortedInsert(&overlappingIndices, i1, std::less<u32>());
 					}
 				}
 				else
 				{
-					auto iter0 = EditorRenderAspectCpp::vectorFind(overlappingIndices, i0, std::less<u32>());
-					auto iter1 = EditorRenderAspectCpp::vectorFind(overlappingIndices, i1, std::less<u32>());
+					auto iter0 = vx::vector_find(overlappingIndices, i0, std::less<u32>());
+					auto iter1 = vx::vector_find(overlappingIndices, i1, std::less<u32>());
 
-					auto iter = EditorRenderAspectCpp::vectorFind(remainingIndices, i0, std::less<u32>());
+					auto iter = vx::vector_find(remainingIndices, i0, std::less<u32>());
 					if (iter == remainingIndices.end() && iter0 == overlappingIndices.end())
 					{
-						EditorRenderAspectCpp::sortedInsert(&remainingIndices, i0, std::less<u32>());
+						vx::vector_sortedInsert(&remainingIndices, i0, std::less<u32>());
 					}
 
-					iter = EditorRenderAspectCpp::vectorFind(remainingIndices, i1, std::less<u32>());
+					iter = vx::vector_find(remainingIndices, i1, std::less<u32>());
 					if (iter == remainingIndices.end() && iter1 == overlappingIndices.end())
 					{
-						EditorRenderAspectCpp::sortedInsert(&remainingIndices, i1, std::less<u32>());
+						vx::vector_sortedInsert(&remainingIndices, i1, std::less<u32>());
 					}
 					remainingIndices;
 				}
@@ -336,7 +304,7 @@ namespace EditorRenderAspectCpp
 
 			for (auto &it : remainingIndices)
 			{
-				auto iter = EditorRenderAspectCpp::vectorFind(overlappingIndices, it, std::less<u32>());
+				auto iter = vx::vector_find(overlappingIndices, it, std::less<u32>());
 				if (iter == overlappingIndices.end())
 				{
 					auto &bounds = proxies[it].m_bounds;
