@@ -44,13 +44,13 @@ namespace d3d
 		struct Entry;
 
 		vx::sorted_vector<vx::StringID, Entry> m_shaders;
-		wchar_t m_rootDir[16];
+		wchar_t m_rootDir[20];
 
 	public:
 		ShaderManager();
 		~ShaderManager();
 
-		void initialize(const wchar_t(&rootDir)[16]);
+		void initialize(const wchar_t(&rootDir)[20]);
 		void shutdown();
 
 		bool loadShader(const wchar_t* name);

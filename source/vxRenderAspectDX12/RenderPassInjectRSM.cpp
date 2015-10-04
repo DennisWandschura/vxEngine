@@ -60,7 +60,7 @@ StructuredBuffer<GpuShadowTransformReverse> g_transforms : register(t3);*/
 
 	CD3DX12_ROOT_PARAMETER rootParameters[3];
 	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
-	rootParameters[1].InitAsConstants(2, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+	rootParameters[1].InitAsConstants(1, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 	rootParameters[2].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
 
 	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -119,23 +119,23 @@ StructuredBuffer<GpuShadowTransformReverse> g_transforms : register(t3);
 	srvDesc.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
 	srvDesc.Texture2DArray.FirstArraySlice = 0;
 	srvDesc.Texture2DArray.MipLevels = 1;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
+	srvDesc.Texture2DArray.MostDetailedMip = 1;
 	srvDesc.Texture2DArray.PlaneSlice = 0;
 	srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
 
-	auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"shadowTextureColor");
+	auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	handle.offset(1);
 	device->CreateShaderResourceView(rsmFilteredColor->get(), &srvDesc, handle);
 
-	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
+	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
 	srvDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
 	handle.offset(1);
 	device->CreateShaderResourceView(rsmFilteredNormal->get(), &srvDesc, handle);
 
-	auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"shadowTextureDepth");
+	auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
 	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 
 	handle.offset(1);
@@ -239,7 +239,7 @@ void RenderPassInjectRSM::buildCommands()
 	const u32 clearValues[4] = { 0, 0, 0,0 };
 	if (m_visibleLightCount != 0)
 	{
-		u32 textureDim = s_settings->m_shadowDim;
+		u32 textureDim = s_settings->m_shadowDim / 4;
 
 		auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 		auto voxelTextureNormals = s_resourceManager->getTexture(L"voxelTextureNormals");
@@ -294,23 +294,23 @@ void RenderPassInjectRSM::buildCommands()
 
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-		//auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"shadowTextureColor");
-	//	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
-		//auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"shadowTextureDepth");
+		//auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
+	//	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
+		//auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
 
 		for (u32 lightIndex = 0; lightIndex < m_visibleLightCount; ++lightIndex)
 		{
-			for (u32 i = 0; i < 6; ++i)
+			//for (u32 i = 0; i < 6; ++i)
 			{
 				//uint lightIndex;
 				//uint cubeIndex;
 				vx::uint2 rootData;
 				rootData.x = lightIndex;
-				rootData.y = i;
+				rootData.y = 0;
 
-				m_commandList->SetGraphicsRoot32BitConstants(1, 2, &rootData, 0);
+				m_commandList->SetGraphicsRoot32BitConstant(1, lightIndex, 0);
 
-				m_commandList->DrawInstanced(textureDim, textureDim, 0, 0);
+				m_commandList->DrawInstanced(textureDim * textureDim, 6, 0, 0);
 
 				m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
 				m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureNormals->get()));

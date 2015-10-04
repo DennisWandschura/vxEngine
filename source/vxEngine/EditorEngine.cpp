@@ -138,7 +138,7 @@ bool EditorEngine::initializeEditor(HWND panel, HWND tmp, const vx::uint2 &resol
 	vx::activateChannel(vx::debugPrint::Channel_Render);
 	vx::activateChannel(vx::debugPrint::Channel_Editor);
 	vx::activateChannel(vx::debugPrint::Channel_FileAspect);
-	vx::DebugPrint::g_verbosity = 1;
+	vx::debugPrint::g_verbosity = 1;
 
 	const std::string dataDir("../../data/");
 	m_pEditorScene = pScene;

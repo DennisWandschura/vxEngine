@@ -269,15 +269,14 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 	if (sceneLightCount == 0)
 		return;
 	
-	Graphics::LightGeometryProxy* containingProxy = nullptr;
+	std::vector<Graphics::LightGeometryProxy*> containingProxies;
 	auto proxyCount = m_proxyCount;
 	for (u32 i = 0; i < proxyCount; ++i)
 	{
 		auto &proxy = m_proxies[i];
 		if(proxy.m_bounds.contains(cameraPosition))
 		{
-			containingProxy = &proxy;
-			break;
+			containingProxies.push_back(&proxy);
 		}
 	}
 
@@ -285,16 +284,23 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 	for (u32 i = 0; i < proxyCount; ++i)
 	{
 		auto &proxy = m_proxies[i];
-		if (&proxy != containingProxy)
+
+		for (auto &it : containingProxies)
 		{
-			if(proxy.m_bounds.intersects(containingProxy->m_bounds))
-			{
-				intersectingProxies.push_back(&proxy);
-			}
+			if (&proxy != it)
+				if (proxy.m_bounds.intersects(it->m_bounds))
+				{
+					intersectingProxies.push_back(&proxy);
+				}
 		}
 	}
 
-	u32 totalLightCount = containingProxy->m_lightCount;
+	u32 totalLightCount = 0;
+	for (auto &it : containingProxies)
+	{
+		totalLightCount += it->m_lightCount;
+	}
+
 	for (auto &it : intersectingProxies)
 	{
 		totalLightCount += it->m_lightCount;
@@ -302,13 +308,16 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 	std::vector<u16> lightIndies;
 	lightIndies.reserve(totalLightCount);
 
-	for (u32 i = 0; i < containingProxy->m_lightCount; ++i)
+	for (auto &it : containingProxies)
 	{
-		u16 lightIndex = containingProxy->m_lightIndices[i];
-		auto it = vx::vector_find(lightIndies, lightIndex, std::less<u16>());
-		if (it == lightIndies.end())
+		for (u32 i = 0; i < it->m_lightCount; ++i)
 		{
-			vx::vector_sortedInsert(&lightIndies, lightIndex, std::less<u16>());
+			u16 lightIndex = it->m_lightIndices[i];
+			auto it = vx::vector_find(lightIndies, lightIndex, std::less<u16>());
+			if (it == lightIndies.end())
+			{
+				vx::vector_sortedInsert(&lightIndies, lightIndex, std::less<u16>());
+			}
 		}
 	}
 
@@ -326,6 +335,7 @@ void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirec
 	}
 
 	totalLightCount = lightIndies.size();
+	VX_ASSERT(totalLightCount <= m_maxShadowCastingLights);
 	auto marker = m_scratchAllocator.getMarker();
 
 	auto shadowTransformsToGpu = (GpuShadowTransform*)m_scratchAllocator.allocate(sizeof(GpuShadowTransform) * totalLightCount, __alignof(GpuShadowTransform));

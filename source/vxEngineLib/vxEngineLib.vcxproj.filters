@@ -440,9 +440,6 @@
     <ClCompile Include="MeshInstanceFileV8.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\RenderAspectInterface.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\FontAtlas.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>

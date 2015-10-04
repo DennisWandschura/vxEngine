@@ -133,7 +133,7 @@ namespace d3d
 		}
 		else
 		{
-			puts("");
+			printf("Error creating resource: %x\n", hresult);
 		}
 
 		return result;

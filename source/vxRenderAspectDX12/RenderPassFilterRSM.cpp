@@ -461,7 +461,7 @@ void RenderPassFilterRSM::shutdown()
 
 void RenderPassFilterRSM::buildCommands()
 {
-	const u32 resolution = 256;
+	const u32 resolution = s_settings->m_shadowDim / 2;
 	const f32 clearColor[4] = { 0, 0, 0, 0 };
 	const f32 clearColor1[4] = { 1, 0, 0, 0 };
 

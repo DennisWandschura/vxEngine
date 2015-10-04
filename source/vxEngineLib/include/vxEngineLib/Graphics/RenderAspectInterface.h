@@ -70,9 +70,8 @@ enum class RenderAspectInitializeError : s32 {OK = 0, ERROR_CONTEXT = -1, ERROR_
 
 class RenderAspectInterface : public vx::MessageListener
 {
-	bool setSignalHandler(AbortSignalHandlerFun signalHandlerFn);
-
 protected:
+	virtual bool setSignalHandler(AbortSignalHandlerFun signalHandlerFn) = 0;
 	virtual RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) = 0;
 
 public:

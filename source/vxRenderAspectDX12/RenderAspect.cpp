@@ -31,6 +31,8 @@ SOFTWARE.
 #include <vxLib/ScopeGuard.h>
 #include "RenderLayerPerfOverlay.h"
 #include <vxEngineLib/ResourceAspectInterface.h>
+#include <vxEngineLib/debugPrint.h>
+#include <csignal>
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
@@ -135,8 +137,21 @@ void RenderAspect::uploadStaticCameraData()
 	m_uploadManager.pushUploadBuffer((u8*)&cameraStaticData, constantBuffer->get(), offset, sizeof(GpuCameraStatic), D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 }
 
+bool RenderAspect::setSignalHandler(AbortSignalHandlerFun signalHandlerFn)
+{
+	auto previousHandler = std::signal(SIGABRT, signalHandlerFn);
+	if (previousHandler == SIG_ERR)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescription &desc)
 {
+	vx::activateChannel(vx::debugPrint::Channel_Render);
+
 	auto errorlog = desc.errorlog;
 	m_cpuProfiler = desc.cpuProfiler;
 
@@ -171,12 +186,20 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	auto debugMode = desc.settings->m_renderDebug;
 	if (debugMode)
 	{
-		if (!m_debug.initializeDebugMode())
-			return RenderAspectInitializeError::ERROR_CONTEXT;
+		if (!m_debug.getDebugInterface())
+		{
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error getting debug interface, disabling it");
+			debugMode = false;
+			//return RenderAspectInitializeError::ERROR_CONTEXT;
+		}
 	}
 
-	wchar_t shaderRootDir[16];
-	swprintf(shaderRootDir, 16, L"../../lib/");
+	wchar_t shaderRootDir[20];
+#if _DEBUG
+	swprintf(shaderRootDir, 20, L"../../lib/Debug/");
+#else
+	swprintf(shaderRootDir, 20, L"../../lib/Release/");
+#endif
 	m_shaderManager.initialize(shaderRootDir);
 
 	D3D12_COMMAND_QUEUE_DESC cmdQueueDesc;
@@ -186,6 +209,7 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	cmdQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	if (!m_device.initialize(*desc.window, cmdQueueDesc, 64, &m_graphicsCommandQueue))
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing device");
 		errorlog->append("error initializing device\n");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
@@ -196,26 +220,35 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	if (debugMode)
 	{
 		if (!m_debug.initialize(desc.pAllocator, device, errorlog))
+		{
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing debug");
 			return RenderAspectInitializeError::ERROR_CONTEXT;
+		}
 	}
 
 	SCOPE_EXIT
 	{
-		m_debug.printDebugMessages();
+		if (debugMode)
+		{
+			m_debug.printDebugMessages();
+		}
 	};
 
 	if (!m_uploadManager.initialize(device))
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing upload manager");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
 	if (!m_copyManager.initialize(device))
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing copy manager");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
 	if (!m_downloadManager.initialize(device))
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing download manager");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
@@ -254,20 +287,32 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	u32 bufferCount = 0, textureCount = 0, rtDsCount = 0;
 	getRequiredMemory(textureDimSrgb, textureDimRgb, &bufferHeapSize,&bufferCount, &textureHeapSize, &textureCount, &rtDsHeapSize, &rtDsCount);
 
-	if(!m_resourceManager.initializeHeaps(bufferHeapSize, bufferCount, textureHeapSize, textureCount, rtDsHeapSize, rtDsCount, device, errorlog))
+	if (!m_resourceManager.initializeHeaps(bufferHeapSize, bufferCount, textureHeapSize, textureCount, rtDsHeapSize, rtDsCount, device, errorlog))
+	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error creating gpu heaps");
+		errorlog->append("Error creating gpu heaps\n");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
 
 	if (!m_materialManager.initialize(textureDimSrgb, textureDimRgb, &m_allocator, &m_resourceManager, device))
+	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing material manager");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
 
 	if (!createConstantBuffers())
+	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error creating constant buffers");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
 
 	auto halResolution = (desc.settings->m_resolution / vx::uint2(2));
 	vx::float2 gpuProfilerPosition = vx::float2(-static_cast<f32>(halResolution.x), halResolution.y);
 	gpuProfilerPosition += vx::float2(10, -20);
 	if (!m_gpuProfiler.initialize(256, &m_resourceManager, device, m_graphicsCommandQueue.get(), gpuProfilerPosition))
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing gpu profiler");
+		errorlog->append("error initializing gpu profiler\n");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
@@ -279,8 +324,12 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 
 	for (auto &it : m_activeLayers)
 	{
-		if(!it->initialize(&m_allocator))
+		if (!it->initialize(&m_allocator, errorlog))
+		{
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing render layers");
+			errorlog->append("error initializing render layers\n");
 			return RenderAspectInitializeError::ERROR_CONTEXT;
+		}
 	}
 
 	uploadStaticCameraData();
@@ -310,7 +359,7 @@ void RenderAspect::shutdown(void* hwnd)
 	m_debug.shutdownDevice();
 	m_device.shutdown();
 
-	m_debug.reportLiveObjects();
+	//m_debug.reportLiveObjects();
 	m_debug.shutdown();
 }
 

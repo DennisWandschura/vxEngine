@@ -60,8 +60,8 @@ namespace EngineCpp
 		}
 	}
 
-	const wchar_t* g_dx12DllDebug = L"../../lib/vxRenderAspectDX12_d.dll";
-	const wchar_t* g_dx12Dll = L"../../lib/vxRenderAspectDX12.dll";
+	const wchar_t* g_dx12DllDebug = L"../../lib/Debug/vxRenderAspectDX12_d.dll";
+	const wchar_t* g_dx12Dll = L"../../lib/Release/vxRenderAspectDX12.dll";
 	const wchar_t* g_glDllDebug = L"../../lib/vxRenderAspectGL_d.dll";
 	const wchar_t* g_glDll = L"../../lib/vxRenderAspectGL.dll";
 }
@@ -339,7 +339,11 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 	m_taskManager.initialize(2, 20, 30.0f, &m_allocator);
 
 	if (!m_systemAspect.initialize(g_engineConfig, EngineCpp::callbackKeyPressed, EngineCpp::callbackKeyReleased, nullptr))
+	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Engine, "error initializing system aspect");
+		printf("error");
 		return false;
+	}
 
 	RenderAspectDescription renderAspectDesc =
 	{
@@ -359,24 +363,31 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 	auto renderMode = g_engineConfig.m_rendererSettings.m_renderMode;
 	if (!createRenderAspect(renderMode))
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Engine, "error creating render aspect");
+		logfile->append("error creating render aspect\n");
 		return false;
 	}
 
 	if (m_renderAspect->initialize(renderAspectDesc, signalHandlerFn) != RenderAspectInitializeError::OK)
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Engine, "error initializing render aspect");
 		logfile->append("error initializing render aspect\n");
 		return false;
 	}
 
 	if (!m_physicsAspect.initialize(&m_taskManager))
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Engine, "error initializing physics aspect");
 		logfile->append("error initializing physics aspect\n");
 		return false;
 	}
 
 #if _VX_MEM_PROFILE
 	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, &m_allocManager, &m_resourceAspect))
+	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Engine, "error initializing entity aspect");
 		return false;
+	}
 #else
 	if (!m_entityAspect.initialize(&m_allocator, &m_taskManager, nullptr, &m_resourceAspect))
 	{
@@ -387,6 +398,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 
 	if (!createAudioAspect())
 	{
+		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Engine, "error initializing audio aspect");
 		logfile->append("error initializing audio aspect\n");
 		return false;
 	}
@@ -414,6 +426,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 	m_taskManagerThread = std::thread(EngineCpp::schedulerThread, &m_taskManager);
 
 	//printf("Main Thread tid: %u\n", std::this_thread::get_id());
+	logfile->append("initializing engine\n");
 
 	return true;
 }

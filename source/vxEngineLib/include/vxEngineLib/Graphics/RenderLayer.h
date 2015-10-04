@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class Logfile;
+
 namespace vx
 {
 	class StackAllocator;
@@ -45,7 +47,7 @@ namespace Graphics
 
 		virtual void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount) = 0;
 
-		virtual bool initialize(vx::StackAllocator* allocator) = 0;
+		virtual bool initialize(vx::StackAllocator* allocator, Logfile* errorLog) = 0;
 		virtual void shudown() = 0;
 
 		virtual void update() = 0;

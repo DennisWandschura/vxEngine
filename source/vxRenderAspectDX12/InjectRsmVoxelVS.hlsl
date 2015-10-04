@@ -18,7 +18,6 @@ cbuffer VoxelBuffer : register(b0)
 cbuffer RootBuffer : register(b1)
 {
 	uint g_lightIndex;
-	uint g_cubeIndex;
 };
 
 Texture2DArray<float4> g_color : register(t0);
@@ -47,25 +46,30 @@ bool isPointInGrid(int3 position)
 	return result;
 }
 
-VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
+VSOutput main(uint xy : SV_VertexID, uint cubeIndex : SV_InstanceID)
 {
-	int arrayIndex = g_lightIndex * 6 + g_cubeIndex;
-	float depth = g_depth.Load(int4(vertexID, instanceID, arrayIndex, 0));
-
-	int2 texelCoord = int2(vertexID, instanceID);
-
 	uint w, h, d;
 	g_depth.GetDimensions(w, h, d);
+	uint x = xy % w;
+	uint y = xy / w;
+	int2 texelCoord = int2(x, y);
+
+	int arrayIndex = g_lightIndex * 6 + cubeIndex;
+	float depth = g_depth.Load(int4(texelCoord, arrayIndex, 0));
+
+
+
+
 	float2 texCoord = float2(texelCoord) / float2(w, h);
 	float2 screenPos = texCoord * float2(2, -2) - float2(1, -1);
 
 	float3 normal = g_normals.Load(int4(texelCoord, arrayIndex, 0)).rgb;
 
-	float4x4 invPvMatrix = g_shadowTransforms[g_lightIndex].invPvMatrix[g_cubeIndex];
+	float4x4 invPvMatrix = g_shadowTransforms[g_lightIndex].invPvMatrix[cubeIndex];
 	float4 wsPosition = mul(invPvMatrix, float4(screenPos, depth, 1));
 
 	// shift gridposition by half cell size
-	//wsPosition.xyz += g_voxel.gridCellSize * 0.5 * normal;
+	wsPosition.xyz += g_voxel.gridCellSize * 0.5 * normal;
 
 	float3 offset = (wsPosition.xyz - g_voxel.gridCenter.xyz) * g_voxel.invGridCellSize;
 	int3 gridPosition = int3(offset) + g_voxel.halfDim;
@@ -75,10 +79,10 @@ VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 	VSOutput output;
 	output.position = float4(screenPos, 0, 1);
 	
-	output.axis = g_voxelAxis[g_cubeIndex];
+	output.axis = g_voxelAxis[cubeIndex];
 	output.color = color;
 
-	float tmp = abs(dot(g_swizzleVector[g_cubeIndex / 2], normal));
+	float tmp = abs(dot(g_swizzleVector[cubeIndex / 2], normal));
 	output.normal = float4(normal, tmp);
 
 	if (!isPointInGrid(gridPosition))
@@ -86,7 +90,7 @@ VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 		output.position.xy = -2;
 	}
 
-	int3 wOffset = int3(0, 0, g_voxelAxis[g_cubeIndex] * g_voxel.dim);
+	int3 wOffset = int3(0, 0, g_voxelAxis[cubeIndex] * g_voxel.dim);
 
 	output.gridPosition = gridPosition + wOffset;
 

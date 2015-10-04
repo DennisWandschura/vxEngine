@@ -34,6 +34,7 @@ SOFTWARE.
 #include "ResourceManager.h"
 #include "RenderPassText.h"
 #include "Device.h"
+#include <vxEngineLib/Logfile.h>
 
 namespace RenderLayerPerfOverlayCpp
 {
@@ -73,7 +74,7 @@ void RenderLayerPerfOverlay::getRequiredMemory(u64* heapSizeBuffer, u32* bufferC
 	}
 }
 
-bool RenderLayerPerfOverlay::initialize(vx::StackAllocator* allocator)
+bool RenderLayerPerfOverlay::initialize(vx::StackAllocator* allocator, Logfile* errorLog)
 {
 	auto device = m_device->getDevice();
 	auto renderPassText = m_renderPasses.find(vx::make_sid("RenderPassText"));
@@ -96,7 +97,10 @@ bool RenderLayerPerfOverlay::initialize(vx::StackAllocator* allocator)
 	desc.maxCharacters = RenderLayerPerfOverlayCpp::g_maxCharacters;
 	desc.m_renderPassText = (RenderPassText*)renderPassText->get();
 	if (!m_textRenderer.initialize(allocator, &desc))
+	{
+		errorLog->append("error initializing text renderer\n");
 		return false;
+	}
 
 	auto fontFileEntry = vx::FileEntry("verdana.font", vx::FileType::Font);
 	vx::Variant arg;

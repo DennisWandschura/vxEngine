@@ -60,6 +60,7 @@ SOFTWARE.
 #include <vxEngineLib/Plane.h>
 #include <vxGL/Framebuffer.h>
 #include <vxEngineLib/algorithm.h>
+#include <csignal>
 
 struct InfluenceCellVertex
 {
@@ -373,6 +374,17 @@ namespace Editor
 	RenderAspect::~RenderAspect()
 	{
 
+	}
+
+	bool RenderAspect::setSignalHandler(AbortSignalHandlerFun signalHandlerFn)
+	{
+		auto previousHandler = std::signal(SIGABRT, signalHandlerFn);
+		if (previousHandler == SIG_ERR)
+		{
+			return false;
+		}
+
+		return true;
 	}
 
 	RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescription &renderDesc)

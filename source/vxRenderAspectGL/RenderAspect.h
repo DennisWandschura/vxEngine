@@ -150,6 +150,7 @@ protected:
 	u16 addActorToBuffer(const vx::StringID &actorSid, const vx::Transform &transform, const vx::StringID &mesh, const vx::StringID &material);
 	u16 getActorGpuIndex();
 
+	bool setSignalHandler(AbortSignalHandlerFun signalHandlerFn) override;
 	RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) override;
 
 public:

@@ -107,7 +107,10 @@ bool TextureManager::createTextureBuffer(const wchar_t* id, const vx::uint3 &tex
 
 	auto ptr = resourceManager->createTexture(id, desc);
 	if (ptr == nullptr)
+	{
+		printf("TextureManager: error creating texture %ws\n", id);
 		return false;
+	}
 
 	m_textureBuffer = vx::make_sid(id);
 
@@ -122,12 +125,18 @@ bool TextureManager::createTextureBuffer(const wchar_t* id, const vx::uint3 &tex
 bool TextureManager::initialize(vx::StackAllocator* allocator, const wchar_t* textureId, const vx::uint3 &textureDim, u32 dxgiFormat, d3d::ResourceManager* resourceManager, ID3D12Device* device)
 {
 	if (!createTextureBuffer(textureId, textureDim, dxgiFormat, resourceManager, device))
+	{
+		printf("TextureManager: error createTextureBuffer\n");
 		return false;
+	}
 
 	auto capacity = textureDim.z;
 	auto entries = (Entry*)allocator->allocate(sizeof(Entry) * capacity, 4);
 	if (entries == nullptr)
+	{
+		printf("TextureManager: error out of memory\n");
 		return false;
+	}
 
 	m_entries = entries;
 	m_freelist.create((u8*)m_entries, capacity, sizeof(Entry));

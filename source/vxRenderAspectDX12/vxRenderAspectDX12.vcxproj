@@ -56,7 +56,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\..\..\vxLib\include;..\vxEngineLib\include;$(IncludePath)</IncludePath>
-    <OutDir>..\..\lib\</OutDir>
+    <OutDir>..\..\lib\Debug\</OutDir>
     <TargetName>$(ProjectName)_d</TargetName>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <LibraryPath>..\..\..\vxLib\lib\vs14;..\..\lib;$(LibraryPath)</LibraryPath>
@@ -71,7 +71,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\..\..\vxLib\include;..\vxEngineLib\include;$(IncludePath)</IncludePath>
     <LibraryPath>..\..\..\vxLib\lib\vs14;..\..\lib;$(LibraryPath)</LibraryPath>
-    <OutDir>..\..\lib\</OutDir>
+    <OutDir>..\..\lib\Release\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

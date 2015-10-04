@@ -20,9 +20,9 @@ namespace d3d
 
 	}
 
-	void ShaderManager::initialize(const wchar_t(&rootDir)[16])
+	void ShaderManager::initialize(const wchar_t(&rootDir)[20])
 	{
-		memcpy(m_rootDir, rootDir, sizeof(wchar_t) * 16);
+		memcpy(m_rootDir, rootDir, sizeof(rootDir));
 	}
 
 	void ShaderManager::shutdown()
@@ -38,7 +38,6 @@ namespace d3d
 		{
 			Entry entry;
 			entry.data = nullptr;
-			//entry.type = type;
 
 			wchar_t buffer[64];
 			swprintf(buffer, 64, L"%ws%ws", m_rootDir, name);

@@ -49,7 +49,7 @@ namespace d3d
 		Debug();
 		~Debug();
 
-		bool initializeDebugMode();
+		bool getDebugInterface();
 		bool initialize(vx::StackAllocator* allocator, ID3D12Device* device, Logfile* errorLog);
 		void shutdownDevice();
 		void shutdown();

@@ -132,15 +132,15 @@ namespace d3d
 				m_buffers[index] = std::move(resource);
 				ptr = &m_buffers[index];
 
-				char buffer[64];
+				/*char buffer[64];
 				auto sz = snprintf(buffer, 64, "Buffer %ws %p\n", id, (*ptr).get());
 				if (sz < 64)
 				{
-					m_logfile->append(buffer, sz);
+					//m_logfile->append(buffer, sz);
 				}
 				else
 				{
-				}
+				}*/
 			}
 		}
 		else
@@ -174,9 +174,14 @@ namespace d3d
 				auto sid = vx::make_sid(id);
 				m_sortedTextures.insert(std::move(sid), index);
 			}
+			else
+			{
+				printf("ResourceManager::createTexture: error creating texture\n");
+			}
 		}
 		else
 		{
+			printf("ResourceManager::createTexture: error\n");
 			ptr = nullptr;
 		}
 

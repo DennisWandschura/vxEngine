@@ -87,7 +87,7 @@ int main()
 		return 1;
 	}
 
-	HANDLE hLogFile = nullptr;
+	/*HANDLE hLogFile = nullptr;
 	hLogFile = CreateFileA("log.txt", GENERIC_WRITE,
 		FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL, NULL);
@@ -96,7 +96,7 @@ int main()
 	_CrtSetReportFile(_CRT_ERROR, hLogFile);
 
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_WARN, hLogFile);
+	_CrtSetReportFile(_CRT_WARN, hLogFile);*/
 
 	SmallObjAllocator alloc(1 KBYTE);
 	SmallObject::setAllocator(&alloc);
@@ -115,14 +115,15 @@ int main()
 	}
 	g_logfile = &mainLogfile;
 
-	_CrtMemState state;
+	//_CrtMemState state;
 	// create a checkpoint to for current memory state
-	_CrtMemCheckpoint(&state);
+	//_CrtMemCheckpoint(&state);
 
 	Engine engine;
 
 #ifndef _RELEASE_STATIC_BUILD
 	vx::activateChannel(vx::debugPrint::Channel_FileAspect);
+	vx::activateChannel(vx::debugPrint::Channel_Engine);
 #endif
 
 	SCOPE_EXIT
@@ -131,9 +132,9 @@ int main()
 		//LOG(mainLogfile, "Shutting down Engine", false);
 		mainLogfile.close();
 
-		_CrtMemDumpAllObjectsSince(&state);
+		//_CrtMemDumpAllObjectsSince(&state);
 
-		CloseHandle(hLogFile);
+		//CloseHandle(hLogFile);
 
 		g_logfile = nullptr;
 	};

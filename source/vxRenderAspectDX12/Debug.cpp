@@ -44,7 +44,7 @@ namespace d3d
 
 	}
 
-	bool Debug::initializeDebugMode()
+	bool Debug::getDebugInterface()
 	{
 		auto hresult = D3D12GetDebugInterface(IID_PPV_ARGS(m_debug.getAddressOf()));
 		if (hresult != 0)

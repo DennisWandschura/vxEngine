@@ -84,6 +84,7 @@ namespace Editor
 
 		void bindBuffers();
 
+		bool setSignalHandler(AbortSignalHandlerFun signalHandlerFn) override;
 		RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) override;
 
 	public:

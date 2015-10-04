@@ -42,6 +42,9 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterMeshFileV1.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterMeshFileV1.cpp"
 
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterSceneFileV10.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterSceneFileV10.cpp"
+
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterSceneFileV9.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterSceneFileV9.cpp"
 

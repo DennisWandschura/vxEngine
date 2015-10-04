@@ -61,7 +61,7 @@ VSOutput main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 	g_zBuffer.GetDimensions(w, h);
 	float2 resolution = float2(w, h);
 
-	uint2 texelPos = uint2(vertexID, instanceID) * 4;
+	uint2 texelPos = uint2(vertexID, instanceID);
 	float2 texCoord = texelPos / resolution;
 
 	float3 vsPosition = getVsPosition(texelPos);

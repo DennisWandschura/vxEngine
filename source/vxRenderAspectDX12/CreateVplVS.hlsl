@@ -49,7 +49,8 @@ void main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 	results[0] = 0;
 	results[1] = 0;
 	results[2] = 0;
-	for (uint i = 0; i < 1; ++i)
+	[unroll]
+	for (uint i = 0; i < 6; ++i)
 	{
 		int3 offset = int3(0, 0, i * w);
 		float3 color = g_colorTexture.Load(int4(voxelPosition + offset, 0)).rgb;

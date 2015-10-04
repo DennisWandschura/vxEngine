@@ -84,6 +84,7 @@ class RenderAspect : public RenderAspectInterface
 	void createSrvMaterial(u32 instanceCount);
 	void createSrvTextures(u32 srgbCount, u32 rgbCount);
 
+	bool setSignalHandler(AbortSignalHandlerFun signalHandlerFn) override;
 	RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) override;
 
 public:

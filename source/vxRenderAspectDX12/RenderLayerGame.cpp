@@ -37,6 +37,7 @@
 #include "RenderPassVoxelPropagate.h"
 #include <vxEngineLib/CpuProfiler.h>
 #include "RenderPassCreateVpl.h"
+#include <vxEngineLib/Logfile.h>
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
@@ -148,12 +149,13 @@ void RenderLayerGame::createRenderPasses()
 	insertRenderPass(vx::make_sid("RenderPassSSIL"), std::make_unique<RenderPassSSIL>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassFinal"), std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
 	insertRenderPass(vx::make_sid("RenderPassCreateVpl"), std::make_unique<RenderPassCreateVpl>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassFilterRSM"), std::make_unique<RenderPassFilterRSM>(&m_commandAllocator));
 
 	RenderStage stage0;
 	stage0.pushRenderPass(findRenderPass("RenderPassGBuffer"));
 	//stage0.pushRenderPass(findRenderPass("RenderPassCullLights"));
 	stage0.pushRenderPass(findRenderPass("RenderPassShadow"));
-	//stage0.pushRenderPass(findRenderPass("RenderPassFilterRSM"));
+	stage0.pushRenderPass(findRenderPass("RenderPassFilterRSM"));
 	stage0.pushRenderPass(findRenderPass("RenderPassInjectRSM"));
 
 	RenderStage stage1;
@@ -175,7 +177,7 @@ void RenderLayerGame::createRenderPasses()
 
 	//m_lightManager.setRenderPassCullLights((RenderPassCullLights*)findRenderPass("RenderPassCullLights"));
 	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassShadow"));
-	//m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassFilterRSM"));
+	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassFilterRSM"));
 	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassInjectRSM"));
 	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassShading"));
 
@@ -261,7 +263,7 @@ void RenderLayerGame::createGpuObjects()
 	}
 }
 
-bool RenderLayerGame::initialize(vx::StackAllocator* allocator)
+bool RenderLayerGame::initialize(vx::StackAllocator* allocator, Logfile* errorLog)
 {
 	auto device = m_device->getDevice();
 	if (!m_commandAllocator.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
@@ -289,7 +291,10 @@ bool RenderLayerGame::initialize(vx::StackAllocator* allocator)
 	for (auto &it : m_renderPasses)
 	{
 		if (!it->initialize(device, nullptr))
+		{
+			errorLog->append("error initializing render pass\n");
 			return false;
+		}
 	}
 
 	auto gridsize = m_settings->m_lpvGridSize;

@@ -34,7 +34,8 @@ namespace vx
 		{
 			Channel_Render = 1 << 0,
 			Channel_Editor = 1 << 1,
-			Channel_FileAspect = 1 << 2
+			Channel_FileAspect = 1 << 2,
+			Channel_Engine = 1 << 3
 		};
 	}
 }

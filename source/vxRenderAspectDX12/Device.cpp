@@ -51,13 +51,33 @@ namespace d3d
 		{
 			hresult = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(m_device.getAddressOf()));
 		}
-		
-		if (hresult != 0)
-			return false;
 
-		hresult = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(m_factory.getAddressOf()));
 		if (hresult != 0)
+		{
+			printf("no dx12 support\n");
 			return false;
+		}
+
+		D3D12_FEATURE_DATA_FORMAT_SUPPORT data;
+		data.Format = DXGI_FORMAT_BC7_UNORM_SRGB;
+		hresult = m_device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &data, sizeof(data));
+		if (hresult != 0)
+		{
+			printf("error checking feature support\n");
+		}
+
+		if (data.Support1 == D3D12_FORMAT_SUPPORT1_NONE)
+		{
+			printf("error: bc7 not supported\n");
+			return false;
+		}
+
+		hresult = CreateDXGIFactory2(0, IID_PPV_ARGS(m_factory.getAddressOf()));
+		if (hresult != 0)
+		{
+			printf("error creating dxgi factory\n");
+			return false;
+		}
 
 		/*UINT i = 0;
 		IDXGIAdapter1  * pAdapter;
@@ -139,13 +159,22 @@ namespace d3d
 	bool Device::initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, u32 queueCapacity, CommandQueue* defaultQueue)
 	{
 		if (!createDevice())
+		{
+			printf("error creating device\n");
 			return false;
+		}
 
 		if (!defaultQueue->create(queueDesc, m_device.get(), queueCapacity))
+		{
+			printf("error creating command queue\n");
 			return false;
+		}
 
 		if (!createSwapChain(window, defaultQueue))
+		{
+			printf("error creating swap chain\n");
 			return false;
+		}
 
 		return true;
 	}

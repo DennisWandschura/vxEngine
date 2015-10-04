@@ -63,6 +63,7 @@ SOFTWARE.
 #include <vxEngineLib/Graphics/Font.h>
 #include <vxEngineLib/ResourceAspectInterface.h>
 #include <vxEngineLib/FileEntry.h>
+#include <csignal>
 
 struct PlaneSimd
 {
@@ -389,6 +390,17 @@ void RenderAspect::createFrameBuffers()
 			glNamedFramebufferDrawBuffer(m_blurFB[i].getId(), GL_COLOR_ATTACHMENT0);
 		}
 	}
+}
+
+bool RenderAspect::setSignalHandler(AbortSignalHandlerFun signalHandlerFn)
+{
+	auto previousHandler = std::signal(SIGABRT, signalHandlerFn);
+	if (previousHandler == SIG_ERR)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescription &desc)

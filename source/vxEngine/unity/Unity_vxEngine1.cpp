@@ -36,9 +36,6 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ActionSetFollowPath.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ActionSetFollowPath.cpp"
 
-#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ActionUpdateGpuTransform.cpp" )
-#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ActionUpdateGpuTransform.cpp"
-
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ActorAspect.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ActorAspect.cpp"
 
@@ -68,6 +65,9 @@
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ConditionActorHasPath.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ConditionActorHasPath.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ConditionPlayerFalling.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ConditionPlayerFalling.cpp"
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngine/ConditionPlayerMoving.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngine\ConditionPlayerMoving.cpp"
