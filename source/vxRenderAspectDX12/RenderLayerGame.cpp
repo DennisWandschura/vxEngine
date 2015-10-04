@@ -27,7 +27,6 @@
 #include <vxEngineLib/CreateDynamicMeshData.h>
 #include "Device.h"
 #include "CopyManager.h"
-#include "RenderPassCullLights.h"
 #include "RenderPassSSIL.h"
 #include "RenderPassFilterRSM.h"
 #include "RenderPassInjectRSM.h"
@@ -137,7 +136,7 @@ RenderLayerGame::~RenderLayerGame()
 void RenderLayerGame::createRenderPasses()
 {
 	insertRenderPass(vx::make_sid("RenderPassGBuffer"), std::make_unique<RenderPassGBuffer>(&m_commandAllocator, &m_drawCommandMesh));
-	insertRenderPass(vx::make_sid("RenderPassCullLights"), std::make_unique<RenderPassCullLights>(&m_commandAllocator, m_downloadManager));
+	//insertRenderPass(vx::make_sid("RenderPassCullLights"), std::make_unique<RenderPassCullLights>(&m_commandAllocator, m_downloadManager));
 	insertRenderPass(vx::make_sid("RenderPassShadow"), std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh));
 	insertRenderPass(vx::make_sid("RenderPassInjectRSM"), std::make_unique<RenderPassInjectRSM>(&m_commandAllocator));
 	insertRenderPass(vx::make_sid("RenderPassVoxelPropagate"), std::make_unique<RenderPassVoxelPropagate>(&m_commandAllocator));
@@ -152,7 +151,7 @@ void RenderLayerGame::createRenderPasses()
 
 	RenderStage stage0;
 	stage0.pushRenderPass(findRenderPass("RenderPassGBuffer"));
-	stage0.pushRenderPass(findRenderPass("RenderPassCullLights"));
+	//stage0.pushRenderPass(findRenderPass("RenderPassCullLights"));
 	stage0.pushRenderPass(findRenderPass("RenderPassShadow"));
 	//stage0.pushRenderPass(findRenderPass("RenderPassFilterRSM"));
 	stage0.pushRenderPass(findRenderPass("RenderPassInjectRSM"));
@@ -174,7 +173,7 @@ void RenderLayerGame::createRenderPasses()
 	m_renderStages.push_back(stage1);
 	m_renderStages.push_back(stage2);
 
-	m_lightManager.setRenderPassCullLights((RenderPassCullLights*)findRenderPass("RenderPassCullLights"));
+	//m_lightManager.setRenderPassCullLights((RenderPassCullLights*)findRenderPass("RenderPassCullLights"));
 	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassShadow"));
 	//m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassFilterRSM"));
 	m_lightManager.addRenderPass((RenderPassLight*)findRenderPass("RenderPassInjectRSM"));
@@ -488,7 +487,7 @@ void RenderLayerGame::loadScene(Scene* scene)
 	auto lightCount = scene->getLightCount();
 	auto device = m_device->getDevice();
 
-	m_lightManager.loadSceneLights(lights, lightCount, device, m_resourceManager, m_uploadManager);
+	m_lightManager.loadSceneLights(lights, lightCount, scene->getLightGeometryProxies(), scene->getLightGeometryProxyCount(), device, m_resourceManager, m_uploadManager);
 }
 
 D3D12_DRAW_INDEXED_ARGUMENTS RenderLayerGame::addMeshInstance(const MeshInstance &meshInstance, u32* gpuIndex)

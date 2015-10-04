@@ -32,12 +32,12 @@ struct D3D12_DRAW_INDEXED_ARGUMENTS;
 struct AABB;
 struct RenderSettings;
 class RenderPassLight;
-class RenderPassCullLights;
 class RenderAspect;
 
 namespace Graphics
 {
 	struct Light;
+	struct LightGeometryProxy;
 }
 
 namespace d3d
@@ -49,6 +49,7 @@ namespace d3d
 #include <vxLib/Allocator/StackAllocator.h>
 #include "DrawIndexedIndirectCommand.h"
 #include <vxEngineLib/Event.h>
+#include <memory>
 
 class LightManager
 {	
@@ -56,9 +57,11 @@ class LightManager
 	GpuShadowTransform* m_sceneShadowTransforms;
 	GpuShadowTransformReverse* m_sceneShadowReverseTransforms;
 	__m128* m_sceneLightBounds;
+	std::unique_ptr<Graphics::LightGeometryProxy[]> m_proxies;
 	GpuLight* m_gpuLights;
 	GpuShadowTransform* m_gpuShadowTransforms;
 	GpuShadowTransformReverse* m_gpuShadowReverseTransforms;
+	u32 m_proxyCount;
 	u32 m_visibleLightCount;
 	u32 m_sceneLightCount;
 	u32 m_maxSceneLightCount;
@@ -67,7 +70,6 @@ class LightManager
 	u32* m_visibleLightsResult;
 	Event m_downloadEvent;
 	Event m_checkLightsEvent;
-	RenderPassCullLights* m_renderPassCullLights;
 	std::vector<RenderPassLight*> m_renderPasses;
 	vx::StackAllocator m_scratchAllocator;
 
@@ -84,12 +86,11 @@ public:
 
 	bool initialize(const RenderSettings &settings, vx::StackAllocator* allocator, u32 maxSceneLightCount, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 
-	bool loadSceneLights(const Graphics::Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
+	bool loadSceneLights(const Graphics::Light* lights, u32 lightCount, Graphics::LightGeometryProxy* proxies, u32 proxyCount, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager);
 
 	void __vectorcall update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, RenderAspect* renderAspect);
 
 	void addStaticMeshInstance(const D3D12_DRAW_INDEXED_ARGUMENTS &cmd, const AABB &bounds, UploadManager* uploadManager);
 
 	void addRenderPass(RenderPassLight* rp) { m_renderPasses.push_back(rp); }
-	void setRenderPassCullLights(RenderPassCullLights* rp) { m_renderPassCullLights = rp; }
 };

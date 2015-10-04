@@ -7,9 +7,10 @@
 #include "UploadManager.h"
 #include <vxEngineLib/AABB.h>
 #include "GpuVoxel.h"
-#include "RenderPassCullLights.h"
 #include "RenderPassLight.h"
 #include "RenderAspect.h"
+#include <vxEngineLib/Graphics/LightGeometryProxy.h>
+#include <vxEngineLib/algorithm.h>
 
 enum FrustumPlane { FrustumPlaneNear, FrustumPlaneLeft, FrustumPlaneRight };
 
@@ -58,12 +59,12 @@ LightManager::LightManager()
 	:m_sceneLights(nullptr),
 	m_sceneShadowTransforms(nullptr),
 	m_gpuLights(nullptr),
+	m_proxyCount(0),
 	m_visibleLightCount(0),
 	m_sceneLightCount(0),
 	m_maxSceneLightCount(0),
 	m_maxShadowCastingLights(0),
-	m_resultBufferCount(0),
-	m_renderPassCullLights(nullptr)
+	m_resultBufferCount(0)
 {
 
 }
@@ -199,7 +200,7 @@ bool LightManager::initialize(const RenderSettings &settings, vx::StackAllocator
 	m_checkLightsEvent = Event::createEvent();
 	m_checkLightsEvent.setStatus(EventStatus::Complete);
 
-	m_renderPassCullLights->setEvent(m_checkLightsEvent, m_downloadEvent, (u8*)m_visibleLightsResult);
+	//m_renderPassCullLights->setEvent(m_checkLightsEvent, m_downloadEvent, (u8*)m_visibleLightsResult);
 
 	auto gridsize = settings.m_lpvGridSize;
 	auto dim = settings.m_lpvDim;
@@ -232,11 +233,11 @@ bool LightManager::initialize(const RenderSettings &settings, vx::StackAllocator
 	return true;
 }
 
-bool LightManager::loadSceneLights(const Graphics::Light* lights, u32 count, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
+bool LightManager::loadSceneLights(const Graphics::Light* lights, u32 lightCount, Graphics::LightGeometryProxy* proxies, u32 proxyCount, ID3D12Device* device, d3d::ResourceManager* resourceManager, UploadManager* uploadManager)
 {
-	VX_ASSERT(count <= m_maxSceneLightCount);
+	VX_ASSERT(lightCount <= m_maxSceneLightCount);
 
-	for (u32 i = 0; i < count; ++i)
+	for (u32 i = 0; i < lightCount; ++i)
 	{
 		m_sceneLights[i].position = vx::float4(lights[i].m_position, 1);
 		m_sceneLights[i].falloff = lights[i].m_falloff;
@@ -250,160 +251,118 @@ bool LightManager::loadSceneLights(const Graphics::Light* lights, u32 count, ID3
 		m_sceneLightBounds[i] = cr;
 	}
 
-	m_sceneLightCount = count;
+	m_sceneLightCount = lightCount;
+
+	m_proxies = std::make_unique<Graphics::LightGeometryProxy[]>(proxyCount);
+	for (u32 i = 0; i < proxyCount; ++i)
+	{
+		m_proxies[i] = proxies[i];
+	}
+	m_proxyCount = proxyCount;
 
 	return true;
 }
 
 void __vectorcall LightManager::update(__m128 cameraPosition, __m128 cameraDirection, const Frustum &frustum, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, RenderAspect* renderAspect)
 {
-	struct Pair
-	{
-		f32 distance;
-		u32 index;
-	};
-
-	//return;
-
 	auto sceneLightCount = m_sceneLightCount;
 	if (sceneLightCount == 0)
 		return;
-
-	bool startCheck = false;
-
-	auto statusCheckLights = m_checkLightsEvent.getStatus();
-	if (statusCheckLights == EventStatus::Complete)
+	
+	Graphics::LightGeometryProxy* containingProxy = nullptr;
+	auto proxyCount = m_proxyCount;
+	for (u32 i = 0; i < proxyCount; ++i)
 	{
-		// checked on gpu
-
-		auto dlStatus = m_downloadEvent.getStatus();
-		if (dlStatus == EventStatus::Complete)
+		auto &proxy = m_proxies[i];
+		if(proxy.m_bounds.contains(cameraPosition))
 		{
-			u32 visibleLightCount = 0;
-			// finished dl to cpu, upload resulting light buffer to gpu
-
-			auto marker = m_scratchAllocator.getMarker();
-			auto visibleLights = (GpuLight*)m_scratchAllocator.allocate(sizeof(GpuLight) * m_resultBufferCount, __alignof(GpuLight));
-			auto visibleTransforms = (GpuShadowTransform*)m_scratchAllocator.allocate(sizeof(GpuShadowTransform) * m_resultBufferCount, __alignof(GpuShadowTransform));
-			auto visibleReverseTransforms = (GpuShadowTransformReverse*)m_scratchAllocator.allocate(sizeof(GpuShadowTransformReverse) * m_resultBufferCount, __alignof(GpuShadowTransformReverse));
-			for (u32 i = 0; i < m_resultBufferCount; ++i)
-			{
-				//const u32 visibleMask =(1 << 1);
-				auto visible = m_visibleLightsResult[i];
-				if (visible != 0)
-				{
-					visibleTransforms[visibleLightCount] = m_gpuShadowTransforms[i];
-					visibleReverseTransforms[visibleLightCount] = m_gpuShadowReverseTransforms[i];
-					visibleLights[visibleLightCount++] = m_gpuLights[i];
-				}
-			}
-
-			if (visibleLightCount != 0)
-			{
-				auto sortedPairs = (Pair*)m_scratchAllocator.allocate(sizeof(Pair) * visibleLightCount, __alignof(Pair));
-				for (u32 i = 0; i < visibleLightCount; ++i)
-				{
-					auto lightPosition = visibleLights[i].position;
-					auto distanceToLight = vx::length3(_mm_sub_ps(lightPosition, cameraPosition));
-
-					_mm_store_ss(&sortedPairs[i].distance, distanceToLight);
-					sortedPairs[i].index = i;
-				}
-
-				std::sort(sortedPairs, sortedPairs + visibleLightCount, [](const Pair &lhs, const Pair &rhs)
-				{
-					return lhs.distance < rhs.distance;
-				});
-
-				auto shadowTransformsToGpu = (GpuShadowTransform*)m_scratchAllocator.allocate(sizeof(GpuShadowTransform) * visibleLightCount, __alignof(GpuShadowTransform));
-				auto shadowReverseTransformsToGpu = (GpuShadowTransformReverse*)m_scratchAllocator.allocate(sizeof(GpuShadowTransformReverse) * visibleLightCount, __alignof(GpuShadowTransformReverse));
-				auto lightsToGpu = (GpuLight*)m_scratchAllocator.allocate(sizeof(GpuLight) * visibleLightCount, __alignof(GpuLight));
-				for (u32 i = 0; i < visibleLightCount; ++i)
-				{
-					auto index = sortedPairs[i].index;
-
-					lightsToGpu[i] = visibleLights[index];
-					shadowTransformsToGpu[i] = visibleTransforms[index];
-					shadowReverseTransformsToGpu[i] = visibleReverseTransforms[index];
-				}
-
-				auto shadowCastingLightsBuffer = resourceManager->getBuffer(L"shadowCastingLightsBuffer");
-				auto shadowTransformBuffer = resourceManager->getBuffer(L"shadowTransformBuffer");
-				auto shadowReverseTransformBuffer = resourceManager->getBuffer(L"shadowReverseTransformBuffer");
-
-				auto sizeInBytesLights = sizeof(GpuLight) * visibleLightCount;
-				auto sizeInBytesShadow = sizeof(GpuShadowTransform) * visibleLightCount;
-				auto sizeInBytesShadowReverse = sizeof(GpuShadowTransformReverse) * visibleLightCount;
-				uploadManager->pushUploadBuffer((u8*)lightsToGpu, shadowCastingLightsBuffer->get(), 0, sizeInBytesLights, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-				uploadManager->pushUploadBuffer((u8*)shadowTransformsToGpu, shadowTransformBuffer->get(), 0, sizeInBytesShadow, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
-				uploadManager->pushUploadBuffer((u8*)shadowReverseTransformsToGpu, shadowReverseTransformBuffer->get(), 0, sizeInBytesShadowReverse, shadowReverseTransformBuffer->getOriginalState());
-
-				for (auto &it : m_renderPasses)
-				{
-					it->setVisibleLightCount(visibleLightCount);
-				}
-			}
-
-			m_scratchAllocator.clear(marker);
-
-			m_visibleLightCount = visibleLightCount;
-			//printf("visible lights: %u/%u\n", visibleLightCount, m_resultBufferCount);
-
-			m_resultBufferCount = 0;
-			m_downloadEvent.setStatus(EventStatus::Queued);
-		}
-		else if(dlStatus == EventStatus::Running)
-		{
-			// wait
-		}
-		else
-		{
-			// start update
-			startCheck = true;
+			containingProxy = &proxy;
+			break;
 		}
 	}
 
-	if (startCheck)
+	std::vector<Graphics::LightGeometryProxy*> intersectingProxies;
+	for (u32 i = 0; i < proxyCount; ++i)
 	{
-		auto marker = m_scratchAllocator.getMarker();
-		u32* indices = (u32*)m_scratchAllocator.allocate(sceneLightCount * sizeof(u32));
-		u32 lightsInFrustumCount = frustum.testSpheres(m_sceneLightBounds, sceneLightCount, indices);
-
-		__m128* boundsInFrustum = (__m128*)m_scratchAllocator.allocate(lightsInFrustumCount * sizeof(__m128), 16);
-		for (u32 i = 0; i < lightsInFrustumCount; ++i)
+		auto &proxy = m_proxies[i];
+		if (&proxy != containingProxy)
 		{
-			auto index = indices[i];
-			boundsInFrustum[i] = m_sceneLightBounds[index];
+			if(proxy.m_bounds.intersects(containingProxy->m_bounds))
+			{
+				intersectingProxies.push_back(&proxy);
+			}
 		}
-
-		for (u32 i = 0; i < lightsInFrustumCount; ++i)
-		{
-			auto index = indices[i];
-
-			m_gpuLights[i] = m_sceneLights[index];
-			m_gpuShadowTransforms[i] = m_sceneShadowTransforms[index];
-			m_gpuShadowReverseTransforms[i] = m_sceneShadowReverseTransforms[index];
-		}
-
-		auto lightBuffer = resourceManager->getBuffer(L"lightBuffer");
-		auto sizeInBytes = sizeof(GpuLight) * lightsInFrustumCount;
-		uploadManager->pushUploadBuffer((u8*)m_gpuLights, lightBuffer->get(), 0, sizeInBytes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-		m_checkLightsEvent.setStatus(EventStatus::Running);
-
-		memset(m_visibleLightsResult, 0, sizeof(u32) * lightsInFrustumCount);
-		m_renderPassCullLights->setLightCount(lightsInFrustumCount);
-
-		m_resultBufferCount = lightsInFrustumCount;
-		m_scratchAllocator.clear(marker);
 	}
+
+	u32 totalLightCount = containingProxy->m_lightCount;
+	for (auto &it : intersectingProxies)
+	{
+		totalLightCount += it->m_lightCount;
+	}
+	std::vector<u16> lightIndies;
+	lightIndies.reserve(totalLightCount);
+
+	for (u32 i = 0; i < containingProxy->m_lightCount; ++i)
+	{
+		u16 lightIndex = containingProxy->m_lightIndices[i];
+		auto it = vx::vector_find(lightIndies, lightIndex, std::less<u16>());
+		if (it == lightIndies.end())
+		{
+			vx::vector_sortedInsert(&lightIndies, lightIndex, std::less<u16>());
+		}
+	}
+
+	for (auto &it : intersectingProxies)
+	{
+		for (u32 i = 0; i < it->m_lightCount; ++i)
+		{
+			u16 lightIndex = it->m_lightIndices[i];
+			auto it = vx::vector_find(lightIndies, lightIndex, std::less<u16>());
+			if (it == lightIndies.end())
+			{
+				vx::vector_sortedInsert(&lightIndies, lightIndex, std::less<u16>());
+			}
+		}
+	}
+
+	totalLightCount = lightIndies.size();
+	auto marker = m_scratchAllocator.getMarker();
+
+	auto shadowTransformsToGpu = (GpuShadowTransform*)m_scratchAllocator.allocate(sizeof(GpuShadowTransform) * totalLightCount, __alignof(GpuShadowTransform));
+	auto shadowReverseTransformsToGpu = (GpuShadowTransformReverse*)m_scratchAllocator.allocate(sizeof(GpuShadowTransformReverse) * totalLightCount, __alignof(GpuShadowTransformReverse));
+	auto lightsToGpu = (GpuLight*)m_scratchAllocator.allocate(sizeof(GpuLight) * totalLightCount, __alignof(GpuLight));
+	for (u32 i = 0; i < totalLightCount; ++i)
+	{
+		auto index = lightIndies[i];
+
+		lightsToGpu[i] = m_sceneLights[index];
+		shadowTransformsToGpu[i] = m_sceneShadowTransforms[index];
+		shadowReverseTransformsToGpu[i] = m_sceneShadowReverseTransforms[index];
+	}
+
+	auto shadowCastingLightsBuffer = resourceManager->getBuffer(L"shadowCastingLightsBuffer");
+	auto shadowTransformBuffer = resourceManager->getBuffer(L"shadowTransformBuffer");
+	auto shadowReverseTransformBuffer = resourceManager->getBuffer(L"shadowReverseTransformBuffer");
+
+	auto sizeInBytesLights = sizeof(GpuLight) * totalLightCount;
+	auto sizeInBytesShadow = sizeof(GpuShadowTransform) * totalLightCount;
+	auto sizeInBytesShadowReverse = sizeof(GpuShadowTransformReverse) * totalLightCount;
+	uploadManager->pushUploadBuffer((u8*)lightsToGpu, shadowCastingLightsBuffer->get(), 0, sizeInBytesLights, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	uploadManager->pushUploadBuffer((u8*)shadowTransformsToGpu, shadowTransformBuffer->get(), 0, sizeInBytesShadow, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	uploadManager->pushUploadBuffer((u8*)shadowReverseTransformsToGpu, shadowReverseTransformBuffer->get(), 0, sizeInBytesShadowReverse, shadowReverseTransformBuffer->getOriginalState());
+
+	m_scratchAllocator.clear(marker);
+
+	for (auto &it : m_renderPasses)
+	{
+		it->setVisibleLightCount(totalLightCount);
+	}
+
 
 	RenderUpdateTextData taskData;
 	taskData.color = vx::float3(1, 1, 1);
 	taskData.position = vx::float2(1, 1);
-	taskData.strSize = snprintf(taskData.text, sizeof(taskData.text), "visible lights: %u", m_visibleLightCount);
+	taskData.strSize = snprintf(taskData.text, sizeof(taskData.text), "visible lights: %u", totalLightCount);
 	renderAspect->queueUpdate(RenderUpdateTaskType::UpdateText, (u8*)&taskData, sizeof(taskData));
 }
 
