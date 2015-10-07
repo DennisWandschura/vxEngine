@@ -321,6 +321,12 @@
     <ClInclude Include="include\vxEngineLib\algorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ConverterActorFileV0.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterActorFileV1.h">
+      <Filter>Header Files\Converter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MeshFile.cpp">
@@ -462,6 +468,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConverterSceneFileV10.cpp">
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterActorFileV0.cpp">
+      <Filter>Source Files\Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="ConverterActorFileV1.cpp">
       <Filter>Source Files\Converter</Filter>
     </ClCompile>
   </ItemGroup>

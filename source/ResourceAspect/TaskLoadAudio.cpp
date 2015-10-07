@@ -27,6 +27,7 @@ SOFTWARE.
 #include <vxEngineLib/AudioFile.h>
 #include <vxLib/string.h>
 #include <Audioclient.h>
+#include <vxEngineLib/CpuTimer.h>
 
 namespace TaskLoadAudioCpp
 {
@@ -145,6 +146,8 @@ TaskLoadAudio::~TaskLoadAudio()
 
 TaskReturnType TaskLoadAudio::runImpl()
 {
+	//CpuTimer timer;
+
 	auto ptr = m_audioDataManager->find(m_sid);
 	if (ptr != nullptr)
 	{
@@ -169,6 +172,9 @@ TaskReturnType TaskLoadAudio::runImpl()
 	{
 		return TaskReturnType::Failure;
 	}
+
+	//auto timeMs = timer.getTimeMiliseconds();
+	//printf("TaskLoadAudio: %f\n", timeMs);
 
 	return TaskReturnType::Success;
 }

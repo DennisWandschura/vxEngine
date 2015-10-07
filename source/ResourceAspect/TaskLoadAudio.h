@@ -53,5 +53,11 @@ public:
 	explicit TaskLoadAudio(TaskLoadAudioDesc &&desc);
 	~TaskLoadAudio();
 
-	f32 getTimeMs() const override { return 0; }
+	f32 getTimeMs() const override { return 0.2f; }
+
+	const char* getName(u32* size) const override
+	{
+		*size = 14;
+		return "TaskLoadAudio";
+	}
 };

@@ -33,7 +33,7 @@ float4 main(GSOutput input) : SV_TARGET
 	float4 indirectColor = g_indirectTexture.Sample(g_sampler, input.texCoords);
 	float3 albedo = g_albedoTexture.Sample(g_sampler, input.texCoords).rgb;
 
-	float indirectWeight = indirectColor.a;
+	//float indirectWeight = indirectColor.a;
 	float3 voxelIndirect = g_voxelIndirect.Sample(g_sampler, input.texCoords).rgb;
 
 	indirectColor.rgb = (indirectColor.rgb + voxelIndirect.rgb) * albedo / g_PI * sao;

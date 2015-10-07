@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 The MIT License (MIT)
 
@@ -24,34 +22,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class Scene;
-class RenderAspectInterface;
-class PhysicsAspect;
-class ResourceAspectInterface;
+#include "ConverterActorFileV0.h"
+#include <vxEngineLib/ActorFile.h>
+#include <vxLib/util/CityHash.h>
+#include <vxLib/string.h>
 
-#include <vxEngineLib/Task.h>
-
-class TaskSceneCreateActors : public Task
+namespace Converter
 {
-	static thread_local f32 s_time;
-	static thread_local u64 s_counter;
-
-	const Scene* m_scene;
-	RenderAspectInterface* m_renderAspect;
-	PhysicsAspect* m_physicsAspect;
-	ResourceAspectInterface* m_resourceAspect;
-
-	TaskReturnType runImpl() override;
-
-public:
-	TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene, RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect, ResourceAspectInterface* resourceAspect);
-	~TaskSceneCreateActors();
-
-	f32 getTimeMs() const override;
-
-	const char* getName(u32* size) const override
+	const u8* ActorFileV0::loadFromMemory(const u8 *ptr, u32 size, ArrayAllocator* allocator, ActorFile* actorFile)
 	{
-		*size = 22;
-		return "TaskSceneCreateActors";
+		ptr = vx::read(actorFile->m_mesh, ptr);
+		ptr = vx::read(actorFile->m_material, ptr);
+
+		return ptr;
 	}
-};
+
+	u64 ActorFileV0::getCrc(const ActorFile &actorFile)
+	{
+		const auto bufferSize = sizeof(actorFile.m_mesh) + sizeof(actorFile.m_material);
+		u8 buffer[bufferSize];
+		memset(buffer, 0, bufferSize);
+
+		auto p = vx::write(buffer, actorFile.m_mesh);
+		vx::write(p, actorFile.m_material);
+
+		return CityHash64((char*)buffer, bufferSize);
+	}
+}

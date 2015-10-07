@@ -31,6 +31,7 @@ namespace Audio
 	struct PlaySoundData : public ::SmallObject
 	{
 		vx::StringID m_sid;
+		u32* m_id;
 		vx::float3 m_position;
 	};
 

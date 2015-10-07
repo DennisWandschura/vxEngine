@@ -30,6 +30,7 @@ namespace vx
 class PhysicsAspect;
 class ResourceAspect;
 class RenderAspectInterface;
+class AudioAspectInterface;
 
 class Locator
 {
@@ -37,6 +38,7 @@ class Locator
 	static PhysicsAspect* s_pPhysicsAspect;
 	static ResourceAspect* s_pResourceAspect;
 	static RenderAspectInterface* s_pRenderAspect;
+	static AudioAspectInterface* s_audioAspectInterface;
 
 public:
 	static void provide(vx::MessageManager* p);
@@ -50,6 +52,9 @@ public:
 
 	static void provide(RenderAspectInterface* p);
 	static RenderAspectInterface* getRenderAspect();
+
+	static void provide(AudioAspectInterface* p);
+	static AudioAspectInterface* getAudioAspect();
 
 	static void reset();
 };

@@ -25,7 +25,7 @@ TaskLoadTexture::~TaskLoadTexture()
 
 TaskReturnType TaskLoadTexture::runImpl()
 {
-	CpuTimer timer;
+	//CpuTimer timer;
 
 	static const auto ddsSid = vx::make_sid(".dds");
 	static const auto pngSid = vx::make_sid(".png");
@@ -73,7 +73,7 @@ TaskReturnType TaskLoadTexture::runImpl()
 		VX_ASSERT(ref != nullptr);
 	}
 
-	//auto timeMs = timer.getTimeMs();
+	//auto timeMs = timer.getTimeMiliseconds();
 	//printf("tex load time: %f\n", timeMs);
 
 	return TaskReturnType::Success;
@@ -81,5 +81,5 @@ TaskReturnType TaskLoadTexture::runImpl()
 
 f32 TaskLoadTexture::getTimeMs() const
 {
-	return 0.1f; 
+	return 1.0f; 
 }

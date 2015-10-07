@@ -65,6 +65,12 @@ public:
 	{
 		return s_time;
 	}
+
+	const char* getName(u32* size) const override
+	{
+		*size = 10;
+		return "PhysxTask";
+	}
 };
 
 thread_local f32 PhysxTask::s_time{ 0.0f };

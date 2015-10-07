@@ -31,6 +31,8 @@ namespace vx
 {
 	class AudioAspect : public ::AudioAspectInterface
 	{
+		__m128 m_listenerPosition;
+		__m128 m_listenerRotation;
 		Audio::AudioManager m_audioManager;
 		ResourceAspectInterface* m_resourceAspect;
 		f32 m_masterVolume;
@@ -47,8 +49,13 @@ namespace vx
 
 		void handleMessage(const Message &msg) override;
 
-		void update(f32 dt, const vx::float3 &playerPosition) override;
+		void update(f32 dt) override;
 
 		void setMasterVolume(f32 volume) override;
+
+		void setSourcePosition(u32 src, const vx::float3 &position) override;
+
+		void setListenerPosition(const __m128 &position);
+		void setListenerRotation(const __m128 &qRotation);
 	};
 }

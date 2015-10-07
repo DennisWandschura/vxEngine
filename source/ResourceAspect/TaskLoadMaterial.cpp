@@ -50,6 +50,8 @@ TaskLoadMaterial::~TaskLoadMaterial()
 
 TaskReturnType TaskLoadMaterial::runImpl()
 {
+	//CpuTimer timer;
+
 	auto ptr = m_materialManager->find(m_sid);
 	if (ptr != nullptr)
 	{
@@ -125,6 +127,7 @@ TaskReturnType TaskLoadMaterial::runImpl()
 		return TaskReturnType::Failure;
 	}
 
-	printf("TaskLoadMaterial: %s %llu\n", m_filename.c_str(), m_sid.value);
+//	printf("TaskLoadMaterial: %f\n", timer.getTimeMiliseconds());
+
 	return TaskReturnType::Success;
 }

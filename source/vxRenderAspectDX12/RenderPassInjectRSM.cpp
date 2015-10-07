@@ -109,7 +109,7 @@ StructuredBuffer<GpuShadowTransformReverse> g_transforms : register(t3);
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
 	cbvDesc.BufferLocation = voxelBuffer->GetGPUVirtualAddress();
 	cbvDesc.SizeInBytes = d3d::AlignedSizeType<GpuVoxel, 1, 256>::size;
-	
+
 	auto handle = m_srvHeap.getHandleCpu();
 	device->CreateConstantBufferView(&cbvDesc, handle);
 
@@ -294,31 +294,34 @@ void RenderPassInjectRSM::buildCommands()
 
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-		//auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
-	//	auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
-		//auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
+		auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
+		auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
+		auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
+
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		for (u32 lightIndex = 0; lightIndex < m_visibleLightCount; ++lightIndex)
 		{
-			//for (u32 i = 0; i < 6; ++i)
-			{
-				//uint lightIndex;
-				//uint cubeIndex;
-				vx::uint2 rootData;
-				rootData.x = lightIndex;
-				rootData.y = 0;
+			vx::uint2 rootData;
+			rootData.x = lightIndex;
+			rootData.y = 0;
 
-				m_commandList->SetGraphicsRoot32BitConstant(1, lightIndex, 0);
+			m_commandList->SetGraphicsRoot32BitConstant(1, lightIndex, 0);
 
-				m_commandList->DrawInstanced(textureDim * textureDim, 6, 0, 0);
+			m_commandList->DrawInstanced(textureDim * textureDim, 6, 0, 0);
 
-				m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
-				m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureNormals->get()));
-			}
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
+			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureNormals->get()));
 		}
 
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-		
+
 
 		s_gpuProfiler->queryEnd(&m_commandList);
 

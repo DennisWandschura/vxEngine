@@ -36,9 +36,14 @@ public:
 	virtual bool initialize(ResourceAspectInterface* resourceAspect) = 0;
 	virtual void shutdown() = 0;
 
-	virtual void update(f32 dt, const vx::float3 &playerPosition) = 0;
+	virtual void update(f32 dt) = 0;
 
 	virtual void setMasterVolume(f32 volume) = 0;
+
+	virtual void setSourcePosition(u32 src, const vx::float3 &position) = 0;
+
+	virtual void setListenerPosition(const __m128 &position) = 0;
+	virtual void setListenerRotation(const __m128 &qRotation) = 0;
 };
 
 typedef AudioAspectInterface* (*CreateAudioAspectFunctionType)();

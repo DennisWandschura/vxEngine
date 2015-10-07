@@ -31,24 +31,21 @@ static const float3 g_normals[6] =
 	float3(0, 0, -1)
 };
 
-void main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
+void main(uint xy : SV_VertexID, uint z : SV_InstanceID)
 {
 	uint w, h, d;
 	g_colorTexture.GetDimensions(w, h, d);
 
-	uint x = vertexID;
-	uint yz = instanceID;
-	uint y = yz % w;
-	uint z = yz / w;
+	uint x = xy & (w - 1);
+	uint y = xy / w;
 
 	int3 voxelPosition = int3(x, y, z);
 
-	//float3 sumColor = 0;
-	float3 sumNormal = 0;
 	float4 results[3];
 	results[0] = 0;
 	results[1] = 0;
 	results[2] = 0;
+
 	[unroll]
 	for (uint i = 0; i < 6; ++i)
 	{

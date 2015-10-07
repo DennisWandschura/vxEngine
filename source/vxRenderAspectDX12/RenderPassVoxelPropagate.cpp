@@ -205,7 +205,7 @@ void RenderPassVoxelPropagate::buildCommands()
 		lpvTextureBlueTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
 		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle0);
-		m_commandList->DrawInstanced(dim, dim* dim, 0, 0);
+		m_commandList->DrawInstanced(dim * dim, dim, 0, 0);
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureRedTmp->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureGreenTmp->get()));
@@ -220,7 +220,7 @@ void RenderPassVoxelPropagate::buildCommands()
 		lpvTextureBlueTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
 		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle1);
-		m_commandList->DrawInstanced(dim, dim* dim, 0, 0);
+		m_commandList->DrawInstanced(dim * dim, dim, 0, 0);
 
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureRed->get()));
 		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureGreen->get()));

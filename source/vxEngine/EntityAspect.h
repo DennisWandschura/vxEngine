@@ -94,11 +94,9 @@ public:
 	bool initialize(vx::StackAllocator* pAllocator, vx::TaskManager* taskManager, vx::AllocationProfiler* allocManager, ResourceAspectInterface* resourceAspect);
 	void shutdown();
 
-	void builEntityQuadTree();
-
 	//////////////////
 
-	void update(f32 dt, ActionManager* actionManager, RenderAspectInterface* renderAspect);
+	void update(f32 dt, ActionManager* actionManager, RenderAspectInterface* renderAspect, AudioAspectInterface* audioAspect);
 
 	//////////////////
 

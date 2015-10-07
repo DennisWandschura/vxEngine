@@ -1,5 +1,4 @@
 #pragma once
-
 /*
 The MIT License (MIT)
 
@@ -24,34 +23,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class Scene;
-class RenderAspectInterface;
-class PhysicsAspect;
-class ResourceAspectInterface;
+struct EntityHuman;
+struct EntityActor;
 
-#include <vxEngineLib/Task.h>
+#include "Condition.h"
 
-class TaskSceneCreateActors : public Task
+class ConditionCanSeePlayer: public Condition
 {
-	static thread_local f32 s_time;
-	static thread_local u64 s_counter;
-
-	const Scene* m_scene;
-	RenderAspectInterface* m_renderAspect;
-	PhysicsAspect* m_physicsAspect;
-	ResourceAspectInterface* m_resourceAspect;
-
-	TaskReturnType runImpl() override;
+	EntityHuman* m_player;
+	EntityActor* m_actor;
+	f32 m_fov;
 
 public:
-	TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene, RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect, ResourceAspectInterface* resourceAspect);
-	~TaskSceneCreateActors();
+	ConditionCanSeePlayer();
+	~ConditionCanSeePlayer();
 
-	f32 getTimeMs() const override;
-
-	const char* getName(u32* size) const override
-	{
-		*size = 22;
-		return "TaskSceneCreateActors";
-	}
+	u8 test() const override;
 };

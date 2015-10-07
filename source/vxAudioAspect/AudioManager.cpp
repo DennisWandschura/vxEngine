@@ -44,8 +44,7 @@ namespace Audio
 	};
 
 	AudioManager::AudioManager()
-		:m_playerPosition(),
-		m_device(nullptr),
+		:m_device(nullptr),
 		m_sessionManager(nullptr),
 		m_sessionControl(nullptr)
 	{
@@ -194,10 +193,8 @@ namespace Audio
 		}
 	}
 
-	void AudioManager::update(f32 dt, const vx::float3 &playerPosition)
+	void AudioManager::update(f32 dt, const __m128 &listenerPosition, const __m128 &listenerDirection)
 	{
-		m_playerPosition = playerPosition;
-
 		for (auto &it : m_cleanup)
 		{
 			it->stop();
@@ -211,7 +208,7 @@ namespace Audio
 			if (!it->eof())
 			{
 				it->update();
-				it->play(dt, playerPosition);
+				it->play(dt, listenerPosition, listenerDirection);
 
 				m_activeEntries[1].push_back(std::move(it));
 			}
@@ -236,25 +233,31 @@ namespace Audio
 		m_loadedEntries.insert(std::move(tmp), std::move(entry));
 	}
 
-	void AudioManager::playSound(const vx::StringID &sid, const vx::float3 &position)
+	void AudioManager::playSound(const vx::StringID &sid, const vx::float3 &position, const __m128 &listenerPosition, const __m128 &listenerDirection, u32* id)
 	{
 		const auto entry = m_loadedEntries.find(sid);
 		if (entry == m_loadedEntries.end())
 		{
+			*id = 0xffffffff;
 			return;
 		}
 
 		auto ptr = (u32*)m_freelist.insertEntry((u8*)m_entryIndices.get(), sizeof(u32));
 		if (ptr == nullptr)
+		{
+			*id = 0xffffffff;
 			return;
+		}
 
 		auto index = ptr - m_entryIndices.get();
 
 		auto renderer = &m_entries[index];
-		renderer->initialize(entry->file, entry->format, position);
+		renderer->initialize(entry->file, entry->format, position, id);
 
-		renderer->start();
+		renderer->start(listenerPosition, listenerDirection);
 		m_activeEntries[0].push_back(std::move(renderer));
+
+		*id = index;
 	}
 
 	void AudioManager::setMasterVolume(f32 volume)
@@ -263,5 +266,11 @@ namespace Audio
 		m_sessionManager->GetSimpleAudioVolume(&m_sessionGUID, 0, &simpleAudioVolume);
 
 		simpleAudioVolume->SetMasterVolume(volume, nullptr);
+	}
+
+	void AudioManager::setSourcePosition(u32 src, const vx::float3 &position)
+	{
+		auto renderer = &m_entries[src];
+		renderer->setPosition(position);
 	}
 }

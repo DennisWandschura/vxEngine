@@ -67,9 +67,9 @@ namespace vx
 		m_audioManager.shutdown();
 	}
 
-	void AudioAspect::update(f32 dt, const vx::float3 &playerPosition)
+	void AudioAspect::update(f32 dt)
 	{
-		m_audioManager.update(dt, playerPosition);
+		m_audioManager.update(dt, m_listenerPosition, m_listenerRotation);
 	}
 
 	void AudioAspect::onFileMessage(const Message &msg)
@@ -92,7 +92,7 @@ namespace vx
 		case Audio::Message::PlaySound:
 		{
 			Audio::PlaySoundData* data = (Audio::PlaySoundData*)msg.arg1.ptr;
-			m_audioManager.playSound(data->m_sid, data->m_position);
+			m_audioManager.playSound(data->m_sid, data->m_position, m_listenerPosition, m_listenerRotation, data->m_id);
 
 			delete(data);
 		}break;
@@ -125,5 +125,20 @@ namespace vx
 
 		m_masterVolume = volume;
 		m_audioManager.setMasterVolume(m_masterVolume);
+	}
+
+	void AudioAspect::setSourcePosition(u32 src, const vx::float3 &position)
+	{
+		m_audioManager.setSourcePosition(src, position);
+	}
+
+	void AudioAspect::setListenerPosition(const __m128 &position)
+	{
+		m_listenerPosition = position;
+	}
+
+	void AudioAspect::setListenerRotation(const __m128 &qRotation)
+	{
+		m_listenerRotation = qRotation;
 	}
 }

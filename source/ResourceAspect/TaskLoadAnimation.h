@@ -57,4 +57,10 @@ public:
 	~TaskLoadAnimation();
 
 	f32 getTimeMs() const override;
+
+	const char* getName(u32* size) const override
+	{
+		*size = 18;
+		return "TaskLoadAnimation";
+	}
 };

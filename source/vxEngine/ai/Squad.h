@@ -61,7 +61,6 @@ namespace ai
 		};
 
 		std::vector<Data> m_entities;
-		PseudoRandom m_pseudoRandom;
 		vx::StackAllocator m_scratchAllocator;
 		f32 m_avgCoverageArea;
 		std::vector<u32> m_availableCells;

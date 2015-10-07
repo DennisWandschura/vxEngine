@@ -1,10 +1,12 @@
 #include <vxEngineLib/ActorFile.h>
 #include <vxLib/File/File.h>
-#include <vxLib/string.h>
-#include <vxLib/util/CityHash.h>
+#include "ConverterActorFileV0.h"
+#include <cstring>
+#include "ConverterActorFileV1.h"
 
 ActorFile::ActorFile(u32 version)
-	:vx::Serializable(version)
+	:vx::Serializable(version),
+	m_fovRad(1.1519173383712769f)
 {
 	m_mesh[0] = '\0';
 	m_material[0] = '\0';
@@ -19,12 +21,24 @@ void ActorFile::saveToFile(vx::File* f) const
 {
 	f->write(m_mesh);
 	f->write(m_material);
+	f->write(m_fovRad);
 }
 
 const u8* ActorFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator)
 {
-	ptr = vx::read(m_mesh, ptr);
-	ptr = vx::read(m_material, ptr);
+	auto version = getVersion();
+
+	switch (version)
+	{
+	case 0:
+		ptr = Converter::ActorFileV0::loadFromMemory(ptr, size, nullptr, this);
+		break;
+	case 1:
+		ptr = Converter::ActorFileV1::loadFromMemory(ptr, size, nullptr, this);
+		break;
+	default:
+		break;
+	}
 
 	return ptr;
 }
@@ -34,16 +48,16 @@ u64 ActorFile::getCrc() const
 	auto version = getVersion();
 
 	u64 crc = 0;
-	if (version == 0)
+	switch (version)
 	{
-		const auto bufferSize = sizeof(m_mesh) + sizeof(m_material);
-		u8 buffer[bufferSize];
-		memset(buffer,0, bufferSize);
-
-		auto p = vx::write(buffer, m_mesh);
-		vx::write(p, m_material);
-
-		crc = CityHash64((char*)buffer, bufferSize);
+	case 0:
+		crc = Converter::ActorFileV0::getCrc(*this);
+		break;
+	case 1:
+		crc = Converter::ActorFileV1::getCrc(*this);
+		break;
+	default:
+		break;
 	}
 
 	return crc;

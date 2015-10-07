@@ -27,7 +27,7 @@ void main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 
 	uint x = vertexID;
 	uint yz = instanceID;
-	uint y = yz % w;
+	uint y = yz & (w - 1);
 	uint z = yz / w;
 
 	uint wOffset = g_axis * w;

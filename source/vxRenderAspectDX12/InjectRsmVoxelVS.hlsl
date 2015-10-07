@@ -50,15 +50,12 @@ VSOutput main(uint xy : SV_VertexID, uint cubeIndex : SV_InstanceID)
 {
 	uint w, h, d;
 	g_depth.GetDimensions(w, h, d);
-	uint x = xy % w;
+	uint x = xy & (w - 1);
 	uint y = xy / w;
 	int2 texelCoord = int2(x, y);
 
 	int arrayIndex = g_lightIndex * 6 + cubeIndex;
 	float depth = g_depth.Load(int4(texelCoord, arrayIndex, 0));
-
-
-
 
 	float2 texCoord = float2(texelCoord) / float2(w, h);
 	float2 screenPos = texCoord * float2(2, -2) - float2(1, -1);
@@ -83,7 +80,7 @@ VSOutput main(uint xy : SV_VertexID, uint cubeIndex : SV_InstanceID)
 	output.color = color;
 
 	float tmp = abs(dot(g_swizzleVector[cubeIndex / 2], normal));
-	output.normal = float4(normal, tmp);
+	output.normal = float4(normal * 0.5 + 0.5, tmp);
 
 	if (!isPointInGrid(gridPosition))
 	{

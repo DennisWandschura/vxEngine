@@ -27,14 +27,17 @@ SOFTWARE.
 #include <vxEngineLib/Message.h>
 #include <vxEngineLib/AudioMessage.h>
 #include <vxEngineLib/MessageTypes.h>
+#include <vxEngineLib/Locator.h>
+#include <vxEngineLib/AudioAspectInterface.h>
 
-ActionPlaySound::ActionPlaySound(const vx::StringID &sid, vx::MessageManager* msgManager, f32 time, const vx::float3* position)
+ActionPlaySound::ActionPlaySound(const vx::StringID &sid, AudioAspectInterface* audioAspect, f32 time, const vx::float3* position)
 	:m_sid(sid),
 	m_position(position),
-	m_msgManager(msgManager),
 	m_timer(),
+	m_audioAspect(audioAspect),
 	m_elapsedTime(0),
-	m_time(time)
+	m_time(time),
+	m_audioSrc(0xffffffff)
 {
 
 }
@@ -54,16 +57,25 @@ void ActionPlaySound::run()
 
 	if (diff <= 0.0f)
 	{
+		auto msgManager = Locator::getMessageManager();
+
+		m_audioSrc = 0xffffffff;
 		Audio::PlaySoundData* data = new Audio::PlaySoundData();
 		data->m_sid = m_sid;
 		data->m_position = *m_position;
+		data->m_id = &m_audioSrc;
 
 		vx::Message msg;
 		msg.arg1.ptr = data;
 		msg.code = (u32)Audio::Message::PlaySound;
 		msg.type = vx::MessageType::Audio;
-		m_msgManager->addMessage(msg);
+		msgManager->addMessage(msg);
 
 		m_elapsedTime = 0.0f;
+	}
+
+	if (m_audioSrc != 0xffffffff)
+	{
+		m_audioAspect->setSourcePosition(m_audioSrc, *m_position);
 	}
 }

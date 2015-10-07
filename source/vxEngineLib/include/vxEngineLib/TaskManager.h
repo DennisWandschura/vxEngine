@@ -30,6 +30,7 @@ SOFTWARE.
 #include <mutex>
 #include <atomic>
 #include <thread>
+#include <vxEngineLib/Logfile.h>
 
 namespace vx
 {
@@ -51,6 +52,7 @@ namespace vx
 		std::thread* m_threads;
 		std::atomic_uint* m_running;
 		LocalQueue* m_queue;
+		Logfile m_taskLog;
 		vx::aligned_ptr<SmallObjAllocator> m_allocator;
 
 		void doWork();

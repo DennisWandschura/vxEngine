@@ -59,4 +59,10 @@ public:
 	~TaskLoadMesh();
 
 	f32 getTimeMs() const override;
+
+	const char* getName(u32* size) const override
+	{
+		*size = 13;
+		return "TaskLoadMesh";
+	}
 };

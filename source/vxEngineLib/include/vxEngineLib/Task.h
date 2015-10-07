@@ -24,7 +24,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-enum class TaskReturnType : unsigned int
+#include <vxLib/types.h>
+
+enum class TaskReturnType : u32
 {
 	Success,
 	Failure,
@@ -41,7 +43,6 @@ namespace vx
 
 class SmallObjAllocator;
 
-#include <vxLib/types.h>
 #include <atomic>
 #include <vector>
 #include <vxEngineLib/SmallObjectThreaded.h>
@@ -65,6 +66,8 @@ public:
 	virtual TaskReturnType run() = 0;
 
 	virtual f32 getTimeMs() const = 0;
+
+	virtual const char* getName(u32* size) const = 0;
 };
 
 class Task : public LightTask

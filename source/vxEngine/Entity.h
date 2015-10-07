@@ -37,6 +37,7 @@ namespace vx
 
 class RenderAspectInterface;
 class PhysicsAspect;
+class AudioAspectInterface;
 
 #include <vxLib/math/Vector.h>
 
@@ -46,13 +47,13 @@ struct EntityHuman
 
 	vx::float4 m_qRotation;
 	vx::float3 m_position;
-	f32 m_footPositionY;
+	vx::float3 m_footPosition;
 	physx::PxController* m_controller;
 	vx::float2 m_orientation;
 	vx::float4 m_velocity;
 	u32 m_state;
 
-	void update(f32 dt, RenderAspectInterface* renderAspect);
+	void update(f32 dt, RenderAspectInterface* renderAspect, AudioAspectInterface* audioAspect);
 };
 
 struct EntityActor

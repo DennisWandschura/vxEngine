@@ -30,6 +30,35 @@ SOFTWARE.
 #include <vxEngineLib/SmallObjAllocator.h>
 #include <vxEngineLib/ThreadSafeStack.h>
 #include <vxEngineLib/atomic_float.h>
+#include <vxEngineLib/Logfile.h>
+
+namespace TaskManagerCpp
+{
+	/*
+		Success,
+	Failure,
+	Retry,
+	WaitingForEvents,
+	Timeout
+	*/
+	const char* g_taskReturnTypeString[] =
+	{
+		"Success",
+		"Failure",
+		"Retry",
+		"WaitingForEvents",
+		"Timeout"
+	};
+
+	const u32 g_taskReturnTypeStringSize[] =
+	{
+		7,
+		7,
+		5,
+		16,
+		7
+	};
+}
 
 namespace vx
 {
@@ -164,8 +193,23 @@ namespace vx
 			m_back = m_front.exchange(m_back);
 		}
 
-		void processBack()
+		void processBack(Logfile* logFile)
 		{
+			auto appendTaskToLogfile = [](Logfile* logFile, LightTask* task, TaskReturnType result)
+			{
+				u32 strSize = 0;
+				auto taskName = task->getName(&strSize);
+
+				u32 resultIndex = (u32)result;
+				auto resultString = TaskManagerCpp::g_taskReturnTypeString[resultIndex];
+				u32 resultSize = TaskManagerCpp::g_taskReturnTypeStringSize[resultIndex];
+
+				logFile->append(taskName, strSize - 1);
+				logFile->append(' ');
+				logFile->append(resultString, resultSize);
+				logFile->append('\n');
+			};
+
 			auto backSize = m_back->sizeTS();
 			if (backSize == 0)
 			{
@@ -180,6 +224,9 @@ namespace vx
 				{
 					auto task = backTasks[i];
 					auto result = task->run();
+
+					appendTaskToLogfile(logFile, task, result);
+
 					if (result == TaskReturnType::Retry)
 					{
 						rescheduleTask(task);
@@ -200,6 +247,9 @@ namespace vx
 				if (waitingTask)
 				{
 					auto result = waitingTask->run();
+
+					appendTaskToLogfile(logFile, waitingTask, result);
+
 					if (result != TaskReturnType::Success)
 					{
 						rescheduleTask(waitingTask);
@@ -228,7 +278,13 @@ namespace vx
 		s_tid = tid;
 
 		auto t_id = std::this_thread::get_id();
-		//printf("Worker Thread tid: %u\n", t_id);
+
+		char buffer[24];
+		memset(buffer, 0, sizeof(buffer));
+		snprintf(buffer, sizeof(buffer), "tasklog-tid-%u.txt", tid);
+
+		Logfile taskLog;
+		taskLog.create(buffer);
 
 		SmallObjAllocator allocator(1024);
 		Task::setAllocator(&allocator);
@@ -237,8 +293,10 @@ namespace vx
 		while (queue->isRunning())
 		{
 			queue->swapBuffer();
-			queue->processBack();
+			queue->processBack(&taskLog);
 		}
+
+		taskLog.close();
 	}
 
 	TaskManager::TaskManager()
@@ -274,6 +332,7 @@ namespace vx
 
 			m_queue = m_queues[0];
 			m_queue->initialize(localQueueCapacity, maxTimeMs - 5.0f, this, allocator);
+			m_taskLog.create("tasklog-tid-0.txt");
 
 			auto workerThreadCount = threadCount - 1;
 			if (workerThreadCount != 0)
@@ -308,6 +367,7 @@ namespace vx
 	{
 		if (m_threadCount != 0)
 		{
+			m_taskLog.close();
 			for (u32 i = 0; i < m_threadCount; ++i)
 			{
 				m_queues[i]->~LocalQueue();
@@ -373,7 +433,7 @@ namespace vx
 		if (m_queue->isRunning())
 		{
 			m_queue->swapBuffer();
-			m_queue->processBack();
+			m_queue->processBack(&m_taskLog);
 		}
 	}
 

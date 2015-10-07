@@ -29,6 +29,8 @@ namespace vx
 	class MessageManager;
 }
 
+class AudioAspectInterface;
+
 #include <vxLib/math/Vector.h>
 #include "Action.h"
 #include <vxLib/StringID.h>
@@ -38,13 +40,14 @@ class ActionPlaySound : public Action
 {
 	vx::StringID m_sid;
 	const vx::float3* m_position;
-	vx::MessageManager* m_msgManager;
 	CpuTimer m_timer;
+	AudioAspectInterface* m_audioAspect;
 	f32 m_elapsedTime;
 	f32 m_time;
+	u32 m_audioSrc;
 
 public:
-	ActionPlaySound(const vx::StringID &sid, vx::MessageManager* msgManager, f32 time, const vx::float3* position);
+	ActionPlaySound(const vx::StringID &sid, AudioAspectInterface* audioAspect, f32 time, const vx::float3* position);
 	~ActionPlaySound();
 
 	void run() override;

@@ -34,8 +34,20 @@ namespace physx
 #include <vxLib/StringID.h>
 #include <vxEngineLib/Transform.h>
 #include <vxEngineLib/Actor.h>
+#include <vxEngineLib/smallobject.h>
 
-class CreateActorData
+struct CreateActorDataDesc
+{
+	vx::Transform transform; 
+	vx::StringID actorSid;
+	vx::StringID meshSid;
+	vx::StringID materialSid;
+	f32 height;
+	u16 spawnIndex;
+	PlayerType type;
+};
+
+class CreateActorData : public SmallObject
 {
 	physx::PxController* m_controller;
 	vx::Transform m_transform;
@@ -49,17 +61,17 @@ class CreateActorData
 	PlayerType m_type;
 
 public:
-	CreateActorData(const vx::Transform &transform, const vx::StringID &actorSid, const vx::StringID &meshSid, const vx::StringID &materialSid, f32 height, u16 spawnIndex, PlayerType type)
+	explicit CreateActorData(const CreateActorDataDesc &desc)
 		:m_controller(nullptr),
-		m_transform(transform),
-		m_actorSid(actorSid),
-		m_mesh(meshSid),
-		m_material(materialSid),
-		m_height(height),
-		m_spawnIndex(spawnIndex),
+		m_transform(desc.transform),
+		m_actorSid(desc.actorSid),
+		m_mesh(desc.meshSid),
+		m_material(desc.materialSid),
+		m_height(desc.height),
+		m_spawnIndex(desc.spawnIndex),
 		m_gpuIndex(0),
 		m_refCount(0),
-		m_type(type)
+		m_type(desc.type)
 	{
 	}
 

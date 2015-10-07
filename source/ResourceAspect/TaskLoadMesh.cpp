@@ -89,10 +89,12 @@ TaskReturnType TaskLoadMesh::runImpl()
 	auto dataAllocator = m_meshManager->lockDataAllocator(&dataLock);
 	entry->loadFromMemory(dataBegin, dataSize, dataAllocator);
 
+	//printf("TaskLoadMesh: %f\n", timer.getTimeMiliseconds());
+
 	return TaskReturnType::Success;
 }
 
 f32 TaskLoadMesh::getTimeMs() const
 {
-	return 0.0001f;
+	return 0.2f;
 }

@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 The MIT License (MIT)
 
@@ -24,34 +22,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class Scene;
-class RenderAspectInterface;
-class PhysicsAspect;
-class ResourceAspectInterface;
+#include "ConditionCanSeePlayer.h"
+#include "Entity.h"
 
-#include <vxEngineLib/Task.h>
-
-class TaskSceneCreateActors : public Task
+ConditionCanSeePlayer::ConditionCanSeePlayer()
 {
-	static thread_local f32 s_time;
-	static thread_local u64 s_counter;
 
-	const Scene* m_scene;
-	RenderAspectInterface* m_renderAspect;
-	PhysicsAspect* m_physicsAspect;
-	ResourceAspectInterface* m_resourceAspect;
+}
 
-	TaskReturnType runImpl() override;
+ConditionCanSeePlayer::~ConditionCanSeePlayer()
+{
 
-public:
-	TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene, RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect, ResourceAspectInterface* resourceAspect);
-	~TaskSceneCreateActors();
+}
 
-	f32 getTimeMs() const override;
+u8 ConditionCanSeePlayer::test() const
+{
+	const __m128 forwardDir{0, 0, -1, 0};
 
-	const char* getName(u32* size) const override
-	{
-		*size = 22;
-		return "TaskSceneCreateActors";
-	}
-};
+	__m128 playerPosition = vx::loadFloat3(m_player->m_position);
+	__m128 actorPosition = vx::loadFloat3(m_actor->m_position);
+	__m128 qRotation = vx::loadFloat4(m_actor->m_qRotation);
+
+	auto directionToPlayer = _mm_sub_ps(playerPosition, actorPosition);
+	__m128 distanceToPlayer = vx::length3(directionToPlayer);
+	directionToPlayer =_mm_div_ps(directionToPlayer, distanceToPlayer);
+
+	auto viewDirection = vx::quaternionRotation(forwardDir, qRotation);
+
+	auto angle = vx::dot3(viewDirection, directionToPlayer);
+
+	return 0;
+}

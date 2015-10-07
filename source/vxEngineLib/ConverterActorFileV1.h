@@ -24,34 +24,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class Scene;
-class RenderAspectInterface;
-class PhysicsAspect;
-class ResourceAspectInterface;
+class ArrayAllocator;
+class ActorFile;
 
-#include <vxEngineLib/Task.h>
+#include <vxLib/types.h>
 
-class TaskSceneCreateActors : public Task
+namespace Converter
 {
-	static thread_local f32 s_time;
-	static thread_local u64 s_counter;
-
-	const Scene* m_scene;
-	RenderAspectInterface* m_renderAspect;
-	PhysicsAspect* m_physicsAspect;
-	ResourceAspectInterface* m_resourceAspect;
-
-	TaskReturnType runImpl() override;
-
-public:
-	TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene, RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect, ResourceAspectInterface* resourceAspect);
-	~TaskSceneCreateActors();
-
-	f32 getTimeMs() const override;
-
-	const char* getName(u32* size) const override
+	class ActorFileV1
 	{
-		*size = 22;
-		return "TaskSceneCreateActors";
-	}
-};
+	public:
+		static const u8* loadFromMemory(const u8 *ptr, u32 size, ArrayAllocator* allocator, ActorFile* actorFile);
+		static u64 getCrc(const ActorFile &actorFile);
+	};
+}

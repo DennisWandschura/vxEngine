@@ -24,34 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-class Scene;
-class RenderAspectInterface;
-class PhysicsAspect;
-class ResourceAspectInterface;
+#include <vxLib/types.h>
 
-#include <vxEngineLib/Task.h>
-
-class TaskSceneCreateActors : public Task
-{
-	static thread_local f32 s_time;
-	static thread_local u64 s_counter;
-
-	const Scene* m_scene;
-	RenderAspectInterface* m_renderAspect;
-	PhysicsAspect* m_physicsAspect;
-	ResourceAspectInterface* m_resourceAspect;
-
-	TaskReturnType runImpl() override;
-
-public:
-	TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene, RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect, ResourceAspectInterface* resourceAspect);
-	~TaskSceneCreateActors();
-
-	f32 getTimeMs() const override;
-
-	const char* getName(u32* size) const override
-	{
-		*size = 22;
-		return "TaskSceneCreateActors";
-	}
-};
+enum class AudioChannels : u8 { Channel2, Channel6, Channel8 };

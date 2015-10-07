@@ -294,6 +294,8 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ConverterActorFileV0.h" />
+    <ClInclude Include="ConverterActorFileV1.h" />
     <ClInclude Include="ConverterMeshFileV0.h" />
     <ClInclude Include="ConverterMeshFileV1.h" />
     <ClInclude Include="ConverterSceneFileV10.h" />
@@ -417,6 +419,8 @@
     <ClCompile Include="AudioFile.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ConverterActorFileV0.cpp" />
+    <ClCompile Include="ConverterActorFileV1.cpp" />
     <ClCompile Include="ConverterMeshFileV0.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

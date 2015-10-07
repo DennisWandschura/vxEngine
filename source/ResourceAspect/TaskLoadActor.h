@@ -24,14 +24,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct Actor;
 class ResourceAspect;
 
 template<typename T>
 class ResourceManager;
 
+namespace vx
+{
+	struct FileHandle;
+}
+
 #include "TaskLoadFile.h"
 #include <vxLib/StringID.h>
+#include <vxEngineLib/Actor.h>
 
 struct TaskLoadActorDesc
 {
@@ -45,10 +50,18 @@ struct TaskLoadActorDesc
 
 class TaskLoadActor : public TaskLoadFile
 {
+	enum class State : u32;
+
 	std::string m_fileName;
 	vx::StringID m_sid;
 	ResourceManager<Actor>* m_actorResManager;
 	ResourceAspect* m_resourceAspect;
+	Actor m_actor;
+	State m_state;
+
+	bool loadActorFile(vx::FileHandle* handleMesh, vx::FileHandle* handleMaterial);
+	bool checkDependenciesAndLoad(const vx::FileHandle &handleMesh, const vx::FileHandle &handleMaterial);
+	bool checkDependencies();
 
 	TaskReturnType runImpl() override;
 
@@ -56,5 +69,11 @@ public:
 	explicit TaskLoadActor(TaskLoadActorDesc &&desc);
 	~TaskLoadActor();
 
-	f32 getTimeMs() const override { return 0.0f; };
+	f32 getTimeMs() const override { return 0.3f; };
+
+	const char* getName(u32* size) const override
+	{
+		*size = 14;
+		return "TaskLoadActor";
+	}
 };

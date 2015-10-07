@@ -64,7 +64,7 @@ half3 GetGridCell(const in half2 texCoord, const in float fDepth, in float4x4 in
 
 half GetTexelLum(const in RSMTexel texel, const in float3 lightDir)
 {
-	return getLuminance(texel.color);// *max(0.h, dot(texel.normal, lightDir));
+	return getLuminance(texel.color) * max(0.h, dot(texel.normal, lightDir));
 }
 
 RSMTexel getRsmTexel(in float3 dirToLight, in float2 texCoords, uint lightIndex, uint index, uint slice)

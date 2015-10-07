@@ -28,6 +28,7 @@ vx::MessageManager* Locator::s_pEventManager{ nullptr };
 PhysicsAspect* Locator::s_pPhysicsAspect{ nullptr };
 ResourceAspect* Locator::s_pResourceAspect{ nullptr };
 RenderAspectInterface* Locator::s_pRenderAspect{nullptr};
+AudioAspectInterface* Locator::s_audioAspectInterface{nullptr};
 
 void Locator::provide(vx::MessageManager* p)
 {
@@ -73,10 +74,22 @@ RenderAspectInterface* Locator::getRenderAspect()
 	return s_pRenderAspect;
 }
 
+void Locator::provide(AudioAspectInterface* p)
+{
+	s_audioAspectInterface = p;
+}
+
+AudioAspectInterface* Locator::getAudioAspect()
+{
+	VX_ASSERT(s_audioAspectInterface);
+	return s_audioAspectInterface;
+}
+
 void Locator::reset()
 {
 	s_pEventManager = nullptr;
 	s_pPhysicsAspect = nullptr;
 	s_pResourceAspect = nullptr;
 	s_pRenderAspect = nullptr;
+	s_audioAspectInterface = nullptr;
 }

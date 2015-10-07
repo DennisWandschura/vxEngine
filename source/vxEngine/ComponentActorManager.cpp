@@ -36,6 +36,9 @@ SOFTWARE.
 #include "ActionPrintText.h"
 #include "ActionActorCreatePath.h"
 #include "State.h"
+#include "ActionPlaySound.h"
+#include "Entity.h"
+#include <vxEngineLib/Locator.h>
 
 ComponentActorManager::ComponentActorManager()
 	:m_pool()
@@ -73,6 +76,8 @@ Component::Actor* ComponentActorManager::createComponent(u16 entityIndex, Entity
 
 	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(pActor);
 
+	auto actionPlaySound = new ActionPlaySound(vx::make_sid("step1.wav"), Locator::getAudioAspect(), 0.28f, &entity->m_position);
+
 	State* waitingState = new State();
 	State* movingState = new State();
 
@@ -88,6 +93,7 @@ Component::Actor* ComponentActorManager::createComponent(u16 entityIndex, Entity
 
 	Transition* transitionMovingToWaiting = new Transition(conditionActorNotFollowingPath, waitingState);
 	movingState->addTransition(transitionMovingToWaiting);
+	movingState->addAction(actionPlaySound);
 
 	pActor->m_stateMachine.setInitialState(waitingState);
 

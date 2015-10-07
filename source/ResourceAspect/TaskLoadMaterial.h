@@ -74,5 +74,11 @@ public:
 	TaskLoadMaterial(TaskLoadMaterialDesc &&desc);
 	~TaskLoadMaterial();
 
-	f32 getTimeMs() const override { return 0.0f; }
+	f32 getTimeMs() const override { return 0.42f; }
+
+	const char* getName(u32* size) const override
+	{
+		*size = 17;
+		return "TaskLoadMaterial";
+	}
 };

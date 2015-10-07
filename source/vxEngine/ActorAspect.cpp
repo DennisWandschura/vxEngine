@@ -123,3 +123,7 @@ void ActorAspect::handleMessage(const vx::Message &evt)
 		break;
 	}
 }
+
+void ActorAspect::update()
+{
+}

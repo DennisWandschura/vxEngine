@@ -119,21 +119,6 @@ void EntityAspect::shutdown()
 	m_componentActionManager.shutdown();
 }
 
-void EntityAspect::builEntityQuadTree()
-{
-	/*auto size = m_componentInputManager.getSize();
-	if (size == 0)
-		return;
-
-	std::vector<QuadTreeData> data;
-	data.reserve(size);
-
-	m_componentInputManager.getQuadTreeData(&data, &m_componentPhysicsManager, &m_poolEntity);
-
-	m_quadTree.clear();
-	m_quadTree.insert(data.data(), data.size());*/
-}
-
 void EntityAspect::createPlayerEntity(const CreateActorData &data)
 {
 	if (m_entityHuman == nullptr)
@@ -146,10 +131,10 @@ void EntityAspect::createPlayerEntity(const CreateActorData &data)
 		m_entityHuman->m_controller = controller;
 		m_entityHuman->m_orientation.x = 0;
 		m_entityHuman->m_orientation.y = 0;
-		m_entityHuman->m_footPositionY = 0;
+		m_entityHuman->m_footPosition = transform.m_translation;
 		m_entityHuman->m_state = 0;
 
-		m_playerController.initializePlayer(g_dt, m_entityHuman, Locator::getRenderAspect(), &m_componentActionManager, Locator::getMessageManager());
+		m_playerController.initializePlayer(g_dt, m_entityHuman, Locator::getRenderAspect(), &m_componentActionManager);
 
 		Locator::getPhysicsAspect()->setHumanActor(controller->getActor());
 	}
@@ -260,13 +245,15 @@ void EntityAspect::updateEntityDynamic(f32 dt)
 	}
 }
 
-void EntityAspect::update(f32 dt, ActionManager* actionManager, RenderAspectInterface* renderAspect)
+void EntityAspect::update(f32 dt, ActionManager* actionManager, RenderAspectInterface* renderAspect, AudioAspectInterface* audioAspect)
 {
 	if (m_entityHuman)
 	{
-		m_entityHuman->update(dt, renderAspect);
+		m_entityHuman->update(dt, renderAspect, audioAspect);
+
 	}
 
+	m_componentActorManager.update(actionManager, &m_allocator);
 	updateEntityActor(dt);
 	updateEntityDynamic(dt);
 	m_componentActionManager.update();

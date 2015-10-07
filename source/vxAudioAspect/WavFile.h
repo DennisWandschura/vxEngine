@@ -24,7 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+#include "AudioEnums.h"
+#include <vxLib/math/Vector.h>
 
 class WavFile
 {
@@ -42,11 +43,11 @@ public:
 	WavFile& operator=(const WavFile &rhs);
 	WavFile& operator=(WavFile &&rhs);
 
-	u32 loadDataFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u32 dstChannels, f32 intensity);
+	u32 loadDataFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation);
 
-	u32 loadDataShort(u32 bufferFrameCount, u32 srcChannels, u8* pData, u32 dstChannels, f32 intensity);
+	u32 loadDataShort(u32 bufferFrameCount, u32 srcChannels, u8* pData, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation);
 
-	u32 loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u16 dstChannels, f32 intensity);
+	u32 loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation);
 
 	u32 eof() const
 	{

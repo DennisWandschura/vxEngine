@@ -1,4 +1,3 @@
-#pragma once
 /*
 The MIT License (MIT)
 
@@ -23,23 +22,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <vxLib/types.h>
+#include "ConverterActorFileV1.h"
+#include <vxEngineLib/ActorFile.h>
+#include <vxLib/util/CityHash.h>
+#include <vxLib/string.h>
 
-class Timer
+namespace Converter
 {
-	static u64 s_frequency;
+	const u8* ActorFileV1::loadFromMemory(const u8 *ptr, u32 size, ArrayAllocator* allocator, ActorFile* actorFile)
+	{
+		ptr = vx::read(actorFile->m_mesh, ptr);
+		ptr = vx::read(actorFile->m_material, ptr);
+		ptr = vx::read(actorFile->m_fovRad, ptr);
 
-	u64 m_startTime;
+		return ptr;
+	}
 
-public:
-	Timer();
-	Timer(const Timer &rhs);
-	Timer(Timer &&rhs);
+	u64 ActorFileV1::getCrc(const ActorFile &actorFile)
+	{
+		const auto bufferSize = sizeof(actorFile.m_mesh) + sizeof(actorFile.m_material) + sizeof(actorFile.m_fovRad);
+		u8 buffer[bufferSize];
+		memset(buffer, 0, bufferSize);
 
-	void reset();
+		auto p = vx::write(buffer, actorFile.m_mesh);
+		p = vx::write(p, actorFile.m_material);
+		p = vx::write(p, actorFile.m_fovRad);
 
-	u64 getTime() const;
-	f32 getTimeInMs() const;
-
-	static u64 getFrequency();
-};
+		return CityHash64((char*)buffer, bufferSize);
+	}
+}

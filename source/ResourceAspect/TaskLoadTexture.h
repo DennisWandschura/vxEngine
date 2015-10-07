@@ -42,4 +42,10 @@ public:
 	~TaskLoadTexture();
 
 	f32 getTimeMs() const override;
+
+	const char* getName(u32* size) const override
+	{
+		*size = 16;
+		return "TaskLoadTexture";
+	}
 };

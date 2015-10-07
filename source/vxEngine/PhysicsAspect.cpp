@@ -745,7 +745,7 @@ bool PhysicsAspect::addMesh(const vx::StringID &sid, const vx::MeshFile &meshFil
 	
 }
 
-physx::PxController* PhysicsAspect::createActor(const vx::StringID &mesh, const vx::float3 &translation)
+/*physx::PxController* PhysicsAspect::createActor(const vx::StringID &mesh, const vx::float3 &translation)
 {
 	if (m_flag.load() != 0)
 	{
@@ -759,9 +759,9 @@ physx::PxController* PhysicsAspect::createActor(const vx::StringID &mesh, const 
 	auto extend = bounds.getExtents();
 
 	return createActor(translation, extend.z);
-}
+}*/
 
-physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f32 height)
+physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f32 height, f32 radius)
 {
 	if (m_flag.load() != 0)
 	{
@@ -771,7 +771,7 @@ physx::PxController* PhysicsAspect::createActor(const vx::float3 &translation, f
 
 	physx::PxCapsuleControllerDesc desc;
 	desc.height = height;
-	desc.radius = 0.2f;
+	desc.radius = radius;
 	desc.position.x = translation.x;
 	desc.position.y = translation.y;
 	desc.position.z = translation.z;

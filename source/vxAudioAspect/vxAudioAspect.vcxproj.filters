@@ -65,5 +65,8 @@
     <ClInclude Include="AudioWavRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AudioEnums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

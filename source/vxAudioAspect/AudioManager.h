@@ -48,7 +48,6 @@ namespace Audio
 		std::vector<Audio::WavRenderer*> m_activeEntries[2];
 		std::vector<Audio::WavRenderer*> m_cleanup;
 		vx::sorted_vector<vx::StringID, Entry> m_loadedEntries;
-		vx::float3 m_playerPosition;
 		Freelist m_freelist;
 		std::unique_ptr<Audio::WavRenderer[]> m_entries;
 		IMMDevice* m_device;
@@ -64,12 +63,14 @@ namespace Audio
 		bool initialize();
 		void shutdown();
 
-		void update(f32 dt, const vx::float3 &playerPosition);
+		void update(f32 dt, const __m128 &listenerPosition, const __m128 &listenerDirection);
 
 		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
 
-		void playSound(const vx::StringID &sid, const vx::float3 &position);
+		void playSound(const vx::StringID &sid, const vx::float3 &srcPosition, const __m128 &listenerPosition, const __m128 &listenerDirection, u32* id);
 
 		void setMasterVolume(f32 volume);
+
+		void setSourcePosition(u32 src, const vx::float3 &position);
 	};
 }

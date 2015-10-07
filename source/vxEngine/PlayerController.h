@@ -62,7 +62,7 @@ public:
 	~PlayerController();
 
 	void initialize(vx::StackAllocator* allocator);
-	void initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect, ComponentActionManager* components, vx::MessageManager* messageManager);
+	void initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect, ComponentActionManager* components);
 
 	void update();
 

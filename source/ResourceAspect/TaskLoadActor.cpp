@@ -26,14 +26,18 @@ SOFTWARE.
 #include <vxEngineLib/ActorFile.h>
 #include <vxResourceAspect/ResourceManager.h>
 #include <vxResourceAspect/ResourceAspect.h>
-#include <vxEngineLib/Actor.h>
+#include <vxEngineLib/CpuTimer.h>
+
+enum class TaskLoadActor::State : u32 { LoadFile, CheckDependencies};
 
 TaskLoadActor::TaskLoadActor(TaskLoadActorDesc &&desc)
 	:TaskLoadFile(std::move(desc.m_fileNameWithPath), desc.m_actorResManager->getScratchAllocator(), desc.m_actorResManager->getScratchAllocatorMutex(), std::move(desc.evt)),
 	m_fileName(std::move(desc.m_fileName)),
 	m_sid(desc.m_sid),
 	m_actorResManager(desc.m_actorResManager),
-	m_resourceAspect(desc.m_resourceAspect)
+	m_resourceAspect(desc.m_resourceAspect),
+	m_actor(),
+	m_state(State::LoadFile)
 {
 
 }
@@ -43,12 +47,12 @@ TaskLoadActor::~TaskLoadActor()
 
 }
 
-TaskReturnType TaskLoadActor::runImpl()
+bool TaskLoadActor::loadActorFile(vx::FileHandle* handleMeshOut, vx::FileHandle* handleMaterialOut)
 {
 	u32 fileSize = 0;
 	managed_ptr<u8[]> fileData;
-	if(!loadFromFile(&fileData, &fileSize))
-		return TaskReturnType::Failure;
+	if (!loadFromFile(&fileData, &fileSize))
+		return false;
 
 	const u8* dataBegin = nullptr;
 	u32 dataSize = 0;
@@ -56,7 +60,7 @@ TaskReturnType TaskLoadActor::runImpl()
 	u32 version = 0;
 	if (!readAndCheckHeader(fileData.get(), fileSize, &dataBegin, &dataSize, &crc, &version))
 	{
-		return TaskReturnType::Failure;
+		return false;
 	}
 
 	ActorFile actorFile(version);
@@ -65,10 +69,23 @@ TaskReturnType TaskLoadActor::runImpl()
 	vx::FileHandle handleMesh(actorFile.getMesh());
 	vx::FileHandle handleMaterial(actorFile.getMaterial());
 
-	auto result = TaskReturnType::Success;
-	auto material = m_resourceAspect->getMaterial(handleMaterial.m_sid);
+	m_actor.m_mesh = handleMesh.m_sid;
+	m_actor.m_material = handleMaterial.m_sid;
+	m_actor.m_fov = actorFile.getFovRad();
 
+	*handleMeshOut = handleMesh;
+	*handleMaterialOut = handleMaterial;
+
+	return true;
+}
+
+bool TaskLoadActor::checkDependenciesAndLoad(const vx::FileHandle &handleMesh, const vx::FileHandle &handleMaterial)
+{
 	std::vector<Event> events;
+	events.reserve(2);
+
+	bool result = true;
+	auto material = m_resourceAspect->getMaterial(handleMaterial.m_sid);
 	if (material == nullptr)
 	{
 		auto evt = Event::createEvent();
@@ -79,7 +96,7 @@ TaskReturnType TaskLoadActor::runImpl()
 
 		events.push_back(evt);
 
-		result = TaskReturnType::Retry;
+		result = false;
 	}
 
 	auto mesh = m_resourceAspect->getMesh(handleMesh.m_sid);
@@ -93,20 +110,61 @@ TaskReturnType TaskLoadActor::runImpl()
 
 		events.push_back(evt);
 
-		result = TaskReturnType::Retry;
+		result = false;
 	}
 
 	if (!events.empty())
 	{
 		setEventList(&events);
 	}
-	else
-	{
-		Actor actor;
-		actor.m_material = handleMaterial.m_sid;
-		actor.m_mesh = handleMesh.m_sid;
 
-		m_actorResManager->insertEntry(m_sid, std::move(m_fileName), std::move(actor));
+	return result;
+}
+
+bool TaskLoadActor::checkDependencies()
+{
+	auto material = m_resourceAspect->getMaterial(m_actor.m_material);
+	auto mesh = m_resourceAspect->getMesh(m_actor.m_mesh);
+
+	return (material != nullptr && mesh != nullptr);
+}
+
+TaskReturnType TaskLoadActor::runImpl()
+{
+	TaskReturnType result = TaskReturnType::Success;
+
+	switch (m_state)
+	{
+	case State::LoadFile:
+	{
+		vx::FileHandle handleMesh, handleMaterial;
+		if (!loadActorFile(&handleMesh, &handleMaterial))
+		{
+			result = TaskReturnType::Failure;
+			break;
+		}
+
+		if (!checkDependenciesAndLoad(handleMesh, handleMaterial))
+		{
+			result = TaskReturnType::Retry;
+			m_state = State::CheckDependencies;
+		}
+	}break;
+	case State::CheckDependencies:
+	{
+		if (!checkDependencies())
+		{
+			result = TaskReturnType::Retry;
+			break;
+		}
+		else
+		{
+			m_actorResManager->insertEntry(m_sid, std::move(m_fileName), std::move(m_actor));
+		}
+
+	}break;
+	default:
+		break;
 	}
 
 	return result;

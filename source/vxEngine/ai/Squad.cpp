@@ -112,7 +112,6 @@ namespace ai
 
 	Squad::Squad()
 		:m_entities(),
-		m_pseudoRandom(),
 		m_avgCoverageArea(30.0f)
 	{
 
@@ -130,16 +129,6 @@ namespace ai
 #if _VX_MEM_PROFILE
 		allocationManager->registerAllocator(&m_scratchAllocator, "SquadAlloc");
 #endif
-
-		std::mt19937_64 gen((u64)allocator);
-		std::uniform_int_distribution<u32> dist(2, 0xffffffff / 2);
-		auto gen1 = dist(gen);
-
-		std::uniform_int_distribution<u32> seedDist(1, gen1 - 1);
-		auto seed = seedDist(gen);
-
-		m_pseudoRandom = PseudoRandom(gen1, seed, 1);
-		m_pseudoRandom.setMaxValue(1024);
 	}
 
 	bool Squad::addEntity(EntityActor* entity, Component::Actor* actorComponent)
@@ -208,73 +197,54 @@ namespace ai
 		entityPosition.y = targetData->m_entity->m_footPositionY;
 
 		auto influenceCells = s_influenceMap->getCells();
-		auto influenceCellBounds = s_influenceMap->getBounds();
 
-		auto currentActorCellIndex = targetData->m_actorComponent->m_data->targetCell;
+		auto currentCellIndex = targetData->m_actorComponent->m_data->targetCell;
 		auto actorCellCount = targetData->m_cellCount;
 
-		if (currentActorCellIndex == -1)
+		if (currentCellIndex == -1)
 		{
-			for (u32 i = 0; i < actorCellCount; ++i)
+			auto influenceCellBounds = s_influenceMap->getBounds();
+			auto cellCount = s_influenceMap->getCellCount();
+			for (u32 i = 0; i < cellCount; ++i)
 			{
-				auto cellIndex = targetData->m_cells[i];
-				if (influenceCellBounds[cellIndex].contains(entityPosition))
+				auto &bounds = influenceCellBounds[i];
+				if (bounds.contains(entityPosition))
 				{
-					currentActorCellIndex = i;
+					currentCellIndex = i;
 					
 					break;
 				}
 			}
+
+			if (currentCellIndex == -1)
+				return;
 		}
 		
-		auto cellIndex = targetData->m_cells[currentActorCellIndex];
-		const InfluenceCell* currentCell = &influenceCells[cellIndex];
-		auto targetActorCellIndex = currentActorCellIndex;
+		const InfluenceCell* currentCell = &influenceCells[currentCellIndex];
+		auto targetCellIndex = currentCellIndex;
 
 		const InfluenceCell* targetCell = currentCell;
 		if (actorCellCount == 2)
 		{
-			auto otherActorCellIndex = (currentActorCellIndex + 1) % 2;
+			auto otherActorCellIndex = (currentCellIndex + 1) % 2;
 			auto cellIndex = targetData->m_cells[otherActorCellIndex];
 
 			targetCell = &influenceCells[cellIndex];
-			targetActorCellIndex = otherActorCellIndex;
+			targetCellIndex = cellIndex;//otherActorCellIndex;
 		}
 
 		if (targetCell == currentCell)
 			printf("Squad::createPath: Something went wrong\n");
 
 		auto waypoints = s_influenceMap->getWaypoints();
+		auto waypointCount = s_influenceMap->getWaypointCount();
 
-		std::vector<vx::float4> sortedWaypoints;
-		for (u32 i = 0; i < targetCell->waypointCount; ++i)
-		{
-			auto &waypoint = waypoints[targetCell->waypointOffset + i];
-			auto distance = vx::distance3(waypoint.position, entityPosition);
+		std::uniform_int_distribution<s32> dist(0, waypointCount - 1);
 
-			vx::float4 p;
-			p.x = waypoint.position.x;
-			p.y = waypoint.position.y;
-			p.z = waypoint.position.z;
-			p.w = distance;
+		auto index = dist(m_gen);
+		auto &waypoint = waypoints[index];
 
-			sortedWaypoints.push_back(p);
-		}
-
-		std::sort(sortedWaypoints.begin(), sortedWaypoints.end(), [](const vx::float4 &l, const vx::float4 &r)
-		{
-			return l.w > r.w;
-		});
-
-		auto index = m_pseudoRandom.getValue() % targetCell->waypointCount;
-
-		if (sortedWaypoints[index].w <= 5.0f)
-			index = (index + 1) % targetCell->waypointCount;
-
-		vx::float3 endPosition;
-		endPosition.x = sortedWaypoints[index].x;
-		endPosition.y = sortedWaypoints[index].y;
-		endPosition.z = sortedWaypoints[index].z;
+		vx::float3 endPosition = waypoint.position;
 
 		auto startNodeIndex = s_navmeshGraph->getClosestNodeInex(entityPosition);
 		auto endNodeIndex = s_navmeshGraph->getClosestNodeInex(endPosition);
@@ -286,6 +256,7 @@ namespace ai
 		};
 
 		vx::array<vx::float3> outNodes = vx::array<vx::float3>(50, &m_scratchAllocator);
+		memset(outNodes.data(), 0, sizeof(vx::float3) * outNodes.capacity());
 
 		AStar::PathFindDescription desc;
 		desc.goalIndex = endNodeIndex;
@@ -309,7 +280,7 @@ namespace ai
 
 		//	printf("destination: %f %f %f\n", endPosition.x, endPosition.y, endPosition.z);
 			targetData->m_actorComponent->m_followingPath = 1;
-			targetData->m_actorComponent->m_data->targetCell = targetActorCellIndex;
+			targetData->m_actorComponent->m_data->targetCell = targetCellIndex;
 		}
 	}
 

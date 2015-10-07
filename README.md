@@ -10,5 +10,5 @@ Level Editor:
 http://youtu.be/SDmoqkRqPEs (Object placement)
 http://youtu.be/uuonpLlq7Go (Joints)
 
-DX12 2015.09.30:
-https://youtu.be/kf5NqAG85xY
+DX12 2015.10.07:
+https://youtu.be/4aGdKisl7Jg

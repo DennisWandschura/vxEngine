@@ -257,6 +257,7 @@
     <ClInclude Include="ComponentActionManager.h" />
     <ClInclude Include="ConditionActorFollowingPath.h" />
     <ClInclude Include="ConditionActorHasPath.h" />
+    <ClInclude Include="ConditionCanSeePlayer.h" />
     <ClInclude Include="ConditionPlayerFalling.h" />
     <ClInclude Include="ConditionPlayerMoving.h" />
     <ClInclude Include="CreatedActorData.h" />
@@ -378,6 +379,7 @@
     <ClCompile Include="ComponentActorManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ConditionCanSeePlayer.cpp" />
     <ClCompile Include="ConditionPlayerFalling.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

@@ -63,4 +63,6 @@ public:
 	void shutdown();
 
 	void handleMessage(const vx::Message &evt);
+
+	void update();
 };

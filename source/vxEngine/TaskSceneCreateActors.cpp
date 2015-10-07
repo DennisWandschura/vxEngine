@@ -77,6 +77,7 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 
 		vx::StringID sidMesh, sidMaterial;
 		f32 height = g_heightStanding;
+		f32 radius = 0.2f;
 		if (it.type != PlayerType::Human)
 		{
 			auto actor = m_resourceAspect->getActor(it.actorSid);
@@ -85,9 +86,21 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 			sidMesh = actor->m_mesh;
 			sidMaterial = actor->m_material;
 			height = 2.0f;
+			radius = 0.1f;
 		}
 
-		CreateActorData* data = new CreateActorData(transform, it.actorSid, sidMesh, sidMaterial, height, i, it.type);
+		CreateActorDataDesc desc
+		{
+			transform,
+			it.actorSid,
+			sidMesh,
+			sidMaterial,
+			height,
+			i,
+			it.type
+		};
+
+		CreateActorData* data = new CreateActorData(desc);
 
 		if (it.type != PlayerType::Human)
 		{
@@ -99,7 +112,7 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 			msgManager->addMessage(msg);
 		}
 		
-		auto controller = m_physicsAspect->createActor(transform.m_translation, height);
+		auto controller = m_physicsAspect->createActor(transform.m_translation, height, radius);
 		data->setPhysx(controller);
 
 		vx::Message msg;

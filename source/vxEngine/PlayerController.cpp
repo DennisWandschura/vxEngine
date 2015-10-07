@@ -31,6 +31,7 @@ SOFTWARE.
 #include "Transition.h"
 #include "ConditionPlayerMoving.h"
 #include "Entity.h"
+#include <vxEngineLib/Locator.h>
 #include "ConditionPlayerFalling.h"
 
 PlayerController::PlayerController()
@@ -49,12 +50,12 @@ void PlayerController::initialize(vx::StackAllocator* allocator)
 	m_scratchAllocator = vx::StackAllocator(allocator->allocate(allocSize, 8), allocSize);
 }
 
-void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect, ComponentActionManager* components, vx::MessageManager* messageManager)
+void PlayerController::initializePlayer(f32 dt, EntityHuman* playerEntity, RenderAspectInterface* renderAspect, ComponentActionManager* components)
 {
 	m_actions.push_back(vx::make_unique<ActionPlayerLookAround>(playerEntity, dt));
 	m_actions.push_back(vx::make_unique<ActionPlayerMove>(playerEntity, 0.1f, 0.5f));
 	m_actions.push_back(vx::make_unique<ActionPlayerUse>(playerEntity, components));
-	m_actions.push_back(vx::make_unique<ActionPlaySound>(vx::make_sid("step1.wav"), messageManager, 0.28f, &playerEntity->m_position));
+	m_actions.push_back(vx::make_unique<ActionPlaySound>(vx::make_sid("step1.wav"), Locator::getAudioAspect(), 0.28f, &playerEntity->m_footPosition));
 
 	auto &actionLookAround = m_actions[0];
 	auto &actionMoveStanding = m_actions[1];

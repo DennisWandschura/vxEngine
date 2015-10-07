@@ -54,7 +54,7 @@ float4 clampedCosineSHCoeffs(in float3 dir)
 	return coeffs;
 }
 
-void gather(in int3 gridPosition, in float3 offset, in float3 direction, inout float4 sumRed, inout float4 sumGreen, inout float4 sumBlue)
+void gather(in int3 gridPosition, in float3 offset, in float3 direction, inout float4 sumRed, inout float4 sumGreen, inout float4 sumBlue, out float3 lumSum)
 {
 	int3 samplePosition = gridPosition + offset;
 
@@ -89,36 +89,37 @@ void gather(in int3 gridPosition, in float3 offset, in float3 direction, inout f
 		luminance.b = dot(blue, dirSH);
 		luminance = max(luminance, 0) * solidAngle;
 
-		const float amp = 1.0;
+		//const float amp = 0.9;
 		float4 coeffs = g_faceCoeefs[j];
-		sumRed += luminance.r * coeffs * amp;
-		sumGreen += luminance.g * coeffs * amp;
-		sumBlue += luminance.b * coeffs*amp;
+		sumRed += luminance.r * coeffs;// *amp;
+		sumGreen += luminance.g * coeffs;// *amp;
+		sumBlue += luminance.b * coeffs;//*amp;
+
+		lumSum += luminance;
 	}
 }
 
-void main(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
+void main(uint xy : SV_VertexID, uint z : SV_InstanceID)
 {
 	uint w, h, d;
 	g_srcRed.GetDimensions(w, h, d);
 
-	uint x = vertexID;
-	uint yz = instanceID;
-	uint y = yz % w;
-	uint z = yz / w;
+	uint x = xy & (w - 1);
+	uint y = xy / w;
 
 	int3 currentVoxelPosition = int3(x, y, z);
-
+	
 	float4 sumRed = g_srcRed.Load(int4(currentVoxelPosition, 0));
 	float4 sumGreen = g_srcGreen.Load(int4(currentVoxelPosition, 0));
 	float4 sumBlue = g_srcBlue.Load(int4(currentVoxelPosition, 0));
 
-	gather(currentVoxelPosition, g_offsets[0], g_directions[0], sumRed, sumGreen, sumBlue);
-	gather(currentVoxelPosition, g_offsets[1], g_directions[1], sumRed, sumGreen, sumBlue);
-	gather(currentVoxelPosition, g_offsets[2], g_directions[2], sumRed, sumGreen, sumBlue);
-	gather(currentVoxelPosition, g_offsets[3], g_directions[3], sumRed, sumGreen, sumBlue);
-	gather(currentVoxelPosition, g_offsets[4], g_directions[4], sumRed, sumGreen, sumBlue);
-	gather(currentVoxelPosition, g_offsets[5], g_directions[5], sumRed, sumGreen, sumBlue);
+	float3 lumSum = 0;
+	gather(currentVoxelPosition, g_offsets[0], g_directions[0], sumRed, sumGreen, sumBlue, lumSum);
+	gather(currentVoxelPosition, g_offsets[1], g_directions[1], sumRed, sumGreen, sumBlue, lumSum);
+	gather(currentVoxelPosition, g_offsets[2], g_directions[2], sumRed, sumGreen, sumBlue, lumSum);
+	gather(currentVoxelPosition, g_offsets[3], g_directions[3], sumRed, sumGreen, sumBlue, lumSum);
+	gather(currentVoxelPosition, g_offsets[4], g_directions[4], sumRed, sumGreen, sumBlue, lumSum);
+	gather(currentVoxelPosition, g_offsets[5], g_directions[5], sumRed, sumGreen, sumBlue, lumSum);
 
 	g_dstRed[currentVoxelPosition] = sumRed;
 	g_dstGreen[currentVoxelPosition] = sumGreen;

@@ -102,4 +102,10 @@ public:
 	~TaskLoadScene();
 
 	f32 getTimeMs() const override { return 0.0f; }
+
+	const char* getName(u32* size) const override
+	{
+		*size = 14;
+		return "TaskLoadScene";
+	}
 };

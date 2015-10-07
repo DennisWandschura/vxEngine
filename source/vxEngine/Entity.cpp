@@ -6,8 +6,9 @@
 #include <vxEngineLib/Graphics/RenderAspectInterface.h>
 #include <vxEngineLib/GpuFunctions.h>
 #include <PxRigidDynamic.h>
+#include <vxEngineLib/AudioAspectInterface.h>
 
-void EntityHuman::update(f32 dt, RenderAspectInterface* renderAspect)
+void EntityHuman::update(f32 dt, RenderAspectInterface* renderAspect, AudioAspectInterface* audioAspect)
 {
 	auto physicsAspect = Locator::getPhysicsAspect();
 	const vx::ivec4 velocityMask = { (s32)0xffffffff, 0, (s32)0xffffffff, 0 };
@@ -27,20 +28,24 @@ void EntityHuman::update(f32 dt, RenderAspectInterface* renderAspect)
 	auto footPosition = m_controller->getFootPosition();
 	auto position = m_controller->getPosition();
 
-	auto diff = footPosition.y - m_footPositionY;
+	auto diff = footPosition.y - m_footPosition.y;
 	s32 isFalling = (diff <= -0.3f);
 	m_state ^= (-isFalling ^ m_state) & (1 << (s32)EntityHuman::State::Falling);
 
 	m_position.x = position.x;
 	m_position.y = position.y;
 	m_position.z = position.z;
-	m_footPositionY = footPosition.y;
+	m_footPosition.x = footPosition.x;
+	m_footPosition.y = footPosition.y;
+	m_footPosition.z = footPosition.z;
 
 	RenderUpdateCameraData data;
 	data.position = { position.x, position.y, position.z, 1.0 };
 	data.quaternionRotation = { qRotation.m128_f32[0], qRotation.m128_f32[1], qRotation.m128_f32[2], qRotation.m128_f32[3] };
 
 	renderAspect->queueUpdateCamera(data);
+	audioAspect->setListenerPosition(vx::loadFloat3(m_position));
+	audioAspect->setListenerRotation(qRotation);
 }
 
 void EntityActor::update(f32 dt, PhysicsAspect* physicsAspect, vx::TransformGpu* transforms, u32* indices, u32 index)

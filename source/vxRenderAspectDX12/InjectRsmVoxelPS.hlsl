@@ -12,16 +12,6 @@ struct VSOutput
 RWTexture3D<uint> g_voxelTextureDiffuse : register(u1);
 RWTexture3D<uint> g_voxelTextureNormals : register(u2);
 
-static const float3 g_directions[6] = 
-{
-	float3(1, 0, 0),
-	float3(-1, 0, 0),
-	float3(0, 1, 0),
-	float3(0, -1, 0),
-	float3(0, 0, 1),
-	float3(0, 0, -1)
-};
-
 void main(VSOutput input)
 {
 	float luminance = getLuminance(input.color);

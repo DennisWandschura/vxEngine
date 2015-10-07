@@ -105,6 +105,10 @@ void Engine::update()
 {
 	m_physicsAspect.update(g_dt);
 
+	m_cpuProfiler.pushMarker("update ai");
+	m_actorAspect.update();
+	m_cpuProfiler.popMarker();
+
 	// process events
 	m_cpuProfiler.pushMarker("update msg");
 	m_msgManager.update();
@@ -117,7 +121,7 @@ void Engine::update()
 	m_resourceAspect.update();
 
 	m_cpuProfiler.pushMarker("update audio()");
-	m_audioAspect->update(g_dt, m_entityAspect.getPlayerPosition());
+	m_audioAspect->update(g_dt);
 	m_cpuProfiler.popMarker();
 
 	// update aspects in order
@@ -127,7 +131,7 @@ void Engine::update()
 
 	m_systemAspect.update(g_dt);
 
-	m_entityAspect.update(g_dt, &m_actionManager, m_renderAspect);
+	m_entityAspect.update(g_dt, &m_actionManager, m_renderAspect, m_audioAspect);
 
 	//getThreadInfo();
 }
@@ -336,7 +340,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 	if (!initializeImpl(dataDir))
 		return false;
 
-	m_taskManager.initialize(2, 20, 30.0f, &m_allocator);
+	m_taskManager.initialize(2, 64, 30.0f, &m_allocator);
 
 	if (!m_systemAspect.initialize(g_engineConfig, EngineCpp::callbackKeyPressed, EngineCpp::callbackKeyReleased, nullptr))
 	{
@@ -412,6 +416,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 	Locator::provide(&m_physicsAspect);
 	Locator::provide(m_renderAspect);
 	Locator::provide(&m_resourceAspect);
+	Locator::provide(m_audioAspect);
 
 	// register aspects that receive events
 	m_msgManager.registerListener(m_renderAspect, 3, (u8)vx::MessageType::File| (u8)vx::MessageType::Renderer);

@@ -23,12 +23,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+namespace Converter
+{
+	class ActorFileV0;
+	class ActorFileV1;
+}
+
 #include <vxEngineLib/Serializable.h>
 
 class ActorFile : public vx::Serializable
 {
+	friend Converter::ActorFileV0;
+	friend Converter::ActorFileV1;
+
 	char m_mesh[32];
 	char m_material[32];
+	f32 m_fovRad;
 
 public:
 	explicit ActorFile(u32 version);
@@ -42,9 +52,11 @@ public:
 
 	void setMesh(const char(&mesh)[32]);
 	void setMaterial(const char(&material)[32]);
+	void setFovRad(f32 fovRad) { m_fovRad = fovRad; }
 
 	const char* getMesh() { return m_mesh; }
 	const char* getMaterial() { return m_material; }
+	f32 getFovRad() const { return m_fovRad; }
 
-	static u32 getGlobalVersion() { return 0; }
+	static u32 getGlobalVersion() { return 1; }
 };

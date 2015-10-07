@@ -170,8 +170,8 @@ public:
 
 	virtual void handleMessage(const vx::Message &evt) override;
 
-	physx::PxController* createActor(const vx::StringID &mesh, const vx::float3 &translation);
-	physx::PxController* createActor(const vx::float3 &translation, f32 height);
+	//physx::PxController* createActor(const vx::StringID &mesh, const vx::float3 &translation);
+	physx::PxController* createActor(const vx::float3 &translation, f32 height, f32 radius);
 	physx::PxJoint* createJoint(const Joint &joint);
 	physx::PxJoint* createSphericalJoint(physx::PxRigidActor* actor);
 	physx::PxJoint* createFixedJoint(physx::PxRigidActor* actor);
