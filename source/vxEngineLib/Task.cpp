@@ -55,11 +55,14 @@ TaskReturnType Task::run()
 		}
 	}
 
+	u32 count = 0;
 	for (auto &it : m_events)
 	{
 		auto evtStatus = it.getStatus();
 		if (static_cast<s32>(evtStatus) > 0)
 		{
+			//printf("%i %p", evtStatus, it.getAddress());
+			//++count;
 			return TaskReturnType::WaitingForEvents;
 		}
 	}

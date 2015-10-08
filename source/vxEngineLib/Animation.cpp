@@ -36,7 +36,6 @@ namespace vx
 			layers[i].saveToFile(f, writtenSize);
 		}
 
-		//printf("layerCount: %u\n", layerCount);
 		*writtenSize += sizeof(layerCount);
 	}
 
@@ -49,7 +48,6 @@ namespace vx
 			ptr = layers[i].loadFromMemory(ptr);
 		}
 
-		//printf("layerCount: %u\n", layerCount);
 		return ptr;
 	}
 
@@ -57,9 +55,6 @@ namespace vx
 	{
 		f->write(frameCount);
 		f->write(frameRate);
-
-		//printf("frameCount: %u\n", frameCount);
-		//printf("frameRate: %f\n", frameRate);
 
 		for (u32 i = 0; i < frameCount; ++i)
 		{
@@ -77,17 +72,11 @@ namespace vx
 		ptr = vx::read(frameCount, ptr);
 		ptr = vx::read(frameRate, ptr);
 
-		//printf("frameCount: %u\n", frameCount);
-		//printf("frameRate: %f\n", frameRate);
-
 		samples = std::make_unique<AnimationSample[]>(frameCount);
 
 		for (u32 i = 0; i < frameCount; ++i)
 		{
 			ptr = vx::read(samples[i], ptr);
-
-			//printf("	frame: %u\n", samples[i].frame);
-			//printf("	translation: %f %f %f\n", samples[i].transform.m_translation.x, samples[i].transform.m_translation.y, samples[i].transform.m_translation.z);
 		}
 
 		return ptr;

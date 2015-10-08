@@ -1,3 +1,7 @@
+#ifdef _VX_WINDOWS
+#pragma once
+#endif
+
 #include "Gpu.h"
 
 struct GpuShadowTransform

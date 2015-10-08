@@ -1,0 +1,12 @@
+Unity("Unity_vxRenderAspectDX12")
+	{
+		.UnityInputPath = ''
+		.UnityOutputPattern = 'Unity_vxRenderAspectDX12*.cpp'
+		.UnityOutputPath = 'unity'
+		.UnityInputExcludePath = 'unity'
+	}
+
+Alias('all')
+{
+	.Targets = { 'Unity_vxRenderAspectDX12' }
+}

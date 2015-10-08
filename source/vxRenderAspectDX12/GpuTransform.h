@@ -1,3 +1,7 @@
+#ifdef _VX_WINDOWS
+#pragma once
+#endif
+
 #ifndef _GPU_TRANSFORM_HH
 #define _GPU_TRANSFORM_HH
 #include "Gpu.h"

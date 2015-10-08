@@ -201,6 +201,6 @@ namespace Audio
 
 	void Renderer::setPosition(const vx::float3 &position)
 	{
-		m_position = vx::loadFloat3(position);
+		m_position = vx::loadFloat3(&position);
 	}
 }

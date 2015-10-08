@@ -31,6 +31,7 @@ SOFTWARE.
 #include <vxEngineLib/ThreadSafeStack.h>
 #include <vxEngineLib/atomic_float.h>
 #include <vxEngineLib/Logfile.h>
+#include <vxLib/string.h>
 
 namespace TaskManagerCpp
 {
@@ -64,14 +65,21 @@ namespace vx
 {
 	struct TaskBuffer
 	{
-		ThreadSafeStack<LightTask*> m_tasks;
-		atomic_float m_time;
+		//ThreadSafeStack<LightTask*> m_tasks;
+		LightTask** m_tasks;
+		mutable std::mutex m_mutex;
+		u32 m_size;
+		u32 m_capacity;
+		f32 m_time;
 
 		TaskBuffer()
 			:m_tasks(),
-			m_time()
+			m_mutex(),
+			m_size(0),
+			m_capacity(0),
+			m_time(0.0f)
 		{
-			m_time.store(0.0f);
+			//m_time.store(0.0f);
 		}
 
 		~TaskBuffer()
@@ -81,16 +89,37 @@ namespace vx
 		void initialize(u32 capacity, vx::StackAllocator* allocator)
 		{
 			auto ptr = allocator->allocate(sizeof(LightTask*) * capacity, 8);
-			m_tasks.initialize(ptr, capacity);
+			//m_tasks.initialize(ptr, capacity);
+			m_tasks = (LightTask**)ptr;
+			vx::setZero(m_tasks, sizeof(LightTask*) * capacity);
+
+			m_capacity = capacity;
 		}
 
 		bool pushTaskTS(LightTask* task, u32 capacity, f32 maxTime)
 		{
 			auto taskTime = task->getTimeMs();
 
-			auto oldTime = m_time.load();
+			std::lock_guard<std::mutex> lck(m_mutex);
+			auto oldTime = m_time;
+			auto newTime = oldTime + taskTime;
 
-			f32 newTime;
+			if (newTime >= maxTime)
+				return false;
+
+			if (m_size >= m_capacity)
+			{
+				return false;
+			}
+
+			m_tasks[m_size++] = task;
+			m_time = newTime;
+
+			return true;
+
+			//auto oldTime = m_time.load();
+
+			/*f32 newTime;
 			do
 			{
 				newTime = oldTime + taskTime;
@@ -106,28 +135,39 @@ namespace vx
 				result = false;
 			}
 
-			return result;
+			return result;*/
 		}
 
 		u32 sizeTS() const
 		{
-			return m_tasks.sizeTS();
+			//return m_tasks.sizeTS();
+			std::lock_guard<std::mutex> lck(m_mutex);
+			return m_size;
 		}
 
 		void clear()
 		{
-			m_tasks.clear();
-			m_time.store(0.0f);
+			std::lock_guard<std::mutex> lck(m_mutex);
+			for (u32 i = 0; i < m_size; ++i)
+			{
+				//delete(m_tasks[i]);
+				m_tasks[i] = nullptr;
+			}
+			m_size = 0;
+			m_time = 0.0f;
+
+			//m_tasks.clear();
+			//m_time.store(0.0f);
 		}
 	};
 
 	class VX_ALIGN(64) LocalQueue
 	{
-		std::atomic<TaskBuffer*> m_front;
+		TaskBuffer* m_front;
 		TaskBuffer* m_back;
+		std::mutex m_mutex;
 		f32 m_maxTime;
 		u32 m_capacity;
-		std::atomic_int m_counter;
 		TaskBuffer m_buffers[2];
 
 		std::atomic_int m_running;
@@ -147,12 +187,10 @@ namespace vx
 			m_back(nullptr),
 			m_capacity(0),
 			m_buffers(),
-			m_counter(),
 			m_running({ 0 }),
 			m_scheduler(nullptr)
 		{
-			m_counter.store(0);
-			m_front.store(&m_buffers[0]);
+			m_front = &m_buffers[0];
 			m_back = &m_buffers[1];
 		}
 
@@ -187,9 +225,10 @@ namespace vx
 				logFile->append(buffer, size);
 			};
 
-			m_counter.fetch_add(1);
+			std::lock_guard<std::mutex> lck(m_mutex);
 
-			auto queue = m_front.load();
+			//auto queue = m_front.load();
+			auto queue = m_front;
 
 			bool result = queue->pushTaskTS(task, m_capacity, m_maxTime);
 			if (result)
@@ -197,17 +236,13 @@ namespace vx
 				appendTaskToLogfile(logFile, task);
 			}
 
-			m_counter.fetch_sub(1);
-
 			return result;
 		}
 
 		void swapBuffer()
 		{
-			while (m_counter.load() != 0)
-				;
-
-			m_back = m_front.exchange(m_back);
+			std::lock_guard<std::mutex> lck(m_mutex);
+			std::swap(m_back, m_front);
 		}
 
 		void processBack(Logfile* logFile)
@@ -238,7 +273,8 @@ namespace vx
 			}
 			else
 			{
-				LightTask* waitingTask = nullptr;
+				//
+				//LightTask* waitingTask = nullptr;
 
 				//const char str[] = "processing tasks\n";
 				//logFile->append(str, 18);
@@ -247,6 +283,7 @@ namespace vx
 				for (u32 i = 0; i < backSize; ++i)
 				{
 					auto task = backTasks[i];
+					//printf("running task %p\n", task);
 					auto result = task->run();
 
 					appendTaskResultToLogfile(logFile, task, result);
@@ -257,18 +294,23 @@ namespace vx
 					}
 					else if (result == TaskReturnType::WaitingForEvents)
 					{
-						if (waitingTask == nullptr)
+						/*if (waitingTask == nullptr)
 						{
 							waitingTask = task;
-						}
-						else
+						}*/
+						//else
 						{
 							rescheduleTask(task, logFile);
 						}
 					}
+					else
+					{
+						//printf("%p\n", task);
+						delete(task);
+					}
 				}
 
-				if (waitingTask)
+				/*if (waitingTask)
 				{
 					auto result = waitingTask->run();
 
@@ -278,7 +320,7 @@ namespace vx
 					{
 						rescheduleTask(waitingTask, logFile);
 					}
-				}
+				}*/
 
 				m_back->clear();
 			}
@@ -304,7 +346,7 @@ namespace vx
 		auto t_id = std::this_thread::get_id();
 
 		char buffer[24];
-		memset(buffer, 0, sizeof(buffer));
+		vx::setZero(buffer, sizeof(buffer));
 		snprintf(buffer, sizeof(buffer), "tasklog-tid-%u.txt", tid);
 
 		Logfile taskLog;

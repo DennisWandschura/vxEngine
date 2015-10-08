@@ -1,9 +1,10 @@
-#ifndef _GPUVOXEL_HH
-#define _GPUVOXEL_HH
 #ifdef _VX_WINDOWS
 #pragma once
-#include "Gpu.h"
 #endif
+
+#ifndef _GPUVOXEL_HH
+#define _GPUVOXEL_HH
+#include "Gpu.h"
 
 struct GpuVoxel
 {

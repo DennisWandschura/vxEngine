@@ -340,7 +340,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 	if (!initializeImpl(dataDir))
 		return false;
 
-	m_taskManager.initialize(2, 64, 30.0f, &m_allocator);
+	m_taskManager.initialize(2, 24, 30.0f, &m_allocator);
 
 	if (!m_systemAspect.initialize(g_engineConfig, EngineCpp::callbackKeyPressed, EngineCpp::callbackKeyReleased, nullptr))
 	{

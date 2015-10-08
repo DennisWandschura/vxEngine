@@ -6,9 +6,6 @@
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Graphics/FontAtlas.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Graphics\FontAtlas.cpp"
 
-#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Graphics/RenderAspectInterface.cpp" )
-#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Graphics\RenderAspectInterface.cpp"
-
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/Graphics/Surface.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\Graphics\Surface.cpp"
 
@@ -35,6 +32,12 @@
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/AudioFile.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\AudioFile.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterActorFileV0.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterActorFileV0.cpp"
+
+#pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterActorFileV1.cpp" )
+#include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterActorFileV1.cpp"
 
 #pragma message( "D:/Users/dennis/Documents/Visual Studio 2015/Projects/vxEngine/source/vxEngineLib/ConverterMeshFileV0.cpp" )
 #include "D:\Users\dennis\Documents\Visual Studio 2015\Projects\vxEngine\source\vxEngineLib\ConverterMeshFileV0.cpp"

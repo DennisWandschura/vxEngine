@@ -147,7 +147,7 @@ namespace WavFileCpp
 				directions[channelIndex] = vx::quaternionRotation(channelDir, *rotation);
 			}
 
-			u32 index = 0;
+			//u32 index = 0;
 			for (u32 i = 0; i < readFrames; ++i)
 			{
 				memset(dst, 0, dstSize);

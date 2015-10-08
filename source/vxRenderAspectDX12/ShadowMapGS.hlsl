@@ -35,10 +35,12 @@ void main(
 {
 	uint lightIndex = input[0].lightIndex;
 
+	[unroll]
 	for (uint slice = 0; slice < 6; ++slice)
 	{
 		float4x4 pvMatrix = shadowTransforms[lightIndex].pvMatrix[slice];
 
+		[unroll]
 		for (uint i = 0; i < 3; i++)
 		{
 			GSOutput element;

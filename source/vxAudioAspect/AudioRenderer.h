@@ -46,18 +46,19 @@ namespace Audio
 	{
 		typedef u32(*LoadDataFunction)(void*, u32, u32, u8*, AudioChannels, f32, const __m128*, const __m128*);
 
-		IAudioRenderClient* m_renderClient;
-		IAudioClient* m_audioClient;
-		f32 m_waitTime;
-		f32 m_accum;
-		u32 m_bufferFrames;
+		IAudioRenderClient* m_renderClient; // 8
+		IAudioClient* m_audioClient;		// 8
+		f32 m_waitTime;						// 4
+		f32 m_accum;						// 4
+		u32 m_bufferFrames;					// 4
+		u32 m_padding;						// 4
 
 	protected:
-		__m128 m_position;
-		LoadDataFunction m_fp;
-		u32* m_id;
-		AudioChannels m_dstChannels;
-		u16 m_dstBytes;
+		__m128 m_position;				// 16
+		LoadDataFunction m_fp;			// 8
+		u32* m_id;						// 8
+		AudioChannels m_dstChannels;	// 1
+		u16 m_dstBytes;					// 2
 
 	public:
 		Renderer() :m_renderClient(nullptr), m_audioClient(nullptr), m_fp(nullptr), m_id(nullptr), m_waitTime(0), m_accum(0), m_bufferFrames(0), m_dstChannels(), m_dstBytes(0) {}

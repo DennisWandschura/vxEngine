@@ -38,9 +38,6 @@ SOFTWARE.
 #include <vxEngineLib/RendererMessage.h>
 #include <vxEngineLib/ResourceAspectInterface.h>
 
-thread_local f32 TaskSceneCreateActors::s_time{0.0f};
-thread_local u64 TaskSceneCreateActors::s_counter{0};
-
 TaskSceneCreateActors::TaskSceneCreateActors(const Event &evt, std::vector<Event> &&events, const Scene* scene,
 	RenderAspectInterface* renderAspect, PhysicsAspect* physicsAspect, ResourceAspectInterface* resourceAspect)
 	:Task(evt, std::move(events)),
@@ -123,14 +120,11 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 
 	auto time = timer.getTimeMiliseconds();
 
-	++s_counter;
-
-	s_time = (s_time * (s_counter - 1) + time) / s_counter;
 
 	return TaskReturnType::Success;
 }
 
 f32 TaskSceneCreateActors::getTimeMs() const
 {
-	return s_time;
+	return 0.15f;
 }

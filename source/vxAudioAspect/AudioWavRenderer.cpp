@@ -67,7 +67,7 @@ namespace Audio
 	{
 		m_wavFile = wavFile;
 		m_format = format;
-		m_position = vx::loadFloat3(position);
+		m_position = vx::loadFloat3(&position);
 		m_id = id;
 
 		auto bytesPerSample = m_format.m_bytesPerSample;

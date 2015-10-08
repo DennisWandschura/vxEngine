@@ -187,40 +187,21 @@ TaskReturnType TaskLoadScene::runImpl()
 	{
 		std::vector<Event> fileEvents;
 
+		//printf("missing files\n");
+
 		for (auto &it : missingFiles)
 		{
 			auto evt = Event::createEvent();
 			vx::Variant arg;
 			//arg.u64 = it.getSid().value;
 			arg.ptr = new std::string(it.getString());
+			evt.setUserData(arg.ptr);
+
 			m_resourceAspect->requestLoadFile(it, arg, evt);
 
 			fileEvents.push_back(evt);
 
-			//printf("missing files %u\n", missingFiles.size());
-			/*auto type = it.getType();
-			switch (type)
-			{
-			case vx::FileType::Mesh:
-			{
-				createTaskLoadMesh(it, &fileEvents);
-			}break;
-			case vx::FileType::Material:
-			{
-				createTaskLoadMaterial(it, &fileEvents);
-			}break;
-			case vx::FileType::Animation:
-			{
-				createTaskLoadAnimation(it, &fileEvents);
-			}break;
-			case vx::FileType::Actor:
-			{
-
-			}break;
-			default:
-				VX_ASSERT(false);
-				break;
-			}*/
+			//printf("%s %p %p\n", it.getString(), evt.getAddress(), evt.getUserData());
 		}
 
 		//setTimeoutTime(1000.0f);

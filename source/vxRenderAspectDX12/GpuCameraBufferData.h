@@ -1,3 +1,9 @@
+#ifdef _VX_WINDOWS
+#pragma once
+#endif
+
+#ifndef __GPUCAMERABUFFERDATA_HH
+#define __GPUCAMERABUFFERDATA_HH
 #include "Gpu.h"
 
 struct GpuCameraBufferData
@@ -19,3 +25,4 @@ struct GpuCameraStatic
 	float zFar;
 	float2 resolution;
 };
+#endif

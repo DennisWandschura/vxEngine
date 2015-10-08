@@ -29,10 +29,20 @@ class Event::Data : public SmallObjectThreaded<Event::Data>
 {
 	std::atomic_int m_flag;
 	std::atomic_int m_refCount;
+	void* m_userData;
 
 public:
-	Data() :m_flag(), m_refCount() { m_flag.store(0), m_refCount.store(0); }
-	~Data() {}
+	Data() :m_flag(), m_refCount(), m_userData(nullptr){ m_flag.store(0), m_refCount.store(0); }
+
+	Data(const Data &rhs) = delete;
+
+	Data(Data &&rhs) = delete;
+
+	~Data() { }
+
+	Data& operator=(const Data &rhs) = delete;
+
+	Data& operator=(Data &&rhs) = delete;
 
 	void increment()
 	{
@@ -53,6 +63,15 @@ public:
 	{
 		return (EventStatus)m_flag.load();
 	}
+
+	const void* getAddress() const { return this; }
+
+	void setUserData(void* p)
+	{
+		m_userData = p;
+	}
+
+	void* getUserData() const { return m_userData; }
 };
 
 Event::Event()
@@ -117,6 +136,7 @@ Event Event::createEvent()
 {
 	Event evt;
 	evt.m_data = vx::shared_ptr<Data>(new Data());
+	//evt.m_data = std::make_shared<Data>();
 	evt.setStatus(EventStatus::Queued);
 
 	return evt;
@@ -125,4 +145,19 @@ Event Event::createEvent()
 void Event::setAllocator(SmallObjAllocator* allocator)
 {
 	Data::setAllocator(allocator);
+}
+
+const void* Event::getAddress() const 
+{
+	return m_data.get(); 
+}
+
+void Event::setUserData(void* p)
+{
+	m_data->setUserData(p);
+}
+
+void* Event::getUserData() const
+{
+	return m_data->getUserData();
 }

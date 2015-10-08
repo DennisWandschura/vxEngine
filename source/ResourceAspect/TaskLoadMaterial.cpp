@@ -111,6 +111,7 @@ TaskReturnType TaskLoadMaterial::runImpl()
 			setEventList(&events);
 			//setTimeoutTime(500.0f);
 
+		//	printf("TaskLoadMaterial retry %p\n", this);
 			return TaskReturnType::Retry;
 		}
 		else
@@ -126,8 +127,6 @@ TaskReturnType TaskLoadMaterial::runImpl()
 	{
 		return TaskReturnType::Failure;
 	}
-
-//	printf("TaskLoadMaterial: %f\n", timer.getTimeMiliseconds());
 
 	return TaskReturnType::Success;
 }

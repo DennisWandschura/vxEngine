@@ -172,14 +172,13 @@ bool RenderPassShadow::createRootSignature(ID3D12Device* device)
 	CD3DX12_DESCRIPTOR_RANGE rangeGS[1];
 	rangeGS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3, 0, 4);
 
-	CD3DX12_DESCRIPTOR_RANGE rangePS[2];
+	CD3DX12_DESCRIPTOR_RANGE rangePS[1];
 	rangePS[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 4, 0, 5);
-	rangePS[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 2, 0, 6);
 
 	CD3DX12_ROOT_PARAMETER rootParameters[4];
 	rootParameters[0].InitAsDescriptorTable(2, rangeVS, D3D12_SHADER_VISIBILITY_VERTEX);
 	rootParameters[1].InitAsDescriptorTable(1, rangeGS, D3D12_SHADER_VISIBILITY_GEOMETRY);
-	rootParameters[2].InitAsDescriptorTable(2, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
+	rootParameters[2].InitAsDescriptorTable(1, rangePS, D3D12_SHADER_VISIBILITY_PIXEL);
 	rootParameters[3].InitAsConstants(1, 1, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -331,7 +330,7 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	}
 
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	desc.NumDescriptors = 8;
+	desc.NumDescriptors = 7;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	if (!m_heapSrv.create(desc, device))
 		return false;
@@ -377,14 +376,6 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	auto srgbTexture = s_resourceManager->getTexture(L"srgbTexture");
 	srvHandle.offset(1);
 	device->CreateShaderResourceView(srgbTexture->get(), srgbTextureViewDesc, srvHandle);
-
-	auto voxelBuffer = s_resourceManager->getBuffer(L"voxelBuffer");
-	D3D12_CONSTANT_BUFFER_VIEW_DESC voxelBufferDesc;
-	voxelBufferDesc.BufferLocation = voxelBuffer->GetGPUVirtualAddress();
-	voxelBufferDesc.SizeInBytes = d3d::AlignedSizeType<GpuVoxel, 1, 256>::size;
-
-	srvHandle.offset(1);
-	device->CreateConstantBufferView(&voxelBufferDesc, srvHandle);
 
 	return true;
 }

@@ -58,7 +58,7 @@ u8 ConditionCanSeePlayer::test() const
 	auto dp = vx::dot3(viewDirection, directionToPlayer);
 	if (dp.m128_f32[0] >= m_fov)
 	{
-		puts("");
+		//puts("");
 	}
 
 	// dp = 1: fov angle = 0°, 0

@@ -43,6 +43,7 @@ TaskReturnType TaskLoadTexture::runImpl()
 	u32 fileSize = 0;
 	if (!loadFromFile(&fileData, &fileSize))
 	{
+		//printf("TaskLoadTexture failure %p\n", this);
 		return TaskReturnType::Failure;
 	}
 

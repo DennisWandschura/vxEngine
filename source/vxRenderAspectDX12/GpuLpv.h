@@ -1,7 +1,8 @@
+#pragma once
+
 #ifndef _GPULPV_HH
 #define _GPULPV_HH
 #ifdef _VX_WINDOWS
-#pragma once
 #endif
 
 #include "Gpu.h"

@@ -1,6 +1,5 @@
 #include "LookWhereYoureGoing.h"
 #include "Entity.h"
-#include <DirectXMath.h>
 
 LookWhereYoureGoing::LookWhereYoureGoing(EntityActor* character)
 	:Align(character, nullptr)
@@ -19,7 +18,7 @@ bool LookWhereYoureGoing::getSteering(SteeringOutput* output)
 		return false;
 
 	auto vz = _mm_load_ss(&m_pCharacter->m_velocity.z);
-	auto orientation = DirectX::XMVectorATan2(velocity, vz);
+	auto orientation = vx::atan2(velocity, vz);
 
 	target.m_orientation.x = orientation.m128_f32[0] - 1.5f;//atan2(m_pCharacter->m_velocity.x, m_pCharacter->m_velocity.z) - 1.5f;
 

@@ -26,7 +26,7 @@ Texture3D<uint> g_voxelTextureOpacity : register(t0);
 
 void outputQuad(float3 wsPosition[4], uint3 voxelPos, float3 color, inout TriangleStream< GSOutput > output)
 {
-	float3 voxelCenter = voxel.gridCenter;
+	float3 voxelCenter = voxel.gridCenter.xyz;
 
 	wsPosition[0] = wsPosition[0] * voxel.gridCellSize + voxelCenter;
 	wsPosition[1] = wsPosition[1] * voxel.gridCellSize + voxelCenter;

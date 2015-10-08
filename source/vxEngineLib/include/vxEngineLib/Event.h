@@ -62,4 +62,9 @@ public:
 
 	static Event createEvent();
 	static void setAllocator(SmallObjAllocator* allocator);
+
+	const void* getAddress() const;
+
+	void setUserData(void* p);
+	void* getUserData() const;
 };

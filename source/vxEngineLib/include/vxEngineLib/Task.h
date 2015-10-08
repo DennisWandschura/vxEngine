@@ -72,15 +72,14 @@ public:
 
 class Task : public LightTask
 {
+protected:
 	Event m_event;
 	CpuTimer m_timer;
 	f32 m_timeoutTime;
+	std::vector<Event> m_events;
 
 	bool checkTimeout();
 	void setEventStatus(EventStatus status, bool hasEvent);
-
-protected:
-	std::vector<Event> m_events;
 
 	Task() :m_event(), m_events(), m_timer(), m_timeoutTime(0.0f) {}
 	explicit Task(const Event &evt) :m_event(std::move(evt)), m_events() {}

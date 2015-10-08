@@ -25,18 +25,6 @@ struct PSOut
 Texture2DArray g_srgb : register(t4);
 SamplerState g_sampler : register(s0);
 
-cbuffer VoxelBuffer : register(b2)
-{
-	GpuVoxel g_voxel;
-};
-
-static const int g_voxelAxis[] =
-{
-	1, 0,
-	3, 2,
-	4, 5
-};
-
 uint3 getTextureSlices(uint packedSlices)
 {
 	uint3 result;
@@ -80,24 +68,6 @@ PSOut main(GSOutput input)
 	output.zDepth = getMoments(z);
 	output.albedoColor = shadedColor;
 	output.normals = half4(input.normal, 1);
-
-	/*float3 offset = (input.wsPosition - g_voxel.gridCenter.xyz) * g_voxel.invGridCellSize;
-	int3 coords = int3(offset)+g_voxel.halfDim;
-
-	bool inGrid = true;
-	if (coords.x < 0 || coords.y < 0 || coords.z < 0 ||
-		coords.x >= g_voxel.dim || coords.y >= g_voxel.dim || coords.z >= g_voxel.dim)
-		inGrid = false;
-
-	if (inGrid)
-	{
-		float luminance = getLuminance(shadedColor);
-		uint packledColor = packR8G8B8A8(float4(shadedColor, luminance));
-		int3 wOffset = int3(0, 0, g_voxelAxis[input.slice] * g_voxel.dim);
-
-		uint oldValue;
-		InterlockedMax(g_voxelTextureDiffuse[coords + wOffset], packledColor, oldValue);
-	}*/
 	
 	return output;
 }

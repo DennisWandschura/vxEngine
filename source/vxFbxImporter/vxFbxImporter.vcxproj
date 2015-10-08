@@ -112,7 +112,7 @@
     <OutDir>..\..\lib\</OutDir>
     <IntDir>..\..\temp\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>..\ResourceAspect\include;..\vxEngineLib\include;..\..\..\PhysX-3.3.2\Include;..\..\..\vxLib\include;C:\Program Files\Autodesk\FBX\FBX SDK\2016.1\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2016.1\lib\vs2015\x64\debug;..\..\..\PhysX-3.3.2\Lib\vc14win64;..\..\..\vxLib\lib\vs14;..\..\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Program Files\Autodesk\FBX\FBX SDK\2016.1\lib\vs2015\x64\release;..\..\..\PhysX-3.3.2\Lib\vc14win64;..\..\..\vxLib\lib\vs14;..\..\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

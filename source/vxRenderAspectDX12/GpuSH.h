@@ -1,3 +1,7 @@
+#ifdef _VX_WINDOWS
+#pragma once
+#endif
+
 #ifndef _GPUSH_H
 #define _GPUSH_H
 
@@ -26,7 +30,8 @@ half4 SHProjectCone(const in half3 vcDir, uniform half angle)
 		.5h * (1.h - cos(angle)), // 1/2 (1 - Cos[\[Alpha]])
 		0.75h * sin(angle) * sin(angle)); // 3/4 Sin[\[Alpha]]^2
 	return SHRotate(vcDir, vZHCoeffs);
-}
+}
+
 half4 SHProjectCone(const in half3 vcDir)
 {
 	static const half2 vZHCoeffs = half2(.25h, // 1/4

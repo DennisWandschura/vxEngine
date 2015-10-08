@@ -33,9 +33,6 @@ class ResourceAspectInterface;
 
 class TaskSceneCreateActors : public Task
 {
-	static thread_local f32 s_time;
-	static thread_local u64 s_counter;
-
 	const Scene* m_scene;
 	RenderAspectInterface* m_renderAspect;
 	PhysicsAspect* m_physicsAspect;

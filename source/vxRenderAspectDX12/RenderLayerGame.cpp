@@ -39,13 +39,13 @@
 #include "RenderPassCreateVpl.h"
 #include <vxEngineLib/Logfile.h>
 
-const u32 g_swapChainBufferCount{ 2 };
-const u32 g_maxVertexCount{ 20000 };
-const u32 g_maxIndexCount{ 40000 };
-const u32 g_maxMeshInstances{ 128 };
-
 namespace RenderLayerGameCpp
 {
+	const u32 g_swapChainBufferCount{ 2 };
+	const u32 g_maxVertexCount{ 20000 };
+	const u32 g_maxIndexCount{ 40000 };
+	const u32 g_maxMeshInstances{ 128 };
+
 	D3D12_RESOURCE_DESC getResDescVoxelTexture(u32 dim)
 	{
 		D3D12_RESOURCE_DESC desc;
@@ -213,7 +213,7 @@ void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u
 {
 	m_lightManager.getRequiredMemory(heapSizeBuffer, bufferCount, m_settings->m_gpuLightCount, m_settings->m_shadowCastingLightCount);
 
-	m_drawCommandMesh.getRequiredMemory(g_maxMeshInstances, heapSizeBuffer, bufferCount);
+	m_drawCommandMesh.getRequiredMemory(RenderLayerGameCpp::g_maxMeshInstances, heapSizeBuffer, bufferCount);
 
 	auto device = m_device->getDevice();
 	for (auto &it : m_renderPasses)
@@ -274,10 +274,10 @@ bool RenderLayerGame::initialize(vx::StackAllocator* allocator, Logfile* errorLo
 	if (!m_lightManager.initialize(*m_settings, allocator, m_settings->m_gpuLightCount, m_resourceManager, m_uploadManager))
 		return false;
 
-	if (!m_meshManager.initialize(g_maxVertexCount, g_maxIndexCount, g_maxMeshInstances, m_resourceManager, device, allocator))
+	if (!m_meshManager.initialize(RenderLayerGameCpp::g_maxVertexCount, RenderLayerGameCpp::g_maxIndexCount, RenderLayerGameCpp::g_maxMeshInstances, m_resourceManager, device, allocator))
 		return false;
 
-	if (!m_drawCommandMesh.create(L"drawCmdBuffer", g_maxMeshInstances, m_resourceManager, m_device->getDevice()))
+	if (!m_drawCommandMesh.create(L"drawCmdBuffer", ::RenderLayerGameCpp::g_maxMeshInstances, m_resourceManager, m_device->getDevice()))
 		return false;
 
 	createGpuObjects();
