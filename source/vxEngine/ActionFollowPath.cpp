@@ -71,7 +71,7 @@ void ActionFollowPath::run()
 			//auto currentTarget = m_arrive.getTarget();
 
 			vx::float4a outVelocity;
-			auto tmpVelocity = vx::loadFloat4(velocity);
+			auto tmpVelocity = vx::loadFloat4(&velocity);
 			if (m_avoidance.getSteering(m_entity, positionFoot, tmpVelocity, &outVelocity))
 			{
 				velocity.x += outVelocity.x;

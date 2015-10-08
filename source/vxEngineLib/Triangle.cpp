@@ -41,10 +41,10 @@ vx::float3 Triangle::getCentroid() const
 
 bool Triangle::contains(const vx::float3 &point) const
 {
-	auto a = vx::loadFloat3(m_points[0]);
-	auto b = vx::loadFloat3(m_points[1]);
-	auto c = vx::loadFloat3(m_points[2]);
-	auto p = vx::loadFloat3(point);
+	auto a = vx::loadFloat3(&m_points[0]);
+	auto b = vx::loadFloat3(&m_points[1]);
+	auto c = vx::loadFloat3(&m_points[2]);
+	auto p = vx::loadFloat3(&point);
 
 	a = _mm_sub_ps(a, p);
 	b = _mm_sub_ps(b, p);

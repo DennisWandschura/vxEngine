@@ -39,6 +39,7 @@ SOFTWARE.
 #include "ActionPlaySound.h"
 #include "Entity.h"
 #include <vxEngineLib/Locator.h>
+#include "ConditionCanSeePlayer.h"
 
 ComponentActorManager::ComponentActorManager()
 	:m_pool()
@@ -62,42 +63,52 @@ void ComponentActorManager::shutdown()
 	m_pool.release();
 }
 
-Component::Actor* ComponentActorManager::createComponent(u16 entityIndex, EntityActor* entity, const QuadTree* quadTree, u16* index)
+Component::Actor* ComponentActorManager::createComponent(const CreateActorComponentDesc &desc)
 {
-	auto pActor = m_pool.createEntry(index);
+	auto actorComponent = m_pool.createEntry(desc.componentIndex);
 
-	pActor->entityIndex = entityIndex;
-	pActor->m_data = vx::make_unique<Component::ActorData>();
-	pActor->m_busy = 0;
-	pActor->m_followingPath = 0;
+	actorComponent->entityIndex = desc.entityIndex;
+	actorComponent->m_data = vx::make_unique<Component::ActorData>();
+	actorComponent->m_busy = 0;
+	actorComponent->m_followingPath = 0;
 
-	ActionFollowPath* actionFollowPath = new ActionFollowPath(entity, pActor, quadTree, 0.2f, 2.0f);
-	ActionSetFollowPath* actionSetFollowPath = new ActionSetFollowPath(actionFollowPath, pActor->m_data.get());
+	ActionFollowPath* actionFollowPath = new ActionFollowPath(desc.entity, actorComponent, desc.quadTree, 0.2f, 2.0f);
+	ActionSetFollowPath* actionSetFollowPath = new ActionSetFollowPath(actionFollowPath, actorComponent->m_data.get());
 
-	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(pActor);
+	ActionActorCreatePath* actionActorCreatePath = new ActionActorCreatePath(actorComponent);
 
-	auto actionPlaySound = new ActionPlaySound(vx::make_sid("step1.wav"), Locator::getAudioAspect(), 0.28f, &entity->m_position);
+	auto actionPlaySound = new ActionPlaySound(vx::make_sid("step1.wav"), Locator::getAudioAspect(), 0.28f, &desc.entity->m_position);
 
 	State* waitingState = new State();
-	State* movingState = new State();
+	State* stateMoving = new State();
+
+	State* stateCanSeePlayer= new State();
 
 	waitingState->addAction(actionActorCreatePath);
 
-	ConditionActorHasPath* conditionActorHasPath = new ConditionActorHasPath(pActor->m_data.get());
-	ConditionActorNotFollowingPath* conditionActorNotFollowingPath = new ConditionActorNotFollowingPath(pActor);
+	ConditionActorHasPath* conditionActorHasPath = new ConditionActorHasPath(actorComponent->m_data.get());
+	ConditionActorNotFollowingPath* conditionActorNotFollowingPath = new ConditionActorNotFollowingPath(actorComponent);
 
-	Transition* transitionWaitingToMoving = new Transition(conditionActorHasPath, movingState);
+	Transition* transitionWaitingToMoving = new Transition(conditionActorHasPath, stateMoving);
 	waitingState->addTransition(transitionWaitingToMoving);
 	transitionWaitingToMoving->addAction(actionSetFollowPath);
 	transitionWaitingToMoving->addAction(actionFollowPath);
 
 	Transition* transitionMovingToWaiting = new Transition(conditionActorNotFollowingPath, waitingState);
-	movingState->addTransition(transitionMovingToWaiting);
-	movingState->addAction(actionPlaySound);
+	stateMoving->addTransition(transitionMovingToWaiting);
+	stateMoving->addAction(actionPlaySound);
 
-	pActor->m_stateMachine.setInitialState(waitingState);
+	ConditionCanSeePlayer* conditionCanSeePlayer = new ConditionCanSeePlayer(desc.human, desc.entity, desc.fovRad, desc.maxViewDistance);
+	Transition* transitionMovingToCanSeePlayer = new Transition(conditionCanSeePlayer, stateCanSeePlayer);
+	stateMoving->addTransition(transitionMovingToCanSeePlayer);
 
-	return pActor;
+	ConditionCanNotSeePlayer* conditionCanNotSeePlayer = new ConditionCanNotSeePlayer(desc.human, desc.entity, desc.fovRad, desc.maxViewDistance);
+	Transition* transitionCanSeePlayerToMoving = new Transition(conditionCanNotSeePlayer, stateMoving);
+	stateCanSeePlayer->addTransition(transitionCanSeePlayerToMoving);
+
+	actorComponent->m_stateMachine.setInitialState(waitingState);
+
+	return actorComponent;
 }
 
 void ComponentActorManager::update(ActionManager* actionManager, vx::StackAllocator* scratchAllocator)

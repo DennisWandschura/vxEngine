@@ -571,7 +571,7 @@ void PhysicsAspect::addMeshInstanceImpl(const MeshInstance &meshInstance, void**
 	auto meshSid = meshInstance.getMeshSid();
 	auto instanceTransform = meshInstance.getTransform();
 
-	auto qRotation = vx::loadFloat4(instanceTransform.m_qRotation);
+	auto qRotation = vx::loadFloat4(&instanceTransform.m_qRotation);
 
 	physx::PxTransform transform;
 	transform.p.x = instanceTransform.m_translation.x;

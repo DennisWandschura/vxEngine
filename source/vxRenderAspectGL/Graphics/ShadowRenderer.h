@@ -25,7 +25,7 @@ SOFTWARE.
 */
 
 struct ShadowTransform;
-class Frustum;
+struct Frustum;
 
 namespace vx
 {

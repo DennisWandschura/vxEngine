@@ -71,7 +71,8 @@ bool TaskLoadActor::loadActorFile(vx::FileHandle* handleMeshOut, vx::FileHandle*
 
 	m_actor.m_mesh = handleMesh.m_sid;
 	m_actor.m_material = handleMaterial.m_sid;
-	m_actor.m_fov = actorFile.getFovRad();
+	m_actor.m_fovRad = actorFile.getFovRad();
+	m_actor.m_maxViewDistance = actorFile.getMaxViewDistance();
 
 	*handleMeshOut = handleMesh;
 	*handleMaterialOut = handleMaterial;

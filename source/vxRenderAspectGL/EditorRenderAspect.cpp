@@ -1596,9 +1596,9 @@ namespace Editor
 		auto mappedBuffer = editorJointBuffer->map<JointData>(vx::gl::Map::Write_Only);
 		for (u32 i = 0; i < count; ++i)
 		{
-			auto p0 = vx::loadFloat3(joints[i].p0);
+			auto p0 = vx::loadFloat3(&joints[i].p0);
 
-			auto p1 = vx::loadFloat3(joints[i].p1);
+			auto p1 = vx::loadFloat3(&joints[i].p1);
 			//auto q1 = vx::loadFloat4(joints[i].q1);
 			//p1 = vx::quaternionRotation(p1, q1);
 
@@ -1607,8 +1607,8 @@ namespace Editor
 				auto it = meshinstances.find(joints[i].sid0);
 				auto &transform = it->getTransform();
 
-				auto rotation = vx::loadFloat4(transform.m_qRotation);
-				auto translation = vx::loadFloat3(transform.m_translation);
+				auto rotation = vx::loadFloat4(&transform.m_qRotation);
+				auto translation = vx::loadFloat3(&transform.m_translation);
 
 				p0 = vx::quaternionRotation(p0, rotation);
 				p0 = _mm_add_ps(p0, translation);
@@ -1619,8 +1619,8 @@ namespace Editor
 				auto it = meshinstances.find(joints[i].sid1);
 				auto &transform = it->getTransform();
 
-				auto rotation = vx::loadFloat4(transform.m_qRotation);
-				auto translation = vx::loadFloat3(transform.m_translation);
+				auto rotation = vx::loadFloat4(&transform.m_qRotation);
+				auto translation = vx::loadFloat3(&transform.m_translation);
 
 				p1 = vx::quaternionRotation(p1, rotation);
 				p1 = _mm_add_ps(p1, translation);
@@ -1841,7 +1841,7 @@ namespace Editor
 				auto &light = lights[i];
 
 				Gpu::LightData data;
-				data.position = vx::loadFloat3(light.m_position);
+				data.position = vx::loadFloat3(&light.m_position);
 				data.falloff = light.m_falloff;
 				data.lumen = light.m_lumen;
 

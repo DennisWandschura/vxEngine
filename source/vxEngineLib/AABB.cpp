@@ -127,8 +127,8 @@ bool AABB::contains(const __m128 &p) const
 	// only need to consider the first three values
 	const int resultMask = 1 << 0 | 1 << 1 | 1 << 2;
 
-	auto vmin = vx::loadFloat3(min);
-	auto vmax = vx::loadFloat3(max);
+	auto vmin = vx::loadFloat3(&min);
+	auto vmax = vx::loadFloat3(&max);
 
 	auto cmp1 = _mm_cmpge_ps(p, vmin);
 	auto cmp2 = _mm_cmple_ps(p, vmax);

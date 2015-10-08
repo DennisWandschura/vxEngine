@@ -35,5 +35,6 @@ struct Actor
 {
 	vx::StringID m_mesh;
 	vx::StringID m_material;
-	f32 m_fov;
+	f32 m_fovRad;
+	f32 m_maxViewDistance;
 };

@@ -133,9 +133,9 @@ namespace vx
 		std::atomic_int m_running;
 		TaskManager* m_scheduler;
 
-		void rescheduleTask(LightTask* task)
+		void rescheduleTask(LightTask* task, Logfile* logFile)
 		{
-			if (!pushTask(task))
+			if (!pushTask(task, logFile))
 			{
 				m_scheduler->pushTask(task);
 			}
@@ -172,13 +172,30 @@ namespace vx
 			m_running.store(1);
 		}
 
-		bool pushTask(LightTask* task)
+		bool pushTask(LightTask* task, Logfile* logFile)
 		{
+			auto appendTaskToLogfile = [](Logfile* logFile, LightTask* task)
+			{
+				u32 strSize = 0;
+				auto taskName = task->getName(&strSize);
+
+				char buffer[24];
+				s32 size = snprintf(buffer, sizeof(buffer), " %p add\n", task);
+				VX_ASSERT(size >= 0);
+
+				logFile->append(taskName, strSize - 1);
+				logFile->append(buffer, size);
+			};
+
 			m_counter.fetch_add(1);
 
 			auto queue = m_front.load();
 
 			bool result = queue->pushTaskTS(task, m_capacity, m_maxTime);
+			if (result)
+			{
+				appendTaskToLogfile(logFile, task);
+			}
 
 			m_counter.fetch_sub(1);
 
@@ -195,7 +212,7 @@ namespace vx
 
 		void processBack(Logfile* logFile)
 		{
-			auto appendTaskToLogfile = [](Logfile* logFile, LightTask* task, TaskReturnType result)
+			auto appendTaskResultToLogfile = [](Logfile* logFile, LightTask* task, TaskReturnType result)
 			{
 				u32 strSize = 0;
 				auto taskName = task->getName(&strSize);
@@ -204,8 +221,12 @@ namespace vx
 				auto resultString = TaskManagerCpp::g_taskReturnTypeString[resultIndex];
 				u32 resultSize = TaskManagerCpp::g_taskReturnTypeStringSize[resultIndex];
 
+				char buffer[24];
+				s32 size = snprintf(buffer, sizeof(buffer), " %p: ", task);
+				VX_ASSERT(size >= 0);
+
 				logFile->append(taskName, strSize - 1);
-				logFile->append(' ');
+				logFile->append(buffer, size);
 				logFile->append(resultString, resultSize);
 				logFile->append('\n');
 			};
@@ -219,17 +240,20 @@ namespace vx
 			{
 				LightTask* waitingTask = nullptr;
 
+				//const char str[] = "processing tasks\n";
+				//logFile->append(str, 18);
+
 				auto &backTasks = m_back->m_tasks;
 				for (u32 i = 0; i < backSize; ++i)
 				{
 					auto task = backTasks[i];
 					auto result = task->run();
 
-					appendTaskToLogfile(logFile, task, result);
+					appendTaskResultToLogfile(logFile, task, result);
 
 					if (result == TaskReturnType::Retry)
 					{
-						rescheduleTask(task);
+						rescheduleTask(task, logFile);
 					}
 					else if (result == TaskReturnType::WaitingForEvents)
 					{
@@ -239,7 +263,7 @@ namespace vx
 						}
 						else
 						{
-							rescheduleTask(task);
+							rescheduleTask(task, logFile);
 						}
 					}
 				}
@@ -248,11 +272,11 @@ namespace vx
 				{
 					auto result = waitingTask->run();
 
-					appendTaskToLogfile(logFile, waitingTask, result);
+					appendTaskResultToLogfile(logFile, waitingTask, result);
 
 					if (result != TaskReturnType::Success)
 					{
-						rescheduleTask(waitingTask);
+						rescheduleTask(waitingTask, logFile);
 					}
 				}
 
@@ -409,7 +433,7 @@ namespace vx
 		{
 			bool inserted = false;
 
-			if (m_queues[tid]->pushTask(task))
+			if (m_queues[tid]->pushTask(task, &m_taskLog))
 			{
 				inserted = true;
 			}
@@ -471,7 +495,7 @@ namespace vx
 					for (u32 i = 0; i < count; ++i)
 					{
 						auto task = m_tasksBack.back();
-						if (it->pushTask(task))
+						if (it->pushTask(task, &m_taskLog))
 						{
 							m_tasksBack.pop_back();
 							++distributedTasks;

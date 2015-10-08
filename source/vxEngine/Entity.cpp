@@ -18,7 +18,7 @@ void EntityHuman::update(f32 dt, RenderAspectInterface* renderAspect, AudioAspec
 	qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
 	vx::storeFloat4(&m_qRotation, qRotation);
 
-	__m128 vVelocity = vx::loadFloat4(m_velocity);
+	__m128 vVelocity = vx::loadFloat4(&m_velocity);
 
 	vVelocity = _mm_and_ps(vVelocity, velocityMask);
 	vVelocity = _mm_add_ps(vVelocity, vGravity);
@@ -44,7 +44,7 @@ void EntityHuman::update(f32 dt, RenderAspectInterface* renderAspect, AudioAspec
 	data.quaternionRotation = { qRotation.m128_f32[0], qRotation.m128_f32[1], qRotation.m128_f32[2], qRotation.m128_f32[3] };
 
 	renderAspect->queueUpdateCamera(data);
-	audioAspect->setListenerPosition(vx::loadFloat3(m_position));
+	audioAspect->setListenerPosition(vx::loadFloat3(&m_position));
 	audioAspect->setListenerRotation(qRotation);
 }
 
@@ -57,7 +57,7 @@ void EntityActor::update(f32 dt, PhysicsAspect* physicsAspect, vx::TransformGpu*
 	qRotation = vx::quaternionRotationRollPitchYawFromVector(qRotation);
 	vx::storeFloat4(&m_qRotation, qRotation);
 
-	__m128 vVelocity = vx::loadFloat4(m_velocity);
+	__m128 vVelocity = vx::loadFloat4(&m_velocity);
 
 	vVelocity = _mm_and_ps(vVelocity, velocityMask);
 	vVelocity = _mm_add_ps(vVelocity, vGravity);
@@ -92,7 +92,7 @@ void EntityDynamic::update(f32 dt, vx::TransformGpu* transforms, u32* indices, u
 	newRotation.z = transform.q.z;
 	newRotation.w = transform.q.w;
 
-	auto qRotationOld = vx::loadFloat4(m_qRotation);
+	auto qRotationOld = vx::loadFloat4(&m_qRotation);
 	auto qRotationNew = _mm_loadu_ps(&transform.q.x);
 
 	auto diffRot = _mm_sub_ps(qRotationNew, qRotationOld);

@@ -43,14 +43,14 @@ namespace EditorSceneCpp
 		auto vertexCount = mesh.getVertexCount();
 		auto vertices = mesh.getVertices();
 
-		auto qRotation = vx::loadFloat4(transform.m_qRotation);
-		auto translation = vx::loadFloat3(transform.m_translation);
+		auto qRotation = vx::loadFloat4(&transform.m_qRotation);
+		auto translation = vx::loadFloat3(&transform.m_translation);
 
 		bounds->max = vx::float3(-FLT_MAX);
 		bounds->min = vx::float3(FLT_MAX);
 		for (auto i = 0u; i < vertexCount; ++i)
 		{
-			auto p = vx::loadFloat3(vertices[i].position);
+			auto p = vx::loadFloat3(&vertices[i].position);
 			p = vx::quaternionRotation(p, qRotation);
 			p = _mm_add_ps(p, translation);
 

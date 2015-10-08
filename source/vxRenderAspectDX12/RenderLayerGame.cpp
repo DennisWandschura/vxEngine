@@ -552,7 +552,7 @@ void RenderLayerGame::addStaticMeshInstance(const MeshInstance &instance, const 
 void RenderLayerGame::createActorGpuIndex(CreateActorData* data)
 {
 	auto actorTransform = data->getTransform();
-	auto qRotation = vx::loadFloat4(actorTransform.m_qRotation);
+	auto qRotation = vx::loadFloat4(&actorTransform.m_qRotation);
 
 	u32 materialIndex = 0;
 	u32 materialSlices = 0;
@@ -585,7 +585,7 @@ void RenderLayerGame::createActorGpuIndex(CreateActorData* data)
 
 void RenderLayerGame::updateTransform(const vx::Transform &meshTransform, u32 index)
 {
-	auto meshRotation = vx::loadFloat4(meshTransform.m_qRotation);
+	auto meshRotation = vx::loadFloat4(&meshTransform.m_qRotation);
 
 	vx::TransformGpu gpuTransform;
 	gpuTransform.translation = meshTransform.m_translation;

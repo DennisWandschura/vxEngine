@@ -749,7 +749,7 @@ void EditorEngine::setMeshInstanceRotation(u64 sid, const vx::float3 &rotationDe
 	if (m_pEditorScene)
 	{
 		auto rotation = vx::degToRad(rotationDeg);
-		auto r = vx::loadFloat3(rotation);
+		auto r = vx::loadFloat3(&rotation);
 
 		auto q = vx::quaternionRotationRollPitchYawFromVector(r);
 
@@ -779,7 +779,7 @@ void EditorEngine::getMeshInstanceRotation(u64 sid, vx::float3* rotationDeg) con
 
 		__m128 axis;
 		f32 angle;
-		vx::quaternionToAxisAngle(vx::loadFloat4(q), &axis, &angle);
+		vx::quaternionToAxisAngle(vx::loadFloat4(&q), &axis, &angle);
 		axis = vx::normalize3(axis);
 
 		vx::float4a tmpAxis = axis;
@@ -1588,7 +1588,7 @@ void EditorEngine::getJointData(u32 i, vx::float3* p0, vx::float3* q0, vx::float
 		}
 		else
 		{
-			auto qq = vx::loadFloat4(q);
+			auto qq = vx::loadFloat4(&q);
 
 			__m128 axis, axis0;
 			f32 angle, angle0;
@@ -1653,7 +1653,7 @@ void EditorEngine::setJointBody1(u32 index, u64 sid)
 
 void EditorEngine::setJointRotation0(u32 index, const vx::float3 &q)
 {
-	auto qq = vx::quaternionRotationRollPitchYawFromVector(vx::degToRad(vx::loadFloat3(q)));
+	auto qq = vx::quaternionRotationRollPitchYawFromVector(vx::degToRad(vx::loadFloat3(&q)));
 
 	vx::float4 tmp;
 	vx::storeFloat4(&tmp, qq);
@@ -1665,7 +1665,7 @@ void EditorEngine::setJointRotation0(u32 index, const vx::float3 &q)
 
 void EditorEngine::setJointRotation1(u32 index, const vx::float3 &q)
 {
-	auto qq = vx::quaternionRotationRollPitchYawFromVector(vx::degToRad(vx::loadFloat3(q)));
+	auto qq = vx::quaternionRotationRollPitchYawFromVector(vx::degToRad(vx::loadFloat3(&q)));
 
 	vx::float4 tmp;
 	vx::storeFloat4(&tmp, qq);

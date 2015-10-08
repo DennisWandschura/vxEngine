@@ -307,7 +307,7 @@ void MeshManager::updateTransform(const vx::Transform &transform, u32 index)
 	vx::TransformGpu transformGpu;
 	transformGpu.translation = transform.m_translation;
 	transformGpu.scaling = transform.m_scaling;
-	transformGpu.packedQRotation = GpuFunctions::packQRotation(vx::loadFloat4(transform.m_qRotation));
+	transformGpu.packedQRotation = GpuFunctions::packQRotation(vx::loadFloat4(&transform.m_qRotation));
 
 	updateTransform(transformGpu, index);
 }

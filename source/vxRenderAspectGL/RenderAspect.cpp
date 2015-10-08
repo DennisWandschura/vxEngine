@@ -120,9 +120,9 @@ namespace RenderAspectCpp
 
 	f32 distancePointAABB2(const vx::float3 &p, const AABB &b)
 	{
-		auto vp = vx::loadFloat3(p);
-		auto bmin = vx::loadFloat3(b.min);
-		auto bmax = vx::loadFloat3(b.max);
+		auto vp = vx::loadFloat3(&p);
+		auto bmin = vx::loadFloat3(&b.min);
+		auto bmax = vx::loadFloat3(&b.max);
 
 		auto vmin = _mm_min_ps(vp, bmin);
 		auto vmax = _mm_max_ps(vp, bmax);

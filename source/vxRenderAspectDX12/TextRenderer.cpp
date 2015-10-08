@@ -245,7 +245,7 @@ namespace Graphics
 		auto entryText = entry.m_text;
 		auto entryTextSize = entry.m_size;
 		auto entryOrigin = entry.m_position;
-		auto entryColor = vx::loadFloat4(entry.m_color);
+		auto entryColor = vx::loadFloat4(&entry.m_color);
 
 		auto currentSize = m_size;
 

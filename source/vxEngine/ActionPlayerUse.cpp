@@ -29,7 +29,7 @@ void ActionPlayerUse::run()
 		{
 			auto position = m_human->m_position;
 
-			auto qRotation = vx::loadFloat4(m_human->m_qRotation);
+			auto qRotation = vx::loadFloat4(&m_human->m_qRotation);
 			auto viewDir = vx::quaternionRotation(forward, qRotation);
 
 			vx::float3 dir;

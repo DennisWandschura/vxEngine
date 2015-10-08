@@ -39,6 +39,7 @@ class ActorFile : public vx::Serializable
 	char m_mesh[32];
 	char m_material[32];
 	f32 m_fovRad;
+	f32 m_maxViewDistance;
 
 public:
 	explicit ActorFile(u32 version);
@@ -53,10 +54,12 @@ public:
 	void setMesh(const char(&mesh)[32]);
 	void setMaterial(const char(&material)[32]);
 	void setFovRad(f32 fovRad) { m_fovRad = fovRad; }
+	void setMaxViewDistance(f32 dist) { m_maxViewDistance = dist; }
 
 	const char* getMesh() { return m_mesh; }
 	const char* getMaterial() { return m_material; }
 	f32 getFovRad() const { return m_fovRad; }
+	f32 getMaxViewDistance() const { return m_maxViewDistance; }
 
 	static u32 getGlobalVersion() { return 1; }
 };

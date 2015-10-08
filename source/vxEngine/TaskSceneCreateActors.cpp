@@ -75,7 +75,13 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 		transform.m_scaling = 1.0f;
 		transform.m_translation = it.position;
 
-		vx::StringID sidMesh, sidMaterial;
+		CreateActorDataDesc desc;
+		desc.height = g_heightStanding;
+		desc.transform = transform;
+		desc.spawnIndex = i;
+		desc.type = it.type;
+		desc.actorSid = it.actorSid;
+
 		f32 height = g_heightStanding;
 		f32 radius = 0.2f;
 		if (it.type != PlayerType::Human)
@@ -83,22 +89,14 @@ TaskReturnType TaskSceneCreateActors::runImpl()
 			auto actor = m_resourceAspect->getActor(it.actorSid);
 			VX_ASSERT(actor != nullptr);
 
-			sidMesh = actor->m_mesh;
-			sidMaterial = actor->m_material;
+			desc.meshSid = actor->m_mesh;
+			desc.materialSid = actor->m_material;;
+			desc.m_fovRad = actor->m_fovRad;
+			desc.m_maxViewDistance = actor->m_maxViewDistance;
+
 			height = 2.0f;
 			radius = 0.1f;
 		}
-
-		CreateActorDataDesc desc
-		{
-			transform,
-			it.actorSid,
-			sidMesh,
-			sidMaterial,
-			height,
-			i,
-			it.type
-		};
 
 		CreateActorData* data = new CreateActorData(desc);
 

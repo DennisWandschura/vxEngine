@@ -503,7 +503,7 @@ namespace Graphics
 			auto &light = lights[i];
 
 			Gpu::LightData data;
-			data.position = vx::loadFloat3(light.m_position);
+			data.position = vx::loadFloat3(&light.m_position);
 			data.falloff = light.m_falloff;
 			data.lumen = light.m_lumen;
 

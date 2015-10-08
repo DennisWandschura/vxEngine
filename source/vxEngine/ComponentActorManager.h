@@ -35,11 +35,23 @@ namespace vx
 }
 
 struct EntityActor;
+struct EntityHuman;
 class RenderAspectInterface;
 class QuadTree;
 class ActionManager;
 
 #include <vxEngineLib/Pool.h>
+
+struct CreateActorComponentDesc
+{
+	u16 entityIndex;
+	EntityHuman* human;
+	EntityActor* entity;
+	const QuadTree* quadTree; 
+	u16* componentIndex;
+	f32 fovRad;
+	f32 maxViewDistance;
+};
 
 class ComponentActorManager
 {
@@ -52,7 +64,7 @@ public:
 	void initialize(u32 capacity, vx::StackAllocator* pAllocator);
 	void shutdown();
 
-	Component::Actor* createComponent(u16 entityIndex, EntityActor* entity, const QuadTree* quadTree, u16* index);
+	Component::Actor* createComponent(const CreateActorComponentDesc &desc);
 
 	void update(ActionManager* actionManager, vx::StackAllocator* scratchAllocator);
 

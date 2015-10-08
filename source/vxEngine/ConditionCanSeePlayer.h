@@ -33,10 +33,24 @@ class ConditionCanSeePlayer: public Condition
 	EntityHuman* m_player;
 	EntityActor* m_actor;
 	f32 m_fov;
+	f32 m_maxViewDistance;
 
 public:
-	ConditionCanSeePlayer();
+	ConditionCanSeePlayer(EntityHuman* player, EntityActor* actor, f32 fovRad, f32 maxViewDistance);
 	~ConditionCanSeePlayer();
+
+	u8 test() const override;
+};
+
+class ConditionCanNotSeePlayer : public ConditionCanSeePlayer
+{
+	EntityHuman* m_player;
+	EntityActor* m_actor;
+	f32 m_fov;
+
+public:
+	ConditionCanNotSeePlayer(EntityHuman* player, EntityActor* actor, f32 fovRad, f32 maxViewDistance);
+	~ConditionCanNotSeePlayer();
 
 	u8 test() const override;
 };

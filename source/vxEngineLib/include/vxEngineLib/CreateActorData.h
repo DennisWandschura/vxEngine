@@ -45,6 +45,8 @@ struct CreateActorDataDesc
 	f32 height;
 	u16 spawnIndex;
 	PlayerType type;
+	f32 m_fovRad;
+	f32 m_maxViewDistance;
 };
 
 class CreateActorData : public SmallObject
@@ -59,6 +61,8 @@ class CreateActorData : public SmallObject
 	u16 m_gpuIndex;
 	u8 m_refCount;
 	PlayerType m_type;
+	f32 m_fovRad;
+	f32 m_maxViewDistance;
 
 public:
 	explicit CreateActorData(const CreateActorDataDesc &desc)
@@ -71,7 +75,9 @@ public:
 		m_spawnIndex(desc.spawnIndex),
 		m_gpuIndex(0),
 		m_refCount(0),
-		m_type(desc.type)
+		m_type(desc.type),
+		m_fovRad(desc.m_fovRad),
+		m_maxViewDistance(desc.m_maxViewDistance)
 	{
 	}
 
@@ -154,4 +160,8 @@ public:
 	{
 		return m_type;
 	}
+
+	f32 getFovRad() const { return m_fovRad; }
+
+	f32 getMaxViewDistance() const { return m_maxViewDistance; }
 };

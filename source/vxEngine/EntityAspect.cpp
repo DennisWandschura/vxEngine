@@ -153,7 +153,18 @@ void EntityAspect::createActorEntity(const CreateActorData &data)
 	entity->m_gpuIndex = data.getGpuIndex();
 
 	u16 componentActorIndex;
-	auto componentActor = m_componentActorManager.createComponent(entityIndex, entity, &m_quadTree, &componentActorIndex);
+	VX_ASSERT(m_entityHuman != nullptr);
+
+	CreateActorComponentDesc actorComponentDesc;
+	actorComponentDesc.entityIndex = entityIndex;
+	actorComponentDesc.human = m_entityHuman;
+	actorComponentDesc.entity = entity;
+	actorComponentDesc.quadTree = &m_quadTree;
+	actorComponentDesc.componentIndex = &componentActorIndex;
+	actorComponentDesc.fovRad = data.getFovRad();
+	actorComponentDesc.maxViewDistance = data.getMaxViewDistance();
+
+	auto componentActor = m_componentActorManager.createComponent(actorComponentDesc);
 
 	auto createdData = new CreatedActorData();
 	createdData->entity = entity;

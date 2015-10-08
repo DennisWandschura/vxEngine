@@ -34,6 +34,7 @@ namespace Converter
 		ptr = vx::read(actorFile->m_mesh, ptr);
 		ptr = vx::read(actorFile->m_material, ptr);
 		ptr = vx::read(actorFile->m_fovRad, ptr);
+		ptr = vx::read(actorFile->m_maxViewDistance, ptr);
 
 		return ptr;
 	}
@@ -47,6 +48,7 @@ namespace Converter
 		auto p = vx::write(buffer, actorFile.m_mesh);
 		p = vx::write(p, actorFile.m_material);
 		p = vx::write(p, actorFile.m_fovRad);
+		p = vx::write(p, actorFile.m_maxViewDistance);
 
 		return CityHash64((char*)buffer, bufferSize);
 	}

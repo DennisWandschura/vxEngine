@@ -25,9 +25,15 @@ SOFTWARE.
 #include "ConditionCanSeePlayer.h"
 #include "Entity.h"
 
-ConditionCanSeePlayer::ConditionCanSeePlayer()
+ConditionCanSeePlayer::ConditionCanSeePlayer(EntityHuman* player, EntityActor* actor, f32 fovRad, f32 maxViewDistance)
+	:m_player(player),
+	m_actor(actor),
+	m_fov(0.0f),
+	m_maxViewDistance(maxViewDistance)
 {
-
+	// 0 ... 1
+	auto fov = (fovRad * 0.5f) / vx::VX_PI;
+	m_fov = fov * (-2.0f) + 1.0f;
 }
 
 ConditionCanSeePlayer::~ConditionCanSeePlayer()
@@ -39,9 +45,9 @@ u8 ConditionCanSeePlayer::test() const
 {
 	const __m128 forwardDir{0, 0, -1, 0};
 
-	__m128 playerPosition = vx::loadFloat3(m_player->m_position);
-	__m128 actorPosition = vx::loadFloat3(m_actor->m_position);
-	__m128 qRotation = vx::loadFloat4(m_actor->m_qRotation);
+	__m128 playerPosition = vx::loadFloat4((vx::float4*)&m_player->m_position);
+	__m128 actorPosition = vx::loadFloat4((vx::float4*)&m_actor->m_position);
+	__m128 qRotation = vx::loadFloat4(&m_actor->m_qRotation);
 
 	auto directionToPlayer = _mm_sub_ps(playerPosition, actorPosition);
 	__m128 distanceToPlayer = vx::length3(directionToPlayer);
@@ -49,7 +55,31 @@ u8 ConditionCanSeePlayer::test() const
 
 	auto viewDirection = vx::quaternionRotation(forwardDir, qRotation);
 
-	auto angle = vx::dot3(viewDirection, directionToPlayer);
+	auto dp = vx::dot3(viewDirection, directionToPlayer);
+	if (dp.m128_f32[0] >= m_fov)
+	{
+		puts("");
+	}
+
+	// dp = 1: fov angle = 0°, 0
+	// dp = 0: fov angle = 45°, PI/2
+	// dp = -1: fov angle = 180°, PI
 
 	return 0;
+}
+
+ConditionCanNotSeePlayer::ConditionCanNotSeePlayer(EntityHuman* player, EntityActor* actor, f32 fovRad, f32 maxViewDistance)
+	:ConditionCanSeePlayer(player, actor, fovRad, maxViewDistance)
+{
+
+}
+
+ConditionCanNotSeePlayer::~ConditionCanNotSeePlayer()
+{
+
+}
+
+u8 ConditionCanNotSeePlayer::test() const
+{
+	return !ConditionCanSeePlayer::test();
 }
