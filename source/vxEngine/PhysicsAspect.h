@@ -148,7 +148,7 @@ protected:
 	void addMeshInstanceImpl(const MeshInstance &instance, void** outData);
 
 	bool raycast(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, const physx::PxQueryFilterData &filterData, f32 maxDistance, PhysicsHitData* hitData) const;
-	bool raycastNoPlayer(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, const physx::PxQueryFilterData &filterData, f32 maxDistance, PhysicsHitData* hitData) const;
+	bool raycastFilter(const physx::PxVec3 &origin, const physx::PxVec3 &unitDir, const physx::PxQueryFilterData &filterData, f32 maxDistance, physx::PxRigidDynamic* actor, PhysicsHitData* hitData) const;
 
 	physx::PxRigidActor* PhysicsAspect::getRigidActor(const vx::StringID &sid, PhysxRigidBodyType* outType);
 
@@ -182,8 +182,10 @@ public:
 	bool raycast_staticDynamic(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
 	bool raycast_staticDynamic(const vx::float3 &origin, const vx::float4a &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
 	bool raycast_staticDynamic(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
+	bool raycast_staticDynamicFilter(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, physx::PxRigidDynamic* actor, PhysicsHitData* hitData) const;
 
-	bool raycastDynamic(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
+	bool raycastDynamicNoPlayer(const vx::float3 &origin, const vx::float3 &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
+	bool raycastStaticNoPlayer(const vx::float4a &origin, const vx::float4a &unitDir, f32 maxDist, PhysicsHitData* hitData) const;
 
 	physx::PxRigidStatic* getStaticMesh(const vx::StringID &sid);
 	physx::PxRigidDynamic* getDynamicMesh(const vx::StringID &sid);

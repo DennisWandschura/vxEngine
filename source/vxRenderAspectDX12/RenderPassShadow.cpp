@@ -64,9 +64,8 @@ namespace RenderPassShadowCpp
 	}
 }
 
-RenderPassShadow::RenderPassShadow(d3d::CommandAllocator* alloc, DrawIndexedIndirectCommand* drawCmd)
+RenderPassShadow::RenderPassShadow(DrawIndexedIndirectCommand* drawCmd)
 	:RenderPassLight(),
-	m_cmdAlloc(alloc),
 	m_drawCmd(drawCmd),
 	m_buildList(0)
 {
@@ -236,11 +235,6 @@ bool RenderPassShadow::createPipelineState(ID3D12Device* device)
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
 
-bool RenderPassShadow::createCommandList(ID3D12Device* device)
-{
-	return m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get());
-}
-
 bool RenderPassShadow::createRtvs(ID3D12Device* device, u32 shadowCastingLightCount)
 {
 	auto shadowTextureLinear = s_resourceManager->getTextureRtDs(L"shadowTextureLinear");
@@ -286,7 +280,7 @@ bool RenderPassShadow::createRtvs(ID3D12Device* device, u32 shadowCastingLightCo
 	return true;
 }
 
-bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
+bool RenderPassShadow::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders())
 		return false;
@@ -297,7 +291,7 @@ bool RenderPassShadow::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device))
 		return false;
 
-	if (!createCommandList(device))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 		return false;
 
 	if (!createRtvs(device, s_settings->m_shadowCastingLightCount))
@@ -385,7 +379,7 @@ void RenderPassShadow::shutdown()
 
 }
 
-void RenderPassShadow::buildCommands()
+void RenderPassShadow::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	const f32 clearcolor[] = { 1.0f, 0, 0, 0 };
 	const f32 clearcolor0[] = { 0.0f, 0, 0, 0 };
@@ -394,6 +388,9 @@ void RenderPassShadow::buildCommands()
 	auto count = m_drawCmd->getCount();
 	if (count != 0 && m_visibleLightCount != 0)
 	{
+		auto &commandList = m_commandLists[frameIndex];
+		m_currentCommandList = &commandList;
+
 		D3D12_VIEWPORT viewPort;
 		viewPort.Height = (f32)s_settings->m_shadowDim;
 		viewPort.Width = (f32)s_settings->m_shadowDim;
@@ -408,20 +405,20 @@ void RenderPassShadow::buildCommands()
 		rectScissor.right = s_settings->m_shadowDim;
 		rectScissor.bottom = s_settings->m_shadowDim;
 
-		m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+		commandList->Reset(currentAllocator->get(), m_pipelineState.get());
 
-		s_gpuProfiler->queryBegin("rsm", &m_commandList);
+		s_gpuProfiler->queryBegin("rsm", &commandList);
 
-		m_commandList->RSSetViewports(1, &viewPort);
-		m_commandList->RSSetScissorRects(1, &rectScissor);
+		commandList->RSSetViewports(1, &viewPort);
+		commandList->RSSetScissorRects(1, &rectScissor);
 
 		auto srvHeap = m_heapSrv.get();
-		m_commandList->SetDescriptorHeaps(1, &srvHeap);
+		commandList->SetDescriptorHeaps(1, &srvHeap);
 
-		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-		m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(1, srvHeap->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(2, srvHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootSignature(m_rootSignature.get());
+		commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(1, srvHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(2, srvHeap->GetGPUDescriptorHandleForHeapStart());
 
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
 		vertexBufferViews[0] = s_resourceManager->getResourceView("meshVertexBufferView")->vbv;
@@ -430,11 +427,11 @@ void RenderPassShadow::buildCommands()
 
 		auto shadowCastingLightsBuffer = s_resourceManager->getBuffer(L"shadowCastingLightsBuffer");
 
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
-		m_commandList->IASetIndexBuffer(&indexBufferView);
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
+		commandList->IASetIndexBuffer(&indexBufferView);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		auto handleRtv = m_heapRtv.getHandleCpu();
 		auto handleDsv = m_heapDsv.getHandleCpu();
@@ -451,25 +448,25 @@ void RenderPassShadow::buildCommands()
 			handleRtv.offset(1);
 			rtvHandles[2] = handleRtv;
 
-			m_commandList->OMSetRenderTargets(3, rtvHandles, FALSE, &dsvHandle);
-			m_commandList->ClearRenderTargetView(rtvHandles[0], clearcolor, 0, nullptr);
-			m_commandList->ClearRenderTargetView(rtvHandles[1], clearcolor0, 0, nullptr);
-			m_commandList->ClearRenderTargetView(rtvHandles[2], clearcolor0, 0, nullptr);
-			m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+			commandList->OMSetRenderTargets(3, rtvHandles, FALSE, &dsvHandle);
+			commandList->ClearRenderTargetView(rtvHandles[0], clearcolor, 0, nullptr);
+			commandList->ClearRenderTargetView(rtvHandles[1], clearcolor0, 0, nullptr);
+			commandList->ClearRenderTargetView(rtvHandles[2], clearcolor0, 0, nullptr);
+			commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-			m_commandList->SetGraphicsRoot32BitConstant(3, i, 0);
+			commandList->SetGraphicsRoot32BitConstant(3, i, 0);
 
-			m_drawCmd->draw(m_commandList.get());
+			m_drawCmd->draw(commandList.get());
 
 			handleRtv.offset(1);
 			handleDsv.offset(1);
 		}
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowCastingLightsBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
-		s_gpuProfiler->queryEnd(&m_commandList);
+		s_gpuProfiler->queryEnd(&commandList);
 
-		auto hr = m_commandList->Close();
+		auto hr = commandList->Close();
 		m_buildList = 1;
 	}
 }
@@ -478,7 +475,7 @@ void RenderPassShadow::submitCommands(Graphics::CommandQueue* queue)
 {
 	if (m_buildList != 0)
 	{
-		queue->pushCommandList(&m_commandList);
+		queue->pushCommandList(m_currentCommandList);
 		m_buildList = 0;
 	}
 }

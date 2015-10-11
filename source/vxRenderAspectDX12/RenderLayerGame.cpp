@@ -30,8 +30,6 @@
 #include "RenderPassSSIL.h"
 #include "RenderPassFilterRSM.h"
 #include "RenderPassInjectRSM.h"
-#include "RenderPassDrawVoxel.h"
-#include "RenderPassVoxelMip.h"
 #include "RenderPassRenderLpv.h"
 #include "GpuVoxel.h"
 #include "RenderPassVoxelPropagate.h"
@@ -86,7 +84,7 @@ namespace RenderLayerGameCpp
 RenderLayerGame::RenderLayerGame(const RenderLayerGameDesc &desc)
 	:m_renderPasses(),
 	m_copyManager(desc.m_copyManager),
-	m_commandAllocator(),
+	m_allocators(),
 	m_lightManager(),
 	m_camera(desc.m_camera),
 	m_frustum(desc.m_frustum),
@@ -108,7 +106,7 @@ RenderLayerGame::RenderLayerGame(const RenderLayerGameDesc &desc)
 RenderLayerGame::RenderLayerGame(RenderLayerGame &&rhs)
 	:m_renderPasses(std::move(rhs.m_renderPasses)),
 	m_copyManager(rhs.m_copyManager),
-	m_commandAllocator(std::move(rhs.m_commandAllocator)),
+	m_allocators(std::move(rhs.m_allocators)),
 	m_lightManager(std::move(rhs.m_lightManager)),
 	m_camera(rhs.m_camera),
 	m_frustum(rhs.m_frustum),
@@ -136,25 +134,24 @@ RenderLayerGame::~RenderLayerGame()
 
 void RenderLayerGame::createRenderPasses()
 {
-	insertRenderPass(vx::make_sid("RenderPassGBuffer"), std::make_unique<RenderPassGBuffer>(&m_commandAllocator, &m_drawCommandMesh));
-	//insertRenderPass(vx::make_sid("RenderPassCullLights"), std::make_unique<RenderPassCullLights>(&m_commandAllocator, m_downloadManager));
-	insertRenderPass(vx::make_sid("RenderPassShadow"), std::make_unique<RenderPassShadow>(&m_commandAllocator, &m_drawCommandMesh));
-	insertRenderPass(vx::make_sid("RenderPassInjectRSM"), std::make_unique<RenderPassInjectRSM>(&m_commandAllocator));
-	insertRenderPass(vx::make_sid("RenderPassVoxelPropagate"), std::make_unique<RenderPassVoxelPropagate>(&m_commandAllocator));
-	insertRenderPass(vx::make_sid("RenderPassZBuffer"), std::make_unique<RenderPassZBuffer>(&m_commandAllocator));
-	insertRenderPass(vx::make_sid("RenderPassZBufferCreateMipmaps"), std::make_unique<RenderPassZBufferCreateMipmaps>(&m_commandAllocator));
-	insertRenderPass(vx::make_sid("RenderPassAO"), std::make_unique<RenderPassAO>(&m_commandAllocator));
-	insertRenderPass(vx::make_sid("RenderPassRenderLpv"), std::make_unique<RenderPassRenderLpv>(&m_commandAllocator));
-	insertRenderPass(vx::make_sid("RenderPassShading"), std::move(std::make_unique<RenderPassShading>(&m_commandAllocator)));
-	insertRenderPass(vx::make_sid("RenderPassSSIL"), std::make_unique<RenderPassSSIL>(&m_commandAllocator));
-	insertRenderPass(vx::make_sid("RenderPassFinal"), std::make_unique<RenderPassFinal>(&m_commandAllocator, m_device));
-	insertRenderPass(vx::make_sid("RenderPassCreateVpl"), std::make_unique<RenderPassCreateVpl>(&m_commandAllocator));
-	insertRenderPass(vx::make_sid("RenderPassFilterRSM"), std::make_unique<RenderPassFilterRSM>(&m_commandAllocator));
+	insertRenderPass(vx::make_sid("RenderPassGBuffer"), std::make_unique<RenderPassGBuffer>(&m_drawCommandMesh));
+	insertRenderPass(vx::make_sid("RenderPassShadow"), std::make_unique<RenderPassShadow>(&m_drawCommandMesh));
+	insertRenderPass(vx::make_sid("RenderPassInjectRSM"), std::make_unique<RenderPassInjectRSM>());
+	insertRenderPass(vx::make_sid("RenderPassVoxelPropagate"), std::make_unique<RenderPassVoxelPropagate>());
+	insertRenderPass(vx::make_sid("RenderPassZBuffer"), std::make_unique<RenderPassZBuffer>());
+	insertRenderPass(vx::make_sid("RenderPassZBufferCreateMipmaps"), std::make_unique<RenderPassZBufferCreateMipmaps>());
+	insertRenderPass(vx::make_sid("RenderPassAO"), std::make_unique<RenderPassAO>());
+	insertRenderPass(vx::make_sid("RenderPassRenderLpv"), std::make_unique<RenderPassRenderLpv>());
+	insertRenderPass(vx::make_sid("RenderPassShading"), std::move(std::make_unique<RenderPassShading>()));
+	insertRenderPass(vx::make_sid("RenderPassSSIL"), std::make_unique<RenderPassSSIL>());
+	insertRenderPass(vx::make_sid("RenderPassFinal"), std::make_unique<RenderPassFinal>(m_device));
+	insertRenderPass(vx::make_sid("RenderPassCreateVpl"), std::make_unique<RenderPassCreateVpl>());
+	insertRenderPass(vx::make_sid("RenderPassFilterRSM"), std::make_unique<RenderPassFilterRSM>());
 
 	RenderStage stage0;
 	stage0.pushRenderPass(findRenderPass("RenderPassGBuffer"));
-	//stage0.pushRenderPass(findRenderPass("RenderPassCullLights"));
 	stage0.pushRenderPass(findRenderPass("RenderPassShadow"));
+	stage0.pushRenderPass(findRenderPass("RenderPassZBuffer"));
 	stage0.pushRenderPass(findRenderPass("RenderPassFilterRSM"));
 	stage0.pushRenderPass(findRenderPass("RenderPassInjectRSM"));
 
@@ -163,12 +160,11 @@ void RenderLayerGame::createRenderPasses()
 	stage1.pushRenderPass(findRenderPass("RenderPassVoxelPropagate"));
 
 	RenderStage stage2;
-	stage2.pushRenderPass(findRenderPass("RenderPassZBuffer"));
 	stage2.pushRenderPass(findRenderPass("RenderPassZBufferCreateMipmaps"));
 	stage2.pushRenderPass(findRenderPass("RenderPassAO"));
 	stage2.pushRenderPass(findRenderPass("RenderPassRenderLpv"));
 	stage2.pushRenderPass(findRenderPass("RenderPassShading"));
-	stage2.pushRenderPass(findRenderPass("RenderPassSSIL"));
+	//stage2.pushRenderPass(findRenderPass("RenderPassSSIL"));
 	stage2.pushRenderPass(findRenderPass("RenderPassFinal"));
 
 	m_renderStages.push_back(stage0);
@@ -231,6 +227,24 @@ void RenderLayerGame::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u
 	*textureCount += 8;
 }
 
+bool RenderLayerGame::createData()
+{
+	auto device = m_device->getDevice();
+
+	if (!m_drawCommandMesh.create(L"drawCmdBuffer", ::RenderLayerGameCpp::g_maxMeshInstances, m_resourceManager, m_device->getDevice()))
+		return false;
+
+	createGpuObjects();
+
+	for (auto &it : m_renderPasses)
+	{
+		if (!it->createData(device))
+			return false;
+	}
+
+	return true;
+}
+
 void RenderLayerGame::createGpuObjects()
 {
 	CreateResourceDesc lpvDesc;
@@ -263,12 +277,16 @@ void RenderLayerGame::createGpuObjects()
 	}
 }
 
-bool RenderLayerGame::initialize(vx::StackAllocator* allocator, Logfile* errorLog)
+bool RenderLayerGame::initialize(u32 frameCount, vx::StackAllocator* allocator, Logfile* errorLog)
 {
 	auto device = m_device->getDevice();
-	if (!m_commandAllocator.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
+	m_allocators = std::make_unique<d3d::CommandAllocator[]>(frameCount);
+	for (u32 i = 0; i < frameCount; ++i)
 	{
-		return false;
+		if (!m_allocators[i].create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
+		{
+			return false;
+		}
 	}
 
 	if (!m_lightManager.initialize(*m_settings, allocator, m_settings->m_gpuLightCount, m_resourceManager, m_uploadManager))
@@ -277,20 +295,9 @@ bool RenderLayerGame::initialize(vx::StackAllocator* allocator, Logfile* errorLo
 	if (!m_meshManager.initialize(RenderLayerGameCpp::g_maxVertexCount, RenderLayerGameCpp::g_maxIndexCount, RenderLayerGameCpp::g_maxMeshInstances, m_resourceManager, device, allocator))
 		return false;
 
-	if (!m_drawCommandMesh.create(L"drawCmdBuffer", ::RenderLayerGameCpp::g_maxMeshInstances, m_resourceManager, m_device->getDevice()))
-		return false;
-
-	createGpuObjects();
-
 	for (auto &it : m_renderPasses)
 	{
-		if (!it->createData(device))
-			return false;
-	}
-
-	for (auto &it : m_renderPasses)
-	{
-		if (!it->initialize(device, nullptr))
+		if (!it->initialize(device, m_allocators.get(), frameCount))
 		{
 			errorLog->append("error initializing render pass\n");
 			return false;
@@ -319,7 +326,7 @@ void RenderLayerGame::shudown()
 
 	m_drawCommandMesh.destroy();
 	m_meshManager.shutdown();
-	m_commandAllocator.destroy();
+	m_allocators.reset();
 
 	m_copyManager = nullptr;
 }
@@ -365,14 +372,20 @@ void RenderLayerGame::update()
 	m_cpuProfiler->popMarker();
 }
 
-void RenderLayerGame::buildCommandLists()
+void RenderLayerGame::buildCommandLists(u32 frameIndex)
 {
-	auto hr = m_commandAllocator.reset();
+	m_cpuProfiler->pushMarker("RenderLayerGame::build");
+
+	auto &allocator = m_allocators[frameIndex];
+	auto hr = allocator->Reset();
+
 	VX_ASSERT(hr == 0);
 	for (auto &it : m_renderStages)
 	{
-		it.buildCommands();
+		it.buildCommands(&allocator, frameIndex);
 	}
+
+	m_cpuProfiler->popMarker();
 }
 
 void RenderLayerGame::submitCommandLists(Graphics::CommandQueue* queue)
@@ -383,6 +396,20 @@ void RenderLayerGame::submitCommandLists(Graphics::CommandQueue* queue)
 	}*/
 	for (auto &it : m_renderStages)
 	{
+		it.submitCommands(queue);
+	}
+	queue->execute();
+}
+
+void RenderLayerGame::buildAndSubmitCommandLists(u32 frameIndex, Graphics::CommandQueue* queue)
+{
+	auto &allocator = m_allocators[frameIndex];
+	auto hr = allocator->Reset();
+
+	VX_ASSERT(hr == 0);
+	for (auto &it : m_renderStages)
+	{
+		it.buildCommands(&allocator, frameIndex);
 		it.submitCommands(queue);
 	}
 	queue->execute();

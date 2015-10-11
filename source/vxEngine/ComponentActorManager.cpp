@@ -40,6 +40,7 @@ SOFTWARE.
 #include "Entity.h"
 #include <vxEngineLib/Locator.h>
 #include "ConditionCanSeePlayer.h"
+#include "ActionActorStop.h"
 
 ComponentActorManager::ComponentActorManager()
 	:m_pool()
@@ -100,6 +101,7 @@ Component::Actor* ComponentActorManager::createComponent(const CreateActorCompon
 
 	ConditionCanSeePlayer* conditionCanSeePlayer = new ConditionCanSeePlayer(desc.human, desc.entity, desc.fovRad, desc.maxViewDistance);
 	Transition* transitionMovingToCanSeePlayer = new Transition(conditionCanSeePlayer, stateCanSeePlayer);
+	transitionMovingToCanSeePlayer->addAction(new ActionActorStop(desc.entity, actorComponent, actionFollowPath));
 	stateMoving->addTransition(transitionMovingToCanSeePlayer);
 
 	ConditionCanNotSeePlayer* conditionCanNotSeePlayer = new ConditionCanNotSeePlayer(desc.human, desc.entity, desc.fovRad, desc.maxViewDistance);

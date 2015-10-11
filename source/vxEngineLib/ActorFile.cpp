@@ -6,7 +6,8 @@
 
 ActorFile::ActorFile(u32 version)
 	:vx::Serializable(version),
-	m_fovRad(1.1519173383712769f)
+	m_fovRad(1.1519173383712769f),
+	m_maxViewDistance(20.0f)
 {
 	m_mesh[0] = '\0';
 	m_material[0] = '\0';
@@ -22,6 +23,7 @@ void ActorFile::saveToFile(vx::File* f) const
 	f->write(m_mesh);
 	f->write(m_material);
 	f->write(m_fovRad);
+	f->write(m_maxViewDistance);
 }
 
 const u8* ActorFile::loadFromMemory(const u8 *ptr, u32 size, vx::Allocator* allocator)

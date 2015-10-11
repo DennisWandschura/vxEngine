@@ -198,12 +198,18 @@ namespace Graphics
 		m_size += strSize;
 	}
 
-	void TextRenderer::update(UploadManager* uploadManager, d3d::ResourceManager* resourceManager)
+	void TextRenderer::update(UploadManager* uploadManager, d3d::ResourceManager* resourceManager, bool upload)
 	{
 		if (m_size == 0 || m_font == nullptr)
 			return;
 
-		updateVertexBuffer(uploadManager, resourceManager);
+		if (upload)
+		{
+			updateVertexBuffer(uploadManager, resourceManager);
+		}
+
+		m_size = 0;
+		m_entryCount = 0;
 	}
 
 	void TextRenderer::updateVertexBuffer(UploadManager* uploadManager, d3d::ResourceManager* resourceManager)
@@ -235,9 +241,6 @@ namespace Graphics
 
 			m_renderPassText->setIndexCount(indexCount);
 		}
-
-		m_size = 0;
-		m_entryCount = 0;
 	}
 
 	void TextRenderer::writeEntryToVertexBuffer(const __m128 invTextureSize, const Entry &entry, u32* offset, u32 textureSize)
@@ -328,51 +331,4 @@ namespace Graphics
 			}
 		}
 	}
-
-	/*void TextRenderer::getCommandList(CommandList* cmdList)
-	{
-		auto pipeline = s_shaderManager->getPipeline("text.pipe");
-		auto vao = s_objectManager->getVertexArray("textVao");
-		auto fsId = pipeline->getFragmentShader();
-		auto cmdBuffer = s_objectManager->getBuffer("textCmd");
-
-		StateDescription stateDesc =
-		{
-			0,
-			vao->getId(),
-			pipeline->getId(),
-			cmdBuffer->getId(),
-			0,
-			false,
-			true,
-			false,
-			true,
-			{ 1, 1, 1, 1 },
-			1
-		};
-
-		State state;
-		state.set(stateDesc);
-
-		BlendEquationCommand blendEquCmdM;
-		blendEquCmdM.set(GL_FUNC_ADD);
-
-		BlendFuncCommand blendFuncCmd;
-		blendFuncCmd.set(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		ProgramUniformCommand uniformCmd;
-		uniformCmd.set(fsId, 0, 1, vx::gl::DataType::Unsigned_Int);
-
-		DrawElementsIndirectCommand drawCmd;
-		drawCmd.set(GL_TRIANGLES, GL_UNSIGNED_INT);
-
-		Segment drawText;
-		drawText.setState(state);
-		drawText.pushCommand(blendEquCmdM);
-		drawText.pushCommand(blendFuncCmd);
-		drawText.pushCommand(uniformCmd, reinterpret_cast<u8*>(&m_texureIndex));
-		drawText.pushCommand(drawCmd);
-
-		cmdList->pushSegment(drawText, "drawText");
-	}*/
 }

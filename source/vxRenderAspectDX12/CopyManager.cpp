@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "CopyManager.h"
 #include "d3dx12.h"
+#include "FrameData.h"
 
 struct CopyManager::Entry
 {
@@ -40,7 +41,10 @@ struct CopyManager::Entry
 };
 
 CopyManager::CopyManager()
-	:m_entries()
+	:m_currentCommandList(nullptr),
+	m_commandLists(),
+	m_buildList(0),
+	m_entries()
 {
 
 }
@@ -50,16 +54,15 @@ CopyManager::~CopyManager()
 
 }
 
-bool CopyManager::initialize(ID3D12Device* device)
+bool CopyManager::initialize(ID3D12Device* device, FrameData* frameData, u32 frameCount)
 {
-	if (!m_allocator.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
+	m_commandLists = std::make_unique<d3d::GraphicsCommandList[]>(frameCount);
+	for (u32 i = 0; i < frameCount; ++i)
 	{
-		return false;
-	}
-
-	if (!m_commandListCopy.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator.get()))
-	{
-		return false;
+		if (!m_commandLists[i].create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, frameData[i].m_allocatorCopy.get()))
+		{
+			return false;
+		}
 	}
 
 	return true;
@@ -67,7 +70,6 @@ bool CopyManager::initialize(ID3D12Device* device)
 
 void CopyManager::destroy()
 {
-	m_allocator.destroy();
 }
 
 void CopyManager::pushCopyBuffer(ID3D12Resource* src, u64 srcOffset, u32 srcStateBefore, u64 size, ID3D12Resource* dst, u64 dstOffset, u32 dstStateBefore)
@@ -100,47 +102,60 @@ void CopyManager::pushCopyTexture(ID3D12Resource* src, u32 srcStateBefore, ID3D1
 	m_entries.push_back(entry);
 }
 
-void CopyManager::buildCommandList()
+void CopyManager::buildCommandList(FrameData* currentFrameData, u32 frameIndex)
 {
-	m_allocator.reset();
-	m_commandListCopy->Reset(m_allocator.get(), nullptr);
+	auto allocator = currentFrameData->m_allocatorDownload.get();
+	auto &commandList = m_commandLists[frameIndex];
 
-	for (auto &it : m_entries)
+	if (!m_entries.empty())
 	{
-		switch (it.type)
+		allocator->Reset();
+		commandList->Reset(allocator, nullptr);
+
+		for (auto &it : m_entries)
 		{
-		case Entry::Type::Buffer:
-		{
-			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.src, (D3D12_RESOURCE_STATES)it.srcStateBefore, D3D12_RESOURCE_STATE_COPY_SOURCE));
-			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, (D3D12_RESOURCE_STATES)it.dstStateBefore, D3D12_RESOURCE_STATE_COPY_DEST));
+			switch (it.type)
+			{
+			case Entry::Type::Buffer:
+			{
+				commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.src, (D3D12_RESOURCE_STATES)it.srcStateBefore, D3D12_RESOURCE_STATE_COPY_SOURCE));
+				commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, (D3D12_RESOURCE_STATES)it.dstStateBefore, D3D12_RESOURCE_STATE_COPY_DEST));
 
-			m_commandListCopy->CopyBufferRegion(it.dst, it.dstOffset, it.src, it.srcOffset, it.size);
+				commandList->CopyBufferRegion(it.dst, it.dstOffset, it.src, it.srcOffset, it.size);
 
-			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.dstStateBefore));
-			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.src, D3D12_RESOURCE_STATE_COPY_SOURCE, (D3D12_RESOURCE_STATES)it.srcStateBefore));
-		}break;
-		case Entry::Type::Texture:
-		{
-			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.src, (D3D12_RESOURCE_STATES)it.srcStateBefore, D3D12_RESOURCE_STATE_COPY_SOURCE));
-			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, (D3D12_RESOURCE_STATES)it.dstStateBefore, D3D12_RESOURCE_STATE_COPY_DEST));
+				commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.dstStateBefore));
+				commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.src, D3D12_RESOURCE_STATE_COPY_SOURCE, (D3D12_RESOURCE_STATES)it.srcStateBefore));
+			}break;
+			case Entry::Type::Texture:
+			{
+				commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.src, (D3D12_RESOURCE_STATES)it.srcStateBefore, D3D12_RESOURCE_STATE_COPY_SOURCE));
+				commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, (D3D12_RESOURCE_STATES)it.dstStateBefore, D3D12_RESOURCE_STATE_COPY_DEST));
 
-			auto locationSrc = CD3DX12_TEXTURE_COPY_LOCATION(it.src, 0);
-			auto locationDst = CD3DX12_TEXTURE_COPY_LOCATION(it.dst, 0);
-			m_commandListCopy->CopyTextureRegion(&locationDst, 0, 0, 0, &locationSrc, nullptr);
+				auto locationSrc = CD3DX12_TEXTURE_COPY_LOCATION(it.src, 0);
+				auto locationDst = CD3DX12_TEXTURE_COPY_LOCATION(it.dst, 0);
+				commandList->CopyTextureRegion(&locationDst, 0, 0, 0, &locationSrc, nullptr);
 
-			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.dstStateBefore));
-			m_commandListCopy->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.src, D3D12_RESOURCE_STATE_COPY_SOURCE, (D3D12_RESOURCE_STATES)it.srcStateBefore));
-		}break;
-		default:
-			break;
+				commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.dstStateBefore));
+				commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.src, D3D12_RESOURCE_STATE_COPY_SOURCE, (D3D12_RESOURCE_STATES)it.srcStateBefore));
+			}break;
+			default:
+				break;
+			}
 		}
-	}
 
-	m_commandListCopy->Close();
-	m_entries.clear();
+		commandList->Close();
+		m_entries.clear();
+
+		m_currentCommandList = &commandList;
+		m_buildList = 1;
+	}
 }
 
 void CopyManager::submitList(Graphics::CommandQueue* queue)
 {
-	queue->pushCommandList(&m_commandListCopy);
+	if (m_buildList != 0)
+	{
+		queue->pushCommandList(m_currentCommandList);
+		m_buildList = 0;
+	}
 }

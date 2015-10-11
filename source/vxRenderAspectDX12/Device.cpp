@@ -123,27 +123,22 @@ namespace d3d
 		return true;
 	}
 
-	bool Device::createSwapChain(const vx::Window &window, CommandQueue* defaultQueue)
+	bool Device::createSwapChain(const vx::Window &window, CommandQueue* defaultQueue, u32 bufferCount)
 	{
 		auto hwnd = window.getHwnd();
-		auto resolution = window.getSize();
 
-		DXGI_SWAP_CHAIN_DESC1 desc;
-		desc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-		desc.BufferCount = 2;
-		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		desc.Height = 0;
-		desc.SampleDesc.Count = 1;
-		desc.SampleDesc.Quality = 0;
-		desc.Scaling = DXGI_SCALING_ASPECT_RATIO_STRETCH;
-		desc.Stereo = 0;
-		desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		desc.Width = 0;
+		DXGI_SWAP_CHAIN_DESC descSwapChain;
+		ZeroMemory(&descSwapChain, sizeof(descSwapChain));
+		descSwapChain.BufferCount = bufferCount;
+		descSwapChain.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		descSwapChain.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		descSwapChain.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+		descSwapChain.OutputWindow = window.getHwnd();
+		descSwapChain.SampleDesc.Count = 1;
+		descSwapChain.Windowed = 1;
 
-		IDXGISwapChain1* swapChain = nullptr;
-		HRESULT hresult = m_factory->CreateSwapChainForHwnd(defaultQueue->get(), hwnd, &desc, nullptr, nullptr, &swapChain);
+		IDXGISwapChain* swapChain = nullptr;
+		HRESULT hresult = m_factory->CreateSwapChain(defaultQueue->get(), &descSwapChain, &swapChain);
 		if (hresult != 0)
 			return false;
 
@@ -153,10 +148,15 @@ namespace d3d
 
 		swapChain->Release();
 
+		//m_swapChain->SetFullscreenState(1, 0);
+		//m_swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+		//m_swapChain->SetMaximumFrameLatency(bufferCount);
+
 		return true;
 	}
 
-	bool Device::initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, u32 queueCapacity, CommandQueue* defaultQueue)
+	bool Device::initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, u32 queueCapacity, CommandQueue* defaultQueue, u32 bufferCount)
 	{
 		if (!createDevice())
 		{
@@ -170,7 +170,7 @@ namespace d3d
 			return false;
 		}
 
-		if (!createSwapChain(window, defaultQueue))
+		if (!createSwapChain(window, defaultQueue, bufferCount))
 		{
 			printf("error creating swap chain\n");
 			return false;
@@ -189,13 +189,7 @@ namespace d3d
 
 	void Device::present()
 	{
-		DXGI_PRESENT_PARAMETERS params;
-		params.DirtyRectsCount = 0;
-		params.pDirtyRects = nullptr;
-		params.pScrollOffset = nullptr;
-		params.pScrollRect = nullptr;
-
-		m_swapChain->Present1(1, 0, &params);
+		m_swapChain->Present(0, 0);
 	}
 
 	u32 Device::getCurrentBackBufferIndex()
@@ -203,8 +197,8 @@ namespace d3d
 		return m_swapChain->GetCurrentBackBufferIndex();
 	}
 
-	bool Device::getBuffer(u32 index, const _GUID &riid, void **ppSurface)
+	bool Device::getBuffer(u32 index, ID3D12Resource** resource)
 	{
-		return (m_swapChain->GetBuffer(index, riid, ppSurface) == 0);
+		return (m_swapChain->GetBuffer(index, IID_PPV_ARGS(resource)) == 0);
 	}
 }

@@ -70,7 +70,7 @@ Component::Action* ComponentActionManager::getComponent(const vx::float3 &point,
 	Component::Action* result = nullptr;
 
 	PhysicsHitData hitData;
-	if (physicsAspect->raycastDynamic(point, dir, 1.5f, &hitData))
+	if (physicsAspect->raycastDynamicNoPlayer(point, dir, 1.5f, &hitData))
 	{
 		auto physxActor = hitData.actor;
 

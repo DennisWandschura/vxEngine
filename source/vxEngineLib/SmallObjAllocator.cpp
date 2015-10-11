@@ -301,6 +301,8 @@ bool SmallObjAllocator::deallocate(u8* p, u32 size)
 		return true;
 
 	std::lock_guard<std::mutex> guard(m_mutex);
+	if (m_allocators.empty())
+		return false;
 
 	if (!m_allocators[m_lastDealloc].contains(p))
 	{

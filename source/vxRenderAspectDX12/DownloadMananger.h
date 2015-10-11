@@ -29,20 +29,23 @@ namespace Graphics
 	class CommandQueue;
 }
 
+struct FrameData;
+
 #include "CommandList.h"
 #include "CommandAllocator.h"
 #include "Heap.h"
 #include "Resource.h"
 #include <vector>
 #include <vxEngineLib/Event.h>
+#include <memory>
 
 class DownloadManager
 {
 	struct DownloadEntry;
 	struct CopyEntry;
 
-	d3d::CommandAllocator m_allocator;
-	d3d::GraphicsCommandList m_commandList;
+	d3d::GraphicsCommandList* m_currentCommandList;
+	std::unique_ptr<d3d::GraphicsCommandList[]> m_commandLists;
 	u32 m_buildCommandList;
 	d3d::Resource m_bufferDownload;
 	std::vector<CopyEntry> m_copyEntries;
@@ -57,12 +60,12 @@ public:
 	DownloadManager();
 	~DownloadManager();
 
-	bool initialize(ID3D12Device* device);
+	bool initialize(ID3D12Device* device, FrameData* frameData, u32 frameCount);
 	void shutdown();
 
 	void pushDownloadBuffer(u8* dst, u32 size, d3d::Resource* cpySrc, u32 cpyOffset, const Event &evt);
 
-	void buildCommandList();
+	void buildCommandList(FrameData* currentFrameData, u32 frameIndex);
 	void submitCommandList(Graphics::CommandQueue* queue);
 
 	void downloadToCpu();

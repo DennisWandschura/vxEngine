@@ -65,21 +65,21 @@ namespace vx
 {
 	struct TaskBuffer
 	{
-		//ThreadSafeStack<LightTask*> m_tasks;
-		LightTask** m_tasks;
-		mutable std::mutex m_mutex;
-		u32 m_size;
-		u32 m_capacity;
-		f32 m_time;
+		ThreadSafeStack<LightTask*> m_tasks;
+		//LightTask** m_tasks;
+		//mutable std::mutex m_mutex;
+		//u32 m_size;
+		//u32 m_capacity;
+		atomic_float m_time;
 
 		TaskBuffer()
 			:m_tasks(),
-			m_mutex(),
-			m_size(0),
-			m_capacity(0),
-			m_time(0.0f)
+			//m_mutex(),
+			//m_size(0),
+			//m_capacity(0),
+			m_time()
 		{
-			//m_time.store(0.0f);
+			m_time.store(0.0f);
 		}
 
 		~TaskBuffer()
@@ -89,18 +89,18 @@ namespace vx
 		void initialize(u32 capacity, vx::StackAllocator* allocator)
 		{
 			auto ptr = allocator->allocate(sizeof(LightTask*) * capacity, 8);
-			//m_tasks.initialize(ptr, capacity);
-			m_tasks = (LightTask**)ptr;
-			vx::setZero(m_tasks, sizeof(LightTask*) * capacity);
+			m_tasks.initialize(ptr, capacity);
+			//m_tasks = (LightTask**)ptr;
+			//vx::setZero(m_tasks, sizeof(LightTask*) * capacity);
 
-			m_capacity = capacity;
+			//m_capacity = capacity;
 		}
 
 		bool pushTaskTS(LightTask* task, u32 capacity, f32 maxTime)
 		{
 			auto taskTime = task->getTimeMs();
 
-			std::lock_guard<std::mutex> lck(m_mutex);
+			/*std::lock_guard<std::mutex> lck(m_mutex);
 			auto oldTime = m_time;
 			auto newTime = oldTime + taskTime;
 
@@ -115,16 +115,18 @@ namespace vx
 			m_tasks[m_size++] = task;
 			m_time = newTime;
 
-			return true;
+			return true;*/
 
-			//auto oldTime = m_time.load();
+			auto oldTime = m_time.load();
 
-			/*f32 newTime;
+			f32 newTime;
 			do
 			{
 				newTime = oldTime + taskTime;
 				if (newTime >= maxTime)
+				{
 					return false;
+				}
 
 			} while (!m_time.compare_exchange_weak(&oldTime, newTime));
 
@@ -135,29 +137,28 @@ namespace vx
 				result = false;
 			}
 
-			return result;*/
+			return result;
 		}
 
 		u32 sizeTS() const
 		{
-			//return m_tasks.sizeTS();
-			std::lock_guard<std::mutex> lck(m_mutex);
-			return m_size;
+			return m_tasks.sizeTS();
+			//std::lock_guard<std::mutex> lck(m_mutex);
+			//return m_size;
 		}
 
 		void clear()
 		{
-			std::lock_guard<std::mutex> lck(m_mutex);
-			for (u32 i = 0; i < m_size; ++i)
+			/*for (u32 i = 0; i < m_size; ++i)
 			{
 				//delete(m_tasks[i]);
 				m_tasks[i] = nullptr;
 			}
 			m_size = 0;
-			m_time = 0.0f;
+			m_time = 0.0f;*/
 
-			//m_tasks.clear();
-			//m_time.store(0.0f);
+			m_tasks.clear();
+			m_time.store(0.0f);
 		}
 	};
 
@@ -501,11 +502,6 @@ namespace vx
 			m_queue->swapBuffer();
 			m_queue->processBack(&m_taskLog);
 		}
-	}
-
-	void TaskManager::updateMainThread()
-	{
-
 	}
 
 	void TaskManager::update()

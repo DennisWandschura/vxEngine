@@ -6,6 +6,7 @@
 #include "DownloadMananger.h"
 #include <vxEngineLib/Graphics/CommandQueue.h>
 #include "RenderAspect.h"
+#include "FrameData.h"
 
 struct GpuProfiler::Text
 {
@@ -20,7 +21,8 @@ struct GpuProfiler::Entry
 };
 
 GpuProfiler::GpuProfiler()
-	:m_data(),
+	:m_currentCommandList(nullptr),
+	m_data(),
 	m_frequency(0),
 	m_position(0, 0),
 	m_currentFrame(0),
@@ -60,12 +62,6 @@ bool GpuProfiler::initialize(u32 maxQueries, d3d::ResourceManager* resourceManag
 	if (buffer == nullptr)
 		return false;
 
-	if (!m_allocator.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
-		return false;
-
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator.get()))
-		return false;
-
 	if (!m_dlHeap.createBufferHeap(64 KBYTE, D3D12_HEAP_TYPE_READBACK, device))
 		return false;
 
@@ -101,7 +97,7 @@ void GpuProfiler::shutdown()
 	m_queryHeap.destroy();
 }
 
-void GpuProfiler::frame(d3d::ResourceManager* resourceManager)
+void GpuProfiler::frame(d3d::ResourceManager* resourceManager, FrameData* currentFrameData)
 {
 	auto queryFrame = m_currentFrame - 3;
 	if (queryFrame > 0)
@@ -115,23 +111,27 @@ void GpuProfiler::frame(d3d::ResourceManager* resourceManager)
 
 		if (count != 0)
 		{
-			m_allocator.reset();
-			m_commandList->Reset(m_allocator.get(), nullptr);
+			auto &allocator = currentFrameData->m_allocatorProfiler;
+			auto &commandList = currentFrameData->m_commandListProfiler;
+
+			allocator->Reset();
+			commandList->Reset(allocator.get(), nullptr);
 			auto bufferOffset = d3d::getAlignedSize((u64)m_countPerFrame * sizeof(u64) * (u64)queryBuffer, 256llu);
 			auto queryIndexOffset = queryBuffer * m_countPerFrame;
 
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buffer->get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COPY_DEST));
-			m_commandList->ResolveQueryData(m_queryHeap.get(), D3D12_QUERY_TYPE_TIMESTAMP, queryIndexOffset, count, buffer->get(), bufferOffset);
+			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buffer->get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COPY_DEST));
+			commandList->ResolveQueryData(m_queryHeap.get(), D3D12_QUERY_TYPE_TIMESTAMP, queryIndexOffset, count, buffer->get(), bufferOffset);
 
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buffer->get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE));
+			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buffer->get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_GENERIC_READ));
 
 			auto sizeInBytes = count * sizeof(u64);
-			m_commandList->CopyBufferRegion(m_dlBuffer.get(), bufferOffset, buffer->get(), bufferOffset, sizeInBytes);
+			commandList->CopyBufferRegion(m_dlBuffer.get(), bufferOffset, buffer->get(), bufferOffset, sizeInBytes);
 
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buffer->get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_GENERIC_READ));
+			//commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(buffer->get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_GENERIC_READ));
 
-			m_commandList->Close();
+			commandList->Close();
 
+			m_currentCommandList = &commandList;
 			m_buildCommands = 1;
 		}
 	}
@@ -231,7 +231,7 @@ void GpuProfiler::submitCommandList(Graphics::CommandQueue* queue)
 {
 	if (m_buildCommands != 0)
 	{
-		queue->pushCommandList(&m_commandList);
+		queue->pushCommandList(m_currentCommandList);
 		m_buildCommands = 0;
 	}
 }

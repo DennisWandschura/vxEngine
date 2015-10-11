@@ -33,7 +33,7 @@ namespace d3d
 {
 	class CommandAllocator
 	{
-		d3d::Object<ID3D12CommandAllocator> m_commandAllocator[2];
+		d3d::Object<ID3D12CommandAllocator> m_commandAllocator;
 
 	public:
 		CommandAllocator();
@@ -44,7 +44,9 @@ namespace d3d
 		bool create(D3D12_COMMAND_LIST_TYPE type, ID3D12Device* device);
 		void destroy();
 
-		u32 reset();
-		ID3D12CommandAllocator* get() { return m_commandAllocator[0].get(); }
+		ID3D12CommandAllocator* get() { return m_commandAllocator.get(); }
+
+		ID3D12CommandAllocator* operator->() { return m_commandAllocator.get(); }
+		const ID3D12CommandAllocator* operator->() const { return m_commandAllocator.get(); }
 	};
 }

@@ -33,28 +33,83 @@ SOFTWARE.
 #include <vxEngineLib/ResourceAspectInterface.h>
 #include <vxEngineLib/debugPrint.h>
 #include <csignal>
+#include "FrameData.h"
+#include <vxEngineLib/CpuTimer.h>
 
 const u32 g_swapChainBufferCount{ 2 };
 const u32 g_maxVertexCount{ 20000 };
 const u32 g_maxIndexCount{ 40000 };
 const u32 g_maxMeshInstances{ 128 };
 const u32 g_maxLightCount{64};
+const u8 g_frameCount{ 2 };
 
 RenderSettings RenderAspect::s_settings{};
 
 RenderAspect::RenderAspect()
-	:m_device(),
-	m_downloadManager(),
+	:m_graphicsCommandQueue(),
+	m_currentFrameData(nullptr),
+	m_threadData(nullptr),
+	m_fenceEvent(nullptr),
+	m_fence(),
+	m_currentFenceValue(0),
+	m_frameIndex(0),
+	m_drawToBackBuffer(),
+	m_device(),
+	m_activeLayers(),
+	m_gpuProfiler(),
+	m_copyManager(),
 	m_resourceManager(),
+	m_camera(),
+	m_debug(),
+	m_cpuProfiler(nullptr),
+	m_frustum(),
+	m_downloadManager(),
+	m_uploadManager(),
+	m_materialManager(),
 	m_taskManager(nullptr),
 	m_resourceAspect(nullptr),
-	m_msgManager(nullptr)
+	m_allocator(),
+	m_msgManager(nullptr),
+	m_shaderManager()
 {
 
 }
 
 RenderAspect::~RenderAspect()
 {
+}
+
+void RenderAspect::createThreadData(u32 threadCount, vx::StackAllocator* allocator)
+{
+	auto createFrameData = [](FrameData* frameData, ID3D12Device* device)
+	{
+		frameData->m_allocatorCopy.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device);
+		frameData->m_allocatorDownload.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device);
+		frameData->m_allocatorProfiler.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device);
+		frameData->m_allocatorUpload.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device);
+		frameData->m_commandListProfiler.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, frameData->m_allocatorProfiler.get());
+	};
+
+	auto device = m_device.getDevice();
+	m_threadData = (d3d::ThreadData*)allocator->allocate(sizeof(d3d::ThreadData)* threadCount, __alignof(d3d::ThreadData));
+	for (u32 i = 0; i < threadCount; ++i)
+	{
+		allocator->construct(&m_threadData[i].m_bundleAllocator);
+		m_threadData[i].m_bundleAllocator.create(D3D12_COMMAND_LIST_TYPE_BUNDLE, device);
+		m_threadData[i].m_bundleAllocator->Reset();
+
+		allocator->construct(&m_threadData[i].m_staticAllocator);
+		m_threadData[i].m_staticAllocator.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device);
+		m_threadData[i].m_staticAllocator->Reset();
+
+		allocator->construct(&m_threadData[i].m_frameData[0]);
+		allocator->construct(&m_threadData[i].m_frameData[1]);
+
+		createFrameData(&m_threadData[i].m_frameData[0], device);
+		createFrameData(&m_threadData[i].m_frameData[1], device);
+	}
+
+	m_currentFrameData = &m_threadData[0].m_frameData[0];
 }
 
 void RenderAspect::getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u32* bufferCount, u64* textureHeapSize, u32* textureCount, u64* rtDsHeapSize, u32* rtDsCount)
@@ -116,20 +171,20 @@ void RenderAspect::uploadStaticCameraData()
 	auto resolution = s_settings.m_resolution;
 
 	vx::float4 projInfo;
-	projInfo.x = 2.0 / (static_cast<f64>(resolution.x) * projectionMatrixDouble.c[0].m256d_f64[0]);
-	projInfo.y = -2.0 / (static_cast<f64>(resolution.y) * projectionMatrixDouble.c[1].m256d_f64[1]);//-2.0 / (resolution.y * projectionMatrixDouble.c[1].m256d_f64[1]);
-	projInfo.z = -1.0 / projectionMatrixDouble.c[0].m256d_f64[0];
-	projInfo.w = 1.0f / projectionMatrixDouble.c[1].m256d_f64[1];//(1.0 + projectionMatrixDouble.c[1].m256d_f64[2]) / projectionMatrixDouble.c[1].m256d_f64[1];
+	projInfo.x = static_cast<f32>(2.0 / (static_cast<f64>(resolution.x) * projectionMatrixDouble.c[0].m256d_f64[0]));
+	projInfo.y = static_cast<f32>(-2.0 / (static_cast<f64>(resolution.y) * projectionMatrixDouble.c[1].m256d_f64[1]));//-2.0 / (resolution.y * projectionMatrixDouble.c[1].m256d_f64[1]);
+	projInfo.z = static_cast<f32>(-1.0 / projectionMatrixDouble.c[0].m256d_f64[0]);
+	projInfo.w = static_cast<f32>(1.0f / projectionMatrixDouble.c[1].m256d_f64[1]);//(1.0 + projectionMatrixDouble.c[1].m256d_f64[2]) / projectionMatrixDouble.c[1].m256d_f64[1];
 
 	vx::mat4 projMatrix;
 	projectionMatrixDouble.asFloat(&projMatrix);
 
 	GpuCameraStatic cameraStaticData;
-	cameraStaticData.orthoMatrix = vx::MatrixOrthographicRHDX(resolution.x, resolution.y, s_settings.m_nearZ, s_settings.m_farZ);
+	cameraStaticData.orthoMatrix = vx::MatrixOrthographicRHDX(static_cast<f32>(resolution.x), static_cast<f32>(resolution.y), static_cast<f32>(s_settings.m_nearZ), static_cast<f32>(s_settings.m_farZ));
 	cameraStaticData.invProjMatrix = vx::MatrixInverse(projMatrix);
 	cameraStaticData.projInfo = projInfo;
-	cameraStaticData.zFar = s_settings.m_farZ;
-	cameraStaticData.zNear = s_settings.m_nearZ;
+	cameraStaticData.zFar = static_cast<f32>(s_settings.m_farZ);
+	cameraStaticData.zNear = static_cast<f32>(s_settings.m_nearZ);
 	cameraStaticData.resolution = vx::float2a(resolution);
 
 	auto constantBuffer = m_resourceManager.getBuffer(L"constantBuffer");
@@ -161,14 +216,15 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	m_resourceAspect = desc.resourceAspect;
 	m_msgManager = desc.msgManager;
 
-	f64 screenAspect = (f64)desc.settings->m_resolution.x / (f64)desc.settings->m_resolution.y;
+	auto resolution = desc.settings->m_resolution;
+	f64 screenAspect = (f64)resolution.x / (f64)resolution.y;
 	f64 fovRad = vx::degToRad(desc.settings->m_fovDeg);
 
 	s_settings.m_projectionMatrix = vx::MatrixPerspectiveFovRHDX(fovRad, screenAspect, (f64)desc.settings->m_zNear, (f64)desc.settings->m_zFar);
 	s_settings.m_farZ = desc.settings->m_zFar;
 	s_settings.m_nearZ = desc.settings->m_zNear;
 	s_settings.m_fovRad = fovRad;
-	s_settings.m_resolution = desc.settings->m_resolution;
+	s_settings.m_resolution = resolution;
 	s_settings.m_gpuLightCount = 64;
 	s_settings.m_shadowCastingLightCount = 10;
 	s_settings.m_textureDim = 1024;
@@ -202,12 +258,14 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 #endif
 	m_shaderManager.initialize(shaderRootDir);
 
+	const u32 backBufferCount = 2;
+
 	D3D12_COMMAND_QUEUE_DESC cmdQueueDesc;
 	cmdQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	cmdQueueDesc.NodeMask = 1;
 	cmdQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 	cmdQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	if (!m_device.initialize(*desc.window, cmdQueueDesc, 64, &m_graphicsCommandQueue))
+	if (!m_device.initialize(*desc.window, cmdQueueDesc, 64, &m_graphicsCommandQueue, backBufferCount))
 	{
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing device");
 		errorlog->append("error initializing device\n");
@@ -226,6 +284,9 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 		}
 	}
 
+	u32 threadCount = 1;
+	createThreadData(threadCount, desc.pAllocator);
+
 	SCOPE_EXIT
 	{
 		if (debugMode)
@@ -234,19 +295,26 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 		}
 	};
 
-	if (!m_uploadManager.initialize(device))
+	m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
+	if (m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_fence.getAddressOf())) != 0)
+	{
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
+
+	if (!m_uploadManager.initialize(device, m_threadData[0].m_frameData, g_frameCount))
 	{
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing upload manager");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	if (!m_copyManager.initialize(device))
+	if (!m_copyManager.initialize(device, m_threadData[0].m_frameData, g_frameCount))
 	{
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing copy manager");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	if (!m_downloadManager.initialize(device))
+	if (!m_downloadManager.initialize(device, m_threadData[0].m_frameData, g_frameCount))
 	{
 		vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing download manager");
 		return RenderAspectInitializeError::ERROR_CONTEXT;
@@ -275,9 +343,9 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 	auto renderLayerGame = new RenderLayerGame(renderLayerGameDesc);
 	m_activeLayers.push_back(renderLayerGame);
 
-	m_activeLayers.push_back(new RenderLayerPerfOverlay(&m_device, m_resourceAspect, &m_uploadManager, &m_resourceManager));
+	m_activeLayers.push_back(new RenderLayerPerfOverlay(&m_device, m_resourceAspect, &m_uploadManager, &m_resourceManager, resolution));
 
-	RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager, &s_settings, &m_gpuProfiler);
+	RenderPass::provideData(&m_shaderManager, &m_resourceManager, &m_uploadManager, &s_settings, &m_gpuProfiler, m_threadData);
 
 	for (auto &it : m_activeLayers)
 	{
@@ -306,8 +374,8 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 		return RenderAspectInitializeError::ERROR_CONTEXT;
 	}
 
-	auto halResolution = (desc.settings->m_resolution / vx::uint2(2));
-	vx::float2 gpuProfilerPosition = vx::float2(-static_cast<f32>(halResolution.x), halResolution.y);
+	auto halResolution = (resolution / vx::uint2(2));
+	vx::float2 gpuProfilerPosition = vx::float2(-static_cast<f32>(halResolution.x), static_cast<f32>(halResolution.y));
 	gpuProfilerPosition += vx::float2(10, -20);
 	if (!m_gpuProfiler.initialize(256, &m_resourceManager, device, m_graphicsCommandQueue.get(), gpuProfilerPosition))
 	{
@@ -324,7 +392,17 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 
 	for (auto &it : m_activeLayers)
 	{
-		if (!it->initialize(&m_allocator, errorlog))
+		if (!it->createData())
+		{
+			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error creating render layer data");
+			errorlog->append("error creating render layer data\n");
+			return RenderAspectInitializeError::ERROR_CONTEXT;
+		}
+	}
+
+	for (auto &it : m_activeLayers)
+	{
+		if (!it->initialize(g_frameCount, &m_allocator, errorlog))
 		{
 			vx::verboseChannelPrintF(0, vx::debugPrint::Channel_Render, "error initializing render layers");
 			errorlog->append("error initializing render layers\n");
@@ -332,16 +410,39 @@ RenderAspectInitializeError RenderAspect::initializeImpl(const RenderAspectDescr
 		}
 	}
 
+	if (!m_drawToBackBuffer.initialize(&m_device, &m_shaderManager, &m_resourceManager, backBufferCount, g_frameCount))
+	{
+		return RenderAspectInitializeError::ERROR_CONTEXT;
+	}
+
 	uploadStaticCameraData();
 
-	m_graphicsCommandQueue.wait();
+	m_frameIndex = 0;//m_device.getCurrentBackBufferIndex();
+	waitForGpu();
 
 	return RenderAspectInitializeError::OK;
 }
 
+void RenderAspect::waitForGpu()
+{
+	auto lastFenceValue = m_currentFenceValue;
+
+	m_graphicsCommandQueue.signal(m_fence.get(), m_currentFenceValue);
+	++m_currentFenceValue;
+
+	auto lastCompletedFence = m_fence->GetCompletedValue();
+
+	if (lastCompletedFence < lastFenceValue)
+	{
+		auto event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		m_fence->SetEventOnCompletion(lastFenceValue, event);
+		WaitForSingleObject(event, INFINITE);
+	}
+}
+
 void RenderAspect::shutdown(void* hwnd)
 {
-	m_graphicsCommandQueue.wait();
+	wait();
 
 	m_shaderManager.shutdown();
 	m_msgManager = nullptr;
@@ -628,15 +729,15 @@ void RenderAspect::buildCommands()
 {
 	m_downloadManager.downloadToCpu();
 
-	m_gpuProfiler.frame(&m_resourceManager);
+	m_gpuProfiler.frame(&m_resourceManager, m_currentFrameData);
 
-	m_copyManager.buildCommandList();
-	m_downloadManager.buildCommandList();
-	m_uploadManager.buildCommandList();
+	m_copyManager.buildCommandList(m_currentFrameData, m_frameIndex);
+	m_downloadManager.buildCommandList(m_currentFrameData, m_frameIndex);
+	m_uploadManager.buildCommandList(m_currentFrameData, m_frameIndex);
 
 	for (auto &it : m_activeLayers)
 	{
-		it->buildCommandLists();
+		it->buildCommandLists(m_frameIndex);
 	}
 }
 
@@ -653,6 +754,13 @@ void RenderAspect::submitCommands()
 	{
 		it->submitCommandLists(&m_graphicsCommandQueue);
 	}
+
+	m_drawToBackBuffer.submitList(&m_graphicsCommandQueue, &m_device, m_frameIndex);
+	m_graphicsCommandQueue.execute();
+
+	m_currentFrameData->m_fenceValue = m_currentFenceValue;
+	m_graphicsCommandQueue.signal(m_fence.get(), m_currentFenceValue);
+	++m_currentFenceValue;
 }
 
 void RenderAspect::swapBuffers()
@@ -662,7 +770,17 @@ void RenderAspect::swapBuffers()
 
 void RenderAspect::wait()
 {
-	m_graphicsCommandQueue.wait();
+	m_frameIndex = (m_frameIndex + 1) & 1;
+	m_currentFrameData = &m_threadData[0].m_frameData[m_frameIndex];
+	const UINT64 lastCompletedFence = m_fence->GetCompletedValue();
+	// Make sure that this frame resource isn't still in use by the GPU.
+	// If it is, wait for it to complete.
+
+	if (m_currentFrameData->m_fenceValue > lastCompletedFence)
+	{
+		m_fence->SetEventOnCompletion(m_currentFrameData->m_fenceValue, m_fenceEvent);
+		WaitForSingleObject(m_fenceEvent, INFINITE);
+	}
 }
 
 void RenderAspect::handleMessage(const vx::Message &msg)

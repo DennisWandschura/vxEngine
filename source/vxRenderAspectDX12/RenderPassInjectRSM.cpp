@@ -7,10 +7,8 @@
 #include "ResourceDesc.h"
 #include "GpuProfiler.h"
 
-RenderPassInjectRSM::RenderPassInjectRSM(d3d::CommandAllocator* allocator)
+RenderPassInjectRSM::RenderPassInjectRSM()
 	:RenderPassLight(),
-	m_allocator(allocator),
-	m_commandList(),
 	m_buildList(0)
 {
 
@@ -199,7 +197,7 @@ bool RenderPassInjectRSM::createUavClear(ID3D12Device* device)
 	return true;
 }
 
-bool RenderPassInjectRSM::initialize(ID3D12Device* device, void* p)
+bool RenderPassInjectRSM::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders())
 		return false;
@@ -223,7 +221,7 @@ bool RenderPassInjectRSM::initialize(ID3D12Device* device, void* p)
 	if (!createUavClear(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator->get(), m_pipelineState.get()))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 		return false;
 
 	return true;
@@ -234,32 +232,35 @@ void RenderPassInjectRSM::shutdown()
 
 }
 
-void RenderPassInjectRSM::buildCommands()
+void RenderPassInjectRSM::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	const u32 clearValues[4] = { 0, 0, 0,0 };
 	if (m_visibleLightCount != 0)
 	{
+		auto &commandList = m_commandLists[frameIndex];
+		m_currentCommandList = &commandList;
+
 		u32 textureDim = s_settings->m_shadowDim / 4;
 
 		auto voxelTextureColor = s_resourceManager->getTexture(L"voxelTextureColor");
 		auto voxelTextureNormals = s_resourceManager->getTexture(L"voxelTextureNormals");
 		auto shadowReverseTransformBuffer = s_resourceManager->getBuffer(L"shadowReverseTransformBuffer");
 
-		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
+		commandList->Reset(currentAllocator->get(), m_pipelineState.get());
 
-		s_gpuProfiler->queryBegin("inject rsm", &m_commandList);
+		s_gpuProfiler->queryBegin("inject rsm", &commandList);
 
 		auto clearHandleGpu = m_uavClearHeap.getHandleGpu();
 		auto clearHandleCpu = m_uavClearHeap.getHandleCpu();
 
-		m_commandList->ClearUnorderedAccessViewUint(clearHandleGpu, clearHandleCpu, voxelTextureColor->get(), clearValues, 0, nullptr);
+		commandList->ClearUnorderedAccessViewUint(clearHandleGpu, clearHandleCpu, voxelTextureColor->get(), clearValues, 0, nullptr);
 
 		clearHandleGpu.offset(1);
 		clearHandleCpu.offset(1);
-		m_commandList->ClearUnorderedAccessViewUint(clearHandleGpu, clearHandleCpu, voxelTextureNormals->get(), clearValues, 0, nullptr);
+		commandList->ClearUnorderedAccessViewUint(clearHandleGpu, clearHandleCpu, voxelTextureNormals->get(), clearValues, 0, nullptr);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		ID3D12DescriptorHeap* heaps[1] =
 		{
@@ -280,27 +281,27 @@ void RenderPassInjectRSM::buildCommands()
 		rectScissor.right = textureDim;
 		rectScissor.bottom = textureDim;
 
-		m_commandList->RSSetScissorRects(1, &rectScissor);
-		m_commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &rectScissor);
+		commandList->RSSetViewports(1, &viewport);
 
 		//D3D12_CPU_DESCRIPTOR_HANDLE rtvHanlde = m_rtvHeap.getHandleCpu();
 		//m_commandList->OMSetRenderTargets(1, &rtvHanlde, 0, nullptr);
 
-		m_commandList->SetDescriptorHeaps(1, heaps);
-		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+		commandList->SetDescriptorHeaps(1, heaps);
+		commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
-		m_commandList->SetGraphicsRootDescriptorTable(0, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(2, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(0, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(2, m_srvHeap->GetGPUDescriptorHandleForHeapStart());
 
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 		auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
 		auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
 		auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		for (u32 lightIndex = 0; lightIndex < m_visibleLightCount; ++lightIndex)
 		{
@@ -308,24 +309,24 @@ void RenderPassInjectRSM::buildCommands()
 			rootData.x = lightIndex;
 			rootData.y = 0;
 
-			m_commandList->SetGraphicsRoot32BitConstant(1, lightIndex, 0);
+			commandList->SetGraphicsRoot32BitConstant(1, lightIndex, 0);
 
-			m_commandList->DrawInstanced(textureDim * textureDim, 6, 0, 0);
+			commandList->DrawInstanced(textureDim * textureDim, 6, 0, 0);
 
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureNormals->get()));
+			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureColor->get()));
+			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(voxelTextureNormals->get()));
 		}
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowReverseTransformBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 
-		s_gpuProfiler->queryEnd(&m_commandList);
+		s_gpuProfiler->queryEnd(&commandList);
 
-		m_commandList->Close();
+		commandList->Close();
 		m_buildList = 1;
 	}
 }
@@ -334,7 +335,7 @@ void RenderPassInjectRSM::submitCommands(Graphics::CommandQueue* queue)
 {
 	if (m_buildList != 0)
 	{
-		queue->pushCommandList(&m_commandList);
+		queue->pushCommandList(m_currentCommandList);
 		m_buildList = 0;
 	}
 }

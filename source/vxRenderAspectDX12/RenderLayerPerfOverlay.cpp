@@ -35,20 +35,23 @@ SOFTWARE.
 #include "RenderPassText.h"
 #include "Device.h"
 #include <vxEngineLib/Logfile.h>
+#include "ResourceDesc.h"
+#include <vxEngineLib/CpuTimer.h>
 
 namespace RenderLayerPerfOverlayCpp
 {
 	const u32 g_maxCharacters = 2048;
 }
 
-RenderLayerPerfOverlay::RenderLayerPerfOverlay(d3d::Device* device, ResourceAspectInterface* resourceAspectInterface, UploadManager* uploadManager, d3d::ResourceManager* resourceManager)
+RenderLayerPerfOverlay::RenderLayerPerfOverlay(d3d::Device* device, ResourceAspectInterface* resourceAspectInterface, UploadManager* uploadManager, d3d::ResourceManager* resourceManager, const vx::uint2 &resolution)
 	:Graphics::RenderLayer(),
 	m_textRenderer(),
 	m_font(nullptr),
 	m_uploadManager(uploadManager),
 	m_resourceManager(resourceManager),
 	m_device(device),
-	m_resourceAspect(resourceAspectInterface)
+	m_resourceAspect(resourceAspectInterface),
+	m_resolution(resolution)
 {
 
 }
@@ -60,7 +63,7 @@ RenderLayerPerfOverlay::~RenderLayerPerfOverlay()
 
 void RenderLayerPerfOverlay::createRenderPasses()
 {
-	m_renderPasses.insert(vx::make_sid("RenderPassText"), std::unique_ptr<RenderPass>(new RenderPassText(&m_allocator, m_device)));
+	m_renderPasses.insert(vx::make_sid("RenderPassText"), std::unique_ptr<RenderPass>(new RenderPassText(m_device)));
 }
 
 void RenderLayerPerfOverlay::getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount)
@@ -72,21 +75,56 @@ void RenderLayerPerfOverlay::getRequiredMemory(u64* heapSizeBuffer, u32* bufferC
 	{
 		it->getRequiredMemory(heapSizeBuffer, bufferCount, heapSizeTexture, textureCount, heapSizeRtDs, rtDsCount, device);
 	}
+
+	d3d::ResourceDesc resDesc = d3d::ResourceDesc::getDescTexture2D(m_resolution, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	resDesc.DepthOrArraySize = 2;
+	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
+	*heapSizeRtDs += allocInfo.SizeInBytes;
+	*rtDsCount += 1;
 }
 
-bool RenderLayerPerfOverlay::initialize(vx::StackAllocator* allocator, Logfile* errorLog)
+bool RenderLayerPerfOverlay::createData()
+{
+	auto device = m_device->getDevice();
+	if (!m_textRenderer.createData(device, m_resourceManager, m_uploadManager, RenderLayerPerfOverlayCpp::g_maxCharacters))
+	{
+		return false;
+	}
+
+	for (auto &it : m_renderPasses)
+	{
+		if (!it->createData(device))
+			return false;
+	}
+
+	d3d::ResourceDesc resDesc = d3d::ResourceDesc::getDescTexture2D(m_resolution, DXGI_FORMAT_R8G8B8A8_UNORM, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	resDesc.DepthOrArraySize = 2;
+	auto allocInfo = device->GetResourceAllocationInfo(1, 1, &resDesc);
+
+	D3D12_CLEAR_VALUE clearValue{};
+	clearValue.Format = resDesc.Format;
+
+	CreateResourceDesc desc;
+	desc.clearValue = &clearValue;
+	desc.resDesc = &resDesc;
+	desc.size = allocInfo.SizeInBytes;
+	desc.state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+	auto ptr = m_resourceManager->createTextureRtDs(L"layerOverlayTexture", desc);
+
+	return (ptr != nullptr);
+}
+
+bool RenderLayerPerfOverlay::initialize(u32 frameCount, vx::StackAllocator* allocator, Logfile* errorLog)
 {
 	auto device = m_device->getDevice();
 	auto renderPassText = m_renderPasses.find(vx::make_sid("RenderPassText"));
 
-	if (!m_allocator.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
-		return false;
-
-	m_textRenderer.createData(device, m_resourceManager, m_uploadManager, RenderLayerPerfOverlayCpp::g_maxCharacters);
-
-	for (auto &it : m_renderPasses)
+	m_allocators = std::make_unique<d3d::CommandAllocator[]>(frameCount);
+	for (u32 i = 0; i < frameCount; ++i)
 	{
-		it->createData(device);
+		if (!m_allocators[i].create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
+			return false;
 	}
 
 	Graphics::TextRendererDesc desc;
@@ -110,7 +148,7 @@ bool RenderLayerPerfOverlay::initialize(vx::StackAllocator* allocator, Logfile* 
 
 	for (auto &it : m_renderPasses)
 	{
-		it->initialize(device, nullptr);
+		it->initialize(device, m_allocators.get(), frameCount);
 	}
 
 	return true;
@@ -123,7 +161,17 @@ void RenderLayerPerfOverlay::shudown()
 
 void RenderLayerPerfOverlay::update()
 {
-	m_textRenderer.update(m_uploadManager, m_resourceManager);
+	static CpuTimer timer;
+
+	auto elapsedTime = timer.getTimeSeconds();
+	bool upload = (elapsedTime >= 0.25f);
+
+	m_textRenderer.update(m_uploadManager, m_resourceManager, upload);
+
+	if (upload)
+	{
+		timer.reset();
+	}
 }
 
 void RenderLayerPerfOverlay::queueUpdate(const RenderUpdateTaskType type, const u8* data, u32 dataSize)
@@ -140,12 +188,13 @@ void RenderLayerPerfOverlay::queueUpdate(const RenderUpdateTaskType type, const 
 	}
 }
 
-void RenderLayerPerfOverlay::buildCommandLists()
+void RenderLayerPerfOverlay::buildCommandLists(u32 frameIndex)
 {
-	m_allocator.reset();
+	auto idx = m_device->getCurrentBackBufferIndex();
+	m_allocators[frameIndex]->Reset();
 	for (auto &it : m_renderPasses)
 	{
-		it->buildCommands();
+		it->buildCommands(&m_allocators[frameIndex], frameIndex);
 	}
 }
 
@@ -153,6 +202,17 @@ void RenderLayerPerfOverlay::submitCommandLists(Graphics::CommandQueue* queue)
 {
 	for (auto &it : m_renderPasses)
 	{
+		it->submitCommands(queue);
+	}
+	queue->execute();
+}
+
+void RenderLayerPerfOverlay::buildAndSubmitCommandLists(u32 frameIndex, Graphics::CommandQueue* queue)
+{
+	m_allocators[frameIndex]->Reset();
+	for (auto &it : m_renderPasses)
+	{
+		it->buildCommands(&m_allocators[frameIndex], frameIndex);
 		it->submitCommands(queue);
 	}
 	queue->execute();

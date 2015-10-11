@@ -31,9 +31,8 @@ SOFTWARE.
 #include "GpuProfiler.h"
 #include <vxLib/string.h>
 
-RenderPassRenderLpv::RenderPassRenderLpv(d3d::CommandAllocator* cmdAlloc)
-	:m_commandList(),
-	m_cmdAlloc(cmdAlloc)
+RenderPassRenderLpv::RenderPassRenderLpv()
+	:RenderPass()
 {
 
 }
@@ -251,7 +250,7 @@ bool RenderPassRenderLpv::createSrv(ID3D12Device* device)
 	return true;
 }
 
-bool RenderPassRenderLpv::initialize(ID3D12Device* device, void* p)
+bool RenderPassRenderLpv::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders())
 		return false;
@@ -262,7 +261,7 @@ bool RenderPassRenderLpv::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 		return false;
 
 	if (!createRtv(device))
@@ -279,7 +278,7 @@ void RenderPassRenderLpv::shutdown()
 
 }
 
-void RenderPassRenderLpv::buildCommands()
+void RenderPassRenderLpv::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	auto lpvTextureRed = s_resourceManager->getTexture(L"lpvTextureRed");
 	auto lpvTextureGreen = s_resourceManager->getTexture(L"lpvTextureGreen");
@@ -287,10 +286,13 @@ void RenderPassRenderLpv::buildCommands()
 
 	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
-	const f32 clearColor[4] = { 0, 0, 0, 0 };
-	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+	auto &commandList = m_commandLists[frameIndex];
+	m_currentCommandList = &commandList;
 
-	s_gpuProfiler->queryBegin("render lpv", &m_commandList);
+	const f32 clearColor[4] = { 0, 0, 0, 0 };
+	commandList->Reset(currentAllocator->get(), m_pipelineState.get());
+
+	s_gpuProfiler->queryBegin("render lpv", &commandList);
 
 	auto resolution = s_resolution;
 
@@ -308,37 +310,37 @@ void RenderPassRenderLpv::buildCommands()
 	rectScissor.right = resolution.x;
 	rectScissor.bottom = resolution.y;
 
-	m_commandList->RSSetViewports(1, &viewport);
-	m_commandList->RSSetScissorRects(1, &rectScissor);
+	commandList->RSSetViewports(1, &viewport);
+	commandList->RSSetScissorRects(1, &rectScissor);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap.getHandleCpu();
-	m_commandList->OMSetRenderTargets(1, &rtvHandle, 0, nullptr);
-	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	commandList->OMSetRenderTargets(1, &rtvHandle, 0, nullptr);
+	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
-	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureRed->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureGreen->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureBlue->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+	//zBuffer->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureRed->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureGreen->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureBlue->get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 	auto heap = m_srvHeap.get();
-	m_commandList->SetDescriptorHeaps(1, &heap);
-	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-	m_commandList->SetGraphicsRootDescriptorTable(0, heap->GetGPUDescriptorHandleForHeapStart());
-	m_commandList->SetGraphicsRootDescriptorTable(1, heap->GetGPUDescriptorHandleForHeapStart());
+	commandList->SetDescriptorHeaps(1, &heap);
+	commandList->SetGraphicsRootSignature(m_rootSignature.get());
+	commandList->SetGraphicsRootDescriptorTable(0, heap->GetGPUDescriptorHandleForHeapStart());
+	commandList->SetGraphicsRootDescriptorTable(1, heap->GetGPUDescriptorHandleForHeapStart());
 
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-	m_commandList->DrawInstanced(resolution.x, resolution.y, 0, 0);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	commandList->DrawInstanced(resolution.x, resolution.y, 0, 0);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureBlue->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureGreen->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureRed->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureBlue->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureGreen->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
+	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lpvTextureRed->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS));
 
-	s_gpuProfiler->queryEnd(&m_commandList);
+	s_gpuProfiler->queryEnd(&commandList);
 
-	m_commandList->Close();
+	commandList->Close();
 }
 
 void RenderPassRenderLpv::submitCommands(Graphics::CommandQueue* queue)
 {
-	queue->pushCommandList(&m_commandList);
+	queue->pushCommandList(m_currentCommandList);
 }

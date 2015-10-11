@@ -27,10 +27,11 @@ SOFTWARE.
 #include "CommandAllocator.h"
 #include "GpuShadowTransform.h"
 #include "GpuVoxel.h"
+#include "CommandList.h"
+#include "GpuProfiler.h"
 
-RenderPassFilterRSM::RenderPassFilterRSM(d3d::CommandAllocator* allocator)
+RenderPassFilterRSM::RenderPassFilterRSM()
 	:RenderPassLight(),
-	m_allocator(allocator),
 	m_buildList(0)
 {
 
@@ -173,7 +174,7 @@ bool RenderPassFilterRSM::createRootSignature(ID3D12Device* device)
 
 bool RenderPassFilterRSM::createPipelineState(ID3D12Device* device)
 {
-	DXGI_FORMAT formats[3]=
+	DXGI_FORMAT formats[3] =
 	{
 		DXGI_FORMAT_R8G8B8A8_UNORM,
 		DXGI_FORMAT_R16G16B16A16_FLOAT,
@@ -288,7 +289,7 @@ cbuffer lpvConstantBuffer : register(b0)
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDescRsmColor;
 	srvDescRsmColor.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	srvDescRsmColor.Shader4ComponentMapping =D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING ;
+	srvDescRsmColor.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDescRsmColor.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 	srvDescRsmColor.Texture2DArray.ArraySize = s_settings->m_shadowCastingLightCount * 6;
 	srvDescRsmColor.Texture2DArray.FirstArraySlice = 0;
@@ -335,7 +336,7 @@ cbuffer lpvConstantBuffer : register(b0)
 	srvDescBuffer.Buffer.FirstElement = 0;
 	srvDescBuffer.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 	srvDescBuffer.Buffer.NumElements = s_settings->m_shadowCastingLightCount;
-	srvDescBuffer.Buffer.StructureByteStride = sizeof(GpuShadowTransformReverse) ;
+	srvDescBuffer.Buffer.StructureByteStride = sizeof(GpuShadowTransformReverse);
 
 	handle.offset(1);
 	device->CreateShaderResourceView(shadowReverseTransformBuffer->get(), &srvDescBuffer, handle);
@@ -418,7 +419,7 @@ void RenderPassFilterRSM::createViewsPass2(ID3D12Device* device)
 	device->CreateConstantBufferView(&cbvDesc, handle);
 }
 
-bool RenderPassFilterRSM::initialize(ID3D12Device* device, void* p)
+bool RenderPassFilterRSM::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders())
 	{
@@ -443,7 +444,7 @@ bool RenderPassFilterRSM::initialize(ID3D12Device* device, void* p)
 	if (!createRtvHeap(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator->get(), m_pipelineState.get()))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 	{
 		return false;
 	}
@@ -459,7 +460,7 @@ void RenderPassFilterRSM::shutdown()
 
 }
 
-void RenderPassFilterRSM::buildCommands()
+void RenderPassFilterRSM::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	const u32 resolution = s_settings->m_shadowDim / 2;
 	const f32 clearColor[4] = { 0, 0, 0, 0 };
@@ -467,6 +468,9 @@ void RenderPassFilterRSM::buildCommands()
 
 	if (m_visibleLightCount != 0)
 	{
+		auto &commandList = m_commandLists[frameIndex];
+		m_currentCommandList = &commandList;
+
 		D3D12_VIEWPORT viewport;
 		viewport.Height = (f32)resolution;
 		viewport.Width = (f32)resolution;
@@ -481,10 +485,12 @@ void RenderPassFilterRSM::buildCommands()
 		rectScissor.right = resolution;
 		rectScissor.bottom = resolution;
 
-		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
+		commandList->Reset(currentAllocator->get(), m_pipelineState.get());
 
-		m_commandList->RSSetViewports(1, &viewport);
-		m_commandList->RSSetScissorRects(1, &rectScissor);
+		s_gpuProfiler->queryBegin("filter rsm", &commandList);
+
+		commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &rectScissor);
 
 		auto rtvHandle = m_rtvHeap.getHandleCpu();
 
@@ -492,9 +498,9 @@ void RenderPassFilterRSM::buildCommands()
 		auto shadowTextureNormal = s_resourceManager->getTextureRtDs(L"shadowTextureNormal");
 		auto shadowTextureDepth = s_resourceManager->getTextureRtDs(L"shadowTextureDepth");
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureDepth->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureDepth->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
 
 		D3D12_CPU_DESCRIPTOR_HANDLE handles[3];
 		handles[0] = rtvHandle;
@@ -503,22 +509,24 @@ void RenderPassFilterRSM::buildCommands()
 		rtvHandle.offset(1);
 		handles[2] = rtvHandle;
 
-		m_commandList->OMSetRenderTargets(3, handles, 0, nullptr);
-		m_commandList->ClearRenderTargetView(handles[0], clearColor, 0, nullptr);
-		m_commandList->ClearRenderTargetView(handles[1], clearColor, 0, nullptr);
-		m_commandList->ClearRenderTargetView(handles[2], clearColor1, 0, nullptr);
+		commandList->OMSetRenderTargets(3, handles, 0, nullptr);
 
 		auto srvHeap = m_srvHeap.get();
-		m_commandList->SetDescriptorHeaps(1, &srvHeap);
-		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-		m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetDescriptorHeaps(1, &srvHeap);
+		commandList->SetGraphicsRootSignature(m_rootSignature.get());
+		commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
 
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		m_commandList->DrawInstanced(m_visibleLightCount, 1, 0, 0);
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+		commandList->DrawInstanced(m_visibleLightCount, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureColor->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureDepth->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE, 0));
+		CD3DX12_RESOURCE_BARRIER barrier0[] =
+		{
+			CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureColor->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0),
+			CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0),
+			CD3DX12_RESOURCE_BARRIER::Transition(shadowTextureDepth->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE, 0)
+		};
+
+		commandList->ResourceBarrier(_countof(barrier0), barrier0);
 
 		//////////////////////
 		rtvHandle.offset(1);
@@ -533,35 +541,44 @@ void RenderPassFilterRSM::buildCommands()
 		rectScissor.right = resolution / 2;
 		rectScissor.bottom = resolution / 2;
 
-		m_commandList->RSSetViewports(1, &viewport);
-		m_commandList->RSSetScissorRects(1, &rectScissor);
+		commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &rectScissor);
 
 		auto rsmFilteredColor = s_resourceManager->getTextureRtDs(L"rsmFilteredColor");
 		auto rsmFilteredNormal = s_resourceManager->getTextureRtDs(L"rsmFilteredNormal");
 		auto rsmFilteredDepth = s_resourceManager->getTextureRtDs(L"rsmFilteredDepth");
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0));
+		CD3DX12_RESOURCE_BARRIER barrier1[] =
+		{
+			CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0),
+			CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0),
+			CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0)
+		};
 
-		m_commandList->OMSetRenderTargets(3, handles, 0, nullptr);
-		m_commandList->ClearRenderTargetView(handles[0], clearColor, 0, nullptr);
-		m_commandList->ClearRenderTargetView(handles[1], clearColor, 0, nullptr);
-		m_commandList->ClearRenderTargetView(handles[2], clearColor1, 0, nullptr);
+		commandList->ResourceBarrier(_countof(barrier1), barrier1);
+
+		commandList->OMSetRenderTargets(3, handles, 0, nullptr);
 
 		srvHeap = m_srvHeapPass2.get();
-		m_commandList->SetDescriptorHeaps(1, &srvHeap);
-		m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetDescriptorHeaps(1, &srvHeap);
+		commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
 
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-		m_commandList->DrawInstanced(m_visibleLightCount, 1, 0, 0);
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+		commandList->DrawInstanced(m_visibleLightCount, 6, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0));
+		CD3DX12_RESOURCE_BARRIER barrier2[] =
+		{
+			CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredColor->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0),
+			CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0),
+			CD3DX12_RESOURCE_BARRIER::Transition(rsmFilteredDepth->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, 0)
+		};
+
+		commandList->ResourceBarrier(_countof(barrier2), barrier2);
 		////////////////
 
-		m_commandList->Close();
+		s_gpuProfiler->queryEnd(&commandList);
+
+		commandList->Close();
 		m_buildList = 1;
 	}
 }
@@ -570,7 +587,7 @@ void RenderPassFilterRSM::submitCommands(Graphics::CommandQueue* queue)
 {
 	if (m_buildList != 0)
 	{
-		queue->pushCommandList(&m_commandList);
+		queue->pushCommandList(m_currentCommandList);
 		m_buildList = 0;
 	}
 }

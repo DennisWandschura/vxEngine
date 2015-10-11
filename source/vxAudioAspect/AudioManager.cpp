@@ -35,6 +35,7 @@ namespace Audio
 {
 	const u32 g_maxAudioSources = 128;
 
+	const u32 g_mask2Channel = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
 	const u32 g_mask8Channel = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT | SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
 
 	struct AudioManager::Entry
@@ -90,7 +91,7 @@ namespace Audio
 		wavFormat.Samples.wSamplesPerBlock = 32;
 		wavFormat.Samples.wValidBitsPerSample = 32;
 		wavFormat.Samples.wReserved = 32;
-		wavFormat.dwChannelMask = g_mask8Channel;
+		wavFormat.dwChannelMask = g_mask2Channel;
 		wavFormat.SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
 
 		m_entries = std::make_unique<Audio::WavRenderer[]>(g_maxAudioSources);

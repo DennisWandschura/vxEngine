@@ -90,6 +90,6 @@ namespace Graphics
 
 		void setFont(const Font* font) { m_font = font; }
 
-		void update(UploadManager* uploadManager, d3d::ResourceManager* resourceManager);
+		void update(UploadManager* uploadManager, d3d::ResourceManager* resourceManager, bool upload);
 	};
 }

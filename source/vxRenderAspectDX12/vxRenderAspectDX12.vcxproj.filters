@@ -88,6 +88,9 @@
     <Filter Include="unity">
       <UniqueIdentifier>{9ed70276-0398-4650-a1b5-78a82bdb9b91}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\back buffer">
+      <UniqueIdentifier>{45bbf3c0-0a6c-4b29-aa09-0db2f8e1a235}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dHelper.h">
@@ -101,9 +104,6 @@
     </ClInclude>
     <ClInclude Include="RenderAspect.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskUploadGeometry.h">
-      <Filter>Header Files\Tasks</Filter>
     </ClInclude>
     <ClInclude Include="d3d.h">
       <Filter>Header Files</Filter>
@@ -183,9 +183,6 @@
     <ClInclude Include="Frustum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPassCullLights.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="RenderPassVisibleLights.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
@@ -198,9 +195,6 @@
     <ClInclude Include="GpuVoxel.h">
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPassDrawVoxel.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="GpuShadowTransform.h">
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
@@ -209,9 +203,6 @@
     </ClInclude>
     <ClInclude Include="GpuShading.h">
       <Filter>Header Files\Gpu</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPassRadiosity.h">
-      <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="TextRenderer.h">
       <Filter>Header Files</Filter>
@@ -285,12 +276,6 @@
     <ClInclude Include="RenderPassInjectRSM.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPassVoxelize.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPassVoxelMip.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="RenderPassLight.h">
       <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
@@ -302,12 +287,6 @@
     </ClInclude>
     <ClInclude Include="RootSignature.h">
       <Filter>Header Files\d3d</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPassVoxelizeLight.h">
-      <Filter>Header Files\RenderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderPassBlurVoxel.h">
-      <Filter>Header Files\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="RenderPassVoxelPropagate.h">
       <Filter>Header Files\RenderPass</Filter>
@@ -330,13 +309,19 @@
     <ClInclude Include="GpuSH.h">
       <Filter>Header Files\Gpu</Filter>
     </ClInclude>
+    <ClInclude Include="FrameData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawToBackBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dThreadData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllExport.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskUploadGeometry.cpp">
-      <Filter>Source Files\Tasks</Filter>
     </ClCompile>
     <ClCompile Include="UploadManager.cpp">
       <Filter>Source Files</Filter>
@@ -383,13 +368,7 @@
     <ClCompile Include="Frustum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPassCullLights.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPassVisibleLights.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderPassDrawVoxel.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPassShadow.cpp">
@@ -397,9 +376,6 @@
     </ClCompile>
     <ClCompile Include="GpuProfiler.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderPassRadiosity.cpp">
-      <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="TextRenderer.cpp">
       <Filter>Source Files</Filter>
@@ -458,15 +434,6 @@
     <ClCompile Include="RenderPassInjectRSM.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPassVoxelize.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderPassVoxelMip.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderPassBlurVoxel.cpp">
-      <Filter>Source Files\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPassVoxelPropagate.cpp">
       <Filter>Source Files\RenderPass</Filter>
     </ClCompile>
@@ -484,6 +451,9 @@
     </ClCompile>
     <ClCompile Include="unity\Unity_vxRenderAspectDX121.cpp">
       <Filter>unity</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawToBackBuffer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -630,6 +600,9 @@
     </FxCompile>
     <FxCompile Include="RenderLpvVS.hlsl">
       <Filter>Shaders\vpl</Filter>
+    </FxCompile>
+    <FxCompile Include="BackBufferPS.hlsl">
+      <Filter>Shaders\back buffer</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

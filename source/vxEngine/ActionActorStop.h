@@ -1,5 +1,4 @@
 #pragma once
-
 /*
 The MIT License (MIT)
 
@@ -24,38 +23,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct ID3D12GraphicsCommandList;
-struct ID3D12Resource;
-struct ID3D12CommandList;
-struct ID3D12CommandAllocator;
-
-#include <vxEngineLib/Task.h>
-#include <vxLib/types.h>
-#include <vector>
-
-struct UploadTaskData
+namespace Component
 {
-	ID3D12Resource* src;
-	u64 srcOffset;
-	ID3D12Resource* dst;
-	u64 dstOffset;
-	u64 size;
-	u32 dstState;
-};
+	struct Actor;
+}
 
-class TaskUploadGeometry : public Task
+struct EntityActor;
+class ActionFollowPath;
+
+#include "Action.h"
+
+class ActionActorStop : public Action
 {
-	ID3D12CommandAllocator* m_cmdAllocator;
-	ID3D12GraphicsCommandList* m_commandList;
-	std::vector<UploadTaskData> m_data;
-	std::vector<ID3D12CommandList*>* m_cmdLists;
-	std::mutex* m_mutexCmdList;
-
-	TaskReturnType runImpl() override;
+	EntityActor* m_entity;
+	Component::Actor* m_actor;
+	ActionFollowPath* m_actionFollowPath;
 
 public:
-	TaskUploadGeometry(ID3D12CommandAllocator* cmdAllocator, ID3D12GraphicsCommandList* commandList, std::vector<UploadTaskData> &&data, std::vector<ID3D12CommandList*>* cmdLists, std::mutex* mutex);
-	~TaskUploadGeometry();
+	ActionActorStop(EntityActor* entity, Component::Actor* actorData, ActionFollowPath* actionFollowPath);
+	~ActionActorStop();
 
-	f32 getTimeMs() const override;
+	void run() override;
+
+	bool isComplete() const override;
 };

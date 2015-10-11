@@ -89,7 +89,7 @@ void CpuProfiler::update(RenderAspectInterface* renderAspect)
 	f32 xPos = m_position.x;
 	f32 ypos = m_position.y;
 
-	auto strSize = sprintf(data.text, "CPU:");
+	auto strSize = snprintf(data.text, sizeof(data.text),"CPU:");
 	data.text[strSize] = '\0';
 
 	data.position.x = xPos;
@@ -105,8 +105,12 @@ void CpuProfiler::update(RenderAspectInterface* renderAspect)
 		auto &entry = m_entries[i];
 
 		auto time = f32(entry.time * 0.001f);
+		auto maxTime = f32(entry.maxTime * 0.001f);
 
-		auto strSize = sprintf(data.text, "%s %.4f ms", entry.name, time);
+		entry.maxTime = 0;
+
+		auto strSize = snprintf(data.text, sizeof(data.text), "%s %.3f %.3f ms", entry.name, time, maxTime);
+		strSize = (strSize < 0) ? sizeof(data.text) : strSize;
 		data.text[strSize] = '\0';
 
 		data.position.x = xPos + entry.layer * yOffset;

@@ -4,10 +4,13 @@
 #include "ResourceManager.h"
 #include "CommandAllocator.h"
 #include "GpuProfiler.h"
+#include "d3dThreadData.h"
 
-RenderPassSSIL::RenderPassSSIL(d3d::CommandAllocator* cmdAlloc)
-	:m_commandList(),
-	m_cmdAlloc(cmdAlloc)
+RenderPassSSIL::RenderPassSSIL()
+	:RenderPass(),
+	m_bundleList(),
+	m_heapSrv(),
+	m_heapRtv()
 {
 
 }
@@ -204,7 +207,24 @@ bool RenderPassSSIL::createRtv(ID3D12Device* device)
 	return true;
 }
 
-bool RenderPassSSIL::initialize(ID3D12Device* device, void* p)
+void RenderPassSSIL::createBundle()
+{
+	m_bundleList->Reset(s_threadData[0].m_bundleAllocator.get(), m_pipelineState.get());
+
+	auto srvHeap = m_heapSrv.get();
+	m_bundleList->SetDescriptorHeaps(1, &srvHeap);
+
+	m_bundleList->SetGraphicsRootSignature(m_rootSignature.get());
+	m_bundleList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
+
+	m_bundleList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+	m_bundleList->DrawInstanced(1, 1, 0, 0);
+
+	m_bundleList->Close();
+}
+
+bool RenderPassSSIL::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders())
 		return false;
@@ -221,8 +241,13 @@ bool RenderPassSSIL::initialize(ID3D12Device* device, void* p)
 	if (!createRtv(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 		return false;
+
+	if (!m_bundleList.create(device, D3D12_COMMAND_LIST_TYPE_BUNDLE, s_threadData[0].m_bundleAllocator.get(), m_pipelineState.get()))
+		return false;
+
+	createBundle();
 
 	return true;
 }
@@ -232,7 +257,7 @@ void RenderPassSSIL::shutdown()
 
 }
 
-void RenderPassSSIL::buildCommands()
+void RenderPassSSIL::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	D3D12_VIEWPORT viewport;
 	viewport.Height = (f32)s_resolution.y;
@@ -252,41 +277,48 @@ void RenderPassSSIL::buildCommands()
 	auto gbufferNormal = s_resourceManager->getTextureRtDs(L"gbufferNormal");
 	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
+	auto &commandList = m_commandLists[frameIndex];
+	m_currentCommandList = &commandList;
+
 	const f32 clearColor[4] = { 0, 0, 0, 0 };
-	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+	commandList->Reset(currentAllocator->get(), m_pipelineState.get());
 
-	s_gpuProfiler->queryBegin("ssgi", &m_commandList);
+	s_gpuProfiler->queryBegin("ssgi", &commandList);
 
-	m_commandList->RSSetViewports(1, &viewport);
-	m_commandList->RSSetScissorRects(1, &rectScissor);
+	commandList->RSSetViewports(1, &viewport);
+	commandList->RSSetScissorRects(1, &rectScissor);
 
-	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	CD3DX12_RESOURCE_BARRIER barriersBegin[]=
+	{
+		CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+		CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+	};
 
-	auto srvHeap = m_heapSrv.get();
-	m_commandList->SetDescriptorHeaps(1, &srvHeap);
-
-	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-	m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
+	commandList->ResourceBarrier(_countof(barriersBegin), barriersBegin);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_heapRtv.getHandleCpu();
-	m_commandList->OMSetRenderTargets(1, &rtvHandle, 0, nullptr);
-	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	commandList->OMSetRenderTargets(1, &rtvHandle, 0, nullptr);
+	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	auto srvHeap = m_heapSrv.get();
+	commandList->SetDescriptorHeaps(1, &srvHeap);
 
-	m_commandList->DrawInstanced(1, 1, 0, 0);
+	commandList->ExecuteBundle(m_bundleList.get());
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	CD3DX12_RESOURCE_BARRIER barriersEnd[] =
+	{
+		CD3DX12_RESOURCE_BARRIER::Transition(directLightTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET),
+		CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET)
+	};
 
-	s_gpuProfiler->queryEnd(&m_commandList);
+	commandList->ResourceBarrier(_countof(barriersEnd), barriersEnd);
 
-	auto hr = m_commandList->Close();
+	s_gpuProfiler->queryEnd(&commandList);
+
+	commandList->Close();
 }
 
 void RenderPassSSIL::submitCommands(Graphics::CommandQueue* queue)
 {
-	queue->pushCommandList(&m_commandList);
+	queue->pushCommandList(m_currentCommandList);
 }

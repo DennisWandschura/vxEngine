@@ -27,38 +27,33 @@ SOFTWARE.
 namespace d3d
 {
 	class Device;
-	class CommandAllocator;
 }
 
 #include "RenderPass.h"
 #include "DescriptorHeap.h"
 #include <vxLib/math/Vector.h>
-#include "CommandList.h"
 
 class RenderPassFinal: public RenderPass
 {
-	d3d::GraphicsCommandList m_commandList;
-	d3d::CommandAllocator* m_cmdAlloc;
 	d3d::DescriptorHeap m_descriptorHeapSrv;
 	d3d::DescriptorHeap m_descriptorHeapRtv;
 	d3d::Device* m_device;
-	d3d::Object<ID3D12Resource> m_renderTarget[2];
 
 	bool loadShaders(d3d::ShaderManager* shaderManager);
 	bool createRootSignature(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device, d3d::ShaderManager* shaderManager);
 
 public:
-	RenderPassFinal(d3d::CommandAllocator* cmdAlloc, d3d::Device* device);
+	explicit RenderPassFinal(d3d::Device* device);
 	~RenderPassFinal();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 
-	bool initialize(ID3D12Device* device, void* p) override;
+	bool initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount) override;
 	void shutdown() override;
 
-	void buildCommands() override;
+	void buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex) override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 };

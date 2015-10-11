@@ -4,11 +4,10 @@
 #include "ShaderManager.h"
 #include "ResourceManager.h"
 #include "CommandAllocator.h"
+#include "CommandList.h"
 
-RenderPassVisibleLights::RenderPassVisibleLights(d3d::CommandAllocator* allocator)
+RenderPassVisibleLights::RenderPassVisibleLights()
 	:RenderPass(),
-	m_allocator(allocator),
-	m_commandList(),
 	m_lightCount(0),
 	m_buildList(0)
 {
@@ -84,7 +83,7 @@ bool RenderPassVisibleLights::createPipelineState(ID3D12Device* device)
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
 
-bool RenderPassVisibleLights::initialize(ID3D12Device* device, void* p)
+bool RenderPassVisibleLights::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders())
 		return false;
@@ -95,7 +94,7 @@ bool RenderPassVisibleLights::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device))
 		return false;
 
-	if(!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator->get()))
+	if(!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 		return false;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
@@ -149,14 +148,15 @@ bool RenderPassVisibleLights::initialize(ID3D12Device* device, void* p)
 void RenderPassVisibleLights::shutdown()
 {
 	m_descriptorHeap.destroy();
-	m_commandList.destroy();
-	m_allocator = nullptr;
 }
 
-void RenderPassVisibleLights::buildCommands()
+void RenderPassVisibleLights::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	if (m_lightCount != 0)
 	{
+		auto &commandList = m_commandLists[frameIndex];
+		m_currentCommandList = &commandList;
+
 		D3D12_VIEWPORT viewport;
 		viewport.Height = (f32)s_resolution.y;
 		viewport.Width = (f32)s_resolution.x;
@@ -176,30 +176,30 @@ void RenderPassVisibleLights::buildCommands()
 		// ps res
 		auto visibleLightIndexBuffer = s_resourceManager->getBuffer(L"visibleLightIndexBuffer");
 
-		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
+		commandList->Reset(currentAllocator->get(), m_pipelineState.get());
 
 		auto resolution = s_resolution;
 
-		m_commandList->RSSetViewports(1, &viewport);
-		m_commandList->RSSetScissorRects(1, &rectScissor);
+		commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &rectScissor);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE));
 
 		auto descHeap = m_descriptorHeap.get();
-		m_commandList->SetDescriptorHeaps(1, &descHeap);
+		commandList->SetDescriptorHeaps(1, &descHeap);
 
-		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-		m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootSignature(m_rootSignature.get());
+		commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-		m_commandList->DrawInstanced(m_lightCount + 1, 1, 0, 0);
+		commandList->DrawInstanced(m_lightCount + 1, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(visibleLightIndexBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(lightBuffer->get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
-		m_commandList->Close();
+		commandList->Close();
 		m_buildList = 1;
 	}
 }
@@ -208,7 +208,7 @@ void RenderPassVisibleLights::submitCommands(Graphics::CommandQueue* queue)
 {
 	if (m_buildList != 0)
 	{
-		queue->pushCommandList(&m_commandList);
+		queue->pushCommandList(m_currentCommandList);
 		m_buildList = 0;
 	}
 }

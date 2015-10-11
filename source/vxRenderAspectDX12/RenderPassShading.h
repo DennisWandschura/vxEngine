@@ -24,19 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace d3d
-{
-	class CommandAllocator;
-}
-
 #include "RenderPassLight.h"
 #include "DescriptorHeap.h"
-#include "CommandList.h"
 
 class RenderPassShading : public RenderPassLight
 {
-	d3d::GraphicsCommandList m_commandList;
-	d3d::CommandAllocator* m_cmdAlloc;
 	u32 m_buildList;
 	d3d::DescriptorHeap m_heapSrv;
 	d3d::DescriptorHeap m_heapRtv;
@@ -50,16 +42,16 @@ class RenderPassShading : public RenderPassLight
 	bool createRtv(ID3D12Device* device);
 
 public:
-	explicit RenderPassShading(d3d::CommandAllocator* cmdAlloc);
+	RenderPassShading();
 	~RenderPassShading();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 
-	bool initialize(ID3D12Device* device, void* p)override;
+	bool initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount) override;
 	void shutdown() override;
 
-	void buildCommands() override;
+	void buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex) override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 };

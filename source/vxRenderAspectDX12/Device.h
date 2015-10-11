@@ -43,18 +43,19 @@ namespace d3d
 
 	class Device
 	{
+		//void* m_swapChainEvent;
 		Object<ID3D12Device> m_device;
 		Object<IDXGISwapChain3> m_swapChain;
 		Object<IDXGIFactory4> m_factory;
 
 		bool createDevice();
-		bool createSwapChain(const vx::Window &window, CommandQueue* defaultQueue);
+		bool createSwapChain(const vx::Window &window, CommandQueue* defaultQueue, u32 bufferCount);
 
 	public:
 		Device();
 		~Device();
 
-		bool initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, u32 queueCapacity, CommandQueue* defaultQueue);
+		bool initialize(const vx::Window &window, const D3D12_COMMAND_QUEUE_DESC &queueDesc, u32 queueCapacity, CommandQueue* defaultQueue, u32 bufferCount);
 		void shutdown();
 
 		void present();
@@ -68,6 +69,6 @@ namespace d3d
 		ID3D12Device* getDevice() { return m_device.get(); }
 
 		u32 getCurrentBackBufferIndex();
-		bool getBuffer(u32 index, const _GUID &riid, void **ppSurface);
+		bool getBuffer(u32 index, ID3D12Resource** resource);
 	};
 }

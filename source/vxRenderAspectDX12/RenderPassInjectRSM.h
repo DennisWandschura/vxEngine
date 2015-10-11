@@ -24,19 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-namespace d3d
-{
-	class CommandAllocator;
-}
-
 #include "RenderPassLight.h"
-#include "CommandList.h"
 #include "DescriptorHeap.h"
 
 class RenderPassInjectRSM : public RenderPassLight
 {
-	d3d::CommandAllocator* m_allocator;
-	d3d::GraphicsCommandList m_commandList;
 	u32 m_buildList;
 	d3d::DescriptorHeap m_srvHeap;
 	d3d::DescriptorHeap m_uavClearHeap;
@@ -50,17 +42,17 @@ class RenderPassInjectRSM : public RenderPassLight
 	bool createUavClear(ID3D12Device* device);
 
 public:
-	explicit RenderPassInjectRSM(d3d::CommandAllocator* allocator);
+	RenderPassInjectRSM();
 	~RenderPassInjectRSM();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 
-	bool initialize(ID3D12Device* device, void* p) override;
+	bool initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount) override;
 	void shutdown() override;
 
-	void buildCommands() override;
+	void buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex) override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 
 	void setLightCount(u32 lightCount) { m_lightCount = lightCount; }

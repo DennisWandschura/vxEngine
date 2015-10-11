@@ -33,7 +33,7 @@ protected:
 	u32 m_visibleLightCount;
 
 public:
-	RenderPassLight() :m_lightCount(0), m_visibleLightCount(0) {}
+	RenderPassLight() :RenderPass(), m_lightCount(0), m_visibleLightCount(0) {}
 	virtual ~RenderPassLight() {}
 
 	void setLightCount(u32 count) { m_lightCount = count; }

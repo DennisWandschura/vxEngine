@@ -3,10 +3,9 @@
 #include "ShaderManager.h"
 #include "d3dx12.h"
 #include "CommandAllocator.h"
+#include "CommandList.h"
 
-RenderPassZBufferCreateMipmaps::RenderPassZBufferCreateMipmaps(d3d::CommandAllocator* cmdAlloc)
-	:m_commandList(),
-	m_cmdAlloc(cmdAlloc)
+RenderPassZBufferCreateMipmaps::RenderPassZBufferCreateMipmaps()
 {
 
 }
@@ -122,7 +121,7 @@ bool RenderPassZBufferCreateMipmaps::createViews(ID3D12Device* device, d3d::Desc
 	return true;
 }
 
-bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
+bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders(s_shaderManager))
 		return false;
@@ -156,8 +155,10 @@ bool RenderPassZBufferCreateMipmaps::initialize(ID3D12Device* device, void* p)
 	if (!createViews(device, &rtvHandle, &srvHandle, zBuffer->get()))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
+	{
 		return false;
+	}
 
 	return true;
 }
@@ -184,63 +185,66 @@ void RenderPassZBufferCreateMipmaps::createMipMaps(ID3D12Resource* texture, d3d:
 	auto x = s_resolution.x >> 1;
 	auto y = s_resolution.y >> 1;
 
+	auto commandList = m_currentCommandList->get();
+
 	//auto rtvHandle = rtvHeap->getHandleCpu();
-	u32 srcMip = 0;
 	for (u32 i = 1; i <= 5; ++i)
 	{
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, srcMip));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET, i));
 
 		viewport.Height = (f32)y;
 		viewport.Width = (f32)x;
 		rectScissor.right = x;
 		rectScissor.bottom = y;
 
-		m_commandList->RSSetViewports(1, &viewport);
-		m_commandList->RSSetScissorRects(1, &rectScissor);
+		commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &rectScissor);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE descHandle = *rtvHandleCpu;
-		m_commandList->OMSetRenderTargets(1, &descHandle, 0, nullptr);
+		commandList->OMSetRenderTargets(1, &descHandle, 0, nullptr);
 
-		m_commandList->ClearRenderTargetView(descHandle, clearColor, 0, nullptr);
+		commandList->ClearRenderTargetView(descHandle, clearColor, 0, nullptr);
 
-		m_commandList->SetGraphicsRootDescriptorTable(0, *srvHandleGpu);
+		commandList->SetGraphicsRootDescriptorTable(0, *srvHandleGpu);
 
-		m_commandList->DrawInstanced(1, 1, 0, 0);
+		commandList->DrawInstanced(1, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET, srcMip));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(texture, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ, i));
 
 		x = x >> 1;
 		y = y >> 1;
-		++srcMip;
 
 		rtvHandleCpu->offset(1);
 		srvHandleGpu->offset(1);
 	}
 }
 
-void RenderPassZBufferCreateMipmaps::buildCommands()
+void RenderPassZBufferCreateMipmaps::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
-	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+	auto &currentCommandList = m_commandLists[frameIndex];
+	m_currentCommandList = &currentCommandList;
 
-	m_commandList->SetPipelineState(m_pipelineState.get());
-	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+	currentCommandList->Reset(currentAllocator->get(), m_pipelineState.get());
 
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	currentCommandList->SetPipelineState(m_pipelineState.get());
+	currentCommandList->SetGraphicsRootSignature(m_rootSignature.get());
+
+	currentCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	auto heap = m_descriptorHeapSrv.get();
-	m_commandList->SetDescriptorHeaps(1, &heap);
+	currentCommandList->SetDescriptorHeaps(1, &heap);
 
 	auto srvHandleGpu = m_descriptorHeapSrv.getHandleGpu();
 	auto rtvHandleCpu = m_descriptorHeapRtv.getHandleCpu();
 
 	createMipMaps(zBuffer->get(), &rtvHandleCpu, &srvHandleGpu);
 
-	auto hr = m_commandList->Close();
+	auto hr = currentCommandList->Close();
 }
 
 void RenderPassZBufferCreateMipmaps::submitCommands(Graphics::CommandQueue* queue)
 {
-	queue->pushCommandList(&m_commandList);
+	queue->pushCommandList(m_currentCommandList);
 }

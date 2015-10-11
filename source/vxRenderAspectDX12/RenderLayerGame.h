@@ -78,7 +78,7 @@ class RenderLayerGame : public Graphics::RenderLayer
 {
 	std::vector<RenderStage> m_renderStages;
 	CopyManager* m_copyManager;
-	d3d::CommandAllocator m_commandAllocator;
+	std::unique_ptr<d3d::CommandAllocator[]> m_allocators;
 	LightManager m_lightManager;
 	vx::Camera* m_camera;
 	Frustum* m_frustum;
@@ -134,16 +134,18 @@ public:
 	void createRenderPasses() override;
 
 	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount) override;
+	bool createData() override;
 
-	bool initialize(vx::StackAllocator* allocator, Logfile* errorLog) override;
+	bool initialize(u32 frameCount, vx::StackAllocator* allocator, Logfile* errorLog) override;
 	void shudown() override;
 
 	void update() override;
 
 	void queueUpdate(const RenderUpdateTaskType type, const u8* data, u32 dataSize) override;
 
-	void buildCommandLists() override;
+	void buildCommandLists(u32 frameIndex) override;
 	void submitCommandLists(Graphics::CommandQueue* queue) override;
+	void buildAndSubmitCommandLists(u32 frameIndex, Graphics::CommandQueue* queue) override;
 
 	u32 getCommandListCount() const override;
 

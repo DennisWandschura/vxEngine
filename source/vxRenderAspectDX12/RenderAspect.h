@@ -47,12 +47,21 @@ namespace vx
 #include "DownloadMananger.h"
 #include <vxEngineLib/CpuProfiler.h>
 #include "GpuProfiler.h"
+#include "DrawToBackBuffer.h"
+#include "d3dThreadData.h"
 
 class RenderAspect : public RenderAspectInterface
 {
 	static RenderSettings s_settings;
 
 	d3d::CommandQueue m_graphicsCommandQueue;
+	FrameData* m_currentFrameData;
+	d3d::ThreadData* m_threadData;
+	void* m_fenceEvent;
+	d3d::Object<ID3D12Fence> m_fence;
+	u64 m_currentFenceValue;
+	u32 m_frameIndex;
+	DrawToBackBuffer m_drawToBackBuffer;
 	d3d::Device m_device;
 	std::vector<Graphics::RenderLayer*> m_activeLayers;
 	GpuProfiler m_gpuProfiler;
@@ -71,6 +80,7 @@ class RenderAspect : public RenderAspectInterface
 	vx::MessageManager* m_msgManager;
 	d3d::ShaderManager m_shaderManager;
 
+	void createThreadData(u32 threadCount, vx::StackAllocator* allocator);
 	void getRequiredMemory(const vx::uint3 &dimSrgb, const vx::uint3 &dimRgb, u64* bufferHeapSize, u32* bufferCount, u64* textureHeapSize, u32* textureCount, u64* rtDsHeapSize, u32* rtDsCount);
 
 	bool createConstantBuffers();
@@ -86,6 +96,8 @@ class RenderAspect : public RenderAspectInterface
 
 	bool setSignalHandler(AbortSignalHandlerFun signalHandlerFn) override;
 	RenderAspectInitializeError initializeImpl(const RenderAspectDescription &desc) override;
+
+	void waitForGpu();
 
 public:
 	RenderAspect();

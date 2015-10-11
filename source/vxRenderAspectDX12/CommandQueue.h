@@ -41,9 +41,6 @@ namespace d3d
 		u32 m_listCount;
 		u32 m_listCapacity;
 		Object<ID3D12CommandQueue> m_commandQueue;
-		u64 m_currentFence;
-		void* m_event;
-		Object<ID3D12Fence> m_fence;
 
 	public:
 		CommandQueue();
@@ -55,7 +52,8 @@ namespace d3d
 		void pushCommandList(::Graphics::CommandList* p) override;
 
 		void execute();
-		void wait();
+
+		void signal(ID3D12Fence* fence, u64 fenceValue);
 
 		ID3D12CommandQueue* get() { return m_commandQueue.get(); }
 	};

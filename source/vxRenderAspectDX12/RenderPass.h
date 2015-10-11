@@ -24,11 +24,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-struct ID3D12RootSignature;
-struct ID3D12PipelineState;
 struct ID3D12Device;
 class UploadManager;
 class GpuProfiler;
+struct FrameData;
 
 #include "d3d.h"
 #include <vxLib/math/Vector.h>
@@ -36,11 +35,15 @@ class GpuProfiler;
 #include "PipelineState.h"
 #include <vxEngineLib/Graphics/CommandQueue.h>
 #include "RootSignature.h"
+#include <memory>
 
 namespace d3d
 {
 	class ShaderManager;
 	class ResourceManager;
+	class CommandAllocator;
+	class GraphicsCommandList;
+	struct ThreadData;
 }
 
 class RenderPass
@@ -52,18 +55,23 @@ protected:
 	static vx::uint2 s_resolution;
 	static const RenderSettings* s_settings;
 	static GpuProfiler* s_gpuProfiler;
+	static d3d::ThreadData* s_threadData;
 
+	d3d::GraphicsCommandList* m_currentCommandList;
+	std::unique_ptr<d3d::GraphicsCommandList[]> m_commandLists;
 	d3d::RootSignature m_rootSignature;
 	d3d::PipelineState m_pipelineState;
 
 	RenderPass();
 
 	bool loadShaders(const wchar_t* const* name, u32 count);
+	bool createCommandLists(ID3D12Device* device, u32 type, d3d::CommandAllocator* allocators, u32 frameCount);
 
 public:
 	virtual ~RenderPass();
 
-	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, const RenderSettings* settings, GpuProfiler* gpuProfiler)
+	static void provideData(d3d::ShaderManager* shaderManager, d3d::ResourceManager* resourceManager, UploadManager* uploadManager, const RenderSettings* settings, 
+		GpuProfiler* gpuProfiler, d3d::ThreadData* threadData)
 	{
 		s_shaderManager = shaderManager;
 		s_resourceManager = resourceManager;
@@ -71,15 +79,16 @@ public:
 		s_resolution = settings->m_resolution;
 		s_settings = settings;
 		s_gpuProfiler = gpuProfiler;
+		s_threadData = threadData;
 	}
 
 	virtual void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) = 0;
 
 	virtual bool createData(ID3D12Device* device) = 0;
 
-	virtual bool initialize(ID3D12Device* device, void* p) = 0;
+	virtual bool initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount) = 0;
 	virtual void shutdown() = 0;
 
-	virtual void buildCommands() = 0;
+	virtual void buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex) = 0;
 	virtual void submitCommands(Graphics::CommandQueue* queue) = 0;
 };

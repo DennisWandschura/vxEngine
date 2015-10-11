@@ -40,9 +40,8 @@ struct RenderPassGBuffer::ColdData
 	D3D12_RESOURCE_DESC resDescs[TextureCount];
 };
 
-RenderPassGBuffer::RenderPassGBuffer(d3d::CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd)
-	:m_commandList(),
-	m_cmdAlloc(cmdAlloc),
+RenderPassGBuffer::RenderPassGBuffer(DrawIndexedIndirectCommand* drawCmd)
+	:RenderPass(),
 	m_drawCmd(drawCmd),
 	m_buildList(0),
 	m_coldData(new ColdData())
@@ -288,7 +287,7 @@ bool RenderPassGBuffer::createTextures(d3d::ResourceManager* resourceManager, co
 	states[ColdData::Normal] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::Velocity] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	states[ColdData::Depth] = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-	states[ColdData::ZBuffer] = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	states[ColdData::ZBuffer] = D3D12_RESOURCE_STATE_GENERIC_READ;
 	states[ColdData::Surface] = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
 	CreateResourceDesc desc;
@@ -381,7 +380,7 @@ void RenderPassGBuffer::createBufferViews(d3d::ResourceManager* resourceManager,
 	device->CreateShaderResourceView(rgbTexture->get(), rgbTextureViewDesc, handle);
 }
 
-bool RenderPassGBuffer::initialize(ID3D12Device* device, void* p)
+bool RenderPassGBuffer::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 
 	if (!loadShaders(s_shaderManager))
@@ -396,7 +395,7 @@ bool RenderPassGBuffer::initialize(ID3D12Device* device, void* p)
 	if (!createDescriptorHeap(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 		return false;
 
 	auto gbufferAlbedo = s_resourceManager->getTextureRtDs(L"gbufferAlbedo");
@@ -441,9 +440,6 @@ bool RenderPassGBuffer::initialize(ID3D12Device* device, void* p)
 
 void RenderPassGBuffer::shutdown()
 {
-	m_cmdAlloc = nullptr;
-	m_commandList.destroy();
-
 	m_descriptorHeapRt.destroy();
 	m_descriptorHeapDs.destroy();
 	m_descriptorHeapBuffers.destroy();
@@ -453,14 +449,17 @@ void RenderPassGBuffer::shutdown()
 	m_drawCmd = nullptr;
 }
 
-void RenderPassGBuffer::buildCommands()
+void RenderPassGBuffer::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	auto drawCount = m_drawCmd->getCount();
 	if (drawCount != 0)
 	{
+		auto &commandList = m_commandLists[frameIndex];
+		m_currentCommandList = &commandList;
+
 		auto gbufferDepth = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 
-		auto hresult = m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+		auto hresult = commandList->Reset(currentAllocator->get(), m_pipelineState.get());
 		VX_ASSERT(hresult == 0);
 		// copylayer 0 depth buffer to layer 1
 		/*D3D12_RESOURCE_BARRIER barriers[2];
@@ -515,38 +514,38 @@ void RenderPassGBuffer::buildCommands()
 		rectScissor.right = s_resolution.x;
 		rectScissor.bottom = s_resolution.y;
 
-		s_gpuProfiler->queryBegin("gbuffer", &m_commandList);
+		s_gpuProfiler->queryBegin("gbuffer", &commandList);
 
-		m_commandList->RSSetViewports(1, &viewPort);
-		m_commandList->RSSetScissorRects(1, &rectScissor);
+		commandList->RSSetViewports(1, &viewPort);
+		commandList->RSSetScissorRects(1, &rectScissor);
 
-		m_commandList->OMSetRenderTargets(4, rtvHandles, FALSE, dsvHandles);
-		m_commandList->ClearRenderTargetView(rtvHandles[0], clearColor0, 0, nullptr);
-		m_commandList->ClearRenderTargetView(rtvHandles[1], clearColor0, 0, nullptr);
-		m_commandList->ClearRenderTargetView(rtvHandles[2], clearColor0, 0, nullptr);
-		m_commandList->ClearRenderTargetView(rtvHandles[3], clearColor0, 0, nullptr);
+		commandList->OMSetRenderTargets(4, rtvHandles, FALSE, dsvHandles);
+		commandList->ClearRenderTargetView(rtvHandles[0], clearColor0, 0, nullptr);
+		commandList->ClearRenderTargetView(rtvHandles[1], clearColor0, 0, nullptr);
+		commandList->ClearRenderTargetView(rtvHandles[2], clearColor0, 0, nullptr);
+		commandList->ClearRenderTargetView(rtvHandles[3], clearColor0, 0, nullptr);
 
-		m_commandList->ClearDepthStencilView(dsvHandles[0], D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		commandList->ClearDepthStencilView(dsvHandles[0], D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
-		m_commandList->SetDescriptorHeaps(1, heaps);
-		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-		m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetDescriptorHeaps(1, heaps);
+		commandList->SetGraphicsRootSignature(m_rootSignature.get());
+		commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(1, m_descriptorHeapBuffers->GetGPUDescriptorHandleForHeapStart());
 
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferViews[2];
 		vertexBufferViews[0] = s_resourceManager->getResourceView("meshVertexBufferView")->vbv;
 		vertexBufferViews[1] = s_resourceManager->getResourceView("meshDrawIdBufferView")->vbv;
 		auto indexBufferView = s_resourceManager->getResourceView("meshIndexBufferView")->ibv;
 
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
-		m_commandList->IASetIndexBuffer(&indexBufferView);
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		commandList->IASetVertexBuffers(0, 2, vertexBufferViews);
+		commandList->IASetIndexBuffer(&indexBufferView);
 
-		m_drawCmd->draw(m_commandList.get());
+		m_drawCmd->draw(commandList.get());
 
-		s_gpuProfiler->queryEnd(&m_commandList);
+		s_gpuProfiler->queryEnd(&commandList);
 
-		hresult = m_commandList->Close();
+		hresult = commandList->Close();
 		m_buildList = 1;
 		VX_ASSERT(hresult == 0);
 	}
@@ -556,7 +555,7 @@ void RenderPassGBuffer::submitCommands(Graphics::CommandQueue* queue)
 {
 	if (m_buildList != 0)
 	{
-		queue->pushCommandList(&m_commandList);
+		queue->pushCommandList(m_currentCommandList);
 		m_buildList = 0;
 	}
 }

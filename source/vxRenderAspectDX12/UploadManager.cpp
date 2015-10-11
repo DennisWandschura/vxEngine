@@ -28,6 +28,7 @@ SOFTWARE.
 #include <atomic>
 #include "CommandQueue.h"
 #include <vxEngineLib/Event.h>
+#include "FrameData.h"
 
 namespace UploadManagerCpp
 {
@@ -82,8 +83,9 @@ UploadManager::UploadManager()
 	m_queue(),
 	m_capacity(0),
 	m_size(0),
-	m_commandAllocator(),
-	m_commandList(),
+	m_currentCommandList(nullptr),
+	m_buildList(0),
+	m_commandLists(),
 	m_uploadBuffer(),
 	m_heap()
 {
@@ -97,33 +99,38 @@ UploadManager::~UploadManager()
 
 bool UploadManager::createHeap(ID3D12Device* device)
 {
-	if (!m_heap.createBufferHeap(UploadManagerCpp::g_bufferSize, D3D12_HEAP_TYPE_UPLOAD, device))
+	if (!m_heap.createBufferHeap(UploadManagerCpp::g_bufferSize * 2, D3D12_HEAP_TYPE_UPLOAD, device))
 		return false;
 
 	m_heap.setName(L"UploadManagerHeap");
 
 	return true;
 }
-bool UploadManager::initialize(ID3D12Device* device)
+bool UploadManager::initialize(ID3D12Device* device, FrameData* frameData, u32 frameCount)
 {
+	m_bufferIndex = 0;
+
 	if (!createHeap(device))
 		return false;
 
 	d3d::HeapCreateBufferResourceDesc desc;
 	desc.size = UploadManagerCpp::g_bufferSize;
 	desc.state = D3D12_RESOURCE_STATE_GENERIC_READ;
-	desc.resource = m_uploadBuffer.getAddressOf();
+	desc.resource = m_uploadBuffer[0].getAddressOf();
 	desc.flags = D3D12_RESOURCE_FLAG_NONE;
 	if (!m_heap.createResourceBuffer(desc))
 		return false;
 
-	if (!m_commandAllocator.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
+	desc.resource = m_uploadBuffer[1].getAddressOf();
+	if (!m_heap.createResourceBuffer(desc))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.get(), nullptr))
-		return false;
-
-	m_commandList->SetName(L"UploadManagerCommandList");
+	m_commandLists = std::make_unique<d3d::GraphicsCommandList[]>(frameCount);
+	for (u32 i = 0; i < frameCount; ++i)
+	{
+		if (!m_commandLists[i].create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, frameData[i].m_allocatorUpload.get(), nullptr))
+			return false;
+	}
 
 	m_capacity = UploadManagerCpp::g_bufferSize;
 
@@ -134,20 +141,20 @@ void UploadManager::shutdown()
 {
 	m_capacity = 0;
 
-	m_commandList.destroy();
-	m_commandAllocator.destroy();
-	m_uploadBuffer.destroy();
+	m_commandLists.reset();
+	m_uploadBuffer[0].destroy();
+	m_uploadBuffer[1].destroy();
 	m_heap.destroy();
 }
 
 void UploadManager::uploadData(const UploadDesc &desc)
 {
 	u8* ptr = nullptr;
-	auto hresult = m_uploadBuffer->Map(0, &desc.range, (void**)&ptr);
+	auto hresult = m_uploadBuffer[m_bufferIndex]->Map(0, &desc.range, (void**)&ptr);
 
 	ptr = ptr + desc.range.Begin;
 	memcpy(ptr, desc.data, desc.size);
-	m_uploadBuffer->Unmap(0, &desc.range);
+	m_uploadBuffer[m_bufferIndex]->Unmap(0, &desc.range);
 }
 
 void UploadManager::pushTaskBuffer(ID3D12Resource* dstBuffer, u32 offset, u32 dstOffset, u32 size, u32 state)
@@ -315,28 +322,22 @@ void UploadManager::processQueue()
 	newQueue.swap(m_queue);
 }
 
-void UploadManager::processTasks()
+void UploadManager::processTasks(d3d::GraphicsCommandList* commandList)
 {
-	{
-		std::unique_lock<std::mutex> lock(m_taskMutex);
-		m_tasksBack.swap(m_tasks);
-		lock.unlock();
-	}
-
 	for (auto &it : m_tasksBack)
 	{
 		switch (it.type)
 		{
 		case UploadTaskType::Buffer:
 		{
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.buffer.dst, (D3D12_RESOURCE_STATES)it.buffer.state, D3D12_RESOURCE_STATE_COPY_DEST));
+			(*commandList)->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.buffer.dst, (D3D12_RESOURCE_STATES)it.buffer.state, D3D12_RESOURCE_STATE_COPY_DEST));
 
-			m_commandList->CopyBufferRegion(it.buffer.dst, it.buffer.dstOffset, m_uploadBuffer.get(), it.buffer.srcOffset, it.buffer.size);
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.buffer.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.buffer.state));
+			(*commandList)->CopyBufferRegion(it.buffer.dst, it.buffer.dstOffset, m_uploadBuffer[m_bufferIndex].get(), it.buffer.srcOffset, it.buffer.size);
+			(*commandList)->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.buffer.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.buffer.state));
 		}break;
 		case UploadTaskType::Texture:
 		{
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.texture.dst, (D3D12_RESOURCE_STATES)it.texture.state, D3D12_RESOURCE_STATE_COPY_DEST));
+			(*commandList)->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.texture.dst, (D3D12_RESOURCE_STATES)it.texture.state, D3D12_RESOURCE_STATE_COPY_DEST));
 
 			D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint = {};
 			footprint.Offset = it.texture.srcOffset;
@@ -347,10 +348,10 @@ void UploadManager::processTasks()
 			footprint.Footprint.Width = it.texture.dim.x;
 
 			CD3DX12_TEXTURE_COPY_LOCATION Dst(it.texture.dst, it.texture.dstOffset);
-			CD3DX12_TEXTURE_COPY_LOCATION Src(m_uploadBuffer.get(), footprint);
-			m_commandList->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
+			CD3DX12_TEXTURE_COPY_LOCATION Src(m_uploadBuffer[m_bufferIndex].get(), footprint);
+			(*commandList)->CopyTextureRegion(&Dst, 0, 0, 0, &Src, nullptr);
 
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.texture.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.texture.state));
+			(*commandList)->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(it.texture.dst, D3D12_RESOURCE_STATE_COPY_DEST, (D3D12_RESOURCE_STATES)it.texture.state));
 		}break;
 		}
 
@@ -363,29 +364,54 @@ void UploadManager::processTasks()
 	m_tasksBack.clear();
 }
 
-void UploadManager::buildCommandList()
+void UploadManager::buildCommandList(FrameData* currentFrameData, u32 frameIndex)
 {
 	processQueue();
 
-	auto hr = m_commandAllocator.reset();
-	if (hr != 0)
 	{
-		puts("errror");
+		std::unique_lock<std::mutex> lock(m_taskMutex);
+		m_tasksBack.swap(m_tasks);
+		lock.unlock();
 	}
+	auto allocator = currentFrameData->m_allocatorUpload.get();
 
-	hr = m_commandList->Reset(m_commandAllocator.get(), nullptr);
-	if (hr != 0)
+	if (!m_tasksBack.empty())
 	{
-		puts("errror");
-	}
+		auto hr = allocator->Reset();
 
-	processTasks();
+		auto& commandList = m_commandLists[frameIndex];
+		hr = commandList->Reset(allocator, nullptr);
 
-	auto hresult = m_commandList->Close();
-	if (hresult != 0)
-	{
-		//printf("error upload\n");
-		VX_ASSERT(false);
+		processTasks(&commandList);
+
+		commandList->Close();
+
+		/*if (hr != 0)
+		{
+			puts("errror");
+		}
+
+
+		if (hr != 0)
+		{
+			puts("errror");
+		}
+
+		processTasks(m_currentCommandList);
+
+		auto hresult = (*m_currentCommandList)->Close();
+		
+
+		if (hresult != 0)
+		{
+			//printf("error upload\n");
+			VX_ASSERT(false);
+		}*/
+
+		m_currentCommandList = &commandList;
+		m_buildList = 1;
+
+		m_bufferIndex = (m_bufferIndex + 1) & 1;
 	}
 
 	m_size = 0;
@@ -393,5 +419,9 @@ void UploadManager::buildCommandList()
 
 void UploadManager::submitCommandList(d3d::CommandQueue* queue)
 {
-	queue->pushCommandList(&m_commandList);
+	if (m_buildList != 0)
+	{
+		queue->pushCommandList(m_currentCommandList);
+		m_buildList = 0;
+	}
 }

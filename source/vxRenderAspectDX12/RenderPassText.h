@@ -26,40 +26,35 @@ SOFTWARE.
 
 namespace d3d
 {
-	class CommandAllocator;
 	class Device;
 }
 
 #include "RenderPass.h"
-#include "CommandList.h"
 #include "DescriptorHeap.h"
 
 class RenderPassText : public RenderPass
 {
-	d3d::GraphicsCommandList m_commandList;
-	d3d::CommandAllocator* m_allocator;
 	d3d::DescriptorHeap m_rtvHeap;
 	d3d::DescriptorHeap m_srvHeap;
+	d3d::Device* m_device;
 	u32 m_indexCount;
 	u32 m_buildList;
-	ID3D12Resource* m_renderTargets[2];
-	d3d::Device* m_device;
 
 	bool createRootSignature(ID3D12Device* device);
 	bool createPipelineState(ID3D12Device* device);
 
 public:
-	RenderPassText(d3d::CommandAllocator* alloc, d3d::Device* device);
+	explicit RenderPassText(d3d::Device* device);
 	~RenderPassText();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 
-	bool initialize(ID3D12Device* device, void* p) override;
+	bool initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount) override;
 	void shutdown() override;
 
-	void buildCommands() override;
+	void buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex) override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 
 	void setIndexCount(u32 count) { m_indexCount = count; }

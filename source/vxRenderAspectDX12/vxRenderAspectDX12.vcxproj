@@ -155,9 +155,12 @@
     <ClInclude Include="CopyManager.h" />
     <ClInclude Include="CreateResourceDesc.h" />
     <ClInclude Include="d3dObject.h" />
+    <ClInclude Include="d3dThreadData.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="DownloadMananger.h" />
     <ClInclude Include="DrawIndexedIndirectCommand.h" />
+    <ClInclude Include="DrawToBackBuffer.h" />
+    <ClInclude Include="FrameData.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GpuLpv.h" />
     <ClInclude Include="GpuProfiler.h" />
@@ -169,11 +172,8 @@
     <ClInclude Include="PipelineState.h" />
     <ClInclude Include="RenderLayerGame.h" />
     <ClInclude Include="RenderLayerPerfOverlay.h" />
-    <ClInclude Include="RenderPassBlurVoxel.h" />
     <ClInclude Include="RenderPassCreateVpl.h" />
     <ClInclude Include="RenderPassRenderLpv.h" />
-    <ClInclude Include="RenderPassCullLights.h" />
-    <ClInclude Include="RenderPassDrawVoxel.h" />
     <ClInclude Include="RenderPassFinal.h" />
     <ClInclude Include="Gpu.h" />
     <ClInclude Include="GpuSaoBuffer.h" />
@@ -196,15 +196,11 @@
     <ClInclude Include="RenderPassFilterRSM.h" />
     <ClInclude Include="RenderPassInjectRSM.h" />
     <ClInclude Include="RenderPassLight.h" />
-    <ClInclude Include="RenderPassRadiosity.h" />
     <ClInclude Include="RenderPassShading.h" />
     <ClInclude Include="RenderPassShadow.h" />
     <ClInclude Include="RenderPassSSIL.h" />
     <ClInclude Include="RenderPassText.h" />
     <ClInclude Include="RenderPassVisibleLights.h" />
-    <ClInclude Include="RenderPassVoxelize.h" />
-    <ClInclude Include="RenderPassVoxelizeLight.h" />
-    <ClInclude Include="RenderPassVoxelMip.h" />
     <ClInclude Include="RenderPassVoxelPropagate.h" />
     <ClInclude Include="RenderPassZBufferCreateMipmaps.h" />
     <ClInclude Include="RenderSettings.h" />
@@ -220,7 +216,6 @@
     <ClInclude Include="RootSignature.h" />
     <ClInclude Include="ShaderManager.h" />
     <ClInclude Include="ShaderResourceViewDesc.h" />
-    <ClInclude Include="TaskUploadGeometry.h" />
     <ClInclude Include="TextRenderer.h" />
     <ClInclude Include="ResourceDesc.h" />
     <ClInclude Include="TextureManager.h" />
@@ -264,6 +259,7 @@
     <ClCompile Include="DrawIndexedIndirectCommand.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="DrawToBackBuffer.cpp" />
     <ClCompile Include="Frustum.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -288,19 +284,10 @@
     <ClCompile Include="RenderPassAo.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="RenderPassBlurVoxel.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="RenderPassCreateVpl.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="RenderPassRenderLpv.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="RenderPassCullLights.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="RenderPassDrawVoxel.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="RenderPassFilterRSM.cpp">
@@ -327,9 +314,6 @@
     <ClCompile Include="RenderPassInjectRSM.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="RenderPassRadiosity.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="RenderPassShading.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -343,12 +327,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="RenderPassVisibleLights.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="RenderPassVoxelize.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="RenderPassVoxelMip.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="RenderPassVoxelPropagate.cpp">
@@ -366,9 +344,6 @@
     <ClCompile Include="ShaderManager.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="TaskUploadGeometry.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="TextRenderer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -384,6 +359,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="BackBufferPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="CreateVplVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Tests|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

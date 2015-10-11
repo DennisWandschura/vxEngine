@@ -24,6 +24,10 @@ SOFTWARE.
 
 #include "ConditionCanSeePlayer.h"
 #include "Entity.h"
+#include <vxEngineLib/Locator.h>
+#include "PhysicsAspect.h"
+#include <characterkinematic/PxController.h>
+#include <PxRigidBody.h>
 
 ConditionCanSeePlayer::ConditionCanSeePlayer(EntityHuman* player, EntityActor* actor, f32 fovRad, f32 maxViewDistance)
 	:m_player(player),
@@ -43,7 +47,12 @@ ConditionCanSeePlayer::~ConditionCanSeePlayer()
 
 u8 ConditionCanSeePlayer::test() const
 {
-	const __m128 forwardDir{0, 0, -1, 0};
+	auto checkConcreteType = [](const physx::PxRigidActor* actor)
+	{
+		return (actor->getConcreteType() == physx::PxConcreteType::eRIGID_DYNAMIC);
+	};
+
+	const __m128 forwardDir{ 0, 0, -1, 0 };
 
 	__m128 playerPosition = vx::loadFloat4((vx::float4*)&m_player->m_position);
 	__m128 actorPosition = vx::loadFloat4((vx::float4*)&m_actor->m_position);
@@ -51,21 +60,36 @@ u8 ConditionCanSeePlayer::test() const
 
 	auto directionToPlayer = _mm_sub_ps(playerPosition, actorPosition);
 	__m128 distanceToPlayer = vx::length3(directionToPlayer);
-	directionToPlayer =_mm_div_ps(directionToPlayer, distanceToPlayer);
 
-	auto viewDirection = vx::quaternionRotation(forwardDir, qRotation);
-
-	auto dp = vx::dot3(viewDirection, directionToPlayer);
-	if (dp.m128_f32[0] >= m_fov)
+	u8 result = 0;
+	if (distanceToPlayer.m128_f32[0] <= m_maxViewDistance)
 	{
-		//puts("");
+		directionToPlayer = _mm_div_ps(directionToPlayer, distanceToPlayer);
+
+		auto viewDirection = vx::quaternionRotation(forwardDir, qRotation);
+
+		auto dp = vx::dot3(viewDirection, directionToPlayer);
+		if (dp.m128_f32[0] >= m_fov)
+		{
+			auto physicsAspect = Locator::getPhysicsAspect();
+
+			auto rigidDynamic = m_actor->m_controller->getActor();
+			PhysicsHitData hitData;
+			if (physicsAspect->raycast_staticDynamicFilter(actorPosition, directionToPlayer, m_maxViewDistance, rigidDynamic, &hitData))
+			{
+				if (checkConcreteType(hitData.actor))
+				{
+					result = 1;
+				}
+			}
+		}
+
+		// dp = 1: fov angle = 0°, 0
+		// dp = 0: fov angle = 45°, PI/2
+		// dp = -1: fov angle = 180°, PI
 	}
 
-	// dp = 1: fov angle = 0°, 0
-	// dp = 0: fov angle = 45°, PI/2
-	// dp = -1: fov angle = 180°, PI
-
-	return 0;
+	return result;
 }
 
 ConditionCanNotSeePlayer::ConditionCanNotSeePlayer(EntityHuman* player, EntityActor* actor, f32 fovRad, f32 maxViewDistance)
@@ -81,5 +105,7 @@ ConditionCanNotSeePlayer::~ConditionCanNotSeePlayer()
 
 u8 ConditionCanNotSeePlayer::test() const
 {
-	return !ConditionCanSeePlayer::test();
+	u8 result = (ConditionCanSeePlayer::test() == 0) ? 1 : 0;
+
+	return result;
 }

@@ -348,6 +348,9 @@
     <ClInclude Include="ConditionCanSeePlayer.h">
       <Filter>Header Files\AI\Conditions</Filter>
     </ClInclude>
+    <ClInclude Include="ActionActorStop.h">
+      <Filter>Header Files\Actions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -499,6 +502,9 @@
     </ClCompile>
     <ClCompile Include="ConditionCanSeePlayer.cpp">
       <Filter>Source Files\AI\Conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionActorStop.cpp">
+      <Filter>Source Files\Actions</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

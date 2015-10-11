@@ -27,25 +27,20 @@ SOFTWARE.
 namespace d3d
 {
 	class ShaderManager;
-	class CommandAllocator;
 }
 
 struct ID3D12Device;
-struct ID3D12Resource;
 class DrawIndexedIndirectCommand;
 
 #include "RenderPass.h"
 #include <vxLib/math/Vector.h>
 #include "DescriptorHeap.h"
 #include <memory>
-#include "CommandList.h"
 
 class RenderPassGBuffer : public RenderPass
 {
 	struct ColdData;
 
-	d3d::GraphicsCommandList m_commandList;
-	d3d::CommandAllocator* m_cmdAlloc;
 	DrawIndexedIndirectCommand* m_drawCmd;
 	u32 m_buildList;
 	d3d::DescriptorHeap m_descriptorHeapBuffers;
@@ -64,16 +59,16 @@ class RenderPassGBuffer : public RenderPass
 	void createBufferViews(d3d::ResourceManager* resourceManager, ID3D12Device* device);
 
 public:
-	RenderPassGBuffer(d3d::CommandAllocator* cmdAlloc, DrawIndexedIndirectCommand* drawCmd);
+	explicit RenderPassGBuffer(DrawIndexedIndirectCommand* drawCmd);
 	~RenderPassGBuffer();
 
 	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
 
 	bool createData(ID3D12Device* device) override;
 
-	bool initialize(ID3D12Device* device, void* p) override;
+	bool initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount) override;
 	void shutdown() override;
 
-	void buildCommands() override;
+	void buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex) override;
 	void submitCommands(Graphics::CommandQueue* queue) override;
 };

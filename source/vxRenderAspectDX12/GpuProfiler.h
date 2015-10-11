@@ -27,6 +27,7 @@ SOFTWARE.
 struct ID3D12QueryHeap;
 struct ID3D12CommandQueue;
 class RenderAspect;
+struct FrameData;
 
 namespace d3d
 {
@@ -56,16 +57,15 @@ class GpuProfiler
 
 	struct Text;
 
-	struct FrameData
+	struct GpuFrameData
 	{
 		std::unique_ptr<Text[]> m_entries;
 		std::unique_ptr<u64[]> m_times;
 		u32 m_count;
 	};
 
-	d3d::CommandAllocator m_allocator;
-	d3d::GraphicsCommandList m_commandList;
-	FrameData m_data[3];
+	d3d::GraphicsCommandList* m_currentCommandList;
+	GpuFrameData m_data[3];
 	std::unique_ptr<Entry[]> m_entries;
 	u32 m_entryCount;
 	vx::sorted_vector<vx::StringID, u32> m_sortedEntries;
@@ -87,7 +87,7 @@ public:
 	bool initialize(u32 maxQueries, d3d::ResourceManager* resourceManager, ID3D12Device* device, ID3D12CommandQueue* cmdQueue, const vx::float2 &position);
 	void shutdown();
 
-	void frame(d3d::ResourceManager* resourceManager);
+	void frame(d3d::ResourceManager* resourceManager, FrameData* currentFrameData);
 	void submitCommandList(Graphics::CommandQueue* queue);
 
 	void queryBegin(const char* text, d3d::GraphicsCommandList* cmdList);

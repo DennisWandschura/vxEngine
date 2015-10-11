@@ -4,9 +4,8 @@
 #include "CommandAllocator.h"
 #include "GpuProfiler.h"
 
-RenderPassVoxelPropagate::RenderPassVoxelPropagate(d3d::CommandAllocator* cmdAlloc)
-	:m_commandList(),
-	m_cmdAlloc(cmdAlloc),
+RenderPassVoxelPropagate::RenderPassVoxelPropagate()
+	:RenderPass(),
 	m_srvHeap()
 {
 
@@ -140,7 +139,7 @@ void RenderPassVoxelPropagate::createViews(ID3D12Device* device)
 	
 }
 
-bool RenderPassVoxelPropagate::initialize(ID3D12Device* device, void* p)
+bool RenderPassVoxelPropagate::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders())
 		return false;
@@ -154,7 +153,7 @@ bool RenderPassVoxelPropagate::initialize(ID3D12Device* device, void* p)
 	if (!createDescriptorHeap(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 		return false;
 
 	createViews(device);
@@ -166,17 +165,20 @@ void RenderPassVoxelPropagate::shutdown()
 {
 }
 
-void RenderPassVoxelPropagate::buildCommands()
+void RenderPassVoxelPropagate::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	auto dim = s_settings->m_lpvDim;
 
-	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+	auto &commandList = m_commandLists[frameIndex];
+	m_currentCommandList = &commandList;
 
-	s_gpuProfiler->queryBegin("propagate", &m_commandList);
+	commandList->Reset(currentAllocator->get(), m_pipelineState.get());
+
+	s_gpuProfiler->queryBegin("propagate", &commandList);
 
 	auto srvHeap = m_srvHeap.get();
-	m_commandList->SetDescriptorHeaps(1, &srvHeap);
-	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+	commandList->SetDescriptorHeaps(1, &srvHeap);
+	commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
 	auto gpuHandle = m_srvHeap.getHandleGpu();
 
@@ -192,47 +194,47 @@ void RenderPassVoxelPropagate::buildCommands()
 	auto lpvTextureGreenTmp = s_resourceManager->getTexture(L"lpvTextureGreenTmp");
 	auto lpvTextureBlueTmp = s_resourceManager->getTexture(L"lpvTextureBlueTmp");
 
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	for (u32 i = 0; i < 3; ++i)
 	{
-		lpvTextureRed->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		lpvTextureGreen->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		lpvTextureBlue->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureRed->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureGreen->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureBlue->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-		lpvTextureRedTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		lpvTextureGreenTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		lpvTextureBlueTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureRedTmp->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureGreenTmp->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureBlueTmp->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
-		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle0);
-		m_commandList->DrawInstanced(dim * dim, dim, 0, 0);
+		commandList->SetGraphicsRootDescriptorTable(0, gpuHandle0);
+		commandList->DrawInstanced(dim * dim, dim, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureRedTmp->get()));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureGreenTmp->get()));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureBlueTmp->get()));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureRedTmp->get()));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureGreenTmp->get()));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureBlueTmp->get()));
 
-		lpvTextureRed->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		lpvTextureGreen->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		lpvTextureBlue->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureRed->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureGreen->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		lpvTextureBlue->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
-		lpvTextureRedTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		lpvTextureGreenTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-		lpvTextureBlueTmp->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureRedTmp->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureGreenTmp->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+		lpvTextureBlueTmp->barrierTransition(commandList.get(), D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-		m_commandList->SetGraphicsRootDescriptorTable(0, gpuHandle1);
-		m_commandList->DrawInstanced(dim * dim, dim, 0, 0);
+		commandList->SetGraphicsRootDescriptorTable(0, gpuHandle1);
+		commandList->DrawInstanced(dim * dim, dim, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureRed->get()));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureGreen->get()));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureBlue->get()));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureRed->get()));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureGreen->get()));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(lpvTextureBlue->get()));
 	}
 
-	s_gpuProfiler->queryEnd(&m_commandList);
+	s_gpuProfiler->queryEnd(&commandList);
 
-	m_commandList->Close();
+	commandList->Close();
 }
 
 void RenderPassVoxelPropagate::submitCommands(Graphics::CommandQueue* queue)
 {
-	queue->pushCommandList(&m_commandList);
+	queue->pushCommandList(m_currentCommandList);
 }

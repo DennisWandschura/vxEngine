@@ -7,11 +7,10 @@
 #include "UploadManager.h"
 #include "CommandAllocator.h"
 #include "GpuProfiler.h"
+#include "FrameData.h"
 
-RenderPassAO::RenderPassAO(d3d::CommandAllocator* cmdAlloc)
-	:RenderPass(),
-	m_commandList(),
-	m_cmdAlloc(cmdAlloc)
+RenderPassAO::RenderPassAO()
+	:RenderPass()
 {
 }
 
@@ -350,7 +349,7 @@ bool RenderPassAO::createSrv(ID3D12Device* device)
 	return true;
 }
 
-bool RenderPassAO::initialize(ID3D12Device* device, void* p)
+bool RenderPassAO::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders(s_shaderManager))
 	{
@@ -373,7 +372,7 @@ bool RenderPassAO::initialize(ID3D12Device* device, void* p)
 		return false;
 	}
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 		return false;
 
 	if (!createRtv(device))
@@ -390,7 +389,7 @@ void RenderPassAO::shutdown()
 
 }
 
-void RenderPassAO::buildCommands()
+void RenderPassAO::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	auto aoTexture = s_resourceManager->getTextureRtDs(L"aoTexture");
 	auto aoBlurXTexture = s_resourceManager->getTextureRtDs(L"aoBlurXTexture");
@@ -421,74 +420,76 @@ void RenderPassAO::buildCommands()
 	rectScissor.top = 0;
 	rectScissor.bottom = resolution.y;
 
-	auto hr = m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+	auto allocator = currentAllocator->get();
+	auto &commandList = m_commandLists[frameIndex];
 
-	s_gpuProfiler->queryBegin("sao", &m_commandList);
+	auto hr = commandList->Reset(allocator, m_pipelineState.get());
 
-	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	s_gpuProfiler->queryBegin("sao", &commandList);
 
-	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+	commandList->SetGraphicsRootSignature(m_rootSignature.get());
 
 	auto srvHeap = m_srvHeap.get();
-	m_commandList->SetDescriptorHeaps(1, &srvHeap);
-	m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
+	commandList->SetDescriptorHeaps(1, &srvHeap);
+	commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
 
-	m_commandList->RSSetScissorRects(1, &rectScissor);
-	m_commandList->RSSetViewports(1, &viewPort);
+	commandList->RSSetScissorRects(1, &rectScissor);
+	commandList->RSSetViewports(1, &viewPort);
 
 	auto rtvHandle = m_rtvHeap.getHandleCpu();
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandleRawAO = rtvHandle;
-	m_commandList->OMSetRenderTargets(1, &rtvHandleRawAO, 0, nullptr);
-	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	commandList->OMSetRenderTargets(1, &rtvHandleRawAO, 0, nullptr);
+	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
-	m_commandList->DrawInstanced(1, 1, 0, 0);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	commandList->DrawInstanced(1, 1, 0, 0);
 
-	s_gpuProfiler->queryEnd(&m_commandList);
+	s_gpuProfiler->queryEnd(&commandList);
 
-	s_gpuProfiler->queryBegin("sao blur", &m_commandList);
+	s_gpuProfiler->queryBegin("sao blur", &commandList);
 	{
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		//m_commandList->ResourceBarrier(1, &aoTexture->barrierTransition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 		//m_commandList->ResourceBarrier(1, &gbufferNormal->barrierTransition(D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
-		m_commandList->SetPipelineState(m_blurState[0].get());
+		commandList->SetPipelineState(m_blurState[0].get());
 
-		m_commandList->SetGraphicsRootSignature(m_blurRootSignature[0].get());
+		commandList->SetGraphicsRootSignature(m_blurRootSignature[0].get());
 
 		rtvHandle.offset(1);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandleBlurAO = rtvHandle;
-		m_commandList->OMSetRenderTargets(1, &rtvHandleBlurAO, 0, nullptr);
-		m_commandList->ClearRenderTargetView(rtvHandleBlurAO, clearColor, 0, nullptr);
+		commandList->OMSetRenderTargets(1, &rtvHandleBlurAO, 0, nullptr);
+		commandList->ClearRenderTargetView(rtvHandleBlurAO, clearColor, 0, nullptr);
 
-		m_commandList->DrawInstanced(1, 1, 0, 0);
+		commandList->DrawInstanced(1, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferNormal->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	}
 
 	{
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoBlurXTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoBlurXTexture->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
-		m_commandList->SetPipelineState(m_blurState[1].get());
+		commandList->SetPipelineState(m_blurState[1].get());
 
-		m_commandList->SetGraphicsRootSignature(m_blurRootSignature[1].get());
+		commandList->SetGraphicsRootSignature(m_blurRootSignature[1].get());
 
-		m_commandList->OMSetRenderTargets(1, &rtvHandleRawAO, 0, nullptr);
+		commandList->OMSetRenderTargets(1, &rtvHandleRawAO, 0, nullptr);
 
-		m_commandList->DrawInstanced(1, 1, 0, 0);
+		commandList->DrawInstanced(1, 1, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoBlurXTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(aoBlurXTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET));
 	}
 
-	s_gpuProfiler->queryEnd(&m_commandList);
+	s_gpuProfiler->queryEnd(&commandList);
 
-	m_commandList->Close();
+	commandList->Close();
+	m_currentCommandList = &commandList;
 }
 
 void RenderPassAO::submitCommands(Graphics::CommandQueue* queue)
 {
-	queue->pushCommandList(&m_commandList);
+	queue->pushCommandList(m_currentCommandList);
 }

@@ -454,13 +454,31 @@ bool PhysicsAspect::raycast_staticDynamic(const vx::float4a &origin, const vx::f
 	return raycast(rayOrigin, unitDir, filterData, maxDistance, hitData);
 }
 
-bool PhysicsAspect::raycastDynamic(const vx::float3 &origin, const vx::float3 &dir, f32 maxDistance, PhysicsHitData* hitData) const
+bool PhysicsAspect::raycast_staticDynamicFilter(const vx::float4a &origin, const vx::float4a &dir, f32 maxDistance, physx::PxRigidDynamic* actor, PhysicsHitData* hitData) const
+{
+	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
+	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
+	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::ePREFILTER);
+
+	return raycastFilter(rayOrigin, unitDir, filterData, maxDistance, actor, hitData);
+}
+
+bool PhysicsAspect::raycastDynamicNoPlayer(const vx::float3 &origin, const vx::float3 &dir, f32 maxDistance, PhysicsHitData* hitData) const
 {
 	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
 	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
 	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eDYNAMIC | physx::PxQueryFlag::ePREFILTER);
 
-	return raycastNoPlayer(rayOrigin, unitDir, filterData, maxDistance, hitData);
+	return raycastFilter(rayOrigin, unitDir, filterData, maxDistance, m_humanActor, hitData);
+}
+
+bool PhysicsAspect::raycastStaticNoPlayer(const vx::float4a &origin, const vx::float4a &dir, f32 maxDistance, PhysicsHitData* hitData) const
+{
+	physx::PxVec3 rayOrigin(origin.x, origin.y, origin.z);                 // [in] Ray origin
+	physx::PxVec3 unitDir(dir.x, dir.y, dir.z);                // [in] Normalized ray direction
+	physx::PxQueryFilterData filterData(physx::PxQueryFlag::eSTATIC);
+
+	return raycastFilter(rayOrigin, unitDir, filterData, maxDistance, m_humanActor, hitData);
 }
 
 bool PhysicsAspect::raycast(const physx::PxVec3 &origin, const physx::PxVec3 &dir, const physx::PxQueryFilterData &filterData, f32 maxDistance, PhysicsHitData* hitData) const
@@ -492,14 +510,14 @@ bool PhysicsAspect::raycast(const physx::PxVec3 &origin, const physx::PxVec3 &di
 	return result;
 }
 
-bool PhysicsAspect::raycastNoPlayer(const physx::PxVec3 &origin, const physx::PxVec3 &dir, const physx::PxQueryFilterData &filterData, f32 maxDistance, PhysicsHitData* hitData) const
+bool PhysicsAspect::raycastFilter(const physx::PxVec3 &origin, const physx::PxVec3 &dir, const physx::PxQueryFilterData &filterData, f32 maxDistance, physx::PxRigidDynamic* actor, PhysicsHitData* hitData) const
 {
 	physx::PxRaycastBuffer hit;
 
 	auto unitDir = dir;
 	unitDir.normalize();
 
-	FilterHumanCallback callback(m_humanActor);
+	FilterHumanCallback callback(actor);
 
 	bool result = false;
 	if (m_pScene->raycast(origin, unitDir, maxDistance, hit, physx::PxHitFlag::eDEFAULT, filterData, &callback))

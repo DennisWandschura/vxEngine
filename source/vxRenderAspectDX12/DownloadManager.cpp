@@ -1,10 +1,11 @@
 #include "DownloadMananger.h"
 #include <vxEngineLib/Graphics/CommandQueue.h>
+#include "FrameData.h"
 
 struct DownloadManager::CopyEntry
 {
 	d3d::Resource* src;
-	u32 srcOffset; 
+	u32 srcOffset;
 	u32 size;
 	u32 dstOffset;
 	u8* cpuDst;
@@ -20,7 +21,9 @@ struct DownloadManager::DownloadEntry
 };
 
 DownloadManager::DownloadManager()
-	:m_buildCommandList(0),
+	:m_currentCommandList(0),
+	m_commandLists(),
+	m_buildCommandList(0),
 	m_entries(),
 	m_capacity(0),
 	m_size(0)
@@ -33,15 +36,16 @@ DownloadManager::~DownloadManager()
 
 }
 
-bool DownloadManager::initialize(ID3D12Device* device)
+bool DownloadManager::initialize(ID3D12Device* device, FrameData* frameData, u32 frameCount)
 {
-	if (!m_allocator.create(D3D12_COMMAND_LIST_TYPE_DIRECT, device))
-		return false;
+	m_commandLists = std::make_unique<d3d::GraphicsCommandList[]>(frameCount);
+	for (u32 i = 0; i < frameCount; ++i)
+	{
+		if (!m_commandLists[i].create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, frameData[i].m_allocatorDownload.get()))
+			return false;
+	}
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator.get()))
-		return false;
-
-	if(!m_heapDownload.createBufferHeap(1 MBYTE, D3D12_HEAP_TYPE_READBACK, device))
+	if (!m_heapDownload.createBufferHeap(1 MBYTE, D3D12_HEAP_TYPE_READBACK, device))
 		return false;
 
 	d3d::HeapCreateBufferResourceDesc desc;
@@ -61,8 +65,7 @@ void DownloadManager::shutdown()
 {
 	m_bufferDownload.destroy();
 	m_heapDownload.destroy();
-	m_commandList.destroy();
-	m_allocator.destroy();
+	m_commandLists.reset();
 }
 
 bool DownloadManager::queueCopyBuffer(d3d::Resource* src, u32 srcOffset, u32 size, u8* cpuDst, const Event &evt)
@@ -98,22 +101,25 @@ void DownloadManager::pushDownloadBuffer(u8* cpuDst, u32 size, d3d::Resource* sr
 	}
 }
 
-void DownloadManager::buildCommandList()
+void DownloadManager::buildCommandList(FrameData* currentFrameData, u32 frameIndex)
 {
 	if (!m_copyEntries.empty())
 	{
-		m_allocator.reset();
-		m_commandList->Reset(m_allocator.get(), nullptr);
+		auto allocator = currentFrameData->m_allocatorDownload.get();
+		auto &commandList = m_commandLists[frameIndex];
+
+		allocator->Reset();
+		commandList->Reset(allocator, nullptr);
 		for (auto &it : m_copyEntries)
 		{
 			auto src = it.src->get();
 			auto stateBefore = it.src->getOriginalState();
 
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(src, stateBefore, D3D12_RESOURCE_STATE_COPY_SOURCE));
+			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(src, stateBefore, D3D12_RESOURCE_STATE_COPY_SOURCE));
 
-			m_commandList->CopyBufferRegion(m_bufferDownload.get(), it.dstOffset, src, it.srcOffset, it.size);
+			commandList->CopyBufferRegion(m_bufferDownload.get(), it.dstOffset, src, it.srcOffset, it.size);
 
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(src, D3D12_RESOURCE_STATE_COPY_SOURCE, stateBefore));
+			commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(src, D3D12_RESOURCE_STATE_COPY_SOURCE, stateBefore));
 
 			DownloadEntry downloadEntry;
 			downloadEntry.cpuDst = it.cpuDst;
@@ -122,46 +128,20 @@ void DownloadManager::buildCommandList()
 			downloadEntry.srcOffset = it.srcOffset;
 			m_entries.push_back(downloadEntry);
 		}
-		m_commandList->Close();
+		commandList->Close();
 		m_copyEntries.clear();
 
 		m_buildCommandList = 1;
+		m_currentCommandList = &commandList;
 	}
 }
 
 void DownloadManager::submitCommandList(Graphics::CommandQueue* queue)
 {
-	/*if (!m_copyEntries.empty())
-	{
-		m_commandList->Reset(m_allocator.get(), nullptr);
-		for (auto &it : m_copyEntries)
-		{
-			auto src = it.src->get();
-			auto stateBefore = it.src->getOriginalState();
-
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(src, stateBefore, D3D12_RESOURCE_STATE_COPY_SOURCE));
-
-			m_commandList->CopyBufferRegion(m_bufferDownload.get(), it.dstOffset, src, it.srcOffset, it.size);
-
-			m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(src, D3D12_RESOURCE_STATE_COPY_SOURCE, stateBefore));
-
-			DownloadEntry downloadEntry;
-			downloadEntry.cpuDst = it.cpuDst;
-			downloadEntry.evt = it.evt;
-			downloadEntry.size = it.size;
-			downloadEntry.srcOffset = it.srcOffset;
-			m_entries.push_back(downloadEntry);
-		}
-		m_commandList->Close();
-		m_copyEntries.clear();
-
-		queue->pushCommandList(&m_commandList);
-	}*/
-
 	if (m_buildCommandList != 0)
 	{
-		queue->pushCommandList(&m_commandList);
-		m_buildCommandList = 1;
+		queue->pushCommandList(m_currentCommandList);
+		m_buildCommandList = 0;
 	}
 }
 

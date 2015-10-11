@@ -46,16 +46,18 @@ namespace Graphics
 		virtual void createRenderPasses() = 0;
 
 		virtual void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount) = 0;
+		virtual bool createData() = 0;
 
-		virtual bool initialize(vx::StackAllocator* allocator, Logfile* errorLog) = 0;
+		virtual bool initialize(u32 frameCount, vx::StackAllocator* allocator, Logfile* errorLog) = 0;
 		virtual void shudown() = 0;
 
 		virtual void update() = 0;
 
 		virtual void queueUpdate(const RenderUpdateTaskType type, const u8* data, u32 dataSize) = 0;
 
-		virtual void buildCommandLists() = 0;
+		virtual void buildCommandLists(u32 frameIndex) = 0;
 		virtual void submitCommandLists(Graphics::CommandQueue* queue) = 0;
+		virtual void buildAndSubmitCommandLists(u32 frameIndex, Graphics::CommandQueue* queue) = 0;
 
 		virtual u32 getCommandListCount() const = 0;
 	};

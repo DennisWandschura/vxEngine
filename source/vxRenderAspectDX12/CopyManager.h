@@ -24,29 +24,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+struct FrameData;
+
 #include "CommandList.h"
-#include "CommandAllocator.h"
 #include <vxEngineLib/Graphics/CommandQueue.h>
 #include <vector>
+#include <memory>
 
 class CopyManager
 {
 	struct Entry;
 
-	d3d::GraphicsCommandList m_commandListCopy;
-	d3d::CommandAllocator m_allocator;
+	d3d::GraphicsCommandList* m_currentCommandList;
+	std::unique_ptr<d3d::GraphicsCommandList[]> m_commandLists;
+	u32 m_buildList;
 	std::vector<Entry> m_entries;
 
 public:
 	CopyManager();
 	~CopyManager();
 
-	bool initialize(ID3D12Device* device);
+	bool initialize(ID3D12Device* device, FrameData* frameData, u32 frameCount);
 	void destroy();
 
 	void pushCopyBuffer(ID3D12Resource* src, u64 srcOffset, u32 srcStateBefore, u64 size, ID3D12Resource* dst, u64 dstOffset, u32 dstStateBefore);
 	void pushCopyTexture(ID3D12Resource* src, u32 srcStateBefore, ID3D12Resource* dst, u32 dstStateBefore);
 
-	void buildCommandList();
+	void buildCommandList(FrameData* currentFrameData, u32 frameIndex);
 	void submitList(Graphics::CommandQueue* queue);
 };

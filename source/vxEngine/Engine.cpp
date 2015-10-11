@@ -120,7 +120,7 @@ void Engine::update()
 
 	m_resourceAspect.update();
 
-	m_cpuProfiler.pushMarker("update audio()");
+	m_cpuProfiler.pushMarker("update audio");
 	m_audioAspect->update(g_dt);
 	m_cpuProfiler.popMarker();
 
@@ -165,6 +165,7 @@ void Engine::mainLoop(Logfile* logfile)
 	CpuTimer timer;
 
 	f32 accum = 0.0f;
+
 	while (m_bRun != 0)
 	{
 		auto frameTime = timer.getTimeSeconds();
@@ -185,11 +186,13 @@ void Engine::mainLoop(Logfile* logfile)
 		m_renderAspect->submitCommands();
 		m_cpuProfiler.popMarker();
 
-		m_taskManager.updateMainThread();
+		m_cpuProfiler.pushMarker("swap buffer");
+		m_renderAspect->swapBuffers();
+		m_cpuProfiler.popMarker();
 
 		while (accum >= g_dt)
 		{
-			m_cpuProfiler.pushMarker("update()");
+			m_cpuProfiler.pushMarker("update");
 			update();
 
 			m_cpuProfiler.pushMarker("update renderer");
@@ -205,10 +208,6 @@ void Engine::mainLoop(Logfile* logfile)
 
 		m_cpuProfiler.pushMarker("gpu wait");
 		m_renderAspect->wait();
-		m_cpuProfiler.popMarker();
-
-		m_cpuProfiler.pushMarker("swap buffers");
-		m_renderAspect->swapBuffers();
 		m_cpuProfiler.popMarker();
 
 		m_cpuProfiler.popMarker();
@@ -332,7 +331,7 @@ bool Engine::initialize(Logfile* logfile, SmallObjAllocator* smallObjAllocatorMa
 		return false;
 	}
 
-	auto topLeftProfilerPosition = (g_engineConfig.m_resolution / vx::uint2(2)) - vx::uint2(300, 30);
+	auto topLeftProfilerPosition = (g_engineConfig.m_resolution / vx::uint2(2)) - vx::uint2(400, 30);
 	m_cpuProfiler.initialize(topLeftProfilerPosition);
 
 	g_engineConfig.m_editor = false;

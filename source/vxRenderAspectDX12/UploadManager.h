@@ -25,8 +25,8 @@ SOFTWARE.
 */
 
 struct ID3D12Resource;
-struct ID3D12CommandAllocator;
 class Event;
+struct FrameData;
 
 namespace d3d
 {
@@ -92,9 +92,11 @@ class UploadManager
 	std::vector<QueuedUploadTask> m_queue;
 	u32 m_capacity;
 	u32 m_size;
-	d3d::CommandAllocator m_commandAllocator;
-	d3d::GraphicsCommandList m_commandList;
-	d3d::Object<ID3D12Resource> m_uploadBuffer;
+	u32 m_bufferIndex;
+	d3d::GraphicsCommandList* m_currentCommandList;
+	u32 m_buildList;
+	std::unique_ptr<d3d::GraphicsCommandList[]> m_commandLists;
+	d3d::Object<ID3D12Resource> m_uploadBuffer[2];
 	d3d::Heap m_heap;
 
 	bool createHeap(ID3D12Device* device);
@@ -109,13 +111,13 @@ class UploadManager
 	void pushTaskTexture(const UploadTaskTextureDesc &desc, u32 srcOffset);
 
 	void processQueue();
-	void processTasks();
+	void processTasks(d3d::GraphicsCommandList* commandList);
 
 public:
 	UploadManager();
 	~UploadManager();
 
-	bool initialize(ID3D12Device* device);
+	bool initialize(ID3D12Device* device, FrameData* frameData, u32 frameCount);
 	void shutdown();
 
 	template<typename T>
@@ -128,6 +130,6 @@ public:
 	void pushUploadBuffer(const u8* data, ID3D12Resource* dstBuffer, u32 dstOffset, u32 size, u32 state, const Event &evt);
 	void pushUploadTexture(const UploadTaskTextureDesc &desc);
 
-	void buildCommandList();
+	void buildCommandList(FrameData* currentFrameData, u32 frameIndex);
 	void submitCommandList(d3d::CommandQueue* queue);
 };

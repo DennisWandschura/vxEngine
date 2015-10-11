@@ -16,11 +16,11 @@ public:
 		m_renderPasses.push_back(rp);
 	}
 
-	void buildCommands()
+	void buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 	{
 		for (auto &it : m_renderPasses)
 		{
-			it->buildCommands();
+			it->buildCommands(currentAllocator, frameIndex);
 		}
 	}
 

@@ -33,9 +33,8 @@ SOFTWARE.
 
 const u32 g_zBufferMaxMipLevel = 5u;
 
-RenderPassZBuffer::RenderPassZBuffer(d3d::CommandAllocator* cmdAlloc)
-	:m_commandList(),
-	m_cmdAlloc(cmdAlloc),
+RenderPassZBuffer::RenderPassZBuffer()
+	:RenderPass(),
 	m_descriptorHeapRtv(),
 	m_descriptorHeap()
 {
@@ -164,13 +163,10 @@ bool RenderPassZBuffer::createDescriptor(ID3D12Device* device, d3d::ResourceMana
 	rtvDesc.Texture2D.PlaneSlice = 0;
 	device->CreateRenderTargetView(zBuffer->get(), &rtvDesc, handleRtv);
 
-	if(!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_cmdAlloc->get(), m_pipelineState.get()))
-		return false;
-
 	return true;
 }
 
-bool RenderPassZBuffer::initialize(ID3D12Device* device, void* p)
+bool RenderPassZBuffer::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	if (!loadShaders(s_shaderManager))
 		return false;
@@ -184,6 +180,8 @@ bool RenderPassZBuffer::initialize(ID3D12Device* device, void* p)
 	if (!createDescriptor(device, s_resourceManager))
 		return false;
 
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
+		return false;
 
 	return true;
 }
@@ -193,16 +191,19 @@ void RenderPassZBuffer::shutdown()
 	m_descriptorHeap.destroy();
 }
 
-void RenderPassZBuffer::buildCommands()
+void RenderPassZBuffer::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	auto gbufferDepthTexture = s_resourceManager->getTextureRtDs(L"gbufferDepth");
 	auto zBuffer = s_resourceManager->getTextureRtDs(L"zBuffer");
 
 	const f32 clearColor[4] = { 1.0f, 0.0f, 0, 0 };
 
-	m_commandList->Reset(m_cmdAlloc->get(), m_pipelineState.get());
+	auto &currentCommandList = m_commandLists[frameIndex];
+	m_currentCommandList = &currentCommandList;
 
-	s_gpuProfiler->queryBegin("zbuffer", &m_commandList);
+	currentCommandList->Reset(currentAllocator->get(), m_pipelineState.get());
+
+	s_gpuProfiler->queryBegin("zbuffer", &currentCommandList);
 
 	D3D12_VIEWPORT viewport;
 	viewport.Height = (f32)s_resolution.y;
@@ -218,38 +219,39 @@ void RenderPassZBuffer::buildCommands()
 	rectScissor.right = s_resolution.x;
 	rectScissor.bottom = s_resolution.y;
 
-	m_commandList->RSSetViewports(1, &viewport);
-	m_commandList->RSSetScissorRects(1, &rectScissor);
+	currentCommandList->RSSetViewports(1, &viewport);
+	currentCommandList->RSSetScissorRects(1, &rectScissor);
 
-	zBuffer->barrierTransition(m_commandList.get(), D3D12_RESOURCE_STATE_RENDER_TARGET);
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	currentCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer->get(), D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_RENDER_TARGET));
+	currentCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture->get(), D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
 	auto rtvHandle = m_descriptorHeapRtv.getHandleCpu();
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[1];
 	rtvHandles[0] = rtvHandle;
 	rtvHandle.offset(1);
 
-	m_commandList->OMSetRenderTargets(1, rtvHandles, FALSE, nullptr);
-	m_commandList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
+	currentCommandList->OMSetRenderTargets(1, rtvHandles, FALSE, nullptr);
+	currentCommandList->ClearRenderTargetView(rtvHandles[0], clearColor, 0, nullptr);
 
-	m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
+	currentCommandList->SetGraphicsRootSignature(m_rootSignature.get());
 
 	auto descriptor = m_descriptorHeap.get();
-	m_commandList->SetDescriptorHeaps(1, &descriptor);
-	m_commandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	currentCommandList->SetDescriptorHeaps(1, &descriptor);
+	currentCommandList->SetGraphicsRootDescriptorTable(0, m_descriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	currentCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-	m_commandList->DrawInstanced(1, 1, 0, 0);
+	currentCommandList->DrawInstanced(1, 1, 0, 0);
 
-	m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	currentCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(gbufferDepthTexture->get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	currentCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(zBuffer->get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_GENERIC_READ));
 
-	s_gpuProfiler->queryEnd(&m_commandList);
+	s_gpuProfiler->queryEnd(&currentCommandList);
 
-	m_commandList->Close();
+	currentCommandList->Close();
 }
 
 void RenderPassZBuffer::submitCommands(Graphics::CommandQueue* queue)
 {
-	queue->pushCommandList(&m_commandList);
+	queue->pushCommandList(m_currentCommandList);
 }

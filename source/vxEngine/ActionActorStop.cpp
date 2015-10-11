@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 The MIT License (MIT)
 
@@ -23,38 +21,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#include "ActionActorStop.h"
+#include "ComponentActor.h"
+#include "ActionFollowPath.h"
+#include "Entity.h"
 
-namespace d3d
+ActionActorStop::ActionActorStop(EntityActor* entity, Component::Actor* actorData, ActionFollowPath* actionFollowPath)
+	:m_entity(entity),
+	m_actor(actorData),
+	m_actionFollowPath(actionFollowPath)
 {
-	class CommandAllocator;
+
 }
 
-#include "RenderPass.h"
-#include "DescriptorHeap.h"
-#include "CommandList.h"
-
-class RenderPassVoxelMip : public RenderPass 
+ActionActorStop::~ActionActorStop()
 {
-	d3d::GraphicsCommandList m_commandList;
-	d3d::CommandAllocator* m_cmdAlloc;
-	d3d::DescriptorHeap m_uavHeap;
 
-	bool loadShaders();
-	bool createRootSignature(ID3D12Device* device);
-	bool createPipelineState(ID3D12Device* device);
-	void createViews(ID3D12Device* device);
+}
 
-public:
-	explicit RenderPassVoxelMip(d3d::CommandAllocator* cmdAlloc);
-	~RenderPassVoxelMip();
+void ActionActorStop::run()
+{
+	m_actor->m_data->path.clear();
+	m_actor->m_followingPath = 0;
 
-	void getRequiredMemory(u64* heapSizeBuffer, u32* bufferCount, u64* heapSizeTexture, u32* textureCount, u64* heapSizeRtDs, u32* rtDsCount, ID3D12Device* device) override;
+	auto position = m_entity->m_position;
+	position.y = m_entity->m_footPositionY;
+	m_actionFollowPath->setTarget(position);
+}
 
-	bool createData(ID3D12Device* device) override;
-
-	bool initialize(ID3D12Device* device, void* p) override;
-	void shutdown() override;
-
-	void buildCommands() override;
-	void submitCommands(Graphics::CommandQueue* queue) override;
-};
+bool ActionActorStop::isComplete() const
+{
+	return true;
+}

@@ -129,7 +129,6 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
@@ -238,6 +237,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ActionActorCreatePath.h" />
+    <ClInclude Include="ActionActorStop.h" />
     <ClInclude Include="ActionFollowPath.h" />
     <ClInclude Include="ActionGrabEntity.h" />
     <ClInclude Include="ActionManager.h" />
@@ -325,6 +325,7 @@
     <ClCompile Include="ActionActorCreatePath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="ActionActorStop.cpp" />
     <ClCompile Include="ActionFollowPath.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

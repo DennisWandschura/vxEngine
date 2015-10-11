@@ -29,14 +29,15 @@ SOFTWARE.
 #include "ResourceDesc.h"
 #include "ResourceManager.h"
 #include "ResourceView.h"
+#include "FrameData.h"
+#include "CommandList.h"
 #include "Device.h"
 
-RenderPassText::RenderPassText(d3d::CommandAllocator* alloc, d3d::Device* device)
-	:m_commandList(),
-	m_allocator(alloc),
+RenderPassText::RenderPassText(d3d::Device* device)
+	:RenderPass(),
+	m_device(device),
 	m_indexCount(0),
-	m_buildList(0),
-	m_device(device)
+	m_buildList(0)
 {
 
 }
@@ -126,7 +127,7 @@ bool RenderPassText::createPipelineState(ID3D12Device* device)
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
-	auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	auto rtvFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	d3d::PipelineStateDescInput inputDesc;
 	inputDesc.rootSignature = m_rootSignature.get();
@@ -147,7 +148,7 @@ bool RenderPassText::createPipelineState(ID3D12Device* device)
 	return d3d::PipelineState::create(desc, &m_pipelineState, device);
 }
 
-bool RenderPassText::initialize(ID3D12Device* device, void* p)
+bool RenderPassText::initialize(ID3D12Device* device, d3d::CommandAllocator* allocators, u32 frameCount)
 {
 	const wchar_t* files[2] =
 	{
@@ -164,7 +165,7 @@ bool RenderPassText::initialize(ID3D12Device* device, void* p)
 	if (!createPipelineState(device))
 		return false;
 
-	if (!m_commandList.create(device, D3D12_COMMAND_LIST_TYPE_DIRECT, m_allocator->get(), m_pipelineState.get()))
+	if (!createCommandLists(device, D3D12_COMMAND_LIST_TYPE_DIRECT, allocators, frameCount))
 		return false;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc;
@@ -181,18 +182,19 @@ bool RenderPassText::initialize(ID3D12Device* device, void* p)
 	if (!m_srvHeap.create(desc, device))
 		return false;
 
+	auto layerOverlayTexture = s_resourceManager->getTextureRtDs(L"layerOverlayTexture");
 	auto rtvHandle = m_rtvHeap.getHandleCpu();
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
+	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+	rtvDesc.Texture2DArray.ArraySize = 1;
+	rtvDesc.Texture2DArray.MipSlice = 0;
+	rtvDesc.Texture2DArray.PlaneSlice = 0;
+
 	for (u32 i = 0; i < 2; ++i)
 	{
-		m_device->getBuffer(i, IID_PPV_ARGS(&m_renderTargets[i]));
-
-		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc;
-		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		rtvDesc.Texture2D.MipSlice = 0,
-		rtvDesc.Texture2D.PlaneSlice = 0;
-		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-
-		device->CreateRenderTargetView(m_renderTargets[i], &rtvDesc, rtvHandle);
+		rtvDesc.Texture2DArray.FirstArraySlice = i;
+		device->CreateRenderTargetView(layerOverlayTexture->get(), &rtvDesc, rtvHandle);
 		rtvHandle.offset(1);
 	}
 
@@ -220,13 +222,17 @@ void RenderPassText::shutdown()
 
 }
 
-void RenderPassText::buildCommands()
+void RenderPassText::buildCommands(d3d::CommandAllocator* currentAllocator, u32 frameIndex)
 {
 	if (m_indexCount != 0)
 	{
+		const f32 clearColor[4] = {0, 0, 0, 0};
+		auto &commandList = m_commandLists[frameIndex];
+		m_currentCommandList = &commandList;
+
 		auto textVbv = s_resourceManager->getResourceView("textVbv");
 		auto textIbv = s_resourceManager->getResourceView("textIbv");
-		m_commandList->Reset(m_allocator->get(), m_pipelineState.get());
+		commandList->Reset(currentAllocator->get(), m_pipelineState.get());
 
 		D3D12_VIEWPORT viewPort;
 		viewPort.Height = (f32)s_resolution.y;
@@ -242,37 +248,31 @@ void RenderPassText::buildCommands()
 		rectScissor.right = s_resolution.x;
 		rectScissor.bottom = s_resolution.y;
 
-		auto currentBuffer = m_device->getCurrentBackBufferIndex();
-
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[currentBuffer], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
-
-		m_commandList->RSSetViewports(1, &viewPort);
-		m_commandList->RSSetScissorRects(1, &rectScissor);
+		commandList->RSSetViewports(1, &viewPort);
+		commandList->RSSetScissorRects(1, &rectScissor);
 
 		auto rtvHandle = m_rtvHeap.getHandleCpu();
-		rtvHandle.offset(currentBuffer);
+		rtvHandle.offset(frameIndex);
 
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles[1];
 		rtvHandles[0] = rtvHandle;
 
-		m_commandList->OMSetRenderTargets(1, rtvHandles, 0, nullptr);
-		//m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+		commandList->OMSetRenderTargets(1, rtvHandles, 0, nullptr);
+		commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
 		auto srvHeap = m_srvHeap.get();
-		m_commandList->SetDescriptorHeaps(1, &srvHeap);
-		m_commandList->SetGraphicsRootSignature(m_rootSignature.get());
-		m_commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(1, srvHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetDescriptorHeaps(1, &srvHeap);
+		commandList->SetGraphicsRootSignature(m_rootSignature.get());
+		commandList->SetGraphicsRootDescriptorTable(0, srvHeap->GetGPUDescriptorHandleForHeapStart());
+		commandList->SetGraphicsRootDescriptorTable(1, srvHeap->GetGPUDescriptorHandleForHeapStart());
 
-		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_commandList->IASetVertexBuffers(0, 1, &textVbv->vbv);
-		m_commandList->IASetIndexBuffer(&textIbv->ibv);
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		commandList->IASetVertexBuffers(0, 1, &textVbv->vbv);
+		commandList->IASetIndexBuffer(&textIbv->ibv);
 
-		m_commandList->DrawIndexedInstanced(m_indexCount, 1, 0, 0, 0);
+		commandList->DrawIndexedInstanced(m_indexCount, 1, 0, 0, 0);
 
-		m_commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_renderTargets[currentBuffer], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-
-		m_commandList->Close();
+		commandList->Close();
 		m_buildList = 1;
 	}
 }
@@ -281,7 +281,7 @@ void RenderPassText::submitCommands(Graphics::CommandQueue* queue)
 {
 	if (m_buildList != 0)
 	{
-		queue->pushCommandList(&m_commandList);
+		queue->pushCommandList(m_currentCommandList);
 		m_buildList = 0;
 	}
 }
