@@ -69,48 +69,54 @@ namespace WavFileCpp
 		}
 	};
 
-	struct ChannelIndices
+	template<typename SRC_TYPE, typename DST_TYPE>
+	u32 writeDataSrc1(const u8* buffer, u32* head, u32 srcChannels, u32 dataSize, DST_TYPE* dst, u32 frameCount,
+		u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener)
 	{
-		u32 indices[8];
-	};
+		const u32 srcChannelSize = srcChannels * sizeof(SRC_TYPE);
+		u32 sizeInBytes = frameCount * srcChannelSize;
 
-	const ChannelIndices g_DstChannelIndices[]
-	{
-		// 2 channels
-		{ 6, 7, 0, 0, 0, 0, 0, 0 },
-		// 6 channels
-		{ 6, 7, 0, 0, 0, 0, 0, 0 },
-		// 8 channels
-		{ 0, 1, 2, 3, 4, 5, 6, 7 },
-	};
+		u32 newHead = *head + sizeInBytes;
+		newHead = std::min(newHead, dataSize);
 
-	const u32 g_channelCount[] =
-	{
-		2, 6, 8
-	};
+		u32 readBytes = newHead - *head;
+		u32 readFrames = readBytes / srcChannelSize;
 
-	const __m128 g_channelDirections[8] =
-	{
-		// front left
-		{ 0.707106769f, 0, 0.707106769f, 0},
-		// front right
-		{ -0.707106769f, 0, 0.707106769f, 0 },
-		// front center
-		{ 0, 0, 1, 0 },
-		// low frequency
-		{0, 0, 0, 0},
-		// back left
-		{ 0.707106769f, 0, -0.707106769f, 0 },
-		// back right
-		{ -0.707106769f, 0, -0.707106769f, 0 },
-		// side left
-		{1, 0, 0, 0},
-		// side right
-		{-1, 0, 0, 0}
-	};
+		auto src = (SRC_TYPE*)(buffer + *head);
+
+		const auto dstSize = sizeof(DST_TYPE) * dstChannelCount;
+
+		const __m128 upDir = { 0, 1, 0, 0 };
+
+		auto absDirectionToListenerY = vx::abs(_mm_and_ps(directionToListener, vx::g_VXMaskY));
+		auto dpy = vx::dot3(absDirectionToListenerY, upDir);
+
+		for (u32 i = 0; i < readFrames; ++i)
+		{
+			memset(dst, 0, dstSize);
+
+			for (u32 chn = 0; chn < dstChannelCount; ++chn)
+			{
+				auto channelDir = directions[chn];
+
+				auto dot = _mm_max_ps(vx::dot3(channelDir, directionToListener), vx::g_VXZero);
+				f32 weight = 1.0f - dot.m128_f32[0];
+
+				f32 directionalIntensity = dot.m128_f32[0] + dpy.m128_f32[0] * weight;
+
+				ConvertData<SRC_TYPE, DST_TYPE>()(dst++, src, intensity * directionalIntensity);
+			}
+			++src;
+		}
+
+		*head += readBytes;
+
+		return readFrames;
+	}
 
 	template<typename SRC_TYPE, typename DST_TYPE>
-	u32 writeData(const u8* buffer, u32* head, u32 srcChannels, u32 dataSize, DST_TYPE* dst, u32 frameCount, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation)
+	u32 writeData(const u8* buffer, u32* head, u32 srcChannels, u32 dataSize, DST_TYPE* dst, u32 frameCount,
+		u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener)
 	{
 		const u32 srcChannelSize = srcChannels * sizeof(SRC_TYPE);
 		u32 sizeInBytes = frameCount * srcChannelSize;
@@ -128,35 +134,22 @@ namespace WavFileCpp
 			//const auto remainingChannels = 6;
 			//const auto remainingDstSize = remainingChannels * sizeof(DST_TYPE);
 
-			auto channelCount = g_channelCount[(u32)dstChannels];
-			auto channelIndices = g_DstChannelIndices[(u32)dstChannels];
-			const auto dstSize = sizeof(DST_TYPE) * channelCount;
+			const auto dstSize = sizeof(DST_TYPE) * dstChannelCount;
 
-			const __m128 upDir = {0, 1, 0, 0};
+			const __m128 upDir = { 0, 1, 0, 0 };
 
-			auto directionToListener = *direction;
 			auto absDirectionToListenerY = vx::abs(_mm_and_ps(directionToListener, vx::g_VXMaskY));
 			auto dpy = vx::dot3(absDirectionToListenerY, upDir);
-
-			__m128 directions[8];
-			for (u32 chn = 0; chn < channelCount; ++chn)
-			{
-				auto channelIndex = channelIndices.indices[chn];
-				auto channelDir = g_channelDirections[channelIndex];
-
-				directions[channelIndex] = vx::quaternionRotation(channelDir, *rotation);
-			}
 
 			//u32 index = 0;
 			for (u32 i = 0; i < readFrames; ++i)
 			{
 				memset(dst, 0, dstSize);
 
-				for (u32 chn = 0; chn < channelCount; ++chn)
+				for (u32 chn = 0; chn < dstChannelCount; ++chn)
 				{
-					auto channelIndex = channelIndices.indices[chn];
-					auto channelDir = directions[channelIndex];
-					
+					auto channelDir = directions[chn];
+
 					auto dot = _mm_max_ps(vx::dot3(channelDir, directionToListener), vx::g_VXZero);
 					f32 weight = 1.0f - dot.m128_f32[0];
 
@@ -179,13 +172,12 @@ namespace WavFileCpp
 		}
 		else
 		{
-			auto channelCount = g_channelCount[(u32)dstChannels];
-			const auto dstSize = sizeof(DST_TYPE) * channelCount;
+			const auto dstSize = sizeof(DST_TYPE) * dstChannelCount;
 			u32 index = 0;
 			for (u32 i = 0; i < readFrames; ++i)
 			{
 				memset(dst, 0, dstSize);
-				dst += channelCount;
+				dst += dstChannelCount;
 
 				*head += readBytes;
 			}
@@ -253,17 +245,17 @@ WavFile& WavFile::operator=(WavFile &&rhs)
 	return *this;
 }
 
-u32 WavFile::loadDataFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation)
+u32 WavFile::loadDataFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener)
 {
-	return WavFileCpp::writeData<float, float>(m_data, &m_head, srcChannels, m_dataSize, (f32*)pData, bufferFrameCount, dstChannels, intensity, direction, rotation);
+	return WavFileCpp::writeData<float, float>(m_data, &m_head, srcChannels, m_dataSize, (f32*)pData, bufferFrameCount, dstChannelCount, intensity, directions, directionToListener);
 }
 
-u32 WavFile::loadDataShort(u32 bufferFrameCount, u32 srcChannels, u8* pData, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation)
+u32 WavFile::loadDataShort(u32 bufferFrameCount, u32 srcChannels, u8* pData, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener)
 {
-	return WavFileCpp::writeData<s16, s16>(m_data, &m_head, srcChannels, m_dataSize, (s16*)pData, bufferFrameCount, dstChannels, intensity, direction, rotation);
+	return WavFileCpp::writeData<s16, s16>(m_data, &m_head, srcChannels, m_dataSize, (s16*)pData, bufferFrameCount, dstChannelCount, intensity, directions, directionToListener);
 }
 
-u32 WavFile::loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation)
+u32 WavFile::loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener)
 {
-	return WavFileCpp::writeData<s16, float>(m_data, &m_head, srcChannels, m_dataSize, (f32*)pData, bufferFrameCount, dstChannels, intensity, direction, rotation);
+	return WavFileCpp::writeData<s16, float>(m_data, &m_head, srcChannels, m_dataSize, (f32*)pData, bufferFrameCount, dstChannelCount, intensity, directions, directionToListener);
 }

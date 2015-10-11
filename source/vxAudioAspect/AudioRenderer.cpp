@@ -28,6 +28,11 @@ SOFTWARE.
 
 namespace Audio
 {
+	namespace RendererCpp
+	{
+		const f32 g_minIntensity = 0.003f;
+	}
+
 	f32 idlFunction(f32 s, f32 dp)
 	{
 		const f32 speedOfSound = 343.0f;
@@ -63,24 +68,25 @@ namespace Audio
 		m_position(),
 		m_fp(nullptr),
 		m_id(nullptr),
-		m_waitTime(desc.waitTime), 
-		m_accum(0), 
-		m_bufferFrames(desc.bufferFrames), 
-		m_dstChannels(),
-		m_dstBytes(desc.dstBytes) 
+		m_waitTime(desc.waitTime),
+		m_accum(0),
+		m_bufferFrames(desc.bufferFrames)
+		//m_dstChannelCount(2)
 	{
 		desc.audioClient = nullptr;
 		desc.audioRenderClient = nullptr;
 
-		m_dstChannels = AudioChannels::Channel2;
+		/*m_dstChannels = AudioChannels::Channel2;
 		if (desc.dstChannels == 6)
 		{
 			m_dstChannels = AudioChannels::Channel6;
+			m_dstChannelCount = 6;
 		}
 		else if (desc.dstChannels == 8)
 		{
 			m_dstChannels = AudioChannels::Channel8;
-		}
+			m_dstChannelCount = 8;
+		}*/
 	}
 
 	Renderer::Renderer(Renderer &&rhs)
@@ -91,9 +97,7 @@ namespace Audio
 		m_id(rhs.m_id),
 		m_waitTime(rhs.m_waitTime),
 		m_accum(rhs.m_accum),
-		m_bufferFrames(rhs.m_bufferFrames),
-		m_dstChannels(rhs.m_dstChannels),
-		m_dstBytes(rhs.m_dstBytes)
+		m_bufferFrames(rhs.m_bufferFrames)
 	{
 		rhs.m_renderClient = nullptr;
 		rhs.m_audioClient = nullptr;
@@ -116,8 +120,6 @@ namespace Audio
 			std::swap(m_waitTime, rhs.m_waitTime);
 			std::swap(m_accum, rhs.m_accum);
 			std::swap(m_bufferFrames, rhs.m_bufferFrames);
-			std::swap(m_dstChannels, rhs.m_dstChannels);
-			std::swap(m_dstBytes, rhs.m_dstBytes);
 		}
 		return *this;
 	}
@@ -137,30 +139,30 @@ namespace Audio
 		}
 	}
 
-	void Renderer::start(const __m128 &listenerPosition, const __m128 &listenerRotation)
+	void Renderer::start(u8 dstChannelCount, const __m128(&directions)[8], const __m128 &listenerPosition)
 	{
-		BYTE *pData = nullptr;
-		auto hr = m_renderClient->GetBuffer(m_bufferFrames, &pData);
-		if (hr == 0)
+		auto directionToListener = _mm_sub_ps(listenerPosition, m_position);
+		auto distance = vx::length3(directionToListener);
+		auto intensity = 1.0f / (1.0f + distance.m128_f32[0] * distance.m128_f32[0]);
+		if (intensity >= RendererCpp::g_minIntensity)
 		{
-			//const f32 maxDist = 20.0f;
-			//const f32 refDist = 5.0f;
+			BYTE *pData = nullptr;
+			auto hr = m_renderClient->GetBuffer(m_bufferFrames, &pData);
+			if (hr == 0)
+			{
+				//const f32 maxDist = 20.0f;
+				//const f32 refDist = 5.0f;
+				directionToListener = _mm_div_ps(directionToListener, distance);
+				auto readCount = readBuffer(pData, m_bufferFrames, dstChannelCount, intensity, directions, directionToListener);
 
-			auto directionToListener =  _mm_sub_ps(listenerPosition, m_position);
-			auto distance = vx::length3(directionToListener);
-			directionToListener = _mm_div_ps(directionToListener, distance);
-
-			auto intensity = 1.0f / (1.0f + distance.m128_f32[0] * distance.m128_f32[0]);
-
-			auto read_count = readBuffer(pData, m_bufferFrames, intensity, &directionToListener, &listenerRotation);
-
-			hr = m_renderClient->ReleaseBuffer((UINT32)read_count, 0);
+				hr = m_renderClient->ReleaseBuffer(readCount, 0);
+			}
 		}
 
-		hr = m_audioClient->Start();
+		m_audioClient->Start();
 	}
 
-	void Renderer::play(f32 dt, const __m128 &listenerPosition, const __m128 &listenerRotation)
+	void Renderer::play(u8 dstChannelCount, f32 dt, const __m128(&directions)[8], const __m128 &listenerPosition)
 	{
 		m_accum += dt;
 
@@ -171,23 +173,26 @@ namespace Audio
 
 			auto directionToListener = _mm_sub_ps(listenerPosition, m_position);
 			auto distance = vx::length3(directionToListener);
-			directionToListener = _mm_div_ps(directionToListener, distance);
-
-			//auto tmpdistance = vx::clamp(distance, refDist, maxDist);
-			//auto intensity = refDist / (refDist + (tmpdistance - refDist));
 			auto intensity = 1.0f / (1.0f + distance.m128_f32[0] * distance.m128_f32[0]);
 
-			u32 numFramesPadding = 0;
-			auto hr = m_audioClient->GetCurrentPadding(&numFramesPadding);
+			if (intensity >= RendererCpp::g_minIntensity)
+			{
+				directionToListener = _mm_div_ps(directionToListener, distance);
 
-			UINT32 numAvailableFrames = m_bufferFrames - numFramesPadding;
+				//auto tmpdistance = vx::clamp(distance, refDist, maxDist);
+				//auto intensity = refDist / (refDist + (tmpdistance - refDist));
 
-			u8* data = nullptr;
-			hr = m_renderClient->GetBuffer(numAvailableFrames, &data);
+				u32 numFramesPadding = 0;
+				auto hr = m_audioClient->GetCurrentPadding(&numFramesPadding);
 
-			auto read_count = readBuffer(data, numAvailableFrames, intensity, &directionToListener, &listenerRotation);
+				UINT32 numAvailableFrames = m_bufferFrames - numFramesPadding;
 
-			hr = m_renderClient->ReleaseBuffer((UINT32)read_count, 0);
+				u8* data = nullptr;
+				hr = m_renderClient->GetBuffer(numAvailableFrames, &data);
+
+				auto readCount = readBuffer(data, numAvailableFrames, dstChannelCount, intensity, directions, directionToListener);
+				hr = m_renderClient->ReleaseBuffer(readCount, 0);
+			}
 
 			m_accum -= m_waitTime;
 		}

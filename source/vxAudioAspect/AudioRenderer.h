@@ -35,8 +35,6 @@ namespace Audio
 	struct RendererDesc
 	{
 		u32 bufferFrames;
-		u16 dstChannels; 
-		u16 dstBytes;
 		IAudioRenderClient* audioRenderClient;
 		IAudioClient* audioClient;
 		f32 waitTime;
@@ -44,7 +42,7 @@ namespace Audio
 
 	class Renderer
 	{
-		typedef u32(*LoadDataFunction)(void*, u32, u32, u8*, AudioChannels, f32, const __m128*, const __m128*);
+		typedef u32(*LoadDataFunction)(void* p, u32 bufferFrameCount, u32 srcChannels, u8* pData, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener);
 
 		IAudioRenderClient* m_renderClient; // 8
 		IAudioClient* m_audioClient;		// 8
@@ -57,11 +55,9 @@ namespace Audio
 		__m128 m_position;				// 16
 		LoadDataFunction m_fp;			// 8
 		u32* m_id;						// 8
-		AudioChannels m_dstChannels;	// 1
-		u16 m_dstBytes;					// 2
 
 	public:
-		Renderer() :m_renderClient(nullptr), m_audioClient(nullptr), m_fp(nullptr), m_id(nullptr), m_waitTime(0), m_accum(0), m_bufferFrames(0), m_dstChannels(), m_dstBytes(0) {}
+		Renderer() :m_renderClient(nullptr), m_audioClient(nullptr), m_fp(nullptr), m_id(nullptr), m_waitTime(0), m_accum(0), m_bufferFrames(0) {}
 		explicit Renderer(RendererDesc &&desc);
 		Renderer(const Renderer &rhs) = delete;
 		Renderer(Renderer &&rhs);
@@ -73,11 +69,11 @@ namespace Audio
 
 		void destroy();
 
-		virtual u32 readBuffer(u8* buffer, u32 frameCount, f32 intensity, const __m128* direction, const __m128* rotation) = 0;
+		virtual u32 readBuffer(u8* buffer, u32 frameCount, u8 dstChannnelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener) = 0;
 		virtual void update() = 0;
 
-		void start(const __m128 &listenerPosition, const __m128 &listenerDirection);
-		void play(f32 dt, const __m128 &listenerPosition, const __m128 &listenerRotation);
+		void start(u8 dstChannelCount, const __m128(&directions)[8], const __m128 &listenerPosition);
+		void play(u8 dstChannelCount, f32 dt, const __m128(&directions)[8], const __m128 &listenerPosition);
 		void stop();
 
 		virtual u32 eof() const = 0;

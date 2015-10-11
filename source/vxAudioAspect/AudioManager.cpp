@@ -30,13 +30,47 @@ SOFTWARE.
 #include "WavFile.h"
 #include <vxEngineLib/AudioFile.h>
 #include <audiopolicy.h>
+#include <vxEngineLib/CpuProfiler.h>
 
 namespace Audio
 {
-	const u32 g_maxAudioSources = 128;
+	const u32 g_maxAudioSources = 16;
 
 	const u32 g_mask2Channel = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
 	const u32 g_mask8Channel = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT | SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
+
+	namespace AudioManagerCpp
+	{
+		const __m128 g_channelDirections[8] =
+		{
+			// front left
+			{ 0.707106769f, 0, 0.707106769f, 0 },
+			// front right
+			{ -0.707106769f, 0, 0.707106769f, 0 },
+			// front center
+			{ 0, 0, 1, 0 },
+			// low frequency
+			{ 0, 0, 0, 0 },
+			// back left
+			{ 0.707106769f, 0, -0.707106769f, 0 },
+			// back right
+			{ -0.707106769f, 0, -0.707106769f, 0 },
+			// side left
+			{ 1, 0, 0, 0 },
+			// side right
+			{ -1, 0, 0, 0 }
+		};
+
+		const u8 g_dstChannelIndices[][8]
+		{
+			// 2 channels
+			{ 6, 7, 0, 0, 0, 0, 0, 0 },
+			// 6 channels
+			{ 6, 7, 0, 0, 0, 0, 0, 0 },
+			// 8 channels
+			{ 0, 1, 2, 3, 4, 5, 6, 7 },
+		};
+	}
 
 	struct AudioManager::Entry
 	{
@@ -45,11 +79,46 @@ namespace Audio
 	};
 
 	AudioManager::AudioManager()
-		:m_device(nullptr),
+		: m_channelDirections(),
+		m_channelIndices(),
+		m_dstChannelCount(0),
+		m_device(nullptr),
 		m_sessionManager(nullptr),
 		m_sessionControl(nullptr)
 	{
 		m_sessionGUID = { 1337, 101, 101, { 0, 0,  0,  0,  0,  0,  0,  0 } };
+	}
+
+	bool AudioManager::getWavFormat(void* format)
+	{
+		IAudioClient* client = nullptr;
+		HRESULT hr = m_device->Activate(
+			__uuidof(IAudioClient),
+			CLSCTX_ALL,
+			nullptr,
+			(void**)&client);
+
+		SCOPE_EXIT
+		{
+			client->Release();
+		};
+
+		bool result = true;
+		WAVEFORMATEXTENSIBLE* closestFormat = nullptr;
+		hr = client->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, (WAVEFORMATEX*)format, (WAVEFORMATEX**)&closestFormat);
+		if (hr != 0)
+		{
+			if (closestFormat == nullptr)
+			{
+				result = false;
+			}
+			else
+			{
+				*(WAVEFORMATEXTENSIBLE*)format = *closestFormat;
+			}
+		}
+
+		return result;
 	}
 
 	bool AudioManager::initialize()
@@ -91,12 +160,33 @@ namespace Audio
 		wavFormat.Samples.wSamplesPerBlock = 32;
 		wavFormat.Samples.wValidBitsPerSample = 32;
 		wavFormat.Samples.wReserved = 32;
-		wavFormat.dwChannelMask = g_mask2Channel;
+		wavFormat.dwChannelMask = g_mask8Channel;
 		wavFormat.SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+
+		if (!getWavFormat(&wavFormat))
+			return false;
 
 		m_entries = std::make_unique<Audio::WavRenderer[]>(g_maxAudioSources);
 		m_entryIndices = std::make_unique<u32[]>(g_maxAudioSources);
 		m_freelist.create((u8*)m_entryIndices.get(), g_maxAudioSources, sizeof(u32));
+
+		m_dstBytesPerSample = wavFormat.Format.wBitsPerSample / 8;
+
+		static_assert(sizeof(m_channelIndices) == sizeof(AudioManagerCpp::g_dstChannelIndices[0]), "");
+		switch (wavFormat.Format.nChannels)
+		{
+		case 2:
+			memcpy(m_channelIndices, AudioManagerCpp::g_dstChannelIndices[0], sizeof(m_channelIndices));
+			break;
+		case 6:
+			memcpy(m_channelIndices, AudioManagerCpp::g_dstChannelIndices[1], sizeof(m_channelIndices));
+			break;
+		case 8:
+			memcpy(m_channelIndices, AudioManagerCpp::g_dstChannelIndices[2], sizeof(m_channelIndices));
+			break;
+		default:
+			break;
+		}
 
 		for (u32 i = 0; i < g_maxAudioSources; ++i)
 		{
@@ -113,16 +203,6 @@ namespace Audio
 
 			MinimumDevicePeriod *= 10;
 
-			//WAVEFORMATEXTENSIBLE* mixFormat;
-			//client->GetMixFormat((WAVEFORMATEX**)&mixFormat);
-
-			WAVEFORMATEXTENSIBLE* closestFormat = nullptr;
-			hr = client->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, (WAVEFORMATEX*)&wavFormat, (WAVEFORMATEX**)&closestFormat);
-			if (hr != 0)
-			{
-				wavFormat = *closestFormat;
-			}
-
 			hr = client->Initialize(
 				AUDCLNT_SHAREMODE_SHARED,
 				0,
@@ -130,6 +210,8 @@ namespace Audio
 				0,
 				(WAVEFORMATEX*)&wavFormat,
 				&m_sessionGUID);
+
+			m_dstChannelCount = wavFormat.Format.nChannels;
 
 			//CoTaskMemFree(mixFormat);
 
@@ -147,8 +229,6 @@ namespace Audio
 			desc.audioClient = client;
 			desc.audioRenderClient = renderClient;
 			desc.bufferFrames = bufferFrames;
-			desc.dstBytes = wavFormat.Format.wBitsPerSample / 8;
-			desc.dstChannels = wavFormat.Format.nChannels;
 			desc.waitTime = waitTime;
 
 			m_entries[i] = Audio::WavRenderer(std::move(desc));
@@ -194,22 +274,15 @@ namespace Audio
 		}
 	}
 
-	void AudioManager::update(f32 dt, const __m128 &listenerPosition, const __m128 &listenerDirection)
+	void AudioManager::update(f32 dt, const __m128 &listenerPosition, CpuProfiler* profiler)
 	{
-		for (auto &it : m_cleanup)
-		{
-			it->stop();
-			auto index = it - m_entries.get();
-			m_freelist.eraseEntry((u8*)&m_entryIndices[index], (u8*)m_entryIndices.get(), sizeof(u32), g_maxAudioSources);
-		}
-		m_cleanup.clear();
-
+		profiler->pushMarker("audio update entries");
 		for (auto &it : m_activeEntries[0])
 		{
 			if (!it->eof())
 			{
 				it->update();
-				it->play(dt, listenerPosition, listenerDirection);
+				it->play(m_dstChannelCount, dt, m_channelDirections, listenerPosition);
 
 				m_activeEntries[1].push_back(std::move(it));
 			}
@@ -219,8 +292,28 @@ namespace Audio
 			}
 		}
 		m_activeEntries[0].clear();
+		profiler->popMarker();
 
 		m_activeEntries[0].swap(m_activeEntries[1]);
+
+		for (auto &it : m_cleanup)
+		{
+			it->stop();
+			auto index = it - m_entries.get();
+			m_freelist.eraseEntry((u8*)&m_entryIndices[index], (u8*)m_entryIndices.get(), sizeof(u32), g_maxAudioSources);
+		}
+		m_cleanup.clear();
+	}
+
+	void AudioManager::updateRotation(const __m128 &listenerQRotation)
+	{
+		for (u32 chn = 0; chn < m_dstChannelCount; ++chn)
+		{
+			auto channelIndex = m_channelIndices[chn];
+			auto channelDir = AudioManagerCpp::g_channelDirections[channelIndex];
+
+			m_channelDirections[chn] = vx::quaternionRotation(channelDir, listenerQRotation);
+		}
 	}
 
 	void AudioManager::addAudioFile(const vx::StringID &sid, const AudioFile &file)
@@ -234,7 +327,7 @@ namespace Audio
 		m_loadedEntries.insert(std::move(tmp), std::move(entry));
 	}
 
-	void AudioManager::playSound(const vx::StringID &sid, const vx::float3 &position, const __m128 &listenerPosition, const __m128 &listenerDirection, u32* id)
+	void AudioManager::playSound(const vx::StringID &sid, const vx::float3 &position, const __m128 &listenerPosition, u32* id)
 	{
 		const auto entry = m_loadedEntries.find(sid);
 		if (entry == m_loadedEntries.end())
@@ -253,9 +346,9 @@ namespace Audio
 		auto index = ptr - m_entryIndices.get();
 
 		auto renderer = &m_entries[index];
-		renderer->initialize(entry->file, entry->format, position, id);
+		renderer->initialize(entry->file, entry->format, m_dstBytesPerSample, position, id);
 
-		renderer->start(listenerPosition, listenerDirection);
+		renderer->start(m_dstChannelCount, m_channelDirections, listenerPosition);
 		m_activeEntries[0].push_back(std::move(renderer));
 
 		*id = index;

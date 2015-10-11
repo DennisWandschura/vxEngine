@@ -43,11 +43,11 @@ public:
 	WavFile& operator=(const WavFile &rhs);
 	WavFile& operator=(WavFile &&rhs);
 
-	u32 loadDataFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation);
+	u32 loadDataFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener);
 
-	u32 loadDataShort(u32 bufferFrameCount, u32 srcChannels, u8* pData, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation);
+	u32 loadDataShort(u32 bufferFrameCount, u32 srcChannels, u8* pData, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener);
 
-	u32 loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation);
+	u32 loadDataShortToFloat(u32 bufferFrameCount, u32 srcChannels, u8* pData, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener);
 
 	u32 eof() const
 	{

@@ -29,6 +29,7 @@ struct WavFormat;
 class AudioFile;
 struct IAudioSessionManager2;
 struct IAudioSessionControl;
+class CpuProfiler;
 
 #include <vxLib/math/Vector.h>
 #include "AudioWavRenderer.h"
@@ -45,8 +46,13 @@ namespace Audio
 	{
 		struct Entry;
 
+		__m128 m_channelDirections[8];
+		u8 m_channelIndices[8];
 		std::vector<Audio::WavRenderer*> m_activeEntries[2];
 		std::vector<Audio::WavRenderer*> m_cleanup;
+		u8 m_dstChannelCount;
+		u8 m_dstBytesPerSample;
+		u8 m_padding[2];
 		vx::sorted_vector<vx::StringID, Entry> m_loadedEntries;
 		Freelist m_freelist;
 		std::unique_ptr<Audio::WavRenderer[]> m_entries;
@@ -56,6 +62,8 @@ namespace Audio
 		GUID m_sessionGUID;
 		std::unique_ptr<u32[]> m_entryIndices;
 
+		bool getWavFormat(void* format);
+
 	public:
 		AudioManager();
 		~AudioManager();
@@ -63,11 +71,12 @@ namespace Audio
 		bool initialize();
 		void shutdown();
 
-		void update(f32 dt, const __m128 &listenerPosition, const __m128 &listenerDirection);
+		void update(f32 dt, const __m128 &listenerPosition, CpuProfiler* profiler);
+		void updateRotation(const __m128 &listenerQRotation);
 
 		void addAudioFile(const vx::StringID &sid, const AudioFile &file);
 
-		void playSound(const vx::StringID &sid, const vx::float3 &srcPosition, const __m128 &listenerPosition, const __m128 &listenerDirection, u32* id);
+		void playSound(const vx::StringID &sid, const vx::float3 &srcPosition, const __m128 &listenerPosition, u32* id);
 
 		void setMasterVolume(f32 volume);
 

@@ -45,9 +45,9 @@ namespace Audio
 		WavRenderer& operator=(const WavRenderer&) = delete;
 		WavRenderer& operator=(WavRenderer &&rhs);
 
-		void initialize(const WavFile &wavFile, const WavFormat &format, const vx::float3 &position, u32* id);
+		void initialize(const WavFile &wavFile, const WavFormat &format, u32 dstBytesPerSample, const vx::float3 &position, u32* id);
 
-		u32 readBuffer(u8* buffer, u32 frameCount, f32 intensity, const __m128* direction, const __m128* rotation) override;
+		u32 readBuffer(u8* buffer, u32 frameCount, u8 dstChannnelCount, f32 intensity, const __m128(&directios)[8], const __m128 &directionToListener) override;
 
 		void update() override
 		{

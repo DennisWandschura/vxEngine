@@ -5,22 +5,22 @@ namespace Audio
 {
 	namespace WavRendererCpp
 	{
-		u32 loadDataFloat(void* p, u32 frameCount, u32 srcChannels, u8* data, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation)
+		u32 loadDataFloat(void* p, u32 bufferFrameCount, u32 srcChannels, u8* data, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener)
 		{
 			WavFile* ptr = (WavFile*)p;
-			return ptr->loadDataFloat(frameCount, srcChannels, data, dstChannels, intensity, direction, rotation);
+			return ptr->loadDataFloat(bufferFrameCount, srcChannels, data, dstChannelCount, intensity, directions, directionToListener);
 		}
 
-		u32 loadDataShort(void* p, u32 frameCount, u32 srcChannels, u8* data, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation)
+		u32 loadDataShort(void* p, u32 bufferFrameCount, u32 srcChannels, u8* data, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener)
 		{
 			WavFile* ptr = (WavFile*)p;
-			return ptr->loadDataShort(frameCount, srcChannels, data, dstChannels, intensity, direction, rotation);
+			return ptr->loadDataShort(bufferFrameCount, srcChannels, data, dstChannelCount, intensity, directions, directionToListener);
 		}
 
-		u32 loadDataShortToFloat(void* p, u32 frameCount, u32 srcChannels, u8* data, AudioChannels dstChannels, f32 intensity, const __m128* direction, const __m128* rotation)
+		u32 loadDataShortToFloat(void* p, u32 bufferFrameCount, u32 srcChannels, u8* data, u8 dstChannelCount, f32 intensity, const __m128(&directions)[8], const __m128 &directionToListener)
 		{
 			WavFile* ptr = (WavFile*)p;
-			return ptr->loadDataShortToFloat(frameCount, srcChannels, data, dstChannels, intensity, direction, rotation);
+			return ptr->loadDataShortToFloat(bufferFrameCount, srcChannels, data, dstChannelCount, intensity, directions, directionToListener);
 		}
 	}
 
@@ -63,7 +63,7 @@ namespace Audio
 		return *this;
 	}
 
-	void WavRenderer::initialize(const WavFile &wavFile, const WavFormat &format, const vx::float3 &position, u32* id)
+	void WavRenderer::initialize(const WavFile &wavFile, const WavFormat &format, u32 dstBytesPerSample, const vx::float3 &position, u32* id)
 	{
 		m_wavFile = wavFile;
 		m_format = format;
@@ -73,11 +73,11 @@ namespace Audio
 		auto bytesPerSample = m_format.m_bytesPerSample;
 		if (bytesPerSample == 2)
 		{
-			if (m_dstBytes == 2)
+			if (dstBytesPerSample == 2)
 			{
 				m_fp = WavRendererCpp::loadDataShort;
 			}
-			else if (m_dstBytes == 4)
+			else if (dstBytesPerSample == 4)
 			{
 				m_fp = WavRendererCpp::loadDataShortToFloat;
 			}
@@ -88,9 +88,9 @@ namespace Audio
 		}
 	}
 
-	u32 WavRenderer::readBuffer(u8* buffer, u32 frameCount, f32 intensity, const __m128* direction, const __m128* rotation)
+	u32 WavRenderer::readBuffer(u8* buffer, u32 frameCount, u8 dstChannnelCount, f32 intensity, const __m128(&directios)[8], const __m128 &directionToListener)
 	{
-		return m_fp(&m_wavFile, frameCount, m_format.m_channels, buffer, m_dstChannels, intensity, direction, rotation);
+		return m_fp(&m_wavFile, frameCount, m_format.m_channels, buffer, dstChannnelCount, intensity, directios, directionToListener);
 	}
 
 	u32 WavRenderer::eof() const

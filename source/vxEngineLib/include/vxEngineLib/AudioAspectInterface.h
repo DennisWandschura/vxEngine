@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+class CpuProfiler;
+
 #include <vxlib/math/vector.h>
 #include <vxEngineLib/MessageListener.h>
 #include <vxEngineLib/ResourceAspectInterface.h>
@@ -36,7 +38,7 @@ public:
 	virtual bool initialize(ResourceAspectInterface* resourceAspect) = 0;
 	virtual void shutdown() = 0;
 
-	virtual void update(f32 dt) = 0;
+	virtual void update(f32 dt, CpuProfiler* profiler) = 0;
 
 	virtual void setMasterVolume(f32 volume) = 0;
 
